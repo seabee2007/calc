@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ResourceCard from '../components/resources/ResourceCard';
 import finishConcreteImage from '../assets/images/finishconcrete.jpg';
+import rebarImage from '../assets/images/rebar.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const Resources: React.FC = () => {
     {
       title: 'Reinforcement Techniques',
       description: 'Explore different reinforcement methods for concrete structures, including rebar placement, fiber reinforcement, and mesh installation.',
-      imageUrl: 'https://images.pexels.com/photos/1451958/pexels-photo-1451958.jpeg',
+      imageUrl: rebarImage,
       link: '/resources/reinforcement'
     },
     {
