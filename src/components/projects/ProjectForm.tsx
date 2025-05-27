@@ -1,15 +1,15 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Save, X } from 'lucide-react';
+import { Save, X, Calendar } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
 import { Project } from '../../types';
 
 interface ProjectFormProps {
-  onSubmit: (data: { name: string; description: string }) => void;
+  onSubmit: (data: { name: string; description: string; pourDate?: string }) => void;
   onCancel: () => void;
-  initialData?: Pick<Project, 'name' | 'description'>;
+  initialData?: Pick<Project, 'name' | 'description' | 'pourDate'>;
   isEditing?: boolean;
   isModal?: boolean;
 }
@@ -24,7 +24,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: initialData || {
       name: '',
-      description: ''
+      description: '',
+      pourDate: new Date().toISOString().split('T')[0]
     }
   });
 
@@ -66,6 +67,23 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   {...register('description')}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pour Date
+                </label>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    icon={<Calendar size={18} />}
+                    {...register('pourDate')}
+                    fullWidth
+                  />
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Set the concrete pour date to track strength development
+                </p>
               </div>
               
               <div className="flex justify-end space-x-3 pt-2">
@@ -118,6 +136,23 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             {...register('description')}
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Pour Date
+          </label>
+          <div className="relative">
+            <Input
+              type="date"
+              icon={<Calendar size={18} />}
+              {...register('pourDate')}
+              fullWidth
+            />
+          </div>
+          <p className="mt-1 text-sm text-gray-500">
+            Set the concrete pour date to track strength development
+          </p>
         </div>
         
         <div className="flex justify-end space-x-3 pt-2">
