@@ -35,109 +35,180 @@ const WeatherEffects: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Introduction</h2>
-            <p className="text-gray-700 mb-6">
-              Weather conditions significantly impact concrete curing and final strength. Understanding these effects is crucial for successful concrete placement.
+            <p className="text-gray-700 mb-4">
+              Concrete gains strength through hydration—a chemical reaction between cement and water. If conditions are too hot, cold, windy, or dry, that reaction can be disrupted, leading to surface cracking, delayed strength gain, or even frost damage. Proactive planning and protective measures help ensure concrete cures uniformly and reaches its intended performance.
             </p>
+          </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Hot Weather Concreting</h3>
-            <div className="space-y-4 mb-6">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Hot Weather Concreting</h2>
+            
+            <div className="space-y-6">
               <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Temperature Effects</h4>
-                <p className="text-gray-700">
-                  High temperatures accelerate hydration and can lead to rapid moisture loss:
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Temperature Effects</h3>
+                <p className="text-gray-700 mb-2">
+                  When ambient temperatures climb above about 80°F (27°C), concrete behaves differently:
                 </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Every 10°F increase reduces set time by up to 30%</li>
-                  <li>Increased risk of plastic shrinkage cracking</li>
-                  <li>Higher water demand for workability</li>
-                  <li>Potential for reduced final strength</li>
+                <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                  <li><strong>Accelerated hydration:</strong> For every 10°F increase, the set time can shorten by up to 30%, giving less working time</li>
+                  <li><strong>Rapid moisture loss:</strong> High heat and low humidity pull water out of the mix, risking plastic shrinkage cracks</li>
+                  <li><strong>Increased water demand:</strong> To maintain the same slump, more water is often added—this can reduce ultimate strength</li>
+                  <li><strong>Potential strength reduction:</strong> Overly rapid curing can create a less dense microstructure, lowering 28-day strength by 5–10%</li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Preventive Measures</h4>
-                <p className="text-gray-700">
-                  Steps to mitigate hot weather effects:
-                </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Use chilled mixing water or ice</li>
-                  <li>Apply evaporation retarders</li>
-                  <li>Schedule pours for cooler hours</li>
-                  <li>Use appropriate retarding admixtures</li>
-                  <li>Protect aggregates from direct sun</li>
-                </ul>
-              </div>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Cold Weather Concreting</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Freezing Prevention</h4>
-                <p className="text-gray-700">
-                  Critical measures to prevent freezing damage:
-                </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Maintain temperature above 40°F for first 48 hours</li>
-                  <li>Use insulation blankets or heated enclosures</li>
-                  <li>Monitor internal concrete temperature</li>
-                  <li>Protect against sudden temperature changes</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Heating Methods</h4>
-                <p className="text-gray-700">
-                  Techniques for cold weather placement:
-                </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Heat mixing water (max 140°F)</li>
-                  <li>Use insulated forms</li>
-                  <li>Apply indirect heating</li>
-                  <li>Consider accelerating admixtures</li>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Preventive Measures</h3>
+                <ul className="list-disc pl-5 space-y-3 text-gray-700">
+                  <li>
+                    <strong>Use chilled mixing water or ice</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Target batch water temperature of 50–60°F (10–16°C)</li>
+                      <li>For every 10°F reduction in water temperature, set times slow by roughly 10%</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Apply evaporation retarders</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Spray thin curing compound immediately after finishing</li>
+                      <li>Retarder dosage typically 100–200 mL per 100 kg of cement</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Schedule pours for cooler hours</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Early morning or late evening placement avoids peak heat</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Use appropriate retarding admixtures</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Typical dosage: 0.5–1.0% by cement weight</li>
+                      <li>Extends workable time by 1–3 hours</li>
+                    </ul>
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <div className="bg-blue-50/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-blue-900 mb-3">Critical Weather Factors</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Temperature</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Affects setting time</li>
-                  <li>Influences strength development</li>
-                  <li>Impacts water demand</li>
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Cold Weather Concreting</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Freezing Prevention</h3>
+                <p className="text-gray-700 mb-2">
+                  When temperatures drop below 40°F (4°C), fresh concrete is vulnerable to frost damage for the first 48–72 hours:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                  <li>Maintain internal temperature at or above 50°F (10°C) until initial set</li>
+                  <li>Use insulated blankets or heated enclosures once concrete is placed</li>
+                  <li>Monitor internal concrete temperature with embedded thermometers</li>
+                  <li>Protect against sudden temperature swings</li>
                 </ul>
               </div>
-              
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Wind</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Increases evaporation rate</li>
-                  <li>Affects surface finishing</li>
-                  <li>Can cause plastic shrinkage</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Humidity</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Controls moisture loss</li>
-                  <li>Affects curing conditions</li>
-                  <li>Impacts surface durability</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Solar Radiation</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Increases surface temperature</li>
-                  <li>Creates temperature gradients</li>
-                  <li>Affects moisture evaporation</li>
+
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Heating Methods</h3>
+                <ul className="list-disc pl-5 space-y-3 text-gray-700">
+                  <li>
+                    <strong>Heat mixing water</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Maximum 140°F (60°C) to avoid flash setting</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Use insulated forms</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Plywood lined with rigid foam (R-10 or higher)</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Apply indirect heating</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>Place heaters at least 5 ft from forms</li>
+                      <li>Warm air around slab without drying surface</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Consider accelerating admixtures</strong>
+                    <ul className="list-circle pl-5 mt-1 space-y-1">
+                      <li>1–2% calcium chloride (if steel is protected)</li>
+                      <li>Non-chloride accelerators for 20–40% faster strength gain</li>
+                    </ul>
+                  </li>
                 </ul>
               </div>
             </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Critical Weather Factors</h2>
+            
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact on Concrete</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Management Strategies</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Temperature</td>
+                    <td className="px-6 py-4">Sets time and strength gain vary with heat or cold</td>
+                    <td className="px-6 py-4">Adjust w/c ratio, use retarders/accelerators, heat or cool materials</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Wind</td>
+                    <td className="px-6 py-4">Increases surface evaporation → plastic shrinkage cracks</td>
+                    <td className="px-6 py-4">Erect windbreaks, mist water or use curing compounds</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Humidity</td>
+                    <td className="px-6 py-4">Low humidity speeds moisture loss; high humidity slows drying</td>
+                    <td className="px-6 py-4">Monitor local RH; cover slabs with damp burlap or plastic sheeting</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Solar Radiation</td>
+                    <td className="px-6 py-4">Heats surface unevenly → thermal gradients, crazing cracks</td>
+                    <td className="px-6 py-4">Shade pour area, use reflective covers, schedule shaded pours</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Wind Effects</h3>
+                <p className="text-gray-700">
+                  Blustery conditions can double evaporation rates. Holding evaporation below 0.2 kg/m²·h (measured by anemometer and psychrometers) helps prevent surface cracks.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Humidity Impact</h3>
+                <p className="text-gray-700">
+                  Below 50% RH, moisture can bleed out faster than the paste hydrates. In arid climates, fog-spraying or continuous misting maintains a moist surface.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Solar Radiation Effects</h3>
+                <p className="text-gray-700">
+                  Direct sun can heat the top 1 in. of concrete 20–30°F above air temperature. Covering initial set concrete with reflective tarps evens out temperatures and reduces dry-out.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-blue-900 mb-4">Summary</h2>
+            <p className="text-blue-800">
+              By closely monitoring temperature, wind, humidity, and solar load—and by using cooling/heating techniques, admixtures, protective coverings, and well-timed pours—you can control the curing environment. This ensures uniform hydration, minimizes cracking, and achieves the target strength and durability, no matter what the weather brings.
+            </p>
           </div>
         </div>
       </div>
