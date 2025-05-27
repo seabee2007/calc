@@ -5,6 +5,7 @@ import ResourceCard from '../components/resources/ResourceCard';
 import finishConcreteImage from '../assets/images/finishconcrete.jpg';
 import rebarImage from '../assets/images/rebar.jpg';
 import mixingImage from '../assets/images/mixing.jpg';
+import crackImage from '../assets/images/crack.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Resources: React.FC = () => {
     {
       title: 'Common Concrete Problems',
       description: 'Identify and prevent common concrete issues such as cracking, scaling, discoloration, and surface defects through proper preparation and techniques.',
-      imageUrl: 'https://images.pexels.com/photos/7113950/pexels-photo-7113950.jpeg',
+      imageUrl: crackImage,
       link: '/resources/common-problems'
     },
     {
