@@ -11,126 +11,37 @@ const Resources: React.FC = () => {
       title: 'Understanding Concrete Mix Designs',
       description: 'Learn about different concrete mix designs and how to choose the right one for your project based on strength requirements and environmental conditions.',
       imageUrl: 'https://images.pexels.com/photos/2219024/pexels-photo-2219024.jpeg',
-      link: '/resources/mix-designs',
-      content: {
-        introduction: 'Concrete mix design is the process of determining the right proportions of cement, water, aggregates, and admixtures to achieve desired properties in both fresh and hardened concrete.',
-        sections: [
-          {
-            title: 'Basic Mix Components',
-            content: 'The four basic ingredients in concrete are: Portland cement, water, fine aggregates (sand), and coarse aggregates (gravel or crushed stone). Each component plays a crucial role in the final product.',
-            subsections: [
-              {
-                title: 'Portland Cement',
-                content: 'The binding agent that holds concrete together. Different types are available for various applications.'
-              },
-              {
-                title: 'Aggregates',
-                content: 'Make up 60-75% of concrete volume. Quality and gradation significantly impact strength.'
-              },
-              {
-                title: 'Water',
-                content: 'Activates cement hydration. The water-cement ratio is crucial for strength and workability.'
-              }
-            ]
-          },
-          {
-            title: 'Mix Design Methods',
-            content: 'Several established methods exist for proportioning concrete mixes:',
-            subsections: [
-              {
-                title: 'ACI Method',
-                content: 'Most widely used in North America, based on ACI 211.1 standard.'
-              },
-              {
-                title: 'British Method (DOE)',
-                content: 'Popular in UK and Commonwealth countries.'
-              },
-              {
-                title: 'Indian Standard Method',
-                content: 'Based on IS 10262, widely used in South Asia.'
-              }
-            ]
-          }
-        ]
-      }
+      link: '/resources/mix-designs'
     },
     {
       title: 'Weather Effects on Concrete Curing',
       description: 'Discover how weather conditions affect concrete curing and what steps you can take to ensure proper curing in hot, cold, or wet conditions.',
       imageUrl: 'https://images.pexels.com/photos/1463530/pexels-photo-1463530.jpeg',
-      link: '/resources/weather-effects',
-      content: {
-        introduction: 'Weather conditions significantly impact concrete curing and final strength. Understanding these effects is crucial for successful concrete placement.',
-        sections: [
-          {
-            title: 'Hot Weather Concreting',
-            content: 'High temperatures accelerate hydration and can lead to rapid moisture loss.',
-            subsections: [
-              {
-                title: 'Temperature Effects',
-                content: 'Every 10°F increase in temperature can reduce set time by up to 30%.'
-              },
-              {
-                title: 'Preventive Measures',
-                content: 'Using ice water, retarders, and proper curing compounds.'
-              }
-            ]
-          },
-          {
-            title: 'Cold Weather Concreting',
-            content: 'Low temperatures slow hydration and can lead to strength development issues.',
-            subsections: [
-              {
-                title: 'Freezing Prevention',
-                content: 'Concrete must be protected from freezing for at least 24 hours after placement.'
-              },
-              {
-                title: 'Heating Methods',
-                content: 'Using heated water, insulation blankets, and enclosures.'
-              }
-            ]
-          }
-        ]
-      }
+      link: '/resources/weather-effects'
     },
     {
       title: 'Reinforcement Techniques',
       description: 'Explore different reinforcement methods for concrete structures, including rebar placement, fiber reinforcement, and mesh installation.',
       imageUrl: 'https://images.pexels.com/photos/1451958/pexels-photo-1451958.jpeg',
-      link: '/resources/reinforcement',
-      content: {
-        introduction: 'Proper reinforcement is essential for concrete structures to resist tensile forces and prevent cracking.',
-        sections: [
-          {
-            title: 'Steel Reinforcement',
-            content: 'Traditional rebar remains the most common reinforcement method.',
-            subsections: [
-              {
-                title: 'Rebar Grades',
-                content: 'Understanding different strength grades and their applications.'
-              },
-              {
-                title: 'Placement Guidelines',
-                content: 'Proper spacing, coverage, and lap splice requirements.'
-              }
-            ]
-          },
-          {
-            title: 'Alternative Reinforcement',
-            content: 'Modern alternatives to traditional steel reinforcement.',
-            subsections: [
-              {
-                title: 'Fiber Reinforcement',
-                content: 'Steel, synthetic, and natural fibers for crack control.'
-              },
-              {
-                title: 'Welded Wire Mesh',
-                content: 'Pre-fabricated wire mesh for slabs and walls.'
-              }
-            ]
-          }
-        ]
-      }
+      link: '/resources/reinforcement'
+    },
+    {
+      title: 'Proper Concrete Finishing Methods',
+      description: 'Learn about the different techniques for finishing concrete surfaces, from basic troweling to decorative finishes and surface treatments.',
+      imageUrl: 'https://images.pexels.com/photos/3762455/pexels-photo-3762455.jpeg',
+      link: '/resources/proper-finishing'
+    },
+    {
+      title: 'Common Concrete Problems',
+      description: 'Identify and prevent common concrete issues such as cracking, scaling, discoloration, and surface defects through proper preparation and techniques.',
+      imageUrl: 'https://images.pexels.com/photos/7113950/pexels-photo-7113950.jpeg',
+      link: '/resources/common-problems'
+    },
+    {
+      title: 'Admixtures and Their Uses',
+      description: 'Understand the various concrete admixtures available and how they can improve workability, strength, and durability in different conditions.',
+      imageUrl: 'https://images.pexels.com/photos/2422265/pexels-photo-2422265.jpeg',
+      link: '/resources/admixtures'
     }
   ];
 
@@ -205,6 +116,7 @@ const Resources: React.FC = () => {
                       onClick={() => navigate(resource.link)}
                       className="block w-full text-left hover:bg-blue-50 rounded-md p-3 transition-colors"
                     >
+                      
                       <h3 className="font-medium text-blue-600 hover:text-blue-800">
                         {resource.title}
                       </h3>

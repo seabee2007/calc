@@ -8,6 +8,9 @@ import Resources from './pages/Resources';
 import MixDesigns from './pages/resources/MixDesigns';
 import WeatherEffects from './pages/resources/WeatherEffects';
 import Reinforcement from './pages/resources/Reinforcement';
+import ProperFinishing from './pages/resources/ProperFinishing';
+import CommonProblems from './pages/resources/CommonProblems';
+import Admixtures from './pages/resources/Admixtures';
 import MixDesignAdvisor from './pages/MixDesignAdvisor';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
@@ -56,11 +59,14 @@ function App() {
           <Route path="resources/mix-designs" element={<MixDesigns />} />
           <Route path="resources/weather-effects" element={<WeatherEffects />} />
           <Route path="resources/reinforcement" element={<Reinforcement />} />
+          <Route path="resources/proper-finishing" element={<ProperFinishing />} />
+          <Route path="resources/common-problems" element={<CommonProblems />} />
+          <Route path="resources/admixtures" element={<Admixtures />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Chat widget overlay, available on every page */}
