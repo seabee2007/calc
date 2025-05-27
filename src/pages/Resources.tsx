@@ -102,8 +102,10 @@ const Resources: React.FC = () => {
     >
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Concrete Resources</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            Concrete Resources
+          </h1>
+          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
             Helpful guides, tips, and reference materials for concrete work
           </p>
         </div>
@@ -130,14 +132,14 @@ const Resources: React.FC = () => {
           </div>
           
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Latest Articles</h2>
               <ul className="space-y-4">
                 {articleList.map((article, index) => (
                   <li key={index}>
                     <a 
                       href={article.link} 
-                      className="block hover:bg-gray-50 rounded-md p-3 transition-colors"
+                      className="block hover:bg-blue-50 rounded-md p-3 transition-colors"
                     >
                       <h3 className="font-medium text-blue-600 hover:text-blue-800">
                         {article.title}
@@ -149,14 +151,14 @@ const Resources: React.FC = () => {
               </ul>
             </div>
             
-            <div className="bg-blue-50 rounded-lg shadow-md p-6">
+            <div className="bg-blue-50/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
               <h2 className="text-xl font-semibold text-blue-900 mb-4">Need Help?</h2>
               <p className="text-blue-700 mb-4">
                 Have questions about concrete calculations or techniques? Our team is here to help!
               </p>
               <a 
                 href="#" 
-                className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors"
+                className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
               >
                 Contact Support
               </a>
