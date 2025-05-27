@@ -7,7 +7,7 @@ interface ProjectState {
   projects: Project[];
   currentProject: Project | null;
   loading: boolean;
-  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'calculations' | 'pourDate' | 'mixProfile'>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'calculations' | 'mixProfile'>) => Promise<void>;
   updateProject: (projectId: string, projectData: Partial<Project>) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
   setCurrentProject: (projectId: string | null) => void;
@@ -71,6 +71,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           name: project.name,
           description: project.description,
           waste_factor: project.wasteFactor,
+          pour_date: project.pourDate,
           mix_profile: 'standard'
         })
         .select(`
