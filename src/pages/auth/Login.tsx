@@ -1,12 +1,13 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogIn, Mail, Lock } from 'lucide-react';
+import { LogIn, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import { supabase } from '../../lib/supabase';
+import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
 interface LoginForm {
   email: string;
@@ -48,7 +49,6 @@ const Login: React.FC = () => {
       setIsLoading(true);
       setResetError(null);
 
-      // Get the current origin, falling back to window.location.origin if needed
       const origin = window.location.origin || `${window.location.protocol}//${window.location.host}`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(emailValue, {
@@ -67,94 +67,115 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full p-8">
-        <div className="text-center mb-8">
-          <LogIn className="mx-auto h-12 w-12 text-blue-600" />
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
-            <button
-              onClick={() => navigate('/signup')}
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              create a new account
-            </button>
-          </p>
-        </div>
+    <div 
+      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40" />
+      
+      <div className="relative z-10 w-full max-w-md">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          icon={<ArrowLeft size={20} />}
+          className="absolute top-0 left-0 -translate-y-16 text-white hover:text-blue-200"
+        >
+          Back
+        </Button>
 
-        {resetEmailSent ? (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
-            <p className="text-green-800">
-              If an account exists with {emailValue}, password reset instructions have been sent.
-              Please check your email inbox.
+        <Card className="p-8">
+          <div className="text-center mb-8">
+            <LogIn className="mx-auto h-12 w-12 text-blue-600" />
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Or{' '}
+              <button
+                onClick={() => navigate('/signup')}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                create a new account
+              </button>
             </p>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <Input
-              label="Email address"
-              type="email"
-              icon={<Mail className="h-5 w-5 text-gray-400" />}
-              error={errors.email?.message}
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address'
-                }
-              })}
-              fullWidth
-            />
 
-            <div>
+          {resetEmailSent ? (
+            <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
+              <p className="text-green-800">
+                If an account exists with {emailValue}, password reset instructions have been sent.
+                Please check your email inbox.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Input
-                label="Password"
-                type="password"
-                icon={<Lock className="h-5 w-5 text-gray-400" />}
-                error={errors.password?.message}
-                {...register('password', {
-                  required: 'Password is required',
-                  minLength: {
-                    value: 6,
-                    message: 'Password must be at least 6 characters'
+                label="Email address"
+                type="email"
+                icon={<Mail className="h-5 w-5 text-gray-400" />}
+                error={errors.email?.message}
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Invalid email address'
                   }
                 })}
                 fullWidth
               />
-              <div className="mt-2 flex flex-col space-y-2">
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm text-blue-600 hover:text-blue-500 font-medium"
-                >
-                  Forgot your password?
-                </button>
-                {resetError && (
-                  <p className="text-sm text-red-600">
-                    {resetError}
-                  </p>
-                )}
+
+              <div>
+                <Input
+                  label="Password"
+                  type="password"
+                  icon={<Lock className="h-5 w-5 text-gray-400" />}
+                  error={errors.password?.message}
+                  {...register('password', {
+                    required: 'Password is required',
+                    minLength: {
+                      value: 6,
+                      message: 'Password must be at least 6 characters'
+                    }
+                  })}
+                  fullWidth
+                />
+                <div className="mt-2 flex flex-col space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                  >
+                    Forgot your password?
+                  </button>
+                  {resetError && (
+                    <p className="text-sm text-red-600">
+                      {resetError}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {errors.root && (
-              <p className="text-sm text-red-600 text-center">
-                {errors.root.message}
-              </p>
-            )}
+              {errors.root && (
+                <p className="text-sm text-red-600 text-center">
+                  {errors.root.message}
+                </p>
+              )}
 
-            <Button
-              type="submit"
-              fullWidth
-              isLoading={isLoading}
-              icon={<LogIn size={18} />}
-            >
-              Sign in
-            </Button>
-          </form>
-        )}
-      </Card>
+              <Button
+                type="submit"
+                fullWidth
+                isLoading={isLoading}
+                icon={<LogIn size={18} />}
+              >
+                Sign in
+              </Button>
+            </form>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };
