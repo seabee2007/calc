@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ResourceCard from '../components/resources/ResourceCard';
 import finishConcreteImage from '../assets/images/finishconcrete.jpg';
 import rebarImage from '../assets/images/rebar.jpg';
+import mixingImage from '../assets/images/mixing.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Resources: React.FC = () => {
     {
       title: 'Understanding Concrete Mix Designs',
       description: 'Learn about different concrete mix designs and how to choose the right one for your project based on strength requirements and environmental conditions.',
-      imageUrl: 'https://images.pexels.com/photos/2219024/pexels-photo-2219024.jpeg',
+      imageUrl: mixingImage,
       link: '/resources/mix-designs'
     },
     {
