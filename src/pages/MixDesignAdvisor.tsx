@@ -29,6 +29,8 @@ const MixDesignAdvisor: React.FC = () => {
   const [recommendation, setRecommendation] = useState<MixDesignRecommendation | null>(null);
   const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
 
   const calculateEvaporationRate = (temp: number, humidity: number, windSpeed: number) => {
     const TcF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
@@ -138,13 +140,20 @@ const MixDesignAdvisor: React.FC = () => {
 
   const handleGetWeather = async () => {
     setLoading(true);
+    setLocationError(null);
+    setLocationPermissionDenied(false);
+
     try {
       if (!navigator.geolocation) {
         throw new Error('Geolocation is not supported by your browser');
       }
 
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
       });
 
       const weatherData = await getWeatherByLocation(
@@ -168,8 +177,18 @@ const MixDesignAdvisor: React.FC = () => {
         );
         setRecommendation(rec);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting weather:', error);
+      if (error.code === 1) { // Permission denied
+        setLocationPermissionDenied(true);
+        setLocationError('Location permission denied. Please enable location services in your device settings and try again.');
+      } else if (error.code === 2) { // Position unavailable
+        setLocationError('Unable to determine your location. Please check your device settings and try again.');
+      } else if (error.code === 3) { // Timeout
+        setLocationError('Location request timed out. Please try again.');
+      } else {
+        setLocationError('Error getting location data. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -322,8 +341,21 @@ const MixDesignAdvisor: React.FC = () => {
                   isLoading={loading}
                   icon={<Calculator size={18} />}
                 >
-                  Calculate Mix Design
+                  {locationPermissionDenied ? 'Retry Location Access' : 'Calculate Mix Design'}
                 </Button>
+                {locationError && (
+                  <div className="mt-2 p-3 bg-red-50 rounded-lg">
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+                      {locationError}
+                    </p>
+                    {locationPermissionDenied && (
+                      <p className="text-xs text-red-500 mt-1 ml-6">
+                        iOS users: Go to Settings &gt; Privacy &amp; Security &gt; Location Services &gt; Safari Websites
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
