@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ResourceCard from '../components/resources/ResourceCard';
-import finishConcreteImage from '../assets/images/finish concrete.jpg';
+import finishConcreteImage from '../assets/images/finishconcrete.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
