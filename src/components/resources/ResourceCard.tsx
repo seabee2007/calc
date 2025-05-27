@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
 
 interface ResourceCardProps {
@@ -16,12 +17,25 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
   imageUrl,
   link
 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    window.scrollTo(0, 0);
+    navigate(link);
+  };
+
   return (
     <motion.div
       whileHover={{ y: -5 }}
       whileTap={{ scale: 0.98 }}
     >
-      <Card className="h-full overflow-hidden bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all" shadow="md">
+      <Card 
+        className="h-full overflow-hidden bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all" 
+        shadow="md"
+        hoverable
+        clickable
+        onClick={handleClick}
+      >
         <div className="relative h-48 overflow-hidden">
           <img
             src={imageUrl}
