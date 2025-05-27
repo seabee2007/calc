@@ -20,17 +20,25 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   const [locationError, setLocationError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
+  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
 
   const handleUseLocation = async () => {
     setLoading(true);
     setLocationError(null);
+    setLocationPermissionDenied(false);
+
     try {
       const loc = await getUserLocation();
       setUserLocation(loc);
       const nearest = getNearestLocation(loc);
       setSupplier(nearest);
-    } catch (error) {
-      setLocationError('Unable to get location. Please try again.');
+    } catch (error: any) {
+      if (error.code === 1) { // Permission denied
+        setLocationPermissionDenied(true);
+        setLocationError('Location permission denied. Please enable location services and try again.');
+      } else {
+        setLocationError('Unable to get location. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -76,7 +84,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             disabled={loading}
             icon={loading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
           >
-            {loading ? 'Getting location...' : 'Use my location'}
+            {loading ? 'Getting location...' : locationPermissionDenied ? 'Retry Location' : 'Use my location'}
           </Button>
         </div>
 
