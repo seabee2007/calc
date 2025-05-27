@@ -34,15 +34,12 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-2 drop-shadow-sm">{title}</h3>
           <p className="text-sm text-gray-600 mb-4 line-clamp-3">{description}</p>
           
-          <a
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
             className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
           >
             Read More
             <ExternalLink className="ml-1 h-4 w-4" />
-          </a>
+          </button>
         </div>
       </Card>
     </motion.div>
