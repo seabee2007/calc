@@ -5,6 +5,9 @@ import Home from './pages/Home';
 import Calculator from './pages/Calculator';
 import Projects from './pages/Projects';
 import Resources from './pages/Resources';
+import MixDesigns from './pages/resources/MixDesigns';
+import WeatherEffects from './pages/resources/WeatherEffects';
+import Reinforcement from './pages/resources/Reinforcement';
 import MixDesignAdvisor from './pages/MixDesignAdvisor';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
@@ -50,6 +53,9 @@ function App() {
             }
           />
           <Route path="resources" element={<Resources />} />
+          <Route path="resources/mix-designs" element={<MixDesigns />} />
+          <Route path="resources/weather-effects" element={<WeatherEffects />} />
+          <Route path="resources/reinforcement" element={<Reinforcement />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
