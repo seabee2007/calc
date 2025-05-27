@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ResourceCard from '../components/resources/ResourceCard';
+import finishConcreteImage from '../assets/images/finish concrete.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Resources: React.FC = () => {
     {
       title: 'Proper Concrete Finishing Methods',
       description: 'Learn about the different techniques for finishing concrete surfaces, from basic troweling to decorative finishes and surface treatments.',
-      imageUrl: 'https://images.pexels.com/photos/3762455/pexels-photo-3762455.jpeg',
+      imageUrl: finishConcreteImage,
       link: '/resources/proper-finishing'
     },
     {
@@ -116,7 +117,6 @@ const Resources: React.FC = () => {
                       onClick={() => navigate(resource.link)}
                       className="block w-full text-left hover:bg-blue-50 rounded-md p-3 transition-colors"
                     >
-                      
                       <h3 className="font-medium text-blue-600 hover:text-blue-800">
                         {resource.title}
                       </h3>
