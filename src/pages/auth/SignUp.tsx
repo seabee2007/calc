@@ -29,7 +29,6 @@ const SignUp: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
   
-  // Human verification
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
   const [operator, setOperator] = useState<'+' | '-' | 'x'>('x');
@@ -105,7 +104,7 @@ const SignUp: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative"
+      className="min-h-screen flex flex-col relative"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -115,17 +114,19 @@ const SignUp: React.FC = () => {
     >
       <div className="absolute inset-0 bg-black/40" />
       
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 p-4">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
           icon={<ArrowLeft size={20} />}
-          className="absolute top-0 left-0 -translate-y-16 text-white hover:text-blue-200"
+          className="text-white hover:text-blue-200"
         >
           Back
         </Button>
+      </div>
 
-        <Card className="p-8">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-10">
+        <Card className="w-full max-w-md p-8">
           <div className="text-center mb-8">
             <UserPlus className="mx-auto h-12 w-12 text-blue-600" />
             <h2 className="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
