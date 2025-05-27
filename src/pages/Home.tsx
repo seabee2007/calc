@@ -1,0 +1,159 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Calculator, Folder, Book, ArrowRight } from 'lucide-react';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+
+const Home: React.FC = () => {
+  const navigate = useNavigate();
+  
+  const features = [
+    {
+      title: 'Precise Calculations',
+      description: 'Accurately estimate concrete needed for slabs, footers, columns, and sidewalks',
+      icon: <Calculator className="h-10 w-10 text-blue-600" />,
+      action: () => navigate('/calculator')
+    },
+    {
+      title: 'Weather Integration',
+      description: 'Get concrete mix recommendations based on real-time weather conditions',
+      icon: <svg className="h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M22 10a3 3 0 0 0-3-3h-2.207a5.502 5.502 0 0 0-10.702.5"/></svg>,
+      action: () => navigate('/calculator', { state: { openWeatherModal: true } })
+    },
+    {
+      title: 'Project Management',
+      description: 'Save and organize your projects for easy reference and future use',
+      icon: <Folder className="h-10 w-10 text-blue-600" />,
+      action: () => navigate('/projects')
+    },
+    {
+      title: 'Concrete Resources',
+      description: 'Access guides and resources for best practices in concrete work',
+      icon: <Book className="h-10 w-10 text-blue-600" />,
+      action: () => navigate('/resources')
+    }
+  ];
+  
+  return (
+    <div className="space-y-12">
+      {/* Hero Section */}
+      <motion.section
+        className="text-center py-12 px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.h1 
+          className="text-4xl sm:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          Concrete Calculations
+          <span className="text-blue-400"> Made Simple</span>
+        </motion.h1>
+        
+        <motion.p 
+          className="text-xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] max-w-3xl mx-auto mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          Accurately estimate concrete for your projects with our easy-to-use calculator. 
+          Get weather-based recommendations and save your projects for future reference.
+        </motion.p>
+        
+        <motion.div
+          className="flex flex-col sm:flex-row justify-center gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+        >
+          <Button 
+            size="lg" 
+            onClick={() => navigate('/calculator')}
+            icon={<Calculator size={20} />}
+            className="shadow-lg hover:shadow-xl transition-shadow"
+          >
+            Start Calculating
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            onClick={() => navigate('/resources')}
+            icon={<Book size={20} />}
+            className="shadow-lg hover:shadow-xl transition-shadow bg-white/10 backdrop-blur-sm"
+          >
+            Learn More
+          </Button>
+        </motion.div>
+      </motion.section>
+      
+      {/* Features Section */}
+      <section className="py-8">
+        <h2 className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-8 text-center">
+          Key Features
+        </h2>
+        
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+          initial="hidden"
+          animate="visible"
+        >
+          {features.map((feature, index) => (
+            <motion.div 
+              key={index}
+              variants={{
+                hidden: { y: 20, opacity: 0 },
+                visible: {
+                  y: 0,
+                  opacity: 1,
+                  transition: {
+                    type: 'spring',
+                    stiffness: 100,
+                    damping: 12
+                  }
+                }
+              }}
+            >
+              <Card 
+                className="h-full p-6 text-center bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all"
+                shadow="md"
+                hoverable
+                clickable
+                onClick={feature.action}
+              >
+                <div className="flex justify-center mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 drop-shadow-sm">{feature.title}</h3>
+                <p className="text-gray-600 mb-4">{feature.description}</p>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={feature.action}
+                  icon={<ArrowRight size={16} />}
+                  className="shadow-sm hover:shadow-md transition-shadow"
+                >
+                  Learn More
+                </Button>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+    </div>
+  );
+};
+
+export default Home;

@@ -1,0 +1,377 @@
+import { create } from 'zustand';
+import { Project, UserPreferences, Calculation } from '../types';
+import { supabase } from '../lib/supabase';
+import { MixProfileType } from '../types/curing';
+
+interface ProjectState {
+  projects: Project[];
+  currentProject: Project | null;
+  loading: boolean;
+  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'calculations' | 'pourDate' | 'mixProfile'>) => Promise<void>;
+  updateProject: (projectId: string, projectData: Partial<Project>) => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
+  setCurrentProject: (projectId: string | null) => void;
+  addCalculation: (projectId: string, calculation: Omit<Calculation, 'id' | 'createdAt'>) => Promise<void>;
+  updateCalculation: (projectId: string, calculationId: string, calculationData: Partial<Calculation>) => Promise<void>;
+  deleteCalculation: (projectId: string, calculationId: string) => Promise<void>;
+  loadProjects: () => Promise<void>;
+}
+
+export const useProjectStore = create<ProjectState>((set, get) => ({
+  projects: [],
+  currentProject: null,
+  loading: false,
+
+  loadProjects: async () => {
+    try {
+      set({ loading: true });
+      
+      const { data: rows, error } = await supabase
+        .from('projects')
+        .select(`
+          id,
+          name,
+          description,
+          waste_factor,
+          created_at,
+          updated_at,
+          pour_date,
+          mix_profile,
+          calculations (*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedProjects = rows?.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        wasteFactor: row.waste_factor,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        pourDate: row.pour_date,
+        mixProfile: row.mix_profile || 'standard',
+        calculations: row.calculations || []
+      })) || [];
+
+      set({ projects: formattedProjects, loading: false });
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  addProject: async (project) => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          name: project.name,
+          description: project.description,
+          waste_factor: project.wasteFactor,
+          mix_profile: 'standard'
+        })
+        .select(`
+          id,
+          name,
+          description,
+          waste_factor,
+          created_at,
+          updated_at,
+          pour_date,
+          mix_profile,
+          calculations (*)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const newProject: Project = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        wasteFactor: data.waste_factor,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        pourDate: data.pour_date,
+        mixProfile: data.mix_profile || 'standard',
+        calculations: data.calculations || []
+      };
+
+      set((state) => ({
+        projects: [newProject, ...state.projects],
+        currentProject: newProject
+      }));
+    } catch (error) {
+      console.error('Error adding project:', error);
+      throw error;
+    }
+  },
+
+  updateProject: async (projectId, projectData) => {
+    try {
+      const updatePayload: any = {
+        updated_at: new Date().toISOString()
+      };
+      if (projectData.name !== undefined) updatePayload.name = projectData.name;
+      if (projectData.description !== undefined) updatePayload.description = projectData.description;
+      if (projectData.wasteFactor !== undefined) updatePayload.waste_factor = projectData.wasteFactor;
+      if (projectData.pourDate !== undefined) updatePayload.pour_date = projectData.pourDate;
+      if (projectData.mixProfile !== undefined) updatePayload.mix_profile = projectData.mixProfile;
+
+      const { data, error } = await supabase
+        .from('projects')
+        .update(updatePayload)
+        .eq('id', projectId)
+        .select(`
+          id,
+          name,
+          description,
+          waste_factor,
+          created_at,
+          updated_at,
+          pour_date,
+          mix_profile,
+          calculations (*)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const updatedProject: Project = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        wasteFactor: data.waste_factor,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        pourDate: data.pour_date,
+        mixProfile: data.mix_profile || 'standard',
+        calculations: data.calculations || []
+      };
+
+      set((state) => ({
+        projects: state.projects.map(p => p.id === projectId ? updatedProject : p),
+        currentProject: state.currentProject?.id === projectId ? updatedProject : state.currentProject
+      }));
+    } catch (error) {
+      console.error('Error updating project:', error);
+      throw error;
+    }
+  },
+
+  deleteProject: async (projectId) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      set((state) => ({
+        projects: state.projects.filter(p => p.id !== projectId),
+        currentProject: state.currentProject?.id === projectId ? null : state.currentProject
+      }));
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      throw error;
+    }
+  },
+
+  setCurrentProject: (projectId) => {
+    if (projectId === null) {
+      set({ currentProject: null });
+      return;
+    }
+
+    const project = get().projects.find(p => p.id === projectId) || null;
+    set({ currentProject: project });
+  },
+
+  addCalculation: async (projectId, calculation) => {
+    try {
+      const { data, error } = await supabase
+        .from('calculations')
+        .insert({
+          project_id: projectId,
+          type: calculation.type,
+          dimensions: calculation.dimensions,
+          result: calculation.result,
+          weather: calculation.weather
+        })
+        .select('*, created_at')
+        .single();
+
+      if (error) throw error;
+
+      const newCalculation: Calculation = {
+        id: data.id,
+        type: data.type,
+        dimensions: data.dimensions,
+        result: data.result,
+        weather: data.weather,
+        createdAt: data.created_at
+      };
+
+      set((state) => {
+        const updatedProjects = state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              calculations: [...project.calculations, newCalculation],
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return project;
+        });
+
+        const updatedCurrentProject = state.currentProject?.id === projectId
+          ? {
+              ...state.currentProject,
+              calculations: [...state.currentProject.calculations, newCalculation],
+              updatedAt: new Date().toISOString()
+            }
+          : state.currentProject;
+
+        return {
+          projects: updatedProjects,
+          currentProject: updatedCurrentProject
+        };
+      });
+    } catch (error) {
+      console.error('Error adding calculation:', error);
+      throw error;
+    }
+  },
+
+  updateCalculation: async (projectId, calculationId, calculationData) => {
+    try {
+      const { data, error } = await supabase
+        .from('calculations')
+        .update({
+          type: calculationData.type,
+          dimensions: calculationData.dimensions,
+          result: calculationData.result,
+          weather: calculationData.weather
+        })
+        .eq('id', calculationId)
+        .select('*, created_at')
+        .single();
+
+      if (error) throw error;
+
+      const updatedCalculation: Calculation = {
+        id: data.id,
+        type: data.type,
+        dimensions: data.dimensions,
+        result: data.result,
+        weather: data.weather,
+        createdAt: data.created_at
+      };
+
+      set((state) => {
+        const updatedProjects = state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              calculations: project.calculations.map(calc =>
+                calc.id === calculationId ? updatedCalculation : calc
+              ),
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return project;
+        });
+
+        const updatedCurrentProject = state.currentProject?.id === projectId
+          ? {
+              ...state.currentProject,
+              calculations: state.currentProject.calculations.map(calc =>
+                calc.id === calculationId ? updatedCalculation : calc
+              ),
+              updatedAt: new Date().toISOString()
+            }
+          : state.currentProject;
+
+        return {
+          projects: updatedProjects,
+          currentProject: updatedCurrentProject
+        };
+      });
+    } catch (error) {
+      console.error('Error updating calculation:', error);
+      throw error;
+    }
+  },
+
+  deleteCalculation: async (projectId, calculationId) => {
+    try {
+      const { error } = await supabase
+        .from('calculations')
+        .delete()
+        .eq('id', calculationId);
+
+      if (error) throw error;
+
+      set((state) => {
+        const updatedProjects = state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              calculations: project.calculations.filter(calc => calc.id !== calculationId),
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return project;
+        });
+
+        const updatedCurrentProject = state.currentProject?.id === projectId
+          ? {
+              ...state.currentProject,
+              calculations: state.currentProject.calculations.filter(calc => calc.id !== calculationId),
+              updatedAt: new Date().toISOString()
+            }
+          : state.currentProject;
+
+        return {
+          projects: updatedProjects,
+          currentProject: updatedCurrentProject
+        };
+      });
+    } catch (error) {
+      console.error('Error deleting calculation:', error);
+      throw error;
+    }
+  }
+}));
+
+interface PreferencesState {
+  preferences: UserPreferences;
+  updatePreferences: (newPreferences: Partial<UserPreferences>) => void;
+}
+
+const defaultPreferences: UserPreferences = {
+  units: 'imperial',
+  lengthUnit: 'feet',
+  volumeUnit: 'cubic_yards'
+};
+
+export const usePreferencesStore = create<PreferencesState>((set) => {
+  // Try to load from localStorage
+  const savedPreferences = localStorage.getItem('concretePreferences');
+  const initialPreferences: UserPreferences = savedPreferences 
+    ? JSON.parse(savedPreferences) 
+    : defaultPreferences;
+
+  return {
+    preferences: initialPreferences,
+    updatePreferences: (newPreferences) => set((state) => {
+      const updatedPreferences = { ...state.preferences, ...newPreferences };
+      localStorage.setItem('concretePreferences', JSON.stringify(updatedPreferences));
+      return { preferences: updatedPreferences };
+    }),
+  };
+});
