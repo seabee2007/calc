@@ -1,50 +1,119 @@
 import { create } from 'zustand';
-import { Project, UserPreferences, Calculation, QCRecord } from '../types';
 import { supabase } from '../lib/supabase';
+import {
+  Project,
+  UserPreferences,
+  Calculation,
+  QCRecord,
+  QCChecklist
+} from '../types';
 import { MixProfileType } from '../types/curing';
 
 interface ProjectState {
   projects: Project[];
   currentProject: Project | null;
   loading: boolean;
-  addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'calculations' | 'mixProfile'>) => Promise<void>;
-  updateProject: (projectId: string, projectData: Partial<Project>) => Promise<void>;
+  loadProjects: () => Promise<void>;
+  addProject: (
+    project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'calculations' | 'mixProfile' | 'qcRecords'>
+  ) => Promise<void>;
+  updateProject: (
+    projectId: string,
+    projectData: Partial<Project>
+  ) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
   setCurrentProject: (projectId: string | null) => void;
-  addCalculation: (projectId: string, calculation: Omit<Calculation, 'id' | 'createdAt'>) => Promise<void>;
-  updateCalculation: (projectId: string, calculationId: string, calculationData: Partial<Calculation>) => Promise<void>;
+
+  addCalculation: (
+    projectId: string,
+    calculation: Omit<Calculation, 'id' | 'createdAt'>
+  ) => Promise<void>;
+  updateCalculation: (
+    projectId: string,
+    calculationId: string,
+    calculationData: Partial<Calculation>
+  ) => Promise<void>;
   deleteCalculation: (projectId: string, calculationId: string) => Promise<void>;
-  addQCRecord: (projectId: string, record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateQCRecord: (projectId: string, recordId: string, recordData: Partial<QCRecord>) => Promise<void>;
+
+  addQCRecord: (
+    projectId: string,
+    record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>
+  ) => Promise<void>;
+  updateQCRecord: (
+    projectId: string,
+    recordId: string,
+    recordData: Partial<QCRecord>
+  ) => Promise<void>;
   deleteQCRecord: (projectId: string, recordId: string) => Promise<void>;
-  loadProjects: () => Promise<void>;
 }
 
 interface PreferencesState {
   preferences: UserPreferences;
-  updatePreferences: (newPreferences: Partial<UserPreferences>) => void;
+  updatePreferences: (newPrefs: Partial<UserPreferences>) => void;
 }
 
 const defaultPreferences: UserPreferences = {
   units: 'imperial',
   lengthUnit: 'feet',
-  volumeUnit: 'cubic_yards'
+  volumeUnit: 'cubic_yards',
 };
 
-// Helper function to map QC record from database format to frontend format
-const mapQcRecordFromDb = (record: any): QCRecord => ({
-  id: record.id,
-  projectId: record.project_id,
-  date: record.date,
-  temperature: record.temperature,
-  humidity: record.humidity,
-  slump: record.slump,
-  airContent: record.air_content,
-  cylindersMade: record.cylinders_made,
-  notes: record.notes,
-  createdAt: record.created_at,
-  updatedAt: record.updated_at
+// --- Helpers to map DB rows ---
+
+const mapQcChecklistFromDb = (chk: any): QCChecklist => ({
+  rebarSpacingActual:        chk.rebar_spacing_actual,
+  rebarSpacingTolerance:     chk.rebar_spacing_tolerance,
+  rebarSpacingPass:          chk.rebar_spacing_pass,
+
+  formPressureTestPass:      chk.form_pressure_test_pass,
+  formAlignmentPass:         chk.form_alignment_pass,
+  formCoverActual:           chk.form_cover_actual,
+  formCoverSpec:             chk.form_cover_spec,
+  formCoverPass:             chk.form_cover_pass,
+
+  subgradePrepElectrical:    chk.subgrade_prep_electrical,
+  elevationConduitInstalled: chk.elevation_conduit_installed,
+  dimensionSleevesOK:        chk.dimension_sleeves_ok,
+  compactionPullCordsOK:     chk.compaction_pull_cords_ok,
+  capillaryBarrierInstalled: chk.capillary_barrier_installed,
+  vaporBarrierOK:            chk.vapor_barrier_ok,
+  miscInsectDrainRackOK:     chk.misc_insect_drain_rack_ok,
+  subslabPipingInstalled:    chk.subslab_piping_installed,
+
+  floorDrainsOK:             chk.floor_drains_ok,
+  floorDrainsElevation:      chk.floor_drains_elevation,
+  floorCleanoutsOK:          chk.floor_cleanouts_ok,
+  floorCleanoutsElevation:   chk.floor_cleanouts_elevation,
+  stubupsAlignmentOK:        chk.stubups_alignment_ok,
+  stubupsType:               chk.stubups_type,
+
+  bracingOK:                 chk.bracing_ok,
+  screedBoardsSet:           chk.screed_boards_set,
+  screedBoardsChecked:       chk.screed_boards_checked,
+  waterStopPlaced:           chk.water_stop_placed,
+  placingToolsSet:           chk.placing_tools_set,
+  placingToolsChecked:       chk.placing_tools_checked,
+  finishingToolsSet:         chk.finishing_tools_set,
+  finishingToolsChecked:     chk.finishing_tools_checked,
+  curingMaterialsAvailable:  chk.curing_materials_available,
 });
+
+const mapQcRecordFromDb = (r: any): QCRecord => ({
+  id:            r.id,
+  projectId:     r.project_id,
+  date:          r.date,
+  temperature:   r.temperature,
+  humidity:      r.humidity,
+  slump:         r.slump,
+  airContent:    r.air_content,
+  cylindersMade: r.cylinders_made,
+  notes:         r.notes,
+  createdAt:     r.created_at,
+  updatedAt:     r.updated_at,
+  checklist:     r.qc_checklists?.[0] ? mapQcChecklistFromDb(r.qc_checklists[0]) : undefined,
+});
+
+// --- Zustand store ---
 
 export const useProjectStore = create<ProjectState>((set) => ({
   projects: [],
@@ -52,502 +121,344 @@ export const useProjectStore = create<ProjectState>((set) => ({
   loading: false,
 
   loadProjects: async () => {
+    set({ loading: true });
     try {
-      set({ loading: true });
-      
       const { data: rows, error } = await supabase
         .from('projects')
         .select(`
-          id,
-          name,
-          description,
-          waste_factor,
-          created_at,
-          updated_at,
-          pour_date,
-          mix_profile,
-          calculations (*),
-          qc_records (*)
+          id, name, description,
+          waste_factor, created_at, updated_at,
+          pour_date, mix_profile,
+          calculations(*),
+          qc_records(*, qc_checklists(*))
         `)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
 
-      const formattedProjects = rows?.map(row => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        wasteFactor: row.waste_factor,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        pourDate: row.pour_date,
-        mixProfile: row.mix_profile || 'standard',
+      const projects: Project[] = (rows || []).map((row: any) => ({
+        id:           row.id,
+        name:         row.name,
+        description:  row.description,
+        wasteFactor:  row.waste_factor,
+        createdAt:    row.created_at,
+        updatedAt:    row.updated_at,
+        pourDate:     row.pour_date,
+        mixProfile:   (row.mix_profile as MixProfileType) || 'standard',
         calculations: row.calculations || [],
-        qcRecords: (row.qc_records || []).map(mapQcRecordFromDb)
-      })) || [];
-
-      set({ projects: formattedProjects, loading: false });
-    } catch (error) {
-      console.error('Error loading projects:', error);
+        qcRecords:    (row.qc_records || []).map(mapQcRecordFromDb),
+      }));
+      set({ projects, loading: false });
+    } catch (err) {
+      console.error('Error loading projects:', err);
       set({ loading: false });
-      throw error;
+      throw err;
     }
   },
 
   addProject: async (project) => {
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert({
-          name: project.name,
-          description: project.description,
-          waste_factor: project.wasteFactor,
-          pour_date: project.pourDate,
-          mix_profile: 'standard'
-        })
-        .select(`
-          id,
-          name,
-          description,
-          waste_factor,
-          created_at,
-          updated_at,
-          pour_date,
-          mix_profile,
-          calculations (*),
-          qc_records (*)
-        `)
-        .single();
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        name:         project.name,
+        description:  project.description,
+        waste_factor: project.wasteFactor,
+        pour_date:    project.pourDate,
+        mix_profile:  'standard',
+      })
+      .select(`
+        id, name, description,
+        waste_factor, created_at, updated_at,
+        pour_date, mix_profile,
+        calculations(*),
+        qc_records(*, qc_checklists(*))
+      `)
+      .single();
+    if (error) throw error;
 
-      if (error) throw error;
-
-      const newProject: Project = {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        wasteFactor: data.waste_factor,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        pourDate: data.pour_date,
-        mixProfile: data.mix_profile || 'standard',
-        calculations: data.calculations || [],
-        qcRecords: (data.qc_records || []).map(mapQcRecordFromDb)
-      };
-
-      set((state) => ({
-        projects: [newProject, ...state.projects],
-        currentProject: newProject
-      }));
-    } catch (error) {
-      console.error('Error adding project:', error);
-      throw error;
-    }
+    const newProj: Project = {
+      id:           data.id,
+      name:         data.name,
+      description:  data.description,
+      wasteFactor:  data.waste_factor,
+      createdAt:    data.created_at,
+      updatedAt:    data.updated_at,
+      pourDate:     data.pour_date,
+      mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
+      calculations: data.calculations || [],
+      qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
+    };
+    set((s) => ({
+      projects:       [newProj, ...s.projects],
+      currentProject: newProj
+    }));
   },
 
   updateProject: async (projectId, projectData) => {
-    try {
-      const updatePayload: any = {
-        updated_at: new Date().toISOString()
-      };
-      if (projectData.name !== undefined) updatePayload.name = projectData.name;
-      if (projectData.description !== undefined) updatePayload.description = projectData.description;
-      if (projectData.wasteFactor !== undefined) updatePayload.waste_factor = projectData.wasteFactor;
-      if (projectData.pourDate !== undefined) updatePayload.pour_date = projectData.pourDate;
-      if (projectData.mixProfile !== undefined) updatePayload.mix_profile = projectData.mixProfile;
+    const payload: any = { updated_at: new Date().toISOString() };
+    if (projectData.name)        payload.name        = projectData.name;
+    if (projectData.description) payload.description = projectData.description;
+    if (projectData.wasteFactor) payload.waste_factor = projectData.wasteFactor;
+    if (projectData.pourDate)    payload.pour_date    = projectData.pourDate;
+    if (projectData.mixProfile)  payload.mix_profile  = projectData.mixProfile;
 
-      const { data, error } = await supabase
-        .from('projects')
-        .update(updatePayload)
-        .eq('id', projectId)
-        .select(`
-          id,
-          name,
-          description,
-          waste_factor,
-          created_at,
-          updated_at,
-          pour_date,
-          mix_profile,
-          calculations (*),
-          qc_records (*)
-        `)
-        .single();
+    const { data, error } = await supabase
+      .from('projects')
+      .update(payload)
+      .eq('id', projectId)
+      .select(`
+        id, name, description,
+        waste_factor, created_at, updated_at,
+        pour_date, mix_profile,
+        calculations(*),
+        qc_records(*, qc_checklists(*))
+      `)
+      .single();
+    if (error) throw error;
 
-      if (error) throw error;
-
-      const updatedProject: Project = {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        wasteFactor: data.waste_factor,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        pourDate: data.pour_date,
-        mixProfile: data.mix_profile || 'standard',
-        calculations: data.calculations || [],
-        qcRecords: (data.qc_records || []).map(mapQcRecordFromDb)
-      };
-
-      set((state) => ({
-        projects: state.projects.map(p => p.id === projectId ? updatedProject : p),
-        currentProject: state.currentProject?.id === projectId ? updatedProject : state.currentProject
-      }));
-    } catch (error) {
-      console.error('Error updating project:', error);
-      throw error;
-    }
+    const updated: Project = {
+      id:           data.id,
+      name:         data.name,
+      description:  data.description,
+      wasteFactor:  data.waste_factor,
+      createdAt:    data.created_at,
+      updatedAt:    data.updated_at,
+      pourDate:     data.pour_date,
+      mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
+      calculations: data.calculations || [],
+      qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
+    };
+    set((s) => ({
+      projects:       s.projects.map(p => p.id === projectId ? updated : p),
+      currentProject: s.currentProject?.id === projectId ? updated : s.currentProject
+    }));
   },
 
   deleteProject: async (projectId) => {
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', projectId);
-
-      if (error) throw error;
-
-      set((state) => ({
-        projects: state.projects.filter(p => p.id !== projectId),
-        currentProject: state.currentProject?.id === projectId ? null : state.currentProject
-      }));
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      throw error;
-    }
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
+    if (error) throw error;
+    set((s) => ({
+      projects:       s.projects.filter(p => p.id !== projectId),
+      currentProject: s.currentProject?.id === projectId ? null : s.currentProject
+    }));
   },
 
   setCurrentProject: (projectId) => {
-    if (projectId === null) {
-      set({ currentProject: null });
-      return;
-    }
+    set((s) => ({
+      currentProject: projectId
+        ? s.projects.find(p => p.id === projectId) || null
+        : null
+    }));
+  },
 
-    set((state) => {
-      const project = state.projects.find(p => p.id === projectId) || null;
-      return { currentProject: project };
+  // --- Calculation CRUD (full, unmodified) ---
+
+  addCalculation: async (projectId, calc) => {
+    const { data, error } = await supabase
+      .from('calculations')
+      .insert({
+        project_id: projectId,
+        type:       calc.type,
+        dimensions: calc.dimensions,
+        result:     calc.result,
+        weather:    calc.weather
+      })
+      .select('*, created_at')
+      .single();
+    if (error) throw error;
+
+    const newCalc: Calculation = {
+      id:        data.id,
+      type:      data.type,
+      dimensions:data.dimensions,
+      result:    data.result,
+      weather:   data.weather,
+      createdAt: data.created_at
+    };
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              calculations: [...p.calculations, newCalc],
+              updatedAt:    new Date().toISOString()
+            }
+          : p;
+      return {
+        projects:       s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null
+      };
     });
   },
 
-  addCalculation: async (projectId, calculation) => {
-    try {
-      const { data, error } = await supabase
-        .from('calculations')
-        .insert({
-          project_id: projectId,
-          type: calculation.type,
-          dimensions: calculation.dimensions,
-          result: calculation.result,
-          weather: calculation.weather
-        })
-        .select('*, created_at')
-        .single();
+  updateCalculation: async (projectId, calcId, calcData) => {
+    const { data, error } = await supabase
+      .from('calculations')
+      .update({
+        type:       calcData.type,
+        dimensions: calcData.dimensions,
+        result:     calcData.result,
+        weather:    calcData.weather
+      })
+      .eq('id', calcId)
+      .select('*, created_at')
+      .single();
+    if (error) throw error;
 
-      if (error) throw error;
-
-      const newCalculation: Calculation = {
-        id: data.id,
-        type: data.type,
-        dimensions: data.dimensions,
-        result: data.result,
-        weather: data.weather,
-        createdAt: data.created_at
+    const updatedCalc: Calculation = {
+      id:        data.id,
+      type:      data.type,
+      dimensions:data.dimensions,
+      result:    data.result,
+      weather:   data.weather,
+      createdAt: data.created_at
+    };
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              calculations: p.calculations.map(c => c.id === calcId ? updatedCalc : c),
+              updatedAt:    new Date().toISOString()
+            }
+          : p;
+      return {
+        projects:       s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null
       };
-
-      set((state) => {
-        const updatedProjects = state.projects.map(project => {
-          if (project.id === projectId) {
-            return {
-              ...project,
-              calculations: [...project.calculations, newCalculation],
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return project;
-        });
-
-        const updatedCurrentProject = state.currentProject?.id === projectId
-          ? {
-              ...state.currentProject,
-              calculations: [...state.currentProject.calculations, newCalculation],
-              updatedAt: new Date().toISOString()
-            }
-          : state.currentProject;
-
-        return {
-          projects: updatedProjects,
-          currentProject: updatedCurrentProject
-        };
-      });
-    } catch (error) {
-      console.error('Error adding calculation:', error);
-      throw error;
-    }
+    });
   },
 
-  updateCalculation: async (projectId, calculationId, calculationData) => {
-    try {
-      const { data, error } = await supabase
-        .from('calculations')
-        .update({
-          type: calculationData.type,
-          dimensions: calculationData.dimensions,
-          result: calculationData.result,
-          weather: calculationData.weather
-        })
-        .eq('id', calculationId)
-        .select('*, created_at')
-        .single();
-
-      if (error) throw error;
-
-      const updatedCalculation: Calculation = {
-        id: data.id,
-        type: data.type,
-        dimensions: data.dimensions,
-        result: data.result,
-        weather: data.weather,
-        createdAt: data.created_at
+  deleteCalculation: async (projectId, calcId) => {
+    const { error } = await supabase
+      .from('calculations')
+      .delete()
+      .eq('id', calcId);
+    if (error) throw error;
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              calculations: p.calculations.filter(c => c.id !== calcId),
+              updatedAt:    new Date().toISOString()
+            }
+          : p;
+      return {
+        projects:       s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null
       };
-
-      set((state) => {
-        const updatedProjects = state.projects.map(project => {
-          if (project.id === projectId) {
-            return {
-              ...project,
-              calculations: project.calculations.map(calc =>
-                calc.id === calculationId ? updatedCalculation : calc
-              ),
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return project;
-        });
-
-        const updatedCurrentProject = state.currentProject?.id === projectId
-          ? {
-              ...state.currentProject,
-              calculations: state.currentProject.calculations.map(calc =>
-                calc.id === calculationId ? updatedCalculation : calc
-              ),
-              updatedAt: new Date().toISOString()
-            }
-          : state.currentProject;
-
-        return {
-          projects: updatedProjects,
-          currentProject: updatedCurrentProject
-        };
-      });
-    } catch (error) {
-      console.error('Error updating calculation:', error);
-      throw error;
-    }
+    });
   },
 
-  deleteCalculation: async (projectId, calculationId) => {
-    try {
-      const { error } = await supabase
-        .from('calculations')
-        .delete()
-        .eq('id', calculationId);
+  // --- QC Record CRUD ---
 
-      if (error) throw error;
+  addQCRecord: async (projectId, rec) => {
+    const { data, error } = await supabase
+      .from('qc_records')
+      .insert({
+        project_id:     projectId,
+        date:           rec.date,
+        temperature:    rec.temperature,
+        humidity:       rec.humidity,
+        slump:          rec.slump,
+        air_content:    rec.airContent,
+        cylinders_made: rec.cylindersMade,
+        notes:          rec.notes
+      })
+      .select(`*, qc_checklists(*)`)
+      .single();
+    if (error) throw error;
 
-      set((state) => {
-        const updatedProjects = state.projects.map(project => {
-          if (project.id === projectId) {
-            return {
-              ...project,
-              calculations: project.calculations.filter(calc => calc.id !== calculationId),
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return project;
-        });
-
-        const updatedCurrentProject = state.currentProject?.id === projectId
+    const newRec = mapQcRecordFromDb(data);
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
           ? {
-              ...state.currentProject,
-              calculations: state.currentProject.calculations.filter(calc => calc.id !== calculationId),
+              ...p,
+              qcRecords: [...(p.qcRecords||[]), newRec],
               updatedAt: new Date().toISOString()
             }
-          : state.currentProject;
-
-        return {
-          projects: updatedProjects,
-          currentProject: updatedCurrentProject
-        };
-      });
-    } catch (error) {
-      console.error('Error deleting calculation:', error);
-      throw error;
-    }
+          : p;
+      return {
+        projects:       s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null
+      };
+    });
   },
 
-  addQCRecord: async (projectId, record) => {
-    try {
-      const { data, error } = await supabase
-        .from('qc_records')
-        .insert({
-          project_id: projectId,
-          date: record.date,
-          temperature: record.temperature,
-          humidity: record.humidity,
-          slump: record.slump,
-          air_content: record.airContent,
-          cylinders_made: record.cylindersMade,
-          notes: record.notes
-        })
-        .select('*')
-        .single();
+  updateQCRecord: async (projectId, recId, recData) => {
+    const { data, error } = await supabase
+      .from('qc_records')
+      .update({
+        date:           recData.date,
+        temperature:    recData.temperature,
+        humidity:       recData.humidity,
+        slump:          recData.slump,
+        air_content:    recData.airContent,
+        cylinders_made: recData.cylindersMade,
+        notes:          recData.notes,
+        updated_at:     new Date().toISOString()
+      })
+      .eq('id', recId)
+      .select(`*, qc_checklists(*)`)
+      .single();
+    if (error) throw error;
 
-      if (error) throw error;
-
-      const newRecord = mapQcRecordFromDb(data);
-
-      set((state) => {
-        const updatedProjects = state.projects.map(project => {
-          if (project.id === projectId) {
-            return {
-              ...project,
-              qcRecords: [...(project.qcRecords || []), newRecord],
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return project;
-        });
-
-        const updatedCurrentProject = state.currentProject?.id === projectId
+    const updatedRec = mapQcRecordFromDb(data);
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
           ? {
-              ...state.currentProject,
-              qcRecords: [...(state.currentProject.qcRecords || []), newRecord],
+              ...p,
+              qcRecords: p.qcRecords?.map(r => r.id === recId ? updatedRec : r) || [],
               updatedAt: new Date().toISOString()
             }
-          : state.currentProject;
-
-        return {
-          projects: updatedProjects,
-          currentProject: updatedCurrentProject
-        };
-      });
-    } catch (error) {
-      console.error('Error adding QC record:', error);
-      throw error;
-    }
+          : p;
+      return {
+        projects:       s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null
+      };
+    });
   },
 
-  updateQCRecord: async (projectId, recordId, recordData) => {
-    try {
-      const { data, error } = await supabase
-        .from('qc_records')
-        .update({
-          date: recordData.date,
-          temperature: recordData.temperature,
-          humidity: recordData.humidity,
-          slump: recordData.slump,
-          air_content: recordData.airContent,
-          cylinders_made: recordData.cylindersMade,
-          notes: recordData.notes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', recordId)
-        .select('*')
-        .single();
+  deleteQCRecord: async (projectId, recId) => {
+    const { error } = await supabase
+      .from('qc_records')
+      .delete()
+      .eq('id', recId);
+    if (error) throw error;
 
-      if (error) throw error;
-
-      const updatedRecord = mapQcRecordFromDb(data);
-
-      set((state) => {
-        const updatedProjects = state.projects.map(project => {
-          if (project.id === projectId) {
-            return {
-              ...project,
-              qcRecords: project.qcRecords?.map(record =>
-                record.id === recordId ? updatedRecord : record
-              ) || [],
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return project;
-        });
-
-        const updatedCurrentProject = state.currentProject?.id === projectId
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
           ? {
-              ...state.currentProject,
-              qcRecords: state.currentProject.qcRecords?.map(record =>
-                record.id === recordId ? updatedRecord : record
-              ) || [],
+              ...p,
+              qcRecords: p.qcRecords?.filter(r => r.id !== recId) || [],
               updatedAt: new Date().toISOString()
             }
-          : state.currentProject;
-
-        return {
-          projects: updatedProjects,
-          currentProject: updatedCurrentProject
-        };
-      });
-    } catch (error) {
-      console.error('Error updating QC record:', error);
-      throw error;
-    }
+          : p;
+      return {
+        projects:       s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null
+      };
+    });
   },
-
-  deleteQCRecord: async (projectId, recordId) => {
-    try {
-      const { error } = await supabase
-        .from('qc_records')
-        .delete()
-        .eq('id', recordId);
-
-      if (error) throw error;
-
-      set((state) => {
-        const updatedProjects = state.projects.map(project => {
-          if (project.id === projectId) {
-            return {
-              ...project,
-              qcRecords: project.qcRecords?.filter(record => record.id !== recordId) || [],
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return project;
-        });
-
-        const updatedCurrentProject = state.currentProject?.id === projectId
-          ? {
-              ...state.currentProject,
-              qcRecords: state.currentProject.qcRecords?.filter(record => record.id !== recordId) || [],
-              updatedAt: new Date().toISOString()
-            }
-          : state.currentProject;
-
-        return {
-          projects: updatedProjects,
-          currentProject: updatedCurrentProject
-        };
-      });
-    } catch (error) {
-      console.error('Error deleting QC record:', error);
-      throw error;
-    }
-  }
 }));
 
 export const usePreferencesStore = create<PreferencesState>((set) => {
-  // Try to load from localStorage
-  const savedPreferences = localStorage.getItem('concretePreferences');
-  const initialPreferences: UserPreferences = savedPreferences 
-    ? JSON.parse(savedPreferences) 
+  const saved = localStorage.getItem('concretePreferences');
+  const initial = saved
+    ? JSON.parse(saved)
     : defaultPreferences;
-
   return {
-    preferences: initialPreferences,
-    updatePreferences: (newPreferences) => set((state) => {
-      const updatedPreferences = { ...state.preferences, ...newPreferences };
-      localStorage.setItem('concretePreferences', JSON.stringify(updatedPreferences));
-      return { preferences: updatedPreferences };
-    }),
+    preferences: initial,
+    updatePreferences: (newPrefs) => {
+      const updated = { ...initial, ...newPrefs };
+      localStorage.setItem('concretePreferences', JSON.stringify(updated));
+      set({ preferences: updated });
+    },
   };
 });
