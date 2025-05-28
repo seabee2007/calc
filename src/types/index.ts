@@ -6,7 +6,7 @@ export interface QCRecord {
   temperature: number;
   humidity: number;
   slump: number;
-  airContent: number;
+  air_Content: number;
   cylindersMade: number;
   notes: string;
   createdAt: string;
