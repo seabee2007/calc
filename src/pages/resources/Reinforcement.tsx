@@ -36,105 +36,193 @@ const Reinforcement: React.FC = () => {
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Introduction</h2>
             <p className="text-gray-700 mb-6">
-              Proper reinforcement is essential for concrete structures to resist tensile forces and prevent cracking. Different methods are available depending on the application and requirements.
+              Proper reinforcement is essential for concrete structures to resist tensile stresses, control cracking, and carry design loads safely. Depending on the type of structure, environmental conditions, and performance requirements, engineers can choose from traditional steel rebar, fiber blends, or prefabricated mesh systems.
             </p>
+          </div>
 
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Steel Reinforcement</h3>
-            <div className="space-y-4 mb-6">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Steel Reinforcement</h2>
+            
+            <div className="space-y-6">
               <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Rebar Grades</h4>
-                <p className="text-gray-700">
-                  Common reinforcing steel grades and their applications:
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Rebar Grades</h3>
+                <p className="text-gray-700 mb-4">
+                  Rebar is the workhorse of reinforced concrete, providing high tensile strength. The grade indicates the minimum yield strength (psi) of the steel:
                 </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Grade 40 (40,000 psi yield strength)</li>
-                  <li>Grade 60 (60,000 psi yield strength) - Most common</li>
-                  <li>Grade 75 (75,000 psi yield strength)</li>
-                  <li>Grade 80 (80,000 psi yield strength) - High strength</li>
-                </ul>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Yield Strength</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typical Uses</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      <tr>
+                        <td className="px-6 py-4">Grade 40</td>
+                        <td className="px-6 py-4">40,000 psi (280 MPa)</td>
+                        <td className="px-6 py-4">Light-duty slabs, footings, non-structural walls</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4">Grade 60</td>
+                        <td className="px-6 py-4">60,000 psi (420 MPa)</td>
+                        <td className="px-6 py-4">Most common – beams, columns, slabs</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4">Grade 75</td>
+                        <td className="px-6 py-4">75,000 psi (520 MPa)</td>
+                        <td className="px-6 py-4">Heavily loaded members, long-span beams</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4">Grade 80</td>
+                        <td className="px-6 py-4">80,000 psi (550 MPa)</td>
+                        <td className="px-6 py-4">High-strength custom applications, prestressed elements</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-gray-700 mt-4 italic">
+                  Key Point: Higher-strength rebar can reduce steel area but may require extra care in welding and handling.
+                </p>
               </div>
 
               <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Placement Guidelines</h4>
-                <p className="text-gray-700">
-                  Critical factors for proper rebar installation:
-                </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Minimum concrete cover requirements</li>
-                  <li>Proper spacing and alignment</li>
-                  <li>Adequate lap splice lengths</li>
-                  <li>Support and tie requirements</li>
-                  <li>Protection from contamination</li>
-                </ul>
-              </div>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Alternative Reinforcement</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Fiber Reinforcement</h4>
-                <p className="text-gray-700">
-                  Types and applications of fiber reinforcement:
-                </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Steel fibers for structural applications</li>
-                  <li>Synthetic fibers for crack control</li>
-                  <li>Glass fibers for special applications</li>
-                  <li>Natural fibers for sustainability</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">Welded Wire Mesh</h4>
-                <p className="text-gray-700">
-                  Pre-fabricated reinforcement options:
-                </p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                  <li>Standard sizes and spacing</li>
-                  <li>Installation requirements</li>
-                  <li>Overlap specifications</li>
-                  <li>Support methods</li>
-                </ul>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Placement Guidelines</h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">Concrete Cover</h4>
+                    <ul className="list-disc pl-5 text-gray-700">
+                      <li>Above footing: minimum 3 in. (75 mm)</li>
+                      <li>Slabs-on-grade: 1–1.5 in. (25–40 mm)</li>
+                      <li>Columns and beams: 1.5–2 in. (40–50 mm)</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">Spacing & Alignment</h4>
+                    <ul className="list-disc pl-5 text-gray-700">
+                      <li>Maintain clear spacing ≥ 1.5 × aggregate maximum size</li>
+                      <li>Use chairs, spacers, or bolsters to keep bars at design elevation</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">Lap Splices & Development Length</h4>
+                    <ul className="list-disc pl-5 text-gray-700">
+                      <li>Lap length typically 40 × bar diameter for Grade 60</li>
+                      <li>Development length depends on concrete strength, bar size, and coating</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-blue-50/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-blue-900 mb-3">Design Considerations</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Load Requirements</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Dead loads</li>
-                  <li>Live loads</li>
-                  <li>Environmental loads</li>
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Alternative Reinforcement</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Fiber Reinforcement</h3>
+                <p className="text-gray-700 mb-4">
+                  Fibers dispersed throughout the concrete matrix help control crack widths and enhance toughness:
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiber Type</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typical Dosage (kg/m³)</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Primary Benefits</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      <tr>
+                        <td className="px-6 py-4">Steel Fibers</td>
+                        <td className="px-6 py-4">15–40</td>
+                        <td className="px-6 py-4">Increased post-crack strength, impact resistance</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4">Synthetic (Polypropylene)</td>
+                        <td className="px-6 py-4">0.9–1.2</td>
+                        <td className="px-6 py-4">Plastic shrinkage crack control, abrasion resistance</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4">Glass Fibers</td>
+                        <td className="px-6 py-4">0.5–1.0</td>
+                        <td className="px-6 py-4">Moderate tensile strength, specialty architectural uses</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4">Natural (e.g., bamboo, sisal)</td>
+                        <td className="px-6 py-4">5–20</td>
+                        <td className="px-6 py-4">Sustainable, low-cost, limited structural use</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Welded Wire Mesh</h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">Standard Sizes & Spacing</h4>
+                    <ul className="list-disc pl-5 text-gray-700">
+                      <li>Common gauges: W1.4×W1.4 up to W4×W4 (wire diameter in eighths of an inch)</li>
+                      <li>Typical grid: 4×4 in. to 6×6 in. spacing</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">Installation Requirements</h4>
+                    <ul className="list-disc pl-5 text-gray-700">
+                      <li>Lay mesh on full-height chairs to position at mid-depth of slabs</li>
+                      <li>Overlap adjacent sheets by one full mesh spacing and tie securely</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Design Considerations</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">Load Requirements</h3>
+                <ul className="list-disc pl-5 text-blue-800">
+                  <li>Dead loads: Structure self-weight</li>
+                  <li>Live loads: Occupancy, vehicles</li>
+                  <li>Environmental loads: Wind, seismic</li>
                 </ul>
               </div>
               
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Environmental Exposure</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Corrosion protection</li>
-                  <li>Chemical resistance</li>
-                  <li>Freeze-thaw cycles</li>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">Environmental Exposure</h3>
+                <ul className="list-disc pl-5 text-blue-800">
+                  <li>Corrosion protection measures</li>
+                  <li>Chemical resistance needs</li>
+                  <li>Freeze-thaw considerations</li>
                 </ul>
               </div>
               
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Construction Methods</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">Construction Methods</h3>
+                <ul className="list-disc pl-5 text-blue-800">
                   <li>Placement techniques</li>
-                  <li>Quality control</li>
+                  <li>Quality control measures</li>
                   <li>Inspection requirements</li>
                 </ul>
               </div>
               
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Cost Factors</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Material costs</li>
-                  <li>Labor requirements</li>
-                  <li>Long-term maintenance</li>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">Cost Factors</h3>
+                <ul className="list-disc pl-5 text-blue-800">
+                  <li>Material costs vs. benefits</li>
+                  <li>Labor requirements impact</li>
+                  <li>Long-term maintenance costs</li>
                 </ul>
               </div>
             </div>
