@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar } from 'lucide-react';
-import { QCRecord } from '../../types';
+import {
+  Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar
+} from 'lucide-react';
+import type { QCRecord, QCChecklist } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
@@ -10,6 +12,7 @@ import { generateProjectPDF } from '../../utils/pdf';
 
 interface QCRecordsProps {
   projectId: string;
+  /** QCRecord[] in camelCase, from parent after normalization */
   records: QCRecord[];
   onSave: (record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => void;
   onDelete: (recordId: string) => void;
@@ -21,137 +24,150 @@ const QCRecords: React.FC<QCRecordsProps> = ({
   onSave,
   onDelete
 }) => {
+  // State
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<QCRecord | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>>({
     date: new Date().toISOString().split('T')[0],
-    temperature: '',
-    humidity: '',
-    slump: '',
-    airContent: '',
-    cylindersMade: '',
-    notes: ''
+    temperature: 0,
+    humidity: 0,
+    slump: 0,
+    airContent: 0,
+    cylindersMade: 0,
+    notes: '',
+    checklist: undefined!  // you can initialize checklist as needed
   });
 
-  // Update form data when editing record changes
+  // Seed form when editingRecord changes
   useEffect(() => {
     if (!editingRecord) return;
-
     setFormData({
-      date: editingRecord.date.split('T')[0],
-      temperature: editingRecord.temperature?.toString() || '',
-      humidity: editingRecord.humidity?.toString() || '',
-      slump: editingRecord.slump?.toString() || '',
-      airContent: editingRecord.airContent?.toString() || '',
-      cylindersMade: editingRecord.cylindersMade?.toString() || '',
-      notes: editingRecord.notes || ''
+      date: editingRecord.date,
+      temperature: editingRecord.temperature,
+      humidity: editingRecord.humidity,
+      slump: editingRecord.slump,
+      airContent: editingRecord.airContent,
+      cylindersMade: editingRecord.cylindersMade,
+      notes: editingRecord.notes,
+      checklist: editingRecord.checklist!
     });
     setShowForm(true);
   }, [editingRecord]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const record = {
-      date: formData.date,
-      temperature: parseFloat(formData.temperature) || 0,
-      humidity: parseFloat(formData.humidity) || 0,
-      slump: parseFloat(formData.slump) || 0,
-      airContent: parseFloat(formData.airContent) || 0,
-      cylindersMade: parseInt(formData.cylindersMade) || 0,
-      notes: formData.notes
-    };
-
-    await onSave(record);
-    setShowForm(false);
-    setEditingRecord(null);
-    resetForm();
-  };
-
+  // Reset form to defaults
   const resetForm = () => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
-      temperature: '',
-      humidity: '',
-      slump: '',
-      airContent: '',
-      cylindersMade: '',
-      notes: ''
+      temperature: 0,
+      humidity: 0,
+      slump: 0,
+      airContent: 0,
+      cylindersMade: 0,
+      notes: '',
+      checklist: {
+        rebarSpacingActual: 0,
+        rebarSpacingTolerance: 0,
+        rebarSpacingPass: false,
+        formPressureTestPass: false,
+        formAlignmentPass: false,
+        formCoverActual: 0,
+        formCoverSpec: 0,
+        formCoverPass: false,
+        subgradePrepElectrical: false,
+        elevationConduitInstalled: false,
+        dimensionSleevesOK: false,
+        compactionPullCordsOK: false,
+        capillaryBarrierInstalled: false,
+        vaporBarrierOK: false,
+        miscInsectDrainRackOK: false,
+        subslabPipingInstalled: false,
+        floorDrainsOK: false,
+        floorDrainsElevation: '',
+        floorCleanoutsOK: false,
+        floorCleanoutsElevation: '',
+        stubupsAlignmentOK: false,
+        stubupsType: '',
+        bracingOK: false,
+        screedBoardsSet: false,
+        screedBoardsChecked: false,
+        waterStopPlaced: false,
+        placingToolsSet: false,
+        placingToolsChecked: false,
+        finishingToolsSet: false,
+        finishingToolsChecked: false,
+        curingMaterialsAvailable: false
+      }
     });
   };
 
-  const handleCancel = () => {
+  // Handle form submit (create or update)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSave({ ...formData, projectId });
     setShowForm(false);
     setEditingRecord(null);
     resetForm();
   };
 
-  const handleEmailReport = () => {
-    const subject = encodeURIComponent('QC Records Report');
-    const body = encodeURIComponent(
-      `QC Records for Project\n\n${filteredRecords.map(record => 
-        `Date: ${format(new Date(record.date), 'MMM d, yyyy')}\n` +
-        `Temperature: ${record.temperature}°F\n` +
-        `Humidity: ${record.humidity}%\n` +
-        `Slump: ${record.slump}"\n` +
-        `Air Content: ${record.airContent}%\n` +
-        `Cylinders Made: ${record.cylindersMade}\n` +
-        `Notes: ${record.notes}\n\n`
-      ).join('')}`
-    );
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  };
+  // Filters + sort
+  const filteredRecords = useMemo(() => {
+    return records
+      .filter(r => {
+        const term = searchTerm.toLowerCase();
+        const matchSearch =
+          r.notes?.toLowerCase().includes(term) ||
+          r.temperature.toString().includes(term) ||
+          r.humidity.toString().includes(term) ||
+          r.slump.toString().includes(term) ||
+          r.airContent.toString().includes(term) ||
+          r.cylindersMade.toString().includes(term);
+        const matchDate = !dateFilter || r.date === dateFilter;
+        return matchSearch && matchDate;
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [records, searchTerm, dateFilter]);
 
-  const filteredRecords = records
-    .filter(record => {
-      const matchesSearch = 
-        record.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.temperature?.toString().includes(searchTerm) ||
-        record.humidity?.toString().includes(searchTerm) ||
-        record.slump?.toString().includes(searchTerm) ||
-        record.airContent?.toString().includes(searchTerm) ||
-        record.cylindersMade?.toString().includes(searchTerm);
-      
-      const matchesDate = !dateFilter || record.date.includes(dateFilter);
-      
-      return matchesSearch && matchesDate;
-    })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Email report
+  const handleEmailReport = () => {
+    const body = filteredRecords.map(r =>
+      `Date: ${format(new Date(r.date), 'MMM d, yyyy')}\n` +
+      `Temperature: ${r.temperature}°F, Humidity: ${r.humidity}%\n` +
+      `Slump: ${r.slump}", Air: ${r.airContent}%, Cyl: ${r.cylindersMade}\n` +
+      `Notes: ${r.notes}\n\n`
+    ).join('');
+    window.location.href = `mailto:?subject=QC Records Report&body=${encodeURIComponent(body)}`;
+  };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Quality Control Records</h3>
+        <h3 className="text-xl font-semibold">Quality Control Records</h3>
         <div className="flex gap-2">
-          <Button
-            onClick={() => setShowForm(true)}
-            icon={<Plus size={16} />}
-          >
+          <Button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(true); }} icon={<Plus size={16} />}>
             Add Record
           </Button>
           <Button
-            onClick={() => generateProjectPDF({ ...records[0], id: projectId })}
+            onClick={() => filteredRecords[0] && generateProjectPDF(filteredRecords[0])}
             icon={<Download size={16} />}
           >
             Export PDF
           </Button>
-          <Button
-            onClick={handleEmailReport}
-            icon={<Mail size={16} />}
-          >
+          <Button onClick={handleEmailReport} icon={<Mail size={16} />}>
             Email Report
           </Button>
         </div>
       </div>
 
+      {/* Search & Date Filter */}
       <div className="flex gap-4 bg-white p-4 rounded-lg shadow">
         <div className="flex-1">
           <Input
             placeholder="Search records..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             icon={<Search className="h-4 w-4 text-gray-400" />}
             fullWidth
           />
@@ -160,13 +176,14 @@ const QCRecords: React.FC<QCRecordsProps> = ({
           <Input
             type="date"
             value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
+            onChange={e => setDateFilter(e.target.value)}
             icon={<Calendar className="h-4 w-4 text-gray-400" />}
             fullWidth
           />
         </div>
       </div>
 
+      {/* Add/Edit Form */}
       {showForm && (
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -175,67 +192,59 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 type="date"
                 label="Date"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={e => setFormData({ ...formData, date: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Temperature (°F)"
-                value={formData.temperature}
-                onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
+                value={String(formData.temperature)}
+                onChange={e => setFormData({ ...formData, temperature: +e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Humidity (%)"
-                value={formData.humidity}
-                onChange={(e) => setFormData({ ...formData, humidity: e.target.value })}
+                value={String(formData.humidity)}
+                onChange={e => setFormData({ ...formData, humidity: +e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Slump (inches)"
-                value={formData.slump}
-                onChange={(e) => setFormData({ ...formData, slump: e.target.value })}
+                value={String(formData.slump)}
+                onChange={e => setFormData({ ...formData, slump: +e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Air Content (%)"
-                value={formData.airContent}
-                onChange={(e) => setFormData({ ...formData, airContent: e.target.value })}
+                value={String(formData.airContent)}
+                onChange={e => setFormData({ ...formData, airContent: +e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Cylinders Made"
-                value={formData.cylindersMade}
-                onChange={(e) => setFormData({ ...formData, cylindersMade: e.target.value })}
+                value={String(formData.cylindersMade)}
+                onChange={e => setFormData({ ...formData, cylindersMade: +e.target.value })}
                 required
               />
             </div>
+            <Input
+              label="Notes"
+              value={formData.notes}
+              onChange={e => setFormData({ ...formData, notes: e.target.value })}
+              fullWidth
+            />
 
-            <div>
-              <Input
-                label="Notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                fullWidth
-              />
-            </div>
+            {/* You can extend this form with your checklist fields (formData.checklist) */}
 
             <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-              >
+              <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                icon={<Save size={16} />}
-              >
+              <Button type="submit" icon={<Save size={16} />}>
                 {editingRecord ? 'Update Record' : 'Save Record'}
               </Button>
             </div>
@@ -243,13 +252,14 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         </Card>
       )}
 
+      {/* Records List */}
       <div className="space-y-4">
         {filteredRecords.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
             <p className="text-gray-500">No QC records found</p>
           </div>
         ) : (
-          filteredRecords.map((record) => (
+          filteredRecords.map(record => (
             <motion.div
               key={record.id}
               initial={{ opacity: 0, y: 20 }}
@@ -257,7 +267,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <Card key={record.id} className="p-4 hover:shadow-lg transition-shadow">
+              <Card className="p-4 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-4">
