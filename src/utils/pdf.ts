@@ -9,7 +9,6 @@ const formatDateSafely = (dateString: string | undefined | null): string => {
   if (!dateString) return 'N/A';
   try {
     const date = new Date(dateString);
-    // Check if the date is valid
     if (isNaN(date.getTime())) return 'N/A';
     return format(date, 'MMM d, yyyy');
   } catch {
@@ -37,12 +36,12 @@ export function generateProjectPDF(project: Project, selectedPsi: keyof typeof C
     doc.text(splitDescription, 14, 80);
   }
   
-  // Calculate total volume - safely handle undefined calculations
+  // Calculate total volume
   const calculations = project.calculations || [];
   const totalVolume = calculations.reduce((total, calc) => total + (calc.result?.volume || 0), 0);
   
   // Mix Design
-  const mixDesign = calculateMixMaterials(totalVolume || 1, selectedPsi); // Fallback to 1 if totalVolume is 0
+  const mixDesign = calculateMixMaterials(totalVolume || 1, selectedPsi);
   doc.setFontSize(14);
   doc.text('Concrete Mix Design', 14, 110);
   doc.setFontSize(12);
@@ -70,7 +69,7 @@ export function generateProjectPDF(project: Project, selectedPsi: keyof typeof C
   doc.text(`Slump Range: ${mixDesign.slump.min}" - ${mixDesign.slump.max}"`, 14, currentY + 20);
   
   // Cost Estimate
-  const costEstimate = calculateConcreteCost(totalVolume || 1, selectedPsi); // Fallback to 1 if totalVolume is 0
+  const costEstimate = calculateConcreteCost(totalVolume || 1, selectedPsi);
   doc.setFontSize(14);
   doc.text('Cost Estimate', 14, currentY + 40);
   
@@ -88,8 +87,42 @@ export function generateProjectPDF(project: Project, selectedPsi: keyof typeof C
     theme: 'striped',
     headStyles: { fillColor: [59, 130, 246] },
   });
+
+  // QC Records
+  if (project.qcRecords && project.qcRecords.length > 0) {
+    const qcY = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(14);
+    doc.text('Quality Control Records', 14, qcY);
+
+    const qcData = project.qcRecords.map(record => [
+      format(new Date(record.date), 'MM/dd/yyyy'),
+      `${record.temperature}°F`,
+      `${record.humidity}%`,
+      `${record.slump}"`,
+      `${record.air_content}%`,
+      record.cylindersMade.toString(),
+      record.notes || ''
+    ]);
+
+    doc.autoTable({
+      startY: qcY + 10,
+      head: [['Date', 'Temp', 'Humidity', 'Slump', 'Air', 'Cylinders', 'Notes']],
+      body: qcData,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 'auto' }
+      }
+    });
+  }
   
-  // Calculations Table - only show if there are calculations
+  // Calculations Table
   if (calculations.length > 0) {
     const calculationsY = (doc as any).lastAutoTable.finalY + 20;
     doc.setFontSize(14);

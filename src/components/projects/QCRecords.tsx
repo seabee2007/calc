@@ -127,7 +127,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         <h3 className="text-xl font-semibold text-gray-900">Quality Control Records</h3>
         <div className="flex gap-2">
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
             onClick={() => setShowForm(true)}
             icon={<Plus size={16} />}
@@ -135,7 +135,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             Add Record
           </Button>
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
             onClick={() => generateProjectPDF({ ...records[0], id: projectId })}
             icon={<Download size={16} />}
@@ -143,7 +143,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             Export PDF
           </Button>
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
             onClick={handleEmailReport}
             icon={<Mail size={16} />}
