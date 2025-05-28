@@ -28,7 +28,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     temperature: '',
     humidity: '',
     slump: '',
-    air_Content: '',
+    air_content: '',
     cylinders_Made: '',
     notes: ''
   });
@@ -40,7 +40,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: parseFloat(formData.temperature),
       humidity: parseFloat(formData.humidity),
       slump: parseFloat(formData.slump),
-      air_Content: parseFloat(formData.air_Content),
+      air_content: parseFloat(formData.air_content),
       cylindersMade: parseInt(formData.cylinders_Made),
       notes: formData.notes
     });
@@ -50,7 +50,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: '',
       humidity: '',
       slump: '',
-      air_Content: '',
+      air_content: '',
       cylinders_Made: '',
       notes: ''
     });
@@ -64,7 +64,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         `Temperature: ${record.temperature}°F\n` +
         `Humidity: ${record.humidity}%\n` +
         `Slump: ${record.slump}"\n` +
-        `Air Content: ${record.air_Content}%\n` +
+        `Air Content: ${record.air_content}%\n` +
         `Cylinders Made: ${record.cylindersMade}\n` +
         `Notes: ${record.notes}\n\n`
       ).join('')}`
@@ -139,8 +139,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               <Input
                 type="number"
                 label="Air Content (%)"
-                value={formData.air_Content}
-                onChange={(e) => setFormData({ ...formData, air_Content: e.target.value })}
+                value={formData.air_content}
+                onChange={(e) => setFormData({ ...formData, air_content: e.target.value })}
                 required
               />
               <Input
@@ -199,7 +199,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-500">Air Content:</span>
-                    <span className="ml-2 text-gray-900">{record.air_Content}%</span>
+                    <span className="ml-2 text-gray-900">{record.air_content}%</span>
                   </div>
                   <div>
                     <span className="text-gray-500">Cylinders:</span>
