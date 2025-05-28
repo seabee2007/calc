@@ -116,7 +116,7 @@ const CalculatorPage: React.FC = () => {
                 size="sm"
                 onClick={() => {
                   setCurrentProject(currentProject.id);
-                  navigate('/projects');
+                  navigate('/projects', { state: { showDetails: true } });
                 }}
                 icon={<ArrowRight size={18} />}
                 className="text-blue-600 hover:text-blue-800"
