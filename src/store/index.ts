@@ -554,5 +554,3 @@ export const usePreferencesStore = create<PreferencesState>((set) => {
     }),
   };
 });
-
-export { useProjectStore }
