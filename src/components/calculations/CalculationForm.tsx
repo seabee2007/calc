@@ -564,7 +564,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 </div>
               </div>
               <p className="mt-2 text-xs text-blue-600">
-                *Includes 10% waste factor
+                
               </p>
               
               <div className="mt-4 pt-3 border-t border-blue-200">
