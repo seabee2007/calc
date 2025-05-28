@@ -66,11 +66,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* Chat widget overlay, available on every page */}
-      <ConcreteChat />
+      {/* Persistent chat button */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <ConcreteChat />
+      </div>
     </BrowserRouter>
   );
 }
