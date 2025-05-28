@@ -137,10 +137,7 @@ export function calculateBags(cubicYards: number): number {
   return Math.ceil(cubicYards * 45);
 }
 
-// Add waste factor to account for spillage, etc.
-export function addWasteFactor(volume: number, wasteFactor: number = 0.1): number {
-  return volume * (1 + wasteFactor);
-}
+
 
 // Calculate concrete mix materials based on volume and design
 export function calculateMixMaterials(cubicYards: number, psi: keyof typeof CONCRETE_MIX_DESIGNS): ConcreteMixDesign {
