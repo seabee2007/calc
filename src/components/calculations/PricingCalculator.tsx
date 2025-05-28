@@ -111,11 +111,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
       </section>
 
       <div className="mb-6">
-        <div className="flex items-center mb-2">
-          <label className="flex-1 text-sm font-medium text-gray-700">Delivery Distance (miles)</label>
-        </div>
-
-        <div className="flex gap-2 mb-2">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Input Your Location</h4>
+        <div className="flex gap-2 mb-4">
           <Input
             type="text"
             placeholder="City Name/Zip Code"
@@ -146,14 +143,19 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
           </Button>
         </div>
 
-        <Input
-          type="number"
-          min="0"
-          value={distance}
-          onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
-          fullWidth
-          error={locationError}
-        />
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Delivery Distance (miles)
+          </label>
+          <Input
+            type="number"
+            min="0"
+            value={distance}
+            onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
+            fullWidth
+            error={locationError}
+          />
+        </div>
 
         {!supplier && (
           <p className="mt-2 text-sm text-amber-600 flex items-center">
