@@ -28,7 +28,7 @@ const Login: React.FC = () => {
     try {
       setIsLoading(true);
       await signIn(data.email, data.password);
-      navigate('/projects');
+      navigate('/'); // Changed from '/projects' to '/'
     } catch (error) {
       setError('root', {
         message: 'Invalid email or password'
