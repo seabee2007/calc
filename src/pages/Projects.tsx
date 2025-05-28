@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -20,6 +20,7 @@ import { MixProfileType } from '../types/curing';
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     projects,
     addProject,
@@ -43,14 +44,27 @@ const Projects: React.FC = () => {
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'project' | 'calculation'; id: string } | null>(null);
-
-  // New: mix profile state
   const [mixProfile, setMixProfile] = useState<MixProfileType>(currentProject?.mixProfile ?? 'standard');
+
+  useEffect(() => {
+    // Check for navigation state
+    const state = location.state as { showProjectDetails?: boolean; projectId?: string };
+    if (state?.showProjectDetails && state?.projectId) {
+      setCurrentProject(state.projectId);
+      setShowProjectDetails(true);
+    }
+  }, [location.state, setCurrentProject]);
+
   useEffect(() => {
     if (currentProject) {
       setMixProfile(currentProject.mixProfile ?? 'standard');
+      setWasteFactor(currentProject.wasteFactor?.toString() || '10');
     }
   }, [currentProject]);
+
+  useEffect(() => {
+    useProjectStore.getState().loadProjects();
+  }, []);
 
   const handleMixProfileChange = async (newProfile: MixProfileType) => {
     if (!currentProject) return;
@@ -99,10 +113,6 @@ const Projects: React.FC = () => {
       }
     }
   };
-
-  useEffect(() => {
-    useProjectStore.getState().loadProjects();
-  }, []);
 
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return '—';
