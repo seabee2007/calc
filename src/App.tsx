@@ -19,8 +19,15 @@ import AuthGuard from './components/auth/AuthGuard';
 import { useProjectStore } from './store';
 import ConcreteChat from "./components/ConcreteChat";
 
+// Create a store for chat visibility
+export const useChatStore = () => {
+  const [isVisible, setIsVisible] = React.useState(true);
+  return { isVisible, setIsVisible };
+};
+
 function App() {
   const { loadProjects } = useProjectStore();
+  const chatStore = useChatStore();
 
   useEffect(() => {
     loadProjects().catch(console.error);
@@ -55,7 +62,7 @@ function App() {
               </AuthGuard>
             }
           />
-          <Route path="resources" element={<Resources />} />
+          <Route path="resources" element={<Resources chatStore={chatStore} />} />
           <Route path="resources/mix-designs" element={<MixDesigns />} />
           <Route path="resources/weather-effects" element={<WeatherEffects />} />
           <Route path="resources/reinforcement" element={<Reinforcement />} />
@@ -66,13 +73,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Persistent chat button */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <ConcreteChat />
-      </div>
+      {chatStore.isVisible && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <ConcreteChat />
+        </div>
+      )}
     </BrowserRouter>
   );
 }
