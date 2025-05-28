@@ -286,7 +286,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       );
     
     const result = {
-      volume: parseFloat(volumeWithWaste.toFixed(2)),
+      volume: parseFloat(volume.toFixed(2)),
       bags: bags,
       recommendations
     };
