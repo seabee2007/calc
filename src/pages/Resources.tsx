@@ -142,7 +142,7 @@ const Resources: React.FC = () => {
               </p>
               <Button 
                 onClick={() => setShowChat(true)}
-                className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg w-full"
+                className="w-full"
               >
                 Chat with Expert
               </Button>
@@ -161,7 +161,7 @@ const Resources: React.FC = () => {
               <span className="text-xl font-bold">✕</span>
             </button>
             <div className="h-full">
-              <ConcreteChat />
+              <ConcreteChat isModal onClose={() => setShowChat(false)} />
             </div>
           </Card>
         </div>
