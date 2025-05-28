@@ -130,19 +130,19 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             onClick={() => setShowForm(true)}
             icon={<Plus size={16} />}
           >
-            Add Record
+            <span className="hidden md:inline">Add Record</span>
           </Button>
           <Button
             onClick={() => generateProjectPDF({ ...records[0], id: projectId })}
             icon={<Download size={16} />}
           >
-            Export PDF
+            <span className="hidden md:inline">Export PDF</span>
           </Button>
           <Button
             onClick={handleEmailReport}
             icon={<Mail size={16} />}
           >
-            Email Report
+            <span className="hidden md:inline">Email Report</span>
           </Button>
         </div>
       </div>
@@ -230,13 +230,15 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 variant="outline"
                 onClick={handleCancel}
               >
-                Cancel
+                <span className="hidden md:inline">Cancel</span>
               </Button>
               <Button
                 type="submit"
                 icon={<Save size={16} />}
               >
-                {editingRecord ? 'Update Record' : 'Save Record'}
+                <span className="hidden md:inline">
+                  {editingRecord ? 'Update Record' : 'Save Record'}
+                </span>
               </Button>
             </div>
           </form>
