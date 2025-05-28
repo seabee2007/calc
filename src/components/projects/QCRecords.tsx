@@ -44,7 +44,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: editingRecord.temperature?.toString() || '',
       humidity: editingRecord.humidity?.toString() || '',
       slump: editingRecord.slump?.toString() || '',
-      airContent: editingRecord.air_content?.toString() || '',
+      airContent: editingRecord.airContent?.toString() || '',
       cylindersMade: editingRecord.cylindersMade?.toString() || '',
       notes: editingRecord.notes || ''
     });
@@ -59,7 +59,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: parseFloat(formData.temperature) || 0,
       humidity: parseFloat(formData.humidity) || 0,
       slump: parseFloat(formData.slump) || 0,
-      air_content: parseFloat(formData.airContent) || 0,
+      airContent: parseFloat(formData.airContent) || 0,
       cylindersMade: parseInt(formData.cylindersMade) || 0,
       notes: formData.notes
     };
@@ -96,7 +96,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         `Temperature: ${record.temperature}°F\n` +
         `Humidity: ${record.humidity}%\n` +
         `Slump: ${record.slump}"\n` +
-        `Air Content: ${record.air_content}%\n` +
+        `Air Content: ${record.airContent}%\n` +
         `Cylinders Made: ${record.cylindersMade}\n` +
         `Notes: ${record.notes}\n\n`
       ).join('')}`
@@ -111,7 +111,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         record.temperature?.toString().includes(searchTerm) ||
         record.humidity?.toString().includes(searchTerm) ||
         record.slump?.toString().includes(searchTerm) ||
-        record.air_content?.toString().includes(searchTerm) ||
+        record.airContent?.toString().includes(searchTerm) ||
         record.cylindersMade?.toString().includes(searchTerm);
       
       const matchesDate = !dateFilter || record.date.includes(dateFilter);
@@ -276,7 +276,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                       </div>
                       <div>
                         <span className="text-gray-500">Air Content:</span>
-                        <span className="ml-2 text-gray-900">{record.air_content}%</span>
+                        <span className="ml-2 text-gray-900">{record.airContent}%</span>
                       </div>
                       <div>
                         <span className="text-gray-500">Cylinders:</span>
