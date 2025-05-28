@@ -21,6 +21,11 @@ export function convertToFeet(value: number, unit: LengthUnit): number {
   }
 }
 
+// Add waste factor to volume calculation
+export function addWasteFactor(volume: number, wasteFactor: number = 0.1): number {
+  return volume * (1 + wasteFactor);
+}
+
 // Convert cubic feet to specified volume unit
 export function convertVolume(cubicFeet: number, unit: VolumeUnit): number {
   switch (unit) {
