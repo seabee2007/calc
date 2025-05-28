@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Filter } from 'lucide-react';
 import { QCRecord } from '../../types';
@@ -31,9 +31,25 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     humidity: '',
     slump: '',
     air_content: '',
-    cylinders_Made: '',
+    cylinders_made: '',
     notes: ''
   });
+
+  // Update form data when editing record changes
+  useEffect(() => {
+    if (editingRecord) {
+      setFormData({
+        date: editingRecord.date,
+        temperature: editingRecord.temperature.toString(),
+        humidity: editingRecord.humidity.toString(),
+        slump: editingRecord.slump.toString(),
+        air_content: editingRecord.air_content.toString(),
+        cylinders_made: editingRecord.cylindersMade.toString(),
+        notes: editingRecord.notes || ''
+      });
+      setShowForm(true);
+    }
+  }, [editingRecord]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,17 +59,32 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       humidity: parseFloat(formData.humidity) || 0,
       slump: parseFloat(formData.slump) || 0,
       air_content: parseFloat(formData.air_content) || 0,
-      cylindersMade: parseInt(formData.cylinders_Made) || 0,
+      cylindersMade: parseInt(formData.cylinders_made) || 0,
       notes: formData.notes
     });
     setShowForm(false);
+    setEditingRecord(null);
     setFormData({
       date: new Date().toISOString().split('T')[0],
       temperature: '',
       humidity: '',
       slump: '',
       air_content: '',
-      cylinders_Made: '',
+      cylinders_made: '',
+      notes: ''
+    });
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingRecord(null);
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      temperature: '',
+      humidity: '',
+      slump: '',
+      air_content: '',
+      cylinders_made: '',
       notes: ''
     });
   };
@@ -186,8 +217,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               <Input
                 type="number"
                 label="Cylinders Made"
-                value={formData.cylinders_Made}
-                onChange={(e) => setFormData({ ...formData, cylinders_Made: e.target.value })}
+                value={formData.cylinders_made}
+                onChange={(e) => setFormData({ ...formData, cylinders_made: e.target.value })}
                 required
               />
             </div>
@@ -203,7 +234,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowForm(false)}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
@@ -211,7 +242,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 type="submit"
                 icon={<Save size={16} />}
               >
-                Save Record
+                {editingRecord ? 'Update Record' : 'Save Record'}
               </Button>
             </div>
           </form>
