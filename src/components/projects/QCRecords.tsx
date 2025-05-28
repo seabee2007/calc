@@ -37,18 +37,18 @@ const QCRecords: React.FC<QCRecordsProps> = ({
 
   // Update form data when editing record changes
   useEffect(() => {
-    if (editingRecord) {
-      setFormData({
-        date: editingRecord.date.split('T')[0],
-        temperature: editingRecord.temperature.toString(),
-        humidity: editingRecord.humidity.toString(),
-        slump: editingRecord.slump.toString(),
-        airContent: editingRecord.air_content.toString(),
-        cylindersMade: editingRecord.cylindersMade.toString(),
-        notes: editingRecord.notes || ''
-      });
-      setShowForm(true);
-    }
+    if (!editingRecord) return;
+
+    setFormData({
+      date: editingRecord.date.split('T')[0],
+      temperature: editingRecord.temperature?.toString() || '',
+      humidity: editingRecord.humidity?.toString() || '',
+      slump: editingRecord.slump?.toString() || '',
+      airContent: editingRecord.air_content?.toString() || '',
+      cylindersMade: editingRecord.cylindersMade?.toString() || '',
+      notes: editingRecord.notes || ''
+    });
+    setShowForm(true);
   }, [editingRecord]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,7 +92,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     const subject = encodeURIComponent('QC Records Report');
     const body = encodeURIComponent(
       `QC Records for Project\n\n${filteredRecords.map(record => 
-        `Date: ${format(new Date(record.date), 'MM/dd/yyyy')}\n` +
+        `Date: ${format(new Date(record.date), 'MMM d, yyyy')}\n` +
         `Temperature: ${record.temperature}°F\n` +
         `Humidity: ${record.humidity}%\n` +
         `Slump: ${record.slump}"\n` +
@@ -108,11 +108,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     .filter(record => {
       const matchesSearch = 
         record.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.temperature.toString().includes(searchTerm) ||
-        record.humidity.toString().includes(searchTerm) ||
-        record.slump.toString().includes(searchTerm) ||
-        record.air_content.toString().includes(searchTerm) ||
-        record.cylindersMade.toString().includes(searchTerm);
+        record.temperature?.toString().includes(searchTerm) ||
+        record.humidity?.toString().includes(searchTerm) ||
+        record.slump?.toString().includes(searchTerm) ||
+        record.air_content?.toString().includes(searchTerm) ||
+        record.cylindersMade?.toString().includes(searchTerm);
       
       const matchesDate = !dateFilter || record.date.includes(dateFilter);
       
