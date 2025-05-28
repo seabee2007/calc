@@ -524,12 +524,12 @@ const Projects: React.FC = () => {
                           .insert([{
                             project_id: currentProject.id,
                             date: record.date,
-                            temperature: record.temperature,
-                            humidity: record.humidity,
-                            slump: record.slump,
-                            air_content: record.air_content,
-                            cylinders_made: record.cylinders_made,
-                            notes: record.notes
+                            temperature: parseFloat(record.temperature) || 0,
+                            humidity: parseFloat(record.humidity) || 0,
+                            slump: parseFloat(record.slump) || 0,
+                            air_content: parseFloat(record.air_content) || 0,
+                            cylinders_made: parseInt(record.cylinders_made) || 0,
+                            notes: record.notes || ''
                           }])
                           .select()
                           .single();
