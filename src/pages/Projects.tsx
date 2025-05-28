@@ -523,7 +523,13 @@ const Projects: React.FC = () => {
                           .from('qc_records')
                           .insert([{
                             project_id: currentProject.id,
-                            ...record
+                            date: record.date,
+                            temperature: record.temperature,
+                            humidity: record.humidity,
+                            slump: record.slump,
+                            air_content: record.air_content,
+                            cylinders_made: record.cylinders_made,
+                            notes: record.notes
                           }])
                           .select()
                           .single();
