@@ -6,6 +6,7 @@ import finishConcreteImage from '../assets/images/finishconcrete.jpg';
 import rebarImage from '../assets/images/rebar.jpg';
 import mixingImage from '../assets/images/mixing.jpg';
 import crackImage from '../assets/images/crack.jpg';
+import admixImage from '../assets/images/admix.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const Resources: React.FC = () => {
     {
       title: 'Admixtures and Their Uses',
       description: 'Understand the various concrete admixtures available and how they can improve workability, strength, and durability in different conditions.',
-      imageUrl: 'https://images.pexels.com/photos/2422265/pexels-photo-2422265.jpeg',
+      imageUrl: admixImage,
       link: '/resources/admixtures'
     }
   ];
