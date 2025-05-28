@@ -125,10 +125,147 @@ const Projects: React.FC = () => {
     }
   };
 
-  // ... (rest of the component implementation remains exactly the same)
-
   return (
-    // ... (rest of the JSX remains exactly the same)
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="container mx-auto px-4 py-8"
+    >
+      <div className="flex flex-col space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+          {!showProjectDetails && (
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              variant="primary"
+              className="flex items-center gap-2"
+            >
+              <Plus size={20} />
+              New Project
+            </Button>
+          )}
+        </div>
+
+        {/* Project List View */}
+        {!showProjectDetails && !showCreateForm && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onView={() => {
+                  setCurrentProject(project.id);
+                  setShowProjectDetails(true);
+                }}
+                onEdit={() => {
+                  setCurrentProject(project.id);
+                  setEditingProject(true);
+                }}
+                onDelete={() => {
+                  setItemToDelete({ type: 'project', id: project.id });
+                  setShowDeleteConfirm(true);
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Project Creation Form */}
+        {showCreateForm && (
+          <ProjectForm
+            onSubmit={async (projectData) => {
+              await addProject(projectData);
+              setShowCreateForm(false);
+            }}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        )}
+
+        {/* Project Details View */}
+        {showProjectDetails && currentProject && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <Button
+                onClick={() => {
+                  setShowProjectDetails(false);
+                  setCurrentProject(null);
+                }}
+                variant="secondary"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeftCircle size={20} />
+                Back to Projects
+              </Button>
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={() => generateProjectPDF(currentProject)}
+                  variant="secondary"
+                  className="flex items-center gap-2"
+                >
+                  <Printer size={20} />
+                  Export PDF
+                </Button>
+                <Button
+                  onClick={() => setEditingProject(true)}
+                  variant="secondary"
+                  className="flex items-center gap-2"
+                >
+                  <Edit size={20} />
+                  Edit Project
+                </Button>
+              </div>
+            </div>
+
+            {/* Project Information */}
+            <Card className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">{currentProject.name}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-600">Location</p>
+                  <p className="font-medium">{currentProject.location}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Start Date</p>
+                  <p className="font-medium">
+                    {format(parseISO(currentProject.startDate), 'MMM d, yyyy')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Client</p>
+                  <p className="font-medium">{currentProject.client}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Status</p>
+                  <p className="font-medium capitalize">{currentProject.status}</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Strength Progress */}
+            <StrengthProgress project={currentProject} />
+
+            {/* QC Records */}
+            <QCRecords
+              records={currentProject.qcRecords || []}
+              onSave={handleSaveQCRecord}
+            />
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        <AnimatePresence>
+          {showToast && (
+            <Toast
+              message={toastMessage}
+              type={toastType}
+              onClose={() => setShowToast(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 
