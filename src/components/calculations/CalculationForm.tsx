@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Calculator as Calculate, CloudSun, DollarSign } from 'lucide-react';
 import Button from '../ui/Button';
@@ -122,12 +122,22 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [selectedPsi, setSelectedPsi] = useState<string>('3000');
   const [showPricing, setShowPricing] = useState(false);
+  const weatherSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialShowWeather) {
       setShowLocationPrompt(true);
     }
   }, [initialShowWeather]);
+
+  useEffect(() => {
+    if (weather && weatherSectionRef.current) {
+      weatherSectionRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }, [weather]);
   
   const handleLocationReceived = async (lat: number, lon: number) => {
     const weatherData = await getWeatherByLocation(lat, lon);
@@ -525,7 +535,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           </div>
           
           {weather && (
-            <div className="mt-4">
+            <div className="mt-4" ref={weatherSectionRef}>
               <WeatherInfo weather={weather} />
             </div>
           )}
