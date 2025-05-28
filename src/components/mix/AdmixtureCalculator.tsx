@@ -21,13 +21,15 @@ const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({
   const aeDosageRange = () => {
     const baseLow = 0.03;
     const baseHigh = 0.07;
+    // Improved temperature compensation factor
     const tempDelta = (temperature - 70) / 10;
-    const factor = 1 - 0.10 * tempDelta;
+    const factor = Math.max(0.6, Math.min(1.4, 1 - 0.15 * tempDelta));
     return [baseLow * factor, baseHigh * factor].map(v => (unitsImperial ? v : v * 0.0625));
   };
 
   const wrDosage = () => {
-    const per1p = 0.75;
+    // Improved water reducer dosage calculation
+    const per1p = temperature > 85 ? 0.85 : 0.75; // Higher temps need less
     const oz = per1p * wcReduction;
     return [oz * 0.8, oz * 1.2];
   };
