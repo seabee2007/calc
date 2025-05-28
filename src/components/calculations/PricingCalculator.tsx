@@ -21,6 +21,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
 
   const handleUseLocation = async () => {
     setLoading(true);
@@ -39,6 +40,40 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
       } else {
         setLocationError('Unable to get location. Please try again.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLocationSearch = async () => {
+    if (!locationInput.trim()) return;
+
+    setLoading(true);
+    setLocationError(null);
+
+    try {
+      // Use OpenStreetMap Nominatim API to geocode the location
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`
+      );
+      
+      if (!response.ok) throw new Error('Location search failed');
+      
+      const data = await response.json();
+      if (data && data[0]) {
+        const loc = {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon),
+          address: data[0].display_name
+        };
+        setUserLocation(loc);
+        const nearest = getNearestLocation(loc);
+        setSupplier(nearest);
+      } else {
+        setLocationError('Location not found. Please try a different search.');
+      }
+    } catch (error) {
+      setLocationError('Error searching location. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,6 +112,28 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
       <div className="mb-6">
         <div className="flex items-center mb-2">
           <label className="flex-1 text-sm font-medium text-gray-700">Delivery Distance (miles)</label>
+        </div>
+
+        <div className="flex gap-2 mb-2">
+          <Input
+            type="text"
+            placeholder="City Name/Zip Code"
+            value={locationInput}
+            onChange={(e) => setLocationInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleLocationSearch();
+            }}
+            className="flex-1"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLocationSearch}
+            disabled={loading || !locationInput.trim()}
+            icon={loading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+          >
+            Search
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -84,7 +141,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             disabled={loading}
             icon={loading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
           >
-            {loading ? 'Getting location...' : locationPermissionDenied ? 'Retry Location' : 'Use my location'}
+            Use my location
           </Button>
         </div>
 
