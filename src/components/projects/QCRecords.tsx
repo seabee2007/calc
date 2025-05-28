@@ -28,8 +28,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     temperature: '',
     humidity: '',
     slump: '',
-    airContent: '',
-    cylindersMade: '',
+    air_Content: '',
+    cylinders_Made: '',
     notes: ''
   });
 
@@ -40,8 +40,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: parseFloat(formData.temperature),
       humidity: parseFloat(formData.humidity),
       slump: parseFloat(formData.slump),
-      airContent: parseFloat(formData.airContent),
-      cylindersMade: parseInt(formData.cylindersMade),
+      air_Content: parseFloat(formData.airContent),
+      cylinders_Made: parseInt(formData.cylindersMade),
       notes: formData.notes
     });
     setShowForm(false);
@@ -50,8 +50,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: '',
       humidity: '',
       slump: '',
-      airContent: '',
-      cylindersMade: '',
+      air_Content: '',
+      cylinders_Made: '',
       notes: ''
     });
   };
@@ -64,8 +64,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         `Temperature: ${record.temperature}°F\n` +
         `Humidity: ${record.humidity}%\n` +
         `Slump: ${record.slump}"\n` +
-        `Air Content: ${record.airContent}%\n` +
-        `Cylinders Made: ${record.cylindersMade}\n` +
+        `Air Content: ${record.air_Content}%\n` +
+        `Cylinders Made: ${record.cylinders_Made}\n` +
         `Notes: ${record.notes}\n\n`
       ).join('')}`
     );
@@ -140,14 +140,14 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 type="number"
                 label="Air Content (%)"
                 value={formData.airContent}
-                onChange={(e) => setFormData({ ...formData, airContent: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, air_Content: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Cylinders Made"
                 value={formData.cylindersMade}
-                onChange={(e) => setFormData({ ...formData, cylindersMade: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, cylinders_Made: e.target.value })}
                 required
               />
             </div>
@@ -199,11 +199,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-500">Air Content:</span>
-                    <span className="ml-2 text-gray-900">{record.airContent}%</span>
+                    <span className="ml-2 text-gray-900">{record.air_Content}%</span>
                   </div>
                   <div>
                     <span className="text-gray-500">Cylinders:</span>
-                    <span className="ml-2 text-gray-900">{record.cylindersMade}</span>
+                    <span className="ml-2 text-gray-900">{record.cylinders_Made}</span>
                   </div>
                 </div>
                 {record.notes && (
