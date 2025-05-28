@@ -536,8 +536,18 @@ const Projects: React.FC = () => {
 
                         if (error) throw error;
                         
-                        // Refresh project data to include new QC record
-                        await useProjectStore.getState().loadProjects();
+                        // Update local state immediately
+                        if (data) {
+                          const updatedProject = {
+                            ...currentProject,
+                            qcRecords: [...(currentProject.qcRecords || []), data]
+                          };
+                          setCurrentProject(currentProject.id);
+                          
+                          // Refresh project data
+                          await useProjectStore.getState().loadProjects();
+                        }
+                        
                         showToastMessage('QC record added successfully', 'success');
                       } catch (err) {
                         console.error('Error saving QC record:', err);
@@ -553,8 +563,16 @@ const Projects: React.FC = () => {
 
                         if (error) throw error;
                         
-                        // Refresh project data to reflect deleted record
+                        // Update local state immediately
+                        const updatedProject = {
+                          ...currentProject,
+                          qcRecords: currentProject.qcRecords?.filter(record => record.id !== recordId) || []
+                        };
+                        setCurrentProject(currentProject.id);
+                        
+                        // Refresh project data
                         await useProjectStore.getState().loadProjects();
+                        
                         showToastMessage('QC record deleted successfully', 'success');
                       } catch (err) {
                         console.error('Error deleting QC record:', err);
