@@ -9,6 +9,7 @@ import ProjectForm from '../components/projects/ProjectForm';
 import Select from '../components/ui/Select';
 import Toast from '../components/ui/Toast';
 import StrengthProgress from '../components/projects/StrengthProgress';
+import QCRecords from '../components/projects/QCRecords';
 import Input from '../components/ui/Input';
 import { useProjectStore } from '../store';
 import { Project, Calculation, CONCRETE_MIX_DESIGNS } from '../types';
@@ -509,6 +510,52 @@ const Projects: React.FC = () => {
                       </Button>
                     </div>
                   )}
+                </div>
+
+                {/* QC Records Section */}
+                <div className="mt-8">
+                  <QCRecords
+                    projectId={currentProject.id}
+                    records={currentProject.qcRecords || []}
+                    onSave={async (record) => {
+                      try {
+                        const { data, error } = await supabase
+                          .from('qc_records')
+                          .insert([{
+                            project_id: currentProject.id,
+                            ...record
+                          }])
+                          .select()
+                          .single();
+
+                        if (error) throw error;
+                        
+                        // Refresh project data to include new QC record
+                        await useProjectStore.getState().loadProjects();
+                        showToastMessage('QC record added successfully', 'success');
+                      } catch (err) {
+                        console.error('Error saving QC record:', err);
+                        showToastMessage('Error saving QC record', 'error');
+                      }
+                    }}
+                    onDelete={async (recordId) => {
+                      try {
+                        const { error } = await supabase
+                          .from('qc_records')
+                          .delete()
+                          .eq('id', recordId);
+
+                        if (error) throw error;
+                        
+                        // Refresh project data to reflect deleted record
+                        await useProjectStore.getState().loadProjects();
+                        showToastMessage('QC record deleted successfully', 'success');
+                      } catch (err) {
+                        console.error('Error deleting QC record:', err);
+                        showToastMessage('Error deleting QC record', 'error');
+                      }
+                    }}
+                  />
                 </div>
               </Card>
             </motion.div>
