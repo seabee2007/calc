@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Filter } from 'lucide-react';
-import { QCRecord } from '../../types';
+import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Filter, CheckSquare } from 'lucide-react';
+import { QCRecord, QCChecklist } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
@@ -14,6 +14,40 @@ interface QCRecordsProps {
   onSave: (record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => void;
   onDelete: (recordId: string) => void;
 }
+
+const defaultChecklist: QCChecklist = {
+  rebarSpacingActual: 0,
+  rebarSpacingTolerance: 0,
+  rebarSpacingPass: false,
+  formPressureTestPass: false,
+  formAlignmentPass: false,
+  formCoverActual: 0,
+  formCoverSpec: 0,
+  formCoverPass: false,
+  subgradePrepElectrical: false,
+  elevationConduitInstalled: false,
+  dimensionSleevesOK: false,
+  compactionPullCordsOK: false,
+  capillaryBarrierInstalled: false,
+  vaporBarrierOK: false,
+  miscInsectDrainRackOK: false,
+  subslabPipingInstalled: false,
+  floorDrainsOK: false,
+  floorDrainsElevation: '',
+  floorCleanoutsOK: false,
+  floorCleanoutsElevation: '',
+  stubupsAlignmentOK: false,
+  stubupsType: '',
+  bracingOK: false,
+  screedBoardsSet: false,
+  screedBoardsChecked: false,
+  waterStopPlaced: false,
+  placingToolsSet: false,
+  placingToolsChecked: false,
+  finishingToolsSet: false,
+  finishingToolsChecked: false,
+  curingMaterialsAvailable: false
+};
 
 const QCRecords: React.FC<QCRecordsProps> = ({
   projectId,
@@ -32,10 +66,10 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     slump: '',
     air_content: '',
     cylinders_made: '',
-    notes: ''
+    notes: '',
+    checklist: defaultChecklist
   });
 
-  // Update form data when editing record changes
   useEffect(() => {
     if (editingRecord) {
       setFormData({
@@ -45,7 +79,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         slump: editingRecord.slump.toString(),
         air_content: editingRecord.air_content.toString(),
         cylinders_made: editingRecord.cylindersMade.toString(),
-        notes: editingRecord.notes || ''
+        notes: editingRecord.notes || '',
+        checklist: editingRecord.checklist || defaultChecklist
       });
       setShowForm(true);
     }
@@ -60,7 +95,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       slump: parseFloat(formData.slump) || 0,
       air_content: parseFloat(formData.air_content) || 0,
       cylindersMade: parseInt(formData.cylinders_made) || 0,
-      notes: formData.notes
+      notes: formData.notes,
+      checklist: formData.checklist
     });
     setShowForm(false);
     setEditingRecord(null);
@@ -71,7 +107,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       slump: '',
       air_content: '',
       cylinders_made: '',
-      notes: ''
+      notes: '',
+      checklist: defaultChecklist
     });
   };
 
@@ -85,7 +122,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       slump: '',
       air_content: '',
       cylinders_made: '',
-      notes: ''
+      notes: '',
+      checklist: defaultChecklist
     });
   };
 
@@ -147,7 +185,6 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
       <div className="flex gap-4 bg-white p-4 rounded-lg shadow">
         <div className="flex-1">
           <Input
@@ -171,7 +208,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
 
       {showForm && (
         <Card className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 type="date"
@@ -224,28 +261,111 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 fullWidth
               />
             </div>
+
+            <div className="border-t pt-6 mt-6">
+              <h4 className="text-lg font-medium mb-4">Pre-Pour Checklist</h4>
+              
+              <section className="mb-6">
+                <h5 className="font-semibold mb-3">Reinforcement</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input
+                    type="number"
+                    label="Rebar Spacing (actual)"
+                    value={formData.checklist.rebarSpacingActual}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      checklist: {
+                        ...formData.checklist,
+                        rebarSpacingActual: parseFloat(e.target.value)
+                      }
+                    })}
+                  />
+                  <Input
+                    type="number"
+                    label="Tolerance ±"
+                    value={formData.checklist.rebarSpacingTolerance}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      checklist: {
+                        ...formData.checklist,
+                        rebarSpacingTolerance: parseFloat(e.target.value)
+                      }
+                    })}
+                  />
+                  <div className="flex items-center mt-8">
+                    <input
+                      type="checkbox"
+                      checked={formData.checklist.rebarSpacingPass}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          rebarSpacingPass: e.target.checked
+                        }
+                      })}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <label className="ml-2">Pass</label>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h5 className="font-semibold mb-3">Formwork</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.checklist.formPressureTestPass}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          formPressureTestPass: e.target.checked
+                        }
+                      })}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <label className="ml-2">Pressure Test Pass</label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.checklist.formAlignmentPass}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          formAlignmentPass: e.target.checked
+                        }
+                      })}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <label className="ml-2">Alignment Pass</label>
+                  </div>
+                </div>
+              </section>
+            </div>
+
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
               >
-                <span className="hidden md:inline">Cancel</span>
+                Cancel
               </Button>
               <Button
                 type="submit"
                 icon={<Save size={16} />}
               >
-                <span className="hidden md:inline">
-                  {editingRecord ? 'Update Record' : 'Save Record'}
-                </span>
+                {editingRecord ? 'Update Record' : 'Save Record'}
               </Button>
             </div>
           </form>
         </Card>
       )}
 
-      {/* Records Library */}
       <div className="space-y-4">
         {filteredRecords.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
