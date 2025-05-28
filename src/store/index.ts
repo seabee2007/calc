@@ -20,7 +20,7 @@ interface ProjectState {
   loadProjects: () => Promise<void>;
 }
 
-export const useProjectStore = create<ProjectState>((set, get) => ({
+export const useProjectStore = create<ProjectState>((set) => ({
   projects: [],
   currentProject: null,
   loading: false,
@@ -88,7 +88,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           updated_at,
           pour_date,
           mix_profile,
-          calculations (*)
+          calculations (*),
+          qc_records (*)
         `)
         .single();
 
@@ -103,7 +104,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         updatedAt: data.updated_at,
         pourDate: data.pour_date,
         mixProfile: data.mix_profile || 'standard',
-        calculations: data.calculations || []
+        calculations: data.calculations || [],
+        qcRecords: data.qc_records || []
       };
 
       set((state) => ({
@@ -140,7 +142,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           updated_at,
           pour_date,
           mix_profile,
-          calculations (*)
+          calculations (*),
+          qc_records (*)
         `)
         .single();
 
@@ -155,7 +158,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         updatedAt: data.updated_at,
         pourDate: data.pour_date,
         mixProfile: data.mix_profile || 'standard',
-        calculations: data.calculations || []
+        calculations: data.calculations || [],
+        qcRecords: data.qc_records || []
       };
 
       set((state) => ({
@@ -526,31 +530,3 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   }
 }));
-
-interface PreferencesState {
-  preferences: UserPreferences;
-  updatePreferences: (newPreferences: Partial<UserPreferences>) => void;
-}
-
-const defaultPreferences: UserPreferences = {
-  units: 'imperial',
-  lengthUnit: 'feet',
-  volumeUnit: 'cubic_yards'
-};
-
-export const usePreferencesStore = create<PreferencesState>((set) => {
-  // Try to load from localStorage
-  const savedPreferences = localStorage.getItem('concretePreferences');
-  const initialPreferences: UserPreferences = savedPreferences 
-    ? JSON.parse(savedPreferences) 
-    : defaultPreferences;
-
-  return {
-    preferences: initialPreferences,
-    updatePreferences: (newPreferences) => set((state) => {
-      const updatedPreferences = { ...state.preferences, ...newPreferences };
-      localStorage.setItem('concretePreferences', JSON.stringify(updatedPreferences));
-      return { preferences: updatedPreferences };
-    }),
-  };
-});
