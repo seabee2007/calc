@@ -16,7 +16,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   const [needsPumpTruck, setNeedsPumpTruck] = useState(false);
   const [isSaturday, setIsSaturday] = useState(false);
   const [isAfterHours, setIsAfterHours] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
@@ -24,7 +25,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   const [locationInput, setLocationInput] = useState('');
 
   const handleUseLocation = async () => {
-    setLoading(true);
+    setGpsLoading(true);
     setLocationError(null);
     setLocationPermissionDenied(false);
 
@@ -41,14 +42,14 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
         setLocationError('Unable to get location. Please try again.');
       }
     } finally {
-      setLoading(false);
+      setGpsLoading(false);
     }
   };
 
   const handleLocationSearch = async () => {
     if (!locationInput.trim()) return;
 
-    setLoading(true);
+    setSearchLoading(true);
     setLocationError(null);
 
     try {
@@ -75,7 +76,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
     } catch (error) {
       setLocationError('Error searching location. Please try again.');
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   };
 
@@ -94,9 +95,9 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   }, [volume, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
 
   return (
-    <Card className="p-6 mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Concrete Pricing Estimate</h2>
+    <Card className="p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">Concrete Pricing Estimate</h3>
         <DollarSign className="h-6 w-6 text-green-600" />
       </div>
 
@@ -129,8 +130,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             variant="outline"
             size="sm"
             onClick={handleLocationSearch}
-            disabled={loading || !locationInput.trim()}
-            icon={loading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+            disabled={searchLoading || !locationInput.trim()}
+            icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
           >
             Search
           </Button>
@@ -138,10 +139,10 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             variant="outline"
             size="sm"
             onClick={handleUseLocation}
-            disabled={loading}
-            icon={loading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+            disabled={gpsLoading}
+            icon={gpsLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
           >
-            Use my location
+            {locationPermissionDenied ? 'Retry Location' : 'Use my location'}
           </Button>
         </div>
 
