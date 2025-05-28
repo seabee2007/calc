@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar
-} from 'lucide-react';
+import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Loader } from 'lucide-react';
 import type { QCRecord, QCChecklist } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -12,7 +10,6 @@ import { generateProjectPDF } from '../../utils/pdf';
 
 interface QCRecordsProps {
   projectId: string;
-  /** QCRecord[] in camelCase, from parent after normalization */
   records: QCRecord[];
   onSave: (record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => void;
   onDelete: (recordId: string) => void;
@@ -24,144 +21,90 @@ const QCRecords: React.FC<QCRecordsProps> = ({
   onSave,
   onDelete
 }) => {
-  // State
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<QCRecord | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
-  const [formData, setFormData] = useState<Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>>({
+  const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    temperature: 0,
-    humidity: 0,
-    slump: 0,
-    airContent: 0,
-    cylindersMade: 0,
-    notes: '',
-    checklist: undefined!  // you can initialize checklist as needed
+    temperature: '',
+    humidity: '',
+    slump: '',
+    airContent: '',
+    cylindersMade: '',
+    notes: ''
   });
 
-  // Seed form when editingRecord changes
   useEffect(() => {
     if (!editingRecord) return;
+    
     setFormData({
-      date: editingRecord.date,
-      temperature: editingRecord.temperature,
-      humidity: editingRecord.humidity,
-      slump: editingRecord.slump,
-      airContent: editingRecord.airContent,
-      cylindersMade: editingRecord.cylindersMade,
-      notes: editingRecord.notes,
-      checklist: editingRecord.checklist!
+      date: editingRecord.date.split('T')[0],
+      temperature: editingRecord.temperature.toString(),
+      humidity: editingRecord.humidity.toString(),
+      slump: editingRecord.slump.toString(),
+      airContent: editingRecord.airContent.toString(),
+      cylindersMade: editingRecord.cylindersMade.toString(),
+      notes: editingRecord.notes || ''
     });
     setShowForm(true);
   }, [editingRecord]);
 
-  // Reset form to defaults
-  const resetForm = () => {
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      temperature: 0,
-      humidity: 0,
-      slump: 0,
-      airContent: 0,
-      cylindersMade: 0,
-      notes: '',
-      checklist: {
-        rebarSpacingActual: 0,
-        rebarSpacingTolerance: 0,
-        rebarSpacingPass: false,
-        formPressureTestPass: false,
-        formAlignmentPass: false,
-        formCoverActual: 0,
-        formCoverSpec: 0,
-        formCoverPass: false,
-        subgradePrepElectrical: false,
-        elevationConduitInstalled: false,
-        dimensionSleevesOK: false,
-        compactionPullCordsOK: false,
-        capillaryBarrierInstalled: false,
-        vaporBarrierOK: false,
-        miscInsectDrainRackOK: false,
-        subslabPipingInstalled: false,
-        floorDrainsOK: false,
-        floorDrainsElevation: '',
-        floorCleanoutsOK: false,
-        floorCleanoutsElevation: '',
-        stubupsAlignmentOK: false,
-        stubupsType: '',
-        bracingOK: false,
-        screedBoardsSet: false,
-        screedBoardsChecked: false,
-        waterStopPlaced: false,
-        placingToolsSet: false,
-        placingToolsChecked: false,
-        finishingToolsSet: false,
-        finishingToolsChecked: false,
-        curingMaterialsAvailable: false
-      }
-    });
-  };
-
-  // Handle form submit (create or update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave({ ...formData, projectId });
+    
+    const payload = {
+      date: formData.date,
+      temperature: parseFloat(formData.temperature),
+      humidity: parseFloat(formData.humidity),
+      slump: parseFloat(formData.slump),
+      airContent: parseFloat(formData.airContent),
+      cylindersMade: parseInt(formData.cylindersMade),
+      notes: formData.notes
+    };
+
+    await onSave(payload);
     setShowForm(false);
     setEditingRecord(null);
     resetForm();
   };
 
-  // Filters + sort
-  const filteredRecords = useMemo(() => {
-    return records
-      .filter(r => {
-        const term = searchTerm.toLowerCase();
-        const matchSearch =
-          r.notes?.toLowerCase().includes(term) ||
-          r.temperature.toString().includes(term) ||
-          r.humidity.toString().includes(term) ||
-          r.slump.toString().includes(term) ||
-          r.airContent.toString().includes(term) ||
-          r.cylindersMade.toString().includes(term);
-        const matchDate = !dateFilter || r.date === dateFilter;
-        return matchSearch && matchDate;
-      })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [records, searchTerm, dateFilter]);
-
-  // Email report
-  const handleEmailReport = () => {
-    const body = filteredRecords.map(r =>
-      `Date: ${format(new Date(r.date), 'MMM d, yyyy')}\n` +
-      `Temperature: ${r.temperature}°F, Humidity: ${r.humidity}%\n` +
-      `Slump: ${r.slump}", Air: ${r.airContent}%, Cyl: ${r.cylindersMade}\n` +
-      `Notes: ${r.notes}\n\n`
-    ).join('');
-    window.location.href = `mailto:?subject=QC Records Report&body=${encodeURIComponent(body)}`;
+  const resetForm = () => {
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      temperature: '',
+      humidity: '',
+      slump: '',
+      airContent: '',
+      cylindersMade: '',
+      notes: ''
+    });
   };
+
+  const filteredRecords = records
+    .filter(r => {
+      const term = searchTerm.toLowerCase();
+      const matchSearch =
+        r.notes?.toLowerCase().includes(term) ||
+        r.temperature.toString().includes(term) ||
+        r.humidity.toString().includes(term) ||
+        r.slump.toString().includes(term) ||
+        r.airContent.toString().includes(term) ||
+        r.cylindersMade.toString().includes(term);
+      const matchDate = !dateFilter || r.date === dateFilter;
+      return matchSearch && matchDate;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold">Quality Control Records</h3>
-        <div className="flex gap-2">
-          <Button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(true); }} icon={<Plus size={16} />}>
-            Add Record
-          </Button>
-          <Button
-            onClick={() => filteredRecords[0] && generateProjectPDF(filteredRecords[0])}
-            icon={<Download size={16} />}
-          >
-            Export PDF
-          </Button>
-          <Button onClick={handleEmailReport} icon={<Mail size={16} />}>
-            Email Report
-          </Button>
-        </div>
+        <Button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(true); }} icon={<Plus size={16} />}>
+          Add Record
+        </Button>
       </div>
 
-      {/* Search & Date Filter */}
       <div className="flex gap-4 bg-white p-4 rounded-lg shadow">
         <div className="flex-1">
           <Input
@@ -183,7 +126,6 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         </div>
       </div>
 
-      {/* Add/Edit Form */}
       {showForm && (
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -198,36 +140,36 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               <Input
                 type="number"
                 label="Temperature (°F)"
-                value={String(formData.temperature)}
-                onChange={e => setFormData({ ...formData, temperature: +e.target.value })}
+                value={formData.temperature}
+                onChange={e => setFormData({ ...formData, temperature: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Humidity (%)"
-                value={String(formData.humidity)}
-                onChange={e => setFormData({ ...formData, humidity: +e.target.value })}
+                value={formData.humidity}
+                onChange={e => setFormData({ ...formData, humidity: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Slump (inches)"
-                value={String(formData.slump)}
-                onChange={e => setFormData({ ...formData, slump: +e.target.value })}
+                value={formData.slump}
+                onChange={e => setFormData({ ...formData, slump: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Air Content (%)"
-                value={String(formData.airContent)}
-                onChange={e => setFormData({ ...formData, airContent: +e.target.value })}
+                value={formData.airContent}
+                onChange={e => setFormData({ ...formData, airContent: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Cylinders Made"
-                value={String(formData.cylindersMade)}
-                onChange={e => setFormData({ ...formData, cylindersMade: +e.target.value })}
+                value={formData.cylindersMade}
+                onChange={e => setFormData({ ...formData, cylindersMade: e.target.value })}
                 required
               />
             </div>
@@ -237,8 +179,6 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               onChange={e => setFormData({ ...formData, notes: e.target.value })}
               fullWidth
             />
-
-            {/* You can extend this form with your checklist fields (formData.checklist) */}
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
@@ -252,7 +192,6 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         </Card>
       )}
 
-      {/* Records List */}
       <div className="space-y-4">
         {filteredRecords.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
