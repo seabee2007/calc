@@ -75,11 +75,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     if (editingRecord) {
       setFormData({
         date: editingRecord.date,
-        temperature: editingRecord.temperature.toString(),
-        humidity: editingRecord.humidity.toString(),
-        slump: editingRecord.slump.toString(),
-        air_content: editingRecord.air_content.toString(),
-        cylinders_made: editingRecord.cylindersMade.toString(),
+        temperature: (editingRecord.temperature || 0).toString(),
+        humidity: (editingRecord.humidity || 0).toString(),
+        slump: (editingRecord.slump || 0).toString(),
+        air_content: (editingRecord.air_content || 0).toString(),
+        cylinders_made: (editingRecord.cylindersMade || 0).toString(),
         notes: editingRecord.notes || '',
         checklist: editingRecord.checklist || defaultChecklist
       });
@@ -150,7 +150,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         record.humidity.toString().includes(searchTerm) ||
         record.slump.toString().includes(searchTerm) ||
         record.air_content.toString().includes(searchTerm) ||
-        record.cylindersMade.toString().includes(searchTerm);
+        (record.cylindersMade || 0).toString().includes(searchTerm);
       
       const matchesDate = !dateFilter || record.date.includes(dateFilter);
       
@@ -693,7 +693,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                       </div>
                       <div>
                         <span className="text-gray-500">Cylinders:</span>
-                        <span className="ml-2 text-gray-900">{record.cylindersMade}</span>
+                        <span className="ml-2 text-gray-900">{record.cylindersMade || 0}</span>
                       </div>
                     </div>
                     {record.notes && (
