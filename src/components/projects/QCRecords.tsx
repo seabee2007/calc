@@ -40,8 +40,8 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       temperature: parseFloat(formData.temperature),
       humidity: parseFloat(formData.humidity),
       slump: parseFloat(formData.slump),
-      air_Content: parseFloat(formData.airContent),
-      cylinders_Made: parseInt(formData.cylindersMade),
+      air_Content: parseFloat(formData.air_Content),
+      cylindersMade: parseInt(formData.cylinders_Made),
       notes: formData.notes
     });
     setShowForm(false);
@@ -65,7 +65,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
         `Humidity: ${record.humidity}%\n` +
         `Slump: ${record.slump}"\n` +
         `Air Content: ${record.air_Content}%\n` +
-        `Cylinders Made: ${record.cylinders_Made}\n` +
+        `Cylinders Made: ${record.cylindersMade}\n` +
         `Notes: ${record.notes}\n\n`
       ).join('')}`
     );
@@ -139,14 +139,14 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               <Input
                 type="number"
                 label="Air Content (%)"
-                value={formData.airContent}
+                value={formData.air_Content}
                 onChange={(e) => setFormData({ ...formData, air_Content: e.target.value })}
                 required
               />
               <Input
                 type="number"
                 label="Cylinders Made"
-                value={formData.cylindersMade}
+                value={formData.cylinders_Made}
                 onChange={(e) => setFormData({ ...formData, cylinders_Made: e.target.value })}
                 required
               />
@@ -203,7 +203,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-500">Cylinders:</span>
-                    <span className="ml-2 text-gray-900">{record.cylinders_Made}</span>
+                    <span className="ml-2 text-gray-900">{record.cylindersMade}</span>
                   </div>
                 </div>
                 {record.notes && (
