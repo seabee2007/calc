@@ -49,7 +49,7 @@ export interface QCRecord {
   temperature: number;
   humidity: number;
   slump: number;
-  air_content: number;
+  airContent: number;
   cylindersMade: number;
   notes: string;
   createdAt: string;
