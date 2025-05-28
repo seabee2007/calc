@@ -156,9 +156,9 @@ const Resources: React.FC = () => {
           <Card className="w-full max-w-2xl h-[600px] relative">
             <button 
               onClick={() => setShowChat(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              className="absolute top-4 right-4 text-red-500 hover:text-red-700 z-10"
             >
-              ✕
+              <span className="text-xl font-bold">✕</span>
             </button>
             <div className="h-full">
               <ConcreteChat />
