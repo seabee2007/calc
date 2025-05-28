@@ -157,7 +157,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
                 onClick={() => setShowChat(true)}
                 className="w-full"
               >
-                Chat with Expert
+                Chat with an Expert
               </Button>
             </div>
           </div>
