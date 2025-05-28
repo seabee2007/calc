@@ -20,6 +20,17 @@ interface ProjectState {
   loadProjects: () => Promise<void>;
 }
 
+interface PreferencesState {
+  preferences: UserPreferences;
+  updatePreferences: (newPreferences: Partial<UserPreferences>) => void;
+}
+
+const defaultPreferences: UserPreferences = {
+  units: 'imperial',
+  lengthUnit: 'feet',
+  volumeUnit: 'cubic_yards'
+};
+
 export const useProjectStore = create<ProjectState>((set) => ({
   projects: [],
   currentProject: null,
@@ -197,8 +208,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
       return;
     }
 
-    const project = get().projects.find(p => p.id === projectId) || null;
-    set({ currentProject: project });
+    set((state) => {
+      const project = state.projects.find(p => p.id === projectId) || null;
+      return { currentProject: project };
+    });
   },
 
   addCalculation: async (projectId, calculation) => {
@@ -530,3 +543,20 @@ export const useProjectStore = create<ProjectState>((set) => ({
     }
   }
 }));
+
+export const usePreferencesStore = create<PreferencesState>((set) => {
+  // Try to load from localStorage
+  const savedPreferences = localStorage.getItem('concretePreferences');
+  const initialPreferences: UserPreferences = savedPreferences 
+    ? JSON.parse(savedPreferences) 
+    : defaultPreferences;
+
+  return {
+    preferences: initialPreferences,
+    updatePreferences: (newPreferences) => set((state) => {
+      const updatedPreferences = { ...state.preferences, ...newPreferences };
+      localStorage.setItem('concretePreferences', JSON.stringify(updatedPreferences));
+      return { preferences: updatedPreferences };
+    }),
+  };
+});
