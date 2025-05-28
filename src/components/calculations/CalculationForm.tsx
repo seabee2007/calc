@@ -267,7 +267,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
     
     const volume = convertVolume(volumeCubicFeet, preferences.volumeUnit);
-    const volumeWithWaste = addWasteFactor(volume);
     const bags = calculateBags(volumeWithWaste);
     
     const recommendations = weather ? 
