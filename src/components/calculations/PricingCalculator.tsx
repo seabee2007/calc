@@ -161,13 +161,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
           />
         </div>
 
-        {!supplier && (
-          <p className="mt-2 text-sm text-amber-600 flex items-center">
-            <MapPin className="h-4 w-4 mr-1" />
-            Select your location to see pricing
-          </p>
-        )}
-
         {(userLocation || supplier) && (
           <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-2">
             {userLocation && (
