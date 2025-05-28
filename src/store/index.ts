@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Project, UserPreferences, Calculation } from '../types';
+import { Project, UserPreferences, Calculation, QCRecord } from '../types';
 import { supabase } from '../lib/supabase';
 import { MixProfileType } from '../types/curing';
 
@@ -14,6 +14,9 @@ interface ProjectState {
   addCalculation: (projectId: string, calculation: Omit<Calculation, 'id' | 'createdAt'>) => Promise<void>;
   updateCalculation: (projectId: string, calculationId: string, calculationData: Partial<Calculation>) => Promise<void>;
   deleteCalculation: (projectId: string, calculationId: string) => Promise<void>;
+  addQCRecord: (projectId: string, record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateQCRecord: (projectId: string, recordId: string, recordData: Partial<QCRecord>) => Promise<void>;
+  deleteQCRecord: (projectId: string, recordId: string) => Promise<void>;
   loadProjects: () => Promise<void>;
 }
 
@@ -37,7 +40,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           updated_at,
           pour_date,
           mix_profile,
-          calculations (*)
+          calculations (*),
+          qc_records (*)
         `)
         .order('created_at', { ascending: false });
 
@@ -52,7 +56,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         updatedAt: row.updated_at,
         pourDate: row.pour_date,
         mixProfile: row.mix_profile || 'standard',
-        calculations: row.calculations || []
+        calculations: row.calculations || [],
+        qcRecords: row.qc_records || []
       })) || [];
 
       set({ projects: formattedProjects, loading: false });
@@ -346,6 +351,179 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       console.error('Error deleting calculation:', error);
       throw error;
     }
+  },
+
+  addQCRecord: async (projectId, record) => {
+    try {
+      const { data, error } = await supabase
+        .from('qc_records')
+        .insert({
+          project_id: projectId,
+          date: record.date,
+          temperature: record.temperature,
+          humidity: record.humidity,
+          slump: record.slump,
+          air_content: record.airContent,
+          cylinders_made: record.cylindersMade,
+          notes: record.notes
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      const newRecord: QCRecord = {
+        id: data.id,
+        projectId: data.project_id,
+        date: data.date,
+        temperature: data.temperature,
+        humidity: data.humidity,
+        slump: data.slump,
+        airContent: data.air_content,
+        cylindersMade: data.cylinders_made,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+
+      set((state) => {
+        const updatedProjects = state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              qcRecords: [...(project.qcRecords || []), newRecord],
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return project;
+        });
+
+        const updatedCurrentProject = state.currentProject?.id === projectId
+          ? {
+              ...state.currentProject,
+              qcRecords: [...(state.currentProject.qcRecords || []), newRecord],
+              updatedAt: new Date().toISOString()
+            }
+          : state.currentProject;
+
+        return {
+          projects: updatedProjects,
+          currentProject: updatedCurrentProject
+        };
+      });
+    } catch (error) {
+      console.error('Error adding QC record:', error);
+      throw error;
+    }
+  },
+
+  updateQCRecord: async (projectId, recordId, recordData) => {
+    try {
+      const { data, error } = await supabase
+        .from('qc_records')
+        .update({
+          date: recordData.date,
+          temperature: recordData.temperature,
+          humidity: recordData.humidity,
+          slump: recordData.slump,
+          air_content: recordData.airContent,
+          cylinders_made: recordData.cylindersMade,
+          notes: recordData.notes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', recordId)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      const updatedRecord: QCRecord = {
+        id: data.id,
+        projectId: data.project_id,
+        date: data.date,
+        temperature: data.temperature,
+        humidity: data.humidity,
+        slump: data.slump,
+        airContent: data.air_content,
+        cylindersMade: data.cylinders_made,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+
+      set((state) => {
+        const updatedProjects = state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              qcRecords: project.qcRecords?.map(record =>
+                record.id === recordId ? updatedRecord : record
+              ) || [],
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return project;
+        });
+
+        const updatedCurrentProject = state.currentProject?.id === projectId
+          ? {
+              ...state.currentProject,
+              qcRecords: state.currentProject.qcRecords?.map(record =>
+                record.id === recordId ? updatedRecord : record
+              ) || [],
+              updatedAt: new Date().toISOString()
+            }
+          : state.currentProject;
+
+        return {
+          projects: updatedProjects,
+          currentProject: updatedCurrentProject
+        };
+      });
+    } catch (error) {
+      console.error('Error updating QC record:', error);
+      throw error;
+    }
+  },
+
+  deleteQCRecord: async (projectId, recordId) => {
+    try {
+      const { error } = await supabase
+        .from('qc_records')
+        .delete()
+        .eq('id', recordId);
+
+      if (error) throw error;
+
+      set((state) => {
+        const updatedProjects = state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              qcRecords: project.qcRecords?.filter(record => record.id !== recordId) || [],
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return project;
+        });
+
+        const updatedCurrentProject = state.currentProject?.id === projectId
+          ? {
+              ...state.currentProject,
+              qcRecords: state.currentProject.qcRecords?.filter(record => record.id !== recordId) || [],
+              updatedAt: new Date().toISOString()
+            }
+          : state.currentProject;
+
+        return {
+          projects: updatedProjects,
+          currentProject: updatedCurrentProject
+        };
+      });
+    } catch (error) {
+      console.error('Error deleting QC record:', error);
+      throw error;
+    }
   }
 }));
 
@@ -376,3 +554,5 @@ export const usePreferencesStore = create<PreferencesState>((set) => {
     }),
   };
 });
+
+export { useProjectStore }
