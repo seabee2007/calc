@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Filter, CheckSquare } from 'lucide-react';
+import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar } from 'lucide-react';
 import { QCRecord, QCChecklist } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
+import Checkbox from '../ui/Checkbox';
 import { format } from 'date-fns';
 import { generateProjectPDF } from '../../utils/pdf';
-
-interface QCRecordsProps {
-  projectId: string;
-  records: QCRecord[];
-  onSave: (record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => void;
-  onDelete: (recordId: string) => void;
-}
 
 const defaultChecklist: QCChecklist = {
   rebarSpacingActual: 0,
@@ -48,6 +42,13 @@ const defaultChecklist: QCChecklist = {
   finishingToolsChecked: false,
   curingMaterialsAvailable: false
 };
+
+interface QCRecordsProps {
+  projectId: string;
+  records: QCRecord[];
+  onSave: (record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => void;
+  onDelete: (recordId: string) => void;
+}
 
 const QCRecords: React.FC<QCRecordsProps> = ({
   projectId,
@@ -86,9 +87,10 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     }
   }, [editingRecord]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
+    
+    const record = {
       date: formData.date,
       temperature: parseFloat(formData.temperature) || 0,
       humidity: parseFloat(formData.humidity) || 0,
@@ -97,9 +99,15 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       cylindersMade: parseInt(formData.cylinders_made) || 0,
       notes: formData.notes,
       checklist: formData.checklist
-    });
+    };
+
+    await onSave(record);
     setShowForm(false);
     setEditingRecord(null);
+    resetForm();
+  };
+
+  const resetForm = () => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       temperature: '',
@@ -115,16 +123,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
   const handleCancel = () => {
     setShowForm(false);
     setEditingRecord(null);
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      temperature: '',
-      humidity: '',
-      slump: '',
-      air_content: '',
-      cylinders_made: '',
-      notes: '',
-      checklist: defaultChecklist
-    });
+    resetForm();
   };
 
   const handleEmailReport = () => {
@@ -253,6 +252,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 required
               />
             </div>
+
             <div>
               <Input
                 label="Notes"
@@ -262,11 +262,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               />
             </div>
 
-            <div className="border-t pt-6 mt-6">
-              <h4 className="text-lg font-medium mb-4">Pre-Pour Checklist</h4>
-              
+            <div className="border-t pt-6">
+              <h4 className="text-lg font-semibold mb-6">Pre-Pour Checklist</h4>
+
               <section className="mb-6">
-                <h5 className="font-semibold mb-3">Reinforcement</h5>
+                <h5 className="font-medium text-gray-900 mb-4">Reinforcement</h5>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
                     type="number"
@@ -292,30 +292,26 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                       }
                     })}
                   />
-                  <div className="flex items-center mt-8">
-                    <input
-                      type="checkbox"
-                      checked={formData.checklist.rebarSpacingPass}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        checklist: {
-                          ...formData.checklist,
-                          rebarSpacingPass: e.target.checked
-                        }
-                      })}
-                      className="h-4 w-4 text-blue-600"
-                    />
-                    <label className="ml-2">Pass</label>
-                  </div>
+                  <Checkbox
+                    label="Pass"
+                    checked={formData.checklist.rebarSpacingPass}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      checklist: {
+                        ...formData.checklist,
+                        rebarSpacingPass: e.target.checked
+                      }
+                    })}
+                  />
                 </div>
               </section>
 
               <section className="mb-6">
-                <h5 className="font-semibold mb-3">Formwork</h5>
+                <h5 className="font-medium text-gray-900 mb-4">Formwork</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Pressure Test Pass"
                       checked={formData.checklist.formPressureTestPass}
                       onChange={(e) => setFormData({
                         ...formData,
@@ -324,13 +320,9 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                           formPressureTestPass: e.target.checked
                         }
                       })}
-                      className="h-4 w-4 text-blue-600"
                     />
-                    <label className="ml-2">Pressure Test Pass</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
+                    <Checkbox
+                      label="Alignment Pass"
                       checked={formData.checklist.formAlignmentPass}
                       onChange={(e) => setFormData({
                         ...formData,
@@ -339,9 +331,307 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                           formAlignmentPass: e.target.checked
                         }
                       })}
-                      className="h-4 w-4 text-blue-600"
                     />
-                    <label className="ml-2">Alignment Pass</label>
+                  </div>
+                  <div className="space-y-4">
+                    <Input
+                      type="number"
+                      label="Cover (actual)"
+                      value={formData.checklist.formCoverActual}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          formCoverActual: parseFloat(e.target.value)
+                        }
+                      })}
+                    />
+                    <Input
+                      type="number"
+                      label="Cover (spec)"
+                      value={formData.checklist.formCoverSpec}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          formCoverSpec: parseFloat(e.target.value)
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Cover Pass"
+                      checked={formData.checklist.formCoverPass}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          formCoverPass: e.target.checked
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h5 className="font-medium text-gray-900 mb-4">Subgrade & Utilities</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Subgrade Prep (Electrical)"
+                      checked={formData.checklist.subgradePrepElectrical}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          subgradePrepElectrical: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Conduit Installed"
+                      checked={formData.checklist.elevationConduitInstalled}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          elevationConduitInstalled: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Sleeves OK"
+                      checked={formData.checklist.dimensionSleevesOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          dimensionSleevesOK: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Pull Cords OK"
+                      checked={formData.checklist.compactionPullCordsOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          compactionPullCordsOK: e.target.checked
+                        }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Capillary Barrier"
+                      checked={formData.checklist.capillaryBarrierInstalled}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          capillaryBarrierInstalled: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Vapor Barrier"
+                      checked={formData.checklist.vaporBarrierOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          vaporBarrierOK: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Insect/Drain Rack"
+                      checked={formData.checklist.miscInsectDrainRackOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          miscInsectDrainRackOK: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Sub-slab Piping"
+                      checked={formData.checklist.subslabPipingInstalled}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          subslabPipingInstalled: e.target.checked
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h5 className="font-medium text-gray-900 mb-4">Embedded Items</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Floor Drains OK"
+                      checked={formData.checklist.floorDrainsOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          floorDrainsOK: e.target.checked
+                        }
+                      })}
+                    />
+                    <Input
+                      label="Drains Elevation"
+                      value={formData.checklist.floorDrainsElevation}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          floorDrainsElevation: e.target.value
+                        }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Floor Cleanouts OK"
+                      checked={formData.checklist.floorCleanoutsOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          floorCleanoutsOK: e.target.checked
+                        }
+                      })}
+                    />
+                    <Input
+                      label="Cleanouts Elevation"
+                      value={formData.checklist.floorCleanoutsElevation}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          floorCleanoutsElevation: e.target.value
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h5 className="font-medium text-gray-900 mb-4">Bracing & Equipment</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Bracing OK"
+                      checked={formData.checklist.bracingOK}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          bracingOK: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Screed Boards Set"
+                      checked={formData.checklist.screedBoardsSet}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          screedBoardsSet: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Screed Checked"
+                      checked={formData.checklist.screedBoardsChecked}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          screedBoardsChecked: e.target.checked
+                        }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Water Stop Placed"
+                      checked={formData.checklist.waterStopPlaced}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          waterStopPlaced: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Placing Tools Set"
+                      checked={formData.checklist.placingToolsSet}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          placingToolsSet: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Placing Tools OK"
+                      checked={formData.checklist.placingToolsChecked}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          placingToolsChecked: e.target.checked
+                        }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <Checkbox
+                      label="Finishing Tools Set"
+                      checked={formData.checklist.finishingToolsSet}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          finishingToolsSet: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Finishing Tools OK"
+                      checked={formData.checklist.finishingToolsChecked}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          finishingToolsChecked: e.target.checked
+                        }
+                      })}
+                    />
+                    <Checkbox
+                      label="Curing Materials"
+                      checked={formData.checklist.curingMaterialsAvailable}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        checklist: {
+                          ...formData.checklist,
+                          curingMaterialsAvailable: e.target.checked
+                        }
+                      })}
+                    />
                   </div>
                 </div>
               </section>
