@@ -111,10 +111,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
       </section>
 
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <MapPin className="h-4 w-4 text-gray-600" />
-          <h4 className="text-sm font-medium text-gray-700">Select your location to see pricing</h4>
-        </div>
         <div className="flex gap-2 mb-4">
           <Input
             type="text"
