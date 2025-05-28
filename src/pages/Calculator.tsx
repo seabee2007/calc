@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FolderOpen, Plus, Calculator } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { FolderOpen, Plus, Calculator, ArrowRight } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CalculationForm from '../components/calculations/CalculationForm';
 import ProjectForm from '../components/projects/ProjectForm';
 import { useProjectStore } from '../store';
@@ -13,6 +13,7 @@ import thickSlabDiagram from '../assets/images/THICK SLAB.webp';
 
 const CalculatorPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { projects, currentProject, setCurrentProject, addCalculation, addProject } = useProjectStore();
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [calculationType, setCalculationType] = useState<string>('');
@@ -106,9 +107,20 @@ const CalculatorPage: React.FC = () => {
         
         {currentProject && (
           <div className="mb-6 p-4 bg-blue-50/90 backdrop-blur-sm rounded-lg">
-            <p className="text-blue-800">
-              Currently working on: <span className="font-semibold">{currentProject.name}</span>
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-blue-800">
+                Currently working on: <span className="font-semibold">{currentProject.name}</span>
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/projects`)}
+                icon={<ArrowRight size={18} />}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                Go to Project
+              </Button>
+            </div>
             <p className="text-sm text-blue-600 mt-1">
               All calculations will be saved to this project
             </p>
