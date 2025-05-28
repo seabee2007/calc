@@ -30,7 +30,8 @@ const Projects: React.FC = () => {
     deleteProject,
     updateProject,
     deleteCalculation,
-    loading
+    loading,
+    loadProjects
   } = useProjectStore();
 
   // Local UI state
@@ -64,8 +65,8 @@ const Projects: React.FC = () => {
   }, [currentProject]);
 
   useEffect(() => {
-    useProjectStore.getState().loadProjects();
-  }, []);
+    loadProjects();
+  }, [loadProjects]);
 
   const handleMixProfileChange = async (newProfile: MixProfileType) => {
     if (!currentProject) return;
@@ -524,11 +525,11 @@ const Projects: React.FC = () => {
                           .insert([{
                             project_id: currentProject.id,
                             date: record.date,
-                            temperature: parseFloat(record.temperature) || 0,
-                            humidity: parseFloat(record.humidity) || 0,
-                            slump: parseFloat(record.slump) || 0,
-                            air_content: parseFloat(record.air_content) || 0,
-                            cylinders_made: parseInt(record.cylinders_made) || 0,
+                            temperature: parseFloat(record.temperature.toString()) || 0,
+                            humidity: parseFloat(record.humidity.toString()) || 0,
+                            slump: parseFloat(record.slump.toString()) || 0,
+                            air_content: parseFloat(record.air_content.toString()) || 0,
+                            cylinders_made: parseInt(record.cylindersMade.toString()) || 0,
                             notes: record.notes || ''
                           }])
                           .select()
@@ -542,10 +543,12 @@ const Projects: React.FC = () => {
                             ...currentProject,
                             qcRecords: [...(currentProject.qcRecords || []), data]
                           };
-                          setCurrentProject(currentProject.id);
                           
-                          // Refresh project data
-                          await useProjectStore.getState().loadProjects();
+                          // Update the project in the store
+                          await updateProject(currentProject.id, updatedProject);
+                          
+                          // Refresh the current project
+                          setCurrentProject(currentProject.id);
                         }
                         
                         showToastMessage('QC record added successfully', 'success');
@@ -568,10 +571,12 @@ const Projects: React.FC = () => {
                           ...currentProject,
                           qcRecords: currentProject.qcRecords?.filter(record => record.id !== recordId) || []
                         };
-                        setCurrentProject(currentProject.id);
                         
-                        // Refresh project data
-                        await useProjectStore.getState().loadProjects();
+                        // Update the project in the store
+                        await updateProject(currentProject.id, updatedProject);
+                        
+                        // Refresh the current project
+                        setCurrentProject(currentProject.id);
                         
                         showToastMessage('QC record deleted successfully', 'success');
                       } catch (err) {
