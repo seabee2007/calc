@@ -29,7 +29,6 @@ async function askConcrete(question: string): Promise<{ answer: string }> {
 }
 
 export default function ConcreteChat() {
-  const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,63 +55,63 @@ export default function ConcreteChat() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {!open ? (
-        <button
-          onClick={() => setOpen(true)}
-          className="p-3 bg-blue-600 rounded-full shadow-lg text-white"
-          aria-label="Open chat"
-        >
-          💬
-        </button>
-      ) : (
-        <div className="flex flex-col w-80 h-96 bg-white shadow-xl rounded-lg">
-          <div className="flex items-center justify-between p-2 bg-blue-600 text-white rounded-t-lg">
-            <span>Concrete Expert</span>
-            <button onClick={() => setOpen(false)} className="text-lg">
-              ✕
-            </button>
-          </div>
+    <div className="flex flex-col h-full bg-white rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between p-4 bg-blue-600 text-white">
+        <h2 className="text-lg font-semibold">Concrete Expert Chat</h2>
+      </div>
 
-          <div className="flex-1 p-2 overflow-y-auto space-y-2">
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={m.role === "user" ? "text-right" : "text-left"}
-              >
-                <div
-                  className={`inline-block p-2 rounded-lg ${
-                    m.role === "user" ? "bg-blue-100" : "bg-gray-100"
-                  }`}
-                >
-                  {m.content}
-                </div>
-              </div>
-            ))}
-            {loading && <div className="italic text-gray-500">typing…</div>}
+      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+        {messages.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
           </div>
-
-          <div className="p-2 border-t">
-            <div className="flex space-x-2">
-              <input
-                className="flex-1 p-2 border rounded focus:outline-none focus:ring"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSend();
-                }}
-                placeholder="Ask about concrete..."
-              />
-              <button
-                onClick={handleSend}
-                className="px-4 bg-blue-600 text-white rounded"
-              >
-                ➤
-              </button>
+        )}
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`max-w-[80%] p-3 rounded-lg ${
+                m.role === "user"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {m.content}
             </div>
           </div>
+        ))}
+        {loading && (
+          <div className="text-gray-500 italic">
+            Thinking...
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex space-x-2">
+          <input
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Ask about concrete..."
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Send
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
