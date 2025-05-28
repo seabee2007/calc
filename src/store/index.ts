@@ -31,6 +31,21 @@ const defaultPreferences: UserPreferences = {
   volumeUnit: 'cubic_yards'
 };
 
+// Helper function to map QC record from database format to frontend format
+const mapQcRecordFromDb = (record: any): QCRecord => ({
+  id: record.id,
+  projectId: record.project_id,
+  date: record.date,
+  temperature: record.temperature,
+  humidity: record.humidity,
+  slump: record.slump,
+  airContent: record.air_content,
+  cylindersMade: record.cylinders_made,
+  notes: record.notes,
+  createdAt: record.created_at,
+  updatedAt: record.updated_at
+});
+
 export const useProjectStore = create<ProjectState>((set) => ({
   projects: [],
   currentProject: null,
@@ -68,7 +83,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pourDate: row.pour_date,
         mixProfile: row.mix_profile || 'standard',
         calculations: row.calculations || [],
-        qcRecords: row.qc_records || []
+        qcRecords: (row.qc_records || []).map(mapQcRecordFromDb)
       })) || [];
 
       set({ projects: formattedProjects, loading: false });
@@ -116,7 +131,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pourDate: data.pour_date,
         mixProfile: data.mix_profile || 'standard',
         calculations: data.calculations || [],
-        qcRecords: data.qc_records || []
+        qcRecords: (data.qc_records || []).map(mapQcRecordFromDb)
       };
 
       set((state) => ({
@@ -170,7 +185,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pourDate: data.pour_date,
         mixProfile: data.mix_profile || 'standard',
         calculations: data.calculations || [],
-        qcRecords: data.qc_records || []
+        qcRecords: (data.qc_records || []).map(mapQcRecordFromDb)
       };
 
       set((state) => ({
@@ -389,19 +404,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
 
       if (error) throw error;
 
-      const newRecord: QCRecord = {
-        id: data.id,
-        projectId: data.project_id,
-        date: data.date,
-        temperature: data.temperature,
-        humidity: data.humidity,
-        slump: data.slump,
-        airContent: data.air_content,
-        cylindersMade: data.cylinders_made,
-        notes: data.notes,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      };
+      const newRecord = mapQcRecordFromDb(data);
 
       set((state) => {
         const updatedProjects = state.projects.map(project => {
@@ -454,19 +457,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
 
       if (error) throw error;
 
-      const updatedRecord: QCRecord = {
-        id: data.id,
-        projectId: data.project_id,
-        date: data.date,
-        temperature: data.temperature,
-        humidity: data.humidity,
-        slump: data.slump,
-        airContent: data.air_content,
-        cylindersMade: data.cylinders_made,
-        notes: data.notes,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      };
+      const updatedRecord = mapQcRecordFromDb(data);
 
       set((state) => {
         const updatedProjects = state.projects.map(project => {
