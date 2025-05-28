@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ResourceCard from '../components/resources/ResourceCard';
@@ -11,9 +11,22 @@ import mixingImage from '../assets/images/mixing.jpg';
 import crackImage from '../assets/images/crack.jpg';
 import admixImage from '../assets/images/admix.jpg';
 
-const Resources: React.FC = () => {
+interface ResourcesProps {
+  chatStore: {
+    isVisible: boolean;
+    setIsVisible: (visible: boolean) => void;
+  };
+}
+
+const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
+
+  // Hide/show persistent chat button based on modal state
+  useEffect(() => {
+    chatStore.setIsVisible(!showChat);
+    return () => chatStore.setIsVisible(true);
+  }, [showChat, chatStore]);
   
   const resources = [
     {
@@ -149,23 +162,23 @@ const Resources: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {showChat && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-2xl h-[600px] relative">
-            <button 
-              onClick={() => setShowChat(false)}
-              className="absolute top-4 right-4 text-red-500 hover:text-red-700 z-10"
-            >
-              <span className="text-xl font-bold">✕</span>
-            </button>
-            <div className="h-full">
-              <ConcreteChat isModal onClose={() => setShowChat(false)} />
-            </div>
-          </Card>
-        </div>
-      )}
+        {showChat && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-2xl h-[600px] relative">
+              <button 
+                onClick={() => setShowChat(false)}
+                className="absolute top-4 right-4 text-red-500 hover:text-red-700 z-10"
+              >
+                <span className="text-xl font-bold">✕</span>
+              </button>
+              <div className="h-full">
+                <ConcreteChat isModal onClose={() => setShowChat(false)} />
+              </div>
+            </Card>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 };
