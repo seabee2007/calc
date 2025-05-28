@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ResourceCard from '../components/resources/ResourceCard';
+import ConcreteChat from '../components/ConcreteChat';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
 import finishConcreteImage from '../assets/images/finishconcrete.jpg';
 import rebarImage from '../assets/images/rebar.jpg';
 import mixingImage from '../assets/images/mixing.jpg';
@@ -10,6 +13,7 @@ import admixImage from '../assets/images/admix.jpg';
 
 const Resources: React.FC = () => {
   const navigate = useNavigate();
+  const [showChat, setShowChat] = useState(false);
   
   const resources = [
     {
@@ -136,16 +140,32 @@ const Resources: React.FC = () => {
               <p className="text-blue-700 mb-4">
                 Have questions about concrete calculations or techniques? Our team is here to help!
               </p>
-              <button 
-                onClick={() => navigate('/contact')}
-                className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+              <Button 
+                onClick={() => setShowChat(true)}
+                className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg w-full"
               >
-                Contact Support
-              </button>
+                Chat with Expert
+              </Button>
             </div>
           </div>
         </div>
       </div>
+
+      {showChat && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl h-[600px] relative">
+            <button 
+              onClick={() => setShowChat(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+            <div className="h-full">
+              <ConcreteChat />
+            </div>
+          </Card>
+        </div>
+      )}
     </motion.div>
   );
 };
