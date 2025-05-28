@@ -59,6 +59,18 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   nowNoon.setUTCHours(12, 0, 0, 0);
   
   const daysPassed = Math.max(0, differenceInDays(nowNoon, pourDateNoon));
+
+  // Calculate PSI based on mix profile and strength percentage
+  const calculatePSI = (strengthPercentage: number) => {
+    const basePSI = {
+      standard: 3000,
+      highEarly: 3000,
+      highStrength: 5000,
+      rapidSet: 4000
+    }[mixProfile];
+
+    return Math.round((strengthPercentage / 100) * basePSI);
+  };
   
   // Find the current strength percentage
   const getCurrentStrength = () => {
@@ -86,6 +98,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   };
 
   const currentStrength = getCurrentStrength();
+  const currentPSI = calculatePSI(currentStrength);
 
   // Determine bar color based on current strength
   const getBarColor = (pct: number) => {
@@ -102,6 +115,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
     day: m.day,
     label: `${m.day}`,
     strength: `${m.pct}%`,
+    psi: calculatePSI(m.pct),
     border: getBarColor(m.pct).replace('bg-', 'border-'),
     fill: getBarColor(m.pct)
   }));
@@ -170,7 +184,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
                   {m.label}
                 </div>
                 <div className={`text-xs ${passed ? 'font-medium text-gray-900' : 'text-gray-500'} md:block hidden`}>
-                  {m.strength}
+                  {m.strength} ({m.psi} PSI)
                 </div>
               </div>
             );
@@ -181,7 +195,10 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
       <div className="mt-6 bg-blue-50 p-4 rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-medium text-blue-900">Current Strength</h4>
-          <span className="text-lg font-bold text-blue-700">{currentStrength}%</span>
+          <div className="text-right">
+            <span className="text-lg font-bold text-blue-700">{currentStrength}%</span>
+            <span className="text-sm text-blue-600 ml-2">({currentPSI} PSI)</span>
+          </div>
         </div>
         <p className="text-sm text-blue-600">
           {daysPassed} days since pour • {28 - daysPassed} days until full strength
