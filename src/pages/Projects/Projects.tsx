@@ -46,7 +46,8 @@ const Projects: React.FC = () => {
               setCurrentProject(null);
             }}
             icon={<ArrowLeftCircle size={20} />}
-            className="text-blue-600 hover:text-blue-700"
+            variant="primary"
+            className="text-white bg-blue-600 hover:bg-blue-700"
           >
             <span className="hidden sm:inline">Back to Projects</span>
           </Button>
