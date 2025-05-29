@@ -11,6 +11,7 @@ import Reinforcement from './pages/resources/Reinforcement';
 import ProperFinishing from './pages/resources/ProperFinishing';
 import CommonProblems from './pages/resources/CommonProblems';
 import Admixtures from './pages/resources/Admixtures';
+import ExternalResources from './pages/resources/ExternalResources';
 import MixDesignAdvisor from './pages/MixDesignAdvisor';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
@@ -69,6 +70,7 @@ function App() {
           <Route path="resources/proper-finishing" element={<ProperFinishing />} />
           <Route path="resources/common-problems" element={<CommonProblems />} />
           <Route path="resources/admixtures" element={<Admixtures />} />
+          <Route path="resources/external-resources" element={<ExternalResources />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
