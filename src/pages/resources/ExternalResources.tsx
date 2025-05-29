@@ -235,7 +235,7 @@ const ExternalResources: React.FC = () => {
                     </p>
                     <Button
                       as="a"
-                      href="https://www.astm.org/certification"
+                      href="https://www.concrete.org/certification/certificationprograms.aspx?m=details&pgm=Field%20Concrete%20Testing&cert=Concrete%20Field%20Testing%20Technician%E2%80%94Grade%20I"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
