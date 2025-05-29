@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import { BookOpen, Certificate, ShieldCheck, ClipboardList } from 'lucide-react';
+import { BookOpen, AlignCenterVertical as Certificate, ShieldCheck, ClipboardList } from 'lucide-react';
 
 const ExternalResources: React.FC = () => {
   const navigate = useNavigate();
