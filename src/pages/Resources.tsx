@@ -10,6 +10,7 @@ import rebarImage from '../assets/images/rebar.jpg';
 import mixingImage from '../assets/images/mixing.jpg';
 import crackImage from '../assets/images/crack.jpg';
 import admixImage from '../assets/images/admix.jpg';
+import libraryImage from '../assets/images/library.webp';
 
 interface ResourcesProps {
   chatStore: {
@@ -68,7 +69,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
     {
       title: 'External Resources & Standards',
       description: 'Access industry standards, certifications, and educational resources from leading organizations in concrete construction.',
-      imageUrl: 'https://images.pexels.com/photos/159358/construction-site-build-construction-work-159358.jpeg',
+      imageUrl: libraryImage,
       link: '/resources/external-resources'
     }
   ];
