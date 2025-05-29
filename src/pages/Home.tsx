@@ -19,7 +19,7 @@ const Home: React.FC = () => {
     {
       title: 'Weather Integration',
       description: 'Get concrete mix recommendations based on real-time weather conditions',
-      icon: <svg className="h-10 w-10 text-white\" xmlns="http://www.w3.org/2000/svg\" viewBox="0 0 24 24\" fill="none\" stroke="currentColor\" strokeWidth="2\" strokeLinecap="round\" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M22 10a3 3 0 0 0-3-3h-2.207a5.502 5.502 0 0 0-10.702.5"/></svg>,
+      icon: <svg className="h-10 w-10 text-white\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"2\" strokeLinecap=\"round\" strokeLinejoin=\"round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M22 10a3 3 0 0 0-3-3h-2.207a5.502 5.502 0 0 0-10.702.5"/></svg>,
       action: () => navigate('/calculator', { state: { openWeatherModal: true } }),
       gradient: 'from-blue-500 to-blue-700'
     },
