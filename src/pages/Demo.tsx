@@ -1,5 +1,5 @@
 import React from 'react';
-import StrengthProgressBar from './components/StrengthProgressBar';
+import StrengthProgressBar from '../components/StrengthProgressBar';
 
 const Demo: React.FC = () => {
   return (
@@ -25,6 +25,3 @@ const Demo: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Demo;
