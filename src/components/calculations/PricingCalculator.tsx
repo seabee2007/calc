@@ -97,7 +97,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Concrete Pricing Estimate</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Ready-Mixed Concrete Estimate</h3>
         <DollarSign className="h-6 w-6 text-green-600" />
       </div>
 
