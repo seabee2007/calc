@@ -132,12 +132,15 @@ export function calculateSidewalkVolume(
 }
 
 // Calculate number of 80lb bags needed
-export function calculateBags(cubicYards: number): number {
-  // Approximately 45 bags per cubic yard for 80lb bags
+export function calculateBags(cubicYards: number, quikreteYield?: number): number {
+  if (quikreteYield) {
+    // Convert cubic yards to cubic feet for Quikrete calculation
+    const cubicFeet = cubicYards * 27;
+    return Math.ceil(cubicFeet / quikreteYield);
+  }
+  // Standard 80lb bag calculation (approximately 45 bags per cubic yard)
   return Math.ceil(cubicYards * 45);
 }
-
-
 
 // Calculate concrete mix materials based on volume and design
 export function calculateMixMaterials(cubicYards: number, psi: keyof typeof CONCRETE_MIX_DESIGNS): ConcreteMixDesign {
