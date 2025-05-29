@@ -18,20 +18,20 @@ const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   // Base styles
-  const baseStyles = 'bg-white rounded-lg overflow-hidden';
+  const baseStyles = 'bg-white rounded-lg overflow-hidden backdrop-blur-sm bg-white/90 transform-gpu';
   
-  // Shadow styles
+  // Shadow styles with more pronounced 3D effect
   const shadowStyles = {
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg'
+    sm: 'shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.05)]',
+    md: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.05)]',
+    lg: 'shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)]'
   };
   
   // Border style
   const borderStyle = border ? 'border border-slate-200' : '';
   
-  // Hover style
-  const hoverStyle = hoverable ? 'transition-all duration-200 hover:shadow-lg' : '';
+  // Enhanced hover style with 3D transform
+  const hoverStyle = hoverable ? 'transition-all duration-300 ease-out hover:shadow-[0_25px_30px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:scale-[1.02]' : '';
   
   // Clickable style
   const clickableStyle = clickable ? 'cursor-pointer' : '';
@@ -41,8 +41,9 @@ const Card: React.FC<CardProps> = ({
 
   const cardVariants = {
     hover: { 
-      y: -5,
-      transition: { duration: 0.2 }
+      y: -8,
+      scale: 1.02,
+      transition: { duration: 0.3, ease: 'easeOut' }
     },
     tap: { 
       scale: 0.98,
