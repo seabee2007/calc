@@ -289,15 +289,9 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
     
     const volume = convertVolume(volumeCubicFeet, preferences.volumeUnit);
-    let bags = 0;
-
-    if (selectedQuikreteProduct) {
-      // Calculate bags based on Quikrete product yield
-      bags = Math.ceil(volumeCubicFeet / selectedQuikreteProduct.yield);
-    } else {
-      // Use standard 80lb bag calculation
-      bags = calculateBags(volume);
-    }
+    const bags = selectedQuikreteProduct 
+      ? calculateBags(volume, selectedQuikreteProduct.yield)
+      : calculateBags(volume);
     
     const recommendations = weather ? 
       generateRecommendations(
