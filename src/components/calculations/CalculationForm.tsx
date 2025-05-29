@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Calculator as Calculate, CloudSun, DollarSign } from 'lucide-react';
+import { Calculator as Calculate, CloudSun, DollarSign, Package } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Card from '../ui/Card';
 import PricingCalculator from './PricingCalculator';
+import QuikreteModal from './QuikreteModal';
 import { 
   calculateSlabVolume, 
   calculateFooterVolume, 
@@ -122,6 +123,12 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [selectedPsi, setSelectedPsi] = useState<string>('3000');
   const [showPricing, setShowPricing] = useState(false);
+  const [showQuikreteModal, setShowQuikreteModal] = useState(false);
+  const [selectedQuikreteProduct, setSelectedQuikreteProduct] = useState<{
+    type: string;
+    weight: number;
+    yield: number;
+  } | null>(null);
   const weatherSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -157,6 +164,11 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   
   const togglePricing = () => {
     setShowPricing(!showPricing);
+  };
+
+  const handleQuikreteSelect = (product: { type: string; weight: number; yield: number }) => {
+    setSelectedQuikreteProduct(product);
+    setShowQuikreteModal(false);
   };
   
   const calculateVolume = (data: FormInputs) => {
@@ -277,7 +289,15 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
     
     const volume = convertVolume(volumeCubicFeet, preferences.volumeUnit);
-    const bags = calculateBags(volume);
+    let bags = 0;
+
+    if (selectedQuikreteProduct) {
+      // Calculate bags based on Quikrete product yield
+      bags = Math.ceil(volumeCubicFeet / selectedQuikreteProduct.yield);
+    } else {
+      // Use standard 80lb bag calculation
+      bags = calculateBags(volume);
+    }
     
     const recommendations = weather ? 
       generateRecommendations(
@@ -567,7 +587,17 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-blue-700">80lb Bags</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-blue-700">
+                      {selectedQuikreteProduct ? `${selectedQuikreteProduct.weight}lb QUIKRETE® ${selectedQuikreteProduct.type}` : '80lb Bags'}
+                    </p>
+                    <button
+                      onClick={() => setShowQuikreteModal(true)}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      <Package size={16} />
+                    </button>
+                  </div>
                   <p className="text-2xl font-bold text-blue-900">
                     {calculationResult.bags}
                   </p>
@@ -629,6 +659,12 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           handleLocationReceived(lat, lon);
           setShowWeather(true);
         }}
+      />
+
+      <QuikreteModal
+        isOpen={showQuikreteModal}
+        onClose={() => setShowQuikreteModal(false)}
+        onSelect={handleQuikreteSelect}
       />
     </div>
   );
