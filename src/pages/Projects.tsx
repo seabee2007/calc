@@ -528,7 +528,7 @@ const Projects: React.FC = () => {
                             temperature: parseFloat(record.temperature.toString()) || 0,
                             humidity: parseFloat(record.humidity.toString()) || 0,
                             slump: parseFloat(record.slump.toString()) || 0,
-                            air_content: parseFloat(record.air_content.toString()) || 0,
+                            air_content: parseFloat(record.airContent.toString()) || 0,
                             cylinders_made: parseInt(record.cylindersMade.toString()) || 0,
                             notes: record.notes || ''
                           }])
