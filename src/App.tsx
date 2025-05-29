@@ -19,7 +19,6 @@ import ResetPassword from './pages/auth/ResetPassword';
 import AuthGuard from './components/auth/AuthGuard';
 import { useProjectStore } from './store';
 import ConcreteChat from "./components/ConcreteChat";
-import Demo from './pages/Demo';
 
 // Create a store for chat visibility
 export const useChatStore = () => {
@@ -72,7 +71,6 @@ function App() {
           <Route path="resources/common-problems" element={<CommonProblems />} />
           <Route path="resources/admixtures" element={<Admixtures />} />
           <Route path="resources/external-resources" element={<ExternalResources />} />
-          <Route path="demo" element={<Demo />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
@@ -90,4 +88,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
