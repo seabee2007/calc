@@ -47,7 +47,7 @@ const ExternalResources: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">ACI (American Concrete Institute)</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Industry consensus standards for concrete design & construction. Access technical documents, guides, and specifications.
+                      Industry consensus standards for concrete design & construction.
                     </p>
                     <Button
                       as="a"
@@ -67,19 +67,19 @@ const ExternalResources: React.FC = () => {
                 <div className="flex items-start space-x-4">
                   <ClipboardList className="h-6 w-6 text-green-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">OSHA Safety Guidelines</h3>
+                    <h3 className="text-lg font-medium text-gray-900">OSHA (Occupational Safety &amp; Health Administration)</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Comprehensive safety regulations for concrete work, including PPE requirements and best practices for handling.
+                      Regulations for safe handling and placement of concrete.
                     </p>
                     <Button
                       as="a"
-                      href="https://www.osha.gov/concrete-products"
+                      href="https://www.osha.gov"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
                       variant="outline"
                     >
-                      OSHA Concrete Guidelines
+                      Visit OSHA.gov
                     </Button>
                   </div>
                 </div>
@@ -87,21 +87,87 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <BookOpen className="h-6 w-6 text-yellow-600 flex-shrink-0" />
+                  <ShieldCheck className="h-6 w-6 text-red-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">ASTM Standards</h3>
+                    <h3 className="text-lg font-medium text-gray-900">ASTM International</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Testing methods and material specifications for concrete and related materials. Essential for quality control.
+                      Material testing standards for cement, aggregates, and concrete.
                     </p>
                     <Button
                       as="a"
-                      href="https://www.astm.org/standards/concrete-and-aggregates-standards.html"
+                      href="https://www.astm.org/CEMENT/"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
                       variant="outline"
                     >
-                      ASTM Concrete Standards
+                      Visit ASTM.org
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ClipboardList className="h-6 w-6 text-teal-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">PCI (Precast/Prestressed Concrete Institute)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Design and fabrication standards for precast concrete structures.
+                    </p>
+                    <Button
+                      as="a"
+                      href="https://www.pci.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Visit PCI.org
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <BookOpen className="h-6 w-6 text-orange-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">NRMCA (National Ready Mixed Concrete Assoc.)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Ready-mix concrete guidelines, sustainability & environmental best practices.
+                    </p>
+                    <Button
+                      as="a"
+                      href="https://www.nrmca.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Visit NRMCA.org
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ShieldCheck className="h-6 w-6 text-gray-700 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">AASHTO (American Assoc. of State Highway & Transportation Officials)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Transportation-related concrete design & testing standards.
+                    </p>
+                    <Button
+                      as="a"
+                      href="https://www.transportation.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Visit Transportation.org
                     </Button>
                   </div>
                 </div>
@@ -119,19 +185,19 @@ const ExternalResources: React.FC = () => {
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-purple-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">ACI Certification Programs</h3>
+                    <h3 className="text-lg font-medium text-gray-900">ACI Certified Concrete Field Testing Technician</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Professional certifications for concrete technicians, including field testing, inspection, and specialty applications.
+                      Hands-on training and certification in field testing of concrete properties.
                     </p>
                     <Button
                       as="a"
-                      href="https://www.concrete.org/certification/certificationprograms.aspx"
+                      href="https://www.concrete.org/education/certification/concretefieldtestingtechnician.aspx"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
                       variant="outline"
                     >
-                      Browse Certifications
+                      Learn More
                     </Button>
                   </div>
                 </div>
@@ -141,19 +207,19 @@ const ExternalResources: React.FC = () => {
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-purple-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">NRMCA Certifications</h3>
+                    <h3 className="text-lg font-medium text-gray-900">ACI Concrete Construction Inspector</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Industry certifications from the National Ready Mixed Concrete Association, including plant certification and personnel programs.
+                      Certification for inspectors overseeing proper concrete installation.
                     </p>
                     <Button
                       as="a"
-                      href="https://www.nrmca.org/certification/"
+                      href="https://www.concrete.org/education/certification/concreteconstructioninspector.aspx"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
                       variant="outline"
                     >
-                      NRMCA Programs
+                      Learn More
                     </Button>
                   </div>
                 </div>
@@ -161,21 +227,21 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <BookOpen className="h-6 w-6 text-indigo-600 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-blue-800 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Online Learning Resources</h3>
+                    <h3 className="text-lg font-medium text-gray-900">ASTM Concrete Testing Technician</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Free educational materials, webinars, and technical publications from industry organizations.
+                      Certification in ASTM test methods for concrete and cement.
                     </p>
                     <Button
                       as="a"
-                      href="https://www.concrete.org/education/freeonlinelearning.aspx"
+                      href="https://www.astm.org/certification"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
                       variant="outline"
                     >
-                      Free ACI Resources
+                      Learn More
                     </Button>
                   </div>
                 </div>
@@ -183,21 +249,87 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <BookOpen className="h-6 w-6 text-indigo-600 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-green-800 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Technical Publications</h3>
+                    <h3 className="text-lg font-medium text-gray-900">NRMCA Sustainability Certification</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Access to research papers, technical reports, and industry journals focused on concrete technology.
+                      Courses on sustainable concrete practices and LEED integration.
                     </p>
                     <Button
                       as="a"
-                      href="https://www.concrete.org/publications/technicalpapers.aspx"
+                      href="https://www.nrmca.org/education"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="sm"
                       variant="outline"
                     >
-                      Browse Publications
+                      Learn More
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-indigo-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Coursera: Concrete Materials & Structures</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      University‐led online courses covering concrete design and durability.
+                    </p>
+                    <Button
+                      as="a"
+                      href="https://www.coursera.org/search?query=concrete"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Explore Courses
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-red-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">LinkedIn Learning: Construction Tech</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Video courses on concrete technology, project management, and safety.
+                    </p>
+                    <Button
+                      as="a"
+                      href="https://www.linkedin.com/learning/search?keywords=concrete"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Browse Lynda.com
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-purple-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">NCCER Certification</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Recognized craft and safety credentials for concrete work.
+                    </p>
+                    <Button
+                      as="a"
+                      href="https://www.nccer.org/certifications"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Learn More
                     </Button>
                   </div>
                 </div>

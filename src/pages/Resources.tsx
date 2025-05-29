@@ -64,6 +64,12 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
       description: 'Understand the various concrete admixtures available and how they can improve workability, strength, and durability in different conditions.',
       imageUrl: admixImage,
       link: '/resources/admixtures'
+    },
+    {
+      title: 'External Resources & Standards',
+      description: 'Access industry standards, certifications, and educational resources from leading organizations in concrete construction.',
+      imageUrl: 'https://images.pexels.com/photos/159358/construction-site-build-construction-work-159358.jpeg',
+      link: '/resources/external-resources'
     }
   ];
 
