@@ -129,6 +129,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     weight: number;
     yield: number;
   } | null>(null);
+  const [lastCalculatedVolume, setLastCalculatedVolume] = useState<number | null>(null);
   const weatherSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -145,6 +146,20 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       });
     }
   }, [weather]);
+
+  // Auto-update bags when Quikrete product changes
+  useEffect(() => {
+    if (lastCalculatedVolume !== null && calculationResult) {
+      const newBags = selectedQuikreteProduct 
+        ? calculateBags(lastCalculatedVolume, selectedQuikreteProduct.yield)
+        : calculateBags(lastCalculatedVolume);
+      
+      setCalculationResult({
+        ...calculationResult,
+        bags: newBags
+      });
+    }
+  }, [selectedQuikreteProduct, lastCalculatedVolume]);
   
   const handleLocationReceived = async (lat: number, lon: number) => {
     const weatherData = await getWeatherByLocation(lat, lon);
@@ -197,6 +212,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         bags: 0,
         recommendations: ['Please input dimensions for calculation']
       });
+      setLastCalculatedVolume(null);
       return;
     }
     
@@ -289,6 +305,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
     
     const volume = convertVolume(volumeCubicFeet, preferences.volumeUnit);
+    setLastCalculatedVolume(volume);
+    
     const bags = selectedQuikreteProduct 
       ? calculateBags(volume, selectedQuikreteProduct.yield)
       : calculateBags(volume);
@@ -334,6 +352,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const handleCalculationTypeChange = (value: string) => {
     setCalculationType(value as CalculationType);
     setCalculationResult(null);
+    setLastCalculatedVolume(null);
     reset({
       ...watch()
     });
@@ -345,6 +364,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const handleColumnTypeChange = (value: string) => {
     setColumnType(value as ColumnType);
     setCalculationResult(null);
+    setLastCalculatedVolume(null);
     reset();
   };
 
