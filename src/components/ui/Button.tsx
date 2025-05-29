@@ -10,9 +10,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode;
   isLoading?: boolean;
   fullWidth?: boolean;
+  as?: 'button' | 'a';
+  href?: string;
+  target?: string;
+  rel?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(({
   children,
   variant = 'primary',
   size = 'md',
@@ -21,8 +25,12 @@ const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   className = '',
   disabled,
+  as = 'button',
+  href,
+  target,
+  rel,
   ...props
-}) => {
+}, ref) => {
   // Base styles
   const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
   
@@ -47,13 +55,8 @@ const Button: React.FC<ButtonProps> = ({
   
   const classes = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${className}`;
 
-  return (
-    <motion.button
-      className={classes}
-      whileTap={{ scale: 0.97 }}
-      disabled={isLoading || disabled}
-      {...props}
-    >
+  const content = (
+    <>
       {isLoading && (
         <svg 
           className="mr-2 h-4 w-4 animate-spin" 
@@ -80,8 +83,38 @@ const Button: React.FC<ButtonProps> = ({
       {icon && !isLoading && <span className="mr-2">{icon}</span>}
       
       {children}
+    </>
+  );
+
+  if (as === 'a') {
+    return (
+      <motion.a
+        ref={ref as React.Ref<HTMLAnchorElement>}
+        className={classes}
+        href={href}
+        target={target}
+        rel={rel}
+        whileTap={{ scale: 0.97 }}
+        {...props}
+      >
+        {content}
+      </motion.a>
+    );
+  }
+
+  return (
+    <motion.button
+      ref={ref as React.Ref<HTMLButtonElement>}
+      className={classes}
+      whileTap={{ scale: 0.97 }}
+      disabled={isLoading || disabled}
+      {...props}
+    >
+      {content}
     </motion.button>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;
