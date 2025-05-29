@@ -41,13 +41,12 @@ const Projects: React.FC = () => {
 
         {ui.showDetails && (
           <Button
-            variant="outline"
             onClick={() => {
               setUi(s => ({ ...s, showDetails: false }));
               setCurrentProject(null);
             }}
             icon={<ArrowLeftCircle size={20} />}
-            className="bg-white/90 backdrop-blur-sm hover:bg-blue-50"
+            className="text-blue-600 hover:text-blue-700"
           >
             <span className="hidden sm:inline">Back to Projects</span>
           </Button>
