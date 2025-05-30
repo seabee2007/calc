@@ -28,7 +28,7 @@ export default function CalculationSection() {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900 capitalize">
+                    <h4 className="font-medium text-gray-900 dark:text-white capitalize">
                       {calc.type.replace(/_/g, ' ')} Calculation
                     </h4>
                     <Button
