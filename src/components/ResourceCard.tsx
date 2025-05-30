@@ -30,7 +30,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
       whileTap={{ scale: 0.98 }}
     >
       <Card 
-        className="h-full overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all" 
+        className="h-full overflow-hidden bg-white/90 dark:text-white backdrop-blur-sm shadow-lg hover:shadow-xl transition-all" 
         shadow="md"
         hoverable
         clickable
