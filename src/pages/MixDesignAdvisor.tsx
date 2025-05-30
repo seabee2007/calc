@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Thermometer, Droplets, Wind, Calculator, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Beaker, Thermometer, Droplets, Wind, Calculator, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Select from '../components/ui/Select';
@@ -265,13 +265,13 @@ const MixDesignAdvisor: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Mix Design Parameters</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Mix Design Parameters</h2>
             
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <StepCircle number={1} />
-                  <h3 className="text-lg font-medium text-gray-900">Choose Unit System</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Choose Unit System</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Select
@@ -298,7 +298,7 @@ const MixDesignAdvisor: React.FC = () => {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <StepCircle number={2} />
-                  <h3 className="text-lg font-medium text-gray-900">Select Design Strength</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Select Design Strength</h3>
                 </div>
                 <Select
                   options={[
@@ -315,7 +315,7 @@ const MixDesignAdvisor: React.FC = () => {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <StepCircle number={3} />
-                  <h3 className="text-lg font-medium text-gray-900">Set Exposure Condition</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Set Exposure Condition</h3>
                 </div>
                 <Select
                   options={[
@@ -333,7 +333,7 @@ const MixDesignAdvisor: React.FC = () => {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <StepCircle number={4} />
-                  <h3 className="text-lg font-medium text-gray-900">Get Recommendations</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Get Recommendations</h3>
                 </div>
                 <Button
                   onClick={handleGetWeather}
@@ -344,13 +344,13 @@ const MixDesignAdvisor: React.FC = () => {
                   {locationPermissionDenied ? 'Retry Location Access' : 'Calculate Mix Design'}
                 </Button>
                 {locationError && (
-                  <div className="mt-2 p-3 bg-red-50 rounded-lg">
-                    <p className="text-sm text-red-600 flex items-center">
+                  <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/50 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-200 flex items-center">
                       <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
                       {locationError}
                     </p>
                     {locationPermissionDenied && (
-                      <p className="text-xs text-red-500 mt-1 ml-6">
+                      <p className="text-xs text-red-500 dark:text-red-300 mt-1 ml-6">
                         iOS users: Go to Settings &gt; Privacy &amp; Security &gt; Location Services &gt; Safari Websites
                       </p>
                     )}
@@ -362,40 +362,40 @@ const MixDesignAdvisor: React.FC = () => {
             {weather && (
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Current Conditions</h3>
-                  <div className="flex items-center text-gray-600">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Conditions</h3>
+                  <div className="flex items-center text-gray-600 dark:text-gray-300">
                     <MapPin size={16} className="mr-1" />
                     <span className="text-sm">{weather.location.city}, {weather.location.country}</span>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Thermometer className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm text-blue-600">Temperature</span>
+                      <Thermometer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm text-blue-600 dark:text-blue-300">Temperature</span>
                     </div>
-                    <p className="text-xl font-semibold text-blue-900 mt-1">
+                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
                       {formatTemperature(weather.temperature)}
                     </p>
                   </div>
 
-                  <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Droplets className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm text-blue-600">Humidity</span>
+                      <Droplets className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm text-blue-600 dark:text-blue-300">Humidity</span>
                     </div>
-                    <p className="text-xl font-semibold text-blue-900 mt-1">
+                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
                       {weather.humidity}%
                     </p>
                   </div>
 
-                  <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Wind className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm text-blue-600">Wind Speed</span>
+                      <Wind className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm text-blue-600 dark:text-blue-300">Wind Speed</span>
                     </div>
-                    <p className="text-xl font-semibold text-blue-900 mt-1">
+                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
                       {formatWindSpeed(weather.windSpeed)}
                     </p>
                   </div>
@@ -407,21 +407,21 @@ const MixDesignAdvisor: React.FC = () => {
           {recommendation && (
             <>
               <Card className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Mix Design Recommendations</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Mix Design Recommendations</h2>
 
                 <div className="space-y-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Evaporation Rate Risk</h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Evaporation Rate Risk</h3>
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className="text-sm text-gray-600">Current Rate</p>
-                        <p className="text-xl font-semibold">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Current Rate</p>
+                        <p className="text-xl font-semibold text-gray-900 dark:text-white">
                           {recommendation.evaporationRate.metric.toFixed(2)} kg/m²·hr
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {getEvaporationRiskLevel(recommendation.evaporationRate.metric).icon}
-                        <span className={`font-medium text-${getEvaporationRiskLevel(recommendation.evaporationRate.metric).color}-600`}>
+                        <span className={`font-medium text-${getEvaporationRiskLevel(recommendation.evaporationRate.metric).color}-600 dark:text-${getEvaporationRiskLevel(recommendation.evaporationRate.metric).color}-400`}>
                           {getEvaporationRiskLevel(recommendation.evaporationRate.metric).level} Risk
                         </span>
                       </div>
@@ -430,32 +430,32 @@ const MixDesignAdvisor: React.FC = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span>Low Risk (≤ 0.5): Standard curing adequate</span>
+                        <span className="text-gray-700 dark:text-gray-300">Low Risk (≤ 0.5): Standard curing adequate</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span>Moderate Risk (0.5-1.0): Take precautions</span>
+                        <span className="text-gray-700 dark:text-gray-300">Moderate Risk (0.5-1.0): Take precautions</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span>High Risk (&gt; 1.0): Immediate action required</span>
+                        <span className="text-gray-700 dark:text-gray-300">High Risk (&gt; 1.0): Immediate action required</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Mix Properties</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Mix Properties</h3>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-50 p-3 rounded-lg">
-                        <p className="text-sm text-gray-600">Water-Cement Ratio</p>
-                        <p className="text-xl font-semibold text-gray-900">
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Water-Cement Ratio</p>
+                        <p className="text-xl font-semibold text-gray-900 dark:text-white">
                           {recommendation.waterCementRatio.toFixed(2)}
                         </p>
                       </div>
 
-                      <div className="bg-gray-50 p-3 rounded-lg">
-                        <p className="text-sm text-gray-600">Target Air Content</p>
-                        <p className="text-xl font-semibold text-gray-900">
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Target Air Content</p>
+                        <p className="text-xl font-semibold text-gray-900 dark:text-white">
                           {recommendation.targetAir[0]}% - {recommendation.targetAir[1]}%
                         </p>
                       </div>
@@ -463,17 +463,17 @@ const MixDesignAdvisor: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Required Actions</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Required Actions</h3>
                     <div className="space-y-2">
                       {recommendation.recommendations.map((rec, index) => (
                         <div 
                           key={index}
                           className={`p-3 rounded-lg flex items-start gap-2 ${
                             rec.startsWith('CRITICAL') || rec.startsWith('IMMEDIATE')
-                              ? 'bg-red-50 text-red-800' 
+                              ? 'bg-red-50 dark:bg-red-900/50 text-red-800 dark:text-red-200' 
                               : rec.includes('Consider') || rec.includes('Monitor')
-                              ? 'bg-blue-50 text-blue-800'
-                              : 'bg-gray-50 text-gray-800'
+                              ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                              : 'bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
                           }`}
                         >
                           {rec.startsWith('CRITICAL') || rec.startsWith('IMMEDIATE') ? (
@@ -489,12 +489,12 @@ const MixDesignAdvisor: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <Info className="h-5 w-5 text-blue-600" />
-                      <h4 className="font-medium text-blue-900">Important Note</h4>
+                      <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <h4 className="font-medium text-blue-900 dark:text-blue-100">Important Note</h4>
                     </div>
-                    <p className="text-sm text-blue-800">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
                       Start curing immediately when bleed water sheen disappears (typically 30-60 minutes after placement).
                       Maintain chosen curing method for at least 7 days, or 14 days if exposure is severe.
                     </p>
