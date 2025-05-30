@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Calculator, Folder, Book, Menu, X, LogIn, UserPlus, LogOut, Beaker } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../ui/Button';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -22,13 +23,10 @@ const Navbar: React.FC = () => {
     { name: 'Resources', path: '/resources', icon: <Book size={20} /> },
   ];
   
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   const handleSignOut = async () => {
     if (isSigningOut) return;
-    
     setIsSigningOut(true);
     try {
       await signOut();
@@ -42,13 +40,13 @@ const Navbar: React.FC = () => {
   };
   
   return (
-    <nav className="bg-white/90 backdrop-blur-sm shadow-md">
+    <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <Calculator className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">ConcreteCalc</span>
+              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">ConcreteCalc</span>
             </Link>
           </div>
           
@@ -60,14 +58,16 @@ const Navbar: React.FC = () => {
                 to={link.path}
                 className={`px-3 py-2 rounded-md text-sm font-medium flex items-center transition-colors ${
                   isActive(link.path)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50'
                 }`}
               >
                 <span className="mr-2">{link.icon}</span>
                 {link.name}
               </Link>
             ))}
+
+            <ThemeToggle />
 
             {user ? (
               <Button
@@ -102,9 +102,10 @@ const Navbar: React.FC = () => {
           
           {/* Mobile Menu Button */}
           <div className="flex items-center md:hidden">
+            <ThemeToggle />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -116,7 +117,7 @@ const Navbar: React.FC = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="md:hidden bg-white/90 backdrop-blur-sm"
+            className="md:hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -129,8 +130,8 @@ const Navbar: React.FC = () => {
                   to={link.path}
                   className={`block px-3 py-2 rounded-md text-base font-medium flex items-center ${
                     isActive(link.path)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/50'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
