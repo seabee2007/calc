@@ -49,13 +49,13 @@ export default function CalculationSection() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 p-2 rounded-md">
+                    <div className="bg-blue-50 dark:bg-gray-900 p-2 rounded-md">
                       <p className="text-sm text-blue-700">Volume</p>
                       <p className="text-lg font-semibold text-blue-900">
                         {calc.result.volume} yd³
                       </p>
                     </div>
-                    <div className="bg-green-50 p-2 rounded-md">
+                    <div className="bg-green-50 dark:bg-gray-900 p-2 rounded-md">
                       <p className="text-sm text-green-700">Bags Required</p>
                       <p className="text-lg font-semibold text-green-900">
                         {calc.result.bags} bags
@@ -68,7 +68,7 @@ export default function CalculationSection() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <Calculator className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">No calculations in this project yet</p>
           <Button 
