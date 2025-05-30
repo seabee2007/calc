@@ -17,7 +17,6 @@ const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md'
 }) => {
-  // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -62,12 +61,12 @@ const Modal: React.FC<ModalProps> = ({
                 transition={{ type: 'spring', damping: 20 }}
                 className={`w-full ${sizeClasses[size]} relative`}
               >
-                <div className="bg-white rounded-lg shadow-xl">
-                  <div className="flex items-center justify-between p-4 border-b">
-                    <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+                  <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
                     <button
                       onClick={onClose}
-                      className="text-gray-400 hover:text-gray-500 transition-colors"
+                      className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
                     >
                       <X size={20} />
                     </button>

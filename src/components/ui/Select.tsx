@@ -44,12 +44,12 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
   };
   
   // Base styles
-  const baseSelectStyles = "block w-full px-4 py-2 bg-white border rounded-md text-sm appearance-none bg-no-repeat transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0";
+  const baseSelectStyles = "block w-full px-4 py-2 bg-white dark:bg-gray-900 border rounded-md text-sm appearance-none bg-no-repeat transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0";
   
   // Conditional styles based on error state
   const conditionalStyles = error
-    ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900"
-    : "border-slate-300 focus:border-blue-500 focus:ring-blue-500";
+    ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900 dark:text-red-100"
+    : "border-slate-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:text-white";
   
   // Width style
   const widthStyle = fullWidth ? 'w-full' : '';
@@ -65,7 +65,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
       {label && (
         <label 
           className={`block text-sm font-medium mb-1 ${
-            error ? 'text-red-500' : isFocused ? 'text-blue-600' : 'text-slate-700'
+            error ? 'text-red-500 dark:text-red-400' : isFocused ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-gray-300'
           }`}
         >
           {label}
@@ -89,7 +89,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
       </select>
       
       {(helperText || error) && (
-        <p className={`mt-1 text-xs ${error ? 'text-red-500' : 'text-slate-500'}`}>
+        <p className={`mt-1 text-xs ${error ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-gray-400'}`}>
           {error || helperText}
         </p>
       )}

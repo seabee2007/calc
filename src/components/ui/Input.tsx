@@ -32,12 +32,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   };
   
   // Base styles
-  const baseInputStyles = "block px-4 py-2 bg-white border rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0";
+  const baseInputStyles = "block px-4 py-2 bg-white dark:bg-gray-900 border rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0";
   
   // Conditional styles
   const conditionalStyles = error
-    ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900 placeholder-red-300"
-    : "border-slate-300 focus:border-blue-500 focus:ring-blue-500";
+    ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900 dark:text-red-100 placeholder-red-300"
+    : "border-slate-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:text-white dark:placeholder-gray-500";
   
   // Width style
   const widthStyle = fullWidth ? 'w-full' : '';
@@ -46,14 +46,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   const inputStyles = `${baseInputStyles} ${conditionalStyles} ${widthStyle} ${className}`;
   
   // Label and container styles
-  const containerStyles = `${fullWidth ? 'w-full' : ''} ${error ? 'text-red-900' : 'text-slate-900'}`;
+  const containerStyles = `${fullWidth ? 'w-full' : ''} ${error ? 'text-red-900 dark:text-red-100' : 'text-slate-900 dark:text-white'}`;
   
   return (
     <div className={containerStyles}>
       {label && (
         <label 
           className={`block text-sm font-medium mb-1 ${
-            error ? 'text-red-500' : isFocused ? 'text-blue-600' : 'text-slate-700'
+            error ? 'text-red-500 dark:text-red-400' : isFocused ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-gray-300'
           }`}
         >
           {label}
@@ -62,7 +62,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
       
       <div className="relative">
         {icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
             {icon}
           </div>
         )}
@@ -77,7 +77,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
       </div>
       
       {(helperText || error) && (
-        <p className={`mt-1 text-xs ${error ? 'text-red-500' : 'text-slate-500'}`}>
+        <p className={`mt-1 text-xs ${error ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-gray-400'}`}>
           {error || helperText}
         </p>
       )}

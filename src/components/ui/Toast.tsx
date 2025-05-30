@@ -21,10 +21,10 @@ const toastIcons = {
 };
 
 const toastStyles = {
-  success: 'border-green-500 bg-green-50',
-  error: 'border-red-500 bg-red-50',
-  info: 'border-blue-500 bg-blue-50',
-  warning: 'border-amber-500 bg-amber-50',
+  success: 'border-green-500 bg-green-50 dark:bg-green-900/50',
+  error: 'border-red-500 bg-red-50 dark:bg-red-900/50',
+  info: 'border-blue-500 bg-blue-50 dark:bg-blue-900/50',
+  warning: 'border-amber-500 bg-amber-50 dark:bg-amber-900/50',
 };
 
 const Toast: React.FC<ToastProps> = ({
@@ -60,12 +60,12 @@ const Toast: React.FC<ToastProps> = ({
               {toastIcons[type]}
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-              {message && <p className="mt-1 text-sm text-gray-700">{message}</p>}
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h3>
+              {message && <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{message}</p>}
             </div>
             <button
               onClick={() => onClose(id)}
-              className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
