@@ -98,14 +98,17 @@ const QCRecords: React.FC<QCRecordsProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Quality Control Records</h3>
-        <Button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(true); }} icon={<Plus size={16} />}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h3 className="text-xl font-semibold text-gray-900">Quality Control Records</h3>
+        <Button 
+          onClick={() => { resetForm(); setEditingRecord(null); setShowForm(true); }} 
+          icon={<Plus size={16} />}
+        >
           Add Record
         </Button>
       </div>
 
-      <div className="flex gap-4 bg-white p-4 rounded-lg shadow">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <Input
             placeholder="Search records..."
@@ -115,7 +118,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             fullWidth
           />
         </div>
-        <div className="w-48">
+        <div className="w-full sm:w-48">
           <Input
             type="date"
             value={dateFilter}
@@ -129,13 +132,14 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       {showForm && (
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 type="date"
                 label="Date"
                 value={formData.date}
                 onChange={e => setFormData({ ...formData, date: e.target.value })}
                 required
+                fullWidth
               />
               <Input
                 type="number"
@@ -143,6 +147,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 value={formData.temperature}
                 onChange={e => setFormData({ ...formData, temperature: e.target.value })}
                 required
+                fullWidth
               />
               <Input
                 type="number"
@@ -150,6 +155,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 value={formData.humidity}
                 onChange={e => setFormData({ ...formData, humidity: e.target.value })}
                 required
+                fullWidth
               />
               <Input
                 type="number"
@@ -157,6 +163,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 value={formData.slump}
                 onChange={e => setFormData({ ...formData, slump: e.target.value })}
                 required
+                fullWidth
               />
               <Input
                 type="number"
@@ -164,6 +171,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 value={formData.airContent}
                 onChange={e => setFormData({ ...formData, airContent: e.target.value })}
                 required
+                fullWidth
               />
               <Input
                 type="number"
@@ -171,6 +179,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 value={formData.cylindersMade}
                 onChange={e => setFormData({ ...formData, cylindersMade: e.target.value })}
                 required
+                fullWidth
               />
             </div>
             <Input
@@ -181,7 +190,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             />
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}
+              >
                 Cancel
               </Button>
               <Button type="submit" icon={<Save size={16} />}>
@@ -207,51 +220,54 @@ const QCRecords: React.FC<QCRecordsProps> = ({
               transition={{ duration: 0.2 }}
             >
               <Card className="p-4 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <h4 className="font-medium text-gray-900">
                         {format(new Date(record.date), 'MMM d, yyyy')}
                       </h4>
-                      <span className="text-gray-500">|</span>
-                      <span className="text-gray-600">{record.temperature}°F</span>
-                      <span className="text-gray-500">|</span>
-                      <span className="text-gray-600">{record.humidity}% RH</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Slump:</span>
-                        <span className="ml-2 text-gray-900">{record.slump}"</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Air Content:</span>
-                        <span className="ml-2 text-gray-900">{record.airContent}%</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Cylinders:</span>
-                        <span className="ml-2 text-gray-900">{record.cylindersMade}</span>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span>{record.temperature}°F</span>
+                        <span className="text-gray-300">|</span>
+                        <span>{record.humidity}% RH</span>
                       </div>
                     </div>
-                    {record.notes && (
-                      <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        {record.notes}
-                      </p>
-                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingRecord(record)}
+                        icon={<Edit size={16} />}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(record.id)}
+                        icon={<Trash2 size={16} />}
+                      />
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingRecord(record)}
-                      icon={<Edit size={16} />}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(record.id)}
-                      icon={<Trash2 size={16} />}
-                    />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="text-gray-500 text-sm">Slump:</span>
+                      <span className="ml-2 font-medium text-gray-900">{record.slump}"</span>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="text-gray-500 text-sm">Air Content:</span>
+                      <span className="ml-2 font-medium text-gray-900">{record.airContent}%</span>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="text-gray-500 text-sm">Cylinders:</span>
+                      <span className="ml-2 font-medium text-gray-900">{record.cylindersMade}</span>
+                    </div>
                   </div>
+
+                  {record.notes && (
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-900">{record.notes}</p>
+                    </div>
+                  )}
                 </div>
               </Card>
             </motion.div>
