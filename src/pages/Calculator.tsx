@@ -72,7 +72,7 @@ const CalculatorPage: React.FC = () => {
           </p>
         </div>
         
-        <div className="mb-6 bg-white/90 dark:bg-gray-900 backdrop-blur-sm p-4 rounded-lg shadow-lg">
+        <div className="mb-6 bg-white/90 dark:bg-gray-800 backdrop-blur-sm p-4 rounded-lg shadow-lg">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             <div className="flex-1 dark:text-white/90">
               <Select
