@@ -556,7 +556,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 Get weather-based recommendations for your concrete pour
               </p>
               <Button 
-                type="button"
                 onClick={toggleWeather}
                 icon={<CloudSun size={20} />}
                 className="w-full max-w-md"
