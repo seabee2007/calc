@@ -91,14 +91,14 @@ const CalculatorPage: React.FC = () => {
               variant="outline"
               onClick={() => setShowCreateProjectModal(true)}
               icon={<Plus size={18} />}
-              className="whitespace-nowrap"
+              className="whitespace-nowrap dark:text-white dark:hover:bg-blue-700"
             >
               New Project
             </Button>
           </div>
           
           {!currentProject && (
-            <p className="mt-4 text-sm text-amber-600 flex items-center">
+            <p className="mt-4 text-sm text-amber-600 dark:text-white flex items-center">
               <FolderOpen className="h-4 w-4 mr-2" />
               Select or create a project to save your calculations
             </p>
