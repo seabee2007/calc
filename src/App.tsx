@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useThemeStore } from './store/themeStore';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Calculator from './pages/Calculator';
@@ -20,7 +21,6 @@ import AuthGuard from './components/auth/AuthGuard';
 import { useProjectStore } from './store';
 import ConcreteChat from "./components/ConcreteChat";
 
-// Create a store for chat visibility
 export const useChatStore = () => {
   const [isVisible, setIsVisible] = React.useState(true);
   return { isVisible, setIsVisible };
@@ -29,10 +29,19 @@ export const useChatStore = () => {
 function App() {
   const { loadProjects } = useProjectStore();
   const chatStore = useChatStore();
+  const { isDark } = useThemeStore();
 
   useEffect(() => {
     loadProjects().catch(console.error);
   }, [loadProjects]);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
 
   return (
     <BrowserRouter>
@@ -75,10 +84,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* Persistent chat button */}
       {chatStore.isVisible && (
         <div className="fixed bottom-4 right-4 z-50">
           <ConcreteChat />
