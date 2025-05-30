@@ -116,49 +116,55 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
           Select your location to see pricing
         </p>
 
-        <div className="flex gap-2 mb-4">
-          <Input
-            type="text"
-            placeholder="City Name/Zip Code"
-            value={locationInput}
-            onChange={(e) => setLocationInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleLocationSearch();
-            }}
-            className="flex-1"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLocationSearch}
-            disabled={searchLoading || !locationInput.trim()}
-            icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-          >
-            Search
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleUseLocation}
-            disabled={gpsLoading}
-            icon={gpsLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-          >
-            {locationPermissionDenied ? 'Retry Location' : 'Use my location'}
-          </Button>
-        </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              type="text"
+              placeholder="City Name/Zip Code"
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleLocationSearch();
+              }}
+              className="flex-1"
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLocationSearch}
+                disabled={searchLoading || !locationInput.trim()}
+                icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                className="flex-1 sm:flex-none"
+              >
+                Search
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleUseLocation}
+                disabled={gpsLoading}
+                icon={gpsLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                className="flex-1 sm:flex-none"
+              >
+                {locationPermissionDenied ? 'Retry Location' : 'Use my location'}
+              </Button>
+            </div>
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Delivery Distance (miles)
-          </label>
-          <Input
-            type="number"
-            min="0"
-            value={distance}
-            onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
-            fullWidth
-            error={locationError}
-          />
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Delivery Distance (miles)
+            </label>
+            <Input
+              type="number"
+              min="0"
+              value={distance}
+              onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
+              fullWidth
+              error={locationError}
+            />
+          </div>
         </div>
 
         {(userLocation || supplier) && (
