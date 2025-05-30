@@ -18,20 +18,20 @@ const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   // Base styles
-  const baseStyles = 'bg-white rounded-lg overflow-hidden backdrop-blur-sm bg-white/90 transform-gpu';
+  const baseStyles = 'bg-white dark:bg-gray-800 rounded-lg overflow-hidden backdrop-blur-sm transform-gpu';
   
   // Shadow styles with more pronounced 3D effect
   const shadowStyles = {
-    sm: 'shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.05)]',
-    md: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.05)]',
-    lg: 'shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)]'
+    sm: 'shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2),0_2px_4px_-2px_rgba(0,0,0,0.15)]',
+    md: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.2),0_4px_6px_-4px_rgba(0,0,0,0.15)]',
+    lg: 'shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.2),0_8px_10px_-6px_rgba(0,0,0,0.15)]'
   };
   
   // Border style
-  const borderStyle = border ? 'border border-slate-200' : '';
+  const borderStyle = border ? 'border border-slate-200 dark:border-gray-700' : '';
   
   // Enhanced hover style with 3D transform
-  const hoverStyle = hoverable ? 'transition-all duration-300 ease-out hover:shadow-[0_25px_30px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:scale-[1.02]' : '';
+  const hoverStyle = hoverable ? 'transition-all duration-300 ease-out hover:shadow-[0_25px_30px_-12px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_25px_30px_-12px_rgba(0,0,0,0.25)] hover:-translate-y-2 hover:scale-[1.02]' : '';
   
   // Clickable style
   const clickableStyle = clickable ? 'cursor-pointer' : '';
