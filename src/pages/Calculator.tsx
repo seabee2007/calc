@@ -106,7 +106,7 @@ const CalculatorPage: React.FC = () => {
         </div>
         
         {currentProject && (
-          <div className="mb-6 p-4 bg-blue-50/90 backdrop-blur-sm rounded-lg">
+          <div className="mb-6 p-4 bg-blue-50/90 dark:text-white dark:bg-gray-800 backdrop-blur-sm rounded-lg">
             <div className="flex items-center justify-between">
               <p className="text-blue-800">
                 Currently working on: <span className="font-semibold">{currentProject.name}</span>
