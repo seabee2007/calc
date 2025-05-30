@@ -23,7 +23,6 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
   const navigate = useNavigate();
   const [showChat, setShowChat] = useState(false);
 
-  // Hide/show persistent chat button based on modal state
   useEffect(() => {
     chatStore.setIsVisible(!showChat);
     return () => chatStore.setIsVisible(true);
@@ -136,28 +135,28 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
           </div>
           
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Latest Updates</h2>
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Latest Updates</h2>
               <ul className="space-y-4">
                 {resources.map((resource, index) => (
                   <li key={index}>
                     <button 
                       onClick={() => navigate(resource.link)}
-                      className="block w-full text-left hover:bg-blue-50 rounded-md p-3 transition-colors"
+                      className="block w-full text-left hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-md p-3 transition-colors"
                     >
-                      <h3 className="font-medium text-blue-600 hover:text-blue-800">
+                      <h3 className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                         {resource.title}
                       </h3>
-                      <p className="text-sm text-gray-500 mt-1">Updated 2 days ago</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Updated 2 days ago</p>
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
             
-            <div className="bg-blue-50/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-blue-900 mb-4">Need Help?</h2>
-              <p className="text-blue-700 mb-4">
+            <div className="bg-blue-50/90 dark:bg-blue-900/50 backdrop-blur-sm rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-4">Need Help?</h2>
+              <p className="text-blue-700 dark:text-blue-300 mb-4">
                 Have questions about concrete calculations or techniques? Our team is here to help!
               </p>
               <Button 
@@ -175,7 +174,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
             <Card className="w-full max-w-2xl h-[600px] relative">
               <button 
                 onClick={() => setShowChat(false)}
-                className="absolute top-4 right-4 text-red-500 hover:text-red-700 z-10"
+                className="absolute top-4 right-4 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 z-10"
               >
                 <span className="text-xl font-bold">✕</span>
               </button>
