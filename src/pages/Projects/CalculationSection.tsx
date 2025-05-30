@@ -12,7 +12,7 @@ export default function CalculationSection() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Calculations</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Calculations</h3>
         <Button
           onClick={() => handlers.navigateToCalculator(currentProject.id)}
           icon={<Calculator size={18} />}
@@ -40,7 +40,7 @@ export default function CalculationSection() {
                     />
                   </div>
                   
-                  <div className="bg-gray-50 p-3 rounded-md mb-3">
+                  <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-md mb-3">
                     <p className="text-sm text-gray-600">
                       {Object.entries(calc.dimensions)
                         .map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value.toFixed(2)}`)
