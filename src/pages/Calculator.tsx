@@ -108,7 +108,7 @@ const CalculatorPage: React.FC = () => {
         {currentProject && (
           <div className="mb-6 p-4 bg-blue-50/90 dark:text-white dark:bg-gray-800 backdrop-blur-sm rounded-lg">
             <div className="flex items-center justify-between">
-              <p className="text-blue-800">
+              <p className="text-blue-800 dark:text-white">
                 Currently working on: <span className="font-semibold">{currentProject.name}</span>
               </p>
               <Button
@@ -121,12 +121,12 @@ const CalculatorPage: React.FC = () => {
                   }
                 })}
                 icon={<ArrowRight size={18} />}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-600 hover:text-blue-800 dark:text-white"
               >
                 Go to Project
               </Button>
             </div>
-            <p className="text-sm text-blue-600 mt-1">
+            <p className="text-sm text-blue-600 dark:text-white mt-1">
               All calculations will be saved to this project
             </p>
           </div>
