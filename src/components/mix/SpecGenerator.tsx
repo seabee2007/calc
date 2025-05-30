@@ -39,39 +39,37 @@ Please prepare mix according to these specifications.
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-4">
-        <FileText className="h-5 w-5 text-blue-600" />
-        <h3 className="text-lg font-medium text-gray-900">Mix Specification</h3>
+        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Mix Specification</h3>
       </div>
 
       <div className="space-y-4">
-        <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg space-y-2">
           <div>
-            <p className="text-sm text-gray-600">Design Strength</p>
-            <p className="font-medium">{psi} PSI</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Design Strength</p>
+            <p className="font-medium text-gray-900 dark:text-white">{psi} PSI</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Air Content Range</p>
-            <p className="font-medium">{airContent[0]}-{airContent[1]}%</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Air Content Range</p>
+            <p className="font-medium text-gray-900 dark:text-white">{airContent[0]}-{airContent[1]}%</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Maximum W/C Ratio</p>
-            <p className="font-medium">{waterCementRatio.toFixed(2)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Maximum W/C Ratio</p>
+            <p className="font-medium text-gray-900 dark:text-white">{waterCementRatio.toFixed(2)}</p>
           </div>
         </div>
 
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Required Admixtures</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Required Admixtures</p>
           <ul className="space-y-1 text-sm">
             {admixtures.map((admix, index) => (
-              <li key={index} className="text-gray-600">• {admix}</li>
+              <li key={index} className="text-gray-600 dark:text-gray-400">• {admix}</li>
             ))}
           </ul>
         </div>
 
         <div className="flex gap-2">
           <Button
-            variant="outline"
-            size="sm"
             onClick={onDownload}
             icon={<Download size={16} />}
             fullWidth
@@ -79,8 +77,6 @@ Please prepare mix according to these specifications.
             Download PDF
           </Button>
           <Button
-            variant="outline"
-            size="sm"
             onClick={handleEmailSpec}
             icon={<Mail size={16} />}
             fullWidth
@@ -89,7 +85,7 @@ Please prepare mix according to these specifications.
           </Button>
         </div>
 
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-500 dark:text-gray-400">
           <p>References:</p>
           <ul className="list-disc list-inside space-y-1">
             <li>ACI 318-19 Section 5 (Durability)</li>
