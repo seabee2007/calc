@@ -121,7 +121,7 @@ const CalculatorPage: React.FC = () => {
                   }
                 })}
                 icon={<ArrowRight size={18} />}
-                className="text-blue-600 hover:text-blue-800 dark:text-white"
+                className="text-blue-600 hover:text-blue-800 dark:text-white dark:hover:bg-blue-700"
               >
                 Go to Project
               </Button>
