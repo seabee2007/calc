@@ -46,7 +46,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
         
         <div className="p-5">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 drop-shadow-sm">{title}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">{description}</p>
+          <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-3">{description}</p>
           
           <button
             className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm transition-colors"
