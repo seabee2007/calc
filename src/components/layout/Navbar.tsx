@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <Calculator className="h-8 w-8 text-blue-600" />
+              <Calculator className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">ConcreteCalc</span>
             </Link>
           </div>
@@ -76,6 +76,7 @@ const Navbar: React.FC = () => {
                 onClick={handleSignOut}
                 disabled={isSigningOut}
                 icon={<LogOut size={18} />}
+                className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 border-transparent"
               >
                 {isSigningOut ? 'Signing Out...' : 'Sign Out'}
               </Button>
@@ -147,6 +148,7 @@ const Navbar: React.FC = () => {
                   onClick={handleSignOut}
                   disabled={isSigningOut}
                   icon={<LogOut size={18} />}
+                  className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 border-transparent"
                 >
                   {isSigningOut ? 'Signing Out...' : 'Sign Out'}
                 </Button>
