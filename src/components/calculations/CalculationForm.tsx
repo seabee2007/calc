@@ -375,7 +375,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const renderDimensionInputs = (baseName: string, label: string) => (
     <div className="grid grid-cols-3 gap-2">
       <div className="flex flex-col">
-        <div className="h-6 text-sm font-medium text-gray-700 mb-1">
+        <div className="h-6 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {label}
         </div>
         <Controller
@@ -400,7 +400,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       </div>
       
       <div className="flex flex-col">
-        <div className="h-6 text-sm font-medium text-gray-700 mb-1">
+        <div className="h-6 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Inches
         </div>
         <Controller
@@ -427,7 +427,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       </div>
       
       <div className="flex flex-col">
-        <div className="h-6 text-sm font-medium text-gray-700 mb-1">
+        <div className="h-6 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Fraction
         </div>
         <Controller
@@ -518,7 +518,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Concrete Calculator</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Concrete Calculator</h2>
         
         <form onSubmit={handleSubmit(calculateVolume)} className="space-y-4">
           <Select
@@ -550,15 +550,13 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           
           {renderFields()}
           
-          <div className="border-t border-gray-200 pt-4 mt-6">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
             <div className="flex flex-col items-center justify-center space-y-2">
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                 Get weather-based recommendations for your concrete pour
               </p>
               <Button 
-                type="button" 
-                variant="outline"
-                size="lg"
+                type="button"
                 onClick={toggleWeather}
                 icon={<CloudSun size={20} />}
                 className="w-full max-w-md"
@@ -587,41 +585,38 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       </Card>
       
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Results</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Results</h2>
         
         {calculationResult ? (
           <div className="space-y-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-blue-900">Concrete Required</h3>
+            <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100">Concrete Required</h3>
               <div className="mt-2 grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-blue-700">Volume</p>
-                  <p className="text-2xl font-bold text-blue-900">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">Volume</p>
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                     {calculationResult.volume} {preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'}
                   </p>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-blue-700">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
                       {selectedQuikreteProduct ? `${selectedQuikreteProduct.weight}lb QUIKRETE® ${selectedQuikreteProduct.type}` : '80lb Bags'}
                     </p>
                     <button
                       onClick={() => setShowQuikreteModal(true)}
-                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                     >
                       <Package size={16} />
                     </button>
                   </div>
-                  <p className="text-2xl font-bold text-blue-900">
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                     {calculationResult.bags}
                   </p>
                 </div>
               </div>
-              <p className="mt-2 text-xs text-blue-600">
-                
-              </p>
               
-              <div className="mt-4 pt-3 border-t border-blue-200">
+              <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-800">
                 <Button 
                   type="button" 
                   variant="outline"
@@ -643,14 +638,14 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             )}
             
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Recommendations</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Recommendations</h3>
               <ul className="space-y-2">
                 {calculationResult.recommendations.map((rec, index) => (
                   <li key={index} className="flex items-start">
-                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-800 text-sm mr-2">
+                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm mr-2">
                       {index + 1}
                     </span>
-                    <span className="text-gray-700">{rec}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{rec}</span>
                   </li>
                 ))}
               </ul>
@@ -658,8 +653,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Calculate className="h-12 w-12 text-gray-300 mb-4" />
-            <p className="text-gray-500">
+            <Calculate className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">
               Enter dimensions and calculate to see results
             </p>
           </div>
