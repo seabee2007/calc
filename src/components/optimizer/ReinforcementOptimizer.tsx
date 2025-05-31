@@ -231,10 +231,10 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
     >
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800/90">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <Card className="w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800/90">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -252,7 +252,7 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
           )}
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Project Info */}
           <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <h3 className="font-medium text-blue-900 dark:text-white mb-2">
@@ -471,7 +471,8 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                     disabled={isSaving}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {isSaving ? 'Saving...' : 'Save Design'}
+                    <span className="md:hidden">💾</span>
+                    <span className="hidden md:inline">{isSaving ? 'Saving...' : 'Save Design'}</span>
                   </Button>
                   
                   {mode === 'rebar' && (
@@ -479,8 +480,9 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                       onClick={handleExportCSV}
                       icon={<Download size={16} />}
                       variant="outline"
+                      className="md:min-w-0"
                     >
-                      Export CSV
+                      <span className="hidden md:inline">Export CSV</span>
                     </Button>
                   )}
                 </div>

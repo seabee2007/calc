@@ -247,7 +247,15 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
               <span className="font-medium text-gray-900 dark:text-white">{formatPrice(pricing?.pricePerYard || 0)}/yd³</span>
             </div>
             <div className="flex justify-between text-lg font-semibold">
-              <span className="text-gray-900 dark:text-white">Concrete Cost ({volume.toFixed(2)} yd³)</span>
+              <div className="text-gray-900 dark:text-white">
+                <div className="sm:hidden">
+                  <div>Concrete Cost</div>
+                  <div className="text-sm font-normal text-gray-600 dark:text-gray-400">({volume.toFixed(2)} yd³)</div>
+                </div>
+                <div className="hidden sm:block">
+                  Concrete Cost ({volume.toFixed(2)} yd³)
+                </div>
+              </div>
               <span className="text-green-700 dark:text-green-400">{formatPrice(pricing?.concreteCost || 0)}</span>
             </div>
           </div>
