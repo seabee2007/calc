@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Calculator, Folder, Book, Menu, X, LogIn, UserPlus, LogOut, Beaker } from 'lucide-react';
+import { Home, Calculator, Folder, Book, Menu, X, LogIn, UserPlus, LogOut, Beaker, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../ui/Button';
 import ThemeToggle from './ThemeToggle';
@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
       { name: 'Calculator', path: '/calculator', icon: <Calculator size={20} /> },
       { name: 'Projects', path: '/projects', icon: <Folder size={20} /> },
       { name: 'Mix-Design Advisor', path: '/mix-design-advisor', icon: <Beaker size={20} /> },
+      { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
     ] : []),
     { name: 'Resources', path: '/resources', icon: <Book size={20} /> },
   ];

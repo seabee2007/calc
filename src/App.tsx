@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Calculator from './pages/Calculator';
 import Projects from './pages/Projects';
+import Settings from './pages/Settings';
 import Resources from './pages/Resources';
 import MixDesigns from './pages/resources/MixDesigns';
 import WeatherEffects from './pages/resources/WeatherEffects';
@@ -69,6 +70,14 @@ function App() {
             element={
               <AuthGuard>
                 <MixDesignAdvisor />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <AuthGuard>
+                <Settings />
               </AuthGuard>
             }
           />
