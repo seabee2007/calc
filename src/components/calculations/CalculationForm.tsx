@@ -354,6 +354,21 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       height_ft: dimensions.height
     });
     
+    // Helper function to map PSI to appropriate mix profile
+    const mapPsiToMixProfile = (psi: string): MixProfileType => {
+      switch (psi) {
+        case '2500':
+        case '3000':
+          return 'standard';
+        case '4000':
+          return 'highEarly';
+        case '5000':
+          return 'highStrength';
+        default:
+          return 'standard';
+      }
+    };
+
     if (onSave) {
       const calculation: Calculation = {
         id: '',
@@ -363,7 +378,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         weather: weather || undefined,
         createdAt: new Date().toISOString(),
         psi: selectedPsi,
-        mixProfile: currentProject?.mixProfile || 'standard',
+        mixProfile: mapPsiToMixProfile(selectedPsi),
         quikreteProduct: selectedQuikreteProduct || undefined
       };
       
@@ -638,11 +653,12 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {selectedQuikreteProduct ? `${selectedQuikreteProduct.weight}lb QUIKRETE® ${selectedQuikreteProduct.type}` : '80lb Bags'}
+                      {selectedQuikreteProduct ? `${selectedQuikreteProduct.weight}lb QUIKRETE® ${selectedQuikreteProduct.type}` : 'Standard 80lb Bags'}
                     </p>
                     <button
                       onClick={() => setShowQuikreteModal(true)}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                      title="Select QUIKRETE® Product"
                     >
                       <Package size={16} />
                     </button>
@@ -650,6 +666,11 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                   <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                     {calculationResult.bags}
                   </p>
+                  {!selectedQuikreteProduct && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      👆 Click package icon to select QUIKRETE® product
+                    </p>
+                  )}
                 </div>
               </div>
               
