@@ -57,12 +57,15 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
   const [manualRebarSize, setManualRebarSize] = useState<'auto' | RebarSize>('auto');
   
   // New spacing controls
-  const [spacingXIn, setSpacingXIn] = useState(12);
-  const [spacingYIn, setSpacingYIn] = useState(12);
+  const [spacingXIn, setSpacingXIn] = useState<number | ''>('');
+  const [spacingYIn, setSpacingYIn] = useState<number | ''>('');
   const [verticalBars, setVerticalBars] = useState(4); // For columns
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Helper function to get spacing value for calculations (with defaults)
+  const getSpacingValue = (spacing: number | '') => spacing === '' ? 12 : spacing;
 
   // Calculate results based on current settings
   const result = useMemo(() => {
@@ -88,8 +91,8 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
             coverIn, 
             stockLength,
             manualRebarSize === 'auto' ? undefined : manualRebarSize as RebarSize,
-            spacingXIn,
-            spacingYIn
+            getSpacingValue(spacingXIn),
+            getSpacingValue(spacingYIn)
           );
         }
       case 'fiber':
@@ -390,9 +393,10 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                     </label>
                     <Input
                       type="number"
-                      value={spacingXIn}
-                      onChange={(e) => setSpacingXIn(Number(e.target.value))}
-                      min="6"
+                      placeholder="12"
+                      value={spacingXIn === '' ? '' : spacingXIn}
+                      onChange={(e) => setSpacingXIn(e.target.value === '' ? '' : Number(e.target.value))}
+                      min="1"
                       max="24"
                       step="1"
                     />
@@ -404,9 +408,10 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                     </label>
                     <Input
                       type="number"
-                      value={spacingYIn}
-                      onChange={(e) => setSpacingYIn(Number(e.target.value))}
-                      min="6"
+                      placeholder="12"
+                      value={spacingYIn === '' ? '' : spacingYIn}
+                      onChange={(e) => setSpacingYIn(e.target.value === '' ? '' : Number(e.target.value))}
+                      min="1"
                       max="24"
                       step="1"
                     />
@@ -481,7 +486,7 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                 </div>
               </div>
 
-              {mode === 'rebar' && <RebarResults result={result as RebarResult | ColumnRebarResult} calculatorData={calculatorData} coverIn={coverIn} spacingXIn={spacingXIn} spacingYIn={spacingYIn} verticalBars={verticalBars} isColumn={isColumn} />}
+              {mode === 'rebar' && <RebarResults result={result as RebarResult | ColumnRebarResult} calculatorData={calculatorData} coverIn={coverIn} spacingXIn={getSpacingValue(spacingXIn)} spacingYIn={getSpacingValue(spacingYIn)} verticalBars={verticalBars} isColumn={isColumn} />}
               {mode === 'fiber' && <FiberResults result={result as FiberResult} fiberType={fiberType} />}
               {mode === 'mesh' && <MeshResults result={result as MeshResult} />}
             </div>
