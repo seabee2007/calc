@@ -36,11 +36,19 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   
   // Variant styles
   const variantStyles: Record<ButtonVariant, string> = {
+<<<<<<< HEAD
     primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700',
     secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
     outline: 'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-900 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700',
     ghost: 'bg-transparent hover:bg-slate-100 text-slate-900 dark:text-gray-200 dark:hover:bg-gray-700',
     danger: 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700'
+=======
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300',
+    outline: 'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-900',
+    ghost: 'bg-transparent hover:bg-slate-100 text-slate-900',
+    danger: 'bg-red-600 text-white hover:bg-red-700'
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
   };
   
   // Size styles

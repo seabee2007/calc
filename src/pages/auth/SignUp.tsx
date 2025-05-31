@@ -128,6 +128,7 @@ const SignUp: React.FC = () => {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-10">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-8">
+<<<<<<< HEAD
             <UserPlus className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Create your account</h2>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
@@ -135,6 +136,15 @@ const SignUp: React.FC = () => {
               <button
                 onClick={() => navigate('/login')}
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+=======
+            <UserPlus className="mx-auto h-12 w-12 text-blue-600" />
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Or{' '}
+              <button
+                onClick={() => navigate('/login')}
+                className="font-medium text-blue-600 hover:text-blue-500"
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               >
                 sign in to existing account
               </button>
@@ -145,7 +155,11 @@ const SignUp: React.FC = () => {
             <Input
               label="Email address"
               type="email"
+<<<<<<< HEAD
               icon={<Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+              icon={<Mail className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               error={errors.email?.message}
               {...register('email', {
                 required: 'Email is required',
@@ -160,7 +174,11 @@ const SignUp: React.FC = () => {
             <Input
               label="Password"
               type="password"
+<<<<<<< HEAD
               icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+              icon={<Lock className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               error={errors.password?.message}
               {...register('password', {
                 required: 'Password is required',
@@ -175,7 +193,11 @@ const SignUp: React.FC = () => {
             <Input
               label="Confirm Password"
               type="password"
+<<<<<<< HEAD
               icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+              icon={<Lock className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               error={errors.confirmPassword?.message}
               {...register('confirmPassword', {
                 required: 'Please confirm your password',
@@ -195,26 +217,43 @@ const SignUp: React.FC = () => {
                   {...register('agreeToTerms', {
                     required: 'You must agree to the User Agreement to continue'
                   })}
+<<<<<<< HEAD
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded"
                 />
               </div>
               <div className="ml-3">
                 <label htmlFor="agreeToTerms" className="text-sm text-gray-600 dark:text-gray-300">
+=======
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3">
+                <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   I agree to the{' '}
                   <button
                     type="button"
                     onClick={() => setShowAgreement(true)}
+<<<<<<< HEAD
                     className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+=======
+                    className="text-blue-600 hover:text-blue-500 font-medium"
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   >
                     User Agreement
                   </button>
                 </label>
                 {errors.agreeToTerms && (
+<<<<<<< HEAD
                   <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.agreeToTerms.message}</p>
+=======
+                  <p className="text-sm text-red-600 mt-1">{errors.agreeToTerms.message}</p>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 )}
               </div>
             </div>
 
+<<<<<<< HEAD
             <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
               <div className="flex items-center mb-2">
                 <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
@@ -225,6 +264,18 @@ const SignUp: React.FC = () => {
               </p>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg font-medium text-blue-900 dark:text-blue-100">
+=======
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <ShieldCheck className="h-5 w-5 text-blue-600 mr-2" />
+                <h3 className="text-sm font-medium text-blue-900">Human Verification</h3>
+              </div>
+              <p className="text-sm text-blue-700 mb-3">
+                Please solve this simple math problem:
+              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg font-medium text-blue-900">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   {num1} {operator} {num2} = ?
                 </span>
               </div>
@@ -241,7 +292,11 @@ const SignUp: React.FC = () => {
             </div>
 
             {errors.root && (
+<<<<<<< HEAD
               <p className="text-sm text-red-600 dark:text-red-400 text-center">
+=======
+              <p className="text-sm text-red-600 text-center">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 {errors.root.message}
               </p>
             )}

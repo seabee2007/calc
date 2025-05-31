@@ -91,6 +91,7 @@ const Login: React.FC = () => {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-10">
         <Card className="w-full max-w-md p-8">
           <div className="text-center mb-8">
+<<<<<<< HEAD
             <LogIn className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Sign in to your account</h2>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
@@ -98,6 +99,15 @@ const Login: React.FC = () => {
               <button
                 onClick={() => navigate('/signup')}
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+=======
+            <LogIn className="mx-auto h-12 w-12 text-blue-600" />
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Or{' '}
+              <button
+                onClick={() => navigate('/signup')}
+                className="font-medium text-blue-600 hover:text-blue-500"
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               >
                 create a new account
               </button>
@@ -105,8 +115,13 @@ const Login: React.FC = () => {
           </div>
 
           {resetEmailSent ? (
+<<<<<<< HEAD
             <div className="bg-green-50 dark:bg-green-900/50 border border-green-200 dark:border-green-700 rounded-md p-4 text-center">
               <p className="text-green-800 dark:text-green-200">
+=======
+            <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
+              <p className="text-green-800">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 If an account exists with {emailValue}, password reset instructions have been sent.
                 Please check your email inbox.
               </p>
@@ -116,7 +131,11 @@ const Login: React.FC = () => {
               <Input
                 label="Email address"
                 type="email"
+<<<<<<< HEAD
                 icon={<Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+                icon={<Mail className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 error={errors.email?.message}
                 {...register('email', {
                   required: 'Email is required',
@@ -132,7 +151,11 @@ const Login: React.FC = () => {
                 <Input
                   label="Password"
                   type="password"
+<<<<<<< HEAD
                   icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+                  icon={<Lock className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   error={errors.password?.message}
                   {...register('password', {
                     required: 'Password is required',
@@ -147,12 +170,20 @@ const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
+<<<<<<< HEAD
                     className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+=======
+                    className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   >
                     Forgot your password?
                   </button>
                   {resetError && (
+<<<<<<< HEAD
                     <p className="text-sm text-red-600 dark:text-red-400">
+=======
+                    <p className="text-sm text-red-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       {resetError}
                     </p>
                   )}
@@ -160,7 +191,11 @@ const Login: React.FC = () => {
               </div>
 
               {errors.root && (
+<<<<<<< HEAD
                 <p className="text-sm text-red-600 dark:text-red-400 text-center">
+=======
+                <p className="text-sm text-red-600 text-center">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   {errors.root.message}
                 </p>
               )}

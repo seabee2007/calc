@@ -1,10 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
+<<<<<<< HEAD
 import { Folder, Clock, Calculator, Trash2, BarChart3 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Project, ReinforcementSet } from '../../types';
+=======
+import { Folder, Clock, Calculator, Trash2 } from 'lucide-react';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
+import { Project } from '../../types';
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 
 interface ProjectCardProps {
   project: Project;
@@ -33,11 +40,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
     }
   })();
 
+<<<<<<< HEAD
   const reinforcementCount = project.reinforcements?.length || 0;
   const hasRebar = project.reinforcements?.some((r: ReinforcementSet) => r.reinforcement_type === 'rebar') || false;
   const hasFiber = project.reinforcements?.some((r: ReinforcementSet) => r.reinforcement_type === 'fiber') || false;
   const hasMesh = project.reinforcements?.some((r: ReinforcementSet) => r.reinforcement_type === 'mesh') || false;
 
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
   return (
     <motion.div
       whileHover={{ y: -5 }}
@@ -71,6 +81,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             {project.description || 'No description provided'}
           </p>
           
+<<<<<<< HEAD
           {/* Reinforcement Summary */}
           {reinforcementCount > 0 && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
@@ -103,11 +114,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
+=======
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 mr-1" />
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               <span>{formattedDate}</span>
             </div>
             
             <div className="flex items-center">
+<<<<<<< HEAD
               <Calculator className="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
+=======
+              <Calculator className="h-4 w-4 mr-1" />
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               <span>{project.calculations?.length ?? 0} calculations</span>
             </div>
           </div>

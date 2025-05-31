@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
+=======
+import React from 'react';
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeftCircle } from 'lucide-react';
 import { useProjects } from './useProjects';
@@ -43,9 +47,17 @@ const Projects: React.FC = () => {
           <Button
             onClick={() => {
               setUi(s => ({ ...s, showDetails: false }));
+<<<<<<< HEAD
             }}
             icon={<ArrowLeftCircle size={20} />}
             className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl"
+=======
+              setCurrentProject(null);
+            }}
+            icon={<ArrowLeftCircle size={20} />}
+            variant="primary"
+            className="text-white bg-blue-600 hover:bg-blue-700"
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           >
             <span className="hidden sm:inline">Back to Projects</span>
           </Button>

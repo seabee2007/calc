@@ -72,11 +72,19 @@ const LocationPrompt: React.FC<LocationPromptProps> = ({
       title="Get Your Local Weather Data"
     >
       <div className="text-center">
+<<<<<<< HEAD
         <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg mb-6">
           <p className="text-blue-800 dark:text-blue-200">
             To provide accurate weather-based recommendations, we need access to your location. 
             {navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? 
               ' On iOS devices, you may need to enable location services in Settings > Privacy > Location Services.' : 
+=======
+        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+          <p className="text-blue-800">
+            To provide accurate weather-based recommendations, we need access to your location. 
+            {navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? 
+              ' On iOS devices, you may need to enable location services in Settings &gt; Privacy &gt; Location Services.' : 
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               ''}
           </p>
         </div>
@@ -93,12 +101,21 @@ const LocationPrompt: React.FC<LocationPromptProps> = ({
         </Button>
         
         {error && (
+<<<<<<< HEAD
           <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/50 rounded-lg">
             <p className="text-sm text-red-600 dark:text-red-300">
               {error}
             </p>
             {(error.includes('settings') || error.includes('denied')) && (
               <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+=======
+          <div className="mt-4 p-4 bg-red-50 rounded-lg">
+            <p className="text-sm text-red-600">
+              {error}
+            </p>
+            {(error.includes('settings') || error.includes('denied')) && (
+              <p className="text-xs text-red-500 mt-2">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 iOS users: Go to Settings &gt; Privacy &amp; Security &gt; Location Services &gt; Safari Websites
               </p>
             )}

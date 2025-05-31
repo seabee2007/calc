@@ -5,8 +5,12 @@ import {
   UserPreferences,
   Calculation,
   QCRecord,
+<<<<<<< HEAD
   QCChecklist,
   ReinforcementSet
+=======
+  QCChecklist
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 } from '../types';
 import { MixProfileType } from '../types/curing';
 
@@ -114,6 +118,7 @@ const mapQcRecordFromDb = (r: any): QCRecord => ({
   checklist:     r.qc_checklists?.[0] ? mapQcChecklistFromDb(r.qc_checklists[0]) : undefined,
 });
 
+<<<<<<< HEAD
 const mapReinforcementSetFromDb = (r: any): ReinforcementSet => ({
   id: r.id,
   projectId: r.project_id,
@@ -152,6 +157,8 @@ const mapReinforcementSetFromDb = (r: any): ReinforcementSet => ({
   updatedAt: r.updated_at,
 });
 
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 // --- Zustand store ---
 
 export const useProjectStore = create<ProjectState>((set) => ({
@@ -169,8 +176,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
           waste_factor, created_at, updated_at,
           pour_date, mix_profile,
           calculations(*),
+<<<<<<< HEAD
           qc_records(*, qc_checklists(*)),
           reinforcement_sets(*)
+=======
+          qc_records(*, qc_checklists(*))
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
         `)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -185,7 +196,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pourDate:     row.pour_date,
         mixProfile:   (row.mix_profile as MixProfileType) || 'standard',
         calculations: row.calculations || [],
+<<<<<<< HEAD
         reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
         qcRecords:    (row.qc_records || []).map(mapQcRecordFromDb),
       }));
       set({ projects, loading: false });
@@ -211,8 +225,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
         waste_factor, created_at, updated_at,
         pour_date, mix_profile,
         calculations(*),
+<<<<<<< HEAD
         qc_records(*, qc_checklists(*)),
         reinforcement_sets(*)
+=======
+        qc_records(*, qc_checklists(*))
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
       `)
       .single();
     if (error) throw error;
@@ -227,7 +245,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
       pourDate:     data.pour_date,
       mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
       calculations: data.calculations || [],
+<<<<<<< HEAD
       reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
       qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
     };
     set((s) => ({
@@ -253,8 +274,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
         waste_factor, created_at, updated_at,
         pour_date, mix_profile,
         calculations(*),
+<<<<<<< HEAD
         qc_records(*, qc_checklists(*)),
         reinforcement_sets(*)
+=======
+        qc_records(*, qc_checklists(*))
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
       `)
       .single();
     if (error) throw error;
@@ -269,7 +294,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
       pourDate:     data.pour_date,
       mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
       calculations: data.calculations || [],
+<<<<<<< HEAD
       reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
       qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
     };
     set((s) => ({

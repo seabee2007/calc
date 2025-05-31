@@ -72,7 +72,11 @@ const Modal: React.FC<ModalProps> = ({
                     </button>
                   </div>
                   
+<<<<<<< HEAD
                   <div className="p-6 text-gray-900 dark:text-white">
+=======
+                  <div className="p-6">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                     {children}
                   </div>
                 </div>

@@ -42,6 +42,7 @@ const Home: React.FC = () => {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
+<<<<<<< HEAD
       <section className="text-center mb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -75,6 +76,59 @@ const Home: React.FC = () => {
           </div>
         </motion.div>
       </section>
+=======
+      <motion.section
+        className="text-center py-12 px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.h1 
+          className="text-4xl sm:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          Concrete Calculations
+          <span className="text-blue-400"> Made Simple</span>
+        </motion.h1>
+        
+        <motion.p 
+          className="text-xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] max-w-3xl mx-auto mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          Accurately estimate concrete for your projects with our easy-to-use calculator. 
+          Get weather-based recommendations and save your projects for future reference.
+        </motion.p>
+        
+        <motion.div
+          className="flex flex-col sm:flex-row justify-center gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+        >
+          <Button 
+            size="lg" 
+            onClick={() => navigate('/calculator')}
+            icon={<Calculator size={20} />}
+            className="shadow-lg hover:shadow-xl transition-shadow"
+          >
+            Start Calculating
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            onClick={() => navigate('/resources')}
+            icon={<Book size={20} />}
+            className="shadow-lg hover:shadow-xl transition-shadow bg-white/10 backdrop-blur-sm"
+          >
+            Learn More
+          </Button>
+        </motion.div>
+      </motion.section>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
       
       {/* Features Section */}
       <section className="py-8">

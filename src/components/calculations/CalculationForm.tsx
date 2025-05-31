@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+<<<<<<< HEAD
 import { Calculator as Calculate, CloudSun, DollarSign, Package, BarChart3 } from 'lucide-react';
+=======
+import { Calculator as Calculate, CloudSun, DollarSign, Package } from 'lucide-react';
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Card from '../ui/Card';
 import PricingCalculator from './PricingCalculator';
 import QuikreteModal from './QuikreteModal';
+<<<<<<< HEAD
 import ReinforcementOptimizer from '../optimizer/ReinforcementOptimizer';
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 import { 
   calculateSlabVolume, 
   calculateFooterVolume, 
@@ -118,14 +125,21 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   
   const [calculationType, setCalculationType] = useState<CalculationType>('slab');
   const [columnType, setColumnType] = useState<ColumnType>('rectangular');
+<<<<<<< HEAD
   const [calculationResult, setCalculationResult] = useState<(Calculation['result'] & { dimensions?: Record<string, number> }) | null>(null);
+=======
+  const [calculationResult, setCalculationResult] = useState<Calculation['result'] | null>(null);
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
   const [weather, setWeather] = useState<Weather | null>(null);
   const [showWeather, setShowWeather] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [selectedPsi, setSelectedPsi] = useState<string>('3000');
   const [showPricing, setShowPricing] = useState(false);
   const [showQuikreteModal, setShowQuikreteModal] = useState(false);
+<<<<<<< HEAD
   const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
   const [selectedQuikreteProduct, setSelectedQuikreteProduct] = useState<{
     type: string;
     weight: number;
@@ -332,8 +346,12 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     const result = {
       volume: parseFloat(volume.toFixed(2)),
       bags: bags,
+<<<<<<< HEAD
       recommendations,
       dimensions
+=======
+      recommendations
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
     };
     
     setCalculationResult(result);
@@ -638,6 +656,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 psi={selectedPsi}
               />
             )}
+<<<<<<< HEAD
 
             {/* Reinforcement Optimizer - show for slabs and columns */}
             {(calculationType === 'slab' || calculationType === 'thickened_edge_slab' || calculationType === 'column') && calculationResult.dimensions && (
@@ -656,6 +675,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 </Button>
               </div>
             )}
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Recommendations</h3>
@@ -695,6 +716,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         onClose={() => setShowQuikreteModal(false)}
         onSelect={handleQuikreteSelect}
       />
+<<<<<<< HEAD
 
       {/* Reinforcement Optimizer Modal */}
       {showReinforcementOptimizer && calculationResult?.dimensions && (
@@ -715,6 +737,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           isColumn={calculationType === 'column'}
         />
       )}
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
     </div>
   );
 };

@@ -33,13 +33,20 @@ const WeatherEffects: React.FC = () => {
         </div>
 
         <div className="space-y-6">
+<<<<<<< HEAD
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Introduction</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
+=======
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Introduction</h2>
+            <p className="text-gray-700 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               Concrete gains strength through hydration—a chemical reaction between cement and water. If conditions are too hot, cold, windy, or dry, that reaction can be disrupted, leading to surface cracking, delayed strength gain, or even frost damage. Proactive planning and protective measures help ensure concrete cures uniformly and reaches its intended performance.
             </p>
           </div>
 
+<<<<<<< HEAD
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Hot Weather Concreting</h2>
             
@@ -50,6 +57,18 @@ const WeatherEffects: React.FC = () => {
                   When ambient temperatures climb above about 80°F (27°C), concrete behaves differently:
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+=======
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Hot Weather Concreting</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Temperature Effects</h3>
+                <p className="text-gray-700 mb-2">
+                  When ambient temperatures climb above about 80°F (27°C), concrete behaves differently:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   <li><strong>Accelerated hydration:</strong> For every 10°F increase, the set time can shorten by up to 30%, giving less working time</li>
                   <li><strong>Rapid moisture loss:</strong> High heat and low humidity pull water out of the mix, risking plastic shrinkage cracks</li>
                   <li><strong>Increased water demand:</strong> To maintain the same slump, more water is often added—this can reduce ultimate strength</li>
@@ -58,8 +77,13 @@ const WeatherEffects: React.FC = () => {
               </div>
 
               <div>
+<<<<<<< HEAD
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Preventive Measures</h3>
                 <ul className="list-disc pl-5 space-y-3 text-gray-700 dark:text-gray-300">
+=======
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Preventive Measures</h3>
+                <ul className="list-disc pl-5 space-y-3 text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   <li>
                     <strong>Use chilled mixing water or ice</strong>
                     <ul className="list-circle pl-5 mt-1 space-y-1">
@@ -92,6 +116,7 @@ const WeatherEffects: React.FC = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Cold Weather Concreting</h2>
             
@@ -102,6 +127,18 @@ const WeatherEffects: React.FC = () => {
                   When temperatures drop below 40°F (4°C), fresh concrete is vulnerable to frost damage for the first 48–72 hours:
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+=======
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Cold Weather Concreting</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Freezing Prevention</h3>
+                <p className="text-gray-700 mb-2">
+                  When temperatures drop below 40°F (4°C), fresh concrete is vulnerable to frost damage for the first 48–72 hours:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   <li>Maintain internal temperature at or above 50°F (10°C) until initial set</li>
                   <li>Use insulated blankets or heated enclosures once concrete is placed</li>
                   <li>Monitor internal concrete temperature with embedded thermometers</li>
@@ -110,8 +147,13 @@ const WeatherEffects: React.FC = () => {
               </div>
 
               <div>
+<<<<<<< HEAD
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Heating Methods</h3>
                 <ul className="list-disc pl-5 space-y-3 text-gray-700 dark:text-gray-300">
+=======
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Heating Methods</h3>
+                <ul className="list-disc pl-5 space-y-3 text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   <li>
                     <strong>Heat mixing water</strong>
                     <ul className="list-circle pl-5 mt-1 space-y-1">
@@ -143,6 +185,7 @@ const WeatherEffects: React.FC = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Critical Weather Factors</h2>
             
@@ -175,6 +218,40 @@ const WeatherEffects: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">Solar Radiation</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">Heats surface unevenly → thermal gradients, crazing cracks</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">Shade pour area, use reflective covers, schedule shaded pours</td>
+=======
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Critical Weather Factors</h2>
+            
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact on Concrete</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Management Strategies</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Temperature</td>
+                    <td className="px-6 py-4">Sets time and strength gain vary with heat or cold</td>
+                    <td className="px-6 py-4">Adjust w/c ratio, use retarders/accelerators, heat or cool materials</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Wind</td>
+                    <td className="px-6 py-4">Increases surface evaporation → plastic shrinkage cracks</td>
+                    <td className="px-6 py-4">Erect windbreaks, mist water or use curing compounds</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Humidity</td>
+                    <td className="px-6 py-4">Low humidity speeds moisture loss; high humidity slows drying</td>
+                    <td className="px-6 py-4">Monitor local RH; cover slabs with damp burlap or plastic sheeting</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">Solar Radiation</td>
+                    <td className="px-6 py-4">Heats surface unevenly → thermal gradients, crazing cracks</td>
+                    <td className="px-6 py-4">Shade pour area, use reflective covers, schedule shaded pours</td>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   </tr>
                 </tbody>
               </table>
@@ -182,22 +259,37 @@ const WeatherEffects: React.FC = () => {
 
             <div className="space-y-4">
               <div>
+<<<<<<< HEAD
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Wind Effects</h3>
                 <p className="text-gray-700 dark:text-gray-300">
+=======
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Wind Effects</h3>
+                <p className="text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   Blustery conditions can double evaporation rates. Holding evaporation below 0.2 kg/m²·h (measured by anemometer and psychrometers) helps prevent surface cracks.
                 </p>
               </div>
 
               <div>
+<<<<<<< HEAD
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Humidity Impact</h3>
                 <p className="text-gray-700 dark:text-gray-300">
+=======
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Humidity Impact</h3>
+                <p className="text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   Below 50% RH, moisture can bleed out faster than the paste hydrates. In arid climates, fog-spraying or continuous misting maintains a moist surface.
                 </p>
               </div>
 
               <div>
+<<<<<<< HEAD
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Solar Radiation Effects</h3>
                 <p className="text-gray-700 dark:text-gray-300">
+=======
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Solar Radiation Effects</h3>
+                <p className="text-gray-700">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   Direct sun can heat the top 1 in. of concrete 20–30°F above air temperature. Covering initial set concrete with reflective tarps evens out temperatures and reduces dry-out.
                 </p>
               </div>

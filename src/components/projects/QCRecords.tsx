@@ -1,11 +1,22 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Save, Trash2, Edit, Search, Calendar } from 'lucide-react';
 import type { QCRecord } from '../../types';
+=======
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Loader } from 'lucide-react';
+import type { QCRecord, QCChecklist } from '../../types';
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
 import { format } from 'date-fns';
+<<<<<<< HEAD
+=======
+import { generateProjectPDF } from '../../utils/pdf';
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 
 interface QCRecordsProps {
   projectId: string;
@@ -98,7 +109,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<<<<<<< HEAD
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Quality Control Records</h3>
+=======
+        <h3 className="text-xl font-semibold text-gray-900">Quality Control Records</h3>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
         <Button 
           onClick={() => { resetForm(); setEditingRecord(null); setShowForm(true); }} 
           icon={<Plus size={16} />}
@@ -113,7 +128,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             placeholder="Search records..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
+<<<<<<< HEAD
             icon={<Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />}
+=======
+            icon={<Search className="h-4 w-4 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             fullWidth
           />
         </div>
@@ -122,7 +141,11 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             type="date"
             value={dateFilter}
             onChange={e => setDateFilter(e.target.value)}
+<<<<<<< HEAD
             icon={<Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />}
+=======
+            icon={<Calendar className="h-4 w-4 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             fullWidth
           />
         </div>
@@ -206,8 +229,13 @@ const QCRecords: React.FC<QCRecordsProps> = ({
 
       <div className="space-y-4">
         {filteredRecords.length === 0 ? (
+<<<<<<< HEAD
           <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <p className="text-gray-500 dark:text-gray-400">No QC records found</p>
+=======
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">No QC records found</p>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           </div>
         ) : (
           filteredRecords.map(record => (
@@ -222,12 +250,21 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+<<<<<<< HEAD
                       <h4 className="font-medium text-gray-900 dark:text-white">
                         {format(new Date(record.date), 'MMM d, yyyy')}
                       </h4>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                         <span>{record.temperature}°F</span>
                         <span className="text-gray-300 dark:text-gray-600">|</span>
+=======
+                      <h4 className="font-medium text-gray-900">
+                        {format(new Date(record.date), 'MMM d, yyyy')}
+                      </h4>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span>{record.temperature}°F</span>
+                        <span className="text-gray-300">|</span>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                         <span>{record.humidity}% RH</span>
                       </div>
                     </div>
@@ -243,12 +280,16 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                         size="sm"
                         onClick={() => onDelete(record.id)}
                         icon={<Trash2 size={16} />}
+<<<<<<< HEAD
                         className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<<<<<<< HEAD
                     <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                       <span className="text-gray-500 dark:text-gray-400 text-sm">Slump:</span>
                       <span className="ml-2 font-medium text-gray-900 dark:text-white">{record.slump}"</span>
@@ -260,12 +301,30 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                     <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                       <span className="text-gray-500 dark:text-gray-400 text-sm">Cylinders:</span>
                       <span className="ml-2 font-medium text-gray-900 dark:text-white">{record.cylindersMade}</span>
+=======
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="text-gray-500 text-sm">Slump:</span>
+                      <span className="ml-2 font-medium text-gray-900">{record.slump}"</span>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="text-gray-500 text-sm">Air Content:</span>
+                      <span className="ml-2 font-medium text-gray-900">{record.airContent}%</span>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <span className="text-gray-500 text-sm">Cylinders:</span>
+                      <span className="ml-2 font-medium text-gray-900">{record.cylindersMade}</span>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                     </div>
                   </div>
 
                   {record.notes && (
+<<<<<<< HEAD
                     <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
                       <p className="text-sm text-blue-900 dark:text-blue-100">{record.notes}</p>
+=======
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-900">{record.notes}</p>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                     </div>
                   )}
                 </div>

@@ -21,9 +21,15 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   const pourDateISO = project?.pourDate;
   if (!pourDateISO) {
     return (
+<<<<<<< HEAD
       <div className="bg-white/90 dark:bg-gray-800 backdrop-blur-sm rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Strength Progress</h3>
         <p className="text-gray-600 dark:text-gray-300">
+=======
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Strength Progress</h3>
+        <p className="text-gray-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           Set a pour date to track concrete strength development over time.
         </p>
       </div>
@@ -41,9 +47,15 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
 
   if (!pourDate) {
     return (
+<<<<<<< HEAD
       <div className="bg-white/90 dark:bg-gray-800 backdrop-blur-sm rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Strength Progress</h3>
         <p className="text-gray-600 dark:text-gray-300">Invalid pour date format.</p>
+=======
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Strength Progress</h3>
+        <p className="text-gray-600">Invalid pour date format.</p>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
       </div>
     );
   }
@@ -121,6 +133,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   }));
 
   return (
+<<<<<<< HEAD
     <div className="bg-white/90 dark:bg-gray-800 backdrop-blur-sm rounded-lg p-4 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -128,6 +141,15 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
           <div className="mt-2 space-y-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+=======
+    <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Strength Progress</h3>
+          <div className="mt-2 space-y-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 Pour Date
               </label>
               <Input
@@ -138,7 +160,11 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
               />
             </div>
             <div>
+<<<<<<< HEAD
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+=======
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 Mix Profile
               </label>
               <Select
@@ -157,9 +183,15 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
       </div>
 
       <div className="relative pt-6 pb-8">
+<<<<<<< HEAD
         <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded-full" />
         <div
           className={`absolute top-6 left-0 h-4 rounded-full transition-all duration-300 ease-in-out ${barColor}`}
+=======
+        <div className="h-2 bg-gray-200 rounded-full" />
+        <div
+          className={`absolute top-6 left-0 h-2 rounded-full transition-all duration-300 ease-in-out ${barColor}`}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           style={{ width: `${(daysPassed / 28) * 100}%` }}
         />
         <div className="absolute top-0 left-0 w-full">
@@ -174,6 +206,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
               >
                 <div
                   className={`w-4 h-4 rounded-full border-2 mb-1 ${
+<<<<<<< HEAD
                     passed ? m.fill : `bg-white dark:bg-gray-800 ${m.border}`
                   }`}
                 />
@@ -184,6 +217,18 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
                   {m.label}
                 </div>
                 <div className={`text-xs ${passed ? 'font-medium text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'} md:block hidden`}>
+=======
+                    passed ? m.fill : `bg-white ${m.border}`
+                  }`}
+                />
+                <div className="text-xs font-medium text-gray-600 whitespace-nowrap md:block hidden">
+                  {m.label} Days
+                </div>
+                <div className="text-xs font-medium text-gray-600 whitespace-nowrap block md:hidden">
+                  {m.label}
+                </div>
+                <div className={`text-xs ${passed ? 'font-medium text-gray-900' : 'text-gray-500'} md:block hidden`}>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                   {m.strength} ({m.psi} PSI)
                 </div>
               </div>
@@ -192,6 +237,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
         </div>
       </div>
 
+<<<<<<< HEAD
       <div className="mt-6 bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-medium text-blue-900 dark:text-blue-100">Current Strength</h4>
@@ -201,6 +247,17 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
           </div>
         </div>
         <p className="text-sm text-blue-600 dark:text-blue-300">
+=======
+      <div className="mt-6 bg-blue-50 p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-medium text-blue-900">Current Strength</h4>
+          <div className="text-right">
+            <span className="text-lg font-bold text-blue-700">{currentStrength}%</span>
+            <span className="text-sm text-blue-600 ml-2">({currentPSI} PSI)</span>
+          </div>
+        </div>
+        <p className="text-sm text-blue-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           {daysPassed} days since pour • {28 - daysPassed} days until full strength
         </p>
       </div>

@@ -98,7 +98,11 @@ const CalculatorPage: React.FC = () => {
           </div>
           
           {!currentProject && (
+<<<<<<< HEAD
             <p className="mt-4 text-sm text-amber-600 dark:text-amber-400 flex items-center">
+=======
+            <p className="mt-4 text-sm text-amber-600 dark:text-white flex items-center">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               <FolderOpen className="h-4 w-4 mr-2" />
               Select or create a project to save your calculations
             </p>
@@ -134,7 +138,11 @@ const CalculatorPage: React.FC = () => {
 
         {/* Concrete Diagrams */}
         <div className={`mb-6 transition-all duration-300 ${calculationType === 'slab' || calculationType === 'thickened_edge_slab' ? 'block' : 'hidden'}`}>
+<<<<<<< HEAD
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
+=======
+          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             <img 
               src={calculationType === 'thickened_edge_slab' ? thickSlabDiagram : slabDiagram}
               alt={calculationType === 'thickened_edge_slab' ? "Thickened Edge Slab Diagram" : "Concrete Slab Diagram"}

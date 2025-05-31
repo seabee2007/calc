@@ -24,7 +24,11 @@ export default function CalculationSection() {
       {currentProject.calculations.length > 0 ? (
         <div className="space-y-4">
           {currentProject.calculations.map((calc) => (
+<<<<<<< HEAD
             <Card key={calc.id} className="p-4 border border-gray-200 dark:border-gray-700">
+=======
+            <Card key={calc.id} className="p-4 border border-gray-200">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
@@ -36,12 +40,21 @@ export default function CalculationSection() {
                       size="sm"
                       onClick={() => handlers.confirmDelete('calculation', calc.id)}
                       icon={<Trash2 size={16} />}
+<<<<<<< HEAD
                       className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                     />
                   </div>
                   
                   <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md mb-3">
                     <p className="text-sm text-gray-600 dark:text-gray-300">
+=======
+                      className="text-red-600 hover:text-red-700"
+                    />
+                  </div>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-md mb-3">
+                    <p className="text-sm text-gray-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       {Object.entries(calc.dimensions)
                         .map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value.toFixed(2)}`)
                         .join(' | ')}
@@ -49,6 +62,7 @@ export default function CalculationSection() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
+<<<<<<< HEAD
                     <div className="bg-blue-50 dark:bg-blue-900/50 p-2 rounded-md">
                       <p className="text-sm text-blue-700 dark:text-blue-300">Volume</p>
                       <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
@@ -58,6 +72,17 @@ export default function CalculationSection() {
                     <div className="bg-green-50 dark:bg-green-900/50 p-2 rounded-md">
                       <p className="text-sm text-green-700 dark:text-green-300">Bags Required</p>
                       <p className="text-lg font-semibold text-green-900 dark:text-green-100">
+=======
+                    <div className="bg-blue-50 dark:bg-gray-900 p-2 rounded-md">
+                      <p className="text-sm text-blue-700">Volume</p>
+                      <p className="text-lg font-semibold text-blue-900">
+                        {calc.result.volume} yd³
+                      </p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-gray-900 p-2 rounded-md">
+                      <p className="text-sm text-green-700">Bags Required</p>
+                      <p className="text-lg font-semibold text-green-900">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                         {calc.result.bags} bags
                       </p>
                     </div>
@@ -68,12 +93,21 @@ export default function CalculationSection() {
           ))}
         </div>
       ) : (
+<<<<<<< HEAD
         <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <Calculator className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400 mb-4">No calculations in this project yet</p>
           <Button 
             onClick={() => handlers.navigateToCalculator(currentProject.id)}
             icon={<Calculator size={18} />}
+=======
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <Calculator className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">No calculations in this project yet</p>
+          <Button 
+            onClick={() => handlers.navigateToCalculator(currentProject.id)}
+            icon={<Plus size={18} />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           >
             Add Calculation
           </Button>

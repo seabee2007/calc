@@ -41,12 +41,21 @@ const ExternalResources: React.FC = () => {
               Standards &amp; Regulations
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">ACI (American Concrete Institute)</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ShieldCheck className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">ACI (American Concrete Institute)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Industry consensus standards for concrete design & construction.
                     </p>
                     <Button
@@ -63,12 +72,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <ClipboardList className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">OSHA (Occupational Safety &amp; Health Administration)</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ClipboardList className="h-6 w-6 text-green-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">OSHA (Occupational Safety &amp; Health Administration)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Regulations for safe handling and placement of concrete.
                     </p>
                     <Button
@@ -85,12 +103,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <ShieldCheck className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">ASTM International</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ShieldCheck className="h-6 w-6 text-red-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">ASTM International</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Material testing standards for cement, aggregates, and concrete.
                     </p>
                     <Button
@@ -107,12 +134,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <ClipboardList className="h-6 w-6 text-teal-600 dark:text-teal-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">PCI (Precast/Prestressed Concrete Institute)</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ClipboardList className="h-6 w-6 text-teal-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">PCI (Precast/Prestressed Concrete Institute)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Design and fabrication standards for precast concrete structures.
                     </p>
                     <Button
@@ -129,12 +165,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <BookOpen className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">NRMCA (National Ready Mixed Concrete Assoc.)</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <BookOpen className="h-6 w-6 text-orange-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">NRMCA (National Ready Mixed Concrete Assoc.)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Ready-mix concrete guidelines, sustainability & environmental best practices.
                     </p>
                     <Button
@@ -151,12 +196,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <ShieldCheck className="h-6 w-6 text-gray-700 dark:text-gray-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">AASHTO (American Assoc. of State Highway & Transportation Officials)</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <ShieldCheck className="h-6 w-6 text-gray-700 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">AASHTO (American Assoc. of State Highway & Transportation Officials)</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Transportation-related concrete design & testing standards.
                     </p>
                     <Button
@@ -181,12 +235,21 @@ const ExternalResources: React.FC = () => {
               Education &amp; Certification
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">ACI Certified Concrete Field Testing Technician</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-purple-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">ACI Certified Concrete Field Testing Technician</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Hands-on training and certification in field testing of concrete properties.
                     </p>
                     <Button
@@ -203,12 +266,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">ACI Concrete Construction Inspector</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-purple-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">ACI Concrete Construction Inspector</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Certification for inspectors overseeing proper concrete installation.
                     </p>
                     <Button
@@ -225,12 +297,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-blue-800 dark:text-blue-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">ASTM Concrete Testing Technician</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-blue-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">ASTM Concrete Testing Technician</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Certification in ASTM test methods for concrete and cement.
                     </p>
                     <Button
@@ -247,12 +328,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-green-800 dark:text-green-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">NRMCA Sustainability Certification</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-green-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">NRMCA Sustainability Certification</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Courses on sustainable concrete practices and LEED integration.
                     </p>
                     <Button
@@ -269,12 +359,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-indigo-800 dark:text-indigo-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">Coursera: Concrete Materials & Structures</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-indigo-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Coursera: Concrete Materials & Structures</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       University‐led online courses covering concrete design and durability.
                     </p>
                     <Button
@@ -291,12 +390,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-red-800 dark:text-red-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">LinkedIn Learning: Construction Tech</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-red-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">LinkedIn Learning: Construction Tech</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Video courses on concrete technology, project management, and safety.
                     </p>
                     <Button
@@ -313,12 +421,21 @@ const ExternalResources: React.FC = () => {
                 </div>
               </Card>
 
+<<<<<<< HEAD
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
                   <Certificate className="h-6 w-6 text-purple-800 dark:text-purple-400 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">NCCER Certification</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+=======
+              <Card className="p-6 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-start space-x-4">
+                  <Certificate className="h-6 w-6 text-purple-800 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">NCCER Certification</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                       Recognized craft and safety credentials for concrete work.
                     </p>
                     <Button

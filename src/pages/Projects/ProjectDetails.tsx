@@ -19,10 +19,17 @@ export default function ProjectDetails() {
       <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between mb-6">
         <div className="mt-4 sm:mt-0">
           <div className="flex items-center">
+<<<<<<< HEAD
             <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2" />
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{currentProject.name}</h2>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+=======
+            <FolderOpen className="h-6 w-6 text-blue-600 mr-2" />
+            <h2 className="text-2xl font-semibold text-gray-900">{currentProject.name}</h2>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             Created: {format(new Date(currentProject.createdAt), 'MM/dd/yyyy')} • 
             Last updated: {format(new Date(currentProject.updatedAt), 'MM/dd/yyyy')}
           </p>
@@ -59,7 +66,11 @@ export default function ProjectDetails() {
         </div>
       </div>
       
+<<<<<<< HEAD
       <p className="text-gray-600 dark:text-gray-300 mb-6">
+=======
+      <p className="text-gray-600 mb-6">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
         {currentProject.description || 'No description provided'}
       </p>
 

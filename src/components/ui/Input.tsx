@@ -37,7 +37,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   // Conditional styles
   const conditionalStyles = error
     ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900 dark:text-red-100 placeholder-red-300"
+<<<<<<< HEAD
     : "border-slate-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 text-gray-900 dark:text-white dark:placeholder-gray-500";
+=======
+    : "border-slate-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:text-white dark:placeholder-gray-500";
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
   
   // Width style
   const widthStyle = fullWidth ? 'w-full' : '';

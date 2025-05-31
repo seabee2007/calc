@@ -60,7 +60,11 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
       size="lg"
     >
       <div className="space-y-6">
+<<<<<<< HEAD
         <p className="text-gray-600 dark:text-gray-300">
+=======
+        <p className="text-gray-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
           Select a QUIKRETE® product and bag size to calculate the number of bags needed for your project.
         </p>
 
@@ -68,12 +72,21 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
           {QUIKRETE_PRODUCTS.map((product) => (
             <div
               key={product.type}
+<<<<<<< HEAD
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 transition-colors"
             >
               <div className="bg-gray-50 dark:bg-gray-700 p-4 border-b border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2">
                   <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <h3 className="font-medium text-gray-900 dark:text-white">{product.type}</h3>
+=======
+              className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-colors"
+            >
+              <div className="bg-gray-50 p-4 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-medium text-gray-900">{product.type}</h3>
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 </div>
               </div>
 
@@ -87,12 +100,21 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
                         weight: size.weight, 
                         yield: size.yield 
                       })}
+<<<<<<< HEAD
                       className="w-full text-left p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-between group"
                     >
                       <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">
                         {size.weight} lb bag
                       </span>
                       <span className="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-300">
+=======
+                      className="w-full text-left p-3 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-between group"
+                    >
+                      <span className="text-gray-700 group-hover:text-blue-700">
+                        {size.weight} lb bag
+                      </span>
+                      <span className="text-gray-500 group-hover:text-blue-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                         Yields {size.yield} ft³
                       </span>
                     </button>
@@ -103,8 +125,13 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
           ))}
         </div>
 
+<<<<<<< HEAD
         <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
+=======
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <p className="text-sm text-blue-800">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             Note: Yields are approximate. Actual yield may vary based on installation conditions and techniques.
           </p>
         </div>

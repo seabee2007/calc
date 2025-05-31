@@ -39,19 +39,33 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="max-w-md w-full p-8">
         <div className="text-center mb-8">
           <KeyRound className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
           <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Reset Password</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+=======
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="max-w-md w-full p-8">
+        <div className="text-center mb-8">
+          <KeyRound className="mx-auto h-12 w-12 text-blue-600" />
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">Reset Password</h2>
+          <p className="mt-2 text-sm text-gray-600">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
             Enter your new password below
           </p>
         </div>
 
         {isSuccess ? (
+<<<<<<< HEAD
           <div className="bg-green-50 dark:bg-green-900/50 border border-green-200 dark:border-green-700 rounded-md p-4 text-center">
             <p className="text-green-800 dark:text-green-200">
+=======
+          <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
+            <p className="text-green-800">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               Password has been reset successfully! Redirecting to login...
             </p>
           </div>
@@ -60,7 +74,11 @@ const ResetPassword: React.FC = () => {
             <Input
               label="New Password"
               type="password"
+<<<<<<< HEAD
               icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+              icon={<Lock className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               error={errors.password?.message}
               {...register('password', {
                 required: 'Password is required',
@@ -75,7 +93,11 @@ const ResetPassword: React.FC = () => {
             <Input
               label="Confirm Password"
               type="password"
+<<<<<<< HEAD
               icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+=======
+              icon={<Lock className="h-5 w-5 text-gray-400" />}
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
               error={errors.confirmPassword?.message}
               {...register('confirmPassword', {
                 required: 'Please confirm your password',
@@ -89,7 +111,11 @@ const ResetPassword: React.FC = () => {
             />
 
             {errors.root && (
+<<<<<<< HEAD
               <p className="text-sm text-red-600 dark:text-red-400 text-center">
+=======
+              <p className="text-sm text-red-600 text-center">
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
                 {errors.root.message}
               </p>
             )}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { MixProfileType } from './curing';
 
 // User preferences interface
@@ -24,6 +25,8 @@ export interface Calculation {
   createdAt: string;
 }
 
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 // Add QC Record types
 export interface QCChecklist {
   // Reinforcement
@@ -83,6 +86,7 @@ export interface QCRecord {
   checklist?: QCChecklist;
 }
 
+<<<<<<< HEAD
 // Add Reinforcement types
 export interface ReinforcementSet {
   id: string;
@@ -122,6 +126,8 @@ export interface ReinforcementSet {
   updatedAt: string;
 }
 
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
 // Update Project interface
 export interface Project {
   id: string;
@@ -130,7 +136,10 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
   calculations: Calculation[];
+<<<<<<< HEAD
   reinforcements?: ReinforcementSet[];  // Add reinforcement sets
+=======
+>>>>>>> 81a2cbd4801da4ed24dd873c85d90e22ceebbd29
   wasteFactor?: number;
   pourDate?: string;
   mixProfile?: MixProfileType;
