@@ -56,21 +56,23 @@ const Navbar: React.FC = () => {
   };
   
   return (
-    <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md">
+    <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
+          {/* Logo - with proper responsive sizing */}
+          <div className="flex-shrink-0 min-w-0">
             <Link to="/" className="flex items-center">
-              <Calculator className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">ConcreteCalc</span>
+              <Calculator className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <span className="ml-2 text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+                ConcreteCalc
+              </span>
             </Link>
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center flex-1 justify-end">
             {/* Essential links (always visible) */}
-            <div className="flex items-center space-x-2 lg:space-x-4 mr-4">
+            <div className="flex items-center space-x-1 lg:space-x-2 mr-2 lg:mr-4">
               {essentialLinks.map((link) => (
                 <Link
                   key={link.path}
@@ -88,7 +90,7 @@ const Navbar: React.FC = () => {
               ))}
 
               {/* Additional links on XL screens only */}
-              <div className="hidden xl:flex items-center space-x-4">
+              <div className="hidden xl:flex items-center space-x-2">
                 {additionalLinks.map((link) => (
                   <Link
                     key={link.path}
@@ -119,7 +121,7 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Hamburger menu for medium to large screens (shows additional links) */}
-            <div className="xl:hidden flex items-center mr-4">
+            <div className="xl:hidden flex items-center mr-2">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className={`inline-flex items-center justify-center p-2 rounded-md transition-colors ${
@@ -132,8 +134,8 @@ const Navbar: React.FC = () => {
               </button>
             </div>
 
-            {/* Right side controls - fixed width to prevent pushing off screen */}
-            <div className="flex items-center space-x-2 flex-shrink-0">
+            {/* Right side controls - compact responsive sizing */}
+            <div className="flex items-center space-x-1 lg:space-x-2 flex-shrink-0">
               <ThemeToggle />
 
               {user ? (
@@ -142,20 +144,20 @@ const Navbar: React.FC = () => {
                   size="sm"
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  icon={<LogOut size={18} />}
-                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-300 whitespace-nowrap"
+                  icon={<LogOut size={16} />}
+                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-300 whitespace-nowrap text-xs lg:text-sm px-2 lg:px-3"
                 >
                   <span className="hidden lg:inline">{isSigningOut ? 'Signing Out...' : 'Sign Out'}</span>
                   <span className="lg:hidden">Out</span>
                 </Button>
               ) : (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => navigate('/login')}
-                    icon={<LogIn size={18} />}
-                    className="whitespace-nowrap"
+                    icon={<LogIn size={16} />}
+                    className="whitespace-nowrap text-xs lg:text-sm px-2 lg:px-3"
                   >
                     <span className="hidden lg:inline">Sign In</span>
                     <span className="lg:hidden">In</span>
@@ -163,8 +165,8 @@ const Navbar: React.FC = () => {
                   <Button
                     size="sm"
                     onClick={() => navigate('/signup')}
-                    icon={<UserPlus size={18} />}
-                    className="whitespace-nowrap"
+                    icon={<UserPlus size={16} />}
+                    className="whitespace-nowrap text-xs lg:text-sm px-2 lg:px-3"
                   >
                     <span className="hidden lg:inline">Sign Up</span>
                     <span className="lg:hidden">Up</span>
@@ -175,29 +177,29 @@ const Navbar: React.FC = () => {
           </div>
           
           {/* Mobile Menu Button (for actual mobile devices) */}
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center md:hidden space-x-1">
             <ThemeToggle />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50 ml-2"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
       </div>
       
-      {/* Dropdown Menu (for both desktop overflow and mobile) */}
+      {/* Dropdown Menu (for both desktop overflow and mobile) - improved positioning */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="md:absolute md:right-4 md:top-16 md:w-64 md:bg-white md:dark:bg-gray-800 md:rounded-lg md:shadow-lg md:border md:border-gray-200 md:dark:border-gray-700 md:z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"
-            initial={{ opacity: 0, height: 0, scale: 0.95 }}
-            animate={{ opacity: 1, height: 'auto', scale: 1 }}
-            exit={{ opacity: 0, height: 0, scale: 0.95 }}
+            className="absolute left-0 right-0 top-full md:left-auto md:right-4 md:top-16 md:w-64 bg-white dark:bg-gray-800 md:rounded-lg shadow-xl border-t md:border border-gray-200 dark:border-gray-700 z-50 backdrop-blur-sm"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 md:p-2">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 md:p-2 max-h-[80vh] overflow-y-auto">
               {/* Show all links on mobile, only additional links on desktop */}
               {(window.innerWidth < 768 ? allNavLinks : [...additionalLinks, resourcesLink]).map((link) => (
                 <Link
