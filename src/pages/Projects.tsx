@@ -511,9 +511,13 @@ const Projects: React.FC = () => {
                                   <p className="text-lg font-semibold text-green-900 dark:text-green-100">
                                     {calc.result.bags} bags
                                   </p>
-                                  {calc.quikreteProduct && (
+                                  {calc.quikreteProduct ? (
                                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                                       {calc.quikreteProduct.weight}lb QUIKRETE® {calc.quikreteProduct.type}
+                                    </p>
+                                  ) : (
+                                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                      Standard 80lb bags • Create new calculation to select QUIKRETE® product
                                     </p>
                                   )}
                                 </div>

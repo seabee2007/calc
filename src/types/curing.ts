@@ -37,8 +37,8 @@ export const CURE_PROFILES: Record<MixProfileType, CureProfile[]> = {
 };
 
 export const MIX_PROFILE_LABELS: Record<MixProfileType, string> = {
-  standard: 'Standard (3000 PSI)',
+  standard: 'Standard Mix',
   highEarly: 'High Early-Strength',
-  highStrength: 'High-Strength (5000 PSI)',
+  highStrength: 'High-Strength Mix',
   rapidSet: 'Rapid-Set',
 };

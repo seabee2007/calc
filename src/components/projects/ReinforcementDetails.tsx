@@ -4,7 +4,7 @@ import { BarChart3, Layers, Zap, Trash2, Calendar } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { ReinforcementSet } from '../../types';
+import { type ReinforcementSet } from '../../types/index';
 
 interface ReinforcementDetailsProps {
   reinforcements: ReinforcementSet[];
