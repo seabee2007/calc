@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader } from 'lucide-react';
+import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader, Edit3 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import ProjectCard from '../components/projects/ProjectCard';
@@ -12,6 +12,8 @@ import StrengthProgress from '../components/projects/StrengthProgress';
 import QCRecords from '../components/projects/QCRecords';
 import ReinforcementDetails from '../components/projects/ReinforcementDetails';
 import Input from '../components/ui/Input';
+import Modal from '../components/ui/Modal';
+import CalculationForm from '../components/calculations/CalculationForm';
 import { useProjectStore } from '../store';
 import { Project, Calculation, CONCRETE_MIX_DESIGNS } from '../types';
 import { calculateMixMaterials } from '../utils/calculations';
@@ -31,6 +33,7 @@ const Projects: React.FC = () => {
     deleteProject,
     updateProject,
     deleteCalculation,
+    updateCalculation,
     loading,
     loadProjects
   } = useProjectStore();
@@ -39,6 +42,8 @@ const Projects: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showProjectDetails, setShowProjectDetails] = useState(false);
   const [editingProject, setEditingProject] = useState(false);
+  const [editingCalculation, setEditingCalculation] = useState<Calculation | null>(null);
+  const [showEditCalculationModal, setShowEditCalculationModal] = useState(false);
   const [selectedPsi, setSelectedPsi] = useState<string>('3000');
   const [wasteFactor, setWasteFactor] = useState<string>(currentProject?.wasteFactor?.toString() || '10');
   const [isSaving, setIsSaving] = useState(false);
@@ -190,6 +195,43 @@ const Projects: React.FC = () => {
   const handleDeleteCalculation = (calculationId: string) => {
     setItemToDelete({ type: 'calculation', id: calculationId });
     setShowDeleteConfirm(true);
+  };
+
+  const handleEditCalculation = (calculation: Calculation) => {
+    setEditingCalculation(calculation);
+    setShowEditCalculationModal(true);
+  };
+
+  const handleUpdateCalculation = async (updatedCalculation: Calculation) => {
+    if (!currentProject || !editingCalculation) return;
+    
+    setIsSaving(true);
+    try {
+      await updateCalculation(currentProject.id, editingCalculation.id, {
+        ...updatedCalculation,
+        id: editingCalculation.id,
+        createdAt: editingCalculation.createdAt,
+        updatedAt: new Date().toISOString()
+      });
+      
+      setShowEditCalculationModal(false);
+      setEditingCalculation(null);
+      showToastMessage('Calculation updated successfully', 'success');
+      
+      // Refresh the current project to show updated data
+      await loadProjects();
+      setCurrentProject(currentProject.id);
+    } catch (error) {
+      console.error('Error updating calculation:', error);
+      showToastMessage('Error updating calculation', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEditCalculation = () => {
+    setShowEditCalculationModal(false);
+    setEditingCalculation(null);
   };
 
   const handleSaveWasteFactor = async () => {
@@ -477,13 +519,24 @@ const Projects: React.FC = () => {
                                 <h4 className="font-medium text-gray-900 dark:text-white capitalize">
                                   {calc.type.replace(/_/g, ' ')} Calculation
                                 </h4>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteCalculation(calc.id)}
-                                  icon={<Trash2 size={16} />}
-                                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                />
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditCalculation(calc)}
+                                    icon={<Edit3 size={16} />}
+                                    className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                    title="Edit Calculation"
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteCalculation(calc.id)}
+                                    icon={<Trash2 size={16} />}
+                                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                    title="Delete Calculation"
+                                  />
+                                </div>
                               </div>
                               
                               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md mb-3">
@@ -746,6 +799,24 @@ const Projects: React.FC = () => {
               </div>
             </Card>
           </div>
+        )}
+
+        {showEditCalculationModal && editingCalculation && (
+          <Modal
+            isOpen={showEditCalculationModal}
+            onClose={handleCancelEditCalculation}
+            title="Edit Calculation"
+            size="xl"
+          >
+            <div className="p-6">
+              <CalculationForm
+                calculation={editingCalculation}
+                onSave={handleUpdateCalculation}
+                onCancel={handleCancelEditCalculation}
+                isSaving={isSaving}
+              />
+            </div>
+          </Modal>
         )}
       </AnimatePresence>
     </motion.div>

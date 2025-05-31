@@ -26,12 +26,15 @@ import { usePreferencesStore } from '../../store';
 import { Calculation, Weather } from '../../types';
 import WeatherInfo from '../weather/WeatherInfo';
 import LocationPrompt from '../weather/LocationPrompt';
-import { MIX_PROFILE_LABELS } from '../../types/curing';
+import { MIX_PROFILE_LABELS, MixProfileType } from '../../types/curing';
 
 interface CalculationFormProps {
   onSave?: (calculation: Calculation) => void;
   onTypeChange?: (type: string) => void;
   initialShowWeather?: boolean;
+  calculation?: Calculation; // For editing mode
+  onCancel?: () => void; // For editing mode
+  isSaving?: boolean; // For editing mode
 }
 
 type CalculationType = 'slab' | 'footer' | 'column' | 'sidewalk' | 'thickened_edge_slab';
@@ -81,7 +84,10 @@ const fractionOptions = [
 const CalculationForm: React.FC<CalculationFormProps> = ({ 
   onSave, 
   onTypeChange,
-  initialShowWeather = false 
+  initialShowWeather = false,
+  calculation,
+  onCancel,
+  isSaving
 }) => {
   const { preferences } = usePreferencesStore();
   const { currentProject } = useProjectStore();
@@ -117,21 +123,27 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
   });
   
-  const [calculationType, setCalculationType] = useState<CalculationType>('slab');
+  const [calculationType, setCalculationType] = useState<CalculationType>(
+    calculation?.type as CalculationType || 'slab'
+  );
   const [columnType, setColumnType] = useState<ColumnType>('rectangular');
-  const [calculationResult, setCalculationResult] = useState<Calculation['result'] | null>(null);
-  const [weather, setWeather] = useState<Weather | null>(null);
-  const [showWeather, setShowWeather] = useState(false);
+  const [calculationResult, setCalculationResult] = useState<Calculation['result'] | null>(
+    calculation?.result || null
+  );
+  const [weather, setWeather] = useState<Weather | null>(calculation?.weather || null);
+  const [showWeather, setShowWeather] = useState(!!calculation?.weather || false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
-  const [selectedPsi, setSelectedPsi] = useState<string>('3000');
+  const [selectedPsi, setSelectedPsi] = useState<string>(calculation?.psi || '3000');
   const [showPricing, setShowPricing] = useState(false);
   const [showQuikreteModal, setShowQuikreteModal] = useState(false);
   const [selectedQuikreteProduct, setSelectedQuikreteProduct] = useState<{
     type: string;
     weight: number;
     yield: number;
-  } | null>(null);
-  const [lastCalculatedVolume, setLastCalculatedVolume] = useState<number | null>(null);
+  } | null>(calculation?.quikreteProduct || null);
+  const [lastCalculatedVolume, setLastCalculatedVolume] = useState<number | null>(
+    calculation?.result?.volume || null
+  );
   const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
   const [calculationData, setCalculationData] = useState<{
     length_ft: number;
@@ -571,7 +583,9 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Concrete Calculator</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          {calculation ? 'Edit Calculation' : 'Concrete Calculator'}
+        </h2>
         
         <form onSubmit={handleSubmit(calculateVolume)} className="space-y-4">
           <Select
@@ -625,13 +639,36 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           )}
           
           <div className="pt-4">
-            <Button 
-              type="submit" 
-              fullWidth 
-              icon={<Calculator size={18} />}
-            >
-              Calculate
-            </Button>
+            {calculation ? (
+              <div className="flex gap-3">
+                <Button 
+                  type="submit" 
+                  fullWidth 
+                  icon={<Calculator size={18} />}
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Updating...' : 'Update Calculation'}
+                </Button>
+                {onCancel && (
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Button 
+                type="submit" 
+                fullWidth 
+                icon={<Calculator size={18} />}
+              >
+                Calculate
+              </Button>
+            )}
           </div>
         </form>
       </Card>
