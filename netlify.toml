@@ -1,10 +1,12 @@
 [build]
   publish = "dist"
-  command = "npm ci --include=optional && npm run build"
+  command = "rm -f package-lock.json && npm cache clean --force && npm install --include=optional --force && npm run build"
 
 [build.environment]
-  NODE_VERSION = "18.17.0"
+  NODE_VERSION = "18.18.0"
   NPM_FLAGS = "--include=optional"
+  NPM_CONFIG_FUND = "false"
+  NPM_CONFIG_AUDIT = "false"
 
 [[headers]]
   for = "/*"
