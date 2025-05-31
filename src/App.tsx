@@ -15,6 +15,8 @@ import CommonProblems from './pages/resources/CommonProblems';
 import Admixtures from './pages/resources/Admixtures';
 import ExternalResources from './pages/resources/ExternalResources';
 import MixDesignAdvisor from './pages/MixDesignAdvisor';
+import ProposalGenerator from './pages/ProposalGenerator';
+import Proposals from './pages/Proposals';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -70,6 +72,22 @@ function App() {
             element={
               <AuthGuard>
                 <MixDesignAdvisor />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="proposal-generator"
+            element={
+              <AuthGuard>
+                <ProposalGenerator />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="proposals"
+            element={
+              <AuthGuard>
+                <Proposals />
               </AuthGuard>
             }
           />
