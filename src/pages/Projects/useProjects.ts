@@ -209,6 +209,31 @@ export function useProjects() {
       }
     },
 
+    deleteReinforcement: async (reinforcementId: string) => {
+      if (!currentProject) return;
+      try {
+        const { error } = await supabase
+          .from('reinforcement_sets')
+          .delete()
+          .eq('id', reinforcementId);
+
+        if (error) throw error;
+        
+        const updatedProject = {
+          ...currentProject,
+          reinforcements: currentProject.reinforcements?.filter(r => r.id !== reinforcementId) || []
+        };
+        
+        await updateProject(currentProject.id, updatedProject);
+        setCurrentProject(currentProject.id);
+        
+        toast('Reinforcement design deleted successfully', 'success');
+      } catch (err) {
+        console.error('Error deleting reinforcement design:', err);
+        toast('Error deleting reinforcement design', 'error');
+      }
+    },
+
     confirmDelete: (type: 'project' | 'calculation', id: string) => {
       setUi(s => ({
         ...s,

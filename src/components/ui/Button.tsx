@@ -31,15 +31,15 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   rel,
   ...props
 }, ref) => {
-  // Base styles
-  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+  // Base styles with dark mode support
+  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none dark:focus-visible:ring-blue-400 dark:focus-visible:ring-offset-gray-800';
   
-  // Variant styles
+  // Variant styles with comprehensive dark mode support
   const variantStyles: Record<ButtonVariant, string> = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700',
-    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-    outline: 'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-900 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700',
-    ghost: 'bg-transparent hover:bg-slate-100 text-slate-900 dark:text-gray-200 dark:hover:bg-gray-700',
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 dark:active:bg-blue-800',
+    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+    outline: 'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-900 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white',
+    ghost: 'bg-transparent hover:bg-slate-100 text-slate-900 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white',
     danger: 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700'
   };
   

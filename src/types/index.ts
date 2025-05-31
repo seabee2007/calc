@@ -21,6 +21,14 @@ export interface Calculation {
     humidity: number;
     windSpeed: number;
   };
+  // Add new fields for enhanced display
+  psi?: string;
+  mixProfile?: MixProfileType;
+  quikreteProduct?: {
+    type: string;
+    weight: number;
+    yield: number;
+  };
   createdAt: string;
 }
 
@@ -84,6 +92,14 @@ export interface QCRecord {
 }
 
 // Add Reinforcement types
+export interface CutListItem {
+  id?: string;
+  lengthFt: number;
+  qty: number;
+  direction?: 'X' | 'Y';
+  barSize?: string;
+}
+
 export interface ReinforcementSet {
   id: string;
   projectId?: string;
@@ -103,6 +119,9 @@ export interface ReinforcementSet {
   total_bars_y?: number;
   total_bars?: number;
   total_linear_ft?: number;
+  
+  // Cut list data
+  cut_list_items?: CutListItem[];
   
   // Column specific
   vertical_bars?: number;

@@ -58,10 +58,10 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
   };
   
   const getTemperatureColor = (temp: number) => {
-    if (temp > 85) return 'text-red-600 dark:text-red-400';
-    if (temp > 70) return 'text-orange-500 dark:text-orange-400';
-    if (temp > 50) return 'text-green-500 dark:text-green-400';
-    return 'text-blue-500 dark:text-blue-400';
+    if (temp > 85) return 'text-red-600';
+    if (temp > 70) return 'text-orange-500';
+    if (temp > 50) return 'text-green-500';
+    return 'text-blue-500';
   };
 
   const formatDate = (dateString: string): string => {
@@ -78,7 +78,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Weather</h3>
-            <div className="flex items-center text-gray-600 dark:text-gray-400">
+            <div className="flex items-center text-gray-600 dark:text-gray-300">
               <MapPin size={16} className="mr-1" />
               <span className="text-sm">{weather.location.city}, {weather.location.country}</span>
             </div>
@@ -92,7 +92,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         <div className="flex items-center">
           <Thermometer className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Temperature</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Temperature</p>
             <p className={`text-base font-medium ${getTemperatureColor(weather.temperature)}`}>
               {weather.temperature}°F
             </p>
@@ -102,7 +102,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         <div className="flex items-center">
           <Cloud className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Humidity</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Humidity</p>
             <p className="text-base font-medium text-gray-900 dark:text-white">{weather.humidity}%</p>
           </div>
         </div>
@@ -110,7 +110,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         <div className="flex items-center">
           <Wind className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Wind</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Wind</p>
             <p className="text-base font-medium text-gray-900 dark:text-white">{weather.windSpeed} mph</p>
           </div>
         </div>
@@ -118,7 +118,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         <div className="flex items-center">
           <Droplets className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Precipitation</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Precipitation</p>
             <p className="text-base font-medium text-gray-900 dark:text-white">
               {weather.precipitation.toFixed(2)}"
             </p>
@@ -131,7 +131,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             <h4 className="text-sm font-medium text-gray-900 dark:text-white">3-Day Forecast</h4>
-            <div className="flex items-center text-gray-600 dark:text-gray-400">
+            <div className="flex items-center text-gray-600 dark:text-gray-300">
               <MapPin size={14} className="mr-1" />
               <span className="text-xs">{weather.location.city}</span>
             </div>
@@ -140,10 +140,10 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         
         <div className="space-y-3">
           {weather.forecast.map((day) => (
-            <div key={day.date} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+            <div key={day.date} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     {formatDate(day.date)}
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">• {day.conditions}</span>
@@ -153,7 +153,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
               
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-300">Temperature</p>
+                  <p className="text-gray-600 dark:text-gray-400">Temperature</p>
                   <div className="space-y-1">
                     <p className="font-medium">
                       <span className={getTemperatureColor(day.maxTemp)}>High: {Math.round(day.maxTemp)}°F</span>
@@ -168,13 +168,13 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
                 </div>
                 <div>
                   <div className="mb-2">
-                    <p className="text-gray-600 dark:text-gray-300">Wind</p>
+                    <p className="text-gray-600 dark:text-gray-400">Wind</p>
                     <p className="font-medium text-gray-900 dark:text-white">
                       Max: {day.maxWindSpeed} mph
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600 dark:text-gray-300">Precipitation</p>
+                    <p className="text-gray-600 dark:text-gray-400">Precipitation</p>
                     <p className="font-medium text-blue-600 dark:text-blue-400">
                       {day.chanceOfRain}% ({day.totalPrecipitation.toFixed(2)}")
                     </p>
@@ -186,7 +186,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         </div>
       </div>
       
-      <div className="mt-4 bg-blue-50 dark:bg-blue-900/50 p-3 rounded-md">
+      <div className="mt-4 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
         <p className="text-sm text-blue-800 dark:text-blue-200">
           {weather.temperature > 85 
             ? "Hot weather alert: Consider using retarders and scheduling pour for cooler hours."

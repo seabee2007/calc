@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, Truck, MapPin, Loader } from 'lucide-react';
+import { DollarSign, Truck, Clock, Calendar, MapPin, Loader } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -127,7 +127,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
                 if (e.key === 'Enter') handleLocationSearch();
               }}
               className="flex-1"
-              error={locationError || undefined}
             />
             <div className="flex gap-2">
               <Button
@@ -163,7 +162,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
               value={distance}
               onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
               fullWidth
-              error={locationError || undefined}
+              error={locationError}
             />
           </div>
         </div>
@@ -201,41 +200,44 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             id="pumpTruck"
             checked={needsPumpTruck}
             onChange={(e) => setNeedsPumpTruck(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="pumpTruck" className="text-sm text-gray-700 dark:text-gray-300">
-            Pump truck required
+          <label htmlFor="pumpTruck" className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+            <Truck className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
+            Need Pump Truck
           </label>
         </div>
         
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="saturday"
+            id="saturdayDelivery"
             checked={isSaturday}
             onChange={(e) => setIsSaturday(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="saturday" className="text-sm text-gray-700 dark:text-gray-300">
-            Saturday delivery
+          <label htmlFor="saturdayDelivery" className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+            <Calendar className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
+            Saturday Delivery
           </label>
         </div>
         
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="afterHours"
+            id="afterHoursDelivery"
             checked={isAfterHours}
             onChange={(e) => setIsAfterHours(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="afterHours" className="text-sm text-gray-700 dark:text-gray-300">
-            After-hours delivery (5 PM - 8 AM)
+          <label htmlFor="afterHoursDelivery" className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+            <Clock className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
+            After Hours Delivery
           </label>
         </div>
       </div>
 
-      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
         
         <div className="space-y-4">
@@ -273,9 +275,9 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
                   </div>
                 )}
               </div>
-              <div className="flex justify-between font-medium pt-2 border-t border-gray-200 dark:border-gray-600">
-                <span className="text-gray-900 dark:text-white">Total Delivery Fees</span>
-                <span className="text-gray-900 dark:text-white">{formatPrice(pricing.deliveryFees.totalDeliveryFees)}</span>
+              <div className="flex justify-between font-medium text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-600">
+                <span>Total Delivery Fees</span>
+                <span>{formatPrice(pricing.deliveryFees.totalDeliveryFees)}</span>
               </div>
             </div>
           )}
@@ -303,14 +305,14 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
                   </div>
                 )}
               </div>
-              <div className="flex justify-between font-medium pt-2 border-t border-gray-200 dark:border-gray-600">
-                <span className="text-gray-900 dark:text-white">Total Additional Fees</span>
-                <span className="text-gray-900 dark:text-white">{formatPrice(pricing.additionalServices.totalAdditionalFees)}</span>
+              <div className="flex justify-between font-medium text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-gray-600">
+                <span>Total Additional Fees</span>
+                <span>{formatPrice(pricing.additionalServices.totalAdditionalFees)}</span>
               </div>
             </div>
           )}
           
-          <div className="bg-green-50 dark:bg-green-900/50 p-4 rounded-lg">
+          <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
             <div className="flex justify-between text-lg font-bold">
               <span className="text-gray-900 dark:text-white">Total Estimated Cost</span>
               <span className="text-green-700 dark:text-green-400">{formatPrice(pricing?.totalCost || 0)}</span>

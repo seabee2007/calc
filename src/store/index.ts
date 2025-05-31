@@ -100,18 +100,30 @@ const mapQcChecklistFromDb = (chk: any): QCChecklist => ({
 });
 
 const mapQcRecordFromDb = (r: any): QCRecord => ({
-  id:            r.id,
-  projectId:     r.project_id,
-  date:          r.date,
-  temperature:   r.temperature,
-  humidity:      r.humidity,
-  slump:         r.slump,
-  airContent:    r.air_content,
+  id: r.id,
+  projectId: r.project_id,
+  date: r.date,
+  temperature: r.temperature,
+  humidity: r.humidity,
+  slump: r.slump,
+  airContent: r.air_content,
   cylindersMade: r.cylinders_made,
-  notes:         r.notes,
-  createdAt:     r.created_at,
-  updatedAt:     r.updated_at,
-  checklist:     r.qc_checklists?.[0] ? mapQcChecklistFromDb(r.qc_checklists[0]) : undefined,
+  notes: r.notes,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+  checklist: r.qc_checklists?.[0] ? mapQcChecklistFromDb(r.qc_checklists[0]) : undefined,
+});
+
+const mapCalculationFromDb = (c: any): Calculation => ({
+  id: c.id,
+  type: c.type,
+  dimensions: c.dimensions,
+  result: c.result,
+  weather: c.weather,
+  psi: c.psi,
+  mixProfile: c.mix_profile,
+  quikreteProduct: c.quikrete_product,
+  createdAt: c.created_at,
 });
 
 const mapReinforcementSetFromDb = (r: any): ReinforcementSet => ({
@@ -133,6 +145,15 @@ const mapReinforcementSetFromDb = (r: any): ReinforcementSet => ({
   total_bars_y: r.total_bars_y,
   total_bars: r.total_bars,
   total_linear_ft: r.total_linear_ft,
+  
+  // Cut list data
+  cut_list_items: (r.cut_list_items || []).map((item: any) => ({
+    id: item.id,
+    lengthFt: item.length_ft,
+    qty: item.quantity,
+    direction: item.direction,
+    barSize: item.bar_size,
+  })),
   
   // Column specific
   vertical_bars: r.vertical_bars,
@@ -170,7 +191,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
           pour_date, mix_profile,
           calculations(*),
           qc_records(*, qc_checklists(*)),
-          reinforcement_sets(*)
+          reinforcement_sets(*, cut_list_items(*))
         `)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -184,7 +205,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
         updatedAt:    row.updated_at,
         pourDate:     row.pour_date,
         mixProfile:   (row.mix_profile as MixProfileType) || 'standard',
-        calculations: row.calculations || [],
+        calculations: (row.calculations || []).map(mapCalculationFromDb),
         reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
         qcRecords:    (row.qc_records || []).map(mapQcRecordFromDb),
       }));
@@ -212,7 +233,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pour_date, mix_profile,
         calculations(*),
         qc_records(*, qc_checklists(*)),
-        reinforcement_sets(*)
+        reinforcement_sets(*, cut_list_items(*))
       `)
       .single();
     if (error) throw error;
@@ -226,7 +247,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
       updatedAt:    data.updated_at,
       pourDate:     data.pour_date,
       mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
-      calculations: data.calculations || [],
+      calculations: (data.calculations || []).map(mapCalculationFromDb),
       reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
       qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
     };
@@ -254,7 +275,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pour_date, mix_profile,
         calculations(*),
         qc_records(*, qc_checklists(*)),
-        reinforcement_sets(*)
+        reinforcement_sets(*, cut_list_items(*))
       `)
       .single();
     if (error) throw error;
@@ -268,7 +289,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
       updatedAt:    data.updated_at,
       pourDate:     data.pour_date,
       mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
-      calculations: data.calculations || [],
+      calculations: (data.calculations || []).map(mapCalculationFromDb),
       reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
       qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
     };
@@ -308,7 +329,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
         type:       calc.type,
         dimensions: calc.dimensions,
         result:     calc.result,
-        weather:    calc.weather
+        weather:    calc.weather,
+        psi:        calc.psi,
+        mix_profile: calc.mixProfile,
+        quikrete_product: calc.quikreteProduct
       })
       .select('*, created_at')
       .single();
@@ -320,6 +344,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
       dimensions:data.dimensions,
       result:    data.result,
       weather:   data.weather,
+      psi:       data.psi,
+      mixProfile: data.mix_profile,
+      quikreteProduct: data.quikrete_product,
       createdAt: data.created_at
     };
     set((s) => {
@@ -345,7 +372,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
         type:       calcData.type,
         dimensions: calcData.dimensions,
         result:     calcData.result,
-        weather:    calcData.weather
+        weather:    calcData.weather,
+        psi:        calcData.psi,
+        mix_profile: calcData.mixProfile,
+        quikrete_product: calcData.quikreteProduct
       })
       .eq('id', calcId)
       .select('*, created_at')
@@ -358,6 +388,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
       dimensions:data.dimensions,
       result:    data.result,
       weather:   data.weather,
+      psi:       data.psi,
+      mixProfile: data.mix_profile,
+      quikreteProduct: data.quikrete_product,
       createdAt: data.created_at
     };
     set((s) => {

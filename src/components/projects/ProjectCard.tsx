@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
-import { Folder, Clock, Calculator, Trash2, BarChart3 } from 'lucide-react';
+import { Folder, Clock, Calculator, Trash2 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { Project, ReinforcementSet } from '../../types';
+import { Project } from '../../types';
 
 interface ProjectCardProps {
   project: Project;
@@ -32,11 +32,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
       return '—';
     }
   })();
-
-  const reinforcementCount = project.reinforcements?.length || 0;
-  const hasRebar = project.reinforcements?.some((r: ReinforcementSet) => r.reinforcement_type === 'rebar') || false;
-  const hasFiber = project.reinforcements?.some((r: ReinforcementSet) => r.reinforcement_type === 'fiber') || false;
-  const hasMesh = project.reinforcements?.some((r: ReinforcementSet) => r.reinforcement_type === 'mesh') || false;
 
   return (
     <motion.div
@@ -71,43 +66,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             {project.description || 'No description provided'}
           </p>
           
-          {/* Reinforcement Summary */}
-          {reinforcementCount > 0 && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
-              <div className="flex items-center mb-2">
-                <BarChart3 className="h-4 w-4 text-green-600 dark:text-green-400 mr-2" />
-                <span className="text-sm font-medium text-green-800 dark:text-green-300">
-                  {reinforcementCount} Reinforcement Design{reinforcementCount > 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {hasRebar && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
-                    Rebar
-                  </span>
-                )}
-                {hasFiber && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-300">
-                    Fiber
-                  </span>
-                )}
-                {hasMesh && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
-                    Mesh
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-          
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
+              <Clock className="h-4 w-4 mr-1" />
               <span>{formattedDate}</span>
             </div>
             
             <div className="flex items-center">
-              <Calculator className="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
+              <Calculator className="h-4 w-4 mr-1" />
               <span>{project.calculations?.length ?? 0} calculations</span>
             </div>
           </div>

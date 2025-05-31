@@ -195,7 +195,7 @@ const SignUp: React.FC = () => {
                   {...register('agreeToTerms', {
                     required: 'You must agree to the User Agreement to continue'
                   })}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
                 />
               </div>
               <div className="ml-3">
@@ -215,16 +215,16 @@ const SignUp: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
               <div className="flex items-center mb-2">
                 <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-                <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">Human Verification</h3>
+                <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200">Human Verification</h3>
               </div>
               <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                 Please solve this simple math problem:
               </p>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg font-medium text-blue-900 dark:text-blue-100">
+                <span className="text-lg font-medium text-blue-900 dark:text-blue-200">
                   {num1} {operator} {num2} = ?
                 </span>
               </div>

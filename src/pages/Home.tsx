@@ -42,39 +42,57 @@ const Home: React.FC = () => {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <section className="text-center mb-16">
+      <motion.section
+        className="text-center py-12 px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.h1 
+          className="text-4xl sm:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          Concrete Calculations
+          <span className="text-blue-400"> Made Simple</span>
+        </motion.h1>
+        
+        <motion.p 
+          className="text-xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] max-w-3xl mx-auto mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          Accurately estimate concrete for your projects with our easy-to-use calculator. 
+          Get weather-based recommendations and save your projects for future reference.
+        </motion.p>
+        
         <motion.div
+          className="flex flex-col sm:flex-row justify-center gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
-            Concrete Calculator Pro
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
-            Professional concrete estimation tool with precise calculations, weather integration, and project management
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/calculator')}
-              icon={<Calculator size={20} />}
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-            >
-              Start Calculating
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              onClick={() => navigate('/resources')}
-              icon={<Book size={20} />}
-              className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl"
-            >
-              Browse Resources
-            </Button>
-          </div>
+          <Button 
+            size="lg" 
+            onClick={() => navigate('/calculator')}
+            icon={<Calculator size={20} />}
+            className="shadow-lg hover:shadow-xl transition-shadow"
+          >
+            Start Calculating
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            onClick={() => navigate('/resources')}
+            icon={<Book size={20} />}
+            className="shadow-lg hover:shadow-xl transition-shadow bg-white/10 backdrop-blur-sm"
+          >
+            Learn More
+          </Button>
         </motion.div>
-      </section>
+      </motion.section>
       
       {/* Features Section */}
       <section className="py-8">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeftCircle } from 'lucide-react';
 import { useProjects } from './useProjects';
@@ -45,7 +45,9 @@ const Projects: React.FC = () => {
               setUi(s => ({ ...s, showDetails: false }));
             }}
             icon={<ArrowLeftCircle size={20} />}
-            className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl"
+            size="lg"
+            variant="outline"
+            className="shadow-lg hover:shadow-xl transition-shadow !bg-white/10 backdrop-blur-sm border-white/30 text-white hover:!bg-white/20"
           >
             <span className="hidden sm:inline">Back to Projects</span>
           </Button>

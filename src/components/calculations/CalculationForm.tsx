@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Calculator as Calculate, CloudSun, DollarSign, Package, BarChart3 } from 'lucide-react';
+import { Calculator, Cloud, Package, DollarSign, Zap } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -26,6 +26,7 @@ import { usePreferencesStore } from '../../store';
 import { Calculation, Weather } from '../../types';
 import WeatherInfo from '../weather/WeatherInfo';
 import LocationPrompt from '../weather/LocationPrompt';
+import { MIX_PROFILE_LABELS } from '../../types/curing';
 
 interface CalculationFormProps {
   onSave?: (calculation: Calculation) => void;
@@ -118,20 +119,27 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   
   const [calculationType, setCalculationType] = useState<CalculationType>('slab');
   const [columnType, setColumnType] = useState<ColumnType>('rectangular');
-  const [calculationResult, setCalculationResult] = useState<(Calculation['result'] & { dimensions?: Record<string, number> }) | null>(null);
+  const [calculationResult, setCalculationResult] = useState<Calculation['result'] | null>(null);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [showWeather, setShowWeather] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [selectedPsi, setSelectedPsi] = useState<string>('3000');
   const [showPricing, setShowPricing] = useState(false);
   const [showQuikreteModal, setShowQuikreteModal] = useState(false);
-  const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
   const [selectedQuikreteProduct, setSelectedQuikreteProduct] = useState<{
     type: string;
     weight: number;
     yield: number;
   } | null>(null);
   const [lastCalculatedVolume, setLastCalculatedVolume] = useState<number | null>(null);
+  const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
+  const [calculationData, setCalculationData] = useState<{
+    length_ft: number;
+    width_ft: number;
+    thickness_in: number;
+    cubicYards: number;
+    height_ft?: number;
+  } | null>(null);
   const weatherSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -332,11 +340,19 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     const result = {
       volume: parseFloat(volume.toFixed(2)),
       bags: bags,
-      recommendations,
-      dimensions
+      recommendations
     };
     
     setCalculationResult(result);
+    
+    // Store calculation data for reinforcement optimizer
+    setCalculationData({
+      length_ft: dimensions.length || dimensions.diameter || 0,
+      width_ft: dimensions.width || dimensions.diameter || 0,
+      thickness_in: (dimensions.thickness || dimensions.baseThickness || dimensions.depth || 0) * 12,
+      cubicYards: volumeCubicFeet / 27, // Convert from cubic feet to cubic yards
+      height_ft: dimensions.height
+    });
     
     if (onSave) {
       const calculation: Calculation = {
@@ -345,7 +361,10 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         dimensions,
         result,
         weather: weather || undefined,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        psi: selectedPsi,
+        mixProfile: currentProject?.mixProfile || 'standard',
+        quikreteProduct: selectedQuikreteProduct || undefined
       };
       
       onSave(calculation);
@@ -373,6 +392,22 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
 
   const handlePsiChange = (value: string) => {
     setSelectedPsi(value);
+  };
+
+  const handleReinforcementOptimizer = () => {
+    setShowReinforcementOptimizer(true);
+  };
+
+  const handleReinforcementOptimizerClose = () => {
+    setShowReinforcementOptimizer(false);
+  };
+
+  const handleReinforcementSaved = (setId: string) => {
+    // Could show a toast notification here
+    console.log('Reinforcement design saved with ID:', setId);
+    // Refresh projects to show the new reinforcement design
+    const { loadProjects } = useProjectStore.getState();
+    loadProjects();
   };
 
   const renderDimensionInputs = (baseName: string, label: string) => (
@@ -560,7 +595,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               </p>
               <Button 
                 onClick={toggleWeather}
-                icon={<CloudSun size={20} />}
+                icon={<Cloud size={20} />}
                 className="w-full max-w-md"
               >
                 {showWeather ? 'Hide Weather Data' : 'Include Weather Data'}
@@ -578,7 +613,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             <Button 
               type="submit" 
               fullWidth 
-              icon={<Calculate size={18} />}
+              icon={<Calculator size={18} />}
             >
               Calculate
             </Button>
@@ -619,16 +654,31 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               </div>
               
               <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-800">
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  size="sm"
-                  onClick={togglePricing}
-                  icon={<DollarSign size={16} />}
-                  className="w-full"
-                >
-                  {showPricing ? 'Hide Pricing' : 'Show Pricing Estimate'}
-                </Button>
+                <div className="grid grid-cols-1 gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    size="sm"
+                    onClick={togglePricing}
+                    icon={<DollarSign size={16} />}
+                    className="w-full"
+                  >
+                    {showPricing ? 'Hide Pricing' : 'Show Pricing Estimate'}
+                  </Button>
+                  
+                  {calculationData && (calculationType === 'slab' || calculationType === 'column' || calculationType === 'footer') && (
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      size="sm"
+                      onClick={handleReinforcementOptimizer}
+                      icon={<Zap size={16} />}
+                      className="w-full text-orange-600 hover:text-orange-800 border-orange-200 hover:border-orange-300 dark:text-orange-400 dark:hover:text-orange-300 dark:border-orange-800"
+                    >
+                      Design Reinforcement
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -637,24 +687,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 volume={calculationResult.volume} 
                 psi={selectedPsi}
               />
-            )}
-
-            {/* Reinforcement Optimizer - show for slabs and columns */}
-            {(calculationType === 'slab' || calculationType === 'thickened_edge_slab' || calculationType === 'column') && calculationResult.dimensions && (
-              <div className="bg-green-50 dark:bg-green-900/50 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                <h3 className="text-lg font-medium text-green-900 dark:text-green-100 mb-2">Reinforcement Design</h3>
-                <p className="text-sm text-green-700 dark:text-green-300 mb-3">
-                  Get professional rebar, mesh, or fiber reinforcement recommendations for your {calculationType === 'column' ? 'column' : 'slab'}
-                </p>
-                <Button 
-                  type="button" 
-                  onClick={() => setShowReinforcementOptimizer(true)}
-                  icon={<BarChart3 size={16} />}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Open Reinforcement Optimizer
-                </Button>
-              </div>
             )}
             
             <div>
@@ -673,7 +705,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Calculate className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+            <Calculator className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
             <p className="text-gray-500 dark:text-gray-400">
               Enter dimensions and calculate to see results
             </p>
@@ -696,22 +728,12 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         onSelect={handleQuikreteSelect}
       />
 
-      {/* Reinforcement Optimizer Modal */}
-      {showReinforcementOptimizer && calculationResult?.dimensions && (
+      {showReinforcementOptimizer && calculationData && (
         <ReinforcementOptimizer
-          calculatorData={{
-            length_ft: calculationResult.dimensions.length || 0,
-            width_ft: calculationResult.dimensions.width || 0,
-            thickness_in: ((calculationResult.dimensions.thickness || calculationResult.dimensions.baseThickness) || 0) * 12, // convert feet to inches
-            height_ft: calculationResult.dimensions.height || 0, // For columns
-            cubicYards: preferences.volumeUnit === 'cubic_yards' ? calculationResult.volume : calculationResult.volume / 27
-          }}
+          calculatorData={calculationData}
           projectName={currentProject?.name}
-          onClose={() => setShowReinforcementOptimizer(false)}
-          onSaved={(setId) => {
-            console.log('Reinforcement design saved with ID:', setId);
-            // Could add toast notification here
-          }}
+          onClose={handleReinforcementOptimizerClose}
+          onSaved={handleReinforcementSaved}
           isColumn={calculationType === 'column'}
         />
       )}

@@ -74,12 +74,12 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
     }
 
     return (
-      <div className="w-80 h-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+      <div className="w-80 h-96 bg-white rounded-lg shadow-xl">
         <div className="flex items-center justify-between p-4 bg-blue-600 text-white rounded-t-lg">
           <h2 className="text-lg font-semibold">Concrete Expert</h2>
           <button 
             onClick={() => setOpen(false)}
-            className="text-xl font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            className="text-xl font-bold text-red-500 hover:text-red-700"
           >
             ✕
           </button>
@@ -87,7 +87,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
 
         <div className="flex-1 p-4 overflow-y-auto h-64 space-y-4">
           {messages.length === 0 && (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+            <div className="text-center text-gray-500 py-8">
               <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
             </div>
           )}
@@ -100,7 +100,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
                 className={`max-w-[80%] p-3 rounded-lg ${
                   m.role === "user"
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white"
+                    : "bg-gray-100 text-gray-800"
                 }`}
               >
                 {m.content}
@@ -108,7 +108,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
             </div>
           ))}
           {loading && (
-            <div className="text-gray-500 dark:text-gray-400 italic">
+            <div className="text-gray-500 italic">
               Thinking...
             </div>
           )}
@@ -117,7 +117,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
         <div className="p-4 border-t">
           <div className="flex space-x-2">
             <input
-              className="flex-1 p-2 border rounded focus:outline-none focus:ring dark:bg-gray-900 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="flex-1 p-2 border rounded focus:outline-none focus:ring"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -127,7 +127,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
             />
             <button
               onClick={handleSend}
-              className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+              className="px-4 bg-blue-600 text-white rounded"
             >
               ➤
             </button>
@@ -172,7 +172,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
       <div className="p-4 border-t mt-auto">
         <div className="flex space-x-2">
           <input
-            className="flex-1 p-2 border rounded focus:outline-none focus:ring dark:bg-gray-900 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            className="flex-1 p-2 border rounded focus:outline-none focus:ring"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -182,7 +182,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
           />
           <button
             onClick={handleSend}
-            className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+            className="px-4 bg-blue-600 text-white rounded"
           >
             ➤
           </button>

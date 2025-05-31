@@ -21,7 +21,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   const pourDateISO = project?.pourDate;
   if (!pourDateISO) {
     return (
-      <div className="bg-white/90 dark:bg-gray-800 backdrop-blur-sm rounded-lg p-4 mb-6">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Strength Progress</h3>
         <p className="text-gray-600 dark:text-gray-300">
           Set a pour date to track concrete strength development over time.
@@ -41,7 +41,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
 
   if (!pourDate) {
     return (
-      <div className="bg-white/90 dark:bg-gray-800 backdrop-blur-sm rounded-lg p-4 mb-6">
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Strength Progress</h3>
         <p className="text-gray-600 dark:text-gray-300">Invalid pour date format.</p>
       </div>
@@ -121,7 +121,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   }));
 
   return (
-    <div className="bg-white/90 dark:bg-gray-800 backdrop-blur-sm rounded-lg p-4 mb-6">
+    <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Strength Progress</h3>
@@ -177,10 +177,10 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
                     passed ? m.fill : `bg-white dark:bg-gray-800 ${m.border}`
                   }`}
                 />
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap md:block hidden">
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap md:block hidden">
                   {m.label} Days
                 </div>
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap block md:hidden">
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap block md:hidden">
                   {m.label}
                 </div>
                 <div className={`text-xs ${passed ? 'font-medium text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'} md:block hidden`}>
@@ -196,11 +196,11 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-medium text-blue-900 dark:text-blue-100">Current Strength</h4>
           <div className="text-right">
-            <span className="text-lg font-bold text-blue-700 dark:text-blue-200">{currentStrength}%</span>
-            <span className="text-sm text-blue-600 dark:text-blue-300 ml-2">({currentPSI} PSI)</span>
+            <span className="text-lg font-bold text-blue-700 dark:text-blue-300">{currentStrength}%</span>
+            <span className="text-sm text-blue-600 dark:text-blue-400 ml-2">({currentPSI} PSI)</span>
           </div>
         </div>
-        <p className="text-sm text-blue-600 dark:text-blue-300">
+        <p className="text-sm text-blue-600">
           {daysPassed} days since pour • {28 - daysPassed} days until full strength
         </p>
       </div>
