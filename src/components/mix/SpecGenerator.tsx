@@ -73,15 +73,17 @@ Please prepare mix according to these specifications.
             onClick={onDownload}
             icon={<Download size={16} />}
             fullWidth
+            className="px-3 py-2"
+            title="Download PDF"
           >
-            Download PDF
           </Button>
           <Button
             onClick={handleEmailSpec}
             icon={<Mail size={16} />}
             fullWidth
+            className="px-3 py-2"
+            title="Email Spec"
           >
-            Email Spec
           </Button>
         </div>
 
