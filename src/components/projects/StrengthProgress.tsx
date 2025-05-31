@@ -100,15 +100,23 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   const currentStrength = getCurrentStrength();
   const currentPSI = calculatePSI(currentStrength);
 
-  // Determine bar color based on current strength
+  // Determine bar color based on current curing zone
+  const getCurrentZoneColor = () => {
+    if (daysPassed < 3) return 'bg-red-500';        // 0-3 days: Initial setting
+    if (daysPassed < 7) return 'bg-orange-500';     // 3-7 days: Early strength
+    if (daysPassed < 14) return 'bg-yellow-500';    // 7-14 days: Medium strength
+    return 'bg-green-500';                          // 14-28 days: Full strength
+  };
+
+  const currentZoneColor = getCurrentZoneColor();
+
+  // Determine bar color based on current strength (for milestone circles)
   const getBarColor = (pct: number) => {
     if (pct <= 25) return 'bg-red-500';
     if (pct <= 50) return 'bg-orange-500';
     if (pct <= 75) return 'bg-yellow-500';
     return 'bg-green-500';
   };
-
-  const barColor = getBarColor(currentStrength);
 
   // Create milestone markers
   const milestones = profile.map(m => ({
@@ -156,35 +164,43 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
         </div>
       </div>
 
-      <div className="relative pt-6 pb-8">
+      <div className="relative pt-8 pb-12">
         <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded-full" />
         <div
-          className={`absolute top-6 left-0 h-4 rounded-full transition-all duration-300 ease-in-out ${barColor}`}
-          style={{ width: `${(daysPassed / 28) * 100}%` }}
+          className={`absolute top-8 left-0 h-4 rounded-full transition-all duration-300 ease-in-out ${currentZoneColor}`}
+          style={{ 
+            width: `${(daysPassed / 28) * 100}%`
+          }}
         />
-        <div className="absolute top-0 left-0 w-full">
+        <div className="absolute top-6 left-0 w-full">
           {milestones.map((m, i) => {
             const pos = (m.day / 28) * 100;
             const passed = daysPassed >= m.day;
             return (
               <div
                 key={i}
-                className="absolute transform -translate-x-1/2"
+                className="absolute transform -translate-x-1/2 flex flex-col items-center"
                 style={{ left: `${pos}%` }}
               >
                 <div
-                  className={`w-4 h-4 rounded-full border-2 mb-1 ${
-                    passed ? m.fill : `bg-white dark:bg-gray-800 ${m.border}`
+                  className={`w-5 h-5 rounded-full border-3 shadow-sm ${
+                    passed ? `${m.fill} border-white` : `bg-white dark:bg-gray-800 ${m.border} border-2`
                   }`}
                 />
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap md:block hidden">
-                  {m.label} Days
-                </div>
-                <div className="text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap block md:hidden">
-                  {m.label}
-                </div>
-                <div className={`text-xs ${passed ? 'font-medium text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'} md:block hidden`}>
-                  {m.strength} ({m.psi} PSI)
+                <div className="mt-2 text-center">
+                  <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 px-1.5 py-0.5 rounded backdrop-blur-sm whitespace-nowrap md:block hidden">
+                    {m.label} Days
+                  </div>
+                  <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 px-1 py-0.5 rounded backdrop-blur-sm whitespace-nowrap block md:hidden">
+                    {m.label}d
+                  </div>
+                  <div className={`text-xs mt-1 px-1.5 py-0.5 rounded backdrop-blur-sm whitespace-nowrap md:block hidden ${
+                    passed 
+                      ? 'font-semibold text-gray-900 dark:text-white bg-white/90 dark:bg-gray-700/90' 
+                      : 'text-gray-600 dark:text-gray-400 bg-white/70 dark:bg-gray-800/70'
+                  }`}>
+                    {m.strength} ({m.psi} PSI)
+                  </div>
                 </div>
               </div>
             );
