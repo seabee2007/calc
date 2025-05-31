@@ -76,7 +76,7 @@ const Navbar: React.FC = () => {
                 onClick={handleSignOut}
                 disabled={isSigningOut}
                 icon={<LogOut size={18} />}
-                className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 border-transparent"
+                className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-300"
               >
                 {isSigningOut ? 'Signing Out...' : 'Sign Out'}
               </Button>
@@ -148,7 +148,7 @@ const Navbar: React.FC = () => {
                   onClick={handleSignOut}
                   disabled={isSigningOut}
                   icon={<LogOut size={18} />}
-                  className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 border-transparent"
+                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-300"
                 >
                   {isSigningOut ? 'Signing Out...' : 'Sign Out'}
                 </Button>
