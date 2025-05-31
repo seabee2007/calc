@@ -105,7 +105,7 @@ const Login: React.FC = () => {
           </div>
 
           {resetEmailSent ? (
-            <div className="bg-green-50 dark:bg-green-900/50 border border-green-200 dark:border-green-700 rounded-md p-4 text-center">
+            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-md p-4 text-center">
               <p className="text-green-800 dark:text-green-200">
                 If an account exists with {emailValue}, password reset instructions have been sent.
                 Please check your email inbox.

@@ -68,9 +68,9 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
           {QUIKRETE_PRODUCTS.map((product) => (
             <div
               key={product.type}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 transition-colors"
+              className="bg-white dark:bg-gray-700 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
             >
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 border-b border-gray-200 dark:border-gray-600">
+              <div className="bg-gray-50 dark:bg-gray-600 p-4 border-b border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2">
                   <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <h3 className="font-medium text-gray-900 dark:text-white">{product.type}</h3>
@@ -87,12 +87,12 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
                         weight: size.weight, 
                         yield: size.yield 
                       })}
-                      className="w-full text-left p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-between group"
+                      className="w-full text-left p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-between group"
                     >
-                      <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                      <span className="text-gray-700 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-300">
                         {size.weight} lb bag
                       </span>
-                      <span className="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-300">
+                      <span className="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                         Yields {size.yield} ft³
                       </span>
                     </button>
@@ -103,7 +103,7 @@ const QuikreteModal: React.FC<QuikreteModalProps> = ({ isOpen, onClose, onSelect
           ))}
         </div>
 
-        <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
+        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
             Note: Yields are approximate. Actual yield may vary based on installation conditions and techniques.
           </p>

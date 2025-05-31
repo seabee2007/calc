@@ -114,7 +114,7 @@ const ProperFinishing: React.FC = () => {
           <div className="bg-blue-50/90 dark:bg-blue-900/50 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-3">Critical Factors</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Timing</h4>
                 <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
                   <li>Monitor bleed water</li>
@@ -123,7 +123,7 @@ const ProperFinishing: React.FC = () => {
                 </ul>
               </div>
               
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Tools</h4>
                 <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
                   <li>Proper tool selection</li>
@@ -132,7 +132,7 @@ const ProperFinishing: React.FC = () => {
                 </ul>
               </div>
               
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Environment</h4>
                 <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
                   <li>Temperature effects</li>
@@ -141,7 +141,7 @@ const ProperFinishing: React.FC = () => {
                 </ul>
               </div>
               
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Mix Design</h4>
                 <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
                   <li>Workability</li>

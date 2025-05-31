@@ -72,7 +72,7 @@ const Modal: React.FC<ModalProps> = ({
                     </button>
                   </div>
                   
-                  <div className="p-6 text-gray-900 dark:text-white">
+                  <div className="p-6">
                     {children}
                   </div>
                 </div>

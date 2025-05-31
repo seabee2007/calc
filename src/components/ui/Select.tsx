@@ -49,7 +49,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
   // Conditional styles based on error state
   const conditionalStyles = error
     ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900 dark:text-red-100"
-    : "border-slate-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 text-gray-900 dark:text-white";
+    : "border-slate-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:text-white";
   
   // Width style
   const widthStyle = fullWidth ? 'w-full' : '';

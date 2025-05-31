@@ -270,7 +270,7 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
               </div>
               <div>
                 <span className="text-blue-700 dark:text-gray-300">Volume:</span>
-                <span className="ml-1 font-medium text-blue-900 dark:text-white">{calculatorData.cubicYards} yd³</span>
+                <span className="ml-1 font-medium text-blue-900 dark:text-white">{calculatorData.cubicYards.toFixed(2)} yd³</span>
               </div>
             </div>
           </div>

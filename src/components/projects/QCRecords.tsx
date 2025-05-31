@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Save, Trash2, Edit, Search, Calendar } from 'lucide-react';
-import type { QCRecord } from '../../types';
+import { Plus, Download, Mail, Save, Trash2, Edit, Search, Calendar, Loader } from 'lucide-react';
+import type { QCRecord, QCChecklist } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
 import { format } from 'date-fns';
+import { generateProjectPDF } from '../../utils/pdf';
 
 interface QCRecordsProps {
   projectId: string;
@@ -113,7 +114,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             placeholder="Search records..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            icon={<Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />}
+            icon={<Search className="h-4 w-4 text-gray-400" />}
             fullWidth
           />
         </div>
@@ -122,7 +123,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             type="date"
             value={dateFilter}
             onChange={e => setDateFilter(e.target.value)}
-            icon={<Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />}
+            icon={<Calendar className="h-4 w-4 text-gray-400" />}
             fullWidth
           />
         </div>
@@ -225,7 +226,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                       <h4 className="font-medium text-gray-900 dark:text-white">
                         {format(new Date(record.date), 'MMM d, yyyy')}
                       </h4>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <span>{record.temperature}°F</span>
                         <span className="text-gray-300 dark:text-gray-600">|</span>
                         <span>{record.humidity}% RH</span>
@@ -243,7 +244,6 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                         size="sm"
                         onClick={() => onDelete(record.id)}
                         icon={<Trash2 size={16} />}
-                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       />
                     </div>
                   </div>

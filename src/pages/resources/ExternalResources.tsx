@@ -153,7 +153,7 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <ShieldCheck className="h-6 w-6 text-gray-700 dark:text-gray-400 flex-shrink-0" />
+                  <ShieldCheck className="h-6 w-6 text-gray-700 dark:text-gray-300 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">AASHTO (American Assoc. of State Highway & Transportation Officials)</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -227,7 +227,7 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <Certificate className="h-6 w-6 text-blue-800 dark:text-blue-400 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-blue-800 dark:text-blue-600 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">ASTM Concrete Testing Technician</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -249,7 +249,7 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <Certificate className="h-6 w-6 text-green-800 dark:text-green-400 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-green-800 dark:text-green-600 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">NRMCA Sustainability Certification</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -271,7 +271,7 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <Certificate className="h-6 w-6 text-indigo-800 dark:text-indigo-400 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-indigo-800 dark:text-indigo-600 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">Coursera: Concrete Materials & Structures</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -293,7 +293,7 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <Certificate className="h-6 w-6 text-red-800 dark:text-red-400 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-red-800 dark:text-red-600 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">LinkedIn Learning: Construction Tech</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -315,7 +315,7 @@ const ExternalResources: React.FC = () => {
 
               <Card className="p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <div className="flex items-start space-x-4">
-                  <Certificate className="h-6 w-6 text-purple-800 dark:text-purple-400 flex-shrink-0" />
+                  <Certificate className="h-6 w-6 text-purple-800 dark:text-purple-600 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">NCCER Certification</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">

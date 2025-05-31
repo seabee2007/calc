@@ -18,7 +18,7 @@ import { calculateMixMaterials } from '../utils/calculations';
 import { generateProjectPDF } from '../utils/pdf';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
-import { MixProfileType } from '../types/curing';
+import { MixProfileType, MIX_PROFILE_LABELS } from '../types/curing';
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
@@ -225,6 +225,17 @@ const Projects: React.FC = () => {
 
   const wasteFactorOptions = ['0', '5', '10', '15', '20'];
 
+  const formatMixProfile = (mixProfile?: string): string => {
+    if (!mixProfile) return '';
+    
+    // Use the labels from MIX_PROFILE_LABELS if available
+    const label = MIX_PROFILE_LABELS[mixProfile as MixProfileType];
+    if (label) return label;
+    
+    // Fallback formatting for custom profiles
+    return mixProfile.charAt(0).toUpperCase() + mixProfile.slice(1).replace(/([A-Z])/g, ' $1');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -263,7 +274,7 @@ const Projects: React.FC = () => {
                 setCurrentProject(null);
               }}
               icon={<ArrowLeftCircle size={20} />}
-              className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl"
+              className="bg-white/90 backdrop-blur-sm hover:bg-blue-50 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/30 border-gray-300"
             >
               <span className="hidden sm:inline">Back to Projects</span>
             </Button>
@@ -380,7 +391,7 @@ const Projects: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Concrete Mix Design</h3>
                       <Select
@@ -402,37 +413,37 @@ const Projects: React.FC = () => {
                           return (
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-300">Portland Cement</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Portland Cement</p>
                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                                   {mixDesign.materials.cement} yd³
                                 </p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-300">Fine Aggregate (Sand)</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Fine Aggregate (Sand)</p>
                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                                   {mixDesign.materials.sand} yd³
                                 </p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-300">Coarse Aggregate</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Coarse Aggregate</p>
                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                                   {mixDesign.materials.aggregate} yd³
                                 </p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-300">Water</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Water</p>
                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                                   {mixDesign.materials.water} gal
                                 </p>
                               </div>
                               <div className="col-span-2 pt-2">
-                                <p className="text-sm text-gray-600 dark:text-gray-300">Slump Range</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Slump Range</p>
                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                                   {mixDesign.slump.min}" - {mixDesign.slump.max}"
                                 </p>
                               </div>
                               <div className="col-span-2">
-                                <p className="text-sm text-gray-600 dark:text-gray-300">Water/Cement Ratio</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Water/Cement Ratio</p>
                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                                   {mixDesign.waterCementRatio}
                                 </p>
@@ -482,17 +493,29 @@ const Projects: React.FC = () => {
                               </div>
                               
                               <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-md">
+                                <div className="bg-blue-50 dark:bg-blue-900/50 p-2 rounded-md">
                                   <p className="text-sm text-blue-700 dark:text-blue-300">Volume</p>
                                   <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
                                     {calc.result.volume} yd³
                                   </p>
+                                  {(calc.psi || calc.mixProfile) && (
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                      {calc.psi && `${calc.psi} PSI`}
+                                      {calc.psi && calc.mixProfile && ' • '}
+                                      {calc.mixProfile && formatMixProfile(calc.mixProfile)}
+                                    </p>
+                                  )}
                                 </div>
-                                <div className="bg-green-50 dark:bg-green-900/30 p-2 rounded-md">
+                                <div className="bg-green-50 dark:bg-green-900/50 p-2 rounded-md">
                                   <p className="text-sm text-green-700 dark:text-green-300">Bags Required</p>
                                   <p className="text-lg font-semibold text-green-900 dark:text-green-100">
                                     {calc.result.bags} bags
                                   </p>
+                                  {calc.quikreteProduct && (
+                                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                      {calc.quikreteProduct.weight}lb QUIKRETE® {calc.quikreteProduct.type}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -592,21 +615,30 @@ const Projects: React.FC = () => {
                 <div className="mt-8">
                   <ReinforcementDetails
                     reinforcements={currentProject.reinforcements || []}
-                    onDelete={async (setId) => {
+                    onDelete={async (reinforcementId) => {
                       try {
                         const { error } = await supabase
                           .from('reinforcement_sets')
                           .delete()
-                          .eq('id', setId);
+                          .eq('id', reinforcementId);
 
                         if (error) throw error;
                         
-                        // Refresh projects to update the UI
-                        await loadProjects();
+                        // Update local state immediately
+                        const updatedProject = {
+                          ...currentProject,
+                          reinforcements: currentProject.reinforcements?.filter(r => r.id !== reinforcementId) || []
+                        };
+                        
+                        // Update the project in the store
+                        await updateProject(currentProject.id, updatedProject);
+                        
+                        // Refresh the current project
+                        setCurrentProject(currentProject.id);
                         
                         showToastMessage('Reinforcement design deleted successfully', 'success');
                       } catch (err) {
-                        console.error('Error deleting reinforcement set:', err);
+                        console.error('Error deleting reinforcement design:', err);
                         showToastMessage('Error deleting reinforcement design', 'error');
                       }
                     }}
@@ -687,8 +719,8 @@ const Projects: React.FC = () => {
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <Card className="p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white">Confirm Delete</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 Are you sure you want to delete this {itemToDelete?.type}? This action cannot be undone.
               </p>
               <div className="flex justify-end space-x-3">

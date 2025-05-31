@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import CalculationSection from './CalculationSection';
 import MixDesignSection from './MixDesignSection';
 import QCSection from './QCSection';
+import ReinforcementSection from './ReinforcementSection';
 import StrengthProgress from '../../components/projects/StrengthProgress';
 
 export default function ProjectDetails() {
@@ -15,7 +16,7 @@ export default function ProjectDetails() {
   if (!currentProject) return null;
 
   return (
-    <Card className="p-6 mb-6">
+    <Card className="p-6 mb-6 dark:bg-gray-800/90">
       <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between mb-6">
         <div className="mt-4 sm:mt-0">
           <div className="flex items-center">
@@ -78,6 +79,8 @@ export default function ProjectDetails() {
       </div>
 
       <QCSection />
+      
+      <ReinforcementSection />
     </Card>
   );
 }
