@@ -21,7 +21,8 @@ import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
 import AuthGuard from './components/auth/AuthGuard';
-import { useProjectStore } from './store';
+import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
+import { useAuth } from './hooks/useAuth';
 import ConcreteChat from "./components/ConcreteChat";
 
 export const useChatStore = () => {
@@ -30,13 +31,41 @@ export const useChatStore = () => {
 };
 
 function App() {
+  const { user, loading: authLoading } = useAuth();
   const { loadProjects } = useProjectStore();
+  const { loadCompanySettings, migrateSettings } = useSettingsStore();
+  const { loadPreferences, migratePreferences } = usePreferencesStore();
   const chatStore = useChatStore();
   const { isDark } = useThemeStore();
 
+  // Load user data only after authentication is established
   useEffect(() => {
-    loadProjects().catch(console.error);
-  }, [loadProjects]);
+    const initializeUserData = async () => {
+      if (user && !authLoading) {
+        console.log('🔄 Initializing user data for:', user.id);
+        try {
+          // Load all user data in parallel
+          await Promise.all([
+            loadProjects(),
+            loadCompanySettings(),
+            loadPreferences()
+          ]);
+          
+          // Try migrations after initial loads
+          await Promise.all([
+            migrateSettings(),
+            migratePreferences()
+          ]);
+          
+          console.log('✅ User data initialization complete');
+        } catch (error) {
+          console.error('❌ Error initializing user data:', error);
+        }
+      }
+    };
+
+    initializeUserData();
+  }, [user, authLoading, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
 
   useEffect(() => {
     if (isDark) {

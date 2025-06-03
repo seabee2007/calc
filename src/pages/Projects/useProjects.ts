@@ -33,11 +33,6 @@ export function useProjects() {
     deleteConfirm: { show: false, type: null as 'project'|'calculation'|null, id: '' }
   });
 
-  // Load projects on mount
-  useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
-
   // Sync URL state
   useEffect(() => {
     const state = location.state as { showProjectDetails?: boolean; projectId?: string };

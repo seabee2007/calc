@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { optimizeLogo, validateImageFile, formatFileSize } from '../utils/imageOptimization';
 import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
+import { UserPreferences } from '../types';
 import { 
   User, 
   Building2, 
@@ -27,64 +28,156 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { useThemeStore } from '../store/themeStore';
-import { useSettingsStore } from '../store';
-
-interface UserPreferences {
-  volumeUnit: 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
-  measurementSystem: 'imperial' | 'metric';
-  currency: 'USD' | 'CAD' | 'EUR' | 'GBP';
-  notifications: {
-    emailUpdates: boolean;
-    projectReminders: boolean;
-    weatherAlerts: boolean;
-  };
-  defaultPSI: string;
-  autoSave: boolean;
-}
+import { useSettingsStore, usePreferencesStore } from '../store';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { isDark, toggleTheme } = useThemeStore();
   const { companySettings, updateCompanySettings, loadCompanySettings, migrateSettings, loading: settingsLoading } = useSettingsStore();
+  const { preferences, updatePreferences, loadPreferences, migratePreferences, loading: preferencesLoading } = usePreferencesStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [preferences, setPreferences] = useState<UserPreferences>({
-    volumeUnit: 'cubic_yards',
-    measurementSystem: 'imperial',
-    currency: 'USD',
-    notifications: {
-      emailUpdates: true,
-      projectReminders: true,
-      weatherAlerts: true
-    },
-    defaultPSI: '3000',
-    autoSave: true
-  });
-
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  
+  // Local state for text inputs to prevent constant API calls
+  const [localCompanySettings, setLocalCompanySettings] = useState({
+    companyName: '',
+    address: '',
+    phone: '',
+    email: '',
+    licenseNumber: '',
+    motto: ''
+  });
 
-  // Load settings on mount and migrate if needed
+  // Track if local state has been initialized to prevent overwrites during typing
+  const [isLocalStateInitialized, setIsLocalStateInitialized] = useState(false);
+  const initializationRef = useRef(false);
+  const localCompanySettingsRef = useRef(localCompanySettings);
+
+  // Update ref whenever local state changes
+  useEffect(() => {
+    localCompanySettingsRef.current = localCompanySettings;
+  }, [localCompanySettings]);
+
+  // Load settings and preferences on mount
   useEffect(() => {
     const initializeSettings = async () => {
-      if (user) {
-        try {
-          await loadCompanySettings();
-          // Try to migrate from localStorage if no settings exist in database
-          await migrateSettings();
-        } catch (error) {
-          console.error('Error initializing settings:', error);
-        }
+      if (user && !initializationRef.current) {
+        initializationRef.current = true;
+        console.log('🔄 Settings page: User already authenticated, data should be loaded globally');
+        // Data loading is now handled in App.tsx, so we don't need to load again here
+        // Just log that initialization was attempted
       }
     };
 
     initializeSettings();
-  }, [user, loadCompanySettings, migrateSettings]);
+  }, [user]); // Simplified dependencies
 
-  const handleCompanyChange = async (field: string, value: string) => {
+  // Initialize local state only once when company settings are first loaded
+  useEffect(() => {
+    console.log('🔍 Checking local state initialization:', {
+      isLocalStateInitialized,
+      companySettingsKeys: Object.keys(companySettings),
+      companyName: companySettings.companyName
+    });
+    
+    // Only initialize if not already done AND we have actual data from database
+    if (!isLocalStateInitialized && (companySettings.companyName !== undefined || companySettings.address !== undefined)) {
+      console.log('🔧 Initializing local state with:', companySettings);
+      setLocalCompanySettings({
+        companyName: companySettings.companyName || '',
+        address: companySettings.address || '',
+        phone: companySettings.phone || '',
+        email: companySettings.email || '',
+        licenseNumber: companySettings.licenseNumber || '',
+        motto: companySettings.motto || ''
+      });
+      setIsLocalStateInitialized(true);
+    }
+  }, [companySettings, isLocalStateInitialized]);
+
+  // Debounced auto-save function for text inputs
+  const debouncedSave = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      let isCurrentlySaving = false;
+      
+      return () => {
+        clearTimeout(timeoutId);
+        
+        // Prevent multiple saves from happening simultaneously
+        if (isCurrentlySaving) {
+          return;
+        }
+        
+        timeoutId = setTimeout(async () => {
+          // Only auto-save if preferences are loaded and auto-save is enabled
+          if (!preferencesLoading && preferences.autoSave) {
+            isCurrentlySaving = true;
+            const currentSettings = localCompanySettingsRef.current;
+            console.log('Auto-saving all local settings:', currentSettings);
+            
+            try {
+              // Save ALL current local state, not just one field
+              await updateCompanySettings(currentSettings);
+              console.log('Auto-save successful for all fields');
+              setSaveMessage({ 
+                text: 'Auto-saved ✓', 
+                type: 'success' 
+              });
+              setTimeout(() => setSaveMessage(null), 2000);
+            } catch (error) {
+              console.error('Auto-save failed:', error);
+              setSaveMessage({ 
+                text: 'Auto-save failed. Please try again.', 
+                type: 'error' 
+              });
+              setTimeout(() => setSaveMessage(null), 3000);
+            } finally {
+              isCurrentlySaving = false;
+            }
+          }
+        }, 1500); // 1.5 second delay for text inputs
+      };
+    })(),
+    [preferences.autoSave, preferencesLoading, updateCompanySettings] // Removed localCompanySettings dependency
+  );
+
+  // Handle text input changes (with debouncing)
+  const handleCompanyTextChange = (field: string, value: string) => {
+    console.log(`📝 Text input changed - Field: ${field}, Value: "${value}"`);
+    
+    // Update local state immediately for responsive UI
+    setLocalCompanySettings(prev => {
+      const updated = { ...prev, [field]: value };
+      console.log('🔄 Updated local state:', updated);
+      return updated;
+    });
+    
+    // Debounce the API call only if preferences are loaded
+    if (!preferencesLoading && preferences.autoSave) {
+      console.log(`⏰ Triggering debounced save for all fields (triggered by ${field})`);
+      debouncedSave(); // No longer pass field/value - save everything
+    } else {
+      console.log(`❌ Auto-save skipped - preferencesLoading: ${preferencesLoading}, autoSave: ${preferences.autoSave}`);
+    }
+  };
+
+  // Handle immediate changes (dropdowns, toggles, etc.)
+  const handleCompanyImmediateChange = async (field: string, value: string) => {
     try {
       await updateCompanySettings({ [field]: value });
+      
+      // Show auto-save notification only if auto-save is enabled
+      if (!preferencesLoading && preferences.autoSave) {
+        setSaveMessage({ 
+          text: 'Auto-saved ✓', 
+          type: 'success' 
+        });
+        setTimeout(() => setSaveMessage(null), 2000);
+      }
     } catch (error) {
       console.error('Error updating company settings:', error);
       setSaveMessage({ 
@@ -95,15 +188,48 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handlePreferenceChange = (field: keyof UserPreferences, value: any) => {
-    setPreferences(prev => ({ ...prev, [field]: value }));
+  const handlePreferenceChange = async (field: string, value: any) => {
+    try {
+      await updatePreferences({ [field]: value } as any);
+      
+      // Show auto-save notification if not toggling auto-save itself
+      if (field !== 'autoSave' && !preferencesLoading && preferences.autoSave) {
+        setSaveMessage({ 
+          text: 'Auto-saved ✓', 
+          type: 'success' 
+        });
+        setTimeout(() => setSaveMessage(null), 2000);
+      }
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      setSaveMessage({ 
+        text: 'Failed to update preferences. Please try again.', 
+        type: 'error' 
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
   };
 
-  const handleNotificationChange = (field: keyof UserPreferences['notifications'], value: boolean) => {
-    setPreferences(prev => ({
-      ...prev,
-      notifications: { ...prev.notifications, [field]: value }
-    }));
+  const handleNotificationChange = async (field: string, value: boolean) => {
+    try {
+      const updatedNotifications = { ...preferences.notifications, [field]: value };
+      await updatePreferences({ notifications: updatedNotifications });
+      
+      if (!preferencesLoading && preferences.autoSave) {
+        setSaveMessage({ 
+          text: 'Auto-saved ✓', 
+          type: 'success' 
+        });
+        setTimeout(() => setSaveMessage(null), 2000);
+      }
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+      setSaveMessage({ 
+        text: 'Failed to update notification settings. Please try again.', 
+        type: 'error' 
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
   };
 
   const handlePhoneChange = (value: string) => {
@@ -118,7 +244,29 @@ const Settings: React.FC = () => {
       formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3)}`;
     }
     
-    handleCompanyChange('phone', formattedValue);
+    handleCompanyTextChange('phone', formattedValue);
+  };
+
+  // Force save function for manual save or when auto-save is disabled
+  const forceSaveChanges = async () => {
+    try {
+      const currentSettings = localCompanySettingsRef.current;
+      console.log('🔄 Force saving all local settings:', currentSettings);
+      await updateCompanySettings(currentSettings);
+      console.log('✅ Force save successful');
+      setSaveMessage({ 
+        text: 'Settings saved successfully! ✓', 
+        type: 'success' 
+      });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setSaveMessage({ 
+        text: 'Failed to save settings. Please try again.', 
+        type: 'error' 
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
   };
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,22 +346,14 @@ const Settings: React.FC = () => {
     setSaveMessage(null);
     
     try {
-      // TODO: Save to Supabase or local storage
-      // For now, we'll simulate saving
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSaveMessage({ text: 'Settings saved successfully! ✓', type: 'success' });
-      
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => setSaveMessage(null), 3000);
+      // Save any pending text changes
+      await forceSaveChanges();
     } catch (error) {
       console.error('Error saving settings:', error);
       setSaveMessage({ 
         text: 'Failed to save settings. Please try again.', 
         type: 'error' 
       });
-      
-      // Auto-hide error message after 5 seconds
       setTimeout(() => setSaveMessage(null), 5000);
     } finally {
       setIsSaving(false);
@@ -234,18 +374,44 @@ const Settings: React.FC = () => {
         </h1>
         <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
           Customize your account and application preferences
+          {preferences.autoSave && (
+            <span className="ml-2 text-sm bg-green-500/20 text-green-200 px-2 py-1 rounded">
+              Auto-save enabled
+            </span>
+          )}
         </p>
       </div>
 
-      {/* Save Message */}
+      {/* Save Message - Fixed Overlay Toast */}
       {saveMessage && (
-        <div className={`p-4 rounded-lg border ${
-          saveMessage.type === 'success' 
-            ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800' 
-            : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800'
-        }`}>
-          {saveMessage.text}
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: -50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -50, scale: 0.9 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className={`fixed top-24 right-6 z-[9999] p-4 rounded-lg border shadow-xl max-w-sm ${
+            saveMessage.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/90 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700 backdrop-blur-sm' 
+              : 'bg-red-50 dark:bg-red-900/90 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700 backdrop-blur-sm'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {saveMessage.type === 'success' ? (
+              <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            ) : (
+              <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+            <span className="font-medium">{saveMessage.text}</span>
+          </div>
+        </motion.div>
       )}
 
       {/* Company Information */}
@@ -311,16 +477,16 @@ const Settings: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Company Name"
-              value={companySettings.companyName}
-              onChange={(e) => handleCompanyChange('companyName', e.target.value)}
+              value={localCompanySettings.companyName}
+              onChange={(e) => handleCompanyTextChange('companyName', e.target.value)}
               placeholder="Your Company Name"
               icon={<Building2 size={16} />}
             />
             
             <Input
               label="License Number"
-              value={companySettings.licenseNumber}
-              onChange={(e) => handleCompanyChange('licenseNumber', e.target.value)}
+              value={localCompanySettings.licenseNumber}
+              onChange={(e) => handleCompanyTextChange('licenseNumber', e.target.value)}
               placeholder="License #12345"
               icon={<Shield size={16} />}
             />
@@ -328,8 +494,8 @@ const Settings: React.FC = () => {
 
           <Input
             label="Business Address"
-            value={companySettings.address}
-            onChange={(e) => handleCompanyChange('address', e.target.value)}
+            value={localCompanySettings.address}
+            onChange={(e) => handleCompanyTextChange('address', e.target.value)}
             placeholder="123 Main St, City, State 12345"
             icon={<MapPin size={16} />}
           />
@@ -337,7 +503,7 @@ const Settings: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Phone Number"
-              value={companySettings.phone}
+              value={localCompanySettings.phone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               placeholder="(555) 123-4567"
               icon={<Phone size={16} />}
@@ -349,8 +515,8 @@ const Settings: React.FC = () => {
             <Input
               label="Email Address"
               type="email"
-              value={companySettings.email}
-              onChange={(e) => handleCompanyChange('email', e.target.value)}
+              value={localCompanySettings.email}
+              onChange={(e) => handleCompanyTextChange('email', e.target.value)}
               placeholder="contact@company.com"
               icon={<Mail size={16} />}
             />
@@ -358,8 +524,8 @@ const Settings: React.FC = () => {
 
           <Input
             label="Company Motto/Slogan"
-            value={companySettings.motto}
-            onChange={(e) => handleCompanyChange('motto', e.target.value)}
+            value={localCompanySettings.motto}
+            onChange={(e) => handleCompanyTextChange('motto', e.target.value)}
             placeholder="Building Excellence, One Project at a Time"
             icon={<Quote size={16} />}
           />
@@ -452,7 +618,7 @@ const Settings: React.FC = () => {
               <div>
                 <h3 className="font-medium text-gray-900 dark:text-white">Auto-save</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Automatically save calculations and projects
+                  Automatically save changes after you stop typing (1.5s delay)
                 </p>
               </div>
             </div>
@@ -497,7 +663,7 @@ const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={value}
-                  onChange={(e) => handleNotificationChange(key as keyof UserPreferences['notifications'], e.target.checked)}
+                  onChange={(e) => handleNotificationChange(key, e.target.checked)}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -507,11 +673,21 @@ const Settings: React.FC = () => {
         </div>
       </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
+      {/* Save Button - now shows unsaved changes indicator */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          {preferences.autoSave ? (
+            <span className="flex items-center gap-2">
+              <Save size={16} className="text-green-500" />
+              Text changes auto-save after 1.5s delay
+            </span>
+          ) : (
+            'Auto-save is disabled. Use the save button to save changes.'
+          )}
+        </div>
         <Button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isSaving || settingsLoading || preferencesLoading}
           icon={<Save size={18} />}
           className="bg-green-600 hover:bg-green-700 text-white"
         >

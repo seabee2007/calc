@@ -70,10 +70,6 @@ const Projects: React.FC = () => {
     }
   }, [currentProject]);
 
-  useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
-
   const handleMixProfileChange = async (newProfile: MixProfileType) => {
     if (!currentProject) return;
     setMixProfile(newProfile);

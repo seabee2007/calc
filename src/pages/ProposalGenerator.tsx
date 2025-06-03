@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Save, Edit, ArrowLeft, Printer, Download, Mail } from 'lucide-react';
+import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload } from 'lucide-react';
 import { ProposalData } from '../types/proposal';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
@@ -10,6 +10,11 @@ import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMin
 import Button from '../components/ui/Button';
 import { generateProposalPDF } from '../utils/pdf';
 import { useSettingsStore } from '../store';
+import { useProjectStore } from '../store';
+import Card from '../components/ui/Card';
+import Input from '../components/ui/Input';
+import Select from '../components/ui/Select';
+import { formatPrice } from '../utils/pricing';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
@@ -21,6 +26,7 @@ const ProposalGenerator: React.FC = () => {
   const isEditing = !!editId;
   const isPreviewMode = !!previewId;
   const { companySettings } = useSettingsStore();
+  const { projects } = useProjectStore();
   
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
   const [showPreview, setShowPreview] = useState(isPreviewMode);
@@ -29,6 +35,7 @@ const ProposalGenerator: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
 
   const [proposalData, setProposalData] = useState<ProposalData>({
     businessName: companySettings.companyName || '',
@@ -92,6 +99,132 @@ const ProposalGenerator: React.FC = () => {
 
     loadProposal();
   }, [editId, previewId, navigate]);
+
+  // Import pricing from selected project
+  const importPricingFromProject = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project || !project.calculations?.length) {
+      alert('Selected project has no calculations with pricing data.');
+      return;
+    }
+
+    console.log('🔍 Importing from project:', project.name);
+    console.log('📊 Available calculations:', project.calculations);
+
+    // Filter to only calculations that have pricing data
+    const calculationsWithPricing = project.calculations.filter(calc => {
+      const pricing = (calc.result as any).pricing;
+      return pricing && pricing.concreteCost > 0;
+    });
+
+    console.log('💎 Calculations with pricing:', calculationsWithPricing);
+
+    if (calculationsWithPricing.length === 0) {
+      alert('No calculations with pricing data found in this project. Please ensure you have calculated pricing for at least one calculation.');
+      return;
+    }
+    
+    // Consolidation objects
+    const concreteByPsi: { [psi: string]: { volume: number; cost: number; calcTypes: string[] } } = {};
+    let totalDeliveryFees = 0;
+    const additionalServicesCosts: { [service: string]: number } = {};
+    
+    calculationsWithPricing.forEach((calc, index) => {
+      console.log(`📋 Processing calculation ${index + 1}:`, calc);
+      
+      const volume = calc.result.volume;
+      const calcType = calc.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const psi = (calc as any).psi || '3000';
+      const pricing = (calc.result as any).pricing;
+      
+      console.log(`🔧 Processing:`, { volume, calcType, psi, pricing });
+      
+      // Consolidate concrete by PSI
+      if (pricing?.concreteCost > 0) {
+        if (!concreteByPsi[psi]) {
+          concreteByPsi[psi] = { volume: 0, cost: 0, calcTypes: [] };
+        }
+        concreteByPsi[psi].volume += volume;
+        concreteByPsi[psi].cost += pricing.concreteCost;
+        if (!concreteByPsi[psi].calcTypes.includes(calcType)) {
+          concreteByPsi[psi].calcTypes.push(calcType);
+        }
+      }
+
+      // Consolidate delivery fees
+      if (pricing?.deliveryFees?.totalDeliveryFees > 0) {
+        totalDeliveryFees += pricing.deliveryFees.totalDeliveryFees;
+      }
+
+      // Consolidate additional services
+      if (pricing?.additionalServices) {
+        if (pricing.additionalServices.pumpTruckFee > 0) {
+          additionalServicesCosts['Pump Truck'] = (additionalServicesCosts['Pump Truck'] || 0) + pricing.additionalServices.pumpTruckFee;
+        }
+        if (pricing.additionalServices.saturdayFee > 0) {
+          additionalServicesCosts['Saturday Delivery'] = (additionalServicesCosts['Saturday Delivery'] || 0) + pricing.additionalServices.saturdayFee;
+        }
+        if (pricing.additionalServices.afterHoursFee > 0) {
+          additionalServicesCosts['After Hours Delivery'] = (additionalServicesCosts['After Hours Delivery'] || 0) + pricing.additionalServices.afterHoursFee;
+        }
+      }
+    });
+
+    // Build consolidated pricing items
+    const pricingItems: { description: string; amount: string }[] = [];
+
+    // Add consolidated concrete items
+    Object.entries(concreteByPsi).forEach(([psi, data]) => {
+      const calcTypesStr = data.calcTypes.length === 1 
+        ? data.calcTypes[0] 
+        : data.calcTypes.length === 2 
+          ? data.calcTypes.join(' & ')
+          : 'Mixed Concrete Work';
+          
+      pricingItems.push({
+        description: `${calcTypesStr} - ${data.volume.toFixed(2)} yd³ concrete (${psi} PSI)`,
+        amount: formatPrice(data.cost)
+      });
+    });
+
+    // Add consolidated delivery fees
+    if (totalDeliveryFees > 0) {
+      pricingItems.push({
+        description: 'Delivery & Transportation',
+        amount: formatPrice(totalDeliveryFees)
+      });
+    }
+
+    // Add consolidated additional services
+    Object.entries(additionalServicesCosts).forEach(([service, cost]) => {
+      pricingItems.push({
+        description: service,
+        amount: formatPrice(cost)
+      });
+    });
+
+    console.log('📝 Consolidated pricing items:', pricingItems);
+    console.log('🧮 Consolidation summary:', {
+      concreteByPsi,
+      totalDeliveryFees,
+      additionalServicesCosts
+    });
+
+    if (pricingItems.length === 0) {
+      alert('No pricing data could be extracted from the selected project.');
+      return;
+    }
+
+    // Update proposal pricing with imported data
+    setProposalData(prev => ({
+      ...prev,
+      pricing: pricingItems,
+      projectTitle: prev.projectTitle || `${project.name} Concrete Work`
+    }));
+
+    setShowProjectPicker(false);
+    alert(`Successfully imported ${pricingItems.length} consolidated pricing items from "${project.name}"`);
+  };
 
   // Update proposal data when company settings change (for new proposals)
   useEffect(() => {
@@ -1054,12 +1187,23 @@ ${proposalData.preparedByTitle || ''}
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Pricing</h2>
-                <button
-                  onClick={addPricingItem}
-                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                >
-                  + Add Item
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowProjectPicker(true)}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                  >
+                    <Upload size={14} />
+                    <span className="hidden sm:inline">Import from Project</span>
+                    <span className="sm:hidden">Import</span>
+                  </button>
+                  <button
+                    onClick={addPricingItem}
+                    className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  >
+                    <span className="hidden sm:inline">+ Add Item</span>
+                    <span className="sm:hidden">+ Add</span>
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
                 {proposalData.pricing.map((item, index) => (
@@ -1178,6 +1322,82 @@ ${proposalData.preparedByTitle || ''}
           </div>
         </div>
       </div>
+
+      {/* Project Picker Modal */}
+      {showProjectPicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Import Pricing from Project
+              </h3>
+              <button
+                onClick={() => setShowProjectPicker(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Select a project to import its calculation pricing data into this proposal.
+              </p>
+              
+              {projects.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No projects found</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">
+                    Create projects with calculations to import pricing data.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-500 cursor-pointer"
+                      onClick={() => importPricingFromProject(project.id)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {project.name}
+                          </h4>
+                          {project.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {project.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span>{project.calculations?.length || 0} calculations</span>
+                            <span>
+                              {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'No date'}
+                            </span>
+                          </div>
+                        </div>
+                        <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                          <Upload size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => setShowProjectPicker(false)}
+                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
