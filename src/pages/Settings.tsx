@@ -24,17 +24,8 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { useThemeStore } from '../store/themeStore';
+import { useSettingsStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
-
-interface CompanySettings {
-  companyName: string;
-  address: string;
-  phone: string;
-  email: string;
-  licenseNumber: string;
-  motto: string;
-  logo: string | null;
-}
 
 interface UserPreferences {
   volumeUnit: 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
@@ -52,17 +43,8 @@ interface UserPreferences {
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { isDark, toggleTheme } = useThemeStore();
+  const { companySettings, updateCompanySettings } = useSettingsStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [companySettings, setCompanySettings] = useState<CompanySettings>({
-    companyName: '',
-    address: '',
-    phone: '',
-    email: user?.email || '',
-    licenseNumber: '',
-    motto: '',
-    logo: null
-  });
 
   const [preferences, setPreferences] = useState<UserPreferences>({
     volumeUnit: 'cubic_yards',
@@ -80,8 +62,8 @@ const Settings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  const handleCompanyChange = (field: keyof CompanySettings, value: string) => {
-    setCompanySettings(prev => ({ ...prev, [field]: value }));
+  const handleCompanyChange = (field: string, value: string) => {
+    updateCompanySettings({ [field]: value });
   };
 
   const handlePreferenceChange = (field: keyof UserPreferences, value: any) => {
@@ -106,14 +88,14 @@ const Settings: React.FC = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        setCompanySettings(prev => ({ ...prev, logo: result }));
+        updateCompanySettings({ logo: result });
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleRemoveLogo = () => {
-    setCompanySettings(prev => ({ ...prev, logo: null }));
+    updateCompanySettings({ logo: null });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

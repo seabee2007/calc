@@ -12,8 +12,12 @@ const Footer: React.FC = () => {
   const [showContact, setShowContact] = useState(false);
   
   return (
-    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-auto">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-t border-gray-200 dark:border-gray-800 w-full mt-auto">
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8" style={{
+        paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
+        paddingRight: 'max(env(safe-area-inset-right), 1rem)',
+        paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)'
+      }}>
         <div className="flex flex-col items-center space-y-4">
           <div className="flex items-center">
             <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />

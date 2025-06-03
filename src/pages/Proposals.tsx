@@ -140,7 +140,7 @@ const Proposals: React.FC = () => {
                 icon={<Upload size={18} />}
                 className="whitespace-nowrap border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
-                Import
+                <span className="hidden md:inline">Import</span>
               </Button>
             </label>
             
@@ -150,7 +150,7 @@ const Proposals: React.FC = () => {
               icon={<Plus size={18} />}
               className="bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white"
             >
-              New Proposal
+              <span className="hidden md:inline">New Proposal</span>
             </Button>
           </div>
         </motion.div>

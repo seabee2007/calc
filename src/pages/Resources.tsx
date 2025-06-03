@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import ResourceCard from '../components/resources/ResourceCard';
 import ConcreteChat from '../components/ConcreteChat';
 import Card from '../components/ui/Card';
@@ -21,12 +22,18 @@ interface ResourcesProps {
 
 const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     chatStore.setIsVisible(!showChat);
     return () => chatStore.setIsVisible(true);
   }, [showChat, chatStore]);
+  
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
   
   const resources = [
     {
@@ -72,6 +79,14 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
       link: '/resources/external-resources'
     }
   ];
+
+  const handleChatClick = () => {
+    if (!user) {
+      navigate('/login');
+    } else {
+      setShowChat(true);
+    }
+  };
 
   return (
     <motion.div
@@ -157,13 +172,15 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
             <div className="bg-blue-50/90 dark:bg-blue-900/50 backdrop-blur-sm rounded-lg shadow-lg p-6">
               <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-4">Need Help?</h2>
               <p className="text-blue-700 dark:text-blue-300 mb-4">
-                Have questions about concrete calculations or techniques? Our team is here to help!
+                {user 
+                  ? "Have questions about concrete calculations or techniques? Our team is here to help!"
+                  : "Sign in to chat with our concrete experts and get personalized assistance."}
               </p>
               <Button 
-                onClick={() => setShowChat(true)}
+                onClick={handleChatClick}
                 className="w-full"
               >
-                Chat with an Expert
+                {user ? "Chat with an Expert" : "Sign in to Chat"}
               </Button>
             </div>
           </div>

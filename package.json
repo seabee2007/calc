@@ -15,6 +15,11 @@
     "serve:prod": "node csp-server.js"
   },
   "dependencies": {
+    "@capacitor/cli": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
+    "@capacitor/filesystem": "^7.1.1",
+    "@capacitor/ios": "^7.2.0",
+    "@capacitor/share": "^7.0.1",
     "@hookform/resolvers": "^3.3.4",
     "@supabase/supabase-js": "^2.39.7",
     "@tailwindcss/typography": "^0.5.10",
@@ -24,8 +29,8 @@
     "express": "^4.21.2",
     "framer-motion": "^11.0.8",
     "helmet": "^7.2.0",
-    "jspdf": "^3.0.1",
-    "jspdf-autotable": "^5.0.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.28",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

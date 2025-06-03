@@ -10,6 +10,10 @@ const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data }) => {
     businessName,
     businessLogoUrl,
     businessAddress,
+    businessPhone,
+    businessEmail,
+    businessLicenseNumber,
+    businessSlogan,
     clientName,
     clientCompany,
     clientAddress,
@@ -33,8 +37,20 @@ const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data }) => {
             <img src={businessLogoUrl} alt={`${businessName} Logo`} className="h-16 w-auto mb-2" />
           )}
           <h1 className="text-2xl font-bold">{businessName}</h1>
+          {businessSlogan && (
+            <p className="text-sm italic text-gray-600 mb-1">{businessSlogan}</p>
+          )}
           {businessAddress && (
             <p className="text-sm text-gray-600">{businessAddress}</p>
+          )}
+          {businessPhone && (
+            <p className="text-sm text-gray-600">Phone: {businessPhone}</p>
+          )}
+          {businessEmail && (
+            <p className="text-sm text-gray-600">Email: {businessEmail}</p>
+          )}
+          {businessLicenseNumber && (
+            <p className="text-sm text-gray-600">License: {businessLicenseNumber}</p>
           )}
         </div>
         <div className="text-right">

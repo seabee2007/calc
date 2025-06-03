@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Calculator, Folder, Book, Menu, X, LogIn, UserPlus, LogOut, Beaker, Settings, FileText } from 'lucide-react';
@@ -12,6 +12,26 @@ const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < lastScrollY || currentScrollY < 50) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false);
+        setIsMobileMenuOpen(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
   
   // Essential links that always show on desktop
   const essentialLinks = [
@@ -56,8 +76,19 @@ const Navbar: React.FC = () => {
   };
   
   return (
-    <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md relative z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <motion.nav 
+      className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md fixed w-full top-0 left-0 right-0 z-50"
+      initial={{ y: 0 }}
+      animate={{ y: isVisible ? 0 : -100 }}
+      transition={{ duration: 0.2 }}
+      style={{
+        paddingTop: 'env(safe-area-inset-top)'
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{
+        paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
+        paddingRight: 'max(env(safe-area-inset-right), 1rem)'
+      }}>
         <div className="flex justify-between items-center h-16">
           {/* Logo - with proper responsive sizing */}
           <div className="flex-shrink-0 min-w-0">
@@ -193,13 +224,17 @@ const Navbar: React.FC = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="absolute left-0 right-0 top-full md:left-auto md:right-4 md:top-16 md:w-64 bg-white dark:bg-gray-800 md:rounded-lg shadow-xl border-t md:border border-gray-200 dark:border-gray-700 z-50 backdrop-blur-sm"
+            className="fixed left-0 right-0 top-[calc(4rem+env(safe-area-inset-top))] md:absolute md:left-auto md:right-4 md:top-[calc(4rem+env(safe-area-inset-top))] md:w-64 bg-white dark:bg-gray-800 md:rounded-lg shadow-xl border-t md:border border-gray-200 dark:border-gray-700 z-[100] backdrop-blur-sm"
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
+            style={{
+              maxHeight: 'calc(100vh - 4rem - env(safe-area-inset-top))',
+              overflow: 'auto'
+            }}
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 md:p-2 max-h-[80vh] overflow-y-auto">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 md:p-2">
               {/* Show all links on mobile, only additional links on desktop */}
               {(window.innerWidth < 768 ? allNavLinks : [...additionalLinks, resourcesLink]).map((link) => (
                 <Link
@@ -260,7 +295,7 @@ const Navbar: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </motion.nav>
   );
 };
 

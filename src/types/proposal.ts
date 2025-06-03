@@ -2,6 +2,10 @@ export interface ProposalData {
   businessName: string;
   businessLogoUrl?: string;      // optional logo
   businessAddress?: string;
+  businessPhone?: string;        // phone number
+  businessEmail?: string;        // email address
+  businessLicenseNumber?: string; // license number
+  businessSlogan?: string;       // company motto/slogan
   clientName: string;
   clientCompany?: string;
   clientAddress?: string;

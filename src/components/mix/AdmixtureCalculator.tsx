@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Beaker, Thermometer, Droplets, Info } from 'lucide-react';
+import { Beaker } from 'lucide-react';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
-import Select from '../ui/Select';
-import Modal from '../ui/Modal';
 
 interface AdmixtureCalculatorProps {
   temperature: number;
@@ -16,7 +14,6 @@ const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({
 }) => {
   const [targetAir, setTargetAir] = useState<number>(6);
   const [wcReduction, setWcReduction] = useState<number>(5);
-  const [showWcInfo, setShowWcInfo] = useState(false);
 
   const aeDosageRange = () => {
     const basePerPercent = 0.01;
@@ -60,33 +57,27 @@ const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({
           <Input
             type="number"
             value={targetAir}
-            onChange={(e) => setTargetAir(parseFloat(e.target.value))}
+            onChange={(e) => setTargetAir(parseFloat(e.target.value) || 0)}
             min={0}
             max={10}
             step={0.5}
+            placeholder="Enter target air content"
             fullWidth
           />
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               W/C Ratio Reduction (%)
             </label>
-            <button
-              onClick={() => setShowWcInfo(true)}
-              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              <Info className="h-4 w-4" />
-            </button>
-          </div>
           <Input
             type="number"
             value={wcReduction}
-            onChange={(e) => setWcReduction(parseFloat(e.target.value))}
+            onChange={(e) => setWcReduction(parseFloat(e.target.value) || 0)}
             min={0}
             max={20}
             step={1}
+            placeholder="Enter W/C ratio reduction"
             fullWidth
           />
         </div>
@@ -121,60 +112,6 @@ const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({
           </p>
         </div>
       </div>
-
-      <Modal
-        isOpen={showWcInfo}
-        onClose={() => setShowWcInfo(false)}
-        title="W/C Reduction Guide"
-        size="lg"
-      >
-        <div className="space-y-6">
-          <div>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              The W/C Reduction field accepts a whole number percentage (1-10) that indicates how much you want to reduce the water-to-cement ratio. The calculator will then determine the required water-reducer dosage to achieve this reduction.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Recommended Reductions by Job Type</h4>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Job Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Typical Reduction</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Notes</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Standard slab or sidewalk</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">3 – 5%</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Light reduction for durability without loss of workability</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">High-strength structural</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">5 – 8%</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Aggressive reduction; use high-range water reducer and superplasticizer</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Decorative finish</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">1 – 3%</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Preserve flow for troweling and stamping</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Example</h4>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              If you enter 5%, and your base w/c ratio is 0.55, the resulting w/c ratio will be reduced to approximately 0.523 (a 5% reduction). The calculator will then show you the required water-reducer dosage to achieve this reduction.
-            </p>
-          </div>
-        </div>
-      </Modal>
     </Card>
   );
 };

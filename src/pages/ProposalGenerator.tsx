@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Save, Edit, ArrowLeft } from 'lucide-react';
+import { Save, Edit, ArrowLeft, Printer, Download, Mail } from 'lucide-react';
 import { ProposalData } from '../types/proposal';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
 import ProposalTemplateModern from '../components/proposals/ProposalTemplateModern';
 import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMinimal';
 import Button from '../components/ui/Button';
+import { generateProposalPDF } from '../utils/pdf';
+import { useSettingsStore } from '../store';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
@@ -18,6 +20,7 @@ const ProposalGenerator: React.FC = () => {
   const previewId = searchParams.get('preview');
   const isEditing = !!editId;
   const isPreviewMode = !!previewId;
+  const { companySettings } = useSettingsStore();
   
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
   const [showPreview, setShowPreview] = useState(isPreviewMode);
@@ -28,9 +31,13 @@ const ProposalGenerator: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const [proposalData, setProposalData] = useState<ProposalData>({
-    businessName: '',
-    businessLogoUrl: '',
-    businessAddress: '',
+    businessName: companySettings.companyName || '',
+    businessLogoUrl: companySettings.logo || '',
+    businessAddress: companySettings.address || '',
+    businessPhone: companySettings.phone || '',
+    businessEmail: companySettings.email || '',
+    businessLicenseNumber: companySettings.licenseNumber || '',
+    businessSlogan: companySettings.motto || '',
     clientName: '',
     clientCompany: '',
     clientAddress: '',
@@ -85,6 +92,22 @@ const ProposalGenerator: React.FC = () => {
 
     loadProposal();
   }, [editId, previewId, navigate]);
+
+  // Update proposal data when company settings change (for new proposals)
+  useEffect(() => {
+    if (!isEditing) {
+      setProposalData(prev => ({
+        ...prev,
+        businessName: companySettings.companyName || prev.businessName,
+        businessLogoUrl: companySettings.logo || prev.businessLogoUrl,
+        businessAddress: companySettings.address || prev.businessAddress,
+        businessPhone: companySettings.phone || prev.businessPhone,
+        businessEmail: companySettings.email || prev.businessEmail,
+        businessLicenseNumber: companySettings.licenseNumber || prev.businessLicenseNumber,
+        businessSlogan: companySettings.motto || prev.businessSlogan,
+      }));
+    }
+  }, [companySettings, isEditing]);
 
   // Save proposal function
   const handleSave = async () => {
@@ -199,7 +222,8 @@ const ProposalGenerator: React.FC = () => {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Please allow popups for printing to work.');
+      // More user-friendly message since we have download option
+      alert('Pop-ups are blocked. Please use the Download PDF button instead, or enable pop-ups and try again.');
       return;
     }
 
@@ -409,6 +433,49 @@ const ProposalGenerator: React.FC = () => {
     };
   };
 
+  const handleDownloadPDF = () => {
+    console.log('Download PDF button clicked');
+    
+    if (!printRef.current) {
+      console.error('printRef.current is null');
+      alert('Preview not ready for download. Please try again in a moment.');
+      return;
+    }
+
+    try {
+      const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
+      const htmlContent = printRef.current.innerHTML;
+      
+      console.log('Calling generateProposalPDF with:', { title, htmlLength: htmlContent.length });
+      
+      generateProposalPDF(htmlContent, title);
+      
+      console.log('generateProposalPDF called successfully');
+    } catch (error) {
+      console.error('Error in handleDownloadPDF:', error);
+      alert('PDF generation failed. Please try using the Print/PDF button instead.');
+    }
+  };
+
+  const handleEmailProposal = () => {
+    const subject = encodeURIComponent(`Concrete Proposal - ${proposalData.projectTitle || 'Project'}`);
+    const body = encodeURIComponent(`
+Please find attached our concrete proposal for your project.
+
+Project: ${proposalData.projectTitle || 'Project'}
+Client: ${proposalData.clientName || 'Client Name'}
+Business: ${proposalData.businessName || 'Your Business Name'}
+
+${proposalData.introduction || 'Please see the attached proposal for full details.'}
+
+Best regards,
+${proposalData.preparedBy || 'Your Name'}
+${proposalData.preparedByTitle || ''}
+    `);
+    
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
   const getDisplayValue = (value: string | undefined, placeholder: string): string => {
     return value || placeholder;
   };
@@ -490,7 +557,7 @@ const ProposalGenerator: React.FC = () => {
                   icon={<ArrowLeft size={18} />}
                   className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  Back to Proposals
+                  <span className="hidden md:inline">Back to Proposals</span>
                 </Button>
               )}
               {isPreviewMode && (
@@ -500,7 +567,7 @@ const ProposalGenerator: React.FC = () => {
                   icon={<Edit size={18} />}
                   className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  Edit
+                  <span className="hidden md:inline">Edit</span>
                 </Button>
               )}
               {!isPreviewMode && (
@@ -510,14 +577,31 @@ const ProposalGenerator: React.FC = () => {
                   icon={<ArrowLeft size={18} />}
                   className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  Back to Editor
+                  <span className="hidden md:inline">Back to Editor</span>
                 </Button>
               )}
               <Button
+                onClick={handleEmailProposal}
+                icon={<Mail size={18} />}
+                variant="outline"
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <span className="hidden md:inline">Email</span>
+              </Button>
+              <Button
+                onClick={handleDownloadPDF}
+                icon={<Download size={18} />}
+                variant="outline"
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <span className="hidden md:inline">Download PDF</span>
+              </Button>
+              <Button
                 onClick={handlePrint}
+                icon={<Printer size={18} />}
                 className="bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white"
               >
-                🖨️ Print/PDF
+                <span className="hidden md:inline">Print/PDF</span>
               </Button>
             </div>
           </div>
@@ -561,8 +645,8 @@ const ProposalGenerator: React.FC = () => {
               : 'Create professional concrete project proposals with customizable templates'
             }
           </p>
-          {isEditing && (
-            <div className="mt-4">
+          <div className="mt-4 flex justify-center gap-3">
+            {isEditing ? (
               <Button
                 variant="outline"
                 onClick={() => navigate('/proposals')}
@@ -572,8 +656,32 @@ const ProposalGenerator: React.FC = () => {
               >
                 Back to Proposals
               </Button>
-            </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Check if user has made any changes
+                  const hasChanges = proposalData.businessName || proposalData.clientName || 
+                                   proposalData.projectTitle || proposalData.introduction || 
+                                   proposalData.scope || proposalTitle;
+                  
+                  if (hasChanges) {
+                    const confirmed = window.confirm(
+                      'Are you sure you want to cancel? Any unsaved changes will be lost.'
+                    );
+                    if (!confirmed) return;
+                  }
+                  
+                  navigate('/proposals');
+                }}
+                icon={<ArrowLeft size={18} />}
+                size="sm"
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </Button>
           )}
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -680,6 +788,46 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="123 Main St, Your City, State ZIP"
                     value={proposalData.businessAddress || ''}
                     onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    value={proposalData.businessPhone || ''}
+                    onChange={(e) => handleInputChange('businessPhone', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="contact@company.com"
+                    value={proposalData.businessEmail || ''}
+                    onChange={(e) => handleInputChange('businessEmail', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">License Number</label>
+                  <input
+                    type="text"
+                    placeholder="License #12345"
+                    value={proposalData.businessLicenseNumber || ''}
+                    onChange={(e) => handleInputChange('businessLicenseNumber', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Slogan</label>
+                  <input
+                    type="text"
+                    placeholder="Building Excellence, One Project at a Time"
+                    value={proposalData.businessSlogan || ''}
+                    onChange={(e) => handleInputChange('businessSlogan', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>

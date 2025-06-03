@@ -116,7 +116,9 @@ export function useProjects() {
       if (currentProject) {
         setUi(s => ({ ...s, isSaving: true }));
         try {
-          await updateProject(currentProject.id, { pourDate: date });
+          // Create a proper ISO date string for the pourDate
+          const isoDate = new Date(date + 'T00:00:00.000Z').toISOString();
+          await updateProject(currentProject.id, { pourDate: isoDate });
           toast('Pour date updated successfully', 'success');
         } catch (error) {
           console.error('Error updating pour date:', error);

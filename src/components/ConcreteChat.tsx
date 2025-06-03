@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -33,6 +37,8 @@ interface ConcreteChatProps {
 }
 
 export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,8 +65,36 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
     }
   };
 
+  const renderLoginPrompt = () => (
+    <div className="flex flex-col items-center justify-center p-6 text-center">
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        Sign in to Chat with an Expert
+      </h3>
+      <p className="text-gray-600 dark:text-gray-300 mb-4">
+        Please sign in or create an account to use the chat feature.
+      </p>
+      <div className="space-x-4">
+        <Button
+          onClick={() => navigate('/login')}
+          variant="outline"
+        >
+          Sign In
+        </Button>
+        <Button
+          onClick={() => navigate('/signup')}
+        >
+          Create Account
+        </Button>
+      </div>
+    </div>
+  );
+
   // For the persistent chat button
   if (!isModal) {
+    if (!user) {
+      return null; // Don't show the floating chat button for non-authenticated users
+    }
+
     if (!open) {
       return (
         <button
@@ -74,20 +108,22 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
     }
 
     return (
-      <div className="w-80 h-96 bg-white rounded-lg shadow-xl">
+      <div className="w-80 h-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl">
         <div className="flex items-center justify-between p-4 bg-blue-600 text-white rounded-t-lg">
           <h2 className="text-lg font-semibold">Concrete Expert</h2>
           <button 
             onClick={() => setOpen(false)}
-            className="text-xl font-bold text-red-500 hover:text-red-700"
+            className="text-xl font-bold text-white hover:text-red-100"
           >
             ✕
           </button>
         </div>
 
+        {!user ? renderLoginPrompt() : (
+          <>
         <div className="flex-1 p-4 overflow-y-auto h-64 space-y-4">
           {messages.length === 0 && (
-            <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
             </div>
           )}
@@ -100,7 +136,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
                 className={`max-w-[80%] p-3 rounded-lg ${
                   m.role === "user"
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-800"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white"
                 }`}
               >
                 {m.content}
@@ -108,16 +144,16 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
             </div>
           ))}
           {loading && (
-            <div className="text-gray-500 italic">
+                <div className="text-gray-500 dark:text-gray-400 italic">
               Thinking...
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t">
+            <div className="p-4 border-t dark:border-gray-700">
           <div className="flex space-x-2">
             <input
-              className="flex-1 p-2 border rounded focus:outline-none focus:ring"
+                  className="flex-1 p-2 border dark:border-gray-600 rounded focus:outline-none focus:ring dark:bg-gray-700 dark:text-white"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -127,12 +163,14 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
             />
             <button
               onClick={handleSend}
-              className="px-4 bg-blue-600 text-white rounded"
+                  className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               ➤
             </button>
           </div>
         </div>
+          </>
+        )}
       </div>
     );
   }
@@ -140,9 +178,11 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
   // For the modal version
   return (
     <div className="h-full flex flex-col">
+      {!user ? renderLoginPrompt() : (
+        <>
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
           </div>
         )}
@@ -155,7 +195,7 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
               className={`max-w-[80%] p-3 rounded-lg ${
                 m.role === "user"
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white"
               }`}
             >
               {m.content}
@@ -163,16 +203,16 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
           </div>
         ))}
         {loading && (
-          <div className="text-gray-500 italic">
+              <div className="text-gray-500 dark:text-gray-400 italic">
             Thinking...
           </div>
         )}
       </div>
 
-      <div className="p-4 border-t mt-auto">
+          <div className="p-4 border-t dark:border-gray-700 mt-auto">
         <div className="flex space-x-2">
           <input
-            className="flex-1 p-2 border rounded focus:outline-none focus:ring"
+                className="flex-1 p-2 border dark:border-gray-600 rounded focus:outline-none focus:ring dark:bg-gray-700 dark:text-white"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -182,12 +222,14 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
           />
           <button
             onClick={handleSend}
-            className="px-4 bg-blue-600 text-white rounded"
+                className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             ➤
           </button>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

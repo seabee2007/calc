@@ -3,8 +3,14 @@ import { DollarSign, Truck, Clock, Calendar, MapPin, Loader } from 'lucide-react
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getUserLocation, getNearestLocation } from '../../utils/pricing';
+import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation } from '../../utils/pricing';
 import { LocationPricing } from '../../types';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import autoTable from 'jspdf-autotable';
+// @ts-ignore – older typings want two params
+autoTable(jsPDF);
 
 interface PricingCalculatorProps {
   volume: number;
@@ -30,16 +36,67 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
     setLocationPermissionDenied(false);
 
     try {
-      const loc = await getUserLocation();
+      // Clear any cached permissions and ensure fresh location request
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000, // Increased timeout for better reliability
+        maximumAge: 0 // Always get fresh location
+      };
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        // Clear previous error states
+        setLocationError(null);
+        setLocationPermissionDenied(false);
+        
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          options
+        );
+      });
+
+      const loc = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        address: `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`
+      };
+
+      // Try to get a readable address
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const address = data.address || {};
+          const parts = [address.road, address.city, address.state].filter((part): part is string => Boolean(part));
+          if (parts.length > 0) {
+            loc.address = parts.join(', ');
+          }
+        }
+      } catch (geocodeError) {
+        console.warn('Geocoding failed, using coordinates as address');
+      }
+
       setUserLocation(loc);
       const nearest = getNearestLocation(loc);
       setSupplier(nearest);
+      
     } catch (error: any) {
-      if (error.code === 1) { // Permission denied
+      console.error('Location error:', error);
+      
+      // Handle different types of geolocation errors
+      if (error.code === 1 || error.code === GeolocationPositionError?.PERMISSION_DENIED) {
         setLocationPermissionDenied(true);
-        setLocationError('Location permission denied. Please enable location services and try again.');
+        setLocationError('Location permission denied. Please enable location services in your device settings and try again.');
+      } else if (error.code === 2 || error.code === GeolocationPositionError?.POSITION_UNAVAILABLE) {
+        setLocationError('Unable to determine your location. Please check your device settings and try again.');
+      } else if (error.code === 3 || error.code === GeolocationPositionError?.TIMEOUT) {
+        setLocationError('Location request timed out. Please try again.');
+      } else if (error.message && error.message.includes('not supported')) {
+        setLocationError('Geolocation is not supported by your browser.');
       } else {
-        setLocationError('Unable to get location. Please try again.');
+        setLocationError('Unable to get location. Please check your connection and try again.');
       }
     } finally {
       setGpsLoading(false);
@@ -93,6 +150,18 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
       supplier
     );
   }, [volume, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
+
+  const isNativeIOS = Capacitor.getPlatform() === 'ios' && Capacitor.isNativePlatform();
+
+  const handleSharePDF = async () => {
+    if (isNativeIOS) {
+      // 1️⃣ write file to Filesystem (Directory.Documents, encoding:'base64')
+      // 2️⃣ const { uri } = await Filesystem.getUri(...)
+      // 3️⃣ await Share.share({ url: uri, title, text:'PDF' })
+    } else {
+      // web / PWA fallbacks (File-System-Access or blob link)
+    }
+  };
 
   return (
     <Card className="p-4">
@@ -162,7 +231,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
               value={distance}
               onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
               fullWidth
-              error={locationError}
+              error={locationError || undefined}
             />
           </div>
         </div>
@@ -336,6 +405,18 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSharePDF}
+          disabled={!supplier}
+          className="flex-1 sm:flex-none"
+        >
+          Share PDF
+        </Button>
       </div>
     </Card>
   );

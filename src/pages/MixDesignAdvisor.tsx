@@ -8,7 +8,7 @@ import { getWeatherByLocation } from '../services/weatherService';
 import { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
 import SpecGenerator from '../components/mix/SpecGenerator';
-import { generateProjectPDF } from '../utils/pdf';
+import { generateMixSpecPDF } from '../utils/pdf';
 
 interface MixDesignRecommendation {
   waterCementRatio: number;
@@ -148,12 +148,23 @@ const MixDesignAdvisor: React.FC = () => {
         throw new Error('Geolocation is not supported by your browser');
       }
 
+      // Clear any cached permissions by using a fresh options object
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000, // Increased timeout
+        maximumAge: 0 // Always get fresh location
+      };
+
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
+        // Clear any previous state
+        setLocationError(null);
+        setLocationPermissionDenied(false);
+        
+        navigator.geolocation.getCurrentPosition(
+          resolve, 
+          reject, 
+          options
+        );
       });
 
       const weatherData = await getWeatherByLocation(
@@ -176,18 +187,24 @@ const MixDesignAdvisor: React.FC = () => {
           exposure
         );
         setRecommendation(rec);
+      } else {
+        setLocationError('Unable to get weather data. Please try again.');
       }
     } catch (error: any) {
       console.error('Error getting weather:', error);
-      if (error.code === 1) { // Permission denied
+      
+      // Handle different types of geolocation errors
+      if (error.code === 1 || error.code === GeolocationPositionError?.PERMISSION_DENIED) {
         setLocationPermissionDenied(true);
-        setLocationError('Location permission denied. Please enable location services in your device settings and try again.');
-      } else if (error.code === 2) { // Position unavailable
+        setLocationError('Location permission denied. Please enable location services in your device settings and refresh the page or restart the app.');
+      } else if (error.code === 2 || error.code === GeolocationPositionError?.POSITION_UNAVAILABLE) {
         setLocationError('Unable to determine your location. Please check your device settings and try again.');
-      } else if (error.code === 3) { // Timeout
+      } else if (error.code === 3 || error.code === GeolocationPositionError?.TIMEOUT) {
         setLocationError('Location request timed out. Please try again.');
+      } else if (error.message && error.message.includes('not supported')) {
+        setLocationError('Geolocation is not supported by your browser.');
       } else {
-        setLocationError('Error getting location data. Please try again.');
+        setLocationError('Error getting location data. Please check your connection and try again.');
       }
     } finally {
       setLoading(false);
@@ -229,14 +246,31 @@ const MixDesignAdvisor: React.FC = () => {
 
   const handleDownloadSpec = () => {
     if (recommendation) {
-      const project = {
-        name: 'Mix Design Report',
-        createdAt: new Date().toISOString(),
-        description: `Mix design for ${selectedPsi} PSI concrete with ${recommendation.targetAir[0]}-${recommendation.targetAir[1]}% air content`,
-        calculations: []
-      };
-
-      generateProjectPDF(project, selectedPsi as keyof typeof CONCRETE_MIX_DESIGNS);
+      console.log('Download button clicked, calling generateMixSpecPDF');
+      try {
+        const success = generateMixSpecPDF(
+          selectedPsi,
+          recommendation.targetAir,
+          recommendation.waterCementRatio,
+          [
+            `Air-Entraining Agent (${aeDosageRange()[0].toFixed(2)}-${aeDosageRange()[1].toFixed(2)} oz/cwt)`,
+            `Water Reducer (${wrDosage()[0].toFixed(1)}-${wrDosage()[1].toFixed(1)} oz/cwt)`,
+            `${getAccelRetarder().type} (${getAccelRetarder().range} oz/cwt)`
+          ]
+        );
+        
+        if (success) {
+          console.log('PDF generation successful');
+        } else {
+          console.log('PDF generation failed, fallback used');
+        }
+      } catch (error) {
+        console.error('Error in handleDownloadSpec:', error);
+        alert('Failed to generate PDF. Please try again.');
+      }
+    } else {
+      console.log('No recommendation available for download');
+      alert('Please calculate mix design first to download specifications.');
     }
   };
 

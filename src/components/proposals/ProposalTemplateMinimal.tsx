@@ -9,6 +9,10 @@ const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data }) => {
   const {
     businessName,
     businessAddress,
+    businessPhone,
+    businessEmail,
+    businessLicenseNumber,
+    businessSlogan,
     clientName,
     projectTitle,
     date,
@@ -25,7 +29,13 @@ const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data }) => {
       {/* Very simple header */}
       <header className="mb-6">
         <h1 className="text-2xl font-bold">{businessName}</h1>
+        {businessSlogan && <p className="text-sm italic text-gray-500 mb-1">{businessSlogan}</p>}
         {businessAddress && <p className="text-xs text-gray-500">{businessAddress}</p>}
+        <div className="text-xs text-gray-500 mt-1">
+          {businessPhone && <span className="mr-3">{businessPhone}</span>}
+          {businessEmail && <span className="mr-3">{businessEmail}</span>}
+          {businessLicenseNumber && <span>License: {businessLicenseNumber}</span>}
+        </div>
       </header>
 
       {/* Client & Project */}

@@ -50,13 +50,40 @@ interface ProjectState {
 
 interface PreferencesState {
   preferences: UserPreferences;
-  updatePreferences: (newPrefs: Partial<UserPreferences>) => void;
+  updatePreferences: (preferences: Partial<UserPreferences>) => void;
+}
+
+// Settings store interfaces
+interface CompanySettings {
+  companyName: string;
+  address: string;
+  phone: string;
+  email: string;
+  licenseNumber: string;
+  motto: string;
+  logo: string | null;
+}
+
+interface SettingsState {
+  companySettings: CompanySettings;
+  updateCompanySettings: (settings: Partial<CompanySettings>) => void;
+  loadCompanySettings: () => CompanySettings;
 }
 
 const defaultPreferences: UserPreferences = {
   units: 'imperial',
   lengthUnit: 'feet',
   volumeUnit: 'cubic_yards',
+};
+
+const defaultCompanySettings: CompanySettings = {
+  companyName: '',
+  address: '',
+  phone: '',
+  email: '',
+  licenseNumber: '',
+  motto: '',
+  logo: null
 };
 
 // --- Helpers to map DB rows ---
@@ -537,6 +564,26 @@ export const usePreferencesStore = create<PreferencesState>((set) => {
       const updated = { ...initial, ...newPrefs };
       localStorage.setItem('concretePreferences', JSON.stringify(updated));
       set({ preferences: updated });
+    },
+  };
+});
+
+export const useSettingsStore = create<SettingsState>((set, get) => {
+  const savedSettings = localStorage.getItem('companySettings');
+  const initialSettings = savedSettings
+    ? JSON.parse(savedSettings)
+    : defaultCompanySettings;
+    
+  return {
+    companySettings: initialSettings,
+    updateCompanySettings: (newSettings) => {
+      const updated = { ...get().companySettings, ...newSettings };
+      localStorage.setItem('companySettings', JSON.stringify(updated));
+      set({ companySettings: updated });
+    },
+    loadCompanySettings: () => {
+      const saved = localStorage.getItem('companySettings');
+      return saved ? JSON.parse(saved) : defaultCompanySettings;
     },
   };
 });

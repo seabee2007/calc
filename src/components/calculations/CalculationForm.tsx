@@ -209,30 +209,51 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   };
   
   const calculateVolume = (data: FormInputs) => {
+    console.log('Calculate button pressed - Form data received:', data);
+    
     let volumeCubicFeet = 0;
     let dimensions: Record<string, number> = {};
     
     const getDimension = (base: string): number => {
-      const feet = data[`${base}_feet` as keyof FormInputs] || 0;
-      const inches = data[`${base}_inches` as keyof FormInputs] || 0;
-      const fraction = parseFloat(data[`${base}_fraction` as keyof FormInputs] || '0');
+      const feet = Number(data[`${base}_feet` as keyof FormInputs]) || 0;
+      const inches = Number(data[`${base}_inches` as keyof FormInputs]) || 0;
+      const fraction = parseFloat(String(data[`${base}_fraction` as keyof FormInputs]) || '0');
       
       return convertToDecimalFeet(feet, inches, fraction);
     };
 
-    // Check if any dimensions are provided
-    const hasInputs = Object.keys(data).some(key => {
-      if (key.endsWith('_feet')) {
-        return data[key as keyof FormInputs] > 0;
+    // Check if any required dimensions are provided based on calculation type
+    let hasRequiredInputs = false;
+    
+    switch (calculationType) {
+      case 'slab':
+      case 'sidewalk':
+        hasRequiredInputs = getDimension('length') > 0 && getDimension('width') > 0 && getDimension('thickness') > 0;
+        break;
+      case 'thickened_edge_slab':
+        hasRequiredInputs = getDimension('length') > 0 && getDimension('width') > 0 && 
+          getDimension('base_thickness') > 0 && getDimension('edge_thickness') > 0 && getDimension('edge_width') > 0;
+        break;
+      case 'footer':
+        hasRequiredInputs = getDimension('length') > 0 && getDimension('width') > 0 && getDimension('depth') > 0;
+        break;
+      case 'column':
+        if (columnType === 'rectangular') {
+          hasRequiredInputs = getDimension('length') > 0 && getDimension('width') > 0 && getDimension('height') > 0;
+        } else {
+          hasRequiredInputs = getDimension('diameter') > 0 && getDimension('height') > 0;
       }
-      return false;
-    });
+        break;
+    }
 
-    if (!hasInputs) {
+    console.log('Has required inputs:', hasRequiredInputs);
+
+    if (!hasRequiredInputs) {
+      console.log('No valid inputs provided, showing error message');
       setCalculationResult({
         volume: 0,
         bags: 0,
-        recommendations: ['Please input dimensions for calculation']
+        recommendations: ['Please input all required dimensions for calculation']
       });
       setLastCalculatedVolume(null);
       return;
@@ -456,9 +477,11 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               placeholder="0"
               fullWidth
               error={fieldState.error?.message}
-              {...field}
-              onChange={(e) => field.onChange(e.target.valueAsNumber)}
-              value={field.value === null ? '' : field.value}
+              value={field.value || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                field.onChange(val === '' ? null : Number(val));
+              }}
             />
           )}
         />
@@ -478,14 +501,18 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           render={({ field, fieldState }) => (
             <Input
               type="number"
+              inputMode="decimal"
+              pattern="[0-9]*"
               min="0"
               max="11"
               placeholder="0"
               fullWidth
               error={fieldState.error?.message}
-              {...field}
-              onChange={(e) => field.onChange(e.target.valueAsNumber)}
-              value={field.value === null ? '' : field.value}
+              value={field.value || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                field.onChange(val === '' ? null : Number(val));
+              }}
             />
           )}
         />

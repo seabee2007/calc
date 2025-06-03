@@ -104,15 +104,23 @@ const SignUp: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen flex flex-col relative"
+      className="min-h-screen min-w-screen flex flex-col relative bg-white dark:bg-gray-900 overflow-hidden"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100dvh',
+        minWidth: '100dvw',
+        height: '100dvh',
+        width: '100dvw',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)'
       }}
     >
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       
       <div className="relative z-10 p-4">
         <Button
@@ -125,8 +133,8 @@ const SignUp: React.FC = () => {
         </Button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-10">
-        <Card className="w-full max-w-md p-8">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-10 min-h-[100%] w-full">
+        <Card className="w-full max-w-md p-8 my-auto">
           <div className="text-center mb-8">
             <UserPlus className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Create your account</h2>
