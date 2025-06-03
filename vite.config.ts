@@ -1,3 +1,11 @@
+import { webcrypto } from 'node:crypto';
+
+// Make Node's Web Crypto available as globalThis.crypto
+// (so Vite's `resolveConfig` can call getRandomValues())
+if (!globalThis.crypto) {
+  (globalThis as any).crypto = webcrypto;
+}
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';

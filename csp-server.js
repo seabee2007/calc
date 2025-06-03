@@ -23,7 +23,7 @@ app.use(
       defaultSrc: ["'self'"],
       scriptSrc:  ["'self'", "'unsafe-inline'"],    // remove 'unsafe-inline' in prod
       styleSrc:   ["'self'", "'unsafe-inline'"],    // remove 'unsafe-inline' in prod
-      imgSrc:     ["'self'", "data:", "https://images.pexels.com"],
+      imgSrc:     ["'self'", "data:", "https://images.pexels.com", SUPABASE_ORIGIN],
       connectSrc: [
         "'self'",
         SUPABASE_ORIGIN,

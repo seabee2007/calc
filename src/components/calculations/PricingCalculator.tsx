@@ -5,12 +5,6 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation } from '../../utils/pricing';
 import { LocationPricing } from '../../types';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
-import autoTable from 'jspdf-autotable';
-// @ts-ignore – older typings want two params
-autoTable(jsPDF);
 
 interface PricingCalculatorProps {
   volume: number;
@@ -151,18 +145,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
     );
   }, [volume, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
 
-  const isNativeIOS = Capacitor.getPlatform() === 'ios' && Capacitor.isNativePlatform();
-
-  const handleSharePDF = async () => {
-    if (isNativeIOS) {
-      // 1️⃣ write file to Filesystem (Directory.Documents, encoding:'base64')
-      // 2️⃣ const { uri } = await Filesystem.getUri(...)
-      // 3️⃣ await Share.share({ url: uri, title, text:'PDF' })
-    } else {
-      // web / PWA fallbacks (File-System-Access or blob link)
-    }
-  };
-
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
@@ -231,7 +213,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
               value={distance}
               onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
               fullWidth
-              error={locationError || undefined}
+              error={locationError}
             />
           </div>
         </div>
@@ -405,18 +387,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             )}
           </div>
         </div>
-      </div>
-
-      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSharePDF}
-          disabled={!supplier}
-          className="flex-1 sm:flex-none"
-        >
-          Share PDF
-        </Button>
       </div>
     </Card>
   );

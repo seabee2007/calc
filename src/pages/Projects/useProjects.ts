@@ -143,10 +143,15 @@ export function useProjects() {
       }
     },
 
-    printPDF: () => {
+    printPDF: async () => {
       if (currentProject) {
-        generateProjectPDF(currentProject, ui.selectedPsi as keyof typeof CONCRETE_MIX_DESIGNS);
-        toast('PDF generated successfully', 'success');
+        try {
+          await generateProjectPDF(currentProject, ui.selectedPsi as keyof typeof CONCRETE_MIX_DESIGNS);
+          toast('PDF generated successfully', 'success');
+        } catch (error) {
+          console.error('Error generating project PDF:', error);
+          toast('Failed to generate PDF. Please try again.', 'error');
+        }
       }
     },
 

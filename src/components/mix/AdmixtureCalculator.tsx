@@ -68,8 +68,8 @@ const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              W/C Ratio Reduction (%)
-            </label>
+            W/C Ratio Reduction (%)
+          </label>
           <Input
             type="number"
             value={wcReduction}

@@ -90,23 +90,23 @@ const Layout: React.FC = () => {
     <div className="min-h-screen w-screen overflow-x-hidden bg-white dark:bg-gray-900" 
          style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Fixed background container */}
-    <div 
+      <div 
         className="fixed w-full h-full"
-      style={{
+        style={{
           top: 'env(safe-area-inset-top)',
           left: 0,
           right: 0,
           bottom: 0,
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           backgroundAttachment: 'fixed',
           willChange: 'transform',
           transform: 'translateZ(0)',
           zIndex: 0
-      }}
-    >
+        }}
+      >
         {/* Semi-transparent overlay - only in dark mode */}
         <div className="absolute inset-0 bg-black/40 dark:block hidden" />
       </div>

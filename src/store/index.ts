@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import {
+  getCompanySettings,
+  updateCompanySettings as updateSupabaseSettings,
+  migrateFromLocalStorage
+} from '../services/companySettingsService';
+import {
   Project,
   UserPreferences,
   Calculation,
@@ -62,12 +67,16 @@ interface CompanySettings {
   licenseNumber: string;
   motto: string;
   logo: string | null;
+  logoUrl?: string | null;
+  logoPath?: string | null;
 }
 
 interface SettingsState {
   companySettings: CompanySettings;
-  updateCompanySettings: (settings: Partial<CompanySettings>) => void;
-  loadCompanySettings: () => CompanySettings;
+  loading: boolean;
+  updateCompanySettings: (settings: Partial<CompanySettings>) => Promise<void>;
+  loadCompanySettings: () => Promise<void>;
+  migrateSettings: () => Promise<void>;
 }
 
 const defaultPreferences: UserPreferences = {
@@ -569,21 +578,111 @@ export const usePreferencesStore = create<PreferencesState>((set) => {
 });
 
 export const useSettingsStore = create<SettingsState>((set, get) => {
-  const savedSettings = localStorage.getItem('companySettings');
-  const initialSettings = savedSettings
-    ? JSON.parse(savedSettings)
-    : defaultCompanySettings;
-    
   return {
-    companySettings: initialSettings,
-    updateCompanySettings: (newSettings) => {
-      const updated = { ...get().companySettings, ...newSettings };
-      localStorage.setItem('companySettings', JSON.stringify(updated));
-      set({ companySettings: updated });
+    companySettings: defaultCompanySettings,
+    loading: false,
+    
+    loadCompanySettings: async () => {
+      try {
+        set({ loading: true });
+        const settings = await getCompanySettings();
+        
+        // Map Supabase settings to the local interface
+        const mappedSettings: CompanySettings = {
+          companyName: settings.companyName,
+          address: settings.address,
+          phone: settings.phone,
+          email: settings.email,
+          licenseNumber: settings.licenseNumber,
+          motto: settings.motto,
+          logo: settings.logoUrl, // Map logoUrl to logo for backward compatibility
+          logoUrl: settings.logoUrl,
+          logoPath: settings.logoPath
+        };
+        
+        set({ companySettings: mappedSettings, loading: false });
+      } catch (error) {
+        console.error('Error loading company settings:', error);
+        set({ loading: false });
+        // Fall back to localStorage if Supabase fails
+        const saved = localStorage.getItem('companySettings');
+        if (saved) {
+          const localSettings = JSON.parse(saved);
+          set({ companySettings: { ...defaultCompanySettings, ...localSettings } });
+        }
+      }
     },
-    loadCompanySettings: () => {
-      const saved = localStorage.getItem('companySettings');
-      return saved ? JSON.parse(saved) : defaultCompanySettings;
+    
+    updateCompanySettings: async (newSettings) => {
+      try {
+        set({ loading: true });
+        
+        // Map local interface to Supabase interface
+        const supabaseSettings = {
+          companyName: newSettings.companyName,
+          address: newSettings.address,
+          phone: newSettings.phone,
+          email: newSettings.email,
+          licenseNumber: newSettings.licenseNumber,
+          motto: newSettings.motto,
+          logoUrl: newSettings.logoUrl || newSettings.logo, // Handle both logoUrl and logo
+          logoPath: newSettings.logoPath
+        };
+        
+        const updatedSettings = await updateSupabaseSettings(supabaseSettings);
+        
+        // Map back to local interface
+        const mappedSettings: CompanySettings = {
+          companyName: updatedSettings.companyName,
+          address: updatedSettings.address,
+          phone: updatedSettings.phone,
+          email: updatedSettings.email,
+          licenseNumber: updatedSettings.licenseNumber,
+          motto: updatedSettings.motto,
+          logo: updatedSettings.logoUrl,
+          logoUrl: updatedSettings.logoUrl,
+          logoPath: updatedSettings.logoPath
+        };
+        
+        set({ companySettings: mappedSettings, loading: false });
+      } catch (error) {
+        console.error('Error updating company settings:', error);
+        set({ loading: false });
+        // Fall back to localStorage update if Supabase fails
+        const updated = { ...get().companySettings, ...newSettings };
+        localStorage.setItem('companySettings', JSON.stringify(updated));
+        set({ companySettings: updated });
+      }
     },
+    
+    migrateSettings: async () => {
+      try {
+        set({ loading: true });
+        const migratedSettings = await migrateFromLocalStorage();
+        
+        if (migratedSettings) {
+          // Map to local interface
+          const mappedSettings: CompanySettings = {
+            companyName: migratedSettings.companyName,
+            address: migratedSettings.address,
+            phone: migratedSettings.phone,
+            email: migratedSettings.email,
+            licenseNumber: migratedSettings.licenseNumber,
+            motto: migratedSettings.motto,
+            logo: migratedSettings.logoUrl,
+            logoUrl: migratedSettings.logoUrl,
+            logoPath: migratedSettings.logoPath
+          };
+          
+          set({ companySettings: mappedSettings });
+          console.log('Settings migrated successfully');
+        }
+        
+        set({ loading: false });
+      } catch (error) {
+        console.error('Error migrating settings:', error);
+        set({ loading: false });
+      }
+    }
   };
 });

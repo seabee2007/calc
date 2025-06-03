@@ -242,7 +242,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           hasRequiredInputs = getDimension('length') > 0 && getDimension('width') > 0 && getDimension('height') > 0;
         } else {
           hasRequiredInputs = getDimension('diameter') > 0 && getDimension('height') > 0;
-      }
+        }
         break;
     }
 

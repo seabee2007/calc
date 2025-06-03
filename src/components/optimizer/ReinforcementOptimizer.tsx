@@ -105,26 +105,33 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
   }, [calculatorData, mode, coverIn, fiberType, duty, stockLength, manualRebarSize, spacingXIn, spacingYIn, verticalBars, isColumn]);
 
   // Export functions
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (mode === 'rebar' && result) {
-      const rebarResult = result as RebarResult;
-      const csvContent = generateCutListCSV(rebarResult, {
-        lengthFt: calculatorData.length_ft,
-        widthFt: calculatorData.width_ft,
-        thicknessIn: calculatorData.thickness_in,
-        coverIn
-      });
-      
-      // Download CSV file
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `reinforcement-cutlist-${Date.now()}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      try {
+        const rebarResult = result as RebarResult;
+        const csvContent = generateCutListCSV(rebarResult, {
+          lengthFt: calculatorData.length_ft,
+          widthFt: calculatorData.width_ft,
+          thicknessIn: calculatorData.thickness_in,
+          coverIn
+        });
+        
+        // Download CSV file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reinforcement-cutlist-${Date.now()}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('CSV export completed successfully');
+      } catch (error) {
+        console.error('Error exporting CSV:', error);
+        alert('Failed to export CSV. Please try again.');
+      }
     }
   };
 

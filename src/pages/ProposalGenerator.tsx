@@ -186,6 +186,74 @@ const ProposalGenerator: React.FC = () => {
     }));
   };
 
+  const formatCurrency = (value: string): string => {
+    // Remove all non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Handle empty input
+    if (!numericValue) return '';
+    
+    // Ensure only one decimal point
+    const parts = numericValue.split('.');
+    let cleanValue = parts[0];
+    if (parts.length > 1) {
+      // Limit to 2 decimal places
+      cleanValue += '.' + parts[1].substring(0, 2);
+    }
+    
+    // Parse to number and format as currency
+    const number = parseFloat(cleanValue);
+    if (isNaN(number)) return '';
+    
+    return number.toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  const handleAmountBlur = (index: number, value: string) => {
+    // Format as currency when user finishes editing
+    const formatted = formatCurrency(value);
+    if (formatted) {
+      setProposalData(prev => ({
+        ...prev,
+        pricing: prev.pricing.map((item, i) => 
+          i === index ? { ...item, amount: formatted } : item
+        )
+      }));
+    }
+  };
+
+  const handleAmountFocus = (index: number, value: string) => {
+    // Remove formatting for easier editing
+    if (value.startsWith('$')) {
+      const numericValue = value.replace(/[^0-9.]/g, '');
+      setProposalData(prev => ({
+        ...prev,
+        pricing: prev.pricing.map((item, i) => 
+          i === index ? { ...item, amount: numericValue } : item
+        )
+      }));
+    }
+  };
+
+  const handlePhoneChange = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    let formattedValue = numericValue;
+    if (numericValue.length >= 6) {
+      formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3, 6)}-${numericValue.slice(6, 10)}`;
+    } else if (numericValue.length >= 3) {
+      formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3)}`;
+    }
+    
+    handleInputChange('businessPhone', formattedValue);
+  };
+
   const addTimelineItem = () => {
     setProposalData(prev => ({
       ...prev,
@@ -433,11 +501,8 @@ const ProposalGenerator: React.FC = () => {
     };
   };
 
-  const handleDownloadPDF = () => {
-    console.log('Download PDF button clicked');
-    
+  const handleDownloadPDF = async () => {
     if (!printRef.current) {
-      console.error('printRef.current is null');
       alert('Preview not ready for download. Please try again in a moment.');
       return;
     }
@@ -446,14 +511,11 @@ const ProposalGenerator: React.FC = () => {
       const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
       const htmlContent = printRef.current.innerHTML;
       
-      console.log('Calling generateProposalPDF with:', { title, htmlLength: htmlContent.length });
-      
-      generateProposalPDF(htmlContent, title);
-      
-      console.log('generateProposalPDF called successfully');
+      await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, proposalData);
+      console.log('Proposal PDF generated successfully');
     } catch (error) {
-      console.error('Error in handleDownloadPDF:', error);
-      alert('PDF generation failed. Please try using the Print/PDF button instead.');
+      console.error('Error generating proposal PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
     }
   };
 
@@ -591,17 +653,9 @@ ${proposalData.preparedByTitle || ''}
               <Button
                 onClick={handleDownloadPDF}
                 icon={<Download size={18} />}
-                variant="outline"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                <span className="hidden md:inline">Download PDF</span>
-              </Button>
-              <Button
-                onClick={handlePrint}
-                icon={<Printer size={18} />}
                 className="bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white"
               >
-                <span className="hidden md:inline">Print/PDF</span>
+                <span className="hidden md:inline">Download PDF</span>
               </Button>
             </div>
           </div>
@@ -680,7 +734,7 @@ ${proposalData.preparedByTitle || ''}
               >
                 Cancel
               </Button>
-          )}
+            )}
           </div>
         </motion.div>
 
@@ -797,8 +851,11 @@ ${proposalData.preparedByTitle || ''}
                     type="tel"
                     placeholder="(555) 123-4567"
                     value={proposalData.businessPhone || ''}
-                    onChange={(e) => handleInputChange('businessPhone', e.target.value)}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    inputMode="numeric"
+                    pattern="[0-9\s\(\)\-]*"
+                    maxLength={14}
                   />
                 </div>
                 <div>
@@ -960,7 +1017,7 @@ ${proposalData.preparedByTitle || ''}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
                       <input
-                        type="text"
+                        type="date"
                         placeholder="Start Date"
                         value={item.start}
                         onChange={(e) => handleTimelineChange(index, 'start', e.target.value)}
@@ -970,7 +1027,7 @@ ${proposalData.preparedByTitle || ''}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
                       <input
-                        type="text"
+                        type="date"
                         placeholder="End Date"
                         value={item.end}
                         onChange={(e) => handleTimelineChange(index, 'end', e.target.value)}
@@ -1024,7 +1081,11 @@ ${proposalData.preparedByTitle || ''}
                         placeholder="$0.00"
                         value={item.amount}
                         onChange={(e) => handlePricingChange(index, 'amount', e.target.value)}
+                        onBlur={(e) => handleAmountBlur(index, e.target.value)}
+                        onFocus={(e) => handleAmountFocus(index, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        inputMode="decimal"
+                        pattern="[0-9]*"
                       />
                     </div>
                     <button

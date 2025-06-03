@@ -34,7 +34,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
-  
+
   const resources = [
     {
       title: 'Understanding Concrete Mix Designs',

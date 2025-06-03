@@ -121,54 +121,54 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
 
         {!user ? renderLoginPrompt() : (
           <>
-        <div className="flex-1 p-4 overflow-y-auto h-64 space-y-4">
-          {messages.length === 0 && (
+            <div className="flex-1 p-4 overflow-y-auto h-64 space-y-4">
+              {messages.length === 0 && (
                 <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
-            </div>
-          )}
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  m.role === "user"
-                    ? "bg-blue-600 text-white"
+                  <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
+                </div>
+              )}
+              {messages.map((m, i) => (
+                <div
+                  key={i}
+                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-3 rounded-lg ${
+                      m.role === "user"
+                        ? "bg-blue-600 text-white"
                         : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white"
-                }`}
-              >
-                {m.content}
-              </div>
-            </div>
-          ))}
-          {loading && (
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+              {loading && (
                 <div className="text-gray-500 dark:text-gray-400 italic">
-              Thinking...
+                  Thinking...
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
             <div className="p-4 border-t dark:border-gray-700">
-          <div className="flex space-x-2">
-            <input
+              <div className="flex space-x-2">
+                <input
                   className="flex-1 p-2 border dark:border-gray-600 rounded focus:outline-none focus:ring dark:bg-gray-700 dark:text-white"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSend();
-              }}
-              placeholder="Ask about concrete..."
-            />
-            <button
-              onClick={handleSend}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSend();
+                  }}
+                  placeholder="Ask about concrete..."
+                />
+                <button
+                  onClick={handleSend}
                   className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              ➤
-            </button>
-          </div>
-        </div>
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>
@@ -180,54 +180,54 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
     <div className="h-full flex flex-col">
       {!user ? renderLoginPrompt() : (
         <>
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        {messages.length === 0 && (
+          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            {messages.length === 0 && (
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
-          </div>
-        )}
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[80%] p-3 rounded-lg ${
-                m.role === "user"
-                  ? "bg-blue-600 text-white"
+                <p>Welcome! Ask me anything about concrete calculations, mix designs, or best practices.</p>
+              </div>
+            )}
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[80%] p-3 rounded-lg ${
+                    m.role === "user"
+                      ? "bg-blue-600 text-white"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white"
-              }`}
-            >
-              {m.content}
-            </div>
-          </div>
-        ))}
-        {loading && (
+                  }`}
+                >
+                  {m.content}
+                </div>
+              </div>
+            ))}
+            {loading && (
               <div className="text-gray-500 dark:text-gray-400 italic">
-            Thinking...
+                Thinking...
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
           <div className="p-4 border-t dark:border-gray-700 mt-auto">
-        <div className="flex space-x-2">
-          <input
+            <div className="flex space-x-2">
+              <input
                 className="flex-1 p-2 border dark:border-gray-600 rounded focus:outline-none focus:ring dark:bg-gray-700 dark:text-white"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
-            placeholder="Ask about concrete..."
-          />
-          <button
-            onClick={handleSend}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSend();
+                }}
+                placeholder="Ask about concrete..."
+              />
+              <button
+                onClick={handleSend}
                 className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            ➤
-          </button>
-        </div>
-      </div>
+              >
+                ➤
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>

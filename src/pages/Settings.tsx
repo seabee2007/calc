@@ -1,5 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { optimizeLogo, validateImageFile, formatFileSize } from '../utils/imageOptimization';
+import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
+import { useAuth } from '../hooks/useAuth';
 import { 
   User, 
   Building2, 
@@ -25,7 +28,6 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { useThemeStore } from '../store/themeStore';
 import { useSettingsStore } from '../store';
-import { useAuth } from '../hooks/useAuth';
 
 interface UserPreferences {
   volumeUnit: 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
@@ -43,9 +45,9 @@ interface UserPreferences {
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { isDark, toggleTheme } = useThemeStore();
-  const { companySettings, updateCompanySettings } = useSettingsStore();
+  const { companySettings, updateCompanySettings, loadCompanySettings, migrateSettings, loading: settingsLoading } = useSettingsStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
   const [preferences, setPreferences] = useState<UserPreferences>({
     volumeUnit: 'cubic_yards',
     measurementSystem: 'imperial',
@@ -61,9 +63,36 @@ const Settings: React.FC = () => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
-  const handleCompanyChange = (field: string, value: string) => {
-    updateCompanySettings({ [field]: value });
+  // Load settings on mount and migrate if needed
+  useEffect(() => {
+    const initializeSettings = async () => {
+      if (user) {
+        try {
+          await loadCompanySettings();
+          // Try to migrate from localStorage if no settings exist in database
+          await migrateSettings();
+        } catch (error) {
+          console.error('Error initializing settings:', error);
+        }
+      }
+    };
+
+    initializeSettings();
+  }, [user, loadCompanySettings, migrateSettings]);
+
+  const handleCompanyChange = async (field: string, value: string) => {
+    try {
+      await updateCompanySettings({ [field]: value });
+    } catch (error) {
+      console.error('Error updating company settings:', error);
+      setSaveMessage({ 
+        text: 'Failed to update settings. Please try again.', 
+        type: 'error' 
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
   };
 
   const handlePreferenceChange = (field: keyof UserPreferences, value: any) => {
@@ -77,27 +106,90 @@ const Settings: React.FC = () => {
     }));
   };
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoneChange = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    let formattedValue = numericValue;
+    if (numericValue.length >= 6) {
+      formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3, 6)}-${numericValue.slice(6, 10)}`;
+    } else if (numericValue.length >= 3) {
+      formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3)}`;
+    }
+    
+    handleCompanyChange('phone', formattedValue);
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setSaveMessage({ text: 'Logo file size must be less than 5MB', type: 'error' });
-        return;
-      }
+    if (file && user) {
+      setIsUploadingLogo(true);
+      setSaveMessage({ text: 'Optimizing and uploading logo...', type: 'success' });
       
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        updateCompanySettings({ logo: result });
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Upload to Supabase Storage with optimization
+        const result = await replaceLogo(file, user.id, companySettings.logoPath || undefined);
+        
+        // Show compression stats
+        console.log(`Logo optimized from ${formatFileSize(result.optimization.originalSize)} to ${formatFileSize(result.optimization.compressedSize)} (${result.optimization.compressionRatio.toFixed(1)}% reduction)`);
+        
+        // Update company settings with the Supabase URL and path
+        await updateCompanySettings({ 
+          logoUrl: result.publicUrl,
+          logoPath: result.path,
+          logo: result.publicUrl // For backward compatibility
+        });
+        
+        setSaveMessage({ 
+          text: `Logo uploaded successfully! Reduced file size by ${result.optimization.compressionRatio.toFixed(1)}%`, 
+          type: 'success' 
+        });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } catch (error) {
+        console.error('Error uploading logo:', error);
+        setSaveMessage({ 
+          text: error instanceof Error ? error.message : 'Failed to upload logo. Please try a different file.', 
+          type: 'error' 
+        });
+        setTimeout(() => setSaveMessage(null), 5000);
+      } finally {
+        setIsUploadingLogo(false);
+      }
     }
   };
 
-  const handleRemoveLogo = () => {
-    updateCompanySettings({ logo: null });
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  const handleRemoveLogo = async () => {
+    try {
+      // Delete from Supabase Storage if there's a path
+      if (companySettings.logoPath) {
+        await deleteLogo(companySettings.logoPath);
+      }
+      
+      // Update company settings to remove logo
+      await updateCompanySettings({ 
+        logo: null, 
+        logoUrl: null, 
+        logoPath: null 
+      });
+      
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      setSaveMessage({ 
+        text: 'Logo removed successfully', 
+        type: 'success' 
+      });
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      setSaveMessage({ 
+        text: 'Failed to remove logo. Please try again.', 
+        type: 'error' 
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
     }
   };
 
@@ -172,16 +264,17 @@ const Settings: React.FC = () => {
               Company Logo
             </label>
             <div className="flex items-center space-x-4">
-              {companySettings.logo ? (
+              {(companySettings.logoUrl || companySettings.logo) ? (
                 <div className="relative">
                   <img 
-                    src={companySettings.logo} 
+                    src={companySettings.logoUrl || companySettings.logo || ''} 
                     alt="Company Logo" 
                     className="w-20 h-20 object-contain border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                   />
                   <button
                     onClick={handleRemoveLogo}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                    disabled={settingsLoading}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors disabled:opacity-50"
                   >
                     <Trash2 size={12} />
                   </button>
@@ -204,11 +297,12 @@ const Settings: React.FC = () => {
                   onClick={() => fileInputRef.current?.click()}
                   icon={<Upload size={16} />}
                   variant="outline"
+                  disabled={isUploadingLogo}
                 >
-                  Upload Logo
+                  {isUploadingLogo ? 'Processing...' : 'Upload Logo'}
                 </Button>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  PNG, JPG up to 5MB. Recommended: 200x200px
+                  PNG, JPG, GIF, WebP up to 10MB. Will be optimized to 400px PNG for best logo quality.
                 </p>
               </div>
             </div>
@@ -244,9 +338,12 @@ const Settings: React.FC = () => {
             <Input
               label="Phone Number"
               value={companySettings.phone}
-              onChange={(e) => handleCompanyChange('phone', e.target.value)}
+              onChange={(e) => handlePhoneChange(e.target.value)}
               placeholder="(555) 123-4567"
               icon={<Phone size={16} />}
+              inputMode="numeric"
+              pattern="[0-9\s\(\)\-]*"
+              maxLength={14}
             />
             
             <Input

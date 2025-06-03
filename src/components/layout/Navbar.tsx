@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
-  
+
   // Essential links that always show on desktop
   const essentialLinks = [
     { name: 'Home', path: '/', icon: <Home size={20} /> },

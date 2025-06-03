@@ -248,10 +248,15 @@ const Projects: React.FC = () => {
     }
   };
 
-  const handlePrintPDF = () => {
+  const handlePrintPDF = async () => {
     if (currentProject) {
-      generateProjectPDF(currentProject, selectedPsi as keyof typeof CONCRETE_MIX_DESIGNS);
-      showToastMessage('PDF generated successfully', 'success');
+      try {
+        await generateProjectPDF(currentProject, selectedPsi as keyof typeof CONCRETE_MIX_DESIGNS);
+        showToastMessage('PDF generated successfully', 'success');
+      } catch (error) {
+        console.error('Error generating project PDF:', error);
+        showToastMessage('Failed to generate PDF. Please try again.', 'error');
+      }
     }
   };
 

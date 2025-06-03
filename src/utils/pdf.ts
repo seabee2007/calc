@@ -1,8 +1,5 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-// Register the plugin with jsPDF once at module load
-// @ts-ignore – plugin type defs expect two params in older versions
-autoTable(jsPDF);
+import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { Project, CONCRETE_MIX_DESIGNS } from '../types';
 import { calculateMixMaterials } from './calculations';
@@ -10,6 +7,14 @@ import { calculateConcreteCost, formatPrice } from './pricing';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+
+// Type augmentation for jsPDF to include autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+    lastAutoTable: { finalY: number };
+  }
+}
 
 const formatDateSafely = (dateString: string | undefined | null): string => {
   if (!dateString) return 'N/A';
@@ -22,156 +27,92 @@ const formatDateSafely = (dateString: string | undefined | null): string => {
   }
 };
 
-// Helper function to handle iOS file saving and sharing
-async function saveAndShareOnIOS(pdfBlob: Blob, filename: string): Promise<boolean> {
+// Helper function to save PDF with platform detection
+async function savePDFWithPlatformSupport(
+  doc: jsPDF, 
+  filename: string, 
+  title: string = 'PDF Document'
+): Promise<boolean> {
   try {
-    // Convert blob to base64
-    const base64Data = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        resolve(base64);  // Keep the full base64 string including data URI
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(pdfBlob);
-    });
-
-    // Try direct sharing first
-    try {
-      await Share.share({
-        title: filename,
-        text: 'Your PDF is ready',
-        url: base64Data,
-        dialogTitle: 'Save PDF'
-      });
-      return true;
-    } catch (shareError) {
-      console.log('Direct sharing failed, trying file system:', shareError);
+    // Validate that the PDF has content
+    const pdfData = doc.output('datauristring');
+    if (!pdfData || pdfData.length < 1000) {
+      throw new Error('PDF appears to be empty or invalid');
     }
-
-    // If direct sharing fails, try file system
-    try {
-      // Ensure we have a clean base64 string
-      const cleanBase64 = base64Data.split(',')[1] || base64Data;
-      
-      // Save to Documents directory instead of Cache
-      const safePath = `${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      
-      await Filesystem.writeFile({
-        path: safePath,
-        data: cleanBase64,
-        directory: Directory.Documents,  // Use Documents instead of Cache
-        recursive: true
-      });
-
-      const fileUri = await Filesystem.getUri({
-        path: safePath,
-        directory: Directory.Documents
-      });
-
-      // Share the file
-      await Share.share({
-        title: filename,
-        text: 'Your PDF is ready',
-        url: fileUri.uri,
-        dialogTitle: 'Save PDF'
-      });
-
-      // Clean up
-      try {
-        await Filesystem.deleteFile({
-          path: safePath,
-          directory: Directory.Documents
-        });
-      } catch (cleanupError) {
-        console.warn('Failed to cleanup temporary file:', cleanupError);
-      }
-
-      return true;
-    } catch (fsError) {
-      console.error('File system operations failed:', fsError);
-      
-      // Final fallback: try data URL sharing
-      try {
-        const dataUrl = `data:application/pdf;base64,${base64Data.split(',')[1]}`;
-        await Share.share({
-          title: filename,
-          text: 'Your PDF is ready',
-          url: dataUrl,
-          dialogTitle: 'Save PDF'
-        });
-        return true;
-      } catch (dataUrlError) {
-        console.error('Data URL sharing failed:', dataUrlError);
-        throw dataUrlError;
-      }
-    }
-  } catch (error) {
-    console.error('All iOS sharing methods failed:', error);
-    return false;
-  }
-}
-
-// Helper function to safely download PDF
-async function downloadPDF(doc: jsPDF, filename: string): Promise<boolean> {
-  try {
-    const pdfBlob = doc.output('blob');
-
-    // Check if running on iOS
-    if (Capacitor.getPlatform() === 'ios') {
-      return await saveAndShareOnIOS(pdfBlob, filename);
-    }
-
-    // For web platform
-    const nativeFS = 'showSaveFilePicker' in window &&
-                    typeof window.showSaveFilePicker === 'function';
     
-    if (nativeFS) {
+    if (Capacitor.isNativePlatform()) {
+      // iOS/Android: Use Capacitor plugins for native sharing
+      const base64Data = pdfData.split(',')[1];
+      
+      if (!base64Data) {
+        throw new Error('Failed to extract PDF data');
+      }
+      
       try {
-        // @ts-ignore - Modern API not yet in TypeScript
-        const handle = await window.showSaveFilePicker({
-          suggestedName: filename,
-          types: [{
-            description: 'PDF Document',
-            accept: { 'application/pdf': ['.pdf'] },
-          }],
+        // Write file to cache directory
+        const writeResult = await Filesystem.writeFile({
+          path: filename,
+          data: base64Data,
+          directory: Directory.Cache
         });
-        const writable = await handle.createWritable();
-        await writable.write(pdfBlob);
-        await writable.close();
+        
+        // Get the file URI for sharing
+        const fileUri = await Filesystem.getUri({
+          directory: Directory.Cache,
+          path: filename
+        });
+        
+        // Share the file using native share sheet
+        await Share.share({
+          title: title,
+          url: fileUri.uri,
+          dialogTitle: `Share ${title}`
+        });
+        
+        console.log('PDF saved and shared successfully on native platform');
         return true;
-      } catch (err) {
-        if (!(err instanceof Error && err.name === 'AbortError')) {
-          console.warn('File System Access API failed, falling back to blob download:', err);
+      } catch (shareError: any) {
+        // Handle share cancellation gracefully
+        if (shareError.message === 'Share canceled' || shareError.errorMessage === 'Share canceled') {
+          console.log('User canceled share dialog');
+          return true; // Still consider this a success
+        }
+        
+        // For other share errors, try direct download fallback
+        console.warn('Share failed, attempting direct download:', shareError);
+        
+        // Fallback to web-style download on native platforms
+        try {
+          const blob = new Blob([atob(base64Data)], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          console.log('PDF downloaded successfully as fallback');
+          return true;
+        } catch (fallbackError) {
+          console.error('Both share and download failed:', fallbackError);
+          throw shareError; // Throw the original share error
         }
       }
-    }
-
-    // Fallback to blob download for web
-    const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    return true;
-  } catch (error) {
-    console.error('Error downloading PDF:', error);
-    // Last resort: try direct save
-    try {
+    } else {
+      // Web: Use standard download
       doc.save(filename);
+      console.log('PDF saved successfully on web platform');
       return true;
-    } catch (finalError) {
-      console.error('All PDF download methods failed:', finalError);
-      alert('Failed to download PDF. Please try again.');
-      return false;
     }
+  } catch (error) {
+    console.error('Error saving PDF:', error);
+    throw error;
   }
 }
 
-// Function to generate Mix Specification PDF
+// New function to generate Mix Specification PDF
 export async function generateMixSpecPDF(
   psi: string,
   airContent: [number, number],
@@ -183,7 +124,6 @@ export async function generateMixSpecPDF(
   
   try {
     const doc = new jsPDF();
-    // autoTable already registered globally
     const pageWidth = doc.internal.pageSize.width;
     
     // Header
@@ -212,27 +152,17 @@ export async function generateMixSpecPDF(
       admix
     ]);
     
-    try {
-      doc.autoTable({
-        startY: 115,
-        head: [['#', 'Admixture Requirement']],
-        body: admixtureData,
-        theme: 'striped',
-        headStyles: { fillColor: [59, 130, 246] },
-        columnStyles: {
-          0: { cellWidth: 20 },
-          1: { cellWidth: 'auto' }
-        }
-      });
-    } catch (tableError) {
-      console.error('Error creating autoTable:', tableError);
-      // Fallback to simple text if table fails
-      let yPos = 115;
-      admixtureData.forEach(([num, text]) => {
-        doc.text(`${num}. ${text}`, 14, yPos);
-        yPos += 10;
-      });
-    }
+    doc.autoTable({
+      startY: 115,
+      head: [['#', 'Admixture Requirement']],
+      body: admixtureData,
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+      columnStyles: {
+        0: { cellWidth: 20 },
+        1: { cellWidth: 'auto' }
+      }
+    });
     
     // References
     const currentY = doc.lastAutoTable.finalY + 20;
@@ -258,338 +188,1002 @@ export async function generateMixSpecPDF(
     doc.text('This specification is generated for reference purposes only.', pageWidth / 2, finalY, { align: 'center' });
     doc.text('Consult with a qualified engineer for final mix design approval.', pageWidth / 2, finalY + 8, { align: 'center' });
     
-    // Save the PDF
+    // Save the PDF with platform support
     const pdfFilename = filename || `mix-specification-${psi}psi-${Date.now()}.pdf`;
-    return await downloadPDF(doc, pdfFilename);
+    console.log('Attempting to save PDF with filename:', pdfFilename);
+    
+    await savePDFWithPlatformSupport(doc, pdfFilename, `Mix Specification - ${psi} PSI`);
+    console.log('PDF save method called successfully');
+    
+    return true;
   } catch (error) {
     console.error('Error generating Mix Spec PDF:', error);
-    alert('Failed to generate PDF. Please try again or contact support.');
-    return false;
-  }
-}
-
-// Function to generate proposal PDF from HTML content
-export async function generateProposalPDF(htmlContent: string, title: string, filename?: string): Promise<void> {
-  try {
-    // Create a temporary div to render the HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    tempDiv.style.width = '210mm'; // A4 width
-    tempDiv.style.background = 'white';
-    tempDiv.style.padding = '20px';
-    tempDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-    tempDiv.style.fontSize = '14px';
-    tempDiv.style.lineHeight = '1.6';
-    tempDiv.style.color = '#374151';
     
-    document.body.appendChild(tempDiv);
-    
+    // Fallback: Create a simple text file if PDF generation fails
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(tempDiv, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        width: 800,
-        height: tempDiv.scrollHeight
-      });
+      const textContent = `
+CONCRETE MIX SPECIFICATION
+Generated: ${format(new Date(), 'MMM d, yyyy')}
+
+MIX DESIGN REQUIREMENTS
+Design Strength: ${psi} PSI
+Air Content Range: ${airContent[0]}-${airContent[1]}%
+Maximum W/C Ratio: ${waterCementRatio.toFixed(2)}
+
+REQUIRED ADMIXTURES
+${admixtures.map((admix, index) => `${index + 1}. ${admix}`).join('\n')}
+
+CODE REFERENCES
+• ACI 318-19 Section 5 (Durability Requirements)
+• ACI 211.2-98 (Standard Practice for Selecting Proportions for Structural Lightweight Concrete)
+• ACI 308R-16 (Guide to Curing Concrete)
+• ASTM C494 (Standard Specification for Chemical Admixtures for Concrete)
+• ASTM C260 (Standard Specification for Air-Entraining Admixtures for Concrete)
+
+This specification is generated for reference purposes only.
+Consult with a qualified engineer for final mix design approval.
+      `;
       
-      document.body.removeChild(tempDiv);
-      
-      // Create PDF
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      // autoTable already registered globally
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth - 20; // 10mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 10; // 10mm top margin
-      
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= (pdfHeight - 20); // Account for margins
-      
-      // Add additional pages if needed
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= (pdfHeight - 20);
+      if (Capacitor.isNativePlatform()) {
+        // Try to share as text file on native platforms
+        const base64Data = btoa(textContent);
+        const fallbackFilename = `mix-specification-${psi}psi-${Date.now()}.txt`;
+        
+        await Filesystem.writeFile({
+          path: fallbackFilename,
+          data: base64Data,
+          directory: Directory.Cache
+        });
+        
+        const fileUri = await Filesystem.getUri({
+          directory: Directory.Cache,
+          path: fallbackFilename
+        });
+        
+        await Share.share({
+          title: `Mix Specification - ${psi} PSI (Text)`,
+          url: fileUri.uri
+        });
+      } else {
+        // Web fallback
+        const blob = new Blob([textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `mix-specification-${psi}psi-${Date.now()}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }
       
-      const pdfFilename = filename || `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-      await downloadPDF(pdf, pdfFilename);
-    } catch (error) {
-      console.error('Error generating proposal PDF:', error);
-      document.body.removeChild(tempDiv);
-      generateSimpleProposalPDF(title, filename);
+      console.log('Generated fallback text file instead of PDF');
+      if (Capacitor.isNativePlatform()) {
+        // Show native alert on mobile
+        alert('PDF generation failed, shared as text file instead.');
+      } else {
+        alert('PDF generation failed, downloaded as text file instead.');
+      }
+      return false;
+    } catch (fallbackError) {
+      console.error('Both PDF and text fallback failed:', fallbackError);
+      alert('Download failed. Please try again or contact support.');
+      return false;
     }
-  } catch (error) {
-    console.error('Error in generateProposalPDF:', error);
-    generateSimpleProposalPDF(title, filename);
   }
 }
 
-// Fallback simple PDF generator
-function generateSimpleProposalPDF(title: string, filename?: string) {
-  console.log('Using fallback simple PDF generation');
-  
+// Updated function to generate proposal PDF with template-specific layouts
+export async function generateProposalPDF(
+  htmlContent: string, 
+  title: string, 
+  filename?: string,
+  templateType: 'classic' | 'modern' | 'minimal' = 'classic',
+  proposalData?: any
+): Promise<void> {
+  try {
+    console.log('Starting PDF generation with template:', templateType);
+    console.log('Proposal data:', proposalData);
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 20;
+    let yPosition = margin;
+    
+    // Helper function to check page break
+    const checkPageBreak = (requiredSpace: number = 15) => {
+      if (yPosition + requiredSpace > pageHeight - margin) {
+        doc.addPage();
+        yPosition = margin;
+      }
+    };
+    
+    // Helper function to add text with wrapping
+    const addText = (text: string, fontSize: number = 12, isBold: boolean = false, leftMargin: number = margin, align: 'left' | 'center' | 'right' = 'left') => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+      
+      const maxWidth = pageWidth - leftMargin - margin;
+      const lines = doc.splitTextToSize(text, maxWidth);
+      const lineHeight = fontSize * 0.5;
+      
+      checkPageBreak(lines.length * lineHeight);
+      
+      lines.forEach((line: string) => {
+        if (align === 'center') {
+          doc.text(line, pageWidth / 2, yPosition, { align: 'center' });
+        } else if (align === 'right') {
+          doc.text(line, pageWidth - margin, yPosition, { align: 'right' });
+        } else {
+          doc.text(line, leftMargin, yPosition);
+        }
+        yPosition += lineHeight;
+      });
+      yPosition += 3;
+    };
+    
+    // Parse HTML to extract proposal data if not provided
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Extract data from HTML
+    const extractedData = proposalData || {
+      businessName: tempDiv.querySelector('[class*="business"]')?.textContent?.trim() || title,
+      clientName: tempDiv.querySelector('[class*="client"]')?.textContent?.trim() || 'Client',
+      projectTitle: tempDiv.querySelector('[class*="project"]')?.textContent?.trim() || 'Project',
+      date: format(new Date(), 'MMMM d, yyyy'),
+      introduction: '',
+      scope: '',
+      timeline: [],
+      pricing: [],
+      terms: '',
+      preparedBy: ''
+    };
+    
+    console.log('Extracted data for PDF:', extractedData);
+    
+    // Extract tables for timeline and pricing
+    const tables = tempDiv.querySelectorAll('table');
+    const timelineTable: string[][] = [];
+    const pricingTable: string[][] = [];
+    
+    tables.forEach(table => {
+      const rows = Array.from(table.querySelectorAll('tr'));
+      const tableData: string[][] = [];
+      
+      rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td, th'));
+        const rowData = cells.map(cell => cell.textContent?.trim() || '');
+        if (rowData.some(cell => cell.length > 0)) {
+          tableData.push(rowData);
+        }
+      });
+      
+      // Determine if it's timeline or pricing based on headers
+      const headers = tableData[0] || [];
+      const hasTimeline = headers.some(h => h.toLowerCase().includes('phase') || h.toLowerCase().includes('timeline'));
+      const hasPricing = headers.some(h => h.toLowerCase().includes('price') || h.toLowerCase().includes('amount') || h.toLowerCase().includes('cost'));
+      
+      if (hasTimeline && timelineTable.length === 0) {
+        timelineTable.push(...tableData);
+      } else if (hasPricing && pricingTable.length === 0) {
+        pricingTable.push(...tableData);
+      }
+    });
+    
+    console.log('Timeline table:', timelineTable);
+    console.log('Pricing table:', pricingTable);
+    
+    // Generate Classic Template Layout
+    if (templateType === 'classic') {
+      // Header section with business info on left, proposal info on right
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.businessName || 'Business Name', margin, yPosition);
+      
+      // Proposal header on the right
+      doc.text('Proposal', pageWidth - margin, yPosition, { align: 'right' });
+      yPosition += 12;
+      
+      // Business details on left, date on right
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      if (extractedData.businessAddress) {
+        doc.text(extractedData.businessAddress, margin, yPosition);
+      }
+      if (extractedData.businessPhone) {
+        yPosition += 8;
+        doc.text(`Phone: ${extractedData.businessPhone}`, margin, yPosition);
+      }
+      if (extractedData.businessEmail) {
+        yPosition += 8;
+        doc.text(`Email: ${extractedData.businessEmail}`, margin, yPosition);
+      }
+      
+      // Date on right side
+      doc.text(extractedData.date, pageWidth - margin, yPosition - 16, { align: 'right' });
+      
+      yPosition += 20;
+      
+      // Prepared For section
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Prepared For:', margin, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.clientName || 'Client Name', margin, yPosition);
+      yPosition += 8;
+      
+      if (extractedData.clientCompany) {
+        doc.setFont('helvetica', 'normal');
+        doc.text(extractedData.clientCompany, margin, yPosition);
+        yPosition += 8;
+      }
+      
+      yPosition += 10;
+      
+      // Horizontal line
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+      
+      // Project Title & Introduction
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.projectTitle || 'Project Title', margin, yPosition);
+      yPosition += 15;
+      
+      if (extractedData.introduction) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.introduction, 11, false);
+        yPosition += 10;
+      }
+      
+      // Scope of Work
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Scope of Work', margin, yPosition);
+      yPosition += 10;
+      
+      if (extractedData.scope) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.scope, 11, false);
+        yPosition += 10;
+      }
+      
+      // Timeline Table
+      if (timelineTable.length > 0) {
+        checkPageBreak(40);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Project Timeline', margin, yPosition);
+        yPosition += 10;
+        
+        doc.autoTable({
+          startY: yPosition,
+          head: [timelineTable[0]],
+          body: timelineTable.slice(1),
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [245, 245, 245],
+            textColor: [60, 60, 60],
+            fontSize: 11,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 10,
+            textColor: [60, 60, 60]
+          },
+          margin: { left: margin, right: margin },
+        });
+        yPosition = doc.lastAutoTable.finalY + 15;
+      }
+      
+      // Pricing Table
+      if (pricingTable.length > 0) {
+        checkPageBreak(40);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Pricing', margin, yPosition);
+        yPosition += 10;
+        
+        doc.autoTable({
+          startY: yPosition,
+          head: [pricingTable[0]],
+          body: pricingTable.slice(1),
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [245, 245, 245],
+            textColor: [60, 60, 60],
+            fontSize: 11,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 10,
+            textColor: [60, 60, 60]
+          },
+          margin: { left: margin, right: margin },
+        });
+        yPosition = doc.lastAutoTable.finalY + 15;
+      }
+      
+      // Terms & Conditions
+      if (extractedData.terms) {
+        checkPageBreak(30);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Terms & Conditions', margin, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.terms, 10, false);
+        yPosition += 15;
+      }
+      
+      // Footer
+      checkPageBreak(25);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Prepared by:', margin, yPosition);
+      yPosition += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.preparedBy || 'Prepared By Name', margin, yPosition);
+      
+      if (extractedData.preparedByTitle) {
+        yPosition += 8;
+        doc.setFont('helvetica', 'normal');
+        doc.text(extractedData.preparedByTitle, margin, yPosition);
+      }
+    }
+    
+    // Generate Modern Template Layout
+    else if (templateType === 'modern') {
+      // Modern Banner Header with border
+      doc.setLineWidth(2);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition + 25, pageWidth - margin, yPosition + 25);
+      
+      // Business info on left with logo space
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.businessName || 'Business Name', margin, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      if (extractedData.businessSlogan) {
+        doc.text(extractedData.businessSlogan, margin, yPosition);
+        yPosition += 6;
+      }
+      
+      doc.setFont('helvetica', 'normal');
+      if (extractedData.businessAddress) {
+        doc.text(extractedData.businessAddress, margin, yPosition);
+        yPosition += 5;
+      }
+      
+      // Contact info with icons (text-based)
+      const contactY = yPosition;
+      if (extractedData.businessPhone) {
+        doc.text(`📞 ${extractedData.businessPhone}`, margin, contactY);
+      }
+      if (extractedData.businessEmail) {
+        doc.text(`✉️ ${extractedData.businessEmail}`, margin + 70, contactY);
+      }
+      if (extractedData.businessLicenseNumber) {
+        doc.text(`📜 License: ${extractedData.businessLicenseNumber}`, margin + 140, contactY);
+      }
+      
+      // Client info on right side
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Proposal For', pageWidth - margin, yPosition - 20, { align: 'right' });
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.clientName || 'Client Name', pageWidth - margin, yPosition - 12, { align: 'right' });
+      
+      if (extractedData.clientCompany) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(extractedData.clientCompany, pageWidth - margin, yPosition - 4, { align: 'right' });
+      }
+      
+      yPosition += 35;
+      
+      // Project Title with accent color
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(79, 70, 229); // Indigo color
+      doc.text(extractedData.projectTitle || 'Project Title', margin, yPosition);
+      
+      doc.setTextColor(0, 0, 0); // Reset to black
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(extractedData.date, margin, yPosition + 8);
+      yPosition += 25;
+      
+      // Two-column layout for Introduction and Scope
+      const columnWidth = (pageWidth - margin * 3) / 2;
+      const leftColumnX = margin;
+      const rightColumnX = margin + columnWidth + margin;
+      
+      // Introduction column
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Introduction', leftColumnX, yPosition);
+      
+      if (extractedData.introduction) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const introLines = doc.splitTextToSize(extractedData.introduction, columnWidth);
+        let introY = yPosition + 10;
+        introLines.forEach((line: string) => {
+          doc.text(line, leftColumnX, introY);
+          introY += 5;
+        });
+      }
+      
+      // Scope column
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Scope of Work', rightColumnX, yPosition);
+      
+      if (extractedData.scope) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const scopeLines = doc.splitTextToSize(extractedData.scope, columnWidth);
+        let scopeY = yPosition + 10;
+        scopeLines.forEach((line: string) => {
+          doc.text(line, rightColumnX, scopeY);
+          scopeY += 5;
+        });
+      }
+      
+      yPosition += 60; // Move past the two-column section
+      
+      // Timeline and Pricing Cards (side by side)
+      checkPageBreak(60);
+      
+      // Card backgrounds (light gray rectangles)
+      doc.setFillColor(249, 250, 251);
+      doc.setDrawColor(229, 231, 235);
+      doc.setLineWidth(0.5);
+      
+      // Timeline Card
+      doc.rect(leftColumnX, yPosition, columnWidth, 50, 'FD');
+      doc.setFillColor(255, 255, 255); // Reset fill color
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(75, 85, 99);
+      doc.text('Timeline', leftColumnX + 8, yPosition + 12);
+      
+      // Timeline items
+      if (timelineTable.length > 1) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        let timelineY = yPosition + 20;
+        
+        for (let i = 1; i < Math.min(timelineTable.length, 4); i++) {
+          const row = timelineTable[i];
+          if (row.length >= 3) {
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(107, 114, 128);
+            doc.text(`${row[0]}:`, leftColumnX + 8, timelineY);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(31, 41, 55);
+            doc.text(`${row[1]} – ${row[2]}`, leftColumnX + 8 + 40, timelineY);
+            timelineY += 8;
+          }
+        }
+      }
+      
+      // Pricing Card
+      doc.setFillColor(249, 250, 251);
+      doc.rect(rightColumnX, yPosition, columnWidth, 50, 'FD');
+      doc.setFillColor(255, 255, 255);
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(75, 85, 99);
+      doc.text('Pricing', rightColumnX + 8, yPosition + 12);
+      
+      // Pricing items
+      if (pricingTable.length > 1) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        let pricingY = yPosition + 20;
+        
+        for (let i = 1; i < Math.min(pricingTable.length, 4); i++) {
+          const row = pricingTable[i];
+          if (row.length >= 2) {
+            doc.setTextColor(107, 114, 128);
+            const descLines = doc.splitTextToSize(row[0], columnWidth - 50);
+            doc.text(descLines[0], rightColumnX + 8, pricingY);
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(31, 41, 55);
+            doc.text(row[1], rightColumnX + columnWidth - 8, pricingY, { align: 'right' });
+            
+            doc.setFont('helvetica', 'normal');
+            pricingY += 8;
+          }
+        }
+      }
+      
+      doc.setTextColor(0, 0, 0); // Reset color
+      yPosition += 65;
+      
+      // Terms & Conditions
+      if (extractedData.terms) {
+        checkPageBreak(30);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Terms & Conditions', margin, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.terms, 10, false);
+        yPosition += 15;
+      }
+      
+      // Dashed line separator
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(209, 213, 219);
+      // Create dashed line effect with short segments
+      const dashLength = 3;
+      const gapLength = 3;
+      let currentX = margin;
+      while (currentX < pageWidth - margin) {
+        const endX = Math.min(currentX + dashLength, pageWidth - margin);
+        doc.line(currentX, yPosition, endX, yPosition);
+        currentX += dashLength + gapLength;
+      }
+      yPosition += 15;
+      
+      // Footer - centered
+      checkPageBreak(20);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(107, 114, 128);
+      doc.text('Prepared by:', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(31, 41, 55);
+      doc.text(extractedData.preparedBy || 'Prepared By Name', pageWidth / 2, yPosition, { align: 'center' });
+      
+      if (extractedData.preparedByTitle) {
+        yPosition += 8;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(107, 114, 128);
+        doc.text(extractedData.preparedByTitle, pageWidth / 2, yPosition, { align: 'center' });
+      }
+    }
+    
+    // Generate Minimal Template Layout
+    else if (templateType === 'minimal') {
+      // Simple header
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.businessName || 'Business Name', margin, yPosition);
+      yPosition += 8;
+      
+      // Business slogan
+      if (extractedData.businessSlogan) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(107, 114, 128);
+        doc.text(extractedData.businessSlogan, margin, yPosition);
+        yPosition += 6;
+      }
+      
+      // Business address
+      if (extractedData.businessAddress) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(107, 114, 128);
+        doc.text(extractedData.businessAddress, margin, yPosition);
+        yPosition += 5;
+      }
+      
+      // Contact info in one line
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      const contactInfo = [];
+      if (extractedData.businessPhone) contactInfo.push(extractedData.businessPhone);
+      if (extractedData.businessEmail) contactInfo.push(extractedData.businessEmail);
+      if (extractedData.businessLicenseNumber) contactInfo.push(`License: ${extractedData.businessLicenseNumber}`);
+      
+      if (contactInfo.length > 0) {
+        doc.text(contactInfo.join('   •   '), margin, yPosition);
+        yPosition += 15;
+      } else {
+        yPosition += 10;
+      }
+      
+      // Client & Project section
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Proposal For', margin, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.clientName || 'Client Name', margin, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.projectTitle || 'Project Title', margin, yPosition);
+      yPosition += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(107, 114, 128);
+      doc.text(extractedData.date, margin, yPosition);
+      yPosition += 15;
+      
+      // Horizontal line
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(209, 213, 219);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+      
+      // Introduction
+      if (extractedData.introduction) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Introduction', margin, yPosition);
+        yPosition += 8;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.introduction, 10, false);
+        yPosition += 5;
+      }
+      
+      // Scope of Work
+      if (extractedData.scope) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Scope of Work', margin, yPosition);
+        yPosition += 8;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.scope, 10, false);
+        yPosition += 5;
+      }
+      
+      // Timeline Inline
+      if (timelineTable.length > 1) {
+        checkPageBreak(25);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Timeline', margin, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        for (let i = 1; i < timelineTable.length; i++) {
+          const row = timelineTable[i];
+          if (row.length >= 3 && row[0].trim()) {
+            checkPageBreak(12);
+            
+            // Phase name on left
+            doc.setTextColor(0, 0, 0);
+            doc.text(row[0], margin, yPosition);
+            
+            // Date range on right
+            doc.setFont('helvetica', 'bold');
+            const dateRange = `${row[1]} – ${row[2]}`;
+            doc.text(dateRange, pageWidth - margin, yPosition, { align: 'right' });
+            
+            doc.setFont('helvetica', 'normal');
+            yPosition += 10;
+          }
+        }
+        yPosition += 5;
+      }
+      
+      // Pricing Inline
+      if (pricingTable.length > 1) {
+        checkPageBreak(25);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Pricing', margin, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        for (let i = 1; i < pricingTable.length; i++) {
+          const row = pricingTable[i];
+          if (row.length >= 2 && row[0].trim()) {
+            checkPageBreak(12);
+            
+            // Description on left
+            doc.setTextColor(0, 0, 0);
+            const descLines = doc.splitTextToSize(row[0], pageWidth - margin - 60);
+            doc.text(descLines[0], margin, yPosition);
+            
+            // Amount on right
+            doc.setFont('helvetica', 'bold');
+            doc.text(row[1], pageWidth - margin, yPosition, { align: 'right' });
+            
+            doc.setFont('helvetica', 'normal');
+            yPosition += 10;
+          }
+        }
+        yPosition += 5;
+      }
+      
+      // Terms & Conditions
+      if (extractedData.terms) {
+        checkPageBreak(25);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Terms & Conditions', margin, yPosition);
+        yPosition += 8;
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        addText(extractedData.terms, 9, false);
+        yPosition += 10;
+      }
+      
+      // Footer with border
+      checkPageBreak(20);
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(229, 231, 235);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 12;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(107, 114, 128);
+      doc.text('Prepared by:', margin, yPosition);
+      yPosition += 8;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(extractedData.preparedBy || 'Prepared By Name', margin, yPosition);
+    }
+    
+    // Fallback for unrecognized template types
+    else {
+      console.warn(`Unknown template type: ${templateType}, using classic layout`);
+      
+      // Use classic template as fallback
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(extractedData.businessName || 'Business Name', margin, yPosition);
+      
+      doc.text('Proposal', pageWidth - margin, yPosition, { align: 'right' });
+      yPosition += 20;
+      
+      doc.setFontSize(14);
+      doc.text('Prepared For:', margin, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(12);
+      doc.text(extractedData.clientName || 'Client Name', margin, yPosition);
+      yPosition += 15;
+      
+      doc.setFontSize(16);
+      doc.text(extractedData.projectTitle || 'Project Title', margin, yPosition);
+      yPosition += 15;
+      
+      if (extractedData.introduction) {
+        addText(extractedData.introduction, 11, false);
+      }
+      
+      if (extractedData.scope) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Scope of Work', margin, yPosition);
+        yPosition += 10;
+        addText(extractedData.scope, 11, false);
+      }
+    }
+    
+    // Ensure the PDF has content before saving
+    if (yPosition <= margin + 20) {
+      // PDF appears to be empty, add some basic content
+      console.warn('PDF appears empty, adding fallback content');
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Concrete Proposal', pageWidth / 2, 40, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated: ${format(new Date(), 'MMMM d, yyyy')}`, pageWidth / 2, 60, { align: 'center' });
+      
+      doc.text('This proposal was generated electronically.', margin, 100);
+      doc.text('Please contact us for detailed information.', margin, 120);
+    }
+    
+    // Save the PDF
+    const pdfFilename = filename || `proposal-${templateType}-${Date.now()}.pdf`;
+    await savePDFWithPlatformSupport(doc, pdfFilename, title);
+  } catch (error) {
+    console.error('Error generating proposal PDF:', error);
+    throw error;
+  }
+}
+
+export async function generateProjectPDF(
+  project: Project, 
+  selectedPsi: keyof typeof CONCRETE_MIX_DESIGNS
+): Promise<void> {
   try {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     
     // Header
-    doc.setFontSize(20);
-    doc.text(title, pageWidth / 2, 30, { align: 'center' });
+    doc.setFontSize(24);
+    doc.text('Project Report', pageWidth / 2, 20, { align: 'center' });
     
-    // Date
+    // Project Details
+    doc.setFontSize(14);
+    doc.text('Project Details', 14, 40);
     doc.setFontSize(12);
-    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy')}`, pageWidth / 2, 45, { align: 'center' });
-    
-    // Message
-    doc.setFontSize(11);
-    const message = [
-      'PDF Generation Notice:',
-      '',
-      'This is a simplified PDF version of your proposal.',
-      'For the best formatted version, please use the Print/PDF button',
-      'in the preview window, which will open your browser\'s print dialog',
-      'where you can save as PDF with full formatting.',
-      '',
-      'Alternatively, you can:',
-      '• Use the Print/PDF button for full formatting',
-      '• Email the proposal directly from the app',
-      '• Copy content from the preview for other uses',
-      '',
-      'Thank you for using our proposal generator!'
-    ];
-    
-    let yPos = 65;
-    message.forEach(line => {
-      if (line === '') {
-        yPos += 6;
-      } else if (line === 'PDF Generation Notice:') {
-        doc.setFontSize(14);
-        doc.text(line, pageWidth / 2, yPos, { align: 'center' });
-        doc.setFontSize(11);
-        yPos += 12;
-      } else {
-        doc.text(line, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 8;
-      }
-    });
-    
-    // Save the PDF
-    const pdfFilename = filename || `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_simple.pdf`;
-    
-    // For iOS/Capacitor compatibility, use blob download instead of direct save
-    try {
-      const pdfBlob = doc.output('blob');
-      const url = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.download = pdfFilename;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      console.log('Simple PDF generated successfully:', pdfFilename);
-    } catch (saveError) {
-      console.error('Blob download failed, trying direct save:', saveError);
-      doc.save(pdfFilename);
+    doc.text(`Name: ${project.name || 'Untitled Project'}`, 14, 50);
+    doc.text(`Created: ${formatDateSafely(project.createdAt)}`, 14, 60);
+    if (project.description) {
+      doc.text('Description:', 14, 70);
+      const splitDescription = doc.splitTextToSize(project.description, pageWidth - 28);
+      doc.text(splitDescription, 14, 80);
     }
     
-    // Show user message
-    alert('PDF downloaded! For best formatting, use the Print/PDF button in the preview.');
+    // Calculate total volume
+    const calculations = project.calculations || [];
+    const totalVolume = calculations.reduce((total, calc) => total + (calc.result?.volume || 0), 0);
     
+    // Mix Design
+    const mixDesign = calculateMixMaterials(totalVolume || 1, selectedPsi);
+    doc.setFontSize(14);
+    doc.text('Concrete Mix Design', 14, 110);
+    doc.setFontSize(12);
+    
+    const mixDesignData = [
+      ['Component', 'Amount', 'Unit'],
+      ['Portland Cement', mixDesign.materials.cement.toFixed(2), 'yd³'],
+      ['Fine Aggregate (Sand)', mixDesign.materials.sand.toFixed(2), 'yd³'],
+      ['Coarse Aggregate', mixDesign.materials.aggregate.toFixed(2), 'yd³'],
+      ['Water', mixDesign.materials.water.toString(), 'gal'],
+    ];
+    
+    doc.autoTable({
+      startY: 120,
+      head: [mixDesignData[0]],
+      body: mixDesignData.slice(1),
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+    
+    // Additional Mix Design Details
+    const currentY = doc.lastAutoTable.finalY + 10;
+    doc.text(`Strength: ${selectedPsi} PSI`, 14, currentY);
+    doc.text(`Water/Cement Ratio: ${mixDesign.waterCementRatio}`, 14, currentY + 10);
+    doc.text(`Slump Range: ${mixDesign.slump.min}" - ${mixDesign.slump.max}"`, 14, currentY + 20);
+    
+    // Cost Estimate
+    const costEstimate = calculateConcreteCost(totalVolume || 1, selectedPsi);
+    doc.setFontSize(14);
+    doc.text('Cost Estimate', 14, currentY + 40);
+    
+    const costData = [
+      ['Item', 'Cost'],
+      ['Concrete Cost', formatPrice(costEstimate.concreteCost)],
+      ['Delivery Fees', formatPrice(costEstimate.deliveryFees.totalDeliveryFees)],
+      ['Total Estimated Cost', formatPrice(costEstimate.totalCost)]
+    ];
+    
+    doc.autoTable({
+      startY: currentY + 50,
+      head: [costData[0]],
+      body: costData.slice(1),
+      theme: 'striped',
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+
+    // QC Records - only if they exist in the project
+    const projectWithQC = project as any;
+    if (projectWithQC.qcRecords && projectWithQC.qcRecords.length > 0) {
+      const qcY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(14);
+      doc.text('Quality Control Records', 14, qcY);
+
+      const qcData = projectWithQC.qcRecords.map((record: any) => [
+        format(new Date(record.date), 'MM/dd/yyyy'),
+        `${record.temperature}°F`,
+        `${record.humidity}%`,
+        `${record.slump}"`,
+        `${record.air_content}%`,
+        record.cylindersMade.toString(),
+        record.notes || ''
+      ]);
+
+      doc.autoTable({
+        startY: qcY + 10,
+        head: [['Date', 'Temp', 'Humidity', 'Slump', 'Air', 'Cylinders', 'Notes']],
+        body: qcData,
+        theme: 'striped',
+        headStyles: { fillColor: [59, 130, 246] },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 20 },
+          5: { cellWidth: 20 },
+          6: { cellWidth: 'auto' }
+        }
+      });
+    }
+    
+    // Calculations Table
+    if (calculations.length > 0) {
+      const calculationsY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(14);
+      doc.text('Calculations', 14, calculationsY);
+      
+      const calculationsData = calculations.map(calc => [
+        calc.type.charAt(0).toUpperCase() + calc.type.slice(1),
+        formatDateSafely(calc.createdAt),
+        `${calc.result?.volume || 0} yd³`,
+        calc.result?.bags?.toString() || '0'
+      ]);
+      
+      doc.autoTable({
+        startY: calculationsY + 10,
+        head: [['Type', 'Date', 'Volume', 'Bags Required']],
+        body: calculationsData,
+        theme: 'striped',
+        headStyles: { fillColor: [59, 130, 246] },
+      });
+    }
+    
+    // Footer
+    const pageCount = (doc.internal as any).getNumberOfPages();
+    doc.setFontSize(10);
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Save the PDF with platform support
+    const fileName = project.name ? 
+      `${project.name.toLowerCase().replace(/\s+/g, '-')}-report.pdf` : 
+      'concrete-mix-report.pdf';
+    
+    await savePDFWithPlatformSupport(doc, fileName, `Project Report - ${project.name || 'Untitled'}`);
   } catch (error) {
-    console.error('Simple PDF generation failed:', error);
-    alert('PDF generation failed. Please try using the Print/PDF button in the preview instead.');
-  }
-}
-
-export function generateProjectPDF(project: Project, selectedPsi: keyof typeof CONCRETE_MIX_DESIGNS) {
-  const doc = new jsPDF();
-  // autoTable already registered globally
-  const pageWidth = doc.internal.pageSize.width;
-  
-  // Header
-  doc.setFontSize(24);
-  doc.text('Project Report', pageWidth / 2, 20, { align: 'center' });
-  
-  // Project Details
-  doc.setFontSize(14);
-  doc.text('Project Details', 14, 40);
-  doc.setFontSize(12);
-  doc.text(`Name: ${project.name || 'Untitled Project'}`, 14, 50);
-  doc.text(`Created: ${formatDateSafely(project.createdAt)}`, 14, 60);
-  if (project.description) {
-    doc.text('Description:', 14, 70);
-    const splitDescription = doc.splitTextToSize(project.description, pageWidth - 28);
-    doc.text(splitDescription, 14, 80);
-  }
-  
-  // Calculate total volume
-  const calculations = project.calculations || [];
-  const totalVolume = calculations.reduce((total, calc) => total + (calc.result?.volume || 0), 0);
-  
-  // Mix Design
-  const mixDesign = calculateMixMaterials(totalVolume || 1, selectedPsi);
-  doc.setFontSize(14);
-  doc.text('Concrete Mix Design', 14, 110);
-  doc.setFontSize(12);
-  
-  const mixDesignData = [
-    ['Component', 'Amount', 'Unit'],
-    ['Portland Cement', mixDesign.materials.cement.toFixed(2), 'yd³'],
-    ['Fine Aggregate (Sand)', mixDesign.materials.sand.toFixed(2), 'yd³'],
-    ['Coarse Aggregate', mixDesign.materials.aggregate.toFixed(2), 'yd³'],
-    ['Water', mixDesign.materials.water.toString(), 'gal'],
-  ];
-  
-  (doc as any).autoTable({
-    startY: 120,
-    head: [mixDesignData[0]],
-    body: mixDesignData.slice(1),
-    theme: 'striped',
-    headStyles: { fillColor: [59, 130, 246] },
-  });
-  
-  // Additional Mix Design Details
-  const currentY = (doc as any).lastAutoTable.finalY + 10;
-  doc.text(`Strength: ${selectedPsi} PSI`, 14, currentY);
-  doc.text(`Water/Cement Ratio: ${mixDesign.waterCementRatio}`, 14, currentY + 10);
-  doc.text(`Slump Range: ${mixDesign.slump.min}" - ${mixDesign.slump.max}"`, 14, currentY + 20);
-  
-  // Cost Estimate
-  const costEstimate = calculateConcreteCost(totalVolume || 1, selectedPsi);
-  doc.setFontSize(14);
-  doc.text('Cost Estimate', 14, currentY + 40);
-  
-  const costData = [
-    ['Item', 'Cost'],
-    ['Concrete Cost', formatPrice(costEstimate.concreteCost)],
-    ['Delivery Fees', formatPrice(costEstimate.deliveryFees.totalDeliveryFees)],
-    ['Total Estimated Cost', formatPrice(costEstimate.totalCost)]
-  ];
-  
-  (doc as any).autoTable({
-    startY: currentY + 50,
-    head: [costData[0]],
-    body: costData.slice(1),
-    theme: 'striped',
-    headStyles: { fillColor: [59, 130, 246] },
-  });
-
-  // QC Records - only if they exist in the project
-  const projectWithQC = project as any;
-  if (projectWithQC.qcRecords && projectWithQC.qcRecords.length > 0) {
-    const qcY = (doc as any).lastAutoTable.finalY + 20;
-    doc.setFontSize(14);
-    doc.text('Quality Control Records', 14, qcY);
-
-    const qcData = projectWithQC.qcRecords.map((record: any) => [
-      format(new Date(record.date), 'MM/dd/yyyy'),
-      `${record.temperature}°F`,
-      `${record.humidity}%`,
-      `${record.slump}"`,
-      `${record.air_content}%`,
-      record.cylindersMade.toString(),
-      record.notes || ''
-    ]);
-
-    (doc as any).autoTable({
-      startY: qcY + 10,
-      head: [['Date', 'Temp', 'Humidity', 'Slump', 'Air', 'Cylinders', 'Notes']],
-      body: qcData,
-      theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 20 },
-        6: { cellWidth: 'auto' }
-      }
-    });
-  }
-  
-  // Calculations Table
-  if (calculations.length > 0) {
-    const calculationsY = (doc as any).lastAutoTable.finalY + 20;
-    doc.setFontSize(14);
-    doc.text('Calculations', 14, calculationsY);
-    
-    const calculationsData = calculations.map(calc => [
-      calc.type.charAt(0).toUpperCase() + calc.type.slice(1),
-      formatDateSafely(calc.createdAt),
-      `${calc.result?.volume || 0} yd³`,
-      calc.result?.bags?.toString() || '0'
-    ]);
-    
-    (doc as any).autoTable({
-      startY: calculationsY + 10,
-      head: [['Type', 'Date', 'Volume', 'Bags Required']],
-      body: calculationsData,
-      theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] },
-    });
-  }
-  
-  // Footer
-  const pageCount = (doc.internal as any).getNumberOfPages();
-  doc.setFontSize(10);
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.text(
-      `Page ${i} of ${pageCount}`,
-      pageWidth / 2,
-      doc.internal.pageSize.height - 10,
-      { align: 'center' }
-    );
-  }
-  
-  // Save the PDF
-  const fileName = project.name ? 
-    `${project.name.toLowerCase().replace(/\s+/g, '-')}-report.pdf` : 
-    'concrete-mix-report.pdf';
-    
-  // For iOS/Capacitor compatibility, use blob download instead of direct save
-  try {
-    const pdfBlob = doc.output('blob');
-    const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.download = fileName;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    console.log('Project PDF generated successfully:', fileName);
-  } catch (saveError) {
-    console.error('Blob download failed, trying direct save:', saveError);
-  doc.save(fileName);
-  }
-}
-
-// Type augmentation for jsPDF to include autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-    lastAutoTable: { finalY: number };
+    console.error('Error generating project PDF:', error);
+    throw error;
   }
 }

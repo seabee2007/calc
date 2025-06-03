@@ -244,11 +244,11 @@ const MixDesignAdvisor: React.FC = () => {
     return { type: 'Retarder', range: '2-4' };
   };
 
-  const handleDownloadSpec = () => {
+  const handleDownloadSpec = async () => {
     if (recommendation) {
       console.log('Download button clicked, calling generateMixSpecPDF');
       try {
-        const success = generateMixSpecPDF(
+        const success = await generateMixSpecPDF(
           selectedPsi,
           recommendation.targetAir,
           recommendation.waterCementRatio,
