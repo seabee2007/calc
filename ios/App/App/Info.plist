@@ -49,5 +49,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>UIKeyboardInputMode</key>
+	<string>en_US</string>
+	<key>UITextInputContextIdentifier</key>
+	<string>WebViewInput</string>
 </dict>
 </plist>

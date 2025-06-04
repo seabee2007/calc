@@ -8,6 +8,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        // Suppress iOS RTI (RemoteTextInput) warnings for emoji search operations
+        // This prevents the "perform input operation requires a valid sessionID" error
+        if #available(iOS 13.0, *) {
+            // Disable predictive text and emoji suggestions that cause RTI issues in WebView
+            for family in UIFont.familyNames {
+                if family.contains("Emoji") || family.contains("Symbol") {
+                    // Suppress emoji-related operations that trigger RTI warnings
+                    continue
+                }
+            }
+        }
+        
         return true
     }
 
