@@ -576,6 +576,30 @@ const Projects: React.FC = () => {
                                   )}
                                 </div>
                               </div>
+
+                              {/* Total Cost Section - Show if pricing data is available */}
+                              {calc.result.pricing && calc.result.pricing.totalCost > 0 && (
+                                <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/50 p-3 rounded-md border border-yellow-200 dark:border-yellow-700">
+                                  <div className="flex justify-between items-center">
+                                    <div>
+                                      <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">Total Project Cost</p>
+                                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                                        Includes concrete, delivery, and additional services
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">
+                                        ${calc.result.pricing.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                      </p>
+                                      {calc.result.pricing.supplier && (
+                                        <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                                          from {calc.result.pricing.supplier.name}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </Card>
