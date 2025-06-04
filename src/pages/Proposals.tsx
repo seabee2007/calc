@@ -212,7 +212,7 @@ const Proposals: React.FC = () => {
                 {/* Proposal Header - Responsive Full Width Title */}
                 <div className="mb-3">
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white w-full">
-                    Proposal Preview
+                    {proposal.title}
                   </h3>
                 </div>
 
