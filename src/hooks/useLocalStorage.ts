@@ -3,7 +3,10 @@ import { useState, useEffect } from 'react';
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
   // Get from local storage then parse stored json or return initialValue
   const readValue = (): T => {
-    if (typeof window === 'undefined') {
+    // Check if we're in a WebView environment
+    const isWebView = 'Capacitor' in window;
+    
+    if (typeof window === 'undefined' || isWebView) {
       return initialValue;
     }
 
@@ -28,8 +31,8 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
       // Save state
       setStoredValue(valueToStore);
       
-      // Save to local storage
-      if (typeof window !== 'undefined') {
+      // Only attempt localStorage in non-WebView environment
+      if (typeof window !== 'undefined' && !('Capacitor' in window)) {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
@@ -38,15 +41,21 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
   };
 
   useEffect(() => {
-    // Update state if localStorage changes in another tab
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key && e.newValue) {
-        setStoredValue(JSON.parse(e.newValue));
-      }
-    };
+    // Only add storage event listener in non-WebView environment
+    if (typeof window !== 'undefined' && !('Capacitor' in window)) {
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === key && e.newValue) {
+          try {
+            setStoredValue(JSON.parse(e.newValue));
+          } catch (error) {
+            console.warn(`Error parsing storage change for key "${key}":`, error);
+          }
+        }
+      };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }
   }, [key]);
 
   return [storedValue, setValue];

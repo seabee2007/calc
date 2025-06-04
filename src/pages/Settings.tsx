@@ -673,6 +673,51 @@ const Settings: React.FC = () => {
         </div>
       </Card>
 
+      {/* Developer/Testing Section */}
+      <Card className="p-6 border-dashed border-2 border-yellow-300 dark:border-yellow-600">
+        <div className="flex items-center gap-3 mb-6">
+          <Shield className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Developer Testing
+          </h2>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <div>
+              <h3 className="font-medium text-gray-900 dark:text-white">Test Onboarding Flow</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Reset onboarding status and navigate to test the first-time user experience
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                // Clear onboarding flag
+                try {
+                  localStorage.removeItem('onboarding_completed');
+                } catch (error) {
+                  console.error('LocalStorage error:', error);
+                }
+                
+                // Navigate to a special test route that will trigger onboarding
+                window.location.href = '/test-onboarding';
+                
+                setSaveMessage({ 
+                  text: 'Navigating to onboarding test...', 
+                  type: 'success' 
+                });
+                setTimeout(() => setSaveMessage(null), 2000);
+              }}
+              variant="outline"
+              size="sm"
+              className="border-yellow-400 text-yellow-700 hover:bg-yellow-100 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
+            >
+              Test Onboarding
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       {/* Save Button - now shows unsaved changes indicator */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600 dark:text-gray-400">
