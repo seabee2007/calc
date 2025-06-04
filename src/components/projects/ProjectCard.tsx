@@ -5,6 +5,8 @@ import { Folder, Clock, Calculator, Trash2 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Project } from '../../types';
+import { soundService } from '../../services/soundService';
+import { hapticService } from '../../services/hapticService';
 
 interface ProjectCardProps {
   project: Project;
@@ -15,7 +17,13 @@ interface ProjectCardProps {
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete }) => {
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    soundService.play('trash');
     onDelete();
+  };
+
+  const handleCardClick = async () => {
+    await hapticService.selection();
+    onClick();
   };
 
   const formattedDate = (() => {
@@ -41,7 +49,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
       <Card 
         className="cursor-pointer h-full"
         shadow="md"
-        onClick={onClick}
+        onClick={handleCardClick}
       >
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">

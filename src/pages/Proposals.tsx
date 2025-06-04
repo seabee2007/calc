@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Edit, Trash2, Copy, Download, Upload, Plus, Calendar, Eye } from 'lucide-react';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import Button from '../components/ui/Button';
+import { soundService } from '../services/soundService';
 
 const Proposals: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ const Proposals: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      soundService.play('trash');
       await ProposalService.delete(id);
       setProposals(prev => prev.filter(p => p.id !== id));
       setDeleteConfirm(null);
@@ -54,7 +56,14 @@ const Proposals: React.FC = () => {
   };
 
   const handleExport = (proposal: SavedProposal) => {
-    ProposalService.exportAsJSON(proposal);
+    try {
+      console.log('Downloading proposal:', proposal.title);
+      soundService.play('save');
+      ProposalService.exportAsJSON(proposal);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to download proposal');
+    }
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,34 +209,25 @@ const Proposals: React.FC = () => {
                 transition={{ delay: index * 0.1 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg dark:hover:shadow-2xl transition-shadow p-6"
               >
-                {/* Proposal Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                      {proposal.title}
-                    </h3>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getTemplateColor(proposal.template_type)}`}>
-                      {proposal.template_type.charAt(0).toUpperCase() + proposal.template_type.slice(1)}
-                    </span>
-                  </div>
+                {/* Proposal Header - Responsive Full Width Title */}
+                <div className="mb-3">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white w-full">
+                    Proposal Preview
+                  </h3>
                 </div>
 
-                {/* Proposal Details */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                    <Calendar size={16} className="mr-2" />
-                    Updated {formatDate(proposal.updated_at)}
+                {/* Proposal Details - Date and Template */}
+                <div className="space-y-3 mb-5">
+                  <div className="flex items-center text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                    <Calendar size={16} className="mr-2 flex-shrink-0" />
+                    <span>Proposal - {formatDate(proposal.updated_at)}</span>
                   </div>
-                  {proposal.data.projectTitle && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                      Project: {proposal.data.projectTitle}
-                    </p>
-                  )}
-                  {proposal.data.clientName && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                      Client: {proposal.data.clientName}
-                    </p>
-                  )}
+                  
+                  <div>
+                    <span className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${getTemplateColor(proposal.template_type)}`}>
+                      {proposal.template_type.charAt(0).toUpperCase() + proposal.template_type.slice(1)} Professional
+                    </span>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -235,40 +235,43 @@ const Proposals: React.FC = () => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handlePreview(proposal)}
-                      className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
+                      className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
                       title="Preview"
                     >
-                      <Eye size={16} />
+                      <Eye size={20} />
                     </button>
                     <button
                       onClick={() => handleEdit(proposal)}
-                      className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
+                      className="p-2.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
                       title="Edit"
                     >
-                      <Edit size={16} />
+                      <Edit size={20} />
                     </button>
                     <button
                       onClick={() => handleDuplicate(proposal)}
-                      className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
+                      className="p-2.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
                       title="Duplicate"
                     >
-                      <Copy size={16} />
+                      <Copy size={20} />
                     </button>
                     <button
                       onClick={() => handleExport(proposal)}
-                      className="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md transition-colors"
-                      title="Export"
+                      className="p-2.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md transition-colors"
+                      title="Download"
                     >
-                      <Download size={16} />
+                      <Download size={20} />
                     </button>
                   </div>
                   
                   <button
-                    onClick={() => setDeleteConfirm(proposal.id)}
-                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                    onClick={() => {
+                      soundService.play('modal');
+                      setDeleteConfirm(proposal.id);
+                    }}
+                    className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                     title="Delete"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={20} />
                   </button>
                 </div>
               </motion.div>

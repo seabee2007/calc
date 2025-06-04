@@ -256,7 +256,12 @@ export const getUserPreferences = async (): Promise<UserPreferences> => {
       currency: 'USD',
       defaultPSI: '3000',
       autoSave: true,
+      soundEnabled: true,
+      hapticsEnabled: true,
       notifications: {
+        projectUpdates: true,
+        teamChanges: true,
+        systemAlerts: true,
         emailUpdates: true,
         projectReminders: true,
         weatherAlerts: true
@@ -265,14 +270,23 @@ export const getUserPreferences = async (): Promise<UserPreferences> => {
   }
 
   return {
-    units: data.units,
-    lengthUnit: data.length_unit,
-    volumeUnit: data.volume_unit,
-    measurementSystem: data.measurement_system,
-    currency: data.currency,
-    defaultPSI: data.default_psi,
-    autoSave: data.auto_save,
-    notifications: data.notifications
+    units: data.units || 'imperial',
+    lengthUnit: data.length_unit || 'feet',
+    volumeUnit: data.volume_unit || 'cubic_yards',
+    measurementSystem: data.measurement_system || 'imperial',
+    currency: data.currency || 'USD',
+    defaultPSI: data.default_psi || '3000',
+    autoSave: data.auto_save ?? true,
+    soundEnabled: data.sound_enabled ?? true,
+    hapticsEnabled: data.haptics_enabled ?? true,
+    notifications: data.notifications || {
+      projectUpdates: true,
+      teamChanges: true,
+      systemAlerts: true,
+      emailUpdates: true,
+      projectReminders: true,
+      weatherAlerts: true
+    }
   };
 };
 
@@ -297,6 +311,8 @@ export const updateUserPreferences = async (preferences: Partial<UserPreferences
       currency: updatedPreferences.currency,
       default_psi: updatedPreferences.defaultPSI,
       auto_save: updatedPreferences.autoSave,
+      sound_enabled: updatedPreferences.soundEnabled,
+      haptics_enabled: updatedPreferences.hapticsEnabled,
       notifications: updatedPreferences.notifications,
       updated_at: new Date().toISOString()
     })

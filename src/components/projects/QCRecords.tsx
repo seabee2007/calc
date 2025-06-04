@@ -7,6 +7,7 @@ import Input from '../ui/Input';
 import Card from '../ui/Card';
 import { format } from 'date-fns';
 import { generateProjectPDF } from '../../utils/pdf';
+import { soundService } from '../../services/soundService';
 
 interface QCRecordsProps {
   projectId: string;
@@ -242,7 +243,10 @@ const QCRecords: React.FC<QCRecordsProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(record.id)}
+                        onClick={() => {
+                          soundService.play('trash');
+                          onDelete(record.id);
+                        }}
                         icon={<Trash2 size={16} />}
                       />
                     </div>

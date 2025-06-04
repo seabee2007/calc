@@ -65,6 +65,7 @@ interface PreferencesState {
       systemAlerts: boolean;
     };
     soundEnabled: boolean;
+    hapticsEnabled: boolean;
   };
   loading: boolean;
   updatePreferences: (newPreferences: Partial<PreferencesState['preferences']>) => Promise<void>;
@@ -101,7 +102,12 @@ const defaultPreferences: UserPreferences = {
   currency: 'USD',
   defaultPSI: '3000',
   autoSave: true,
+  soundEnabled: true,
+  hapticsEnabled: true,
   notifications: {
+    projectUpdates: true,
+    teamChanges: true,
+    systemAlerts: true,
     emailUpdates: true,
     projectReminders: true,
     weatherAlerts: true
@@ -597,6 +603,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
       systemAlerts: true,
     },
     soundEnabled: true,
+    hapticsEnabled: true,
   },
   loading: false,
   

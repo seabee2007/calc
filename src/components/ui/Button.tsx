@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { hapticService } from '../../services/hapticService';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -29,8 +30,26 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   href,
   target,
   rel,
+  onClick,
   ...props
 }, ref) => {
+  // Enhanced onClick handler with haptic feedback
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    // Trigger appropriate haptic feedback based on variant
+    if (variant === 'danger') {
+      await hapticService.heavy(); // Heavy haptic for dangerous actions
+    } else if (variant === 'primary') {
+      await hapticService.medium(); // Medium haptic for primary actions
+    } else {
+      await hapticService.light(); // Light haptic for all other buttons
+    }
+    
+    // Call the original onClick handler if provided
+    if (onClick) {
+      onClick(e as any);
+    }
+  };
+
   // Base styles with dark mode support
   const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none dark:focus-visible:ring-blue-400 dark:focus-visible:ring-offset-gray-800';
   
@@ -88,30 +107,33 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
 
   if (as === 'a') {
     return (
-      <motion.a
-        ref={ref as React.Ref<HTMLAnchorElement>}
-        className={classes}
-        href={href}
-        target={target}
-        rel={rel}
-        whileTap={{ scale: 0.97 }}
-        {...props}
-      >
-        {content}
-      </motion.a>
+      <motion.div whileTap={{ scale: 0.97 }} className="inline-block">
+        <a
+          ref={ref as React.Ref<HTMLAnchorElement>}
+          className={classes}
+          href={href}
+          target={target}
+          rel={rel}
+          onClick={handleClick}
+        >
+          {content}
+        </a>
+      </motion.div>
     );
   }
 
   return (
-    <motion.button
-      ref={ref as React.Ref<HTMLButtonElement>}
-      className={classes}
-      whileTap={{ scale: 0.97 }}
-      disabled={isLoading || disabled}
-      {...props}
-    >
-      {content}
-    </motion.button>
+    <motion.div whileTap={{ scale: 0.97 }} className="inline-block">
+      <button
+        ref={ref as React.Ref<HTMLButtonElement>}
+        className={classes}
+        disabled={isLoading || disabled}
+        onClick={handleClick}
+        {...props}
+      >
+        {content}
+      </button>
+    </motion.div>
   );
 });
 

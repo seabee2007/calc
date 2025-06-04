@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { soundService } from '../../services/soundService';
+import { hapticService } from '../../services/hapticService';
 
 interface ModalProps {
   isOpen: boolean;
@@ -22,13 +23,15 @@ const Modal: React.FC<ModalProps> = ({
 
   useEffect(() => {
     if (isOpen && !prevIsOpen.current) {
-      soundService.play('click');
+      soundService.play('modal');
+      hapticService.modal();
     }
     prevIsOpen.current = isOpen;
     
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         soundService.play('click');
+        hapticService.button();
         onClose();
       }
     };

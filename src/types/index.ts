@@ -7,12 +7,18 @@ export interface UserPreferences {
     projectUpdates: boolean;
     teamChanges: boolean;
     systemAlerts: boolean;
+    emailUpdates: boolean;
+    projectReminders: boolean;
+    weatherAlerts: boolean;
   };
   soundEnabled: boolean;
+  hapticsEnabled: boolean;
   volumeUnit: 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
   measurementSystem: 'imperial' | 'metric';
   currency: 'USD' | 'CAD' | 'EUR' | 'GBP';
   defaultPSI: '2500' | '3000' | '4000' | '5000';
+  units: 'imperial' | 'metric';
+  lengthUnit: 'feet' | 'meters';
 }
 
 // Calculation interface

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Calculator, Trash2 } from 'lucide-react';
+import { Calculator, Trash2, Plus } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { useProjects } from './useProjects';
+import { soundService } from '../../services/soundService';
 
 export default function CalculationSection() {
   const { currentProject, handlers } = useProjects();
@@ -34,7 +35,10 @@ export default function CalculationSection() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handlers.confirmDelete('calculation', calc.id)}
+                      onClick={() => {
+                        soundService.play('trash');
+                        handlers.confirmDelete('calculation', calc.id);
+                      }}
                       icon={<Trash2 size={16} />}
                       className="text-red-600 hover:text-red-700"
                     />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader, Edit3, FileText } from 'lucide-react';
@@ -21,6 +21,8 @@ import { generateProjectPDF } from '../utils/pdf';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { MixProfileType, MIX_PROFILE_LABELS } from '../types/curing';
+import { soundService } from '../services/soundService';
+import { hapticService } from '../services/hapticService';
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
@@ -178,17 +180,20 @@ const Projects: React.FC = () => {
 
   const handleDeleteProject = () => {
     if (currentProject) {
+      soundService.play('modal');
       setItemToDelete({ type: 'project', id: currentProject.id });
       setShowDeleteConfirm(true);
     }
   };
 
   const handleDeleteProjectCard = (projectId: string) => {
+    soundService.play('modal');
     setItemToDelete({ type: 'project', id: projectId });
     setShowDeleteConfirm(true);
   };
 
   const handleDeleteCalculation = (calculationId: string) => {
+    soundService.play('modal');
     setItemToDelete({ type: 'calculation', id: calculationId });
     setShowDeleteConfirm(true);
   };
@@ -553,7 +558,11 @@ const Projects: React.FC = () => {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleDeleteCalculation(calc.id)}
+                                    onClick={() => {
+                                      soundService.play('trash');
+                                      hapticService.delete();
+                                      handleDeleteCalculation(calc.id);
+                                    }}
                                     icon={<Trash2 size={16} />}
                                     className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                     title="Delete Calculation"
@@ -785,7 +794,11 @@ const Projects: React.FC = () => {
                     key={project.id} 
                     project={project} 
                     onClick={() => handleProjectClick(project)}
-                    onDelete={() => handleDeleteProjectCard(project.id)}
+                    onDelete={() => {
+                      soundService.play('trash');
+                      hapticService.delete();
+                      handleDeleteProjectCard(project.id);
+                    }}
                   />
                 ))
               ) : (

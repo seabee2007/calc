@@ -5,6 +5,7 @@ import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService'
 import { useAuth } from '../hooks/useAuth';
 import { UserPreferences } from '../types';
 import { soundService } from '../services/soundService';
+import { hapticService } from '../services/hapticService';
 import { 
   User, 
   Building2, 
@@ -22,7 +23,9 @@ import {
   Globe,
   Shield,
   Trash2,
-  Camera
+  Camera,
+  Volume2,
+  Volume
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -195,7 +198,7 @@ const Settings: React.FC = () => {
       
       // Play success sound for toggles (except sound toggle itself)
       if (field !== 'soundEnabled' && typeof value === 'boolean') {
-        soundService.play('success');
+        soundService.play('toggle');
       }
       
       // Show auto-save notification if not toggling auto-save itself
@@ -222,7 +225,7 @@ const Settings: React.FC = () => {
       await updatePreferences({ notifications: updatedNotifications });
       
       // Play success sound for toggles
-      soundService.play('success');
+      soundService.play('toggle');
       
       if (!preferencesLoading && preferences.autoSave) {
         setSaveMessage({ 
@@ -319,7 +322,7 @@ const Settings: React.FC = () => {
   const handleRemoveLogo = async () => {
     try {
       // Play delete sound
-      soundService.play('delete');
+      soundService.play('trash');
       
       // Delete from Supabase Storage if there's a path
       if (companySettings.logoPath) {
@@ -637,9 +640,7 @@ const Settings: React.FC = () => {
               <Button
                 onClick={() => {
                   console.log('Testing sounds...');
-                  soundService.play('success');
-                  setTimeout(() => soundService.play('click'), 1000);
-                  setTimeout(() => soundService.play('delete'), 2000);
+                  soundService.testSounds();
                 }}
                 variant="outline"
                 size="sm"
@@ -650,7 +651,44 @@ const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={preferences.soundEnabled}
-                  onChange={(e) => handlePreferenceChange('soundEnabled', e.target.checked)}
+                  onChange={(e) => {
+                    handlePreferenceChange('soundEnabled', e.target.checked);
+                  }}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Volume className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">Haptic Feedback</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Feel tactile feedback for button presses and interactions
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => {
+                  console.log('Testing haptics...');
+                  hapticService.testHaptics();
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Test Haptics
+              </Button>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={preferences.hapticsEnabled ?? true}
+                  onChange={(e) => {
+                    handlePreferenceChange('hapticsEnabled', e.target.checked);
+                  }}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -673,7 +711,9 @@ const Settings: React.FC = () => {
               <input
                 type="checkbox"
                 checked={preferences.autoSave}
-                onChange={(e) => handlePreferenceChange('autoSave', e.target.checked)}
+                onChange={(e) => {
+                  handlePreferenceChange('autoSave', e.target.checked);
+                }}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -710,7 +750,9 @@ const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={value}
-                  onChange={(e) => handleNotificationChange(key, e.target.checked)}
+                  onChange={(e) => {
+                    handleNotificationChange(key, e.target.checked);
+                  }}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -760,6 +802,25 @@ const Settings: React.FC = () => {
               className="border-yellow-400 text-yellow-700 hover:bg-yellow-100 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
             >
               Test Onboarding
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <div>
+              <h3 className="font-medium text-gray-900 dark:text-white">Test Haptics</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Test haptic feedback for button presses and toggles
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                console.log('Testing haptics...');
+                hapticService.testHaptics();
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Test Haptics
             </Button>
           </div>
         </div>

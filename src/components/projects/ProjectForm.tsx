@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Save, X, Calendar } from 'lucide-react';
 import Button from '../ui/Button';
@@ -28,6 +28,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       pourDate: new Date().toISOString().split('T')[0]
     }
   });
+
+  const [formData, setFormData] = useState({ name: '', description: '' });
 
   if (isModal) {
     return (

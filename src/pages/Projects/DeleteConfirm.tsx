@@ -15,7 +15,7 @@ export default function DeleteConfirm({ show, type, onCancel, onConfirm }: Delet
 
   useEffect(() => {
     if (show && !prevShow.current) {
-      soundService.play('click');
+      soundService.play('modal');
     }
     prevShow.current = show;
   }, [show]);
@@ -23,7 +23,8 @@ export default function DeleteConfirm({ show, type, onCancel, onConfirm }: Delet
   if (!show) return null;
 
   const handleConfirm = () => {
-    soundService.play('delete');
+    // Remove duplicate delete sound - already played when trash icon was clicked
+    // soundService.play('trash');
     onConfirm();
   };
 

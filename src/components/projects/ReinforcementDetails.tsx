@@ -146,7 +146,7 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        soundService.play('delete');
+                        soundService.play('trash');
                         onDelete(reinforcement.id);
                       }}
                       icon={<Trash2 size={16} />}

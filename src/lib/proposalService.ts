@@ -154,17 +154,40 @@ export class ProposalService {
 
   // Export proposal as JSON
   static exportAsJSON(proposal: SavedProposal): void {
-    const dataStr = JSON.stringify(proposal, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${proposal.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_proposal.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+      console.log('Starting export for proposal:', proposal.title);
+      
+      const dataStr = JSON.stringify(proposal, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      console.log('Created blob URL:', url);
+      
+      const fileName = `${proposal.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_proposal.json`;
+      console.log('Download filename:', fileName);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      
+      // Add to document, click, and remove
+      document.body.appendChild(link);
+      console.log('Triggering download...');
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log('Download cleanup completed');
+      }, 100);
+      
+    } catch (error) {
+      console.error('Export failed:', error);
+      throw new Error('Failed to download proposal file');
+    }
   }
 
   // Import proposal from JSON file

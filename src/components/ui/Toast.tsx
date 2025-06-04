@@ -37,8 +37,8 @@ const Toast: React.FC<ToastProps> = ({
   onClose,
 }) => {
   useEffect(() => {
-    // Play sound when toast appears
-    soundService.play(type);
+    // Remove toast sound - user requested no toast sounds
+    // soundService.play(type);
 
     if (duration === Infinity) return;
     

@@ -15,6 +15,7 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { formatPrice } from '../utils/pricing';
+import { soundService } from '../services/soundService';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
@@ -418,6 +419,7 @@ const ProposalGenerator: React.FC = () => {
   };
 
   const removeTimelineItem = (index: number) => {
+    soundService.play('trash');
     setProposalData(prev => ({
       ...prev,
       timeline: prev.timeline.filter((_, i) => i !== index)
@@ -425,6 +427,7 @@ const ProposalGenerator: React.FC = () => {
   };
 
   const removePricingItem = (index: number) => {
+    soundService.play('trash');
     setProposalData(prev => ({
       ...prev,
       pricing: prev.pricing.filter((_, i) => i !== index)
@@ -799,16 +802,30 @@ ${proposalData.preparedByTitle || ''}
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
         <div className="max-w-5xl mx-auto px-4">
           {/* Preview Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {isPreviewMode ? 'Proposal Preview' : 'Preview'}
+          <div className="mb-6">
+            {/* Title - Full Width */}
+            <div className="mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white w-full">
+                Proposal Preview
               </h1>
-              <p className="text-gray-600 dark:text-gray-300">
-                {currentProposal ? currentProposal.title : 'Untitled Proposal'} - {templatePreviews[selectedTemplate].name}
+            </div>
+            
+            {/* Proposal Details */}
+            <div className="mb-4">
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mb-2">
+                Proposal - {new Date().toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </p>
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                {templatePreviews[selectedTemplate].name} Professional
               </p>
             </div>
-            <div className="flex space-x-3">
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
               {isPreviewMode && (
                 <Button
                   variant="outline"
