@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { soundService } from '../../services/soundService';
 
 interface ModalProps {
   isOpen: boolean;
@@ -17,9 +18,19 @@ const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md'
 }) => {
+  const prevIsOpen = useRef(isOpen);
+
   useEffect(() => {
+    if (isOpen && !prevIsOpen.current) {
+      soundService.play('click');
+    }
+    prevIsOpen.current = isOpen;
+    
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        soundService.play('click');
+        onClose();
+      }
     };
     
     const handleTouchMove = (e: TouchEvent) => {
@@ -51,6 +62,11 @@ const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
+  const handleClose = () => {
+    soundService.play('click');
+    onClose();
+  };
+
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-lg',
@@ -67,7 +83,7 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={onClose}
+            onClick={handleClose}
           />
           
           <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -99,7 +115,7 @@ const Modal: React.FC<ModalProps> = ({
                   <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
                     <button
-                      onClick={onClose}
+                      onClick={handleClose}
                       className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <X size={20} />

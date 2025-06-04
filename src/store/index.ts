@@ -57,9 +57,17 @@ interface ProjectState {
 }
 
 interface PreferencesState {
-  preferences: UserPreferences;
+  preferences: {
+    autoSave: boolean;
+    notifications: {
+      projectUpdates: boolean;
+      teamChanges: boolean;
+      systemAlerts: boolean;
+    };
+    soundEnabled: boolean;
+  };
   loading: boolean;
-  updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
+  updatePreferences: (newPreferences: Partial<PreferencesState['preferences']>) => Promise<void>;
   loadPreferences: () => Promise<void>;
   migratePreferences: () => Promise<void>;
 }
@@ -580,62 +588,68 @@ export const useProjectStore = create<ProjectState>((set) => ({
   },
 }));
 
-export const usePreferencesStore = create<PreferencesState>((set, get) => {
-  return {
-    preferences: defaultPreferences,
-    loading: false,
-    
-    loadPreferences: async () => {
-      try {
-        set({ loading: true });
-        const preferences = await getUserPreferences();
-        set({ preferences, loading: false });
-      } catch (error) {
-        console.error('Error loading preferences:', error);
-        set({ loading: false });
-        // Fall back to localStorage if Supabase fails
-        const saved = localStorage.getItem('concretePreferences');
-        if (saved) {
-          const localPreferences = JSON.parse(saved);
-          set({ preferences: { ...defaultPreferences, ...localPreferences } });
-        }
-      }
+export const usePreferencesStore = create<PreferencesState>((set, get) => ({
+  preferences: {
+    autoSave: true,
+    notifications: {
+      projectUpdates: true,
+      teamChanges: true,
+      systemAlerts: true,
     },
-    
-    updatePreferences: async (newPreferences) => {
-      try {
-        set({ loading: true });
-        const updatedPreferences = await updateUserPreferences(newPreferences);
-        set({ preferences: updatedPreferences, loading: false });
-      } catch (error) {
-        console.error('Error updating preferences:', error);
-        set({ loading: false });
-        // Fall back to localStorage update if Supabase fails
-        const currentPrefs = get().preferences;
-        const updated = { ...currentPrefs, ...newPreferences };
-        localStorage.setItem('concretePreferences', JSON.stringify(updated));
-        set({ preferences: updated });
-      }
-    },
-    
-    migratePreferences: async () => {
-      try {
-        set({ loading: true });
-        const migratedPreferences = await migratePreferencesFromLocalStorage();
-        
-        if (migratedPreferences) {
-          set({ preferences: migratedPreferences });
-          console.log('Preferences migrated successfully');
-        }
-        
-        set({ loading: false });
-      } catch (error) {
-        console.error('Error migrating preferences:', error);
-        set({ loading: false });
+    soundEnabled: true,
+  },
+  loading: false,
+  
+  loadPreferences: async () => {
+    try {
+      set({ loading: true });
+      const preferences = await getUserPreferences();
+      set({ preferences, loading: false });
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+      set({ loading: false });
+      // Fall back to localStorage if Supabase fails
+      const saved = localStorage.getItem('concretePreferences');
+      if (saved) {
+        const localPreferences = JSON.parse(saved);
+        set({ preferences: { ...defaultPreferences, ...localPreferences } });
       }
     }
-  };
-});
+  },
+  
+  updatePreferences: async (newPreferences) => {
+    try {
+      set({ loading: true });
+      const updatedPreferences = await updateUserPreferences(newPreferences);
+      set({ preferences: updatedPreferences, loading: false });
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      set({ loading: false });
+      // Fall back to localStorage update if Supabase fails
+      const currentPrefs = get().preferences;
+      const updated = { ...currentPrefs, ...newPreferences };
+      localStorage.setItem('concretePreferences', JSON.stringify(updated));
+      set({ preferences: updated });
+    }
+  },
+  
+  migratePreferences: async () => {
+    try {
+      set({ loading: true });
+      const migratedPreferences = await migratePreferencesFromLocalStorage();
+      
+      if (migratedPreferences) {
+        set({ preferences: migratedPreferences });
+        console.log('Preferences migrated successfully');
+      }
+      
+      set({ loading: false });
+    } catch (error) {
+      console.error('Error migrating preferences:', error);
+      set({ loading: false });
+    }
+  }
+}));
 
 export const useSettingsStore = create<SettingsState>((set, get) => {
   return {

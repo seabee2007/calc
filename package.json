@@ -12,7 +12,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "serve:prod": "node csp-server.js"
+    "serve:prod": "node csp-server.js",
+    "upload-sounds": "ts-node scripts/uploadSounds.ts"
   },
   "dependencies": {
     "@capacitor/cli": "^7.2.0",

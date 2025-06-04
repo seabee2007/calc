@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { type ReinforcementSet } from '../../types/index';
+import { soundService } from '../../services/soundService';
 
 interface ReinforcementDetailsProps {
   reinforcements: ReinforcementSet[];
@@ -144,7 +145,10 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onDelete(reinforcement.id)}
+                      onClick={() => {
+                        soundService.play('delete');
+                        onDelete(reinforcement.id);
+                      }}
                       icon={<Trash2 size={16} />}
                       className="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     />

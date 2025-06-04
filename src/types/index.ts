@@ -2,18 +2,17 @@ import { MixProfileType } from './curing';
 
 // User preferences interface
 export interface UserPreferences {
-  units: 'imperial' | 'metric';
-  lengthUnit: 'feet' | 'meters';
+  autoSave: boolean;
+  notifications: {
+    projectUpdates: boolean;
+    teamChanges: boolean;
+    systemAlerts: boolean;
+  };
+  soundEnabled: boolean;
   volumeUnit: 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
   measurementSystem: 'imperial' | 'metric';
   currency: 'USD' | 'CAD' | 'EUR' | 'GBP';
-  defaultPSI: string;
-  autoSave: boolean;
-  notifications: {
-    emailUpdates: boolean;
-    projectReminders: boolean;
-    weatherAlerts: boolean;
-  };
+  defaultPSI: '2500' | '3000' | '4000' | '5000';
 }
 
 // Calculation interface

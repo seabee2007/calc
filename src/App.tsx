@@ -25,6 +25,7 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
 import { useAuth } from './hooks/useAuth';
 import ConcreteChat from "./components/ConcreteChat";
+import { soundService } from './services/soundService';
 
 // Error boundary component
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
@@ -79,6 +80,7 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Check if we're in a Capacitor WebView
   const isCapacitorWebView = 'Capacitor' in window;
@@ -87,6 +89,9 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Initialize sound service first
+        await soundService.initialize();
+        
         if (user && !authLoading) {
           // Load all user data in parallel
           await Promise.all([
@@ -104,8 +109,10 @@ function App() {
           }
         }
       } catch (error) {
-        console.error('Error during app initialization:', error);
+        console.error('Error initializing app:', error);
         setInitError('Failed to initialize app. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -189,7 +196,7 @@ function App() {
   }
 
   // Show loading state
-  if (!onboardingChecked || authLoading) {
+  if (!onboardingChecked || authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full"></div>

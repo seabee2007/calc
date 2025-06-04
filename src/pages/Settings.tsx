@@ -4,6 +4,7 @@ import { optimizeLogo, validateImageFile, formatFileSize } from '../utils/imageO
 import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
 import { UserPreferences } from '../types';
+import { soundService } from '../services/soundService';
 import { 
   User, 
   Building2, 
@@ -192,6 +193,11 @@ const Settings: React.FC = () => {
     try {
       await updatePreferences({ [field]: value } as any);
       
+      // Play success sound for toggles (except sound toggle itself)
+      if (field !== 'soundEnabled' && typeof value === 'boolean') {
+        soundService.play('success');
+      }
+      
       // Show auto-save notification if not toggling auto-save itself
       if (field !== 'autoSave' && !preferencesLoading && preferences.autoSave) {
         setSaveMessage({ 
@@ -214,6 +220,9 @@ const Settings: React.FC = () => {
     try {
       const updatedNotifications = { ...preferences.notifications, [field]: value };
       await updatePreferences({ notifications: updatedNotifications });
+      
+      // Play success sound for toggles
+      soundService.play('success');
       
       if (!preferencesLoading && preferences.autoSave) {
         setSaveMessage({ 
@@ -309,6 +318,9 @@ const Settings: React.FC = () => {
 
   const handleRemoveLogo = async () => {
     try {
+      // Play delete sound
+      soundService.play('delete');
+      
       // Delete from Supabase Storage if there's a path
       if (companySettings.logoPath) {
         await deleteLogo(companySettings.logoPath);
@@ -609,6 +621,41 @@ const Settings: React.FC = () => {
                 { value: '5000', label: '5000 PSI' }
               ]}
             />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">Sound Effects</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Enable or disable sound effects for notifications and interactions
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => {
+                  console.log('Testing sounds...');
+                  soundService.play('success');
+                  setTimeout(() => soundService.play('click'), 1000);
+                  setTimeout(() => soundService.play('delete'), 2000);
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Test Sounds
+              </Button>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={preferences.soundEnabled}
+                  onChange={(e) => handlePreferenceChange('soundEnabled', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
           </div>
 
           {/* Auto-save Toggle */}

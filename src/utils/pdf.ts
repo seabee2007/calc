@@ -50,7 +50,7 @@ async function savePDFWithPlatformSupport(
       
       try {
         // Write file to cache directory
-        const writeResult = await Filesystem.writeFile({
+        await Filesystem.writeFile({
           path: filename,
           data: base64Data,
           directory: Directory.Cache
@@ -65,8 +65,10 @@ async function savePDFWithPlatformSupport(
         // Share the file using native share sheet
         await Share.share({
           title: title,
+          text: 'Please find attached the PDF document.',
           url: fileUri.uri,
-          dialogTitle: `Share ${title}`
+          dialogTitle: `Share ${title}`,
+          files: [fileUri.uri] // Add files array for better compatibility
         });
         
         console.log('PDF saved and shared successfully on native platform');
@@ -81,9 +83,8 @@ async function savePDFWithPlatformSupport(
         // For other share errors, try direct download fallback
         console.warn('Share failed, attempting direct download:', shareError);
         
-        // Fallback to web-style download on native platforms
         try {
-          const blob = new Blob([atob(base64Data)], { type: 'application/pdf' });
+          const blob = new Blob([doc.output('blob')], { type: 'application/pdf' });
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -101,9 +102,49 @@ async function savePDFWithPlatformSupport(
         }
       }
     } else {
-      // Web: Use standard download
-      doc.save(filename);
-      console.log('PDF saved successfully on web platform');
+      // Web: Use standard download unless explicitly sharing
+      const isSharing = filename.toLowerCase().includes('share') || title.toLowerCase().includes('share');
+      
+      if (isSharing) {
+        // Create a blob URL for the PDF
+        const blob = new Blob([doc.output('blob')], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        
+        // Try to use the Web Share API if available
+        if ('share' in navigator && 'canShare' in navigator) {
+          try {
+            const file = new File([blob], filename, { type: 'application/pdf' });
+            const shareData = { 
+              title: title,
+              text: 'Please find attached the PDF document.',
+              files: [file]
+            };
+            
+            if (navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+              URL.revokeObjectURL(url);
+              return true;
+            }
+          } catch (shareError) {
+            console.warn('Web Share API failed:', shareError);
+            // Fall through to download if sharing fails
+          }
+        }
+        
+        // Fallback to download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        // Regular download
+        doc.save(filename);
+      }
+      
+      console.log('PDF handled successfully on web platform');
       return true;
     }
   } catch (error) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { soundService } from '../../services/soundService';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -36,6 +37,9 @@ const Toast: React.FC<ToastProps> = ({
   onClose,
 }) => {
   useEffect(() => {
+    // Play sound when toast appears
+    soundService.play(type);
+
     if (duration === Infinity) return;
     
     const timer = setTimeout(() => {
@@ -43,7 +47,7 @@ const Toast: React.FC<ToastProps> = ({
     }, duration);
     
     return () => clearTimeout(timer);
-  }, [duration, id, onClose]);
+  }, [duration, id, onClose, type]);
   
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">

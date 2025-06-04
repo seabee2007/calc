@@ -668,9 +668,24 @@ const ProposalGenerator: React.FC = () => {
     }
   };
 
-  const handleEmailProposal = () => {
-    const subject = encodeURIComponent(`Concrete Proposal - ${proposalData.projectTitle || 'Project'}`);
-    const body = encodeURIComponent(`
+  const handleEmailProposal = async () => {
+    if (!printRef.current) {
+      alert('Preview not ready for email. Please try again in a moment.');
+      return;
+    }
+
+    try {
+      const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
+      const htmlContent = printRef.current.innerHTML;
+      
+      // Generate the PDF first
+      await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, proposalData);
+      
+      // If we're in a Capacitor environment (mobile app), the PDF will be shared via native share sheet
+      // Otherwise, for web, we'll fall back to mailto link
+      if (!('Capacitor' in window)) {
+        const subject = encodeURIComponent(`Concrete Proposal - ${proposalData.projectTitle || 'Project'}`);
+        const body = encodeURIComponent(`
 Please find attached our concrete proposal for your project.
 
 Project: ${proposalData.projectTitle || 'Project'}
@@ -682,9 +697,14 @@ ${proposalData.introduction || 'Please see the attached proposal for full detail
 Best regards,
 ${proposalData.preparedBy || 'Your Name'}
 ${proposalData.preparedByTitle || ''}
-    `);
-    
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        `);
+        
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+    } catch (error) {
+      console.error('Error preparing proposal for email:', error);
+      alert('Failed to prepare proposal for email. Please try again.');
+    }
   };
 
   const getDisplayValue = (value: string | undefined, placeholder: string): string => {
