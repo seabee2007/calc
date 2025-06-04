@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Card from '../ui/Card';
+import Toast from '../ui/Toast';
 import PricingCalculator from './PricingCalculator';
 import QuikreteModal from './QuikreteModal';
 import ReinforcementOptimizer from '../optimizer/ReinforcementOptimizer';
@@ -145,14 +146,14 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     calculation?.result?.volume || null
   );
   const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
-  const [calculationData, setCalculationData] = useState<{
-    length_ft: number;
-    width_ft: number;
-    thickness_in: number;
-    cubicYards: number;
-    height_ft?: number;
-  } | null>(null);
+  const [calculationData, setCalculationData] = useState<any>(null);
+  const [pricingData, setPricingData] = useState<any>(null);
   const weatherSectionRef = useRef<HTMLDivElement>(null);
+  
+  // Toast states for pricing save feedback
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
 
   useEffect(() => {
     if (initialShowWeather) {
@@ -403,11 +404,17 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     };
 
     if (onSave) {
+      // Include pricing data if available
+      const resultWithPricing = {
+        ...result,
+        pricing: pricingData
+      };
+
       const calculation: Calculation = {
         id: '',
         type: calculationType,
         dimensions,
-        result,
+        result: resultWithPricing,
         weather: weather || undefined,
         createdAt: new Date().toISOString(),
         psi: selectedPsi,
@@ -451,11 +458,22 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   };
 
   const handleReinforcementSaved = (setId: string) => {
-    // Could show a toast notification here
-    console.log('Reinforcement design saved with ID:', setId);
-    // Refresh projects to show the new reinforcement design
-    const { loadProjects } = useProjectStore.getState();
-    loadProjects();
+    console.log('Reinforcement set saved:', setId);
+    setShowReinforcementOptimizer(false);
+  };
+
+  // Handle pricing data from PricingCalculator
+  const handlePricingCalculated = (pricing: any) => {
+    console.log('Pricing calculated:', pricing);
+    setPricingData(pricing);
+  };
+
+  // Handle pricing save feedback
+  const handlePricingSaved = (success: boolean, message: string) => {
+    setToastMessage(message);
+    setToastType(success ? 'success' : 'error');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const renderDimensionInputs = (baseName: string, label: string) => (
@@ -771,6 +789,9 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               <PricingCalculator 
                 volume={calculationResult.volume} 
                 psi={selectedPsi}
+                calculationId={calculation?.id}
+                onPricingCalculated={handlePricingCalculated}
+                onPricingSaved={handlePricingSaved}
               />
             )}
             
@@ -820,6 +841,17 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           onClose={handleReinforcementOptimizerClose}
           onSaved={handleReinforcementSaved}
           isColumn={calculationType === 'column'}
+        />
+      )}
+      
+      {/* Toast for pricing save feedback */}
+      {showToast && (
+        <Toast
+          id="pricing-save"
+          title={toastType === 'success' ? 'Success' : 'Error'}
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
         />
       )}
     </div>

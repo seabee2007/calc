@@ -1,17 +1,48 @@
-import React, { useState, useMemo } from 'react';
-import { DollarSign, Truck, Clock, Calendar, MapPin, Loader } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { DollarSign, Truck, Clock, Calendar, MapPin, Loader, Save } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation } from '../../utils/pricing';
 import { LocationPricing } from '../../types';
+import { useProjectStore } from '../../store';
 
 interface PricingCalculatorProps {
   volume: number;
   psi?: string;
+  calculationId?: string;
+  onPricingCalculated?: (pricing: {
+    concreteCost: number;
+    pricePerYard: number;
+    deliveryFees: {
+      baseDeliveryFee: number;
+      smallLoadFee: number;
+      distanceFee: number;
+      totalDeliveryFees: number;
+    };
+    additionalServices: {
+      pumpTruckFee: number;
+      saturdayFee: number;
+      afterHoursFee: number;
+      totalAdditionalFees: number;
+    };
+    totalCost: number;
+    supplier?: {
+      id: string;
+      name: string;
+      location: string;
+    };
+  } | null) => void;
+  onPricingSaved?: (success: boolean, message: string) => void;
 }
 
-const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '3000' }) => {
+const PricingCalculator: React.FC<PricingCalculatorProps> = ({ 
+  volume, 
+  psi = '3000', 
+  calculationId,
+  onPricingCalculated,
+  onPricingSaved 
+}) => {
   const [distance, setDistance] = useState(10);
   const [needsPumpTruck, setNeedsPumpTruck] = useState(false);
   const [isSaturday, setIsSaturday] = useState(false);
@@ -23,6 +54,9 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
   const [locationInput, setLocationInput] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const { currentProject, updateCalculation } = useProjectStore();
 
   const handleUseLocation = async () => {
     setGpsLoading(true);
@@ -145,6 +179,74 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
     );
   }, [volume, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
 
+  // Call the callback when pricing data changes
+  useEffect(() => {
+    if (onPricingCalculated) {
+      if (pricing && supplier) {
+        // Only call with complete pricing when we have a supplier
+        const pricingData = {
+          ...pricing,
+          supplier: {
+            id: supplier.id,
+            name: supplier.name,
+            location: supplier.address
+          }
+        };
+        onPricingCalculated(pricingData);
+      } else {
+        // Call with null when no complete pricing is available
+        onPricingCalculated(null);
+      }
+    }
+  }, [pricing, supplier, onPricingCalculated]);
+
+  // Handle save pricing button
+  const handleSavePricing = async () => {
+    if (!pricing || !supplier || !currentProject || !calculationId) {
+      const message = !pricing || !supplier 
+        ? 'Please calculate pricing with a valid location first' 
+        : 'No project or calculation selected';
+      onPricingSaved?.(false, message);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Find the current calculation
+      const calculation = currentProject.calculations.find(calc => calc.id === calculationId);
+      if (!calculation) {
+        throw new Error('Calculation not found');
+      }
+
+      // Update the calculation with pricing data
+      const pricingData = {
+        ...pricing,
+        supplier: {
+          id: supplier.id,
+          name: supplier.name,
+          location: supplier.address
+        }
+      };
+
+      const updatedCalculation = {
+        ...calculation,
+        result: {
+          ...calculation.result,
+          pricing: pricingData
+        },
+        updatedAt: new Date().toISOString()
+      };
+
+      await updateCalculation(currentProject.id, calculationId, updatedCalculation);
+      onPricingSaved?.(true, 'Pricing saved successfully!');
+    } catch (error) {
+      console.error('Error saving pricing:', error);
+      onPricingSaved?.(false, 'Failed to save pricing. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
@@ -213,7 +315,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
               value={distance}
               onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
               fullWidth
-              error={locationError}
+              error={locationError || undefined}
             />
           </div>
         </div>
@@ -387,6 +489,23 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({ volume, psi = '30
             )}
           </div>
         </div>
+
+        {/* Save Pricing Button */}
+        {pricing && supplier && currentProject && calculationId && (
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <Button
+              onClick={handleSavePricing}
+              disabled={isSaving}
+              icon={isSaving ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isSaving ? 'Saving Pricing...' : 'Save Pricing to Calculation'}
+            </Button>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+              This will update the calculation with the current pricing data
+            </p>
+          </div>
+        )}
       </div>
     </Card>
   );
