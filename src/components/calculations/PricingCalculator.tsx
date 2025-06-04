@@ -11,6 +11,7 @@ interface PricingCalculatorProps {
   volume: number;
   psi?: string;
   calculationId?: string;
+  calculationData?: any;
   onPricingCalculated?: (pricing: {
     concreteCost: number;
     pricePerYard: number;
@@ -34,14 +35,17 @@ interface PricingCalculatorProps {
     };
   } | null) => void;
   onPricingSaved?: (success: boolean, message: string) => void;
+  onCalculationSaved?: (calculation: any) => void;
 }
 
 const PricingCalculator: React.FC<PricingCalculatorProps> = ({ 
   volume, 
   psi = '3000', 
   calculationId,
+  calculationData,
   onPricingCalculated,
-  onPricingSaved 
+  onPricingSaved,
+  onCalculationSaved
 }) => {
   const [distance, setDistance] = useState(10);
   const [needsPumpTruck, setNeedsPumpTruck] = useState(false);
@@ -56,7 +60,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const [locationInput, setLocationInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
-  const { currentProject, updateCalculation } = useProjectStore();
+  const { currentProject, updateCalculation, addCalculation } = useProjectStore();
 
   const handleUseLocation = async () => {
     setGpsLoading(true);
@@ -200,26 +204,21 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     }
   }, [pricing, supplier, onPricingCalculated]);
 
-  // Handle save pricing button
+  // Handle save pricing button - enhanced for both new and existing calculations
   const handleSavePricing = async () => {
-    if (!pricing || !supplier || !currentProject || !calculationId) {
-      const message = !pricing || !supplier 
-        ? 'Please calculate pricing with a valid location first' 
-        : 'No project or calculation selected';
-      onPricingSaved?.(false, message);
+    if (!pricing || !supplier) {
+      onPricingSaved?.(false, 'Please calculate pricing with a valid location first');
+      return;
+    }
+
+    if (!currentProject) {
+      onPricingSaved?.(false, 'No project selected');
       return;
     }
 
     setIsSaving(true);
     try {
-      // Find the current calculation
-      const calculation = currentProject.calculations.find(calc => calc.id === calculationId);
-      if (!calculation) {
-        throw new Error('Calculation not found');
-      }
-
-      // Update the calculation with pricing data
-      const pricingData = {
+      const pricingDataWithSupplier = {
         ...pricing,
         supplier: {
           id: supplier.id,
@@ -228,17 +227,46 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         }
       };
 
-      const updatedCalculation = {
-        ...calculation,
-        result: {
-          ...calculation.result,
-          pricing: pricingData
-        },
-        updatedAt: new Date().toISOString()
-      };
+      if (calculationId) {
+        // Existing calculation - update it
+        const calculation = currentProject.calculations.find(calc => calc.id === calculationId);
+        if (!calculation) {
+          throw new Error('Calculation not found');
+        }
 
-      await updateCalculation(currentProject.id, calculationId, updatedCalculation);
-      onPricingSaved?.(true, 'Pricing saved successfully!');
+        const updatedCalculation = {
+          ...calculation,
+          result: {
+            ...calculation.result,
+            pricing: pricingDataWithSupplier
+          },
+          updatedAt: new Date().toISOString()
+        };
+
+        await updateCalculation(currentProject.id, calculationId, updatedCalculation);
+        onPricingSaved?.(true, 'Pricing saved successfully!');
+        
+      } else if (calculationData) {
+        // New calculation - save it first, then update with pricing
+        const calculationWithPricing = {
+          ...calculationData,
+          result: {
+            ...calculationData.result,
+            pricing: pricingDataWithSupplier
+          }
+        };
+
+        await addCalculation(currentProject.id, calculationWithPricing);
+        onPricingSaved?.(true, 'Calculation and pricing saved successfully!');
+        
+        // Notify parent component that calculation was saved
+        if (onCalculationSaved) {
+          onCalculationSaved(calculationWithPricing);
+        }
+      } else {
+        throw new Error('No calculation data provided');
+      }
+      
     } catch (error) {
       console.error('Error saving pricing:', error);
       onPricingSaved?.(false, 'Failed to save pricing. Please try again.');
@@ -246,6 +274,9 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       setIsSaving(false);
     }
   };
+
+  // Determine if save button should be shown
+  const showSaveButton = pricing && supplier && currentProject && (calculationId || calculationData);
 
   return (
     <Card className="p-4">
@@ -490,8 +521,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
           </div>
         </div>
 
-        {/* Save Pricing Button */}
-        {pricing && supplier && currentProject && calculationId && (
+        {/* Save Pricing Button - Enhanced */}
+        {showSaveButton && (
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
             <Button
               onClick={handleSavePricing}
@@ -499,10 +530,18 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               icon={isSaving ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
-              {isSaving ? 'Saving Pricing...' : 'Save Pricing to Calculation'}
+              {isSaving 
+                ? 'Saving...' 
+                : calculationId 
+                  ? 'Save Pricing to Calculation' 
+                  : 'Save Calculation with Pricing'
+              }
             </Button>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-              This will update the calculation with the current pricing data
+              {calculationId 
+                ? 'This will update the calculation with the current pricing data'
+                : 'This will save the calculation and pricing data to your project'
+              }
             </p>
           </div>
         )}

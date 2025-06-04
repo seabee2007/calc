@@ -154,6 +154,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+  const [savedCalculationId, setSavedCalculationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialShowWeather) {
@@ -476,6 +477,98 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     setTimeout(() => setShowToast(false), 3000);
   };
 
+  // Handle when a new calculation is saved from pricing
+  const handleCalculationSaved = (savedCalculation: any) => {
+    setSavedCalculationId(savedCalculation.id);
+    // If onSave callback exists, call it to update parent component
+    if (onSave) {
+      onSave(savedCalculation);
+    }
+  };
+
+  // Prepare calculation data for saving (without calling onSave yet)
+  const prepareCalculationData = () => {
+    if (!calculationResult) return null;
+
+    const data = watch();
+    let dimensions: Record<string, number> = {};
+    
+    const getDimension = (base: string): number => {
+      const feet = Number(data[`${base}_feet` as keyof FormInputs]) || 0;
+      const inches = Number(data[`${base}_inches` as keyof FormInputs]) || 0;
+      const fraction = parseFloat(String(data[`${base}_fraction` as keyof FormInputs]) || '0');
+      
+      return convertToDecimalFeet(feet, inches, fraction);
+    };
+
+    switch (calculationType) {
+      case 'slab':
+      case 'sidewalk':
+        dimensions = {
+          length: getDimension('length'),
+          width: getDimension('width'),
+          thickness: getDimension('thickness')
+        };
+        break;
+      case 'thickened_edge_slab':
+        dimensions = {
+          length: getDimension('length'),
+          width: getDimension('width'),
+          baseThickness: getDimension('base_thickness'),
+          edgeThickness: getDimension('edge_thickness'),
+          edgeWidth: getDimension('edge_width')
+        };
+        break;
+      case 'footer':
+        dimensions = {
+          length: getDimension('length'),
+          width: getDimension('width'),
+          depth: getDimension('depth')
+        };
+        break;
+      case 'column':
+        if (columnType === 'rectangular') {
+          dimensions = {
+            length: getDimension('length'),
+            width: getDimension('width'),
+            height: getDimension('height')
+          };
+        } else {
+          dimensions = {
+            diameter: getDimension('diameter'),
+            height: getDimension('height')
+          };
+        }
+        break;
+    }
+
+    const mapPsiToMixProfile = (psi: string): MixProfileType => {
+      switch (psi) {
+        case '2500':
+        case '3000':
+          return 'standard';
+        case '4000':
+          return 'highEarly';
+        case '5000':
+          return 'highStrength';
+        default:
+          return 'standard';
+      }
+    };
+
+    return {
+      id: '',
+      type: calculationType,
+      dimensions,
+      result: calculationResult,
+      weather: weather || undefined,
+      createdAt: new Date().toISOString(),
+      psi: selectedPsi,
+      mixProfile: mapPsiToMixProfile(selectedPsi),
+      quikreteProduct: selectedQuikreteProduct || undefined
+    };
+  };
+
   const renderDimensionInputs = (baseName: string, label: string) => (
     <div className="grid grid-cols-3 gap-2">
       <div className="flex flex-col">
@@ -789,9 +882,11 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               <PricingCalculator 
                 volume={calculationResult.volume} 
                 psi={selectedPsi}
-                calculationId={calculation?.id}
+                calculationId={calculation?.id || savedCalculationId || undefined}
+                calculationData={!calculation && !savedCalculationId ? prepareCalculationData() : undefined}
                 onPricingCalculated={handlePricingCalculated}
                 onPricingSaved={handlePricingSaved}
+                onCalculationSaved={handleCalculationSaved}
               />
             )}
             
