@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { UserPreferences } from '../types';
 
 export interface CompanySettings {
   id?: string;
@@ -226,4 +227,129 @@ export async function deleteCompanySettings(): Promise<void> {
       // Don't throw error for storage cleanup failures
     }
   }
-} 
+}
+
+// User Preferences functions
+export const getUserPreferences = async (): Promise<UserPreferences> => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('User not authenticated');
+  }
+
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+    throw error;
+  }
+
+  // Return default preferences if none found
+  if (!data) {
+    return {
+      units: 'imperial',
+      lengthUnit: 'feet',
+      volumeUnit: 'cubic_yards',
+      measurementSystem: 'imperial',
+      currency: 'USD',
+      defaultPSI: '3000',
+      autoSave: true,
+      notifications: {
+        emailUpdates: true,
+        projectReminders: true,
+        weatherAlerts: true
+      }
+    };
+  }
+
+  return {
+    units: data.units,
+    lengthUnit: data.length_unit,
+    volumeUnit: data.volume_unit,
+    measurementSystem: data.measurement_system,
+    currency: data.currency,
+    defaultPSI: data.default_psi,
+    autoSave: data.auto_save,
+    notifications: data.notifications
+  };
+};
+
+export const updateUserPreferences = async (preferences: Partial<UserPreferences>): Promise<UserPreferences> => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('User not authenticated');
+  }
+
+  // First, get current preferences to merge with updates
+  const currentPreferences = await getUserPreferences();
+  const updatedPreferences = { ...currentPreferences, ...preferences };
+
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .upsert({
+      user_id: user.id,
+      units: updatedPreferences.units,
+      length_unit: updatedPreferences.lengthUnit,
+      volume_unit: updatedPreferences.volumeUnit,
+      measurement_system: updatedPreferences.measurementSystem,
+      currency: updatedPreferences.currency,
+      default_psi: updatedPreferences.defaultPSI,
+      auto_save: updatedPreferences.autoSave,
+      notifications: updatedPreferences.notifications,
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return updatedPreferences;
+};
+
+export const migratePreferencesFromLocalStorage = async (): Promise<UserPreferences | null> => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.log('No authenticated user for preferences migration');
+    return null;
+  }
+
+  // Check if preferences already exist in database
+  const { data: existingPrefs } = await supabase
+    .from('user_preferences')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (existingPrefs) {
+    console.log('User preferences already exist in database');
+    return null;
+  }
+
+  // Get preferences from localStorage
+  const savedPrefs = localStorage.getItem('concretePreferences');
+  if (!savedPrefs) {
+    console.log('No preferences found in localStorage');
+    return null;
+  }
+
+  try {
+    const localPrefs = JSON.parse(savedPrefs);
+    console.log('Migrating user preferences from localStorage to Supabase...');
+    
+    // Migrate to database
+    const migratedPrefs = await updateUserPreferences(localPrefs);
+    
+    // Optionally remove from localStorage after successful migration
+    // localStorage.removeItem('concretePreferences');
+    
+    console.log('User preferences migration completed');
+    return migratedPrefs;
+  } catch (error) {
+    console.error('Error migrating preferences from localStorage:', error);
+    return null;
+  }
+}; 

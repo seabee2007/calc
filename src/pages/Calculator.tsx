@@ -19,7 +19,7 @@ const CalculatorPage: React.FC = () => {
   const [calculationType, setCalculationType] = useState<string>('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'warning'>('success');
+  const [toastType, setToastType] = useState<'success' | 'warning' | 'error'>('success');
   const [showWeatherPrompt, setShowWeatherPrompt] = useState(false);
   
   useEffect(() => {
@@ -42,11 +42,21 @@ const CalculatorPage: React.FC = () => {
     setShowCreateProjectModal(false);
   };
   
-  const handleSaveCalculation = (calculation: any) => {
+  const handleSaveCalculation = async (calculation: any) => {
     if (currentProject) {
-      addCalculation(currentProject.id, calculation);
-      setToastMessage(`Calculation saved to project: ${currentProject.name}`);
-      setToastType('success');
+      try {
+        const savedCalculation = await addCalculation(currentProject.id, calculation);
+        
+        setToastMessage(`Calculation saved to project: ${currentProject.name}`);
+        setToastType('success');
+        
+        // Return the saved calculation with ID for the form to use
+        return savedCalculation;
+      } catch (error) {
+        console.error('Error saving calculation:', error);
+        setToastMessage('Error saving calculation');
+        setToastType('error');
+      }
     } else {
       setToastMessage('Please select or create a project to save calculations');
       setToastType('warning');
@@ -160,7 +170,7 @@ const CalculatorPage: React.FC = () => {
         {showToast && (
           <Toast
             id="calculation-status"
-            title={toastType === 'success' ? 'Success' : 'Warning'}
+            title={toastType === 'success' ? 'Success' : toastType === 'warning' ? 'Warning' : 'Error'}
             message={toastMessage}
             type={toastType}
             onClose={() => setShowToast(false)}

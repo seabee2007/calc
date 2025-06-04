@@ -3,9 +3,10 @@ import { ProposalData } from '../../types/proposal';
 
 interface ClassicProps {
   data: ProposalData;
+  total: string;
 }
 
-const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data }) => {
+const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data, total }) => {
   const {
     businessName,
     businessLogoUrl,
@@ -124,6 +125,10 @@ const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data }) => {
                   <td className="py-2 px-4 border-b">{p.amount}</td>
                 </tr>
               ))}
+              <tr className="bg-gray-50 font-bold">
+                <td className="py-3 px-4 border-b-2 border-gray-300 text-right">Total Cost</td>
+                <td className="py-3 px-4 border-b-2 border-gray-300 text-lg">{total}</td>
+              </tr>
             </tbody>
           </table>
         </div>

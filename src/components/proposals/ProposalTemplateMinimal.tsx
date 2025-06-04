@@ -3,9 +3,10 @@ import { ProposalData } from '../../types/proposal';
 
 interface MinimalProps {
   data: ProposalData;
+  total: string;
 }
 
-const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data }) => {
+const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data, total }) => {
   const {
     businessName,
     businessAddress,
@@ -83,6 +84,10 @@ const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data }) => {
               <span className="font-medium">{p.amount}</span>
             </div>
           ))}
+          <div className="flex justify-between text-sm pt-2 mt-2 border-t border-gray-300">
+            <span className="font-semibold">Total Cost</span>
+            <span className="font-bold text-lg">{total}</span>
+          </div>
         </div>
       </section>
 

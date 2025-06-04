@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload } from 'lucide-react';
 import { ProposalData } from '../types/proposal';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
@@ -27,6 +27,7 @@ const ProposalGenerator: React.FC = () => {
   const isPreviewMode = !!previewId;
   const { companySettings } = useSettingsStore();
   const { projects } = useProjectStore();
+  const location = useLocation();
   
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
   const [showPreview, setShowPreview] = useState(isPreviewMode);
@@ -58,13 +59,8 @@ const ProposalGenerator: React.FC = () => {
     scope: '',
     timeline: [
       { phase: '', start: '', end: '' },
-      { phase: '', start: '', end: '' },
-      { phase: '', start: '', end: '' },
-      { phase: '', start: '', end: '' },
     ],
     pricing: [
-      { description: '', amount: '' },
-      { description: '', amount: '' },
       { description: '', amount: '' },
     ],
     terms: '',
@@ -99,6 +95,26 @@ const ProposalGenerator: React.FC = () => {
 
     loadProposal();
   }, [editId, previewId, navigate]);
+
+  // Handle project data from navigation state
+  useEffect(() => {
+    const state = location.state as { projectName?: string; projectDescription?: string };
+    if (state?.projectName && !isEditing && !isPreviewMode) {
+      // Pre-fill proposal data with project information
+      setProposalTitle(`${state.projectName} - Concrete Proposal`);
+      setProposalData(prev => ({
+        ...prev,
+        projectTitle: state.projectName || '',
+        introduction: state.projectDescription 
+          ? `We are pleased to submit this proposal for your ${state.projectName} project. ${state.projectDescription}`
+          : `We are pleased to submit this proposal for your ${state.projectName || 'concrete'} project.`,
+        scope: `This proposal covers all concrete work required for the ${state.projectName || 'concrete'} project, including materials, labor, and related services.`
+      }));
+      
+      // Clear the navigation state to prevent re-applying on subsequent renders
+      window.history.replaceState({}, '', window.location.pathname + window.location.search);
+    }
+  }, [location.state, isEditing, isPreviewMode]);
 
   // Import pricing from selected project
   const importPricingFromProject = (projectId: string) => {
@@ -676,6 +692,8 @@ ${proposalData.preparedByTitle || ''}
   };
 
   const renderTemplate = () => {
+    const calculatedTotal = calculateTotal();
+    
     const displayData: ProposalData = {
       ...proposalData,
       businessName: getDisplayValue(proposalData.businessName, 'Your Business Name'),
@@ -700,15 +718,20 @@ ${proposalData.preparedByTitle || ''}
       preparedByTitle: getDisplayValue(proposalData.preparedByTitle, 'Project Manager'),
     };
 
+    const templateProps = {
+      data: displayData,
+      total: formatTotal(calculatedTotal)
+    };
+
     switch (selectedTemplate) {
       case 'classic':
-        return <ProposalTemplateClassic data={displayData} />;
+        return <ProposalTemplateClassic {...templateProps} />;
       case 'modern':
-        return <ProposalTemplateModern data={displayData} />;
+        return <ProposalTemplateModern {...templateProps} />;
       case 'minimal':
-        return <ProposalTemplateMinimal data={displayData} />;
+        return <ProposalTemplateMinimal {...templateProps} />;
       default:
-        return <ProposalTemplateClassic data={displayData} />;
+        return <ProposalTemplateClassic {...templateProps} />;
     }
   };
 
@@ -728,6 +751,27 @@ ${proposalData.preparedByTitle || ''}
       description: 'Clean, simple design focused on essential information',
       color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
     }
+  };
+
+  // Calculate total from pricing items
+  const calculateTotal = () => {
+    return proposalData.pricing.reduce((total, item) => {
+      if (!item.amount) return total;
+      
+      // Remove currency symbols and formatting, then parse as number
+      const numericValue = item.amount.replace(/[^0-9.-]/g, '');
+      const amount = parseFloat(numericValue) || 0;
+      return total + amount;
+    }, 0);
+  };
+
+  const formatTotal = (total: number) => {
+    return total.toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
   if (showPreview) {
@@ -1240,6 +1284,16 @@ ${proposalData.preparedByTitle || ''}
                     </button>
                   </div>
                 ))}
+              </div>
+              
+              {/* Total Pricing */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Cost</span>
+                  <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                    {formatTotal(calculateTotal())}
+                  </span>
+                </div>
               </div>
             </motion.div>
 

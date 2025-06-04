@@ -4,7 +4,16 @@ import { MixProfileType } from './curing';
 export interface UserPreferences {
   units: 'imperial' | 'metric';
   lengthUnit: 'feet' | 'meters';
-  volumeUnit: 'cubic_yards' | 'cubic_meters';
+  volumeUnit: 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
+  measurementSystem: 'imperial' | 'metric';
+  currency: 'USD' | 'CAD' | 'EUR' | 'GBP';
+  defaultPSI: string;
+  autoSave: boolean;
+  notifications: {
+    emailUpdates: boolean;
+    projectReminders: boolean;
+    weatherAlerts: boolean;
+  };
 }
 
 // Calculation interface
@@ -15,6 +24,28 @@ export interface Calculation {
   result: {
     volume: number;
     bags: number;
+    pricing?: {
+      concreteCost: number;
+      pricePerYard: number;
+      deliveryFees: {
+        baseDeliveryFee: number;
+        smallLoadFee: number;
+        distanceFee: number;
+        totalDeliveryFees: number;
+      };
+      additionalServices: {
+        pumpTruckFee: number;
+        saturdayFee: number;
+        afterHoursFee: number;
+        totalAdditionalFees: number;
+      };
+      totalCost: number;
+      supplier?: {
+        id: string;
+        name: string;
+        location: string;
+      };
+    };
   };
   weather?: {
     temperature: number;

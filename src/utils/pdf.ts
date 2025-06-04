@@ -1187,3 +1187,216 @@ export async function generateProjectPDF(
     throw error;
   }
 }
+
+export async function generateReinforcementPDF(
+  result: any,
+  options: {
+    projectName: string;
+    calculatorData: any;
+    coverIn: number;
+    mode: string;
+    isColumn: boolean;
+    spacingXIn?: number;
+    spacingYIn?: number;
+    verticalBars?: number;
+  },
+  title: string,
+  filename?: string
+): Promise<void> {
+  try {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 20;
+    let yPosition = margin;
+
+    // Helper function to check page break
+    const checkPageBreak = (requiredSpace: number = 15) => {
+      if (yPosition + requiredSpace > pageHeight - margin) {
+        doc.addPage();
+        yPosition = margin;
+      }
+    };
+
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Reinforcement Design Report', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${format(new Date(), 'MMMM d, yyyy')}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    // Project Information
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Project Information', margin, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Project: ${options.projectName}`, margin, yPosition);
+    yPosition += 8;
+    doc.text(`Reinforcement Type: ${options.mode.charAt(0).toUpperCase() + options.mode.slice(1)}`, margin, yPosition);
+    yPosition += 8;
+    doc.text(`Structure Type: ${options.isColumn ? 'Column' : 'Slab'}`, margin, yPosition);
+    yPosition += 15;
+
+    // Dimensions
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Dimensions', margin, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Length: ${options.calculatorData.length_ft}'`, margin, yPosition);
+    yPosition += 8;
+    doc.text(`Width: ${options.calculatorData.width_ft}'`, margin, yPosition);
+    yPosition += 8;
+    doc.text(`Thickness: ${options.calculatorData.thickness_in}"`, margin, yPosition);
+    yPosition += 8;
+    if (options.calculatorData.height_ft) {
+      doc.text(`Height: ${options.calculatorData.height_ft}'`, margin, yPosition);
+      yPosition += 8;
+    }
+    doc.text(`Cover: ${options.coverIn}"`, margin, yPosition);
+    yPosition += 15;
+
+    // Design Results
+    checkPageBreak(30);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Design Results', margin, yPosition);
+    yPosition += 10;
+
+    if (options.mode === 'rebar') {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      
+      if (result.pick) {
+        doc.text(`Recommended Bar Size: ${result.pick.size}`, margin, yPosition);
+        yPosition += 8;
+        
+        if (options.isColumn) {
+          doc.text(`Vertical Bars: ${result.pick.verticalBars || options.verticalBars}`, margin, yPosition);
+          yPosition += 8;
+        } else {
+          doc.text(`X-Direction Spacing: ${result.pick.spacingXIn || options.spacingXIn}"`, margin, yPosition);
+          yPosition += 8;
+          doc.text(`Y-Direction Spacing: ${result.pick.spacingYIn || options.spacingYIn}"`, margin, yPosition);
+          yPosition += 8;
+        }
+      }
+      
+      if (result.totalBars) {
+        doc.text(`Total Bars: ${result.totalBars}`, margin, yPosition);
+        yPosition += 8;
+      }
+      
+      if (result.totalLinearFt) {
+        doc.text(`Total Linear Feet: ${result.totalLinearFt.toFixed(1)} ft`, margin, yPosition);
+        yPosition += 15;
+      }
+
+      // Cut List Table
+      if (result.listX || result.listY || result.verticalBars) {
+        checkPageBreak(40);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Cut List', margin, yPosition);
+        yPosition += 10;
+
+        const tableData: string[][] = [];
+        
+        if (options.isColumn) {
+          // Column rebar tables
+          if (result.verticalBars) {
+            tableData.push(['Type', 'Length', 'Quantity']);
+            result.verticalBars.forEach((item: any) => {
+              tableData.push(['Vertical Bar', `${item.lengthFt.toFixed(1)}'`, item.qty.toString()]);
+            });
+          }
+          if (result.tieList) {
+            result.tieList.forEach((item: any) => {
+              tableData.push(['Tie Bar', `${item.lengthFt.toFixed(1)}'`, item.qty.toString()]);
+            });
+          }
+        } else {
+          // Slab rebar tables
+          tableData.push(['Direction', 'Length', 'Quantity']);
+          
+          if (result.listX) {
+            result.listX.forEach((item: any) => {
+              tableData.push(['X-Direction', `${item.lengthFt.toFixed(1)}'`, item.qty.toString()]);
+            });
+          }
+          
+          if (result.listY) {
+            result.listY.forEach((item: any) => {
+              tableData.push(['Y-Direction', `${item.lengthFt.toFixed(1)}'`, item.qty.toString()]);
+            });
+          }
+        }
+
+        if (tableData.length > 1) {
+          doc.autoTable({
+            startY: yPosition,
+            head: [tableData[0]],
+            body: tableData.slice(1),
+            theme: 'grid',
+            headStyles: { 
+              fillColor: [59, 130, 246],
+              textColor: [255, 255, 255],
+              fontSize: 12,
+              fontStyle: 'bold'
+            },
+            bodyStyles: {
+              fontSize: 11,
+              textColor: [60, 60, 60]
+            },
+            margin: { left: margin, right: margin },
+          });
+          yPosition = doc.lastAutoTable.finalY + 15;
+        }
+      }
+    }
+
+    // Notes and References
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Notes', margin, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const notes = [
+      '• This design is for reference purposes only',
+      '• Consult a structural engineer for final approval',
+      '• All dimensions and spacing should be verified on-site',
+      '• Follow local building codes and ACI standards',
+      '• Ensure proper concrete cover for environmental conditions'
+    ];
+
+    notes.forEach(note => {
+      doc.text(note, margin, yPosition);
+      yPosition += 6;
+    });
+
+    // Footer
+    yPosition += 10;
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    doc.text('Generated by Concrete Calculator App', pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    // Save the PDF
+    const pdfFilename = filename || `reinforcement-design-${Date.now()}.pdf`;
+    await savePDFWithPlatformSupport(doc, pdfFilename, title);
+  } catch (error) {
+    console.error('Error generating reinforcement PDF:', error);
+    throw error;
+  }
+}

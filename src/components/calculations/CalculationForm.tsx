@@ -30,7 +30,7 @@ import LocationPrompt from '../weather/LocationPrompt';
 import { MIX_PROFILE_LABELS, MixProfileType } from '../../types/curing';
 
 interface CalculationFormProps {
-  onSave?: (calculation: Calculation) => void;
+  onSave?: (calculation: Calculation) => Promise<Calculation | undefined> | void;
   onTypeChange?: (type: string) => void;
   initialShowWeather?: boolean;
   calculation?: Calculation; // For editing mode
@@ -154,7 +154,9 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
-  const [savedCalculationId, setSavedCalculationId] = useState<string | null>(null);
+  const [currentCalculationId, setCurrentCalculationId] = useState<string | null>(
+    calculation?.id || null
+  );
 
   useEffect(() => {
     if (initialShowWeather) {
@@ -210,7 +212,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     setShowQuikreteModal(false);
   };
   
-  const calculateVolume = (data: FormInputs) => {
+  const calculateVolume = async (data: FormInputs) => {
     console.log('Calculate button pressed - Form data received:', data);
     
     let volumeCubicFeet = 0;
@@ -411,7 +413,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         pricing: pricingData
       };
 
-      const calculation: Calculation = {
+      const calculationToSave: Calculation = {
         id: '',
         type: calculationType,
         dimensions,
@@ -423,7 +425,15 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         quikreteProduct: selectedQuikreteProduct || undefined
       };
       
-      onSave(calculation);
+      // Save calculation and capture the returned calculation with ID
+      try {
+        const savedCalc = await onSave(calculationToSave);
+        if (savedCalc && savedCalc.id) {
+          setCurrentCalculationId(savedCalc.id);
+        }
+      } catch (error) {
+        console.error('Error saving calculation:', error);
+      }
     }
   };
   
@@ -475,98 +485,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     setToastType(success ? 'success' : 'error');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
-  };
-
-  // Handle when a new calculation is saved from pricing
-  const handleCalculationSaved = (savedCalculation: any) => {
-    setSavedCalculationId(savedCalculation.id);
-    // If onSave callback exists, call it to update parent component
-    if (onSave) {
-      onSave(savedCalculation);
-    }
-  };
-
-  // Prepare calculation data for saving (without calling onSave yet)
-  const prepareCalculationData = () => {
-    if (!calculationResult) return null;
-
-    const data = watch();
-    let dimensions: Record<string, number> = {};
-    
-    const getDimension = (base: string): number => {
-      const feet = Number(data[`${base}_feet` as keyof FormInputs]) || 0;
-      const inches = Number(data[`${base}_inches` as keyof FormInputs]) || 0;
-      const fraction = parseFloat(String(data[`${base}_fraction` as keyof FormInputs]) || '0');
-      
-      return convertToDecimalFeet(feet, inches, fraction);
-    };
-
-    switch (calculationType) {
-      case 'slab':
-      case 'sidewalk':
-        dimensions = {
-          length: getDimension('length'),
-          width: getDimension('width'),
-          thickness: getDimension('thickness')
-        };
-        break;
-      case 'thickened_edge_slab':
-        dimensions = {
-          length: getDimension('length'),
-          width: getDimension('width'),
-          baseThickness: getDimension('base_thickness'),
-          edgeThickness: getDimension('edge_thickness'),
-          edgeWidth: getDimension('edge_width')
-        };
-        break;
-      case 'footer':
-        dimensions = {
-          length: getDimension('length'),
-          width: getDimension('width'),
-          depth: getDimension('depth')
-        };
-        break;
-      case 'column':
-        if (columnType === 'rectangular') {
-          dimensions = {
-            length: getDimension('length'),
-            width: getDimension('width'),
-            height: getDimension('height')
-          };
-        } else {
-          dimensions = {
-            diameter: getDimension('diameter'),
-            height: getDimension('height')
-          };
-        }
-        break;
-    }
-
-    const mapPsiToMixProfile = (psi: string): MixProfileType => {
-      switch (psi) {
-        case '2500':
-        case '3000':
-          return 'standard';
-        case '4000':
-          return 'highEarly';
-        case '5000':
-          return 'highStrength';
-        default:
-          return 'standard';
-      }
-    };
-
-    return {
-      id: '',
-      type: calculationType,
-      dimensions,
-      result: calculationResult,
-      weather: weather || undefined,
-      createdAt: new Date().toISOString(),
-      psi: selectedPsi,
-      mixProfile: mapPsiToMixProfile(selectedPsi),
-      quikreteProduct: selectedQuikreteProduct || undefined
-    };
   };
 
   const renderDimensionInputs = (baseName: string, label: string) => (
@@ -719,7 +637,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   };
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <Card className="p-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           {calculation ? 'Edit Calculation' : 'Concrete Calculator'}
@@ -778,7 +696,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           
           <div className="pt-4">
             {calculation ? (
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   type="submit" 
                   fullWidth 
@@ -793,6 +711,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                     variant="outline"
                     onClick={onCancel}
                     disabled={isSaving}
+                    className="sm:w-auto"
                   >
                     Cancel
                   </Button>
@@ -818,7 +737,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           <div className="space-y-6">
             <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100">Concrete Required</h3>
-              <div className="mt-2 grid grid-cols-2 gap-4">
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-blue-700 dark:text-blue-300">Volume</p>
                   <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
@@ -882,11 +801,9 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               <PricingCalculator 
                 volume={calculationResult.volume} 
                 psi={selectedPsi}
-                calculationId={calculation?.id || savedCalculationId || undefined}
-                calculationData={!calculation && !savedCalculationId ? prepareCalculationData() : undefined}
+                calculationId={currentCalculationId || undefined}
                 onPricingCalculated={handlePricingCalculated}
                 onPricingSaved={handlePricingSaved}
-                onCalculationSaved={handleCalculationSaved}
               />
             )}
             

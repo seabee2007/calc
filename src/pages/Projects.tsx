@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader, Edit3 } from 'lucide-react';
+import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader, Edit3, FileText } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import ProjectCard from '../components/projects/ProjectCard';
@@ -256,6 +256,18 @@ const Projects: React.FC = () => {
     }
   };
 
+  const handleCreateProposal = () => {
+    if (currentProject) {
+      // Navigate to proposal generator and pre-fill with project name
+      navigate('/proposal-generator', {
+        state: {
+          projectName: currentProject.name,
+          projectDescription: currentProject.description
+        }
+      });
+    }
+  };
+
   const formatDimensions = (dimensions: Record<string, number>) =>
     Object.entries(dimensions)
       .map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value.toFixed(2)}`)
@@ -383,6 +395,15 @@ const Projects: React.FC = () => {
                       onClick={() => setEditingProject(true)}
                       icon={<Edit size={16} />}
                     />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCreateProposal}
+                      icon={<FileText size={16} />}
+                      title="Create Proposal"
+                    >
+                      <span className="hidden sm:inline">Proposal</span>
+                    </Button>
                     <Button
                       variant="danger"
                       size="sm"

@@ -3,9 +3,10 @@ import { ProposalData } from '../../types/proposal';
 
 interface ModernProps {
   data: ProposalData;
+  total: string;
 }
 
-const ProposalTemplateModern: React.FC<ModernProps> = ({ data }) => {
+const ProposalTemplateModern: React.FC<ModernProps> = ({ data, total }) => {
   const {
     businessName,
     businessLogoUrl,
@@ -96,6 +97,10 @@ const ProposalTemplateModern: React.FC<ModernProps> = ({ data }) => {
                 <span className="font-medium text-gray-800">{p.amount}</span>
               </li>
             ))}
+            <li className="flex justify-between pt-3 mt-3 border-t border-gray-300">
+              <span className="font-semibold text-gray-800">Total Cost</span>
+              <span className="font-bold text-lg text-indigo-600">{total}</span>
+            </li>
           </ul>
         </div>
       </div>

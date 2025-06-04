@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download, BarChart3, Layers, Zap, X } from 'lucide-react';
+import { Download, BarChart3, Layers, Zap, X, Save } from 'lucide-react';
 import {
   calculateRebar,
   calculateColumnRebar,
@@ -22,6 +22,7 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
+import { generateReinforcementPDF } from '../../utils/pdf';
 
 interface ReinforcementOptimizerProps {
   // TODO: Get these from calculator store
@@ -108,26 +109,64 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
   const handleExportCSV = async () => {
     if (mode === 'rebar' && result) {
       try {
-        const rebarResult = result as RebarResult;
-        const csvContent = generateCutListCSV(rebarResult, {
-          lengthFt: calculatorData.length_ft,
-          widthFt: calculatorData.width_ft,
-          thicknessIn: calculatorData.thickness_in,
-          coverIn
-        });
+        const rebarResult = result as RebarResult | ColumnRebarResult;
         
-        // Download CSV file
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `reinforcement-cutlist-${Date.now()}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        // Check if this is a column or slab result
+        if (isColumn) {
+          // For columns, create a simplified CSV with vertical and tie bars
+          const columnResult = rebarResult as ColumnRebarResult;
+          let csvContent = 'Type,Length (ft),Quantity,Bar Size\n';
+          
+          // Add vertical bars
+          if (columnResult.verticalBars) {
+            columnResult.verticalBars.forEach((item: any) => {
+              csvContent += `Vertical Bar,${item.lengthFt.toFixed(1)},${item.qty},${columnResult.pick.size}\n`;
+            });
+          }
+          
+          // Add tie bars
+          if (columnResult.tieList) {
+            columnResult.tieList.forEach((item: any) => {
+              csvContent += `Tie Bar,${item.lengthFt.toFixed(1)},${item.qty},${columnResult.pick.size}\n`;
+            });
+          }
+          
+          // Download CSV file
+          const blob = new Blob([csvContent], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `column-reinforcement-cutlist-${Date.now()}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          console.log('Column CSV export completed successfully');
+        } else {
+          // For slabs, use the existing CSV generation function
+          const slabResult = rebarResult as RebarResult;
+          const csvContent = generateCutListCSV(slabResult, {
+            lengthFt: calculatorData.length_ft,
+            widthFt: calculatorData.width_ft,
+            thicknessIn: calculatorData.thickness_in,
+            coverIn
+          });
+          
+          // Download CSV file
+          const blob = new Blob([csvContent], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `slab-reinforcement-cutlist-${Date.now()}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          console.log('Slab CSV export completed successfully');
+        }
         
-        console.log('CSV export completed successfully');
       } catch (error) {
         console.error('Error exporting CSV:', error);
         alert('Failed to export CSV. Please try again.');
@@ -143,7 +182,9 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
     setSaveMessage(null);
     
     try {
-      const saveOptions = {
+      console.log('Starting save process...', { result, mode, isColumn });
+      
+      const saveOptions: any = {
         projectId: currentProject?.id,  // Link to current project
         projectName: projectName || 'Untitled Project',
         calc: {
@@ -156,6 +197,8 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         type: mode,
       };
 
+      console.log('Basic save options:', saveOptions);
+
       // Add mode-specific data with complete information
       if (mode === 'rebar') {
         const rebarResult = result as RebarResult | ColumnRebarResult;
@@ -163,9 +206,11 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         if (isColumn) {
           // Column rebar data
           const columnResult = rebarResult as ColumnRebarResult;
+          console.log('Saving column rebar data:', columnResult);
+          
           Object.assign(saveOptions, {
             pickSize: columnResult.pick.size,
-            verticalBars: columnResult.pick.verticalBars,
+            verticalBars: columnResult.pick.verticalBars || verticalBars,
             totalBars: columnResult.totalBars,
             totalLinearFt: columnResult.totalLinearFt,
             // Note: Columns don't use X/Y spacing, they use vertical bar count
@@ -173,20 +218,24 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         } else {
           // Slab rebar data
           const slabResult = rebarResult as RebarResult;
+          console.log('Saving slab rebar data:', slabResult);
+          
           Object.assign(saveOptions, {
             pickSize: slabResult.pick.size,
             spacingXIn: slabResult.pick.spacingXIn,
             spacingYIn: slabResult.pick.spacingYIn,
-            totalBarsX: slabResult.listX.reduce((sum, item) => sum + item.qty, 0),
-            totalBarsY: slabResult.listY.reduce((sum, item) => sum + item.qty, 0),
+            totalBarsX: slabResult.listX?.reduce((sum, item) => sum + item.qty, 0) || 0,
+            totalBarsY: slabResult.listY?.reduce((sum, item) => sum + item.qty, 0) || 0,
             totalBars: slabResult.totalBars,
             totalLinearFt: slabResult.totalLinearFt,
-            cutListX: slabResult.listX,
-            cutListY: slabResult.listY,
+            cutListX: slabResult.listX || [],
+            cutListY: slabResult.listY || [],
           });
         }
       } else if (mode === 'fiber') {
         const fiberResult = result as FiberResult;
+        console.log('Saving fiber data:', fiberResult);
+        
         Object.assign(saveOptions, {
           fiberData: {
             dose: fiberResult.dose,
@@ -197,6 +246,8 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         });
       } else if (mode === 'mesh') {
         const meshResult = result as MeshResult;
+        console.log('Saving mesh data:', meshResult);
+        
         Object.assign(saveOptions, {
           meshData: {
             sheets: meshResult.sheets,
@@ -205,7 +256,11 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         });
       }
 
+      console.log('Final save options:', saveOptions);
+      
       const setId = await saveReinforcement(saveOptions);
+      console.log('Save successful, setId:', setId);
+      
       setSaveMessage({ text: 'Reinforcement design saved successfully! ✓', type: 'success' });
       onSaved?.(setId);
       
@@ -213,15 +268,57 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error('Error saving reinforcement:', error);
+      
+      // More detailed error handling
+      let errorMessage = 'Failed to save reinforcement design';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        // Common error cases
+        if (error.message.includes('not authenticated')) {
+          errorMessage = 'Please sign in to save reinforcement designs';
+        } else if (error.message.includes('permission')) {
+          errorMessage = 'You do not have permission to save designs';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error - please check your connection';
+        }
+      }
+      
       setSaveMessage({ 
-        text: error instanceof Error ? error.message : 'Failed to save reinforcement design', 
+        text: errorMessage, 
         type: 'error' 
       });
       
       // Auto-hide error message after 5 seconds
       setTimeout(() => setSaveMessage(null), 5000);
     } finally {
+      console.log('Save process completed, resetting loading state');
       setIsSaving(false);
+    }
+  };
+
+  // Add PDF download function
+  const handleDownloadPDF = async () => {
+    if (mode !== 'rebar' || !result) return;
+    
+    try {
+      const rebarResult = result as RebarResult | ColumnRebarResult;
+      const title = `${projectName || 'Project'} - Reinforcement Design`;
+      
+      await generateReinforcementPDF(rebarResult, {
+        projectName: projectName || 'Reinforcement Design',
+        calculatorData,
+        coverIn,
+        mode,
+        isColumn,
+        spacingXIn: getSpacingValue(spacingXIn),
+        spacingYIn: getSpacingValue(spacingYIn),
+        verticalBars
+      }, title);
+      
+      console.log('Reinforcement PDF generated successfully');
+    } catch (error) {
+      console.error('Error generating reinforcement PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
     }
   };
 
@@ -238,10 +335,10 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto"
     >
-      <Card className="w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800/90">
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+      <Card className="w-full max-w-4xl my-4 bg-white dark:bg-gray-800/90 min-h-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
           <div className="flex items-center gap-3">
             <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -259,7 +356,7 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
           )}
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto">
           {/* Project Info */}
           <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <h3 className="font-medium text-blue-900 dark:text-white mb-2">
@@ -476,21 +573,32 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                   <Button
                     onClick={handleSave}
                     disabled={isSaving}
+                    icon={isSaving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Save size={16} />}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    <span className="md:hidden">💾</span>
+                    <span className="md:hidden">Save</span>
                     <span className="hidden md:inline">{isSaving ? 'Saving...' : 'Save Design'}</span>
                   </Button>
                   
                   {mode === 'rebar' && (
-                    <Button
-                      onClick={handleExportCSV}
-                      icon={<Download size={16} />}
-                      variant="outline"
-                      className="md:min-w-0"
-                    >
-                      <span className="hidden md:inline">Export CSV</span>
-                    </Button>
+                    <>
+                      <Button
+                        onClick={handleExportCSV}
+                        icon={<Download size={16} />}
+                        variant="outline"
+                        className="md:min-w-0"
+                      >
+                        <span className="hidden md:inline">Export CSV</span>
+                      </Button>
+                      <Button
+                        onClick={handleDownloadPDF}
+                        icon={<Download size={16} />}
+                        variant="outline"
+                        className="md:min-w-0"
+                      >
+                        <span className="hidden md:inline">Download PDF</span>
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>

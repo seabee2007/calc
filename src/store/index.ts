@@ -3,7 +3,10 @@ import { supabase } from '../lib/supabase';
 import {
   getCompanySettings,
   updateCompanySettings as updateSupabaseSettings,
-  migrateFromLocalStorage
+  migrateFromLocalStorage,
+  getUserPreferences,
+  updateUserPreferences,
+  migratePreferencesFromLocalStorage
 } from '../services/companySettingsService';
 import {
   Project,
@@ -33,7 +36,7 @@ interface ProjectState {
   addCalculation: (
     projectId: string,
     calculation: Omit<Calculation, 'id' | 'createdAt'>
-  ) => Promise<void>;
+  ) => Promise<Calculation>;
   updateCalculation: (
     projectId: string,
     calculationId: string,
@@ -55,7 +58,10 @@ interface ProjectState {
 
 interface PreferencesState {
   preferences: UserPreferences;
-  updatePreferences: (preferences: Partial<UserPreferences>) => void;
+  loading: boolean;
+  updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
+  loadPreferences: () => Promise<void>;
+  migratePreferences: () => Promise<void>;
 }
 
 // Settings store interfaces
@@ -83,6 +89,15 @@ const defaultPreferences: UserPreferences = {
   units: 'imperial',
   lengthUnit: 'feet',
   volumeUnit: 'cubic_yards',
+  measurementSystem: 'imperial',
+  currency: 'USD',
+  defaultPSI: '3000',
+  autoSave: true,
+  notifications: {
+    emailUpdates: true,
+    projectReminders: true,
+    weatherAlerts: true
+  }
 };
 
 const defaultCompanySettings: CompanySettings = {
@@ -399,6 +414,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
         currentProject: s.currentProject ? update(s.currentProject) : null
       };
     });
+    
+    // Return the created calculation
+    return newCalc;
   },
 
   updateCalculation: async (projectId, calcId, calcData) => {
@@ -562,18 +580,60 @@ export const useProjectStore = create<ProjectState>((set) => ({
   },
 }));
 
-export const usePreferencesStore = create<PreferencesState>((set) => {
-  const saved = localStorage.getItem('concretePreferences');
-  const initial = saved
-    ? JSON.parse(saved)
-    : defaultPreferences;
+export const usePreferencesStore = create<PreferencesState>((set, get) => {
   return {
-    preferences: initial,
-    updatePreferences: (newPrefs) => {
-      const updated = { ...initial, ...newPrefs };
-      localStorage.setItem('concretePreferences', JSON.stringify(updated));
-      set({ preferences: updated });
+    preferences: defaultPreferences,
+    loading: false,
+    
+    loadPreferences: async () => {
+      try {
+        set({ loading: true });
+        const preferences = await getUserPreferences();
+        set({ preferences, loading: false });
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+        set({ loading: false });
+        // Fall back to localStorage if Supabase fails
+        const saved = localStorage.getItem('concretePreferences');
+        if (saved) {
+          const localPreferences = JSON.parse(saved);
+          set({ preferences: { ...defaultPreferences, ...localPreferences } });
+        }
+      }
     },
+    
+    updatePreferences: async (newPreferences) => {
+      try {
+        set({ loading: true });
+        const updatedPreferences = await updateUserPreferences(newPreferences);
+        set({ preferences: updatedPreferences, loading: false });
+      } catch (error) {
+        console.error('Error updating preferences:', error);
+        set({ loading: false });
+        // Fall back to localStorage update if Supabase fails
+        const currentPrefs = get().preferences;
+        const updated = { ...currentPrefs, ...newPreferences };
+        localStorage.setItem('concretePreferences', JSON.stringify(updated));
+        set({ preferences: updated });
+      }
+    },
+    
+    migratePreferences: async () => {
+      try {
+        set({ loading: true });
+        const migratedPreferences = await migratePreferencesFromLocalStorage();
+        
+        if (migratedPreferences) {
+          set({ preferences: migratedPreferences });
+          console.log('Preferences migrated successfully');
+        }
+        
+        set({ loading: false });
+      } catch (error) {
+        console.error('Error migrating preferences:', error);
+        set({ loading: false });
+      }
+    }
   };
 });
 
