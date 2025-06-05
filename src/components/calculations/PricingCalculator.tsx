@@ -6,6 +6,8 @@ import Input from '../ui/Input';
 import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation } from '../../utils/pricing';
 import { LocationPricing } from '../../types';
 import { useProjectStore } from '../../store';
+import { useLocation } from '../../hooks/useLocation';
+import LocationPermissionAlert from '../ui/LocationPermissionAlert';
 
 interface PricingCalculatorProps {
   volume: number;
@@ -51,88 +53,52 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const [needsPumpTruck, setNeedsPumpTruck] = useState(false);
   const [isSaturday, setIsSaturday] = useState(false);
   const [isAfterHours, setIsAfterHours] = useState(false);
-  const [gpsLoading, setGpsLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
-  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
   const [locationInput, setLocationInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
   const { currentProject, updateCalculation, addCalculation } = useProjectStore();
+  const { requestLocation, isLoading: gpsLoading } = useLocation();
+
+  const handleLocationReceived = async (latitude: number, longitude: number) => {
+    const loc = {
+      latitude,
+      longitude,
+      address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+    };
+
+    // Try to get a readable address
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const address = data.address || {};
+        const parts = [address.road, address.city, address.state].filter((part): part is string => Boolean(part));
+        if (parts.length > 0) {
+          loc.address = parts.join(', ');
+        }
+      }
+    } catch (geocodeError) {
+      console.warn('Geocoding failed, using coordinates as address');
+    }
+
+    setUserLocation(loc);
+    const nearest = getNearestLocation(loc);
+    setSupplier(nearest);
+    setLocationError(null);
+  };
+
+  const handleLocationError = (error: string) => {
+    setLocationError(error);
+  };
 
   const handleUseLocation = async () => {
-    setGpsLoading(true);
-    setLocationError(null);
-    setLocationPermissionDenied(false);
-
-    try {
-      // Clear any cached permissions and ensure fresh location request
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 15000, // Increased timeout for better reliability
-        maximumAge: 0 // Always get fresh location
-      };
-
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        // Clear previous error states
-        setLocationError(null);
-        setLocationPermissionDenied(false);
-        
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          options
-        );
-      });
-
-      const loc = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        address: `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`
-      };
-
-      // Try to get a readable address
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          const address = data.address || {};
-          const parts = [address.road, address.city, address.state].filter((part): part is string => Boolean(part));
-          if (parts.length > 0) {
-            loc.address = parts.join(', ');
-          }
-        }
-      } catch (geocodeError) {
-        console.warn('Geocoding failed, using coordinates as address');
-      }
-
-      setUserLocation(loc);
-      const nearest = getNearestLocation(loc);
-      setSupplier(nearest);
-      
-    } catch (error: any) {
-      console.error('Location error:', error);
-      
-      // Handle different types of geolocation errors
-      if (error.code === 1 || error.code === GeolocationPositionError?.PERMISSION_DENIED) {
-        setLocationPermissionDenied(true);
-        setLocationError('Location permission denied. Please enable location services in your device settings and try again.');
-      } else if (error.code === 2 || error.code === GeolocationPositionError?.POSITION_UNAVAILABLE) {
-        setLocationError('Unable to determine your location. Please check your device settings and try again.');
-      } else if (error.code === 3 || error.code === GeolocationPositionError?.TIMEOUT) {
-        setLocationError('Location request timed out. Please try again.');
-      } else if (error.message && error.message.includes('not supported')) {
-        setLocationError('Geolocation is not supported by your browser.');
-      } else {
-        setLocationError('Unable to get location. Please check your connection and try again.');
-      }
-    } finally {
-      setGpsLoading(false);
-    }
+    await requestLocation();
   };
 
   const handleLocationSearch = async () => {
@@ -279,48 +245,47 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       </section>
 
       <div className="mb-6">
-        <p className="flex items-center text-amber-600 dark:text-amber-400 mb-4">
-          <MapPin className="h-4 w-4 mr-1" />
-          Select your location to see pricing
-        </p>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Location & Delivery</h3>
 
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              type="text"
-              placeholder="City Name/Zip Code"
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleLocationSearch();
-              }}
-              className="flex-1"
+          {!userLocation && !supplier && (
+            <LocationPermissionAlert
+              onLocationReceived={handleLocationReceived}
+              onError={handleLocationError}
+              compact={false}
             />
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLocationSearch}
-                disabled={searchLoading || !locationInput.trim()}
-                icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                className="flex-1 sm:flex-none"
-              >
-                Search
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUseLocation}
-                disabled={gpsLoading}
-                icon={gpsLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                className="flex-1 sm:flex-none"
-              >
-                {locationPermissionDenied ? 'Retry Location' : 'Use my location'}
-              </Button>
+          )}
+          
+          {!userLocation && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Or search for your location
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="City Name/Zip Code"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleLocationSearch();
+                  }}
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLocationSearch}
+                  disabled={searchLoading || !locationInput.trim()}
+                  icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                >
+                  Search
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="mb-4">
+          <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Delivery Distance (miles)
             </label>
@@ -330,7 +295,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               value={distance}
               onChange={(e) => setDistance(parseFloat(e.target.value) || 0)}
               fullWidth
-              error={locationError || undefined}
             />
           </div>
         </div>

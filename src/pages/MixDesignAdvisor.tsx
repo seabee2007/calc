@@ -4,6 +4,7 @@ import { Beaker, Thermometer, Droplets, Wind, Calculator, AlertTriangle, Info, M
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Select from '../components/ui/Select';
+import LocationPermissionAlert from '../components/ui/LocationPermissionAlert';
 import { getWeatherByLocation } from '../services/weatherService';
 import { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
@@ -30,7 +31,7 @@ const MixDesignAdvisor: React.FC = () => {
   const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+  const [locationReceived, setLocationReceived] = useState(false);
 
   const calculateEvaporationRate = (temp: number, humidity: number, windSpeed: number) => {
     const TcF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
@@ -138,39 +139,13 @@ const MixDesignAdvisor: React.FC = () => {
     };
   };
 
-  const handleGetWeather = async () => {
+  const handleLocationReceived = async (latitude: number, longitude: number) => {
     setLoading(true);
     setLocationError(null);
-    setLocationPermissionDenied(false);
+    setLocationReceived(true);
 
     try {
-      if (!navigator.geolocation) {
-        throw new Error('Geolocation is not supported by your browser');
-      }
-
-      // Clear any cached permissions by using a fresh options object
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 15000, // Increased timeout
-        maximumAge: 0 // Always get fresh location
-      };
-
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        // Clear any previous state
-        setLocationError(null);
-        setLocationPermissionDenied(false);
-        
-        navigator.geolocation.getCurrentPosition(
-          resolve, 
-          reject, 
-          options
-        );
-      });
-
-      const weatherData = await getWeatherByLocation(
-        position.coords.latitude,
-        position.coords.longitude
-      );
+      const weatherData = await getWeatherByLocation(latitude, longitude);
 
       if (weatherData) {
         setWeather(weatherData);
@@ -190,25 +165,40 @@ const MixDesignAdvisor: React.FC = () => {
       } else {
         setLocationError('Unable to get weather data. Please try again.');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error getting weather:', error);
-      
-      // Handle different types of geolocation errors
-      if (error.code === 1 || error.code === GeolocationPositionError?.PERMISSION_DENIED) {
-        setLocationPermissionDenied(true);
-        setLocationError('Location permission denied. Please enable location services in your device settings and refresh the page or restart the app.');
-      } else if (error.code === 2 || error.code === GeolocationPositionError?.POSITION_UNAVAILABLE) {
-        setLocationError('Unable to determine your location. Please check your device settings and try again.');
-      } else if (error.code === 3 || error.code === GeolocationPositionError?.TIMEOUT) {
-        setLocationError('Location request timed out. Please try again.');
-      } else if (error.message && error.message.includes('not supported')) {
-        setLocationError('Geolocation is not supported by your browser.');
-      } else {
-        setLocationError('Error getting location data. Please check your connection and try again.');
-      }
+      setLocationError('Error getting weather data. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLocationError = (error: string) => {
+    setLocationError(error);
+    setLocationReceived(false);
+  };
+
+  const handleCalculateWithoutLocation = () => {
+    // Provide default weather conditions for manual calculation
+    const defaultWeather = {
+      temperature: 70, // 70°F default
+      humidity: 50, // 50% default
+      windSpeed: 5 // 5 mph default
+    };
+
+    const rec = suggestConcreteParameters(
+      unitSystem === 'metric' ? 
+        ((defaultWeather.temperature - 32) * 5/9) : 
+        defaultWeather.temperature,
+      defaultWeather.humidity,
+      unitSystem === 'metric' ? 
+        (defaultWeather.windSpeed * 1.60934) : 
+        defaultWeather.windSpeed,
+      parseInt(selectedPsi),
+      exposure
+    );
+    setRecommendation(rec);
+    setLocationError(null);
   };
 
   const formatTemperature = (temp: number): string => {
@@ -367,27 +357,39 @@ const MixDesignAdvisor: React.FC = () => {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <StepCircle number={4} />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Get Recommendations</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Get Weather-Based Recommendations</h3>
                 </div>
-                <Button
-                  onClick={handleGetWeather}
-                  fullWidth
-                  isLoading={loading}
-                  icon={<Calculator size={18} />}
-                >
-                  {locationPermissionDenied ? 'Retry Location Access' : 'Calculate Mix Design'}
-                </Button>
-                {locationError && (
-                  <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/50 rounded-lg">
-                    <p className="text-sm text-red-600 dark:text-red-200 flex items-center">
-                      <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
-                      {locationError}
-                    </p>
-                    {locationPermissionDenied && (
-                      <p className="text-xs text-red-500 dark:text-red-300 mt-1 ml-6">
-                        iOS users: Go to Settings &gt; Privacy &amp; Security &gt; Location Services &gt; Safari Websites
-                      </p>
+                
+                {!locationReceived && !weather && (
+                  <div className="space-y-3">
+                    <LocationPermissionAlert
+                      onLocationReceived={handleLocationReceived}
+                      onError={handleLocationError}
+                      compact={false}
+                    />
+                    
+                    {locationError && (
+                      <div className="border-t pt-3">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          Or calculate with standard conditions:
+                        </p>
+                        <Button
+                          onClick={handleCalculateWithoutLocation}
+                          variant="outline"
+                          fullWidth
+                          icon={<Calculator size={18} />}
+                        >
+                          Calculate with Default Weather (70°F, 50% humidity)
+                        </Button>
+                      </div>
                     )}
+                  </div>
+                )}
+                
+                {loading && (
+                  <div className="flex items-center justify-center p-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Getting weather data...</span>
                   </div>
                 )}
               </div>

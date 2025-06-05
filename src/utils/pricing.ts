@@ -94,29 +94,13 @@ export async function getUserLocation(): Promise<{
   longitude: number;
   address: string;
 }> {
-  if (!navigator.geolocation) {
-    throw new Error('Geolocation is not supported by your browser');
-  }
-
-  const position = await new Promise<GeolocationPosition>((resolve, reject) => 
-    navigator.geolocation.getCurrentPosition(resolve, reject)
-  );
-
+  const { getCurrentPosition, reverseGeocode } = await import('./location');
+  
+  const position = await getCurrentPosition();
   const { latitude, longitude } = position.coords;
-  let address = '';
-
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-    );
-    if (!response.ok) throw new Error('Reverse geocoding failed');
-    const data = await response.json();
-    const parts = [data.address.road, data.address.city, data.address.state].filter(Boolean);
-    address = parts.join(', ');
-  } catch {
-    // Fallback to coordinates if reverse geocoding fails
-    address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-  }
+  
+  // Use our reverseGeocode utility
+  const address = await reverseGeocode(latitude, longitude);
 
   return { latitude, longitude, address };
 }
