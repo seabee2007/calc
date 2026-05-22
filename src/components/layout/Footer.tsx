@@ -25,24 +25,29 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="flex flex-col md:flex-row md:space-x-8 text-sm text-gray-600 dark:text-gray-400 items-center">
-            <button 
-              onClick={() => setShowTerms(true)}
-              className="hover:text-blue-600 dark:hover:text-blue-400 mb-2 md:mb-0"
-            >
-              Terms of Service
-            </button>
-            <button
-              onClick={() => setShowPrivacy(true)}
-              className="hover:text-blue-600 dark:hover:text-blue-400 mb-2 md:mb-0"
-            >
-              Privacy Policy
-            </button>
-            <button
-              onClick={() => setShowContact(true)}
-              className="hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              Contact Us
-            </button>
+          <button
+  type="button"
+  onClick={() => setShowTerms(true)}
+  className="hover:text-blue-600 dark:hover:text-blue-400 mb-2 md:mb-0"
+>
+  Terms of Service
+</button>
+
+<button
+  type="button"
+  onClick={() => setShowPrivacy(true)}
+  className="hover:text-blue-600 dark:hover:text-blue-400 mb-2 md:mb-0"
+>
+  Privacy Policy
+</button>
+
+<button
+  type="button"
+  onClick={() => setShowContact(true)}
+  className="hover:text-blue-600 dark:hover:text-blue-400"
+>
+  Contact Us
+</button>
           </div>
           
           <div className="pt-4 border-t border-gray-200 dark:border-gray-800 w-full">

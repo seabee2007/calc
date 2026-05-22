@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { soundService } from '../../services/soundService';
@@ -20,14 +21,16 @@ const Modal: React.FC<ModalProps> = ({
   size = 'md'
 }) => {
   const prevIsOpen = useRef(isOpen);
+  const scrollYRef = useRef(0);
 
   useEffect(() => {
     if (isOpen && !prevIsOpen.current) {
       soundService.play('modal');
       hapticService.modal();
     }
+
     prevIsOpen.current = isOpen;
-    
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         soundService.play('click');
@@ -35,38 +38,26 @@ const Modal: React.FC<ModalProps> = ({
         onClose();
       }
     };
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    };
-    
+
     if (isOpen) {
+      scrollYRef.current = window.scrollY;
       document.addEventListener('keydown', handleEscape);
-      document.addEventListener('touchmove', handleTouchMove, { passive: false });
-      // Prevent background scrolling
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = '0';
-      document.body.style.bottom = '0';
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('touchmove', handleTouchMove);
-      // Restore scrolling
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      document.body.style.bottom = '';
+
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollYRef.current);
+      });
     };
   }, [isOpen, onClose]);
 
   const handleClose = () => {
     soundService.play('click');
+    hapticService.button();
     onClose();
   };
 
@@ -77,7 +68,7 @@ const Modal: React.FC<ModalProps> = ({
     xl: 'max-w-4xl'
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -85,13 +76,13 @@ const Modal: React.FC<ModalProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 z-[9998] bg-black/50"
             onClick={handleClose}
           />
-          
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div 
-              className="min-h-screen text-center p-4"
+
+          <div className="fixed inset-0 z-[9999] overflow-y-auto overscroll-contain">
+            <div
+              className="flex min-h-[100dvh] items-center justify-center p-4"
               style={{
                 paddingTop: 'max(env(safe-area-inset-top), 1rem)',
                 paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)',
@@ -99,37 +90,71 @@ const Modal: React.FC<ModalProps> = ({
                 paddingRight: 'max(env(safe-area-inset-right), 1rem)'
               }}
             >
-              {/* This element is to trick the browser into centering the modal contents. */}
-              <span
-                className="inline-block h-screen align-middle"
-                aria-hidden="true"
-              >
-                &#8203;
-              </span>
-              
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.98 }}
                 transition={{ type: 'spring', damping: 20 }}
-                className={`inline-block w-full ${sizeClasses[size]} my-8 align-middle`}
+                className={`relative w-full ${sizeClasses[size]}`}
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl">
-                  <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+                <div className="rounded-lg bg-white shadow-xl dark:bg-gray-800">
+                  <div className="flex items-center justify-between border-b p-4 dark:border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {title}
+                    </h2>
+
                     <button
+                      type="button"
                       onClick={handleClose}
-                      className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-400"
+                      aria-label="Close modal"
                     >
                       <X size={20} />
                     </button>
                   </div>
-                  
-                  <div className="overflow-y-auto max-h-[calc(100vh-16rem)]">
-                    <div className="p-6">
-                      {children}
-                    </div>
-                  </div>
+
+                  <div className="max-h-[75dvh] overflow-y-auto overscroll-contain">
+  <div
+    className="
+      p-6
+      text-gray-800
+      dark:text-gray-200
+
+      [&_h1]:text-gray-900
+      [&_h1]:dark:text-white
+      [&_h1]:font-bold
+
+      [&_h2]:text-gray-900
+      [&_h2]:dark:text-white
+      [&_h2]:font-semibold
+
+      [&_h3]:text-gray-900
+      [&_h3]:dark:text-white
+      [&_h3]:font-semibold
+
+      [&_p]:text-gray-700
+      [&_p]:dark:text-gray-300
+      [&_p]:leading-relaxed
+
+      [&_li]:text-gray-700
+      [&_li]:dark:text-gray-300
+      [&_li]:leading-relaxed
+
+      [&_strong]:text-gray-900
+      [&_strong]:dark:text-white
+
+      [&_a]:text-blue-600
+      [&_a]:dark:text-blue-400
+      [&_a]:underline
+
+      [&_hr]:border-gray-200
+      [&_hr]:dark:border-gray-700
+    "
+  >
+    {children}
+  </div>
+</div>
                 </div>
               </motion.div>
             </div>
@@ -138,6 +163,8 @@ const Modal: React.FC<ModalProps> = ({
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;
