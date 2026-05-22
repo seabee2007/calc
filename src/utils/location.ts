@@ -20,7 +20,10 @@ export type LocationPermissionStatus = 'granted' | 'denied' | 'prompt' | 'unknow
  * Check if geolocation is supported (always true in Capacitor)
  */
 export function isGeolocationSupported(): boolean {
-  return Capacitor.isNativePlatform();
+  return (
+    typeof navigator !== 'undefined' &&
+    'geolocation' in navigator
+  );
 }
 
 /**
@@ -34,24 +37,42 @@ export function isPermissionsAPISupported(): boolean {
  * Check current geolocation permission status using Capacitor
  */
 export async function checkGeolocationPermission(): Promise<LocationPermissionStatus> {
-  try {
-    const result = await Geolocation.checkPermissions();
-    
-    // Convert Capacitor permission states to our standard states
-    switch (result.location) {
-      case 'granted':
-        return 'granted';
-      case 'denied':
-        return 'denied';
-      case 'prompt':
-      case 'prompt-with-rationale':
-        return 'prompt';
-      default:
-        return 'unknown';
+  // Native app
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const result = await Geolocation.checkPermissions();
+
+      switch (result.location) {
+        case 'granted':
+          return 'granted';
+        case 'denied':
+          return 'denied';
+        case 'prompt':
+        case 'prompt-with-rationale':
+          return 'prompt';
+        default:
+          return 'unknown';
+      }
+    } catch (error) {
+      console.warn('Failed to check native geolocation permission:', error);
+      return 'unknown';
     }
+  }
+
+  // Browser
+  try {
+    if (navigator.permissions) {
+      const result = await navigator.permissions.query({
+        name: 'geolocation' as PermissionName
+      });
+
+      return result.state as LocationPermissionStatus;
+    }
+
+    return 'prompt';
   } catch (error) {
-    console.warn('Failed to check geolocation permission:', error);
-    return 'unknown';
+    console.warn('Browser permission check failed:', error);
+    return 'prompt';
   }
 }
 
@@ -59,24 +80,30 @@ export async function checkGeolocationPermission(): Promise<LocationPermissionSt
  * Request location permissions using Capacitor
  */
 export async function requestLocationPermissions(): Promise<LocationPermissionStatus> {
-  try {
-    const result = await Geolocation.requestPermissions();
-    
-    switch (result.location) {
-      case 'granted':
-        return 'granted';
-      case 'denied':
-        return 'denied';
-      case 'prompt':
-      case 'prompt-with-rationale':
-        return 'prompt';
-      default:
-        return 'unknown';
+  // Native app
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const result = await Geolocation.requestPermissions();
+
+      switch (result.location) {
+        case 'granted':
+          return 'granted';
+        case 'denied':
+          return 'denied';
+        case 'prompt':
+        case 'prompt-with-rationale':
+          return 'prompt';
+        default:
+          return 'unknown';
+      }
+    } catch (error) {
+      console.warn('Failed to request native geolocation permission:', error);
+      return 'unknown';
     }
-  } catch (error) {
-    console.warn('Failed to request geolocation permission:', error);
-    return 'unknown';
   }
+
+  // Browser auto-prompts on getCurrentPosition()
+  return 'prompt';
 }
 
 /**
@@ -86,31 +113,53 @@ export async function getCurrentPosition(options?: {
   enableHighAccuracy?: boolean;
   timeout?: number;
   maximumAge?: number;
-}): Promise<{
-  coords: {
-    latitude: number;
-    longitude: number;
-    accuracy: number;
-    altitudeAccuracy?: number | null;
-    altitude?: number | null;
-    speed?: number | null;
-    heading?: number | null;
-  };
-  timestamp: number;
-}> {
-  try {
-    const defaultOptions = {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      ...options
-    };
+}): Promise<any> {
 
-    const position = await Geolocation.getCurrentPosition(defaultOptions);
-    return position;
-  } catch (error) {
-    console.error('Failed to get current position:', error);
-    throw error;
+  console.log('[Location] Platform:', Capacitor.getPlatform());
+  console.log('[Location] Native:', Capacitor.isNativePlatform());
+
+  // Native app
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 15000,
+        ...options
+      });
+
+      console.log('[Location] Native position:', position);
+
+      return position;
+    } catch (error) {
+      console.error('[Location] Native geolocation failed:', error);
+      throw error;
+    }
   }
+
+  // Browser fallback
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Browser geolocation unavailable'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log('[Location] Browser position:', position);
+        resolve(position);
+      },
+      (error) => {
+        console.error('[Location] Browser geolocation failed:', error);
+        reject(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+        ...options
+      }
+    );
+  });
 }
 
 /**
