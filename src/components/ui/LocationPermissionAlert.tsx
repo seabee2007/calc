@@ -3,7 +3,7 @@ import { AlertTriangle, MapPin, Settings, RefreshCw, CheckCircle } from 'lucide-
 import Button from './Button';
 import { useLocation } from '../../hooks/useLocation';
 import { isIOSDevice, openIOSLocationSettings, getLocationInstructions } from '../../utils/location';
-
+import { Capacitor } from '@capacitor/core';
 interface LocationPermissionAlertProps {
   onLocationReceived?: (latitude: number, longitude: number) => void;
   onError?: (error: string) => void;
@@ -24,7 +24,7 @@ const LocationPermissionAlert: React.FC<LocationPermissionAlertProps> = ({
 
   // Detect device and app context (always iOS native app)
   const isIOS = isIOSDevice();
-  const isNativeApp = true;
+  const isNativeApp = Capacitor.isNativePlatform(); 
 
   // Handle successful location
   useEffect(() => {
