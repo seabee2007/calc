@@ -283,14 +283,24 @@ export const useProjectStore = create<ProjectState>((set) => ({
   },
 
   addProject: async (project) => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+  
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+  
     const { data, error } = await supabase
       .from('projects')
       .insert({
-        name:         project.name,
-        description:  project.description,
-        waste_factor: project.wasteFactor,
-        pour_date:    project.pourDate,
-        mix_profile:  'standard',
+        user_id: user.id,
+        name: project.name,
+        description: project.description || '',
+        waste_factor: project.wasteFactor ?? 10,
+        pour_date: project.pourDate ?? null,
+        mix_profile: 'standard',
       })
       .select(`
         id, name, description,
@@ -301,24 +311,26 @@ export const useProjectStore = create<ProjectState>((set) => ({
         reinforcement_sets(*, cut_list_items(*))
       `)
       .single();
+  
     if (error) throw error;
-
+  
     const newProj: Project = {
-      id:           data.id,
-      name:         data.name,
-      description:  data.description,
-      wasteFactor:  data.waste_factor,
-      createdAt:    data.created_at,
-      updatedAt:    data.updated_at,
-      pourDate:     data.pour_date,
-      mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      wasteFactor: data.waste_factor,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      pourDate: data.pour_date,
+      mixProfile: (data.mix_profile as MixProfileType) || 'standard',
       calculations: (data.calculations || []).map(mapCalculationFromDb),
       reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
-      qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
+      qcRecords: (data.qc_records || []).map(mapQcRecordFromDb),
     };
+  
     set((s) => ({
-      projects:       [newProj, ...s.projects],
-      currentProject: newProj
+      projects: [newProj, ...s.projects],
+      currentProject: newProj,
     }));
   },
 
