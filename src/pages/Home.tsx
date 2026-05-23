@@ -17,10 +17,10 @@ const Home: React.FC = () => {
       gradient: 'from-blue-500 to-blue-700'
     },
     {
-      title: 'Weather Integration',
-      description: 'Get concrete mix recommendations based on real-time weather conditions',
+      title: 'Pour Planner',
+      description: 'Plan pours days or weeks ahead with weather-based day ratings',
       icon: <CloudSun className="h-10 w-10 text-white" />,
-      action: () => navigate('/calculator', { state: { openWeatherModal: true } }),
+      action: () => navigate('/pour-planner'),
       gradient: 'from-cyan-500 to-cyan-700'
     },
     {

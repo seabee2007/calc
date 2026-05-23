@@ -15,6 +15,7 @@ import CommonProblems from './pages/resources/CommonProblems';
 import Admixtures from './pages/resources/Admixtures';
 import ExternalResources from './pages/resources/ExternalResources';
 import MixDesignAdvisor from './pages/MixDesignAdvisor';
+import PourPlanner from './pages/PourPlanner';
 import ProposalGenerator from './pages/ProposalGenerator';
 import Proposals from './pages/Proposals';
 import Login from './pages/auth/Login';
@@ -232,6 +233,14 @@ function App() {
               element={
                 <AuthGuard>
                   <Projects />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="pour-planner"
+              element={
+                <AuthGuard>
+                  <PourPlanner />
                 </AuthGuard>
               }
             />

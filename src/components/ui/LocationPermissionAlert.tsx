@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, MapPin, Settings, RefreshCw, CheckCircle } from 'lucide-react';
 import Button from './Button';
 import { useLocation } from '../../hooks/useLocation';
@@ -21,24 +21,36 @@ const LocationPermissionAlert: React.FC<LocationPermissionAlertProps> = ({
   const [showInstructions, setShowInstructions] = useState(false);
   const [hasTriedOnce, setHasTriedOnce] = useState(false);
   const [hasOpenedSettings, setHasOpenedSettings] = useState(false);
+  const onLocationReceivedRef = useRef(onLocationReceived);
+  const onErrorRef = useRef(onError);
+  const lastReportedCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
+  const lastReportedErrorRef = useRef<string | null>(null);
+
+  onLocationReceivedRef.current = onLocationReceived;
+  onErrorRef.current = onError;
 
   // Detect device and app context (always iOS native app)
   const isIOS = isIOSDevice();
   const isNativeApp = Capacitor.isNativePlatform(); 
 
-  // Handle successful location
+  // Handle successful location — only notify once per coordinate pair
   useEffect(() => {
-    if (position && onLocationReceived) {
-      onLocationReceived(position.coords.latitude, position.coords.longitude);
-    }
-  }, [position, onLocationReceived]);
+    if (!position) return;
 
-  // Handle errors
+    const { latitude, longitude } = position.coords;
+    const last = lastReportedCoordsRef.current;
+    if (last && last.lat === latitude && last.lon === longitude) return;
+
+    lastReportedCoordsRef.current = { lat: latitude, lon: longitude };
+    onLocationReceivedRef.current?.(latitude, longitude);
+  }, [position]);
+
+  // Handle errors — only notify once per distinct error message
   useEffect(() => {
-    if (error && onError) {
-      onError(error);
-    }
-  }, [error, onError]);
+    if (!error || error === lastReportedErrorRef.current) return;
+    lastReportedErrorRef.current = error;
+    onErrorRef.current?.(error);
+  }, [error]);
 
   const handleRequestLocation = async () => {
     setHasTriedOnce(true);

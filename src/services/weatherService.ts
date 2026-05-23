@@ -1,8 +1,7 @@
-import axios from 'axios';
 import { Weather, ForecastDay } from '../types';
 
-const WEATHER_API_KEY = 'bb3eea884660409387992012252205';
-const BASE_URL = 'https://api.weatherapi.com/v1';
+const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface ExtendedWeatherData extends Weather {
   alerts?: {
@@ -20,101 +19,92 @@ interface ExtendedWeatherData extends Weather {
   }[];
 }
 
+interface ForecastRequest {
+  latitude?: number;
+  longitude?: number;
+  query?: string;
+  days?: number;
+  includeHistory?: boolean;
+  includeAlerts?: boolean;
+  mode?: 'full' | 'forecast';
+}
+
+export interface ForecastLocation {
+  city: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ExtendedForecastResult {
+  location: ForecastLocation;
+  forecast: (ForecastDay & { avgHumidity?: number })[];
+}
+
+async function fetchWeather<T>(body: ForecastRequest): Promise<T | null> {
+  if (!FN_BASE || !ANON_KEY) {
+    console.error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
+    return null;
+  }
+
+  try {
+    const res = await fetch(`${FN_BASE}/getWeatherForecast`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('Weather function error:', res.status, errText);
+      return null;
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
+  }
+}
+
 export async function getWeatherByLocation(
   latitude: number,
   longitude: number
 ): Promise<ExtendedWeatherData | null> {
-  try {
-    // Get current weather and forecast
-    const forecastUrl = `${BASE_URL}/forecast.json?key=${WEATHER_API_KEY}&q=${latitude},${longitude}&days=3&aqi=no&alerts=yes`;
-    const forecastResponse = await axios.get(forecastUrl);
-
-    // Get historical data for the past 3 days
-    const today = new Date();
-    const historicalData = [];
-    
-    for (let i = 1; i <= 3; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const historyUrl = `${BASE_URL}/history.json?key=${WEATHER_API_KEY}&q=${latitude},${longitude}&dt=${dateStr}`;
-      const historyResponse = await axios.get(historyUrl);
-      
-      historicalData.push({
-        date: dateStr,
-        avgTemp: historyResponse.data.forecast.forecastday[0].day.avgtemp_f,
-        totalPrecip: historyResponse.data.forecast.forecastday[0].day.totalprecip_in,
-        maxWind: historyResponse.data.forecast.forecastday[0].day.maxwind_mph
-      });
-    }
-
-    const forecast: ForecastDay[] = forecastResponse.data.forecast.forecastday.map((day: any) => ({
-      date: day.date,
-      maxTemp: day.day.maxtemp_f,
-      minTemp: day.day.mintemp_f,
-      avgTemp: day.day.avgtemp_f,
-      maxWindSpeed: day.day.maxwind_mph,
-      chanceOfRain: day.day.daily_chance_of_rain,
-      totalPrecipitation: day.day.totalprecip_in,
-      conditions: day.day.condition.text
-    }));
-
-    const alerts = forecastResponse.data.alerts?.alert.map((alert: any) => ({
-      title: alert.headline,
-      severity: alert.severity,
-      description: alert.desc,
-      effective: alert.effective,
-      expires: alert.expires
-    })) || [];
-
-    return {
-      temperature: forecastResponse.data.current.temp_f,
-      humidity: forecastResponse.data.current.humidity,
-      conditions: forecastResponse.data.current.condition.text,
-      windSpeed: forecastResponse.data.current.wind_mph,
-      precipitation: forecastResponse.data.current.precip_in,
-      location: {
-        city: forecastResponse.data.location.name,
-        country: forecastResponse.data.location.country
-      },
-      forecast,
-      alerts,
-      historical: historicalData
-    };
-  } catch (error) {
-    console.error('Error fetching weather data:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('API Error details:', {
-        status: error.response?.status,
-        data: error.response?.data
-      });
-    }
-    return null;
-  }
+  return fetchWeather<ExtendedWeatherData>({
+    latitude,
+    longitude,
+    days: 3,
+    includeHistory: true,
+    includeAlerts: true,
+    mode: 'full',
+  });
 }
 
 export async function getExtendedForecast(
   latitude: number,
   longitude: number,
   days: number = 7
-): Promise<ForecastDay[] | null> {
-  try {
-    const url = `${BASE_URL}/forecast.json?key=${WEATHER_API_KEY}&q=${latitude},${longitude}&days=${days}&aqi=no`;
-    const response = await axios.get(url);
+): Promise<ExtendedForecastResult | null> {
+  return fetchWeather<ExtendedForecastResult>({
+    latitude,
+    longitude,
+    days,
+    mode: 'forecast',
+  });
+}
 
-    return response.data.forecast.forecastday.map((day: any) => ({
-      date: day.date,
-      maxTemp: day.day.maxtemp_f,
-      minTemp: day.day.mintemp_f,
-      avgTemp: day.day.avgtemp_f,
-      maxWindSpeed: day.day.maxwind_mph,
-      chanceOfRain: day.day.daily_chance_of_rain,
-      totalPrecipitation: day.day.totalprecip_in,
-      conditions: day.day.condition.text
-    }));
-  } catch (error) {
-    console.error('Error fetching extended forecast:', error);
-    return null;
-  }
+export async function getForecastByQuery(
+  query: string,
+  days: number = 7
+): Promise<ExtendedForecastResult | null> {
+  return fetchWeather<ExtendedForecastResult>({
+    query,
+    days,
+    mode: 'forecast',
+  });
 }

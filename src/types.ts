@@ -49,6 +49,7 @@ export interface ForecastDay {
   chanceOfRain: number;
   totalPrecipitation: number;
   conditions: string;
+  avgHumidity?: number;
 }
 
 // Units
