@@ -40,6 +40,16 @@ export interface Weather {
   forecast: ForecastDay[];
 }
 
+export interface ForecastHour {
+  /** Local hour 0–23 */
+  hour: number;
+  temp: number;
+  windSpeed: number;
+  humidity: number;
+  chanceOfRain: number;
+  conditions: string;
+}
+
 export interface ForecastDay {
   date: string;
   maxTemp: number;
@@ -50,6 +60,8 @@ export interface ForecastDay {
   totalPrecipitation: number;
   conditions: string;
   avgHumidity?: number;
+  /** Hourly breakdown when available from the forecast API */
+  hourly?: ForecastHour[];
 }
 
 // Units

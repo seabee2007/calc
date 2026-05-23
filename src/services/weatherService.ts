@@ -85,6 +85,18 @@ export async function getWeatherByLocation(
   });
 }
 
+export async function getWeatherByQuery(
+  query: string
+): Promise<ExtendedWeatherData | null> {
+  return fetchWeather<ExtendedWeatherData>({
+    query: query.trim(),
+    days: 3,
+    includeHistory: true,
+    includeAlerts: true,
+    mode: 'full',
+  });
+}
+
 export async function getExtendedForecast(
   latitude: number,
   longitude: number,

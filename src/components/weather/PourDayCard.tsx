@@ -1,17 +1,11 @@
 import React from 'react';
 import { format } from 'date-fns';
-import {
-  Droplets,
-  Thermometer,
-  Wind,
-  ChevronDown,
-  ChevronUp,
-  AlertOctagon,
-} from 'lucide-react';
+import { Droplets, Thermometer, Wind, AlertOctagon } from 'lucide-react';
 import Card from '../ui/Card';
 import EvapGauge from '../calculations/EvapGauge';
 import {
   ScoredPourDay,
+  PlacementType,
   ratingColor,
   ratingLabel,
   confidenceLabel,
@@ -24,9 +18,9 @@ import {
 interface PourDayCardProps {
   day: ScoredPourDay;
   expanded?: boolean;
-  onToggle?: () => void;
   selected?: boolean;
   onSelect?: () => void;
+  placementType?: PlacementType;
 }
 
 const ratingBorderClass: Record<string, string> = {
@@ -48,20 +42,24 @@ const ratingBgClass: Record<string, string> = {
 const PourDayCard: React.FC<PourDayCardProps> = ({
   day,
   expanded = false,
-  onToggle,
   selected = false,
   onSelect,
+  placementType,
 }) => {
   const color = ratingColor(day.rating);
   const formattedDate = format(new Date(day.date + 'T12:00:00'), 'EEE, MMM d');
-  const bestTime = findBestTimeOfDayWindow(day);
+  const bestTime = findBestTimeOfDayWindow(day, placementType);
   const showMitigationBoost =
     day.mitigationCredit > 0 && day.score !== day.baseScore;
 
   return (
     <Card
-      className={`p-4 border-l-4 ${ratingBorderClass[color]} ${selected ? 'ring-2' : ''} transition-all`}
-      hoverable={!!onSelect}
+      className={`p-4 border-l-4 ${ratingBorderClass[color]} ${
+        selected
+          ? 'ring-2 ring-blue-500 dark:ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-gray-800'
+          : ''
+      }`}
+      hoverable={false}
       clickable={!!onSelect}
       onClick={onSelect}
     >
@@ -81,29 +79,25 @@ const PourDayCard: React.FC<PourDayCardProps> = ({
         </div>
       )}
 
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">{formattedDate}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[180px]">
-            {day.conditions}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Forecast confidence: {confidenceLabel(day.forecastConfidence)}
-          </p>
-        </div>
-        <div className="text-right">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{formattedDate}</p>
+        <div className="shrink-0 text-right">
           <div
-            className={`px-2 py-1 rounded-full text-xs font-medium ${ratingBgClass[color]} text-gray-800 dark:text-gray-100`}
+            className={`inline-flex items-center whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium ${ratingBgClass[color]} text-gray-800 dark:text-gray-100`}
           >
             {ratingLabel(day.rating)} · {day.score}
           </div>
           {showMitigationBoost && (
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
               Base {day.baseScore} +{day.mitigationCredit}
             </p>
           )}
         </div>
       </div>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{day.conditions}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+        Forecast confidence: {confidenceLabel(day.forecastConfidence)}
+      </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
         <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
@@ -129,8 +123,10 @@ const PourDayCard: React.FC<PourDayCardProps> = ({
       </div>
 
       {bestTime && !day.criticalFail && (
-        <p className="mt-2 text-xs text-cyan-800 dark:text-cyan-200">
-          Best window: {formatTimeWindow(bestTime)} · est. {bestTime.estimatedScore} (
+        <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">
+          Best window:{' '}
+          <span className="font-medium">{bestTime.label}</span> (
+          {formatTimeWindow(bestTime)}) · est. {bestTime.estimatedScore} (
           {ratingLabel(bestTime.estimatedRating)})
         </p>
       )}
@@ -144,23 +140,6 @@ const PourDayCard: React.FC<PourDayCardProps> = ({
           {day.primaryRisks[0]}
         </p>
       )}
-
-      {onToggle &&
-        (day.recommendedActions.length > 0 ||
-          day.primaryRisks.length > 1 ||
-          day.evaporationRateKgM2H != null) && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            className="mt-2 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {expanded ? 'Less detail' : 'Placement guidance'}
-          </button>
-        )}
 
       {expanded && (
         <div className="mt-3 space-y-3 border-t border-gray-200 dark:border-gray-700 pt-3">

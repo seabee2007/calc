@@ -58,7 +58,6 @@ const PourPlanner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationQuery, setLocationQuery] = useState('');
-  const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const {
     requestLocation,
     isLoading: locationLoading,
@@ -348,21 +347,22 @@ const PourPlanner: React.FC = () => {
             <p className="text-sm text-white/80 mb-4 drop-shadow">
               Tap a day to select a pour date. Green = Excellent/Good, yellow = Caution, red = Delay recommended.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {displayDays.map((day) => (
-                <PourDayCard
-                  key={day.date}
-                  day={day}
-                  expanded={expandedDate === day.date}
-                  onToggle={() =>
-                    setExpandedDate((d) => (d === day.date ? null : day.date))
-                  }
-                  selected={selectedDate === day.date}
-                  onSelect={() =>
-                    setSelectedDate((d) => (d === day.date ? null : day.date))
-                  }
-                />
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+              {displayDays.map((day) => {
+                const isSelected = selectedDate === day.date;
+                return (
+                  <PourDayCard
+                    key={day.date}
+                    day={day}
+                    expanded={isSelected}
+                    selected={isSelected}
+                    placementType={placementType || undefined}
+                    onSelect={() =>
+                      setSelectedDate((d) => (d === day.date ? null : day.date))
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
 

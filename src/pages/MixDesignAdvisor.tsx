@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Beaker, Thermometer, Droplets, Wind, Calculator, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Beaker, Thermometer, Droplets, Wind, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle, Search } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import LocationPermissionAlert from '../components/ui/LocationPermissionAlert';
-import { getWeatherByLocation } from '../services/weatherService';
+import { getWeatherByLocation, getWeatherByQuery } from '../services/weatherService';
 import { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
 import SpecGenerator from '../components/mix/SpecGenerator';
@@ -31,7 +32,7 @@ const MixDesignAdvisor: React.FC = () => {
   const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [locationReceived, setLocationReceived] = useState(false);
+  const [locationQuery, setLocationQuery] = useState('');
 
   const calculateEvaporationRate = (temp: number, humidity: number, windSpeed: number) => {
     const TcF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
@@ -139,66 +140,71 @@ const MixDesignAdvisor: React.FC = () => {
     };
   };
 
-  const handleLocationReceived = async (latitude: number, longitude: number) => {
+  const applyWeatherData = (weatherData: Weather) => {
+    setWeather(weatherData);
+    setLocationError(null);
+    setLocationQuery(
+      `${weatherData.location.city}, ${weatherData.location.country}`,
+    );
+
+    const rec = suggestConcreteParameters(
+      unitSystem === 'metric'
+        ? (weatherData.temperature - 32) * (5 / 9)
+        : weatherData.temperature,
+      weatherData.humidity,
+      unitSystem === 'metric'
+        ? weatherData.windSpeed * 1.60934
+        : weatherData.windSpeed,
+      parseInt(selectedPsi),
+      exposure,
+    );
+    setRecommendation(rec);
+  };
+
+  const fetchWeatherForLocation = async (
+    fetcher: () => Promise<Weather | null>,
+    notFoundMessage: string,
+  ) => {
     setLoading(true);
     setLocationError(null);
-    setLocationReceived(true);
 
     try {
-      const weatherData = await getWeatherByLocation(latitude, longitude);
-
+      const weatherData = await fetcher();
       if (weatherData) {
-        setWeather(weatherData);
-        
-        const rec = suggestConcreteParameters(
-          unitSystem === 'metric' ? 
-            ((weatherData.temperature - 32) * 5/9) : 
-            weatherData.temperature,
-          weatherData.humidity,
-          unitSystem === 'metric' ? 
-            (weatherData.windSpeed * 1.60934) : 
-            weatherData.windSpeed,
-          parseInt(selectedPsi),
-          exposure
-        );
-        setRecommendation(rec);
+        applyWeatherData(weatherData);
       } else {
-        setLocationError('Unable to get weather data. Please try again.');
+        setLocationError(notFoundMessage);
       }
     } catch (error) {
       console.error('Error getting weather:', error);
-      setLocationError('Error getting weather data. Please check your connection and try again.');
+      setLocationError(
+        'Error getting weather data. Please check your connection and try again.',
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLocationError = (error: string) => {
-    setLocationError(error);
-    setLocationReceived(false);
+  const handleLocationReceived = async (latitude: number, longitude: number) => {
+    await fetchWeatherForLocation(
+      () => getWeatherByLocation(latitude, longitude),
+      'Unable to get weather data. Please try again.',
+    );
   };
 
-  const handleCalculateWithoutLocation = () => {
-    // Provide default weather conditions for manual calculation
-    const defaultWeather = {
-      temperature: 70, // 70°F default
-      humidity: 50, // 50% default
-      windSpeed: 5 // 5 mph default
-    };
+  const handleLocationSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = locationQuery.trim();
+    if (!query) return;
 
-    const rec = suggestConcreteParameters(
-      unitSystem === 'metric' ? 
-        ((defaultWeather.temperature - 32) * 5/9) : 
-        defaultWeather.temperature,
-      defaultWeather.humidity,
-      unitSystem === 'metric' ? 
-        (defaultWeather.windSpeed * 1.60934) : 
-        defaultWeather.windSpeed,
-      parseInt(selectedPsi),
-      exposure
+    await fetchWeatherForLocation(
+      () => getWeatherByQuery(query),
+      'Location not found. Try a ZIP code, city name, or city and state.',
     );
-    setRecommendation(rec);
-    setLocationError(null);
+  };
+
+  const handleLocationError = (error: string) => {
+    setLocationError(error);
   };
 
   const formatTemperature = (temp: number): string => {
@@ -360,38 +366,59 @@ const MixDesignAdvisor: React.FC = () => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">Get Weather-Based Recommendations</h3>
                 </div>
                 
-                {!locationReceived && !weather && (
-                  <div className="space-y-3">
+                <div className="space-y-4">
+                  {!weather && (
                     <LocationPermissionAlert
                       onLocationReceived={handleLocationReceived}
                       onError={handleLocationError}
                       compact={false}
                     />
-                    
-                    {locationError && (
-                      <div className="border-t pt-3">
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          Or calculate with standard conditions:
-                        </p>
-                        <Button
-                          onClick={handleCalculateWithoutLocation}
-                          variant="outline"
-                          fullWidth
-                          icon={<Calculator size={18} />}
-                        >
-                          Calculate with Default Weather (70°F, 50% humidity)
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {loading && (
-                  <div className="flex items-center justify-center p-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Getting weather data...</span>
-                  </div>
-                )}
+                  )}
+
+                  {!weather && (
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                      <span className="text-sm text-gray-500 dark:text-gray-400">or</span>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={handleLocationSearch}
+                    className="flex flex-col sm:flex-row gap-2 sm:items-end"
+                  >
+                    <Input
+                      label={weather ? 'Location' : 'Enter location manually'}
+                      placeholder="e.g. 97201 or Portland, OR"
+                      value={locationQuery}
+                      onChange={(e) => setLocationQuery(e.target.value)}
+                      className="flex-1"
+                      disabled={loading}
+                    />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={loading || !locationQuery.trim()}
+                      icon={<Search className="h-4 w-4" />}
+                      className="sm:mb-0.5"
+                    >
+                      {weather ? 'Update' : 'Search'}
+                    </Button>
+                  </form>
+
+                  {locationError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
+                  )}
+
+                  {loading && (
+                    <div className="flex items-center justify-center p-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                      <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                        Getting weather data...
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

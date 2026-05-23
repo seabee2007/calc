@@ -28,9 +28,29 @@ function locationQuery(body: ForecastRequest): string | null {
   return null;
 }
 
+function parseLocalHour(timeStr: string): number {
+  const part = String(timeStr).split(" ")[1];
+  if (!part) return 0;
+  return parseInt(part.split(":")[0], 10) || 0;
+}
+
 function mapForecastDay(day: Record<string, unknown>) {
   const dayData = day.day as Record<string, unknown>;
   const condition = dayData.condition as Record<string, unknown>;
+  const rawHours = (day.hour as Record<string, unknown>[] | undefined) ?? [];
+
+  const hourly = rawHours.map((h) => {
+    const hourCondition = h.condition as Record<string, unknown> | undefined;
+    return {
+      hour: parseLocalHour(String(h.time ?? "")),
+      temp: Number(h.temp_f) || 0,
+      windSpeed: Number(h.wind_mph) || 0,
+      humidity: Number(h.humidity) || 0,
+      chanceOfRain: Number(h.chance_of_rain) || 0,
+      conditions: String(hourCondition?.text ?? condition.text ?? ""),
+    };
+  });
+
   return {
     date: day.date,
     maxTemp: dayData.maxtemp_f,
@@ -41,6 +61,7 @@ function mapForecastDay(day: Record<string, unknown>) {
     totalPrecipitation: dayData.totalprecip_in,
     conditions: condition.text,
     avgHumidity: dayData.avghumidity,
+    hourly: hourly.length > 0 ? hourly : undefined,
   };
 }
 

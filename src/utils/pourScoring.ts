@@ -1,4 +1,4 @@
-import { ForecastDay } from '../types';
+import { ForecastDay, ForecastHour } from '../types';
 
 export type PourRating = 'excellent' | 'good' | 'fair' | 'poor' | 'avoid';
 export type ForecastConfidence = 'high' | 'medium' | 'low';
@@ -789,53 +789,132 @@ export function pruneMitigationSelections(
   return filterApplicableMitigationIds(ctx, ids);
 }
 
-/** Estimate placement score for time-of-day windows using daily forecast heuristics. */
-export function estimateTimeOfDayWindows(day: ForecastDay & { avgHumidity?: number }): TimeOfDayWindow[] {
-  const humidity = day.avgHumidity ?? 50;
-  const spans: { label: string; startHour: number; endHour: number; airTemp: number; windFactor: number }[] = [
-    {
-      label: 'Early morning',
-      startHour: 5,
-      endHour: 9,
-      airTemp: day.minTemp + (day.maxTemp - day.minTemp) * 0.25,
-      windFactor: 0.65,
-    },
-    {
-      label: 'Midday',
-      startHour: 10,
-      endHour: 14,
-      airTemp: day.maxTemp,
-      windFactor: 1,
-    },
-    {
-      label: 'Late afternoon / evening',
-      startHour: 16,
-      endHour: 20,
-      airTemp: day.minTemp + (day.maxTemp - day.minTemp) * 0.7,
-      windFactor: 0.85,
-    },
-  ];
+interface WindowSpan {
+  label: string;
+  startHour: number;
+  endHour: number;
+}
 
-  const windows: TimeOfDayWindow[] = spans.map((span) => {
-    const syntheticDay: ForecastDay & { avgHumidity?: number } = {
+const WINDOW_SPANS: WindowSpan[] = [
+  { label: 'Early morning', startHour: 5, endHour: 9 },
+  { label: 'Late morning', startHour: 9, endHour: 12 },
+  { label: 'Midday', startHour: 12, endHour: 15 },
+  { label: 'Afternoon', startHour: 15, endHour: 19 },
+];
+
+function hourInSpan(hour: number, startHour: number, endHour: number): boolean {
+  if (startHour <= endHour) {
+    return hour >= startHour && hour < endHour;
+  }
+  return hour >= startHour || hour < endHour;
+}
+
+function avg(nums: number[]): number {
+  if (nums.length === 0) return 0;
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+}
+
+function buildSyntheticDayForWindow(
+  day: ForecastDay & { avgHumidity?: number },
+  span: WindowSpan,
+  hoursInWindow: ForecastHour[],
+): ForecastDay & { avgHumidity?: number } {
+  const tempRange = Math.max(1, day.maxTemp - day.minTemp);
+
+  if (hoursInWindow.length > 0) {
+    const temps = hoursInWindow.map((h) => h.temp);
+    const winds = hoursInWindow.map((h) => h.windSpeed);
+    const humidities = hoursInWindow.map((h) => h.humidity);
+    const rainChances = hoursInWindow.map((h) => h.chanceOfRain);
+    const airTemp = avg(temps);
+    const dominantCondition =
+      hoursInWindow.reduce(
+        (best, h) => (h.chanceOfRain > best.chanceOfRain ? h : best),
+        hoursInWindow[0],
+      ).conditions || day.conditions;
+
+    return {
       ...day,
-      maxTemp: span.airTemp + 2,
-      minTemp: span.airTemp - 4,
-      avgTemp: span.airTemp,
-      maxWindSpeed: day.maxWindSpeed * span.windFactor,
+      maxTemp: Math.max(...temps),
+      minTemp: Math.min(...temps),
+      avgTemp: airTemp,
+      maxWindSpeed: Math.max(...winds),
+      chanceOfRain: Math.max(...rainChances),
+      avgHumidity: avg(humidities),
+      conditions: dominantCondition,
     };
-    const { baseScore } = computeBaseScore(syntheticDay);
+  }
+
+  const progress =
+    span.startHour <= 9
+      ? 0.2
+      : span.startHour <= 12
+        ? 0.45
+        : span.startHour <= 15
+          ? 0.75
+          : 0.9;
+  const airTemp = day.minTemp + tempRange * progress;
+  const windFactor =
+    span.startHour <= 9 ? 0.55 : span.startHour <= 12 ? 0.75 : span.startHour <= 15 ? 1 : 0.8;
+  const rainFactor =
+    span.startHour <= 9 ? 0.65 : span.startHour <= 12 ? 0.85 : span.startHour <= 15 ? 1.15 : 1.05;
+  const humidityFactor =
+    span.startHour <= 9 ? 1.08 : span.startHour <= 15 ? 0.92 : 0.98;
+
+  return {
+    ...day,
+    maxTemp: airTemp + tempRange * 0.08,
+    minTemp: airTemp - tempRange * 0.12,
+    avgTemp: airTemp,
+    maxWindSpeed: day.maxWindSpeed * windFactor,
+    chanceOfRain: Math.min(100, Math.round(day.chanceOfRain * rainFactor)),
+    avgHumidity: Math.min(
+      100,
+      Math.round((day.avgHumidity ?? 50) * humidityFactor),
+    ),
+  };
+}
+
+/** Estimate placement score per time-of-day window from hourly or daily forecast data. */
+export function estimateTimeOfDayWindows(
+  day: ForecastDay & { avgHumidity?: number },
+  placementType?: PlacementType,
+): TimeOfDayWindow[] {
+  const hourly = day.hourly ?? [];
+
+  const windows: TimeOfDayWindow[] = WINDOW_SPANS.map((span) => {
+    const hoursInWindow = hourly.filter((h) =>
+      hourInSpan(h.hour, span.startHour, span.endHour),
+    );
+
+    const syntheticDay = buildSyntheticDayForWindow(day, span, hoursInWindow);
+    const { baseScore } = computeBaseScore(syntheticDay, placementType);
     const estimatedScore = Math.max(0, Math.min(100, baseScore));
+
+    const startHour =
+      hoursInWindow.length > 0
+        ? Math.min(...hoursInWindow.map((h) => h.hour))
+        : span.startHour;
+    const endHour =
+      hoursInWindow.length > 0
+        ? Math.max(...hoursInWindow.map((h) => h.hour)) + 1
+        : span.endHour;
+
     return {
       label: span.label,
-      startHour: span.startHour,
-      endHour: span.endHour,
+      startHour,
+      endHour,
       estimatedScore,
       estimatedRating: scoreToRating(estimatedScore),
     };
   });
 
-  return windows.sort((a, b) => b.estimatedScore - a.estimatedScore);
+  return windows.sort((a, b) => {
+    if (b.estimatedScore !== a.estimatedScore) {
+      return b.estimatedScore - a.estimatedScore;
+    }
+    return a.startHour - b.startHour;
+  });
 }
 
 export function formatTimeWindow(w: TimeOfDayWindow): string {
@@ -849,8 +928,9 @@ export function formatTimeWindow(w: TimeOfDayWindow): string {
 
 export function findBestTimeOfDayWindow(
   day: ForecastDay & { avgHumidity?: number },
+  placementType?: PlacementType,
 ): TimeOfDayWindow | null {
-  const windows = estimateTimeOfDayWindows(day);
+  const windows = estimateTimeOfDayWindows(day, placementType);
   return windows[0] ?? null;
 }
 
