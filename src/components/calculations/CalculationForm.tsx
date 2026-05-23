@@ -737,69 +737,78 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           <div className="space-y-6">
             <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100">Concrete Required</h3>
-              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Volume</p>
-                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                    {calculationResult.volume} {preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {selectedQuikreteProduct ? `${selectedQuikreteProduct.weight}lb QUIKRETE® ${selectedQuikreteProduct.type}` : 'Standard 80lb Bags'}
-                    </p>
-                    <button
-                      onClick={() => setShowQuikreteModal(true)}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                      title="Select QUIKRETE® Product"
-                    >
-                      <Package size={16} />
-                    </button>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                    {calculationResult.bags}
-                  </p>
-                  {!selectedQuikreteProduct && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                      👆 Click package icon to select QUIKRETE® product
-                    </p>
-                  )}
-                </div>
+              <div className="mt-2">
+                <p className="text-sm text-blue-700 dark:text-blue-300">Volume</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                  {calculationResult.volume} {preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'}
+                </p>
               </div>
-              
-              <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-800">
-                <div className="grid grid-cols-1 gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    size="sm"
-                    onClick={togglePricing}
-                    icon={<DollarSign size={16} />}
-                    className="w-full"
-                  >
-                    {showPricing ? 'Hide Pricing' : 'Show Pricing Estimate'}
-                  </Button>
-                  
-                  {calculationData && (calculationType === 'slab' || calculationType === 'column' || calculationType === 'footer') && (
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      size="sm"
-                      onClick={handleReinforcementOptimizer}
-                      icon={<Zap size={16} />}
-                      className="w-full text-orange-600 hover:text-orange-800 border-orange-200 hover:border-orange-300 dark:text-orange-400 dark:hover:text-orange-300 dark:border-orange-800"
+
+              <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                  Bagged concrete (QUIKRETE®)
+                </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-blue-700 dark:text-blue-300 truncate">
+                      {selectedQuikreteProduct
+                        ? `${selectedQuikreteProduct.weight}lb ${selectedQuikreteProduct.type}`
+                        : 'Standard 80lb bags'}
+                    </p>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                      {calculationResult.bags}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowQuikreteModal(true)}
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-700"
+                      title="Select QUIKRETE® Product"
+                      aria-label="Select QUIKRETE product"
                     >
-                      Design Reinforcement
-                    </Button>
-                  )}
+                      <Package size={20} />
+                    </button>
+                    {!selectedQuikreteProduct && (
+                      <p className="text-[10px] leading-tight text-center text-blue-600 dark:text-blue-400 mt-1 max-w-[5.5rem]">
+                        Tap icon to select product
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            
+
+            <div className="grid grid-cols-1 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={togglePricing}
+                icon={<DollarSign size={16} />}
+                className="w-full"
+              >
+                {showPricing ? 'Hide Ready-Mix Details' : 'Ready-Mix Delivery & Estimate'}
+              </Button>
+
+              {calculationData && (calculationType === 'slab' || calculationType === 'column' || calculationType === 'footer') && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReinforcementOptimizer}
+                  icon={<Zap size={16} />}
+                  className="w-full text-orange-600 hover:text-orange-800 border-orange-200 hover:border-orange-300 dark:text-orange-400 dark:hover:text-orange-300 dark:border-orange-800"
+                >
+                  Design Reinforcement
+                </Button>
+              )}
+            </div>
+
             {showPricing && calculationResult.volume > 0 && (
-              <PricingCalculator 
-                volume={calculationResult.volume} 
+              <PricingCalculator
+                volume={calculationResult.volume}
+                volumeUnit={preferences.volumeUnit}
                 psi={selectedPsi}
                 calculationId={currentCalculationId || undefined}
                 onPricingCalculated={handlePricingCalculated}

@@ -4,13 +4,16 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation } from '../../utils/pricing';
-import { LocationPricing } from '../../types';
+import { volumeToCubicYards } from '../../utils/readyMixDelivery';
+import { LocationPricing, VolumeUnit } from '../../types';
 import { useProjectStore } from '../../store';
 import { useLocation } from '../../hooks/useLocation';
 import LocationPermissionAlert from '../ui/LocationPermissionAlert';
+import ReadyMixDelivery from './ReadyMixDelivery';
 
 interface PricingCalculatorProps {
   volume: number;
+  volumeUnit?: VolumeUnit;
   psi?: string;
   calculationId?: string;
   calculationData?: any;
@@ -41,7 +44,8 @@ interface PricingCalculatorProps {
 }
 
 const PricingCalculator: React.FC<PricingCalculatorProps> = ({ 
-  volume, 
+  volume,
+  volumeUnit = 'cubic_yards',
   psi = '3000', 
   calculationId,
   calculationData,
@@ -135,9 +139,14 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     }
   };
 
+  const volumeYd = useMemo(
+    () => volumeToCubicYards(volume, volumeUnit),
+    [volume, volumeUnit]
+  );
+
   const pricing = useMemo(() => {
     return calculateConcreteCost(
-      volume,
+      volumeYd,
       psi,
       distance,
       { 
@@ -147,7 +156,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       },
       supplier
     );
-  }, [volume, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
+  }, [volumeYd, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
 
   // Call the callback when pricing data changes
   useEffect(() => {
@@ -228,24 +237,50 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   // Show save button only when we have pricing, supplier, project, and a calculation to update
   const showSaveButton = pricing && supplier && currentProject && calculationId;
 
+  const volumeUnitLabel =
+    volumeUnit === 'cubic_yards' ? 'yd³' : volumeUnit === 'cubic_feet' ? 'ft³' : 'm³';
+
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ready-Mixed Concrete Estimate</h3>
-        <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Ready-Mixed Concrete
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Delivery planning, supplier location, and cost estimate
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        </div>
       </div>
 
-      <section className="mb-6">
-        <p className="text-gray-600 dark:text-gray-300 mb-2">
-          Volume: {volume.toFixed(2)} yd³
-          {supplier && volume < supplier.pricing.deliveryFees.minimumOrder && (
-            <span className="ml-2 text-amber-600 dark:text-amber-400">Orders below minimum incur fees</span>
+      <ReadyMixDelivery volume={volume} volumeUnit={volumeUnit} />
+
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+          Cost Estimate
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          {volume.toFixed(2)} {volumeUnitLabel}
+          <span className="text-gray-500 dark:text-gray-500">
+            {' '}
+            ({volumeYd.toFixed(2)} yd³ for pricing)
+          </span>
+          {supplier && volumeYd < supplier.pricing.deliveryFees.minimumOrder && (
+            <span className="block mt-1 text-amber-600 dark:text-amber-400">
+              Orders below minimum incur fees
+            </span>
           )}
         </p>
-      </section>
+      </div>
 
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Location & Delivery</h3>
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
+          Location & Delivery
+        </h4>
 
         <div className="space-y-4">
           {!userLocation && !supplier && (
@@ -313,7 +348,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
             
             {supplier && (
               <div className="flex items-start">
-                <Truck className="h-4 w-4 text-green-600 dark:text-green-400 mt-1 mr-2 flex-shrink-0" />
+                <Truck className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-1 mr-2 flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Nearest Supplier:</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{supplier.name}</p>
@@ -382,13 +417,13 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               <div className="text-gray-900 dark:text-white">
                 <div className="sm:hidden">
                   <div>Concrete Cost</div>
-                  <div className="text-sm font-normal text-gray-600 dark:text-gray-400">({volume.toFixed(2)} yd³)</div>
+                  <div className="text-sm font-normal text-gray-600 dark:text-gray-400">({volumeYd.toFixed(2)} yd³)</div>
                 </div>
                 <div className="hidden sm:block">
-                  Concrete Cost ({volume.toFixed(2)} yd³)
+                  Concrete Cost ({volumeYd.toFixed(2)} yd³)
                 </div>
               </div>
-              <span className="text-green-700 dark:text-green-400">{formatPrice(pricing?.concreteCost || 0)}</span>
+              <span className="text-blue-700 dark:text-blue-300">{formatPrice(pricing?.concreteCost || 0)}</span>
             </div>
           </div>
           
@@ -452,10 +487,10 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
             </div>
           )}
           
-          <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
             <div className="flex justify-between text-lg font-bold">
               <span className="text-gray-900 dark:text-white">Total Estimated Cost</span>
-              <span className="text-green-700 dark:text-green-400">{formatPrice(pricing?.totalCost || 0)}</span>
+              <span className="text-blue-700 dark:text-blue-300">{formatPrice(pricing?.totalCost || 0)}</span>
             </div>
             {!supplier ? (
               <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
@@ -476,7 +511,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               onClick={handleSavePricing}
               disabled={isSaving}
               icon={isSaving ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full"
             >
               {isSaving ? 'Saving Pricing...' : 'Save Pricing to Calculation'}
             </Button>

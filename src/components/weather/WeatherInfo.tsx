@@ -1,8 +1,7 @@
 import React from 'react';
 import { Weather } from '../../types';
-import { Sun, Cloud, CloudRain, Wind, Thermometer, Droplets, Calendar, MapPin, CloudLightning, Snowflake, CloudFog, CloudDrizzle, CloudHail, CloudSnow } from 'lucide-react';
+import { Sun, Cloud, CloudRain, Wind, Thermometer, Droplets, MapPin, CloudLightning, CloudFog, CloudDrizzle, CloudHail, CloudSnow } from 'lucide-react';
 import Card from '../ui/Card';
-import { format } from 'date-fns';
 
 interface WeatherInfoProps {
   weather: Weather;
@@ -58,20 +57,12 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
   };
   
   const getTemperatureColor = (temp: number) => {
-    if (temp > 85) return 'text-red-600';
-    if (temp > 70) return 'text-orange-500';
-    if (temp > 50) return 'text-green-500';
-    return 'text-blue-500';
+    if (temp > 85) return 'text-red-600 dark:text-red-400';
+    if (temp > 70) return 'text-orange-500 dark:text-orange-400';
+    if (temp > 50) return 'text-green-600 dark:text-green-400';
+    return 'text-blue-600 dark:text-blue-400';
   };
 
-  const formatDate = (dateString: string): string => {
-    try {
-      return format(new Date(dateString), 'EEE, MMM d');
-    } catch {
-      return 'N/A';
-    }
-  };
-  
   return (
     <Card className={`p-4 ${className}`}>
       <div className="flex items-center justify-between mb-6">
@@ -126,66 +117,13 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
         </div>
       </div>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            <h4 className="text-sm font-medium text-gray-900 dark:text-white">3-Day Forecast</h4>
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
-              <MapPin size={14} className="mr-1" />
-              <span className="text-xs">{weather.location.city}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-3">
-          {weather.forecast.map((day) => (
-            <div key={day.date} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {formatDate(day.date)}
-                  </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">• {day.conditions}</span>
-                </div>
-                {getWeatherIcon(day.conditions)}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-gray-600 dark:text-gray-400">Temperature</p>
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      <span className={getTemperatureColor(day.maxTemp)}>High: {Math.round(day.maxTemp)}°F</span>
-                    </p>
-                    <p className="font-medium">
-                      <span className={getTemperatureColor(day.minTemp)}>Low: {Math.round(day.minTemp)}°F</span>
-                    </p>
-                    <p className="font-medium">
-                      <span className={getTemperatureColor(day.avgTemp)}>Avg: {Math.round(day.avgTemp)}°F</span>
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-2">
-                    <p className="text-gray-600 dark:text-gray-400">Wind</p>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      Max: {day.maxWindSpeed} mph
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600 dark:text-gray-400">Precipitation</p>
-                    <p className="font-medium text-blue-600 dark:text-blue-400">
-                      {day.chanceOfRain}% ({day.totalPrecipitation.toFixed(2)}")
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="mt-2 rounded-md bg-gray-50 dark:bg-gray-700/50 p-3">
+        <p className="text-sm text-gray-700 dark:text-gray-200">
+          <span className="font-medium text-gray-900 dark:text-white">Conditions: </span>
+          {weather.conditions}
+        </p>
       </div>
-      
+
       <div className="mt-4 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
         <p className="text-sm text-blue-800 dark:text-blue-200">
           {weather.temperature > 85 
