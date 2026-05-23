@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
   const additionalLinks = user ? [
     { name: 'Projects', path: '/projects', icon: <Folder size={20} /> },
     { name: 'Proposals', path: '/proposals', icon: <FileText size={20} /> },
-    { name: 'Pour Planner', path: '/pour-planner', icon: <CloudSun size={20} />, shortName: 'Pour' },
+    { name: 'Placement Planner', path: '/pour-planner', icon: <CloudSun size={20} />, shortName: 'Place' },
     { name: 'Mix-Design Advisor', path: '/mix-design-advisor', icon: <Beaker size={20} />, shortName: 'Mix' },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ] : [];

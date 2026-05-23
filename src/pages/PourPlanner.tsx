@@ -16,6 +16,7 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import LocationPermissionAlert from '../components/ui/LocationPermissionAlert';
 import PourDayCard from '../components/weather/PourDayCard';
+import { useLocation } from '../hooks/useLocation';
 import {
   getExtendedForecast,
   getForecastByQuery,
@@ -29,13 +30,7 @@ import {
 import { useProjectStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 
-const MAX_FORECAST_DAYS = 5;
-
-const FORECAST_OPTIONS = [
-  { value: '3', label: '3 days' },
-  { value: '4', label: '4 days' },
-  { value: '5', label: '5 days (Starter plan max)' },
-];
+const FORECAST_DAYS = 5;
 
 const PourPlanner: React.FC = () => {
   const { user } = useAuth();
@@ -44,9 +39,14 @@ const PourPlanner: React.FC = () => {
   const [scoredDays, setScoredDays] = useState<ScoredPourDay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cityQuery, setCityQuery] = useState('');
-  const [forecastDays, setForecastDays] = useState(String(MAX_FORECAST_DAYS));
+  const [locationQuery, setLocationQuery] = useState('');
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const {
+    requestLocation,
+    isLoading: locationLoading,
+    permission,
+    error: locationError,
+  } = useLocation();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -59,13 +59,12 @@ const PourPlanner: React.FC = () => {
       setError(null);
       setSaveMessage(null);
 
-      const days = Math.min(MAX_FORECAST_DAYS, parseInt(forecastDays, 10));
       let result = null;
 
       if (opts.query) {
-        result = await getForecastByQuery(opts.query, days);
+        result = await getForecastByQuery(opts.query, FORECAST_DAYS);
       } else if (opts.lat != null && opts.lon != null) {
-        result = await getExtendedForecast(opts.lat, opts.lon, days);
+        result = await getExtendedForecast(opts.lat, opts.lon, FORECAST_DAYS);
       }
 
       if (requestId !== loadRequestIdRef.current) return;
@@ -84,22 +83,26 @@ const PourPlanner: React.FC = () => {
       setScoredDays(scored);
       setLoading(false);
     },
-    [forecastDays],
+    [],
   );
 
-  const handleLocationReceived = useCallback(
-    async (latitude: number, longitude: number) => {
-      await loadForecast({ lat: latitude, lon: longitude });
-    },
-    [loadForecast],
-  );
+  const handleUseMyLocation = async () => {
+    setError(null);
+    const pos = await requestLocation();
+    if (pos) {
+      await loadForecast({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+    }
+  };
 
-  const handleCitySearch = async (e: React.FormEvent) => {
+  const handleLocationSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const q = cityQuery.trim();
+    const q = locationQuery.trim();
     if (!q) return;
     await loadForecast({ query: q });
   };
+
+  const showLocationHelp =
+    permission === 'denied' || Boolean(locationError);
 
   const bestWindow = findBestPourWindow(scoredDays);
 
@@ -124,9 +127,9 @@ const PourPlanner: React.FC = () => {
         <div className="flex justify-center mb-3">
           <CloudSun className="h-12 w-12 text-cyan-400 drop-shadow" />
         </div>
-        <h1 className="text-3xl font-bold text-white drop-shadow-md">Pour Planner</h1>
+        <h1 className="text-3xl font-bold text-white drop-shadow-md">Placement Planner</h1>
         <p className="text-white/90 mt-2 max-w-2xl mx-auto drop-shadow">
-          Compare upcoming days to pick the best window for placing concrete — based on
+          Compare the next five days to pick the best window for placing concrete — based on
           temperature, rain, and wind.
         </p>
       </motion.div>
@@ -134,42 +137,55 @@ const PourPlanner: React.FC = () => {
       <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <MapPin className="h-5 w-5" />
-          Location &amp; range
+          Location
         </h2>
 
-        <div className="mb-4">
-          <Select
-            label="Forecast range"
-            options={FORECAST_OPTIONS}
-            value={forecastDays}
-            onChange={setForecastDays}
-          />
+        <div className="flex flex-col gap-4">
+          <Button
+            type="button"
+            onClick={handleUseMyLocation}
+            disabled={loading || locationLoading}
+            icon={<MapPin className="h-4 w-4" />}
+            className="w-full sm:w-auto"
+          >
+            {locationLoading ? 'Getting location…' : 'Use my location'}
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            <span className="text-sm text-gray-500 dark:text-gray-400">or</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          </div>
+
+          <form onSubmit={handleLocationSearch} className="flex flex-col sm:flex-row gap-2">
+            <Input
+              label="ZIP, city, or country"
+              placeholder="e.g. 97201 or Portland, OR or London, UK"
+              value={locationQuery}
+              onChange={(e) => setLocationQuery(e.target.value)}
+              className="flex-1"
+            />
+            <div className="flex items-end">
+              <Button
+                type="submit"
+                variant="outline"
+                disabled={loading || !locationQuery.trim()}
+                icon={<Search className="h-4 w-4" />}
+              >
+                Search
+              </Button>
+            </div>
+          </form>
         </div>
 
-        <LocationPermissionAlert
-          onLocationReceived={handleLocationReceived}
-          onError={(msg) => setError(msg)}
-        />
-
-        <form onSubmit={handleCitySearch} className="flex flex-col sm:flex-row gap-2">
-          <Input
-            label="Or search by city"
-            placeholder="e.g. Portland, OR"
-            value={cityQuery}
-            onChange={(e) => setCityQuery(e.target.value)}
-            className="flex-1"
-          />
-          <div className="flex items-end">
-            <Button
-              type="submit"
-              variant="outline"
-              disabled={loading || !cityQuery.trim()}
-              icon={<Search className="h-4 w-4" />}
-            >
-              Search
-            </Button>
+        {showLocationHelp && (
+          <div className="mt-4">
+            <LocationPermissionAlert
+              onLocationReceived={(lat, lon) => loadForecast({ lat, lon })}
+              onError={(msg) => setError(msg)}
+            />
           </div>
-        </form>
+        )}
 
         {location && (
           <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
@@ -200,7 +216,7 @@ const PourPlanner: React.FC = () => {
                 <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
                 <div>
                   <p className="font-medium text-green-900 dark:text-green-100">
-                    Best pour window
+                    Best placement window
                   </p>
                   <p className="text-sm text-green-800 dark:text-green-200 mt-1">
                     {bestWindow.start === bestWindow.end
@@ -217,8 +233,7 @@ const PourPlanner: React.FC = () => {
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0" />
                 <p className="text-sm text-amber-900 dark:text-amber-100">
-                  No ideal days in this range. Review each day below — consider extending the
-                  forecast or adjusting your schedule.
+                  No ideal days in the next five days. Review each day below or adjust your schedule.
                 </p>
               </div>
             </Card>
@@ -288,9 +303,7 @@ const PourPlanner: React.FC = () => {
               <li>Penalties for freezing lows, extreme heat, rain, and high wind</li>
               <li>Scores are guidance — always confirm with your spec and local conditions</li>
             </ul>
-            <p className="mt-3 text-xs">
-              Starter plan supports up to 5 forecast days and 7 days of historical weather.
-            </p>
+            <p className="mt-3 text-xs">Forecast covers the next five days.</p>
           </Card>
         </>
       )}
@@ -299,7 +312,7 @@ const PourPlanner: React.FC = () => {
         <Card className="p-8 text-center bg-white/90 dark:bg-gray-900/90">
           <CloudSun className="h-10 w-10 mx-auto text-cyan-500 mb-3" />
           <p className="text-gray-600 dark:text-gray-400">
-            Enable location or search a city to see pour-day ratings.
+            Use my location or search by ZIP, city, or country to see day ratings.
           </p>
         </Card>
       )}

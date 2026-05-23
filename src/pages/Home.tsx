@@ -17,8 +17,8 @@ const Home: React.FC = () => {
       gradient: 'from-blue-500 to-blue-700'
     },
     {
-      title: 'Pour Planner',
-      description: 'Plan pours days or weeks ahead with weather-based day ratings',
+      title: 'Placement Planner',
+      description: 'Plan placements with a 5-day weather outlook and day-by-day ratings',
       icon: <CloudSun className="h-10 w-10 text-white" />,
       action: () => navigate('/pour-planner'),
       gradient: 'from-cyan-500 to-cyan-700'
