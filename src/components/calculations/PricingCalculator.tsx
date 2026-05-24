@@ -1,21 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { DollarSign, Truck, Clock, Calendar, MapPin, Loader, Save } from 'lucide-react';
+import { DollarSign, Truck, Clock, Calendar, MapPin, Loader } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation } from '../../utils/pricing';
+import { calculateConcreteCost, formatPrice, getNearestLocation } from '../../utils/pricing';
 import { volumeToCubicYards } from '../../utils/readyMixDelivery';
 import { LocationPricing, VolumeUnit } from '../../types';
-import { useProjectStore } from '../../store';
 import { geocodeAddress, GeocodedLocation } from '../../utils/location';
 import ReadyMixDelivery from './ReadyMixDelivery';
+
+export type PricingCalculatorVariant = 'calculator' | 'planner';
 
 interface PricingCalculatorProps {
   volume: number;
   volumeUnit?: VolumeUnit;
   psi?: string;
-  calculationId?: string;
-  calculationData?: any;
+  variant?: PricingCalculatorVariant;
   initialLocation?: GeocodedLocation | null;
   onPricingCalculated?: (pricing: {
     concreteCost: number;
@@ -39,34 +39,31 @@ interface PricingCalculatorProps {
       location: string;
     };
   } | null) => void;
-  onPricingSaved?: (success: boolean, message: string) => void;
-  onCalculationSaved?: (calculation: any) => void;
 }
 
-const PricingCalculator: React.FC<PricingCalculatorProps> = ({ 
+const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   volume,
   volumeUnit = 'cubic_yards',
-  psi = '3000', 
-  calculationId,
-  calculationData,
+  psi = '3000',
+  variant = 'calculator',
   initialLocation = null,
   onPricingCalculated,
-  onPricingSaved,
-  onCalculationSaved
 }) => {
+  const isPlanner = variant === 'planner';
+
   const [distance, setDistance] = useState(10);
   const [needsPumpTruck, setNeedsPumpTruck] = useState(false);
   const [isSaturday, setIsSaturday] = useState(false);
   const [isAfterHours, setIsAfterHours] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+    address: string;
+  } | null>(null);
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
   const [locationInput, setLocationInput] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  
-  const { currentProject, updateCalculation } = useProjectStore();
-
   const applyLocation = (loc: GeocodedLocation) => {
     setUserLocation(loc);
     setLocationInput(loc.address);
@@ -102,7 +99,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
 
   const volumeYd = useMemo(
     () => volumeToCubicYards(volume, volumeUnit),
-    [volume, volumeUnit]
+    [volume, volumeUnit],
   );
 
   const pricing = useMemo(() => {
@@ -110,135 +107,96 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       volumeYd,
       psi,
       distance,
-      { 
-        needsPumpTruck, 
-        isSaturdayDelivery: isSaturday, 
-        isAfterHoursDelivery: isAfterHours 
+      {
+        needsPumpTruck,
+        isSaturdayDelivery: isSaturday,
+        isAfterHoursDelivery: isAfterHours,
       },
-      supplier
+      supplier,
     );
   }, [volumeYd, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
 
-  // Call the callback when pricing data changes
   useEffect(() => {
     if (onPricingCalculated) {
       if (pricing && supplier) {
-        // Only call with complete pricing when we have a supplier
-        const pricingData = {
+        onPricingCalculated({
           ...pricing,
           supplier: {
             id: supplier.id,
             name: supplier.name,
-            location: supplier.address
-          }
-        };
-        onPricingCalculated(pricingData);
+            location: supplier.address,
+          },
+        });
       } else {
-        // Call with null when no complete pricing is available
         onPricingCalculated(null);
       }
     }
   }, [pricing, supplier, onPricingCalculated]);
-
-  // Handle save pricing button - only updates existing calculations
-  const handleSavePricing = async () => {
-    if (!pricing || !supplier) {
-      onPricingSaved?.(false, 'Please calculate pricing with a valid location first');
-      return;
-    }
-
-    if (!currentProject) {
-      onPricingSaved?.(false, 'No project selected');
-      return;
-    }
-
-    if (!calculationId) {
-      onPricingSaved?.(false, 'No calculation found to update. Please calculate concrete volume first.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      // Find the existing calculation
-      const calculation = currentProject.calculations.find(calc => calc.id === calculationId);
-      if (!calculation) {
-        throw new Error('Calculation not found');
-      }
-
-      // Update the calculation with pricing data only
-      const pricingDataWithSupplier = {
-        ...pricing,
-        supplier: {
-          id: supplier.id,
-          name: supplier.name,
-          location: supplier.address
-        }
-      };
-
-      const updatedCalculation = {
-        ...calculation,
-        result: {
-          ...calculation.result,
-          pricing: pricingDataWithSupplier
-        },
-        updatedAt: new Date().toISOString()
-      };
-
-      await updateCalculation(currentProject.id, calculationId, updatedCalculation);
-      onPricingSaved?.(true, 'Pricing saved successfully!');
-      
-    } catch (error) {
-      console.error('Error saving pricing:', error);
-      onPricingSaved?.(false, 'Failed to save pricing. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Show save button only when we have pricing, supplier, project, and a calculation to update
-  const showSaveButton = pricing && supplier && currentProject && calculationId;
 
   const volumeUnitLabel =
     volumeUnit === 'cubic_yards' ? 'yd³' : volumeUnit === 'cubic_feet' ? 'ft³' : 'm³';
 
   return (
     <Card className="p-4">
-      <div className="flex items-start justify-between gap-3 mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Ready-Mixed Concrete
+      {isPlanner ? (
+        <div className="flex items-start justify-between gap-3 mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Ready-Mixed Concrete
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Delivery planning, supplier location, and cost estimate
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+        </div>
+      ) : (
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Price Breakdown
+        </h3>
+      )}
+
+      {isPlanner && <ReadyMixDelivery volume={volume} volumeUnit={volumeUnit} />}
+
+      {isPlanner && (
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+            Cost Estimate
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Delivery planning, supplier location, and cost estimate
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {volume.toFixed(2)} {volumeUnitLabel}
+            <span className="text-gray-500 dark:text-gray-500">
+              {' '}
+              ({volumeYd.toFixed(2)} yd³ for pricing)
+            </span>
+            {supplier && volumeYd < supplier.pricing.deliveryFees.minimumOrder && (
+              <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                Orders below minimum incur fees
+              </span>
+            )}
           </p>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-        </div>
-      </div>
+      )}
 
-      <ReadyMixDelivery volume={volume} volumeUnit={volumeUnit} />
-
-      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
-          Cost Estimate
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {volume.toFixed(2)} {volumeUnitLabel}
-          <span className="text-gray-500 dark:text-gray-500">
-            {' '}
-            ({volumeYd.toFixed(2)} yd³ for pricing)
-          </span>
-          {supplier && volumeYd < supplier.pricing.deliveryFees.minimumOrder && (
-            <span className="block mt-1 text-amber-600 dark:text-amber-400">
-              Orders below minimum incur fees
+      <div className={isPlanner ? '' : 'mb-4'}>
+        {!isPlanner && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {volume.toFixed(2)} {volumeUnitLabel}
+            <span className="text-gray-500 dark:text-gray-500">
+              {' '}
+              ({volumeYd.toFixed(2)} yd³)
             </span>
-          )}
-        </p>
-      </div>
+            {supplier && volumeYd < supplier.pricing.deliveryFees.minimumOrder && (
+              <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                Orders below minimum incur fees
+              </span>
+            )}
+          </p>
+        )}
 
-      <div className="mb-6">
         <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
           Location & Delivery
         </h4>
@@ -264,7 +222,13 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
                 size="sm"
                 onClick={handleLocationSearch}
                 disabled={searchLoading || !locationInput.trim()}
-                icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                icon={
+                  searchLoading ? (
+                    <Loader className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <MapPin className="h-4 w-4" />
+                  )
+                }
               >
                 Apply
               </Button>
@@ -294,17 +258,23 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               <div className="flex items-start">
                 <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-1 mr-2 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Your Location:</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{userLocation.address}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Your Location:
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {userLocation.address}
+                  </p>
                 </div>
               </div>
             )}
-            
+
             {supplier && (
               <div className="flex items-start">
                 <Truck className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-1 mr-2 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Nearest Supplier:</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Nearest Supplier:
+                  </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{supplier.name}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-500">{supplier.address}</p>
                 </div>
@@ -318,40 +288,49 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="pumpTruck"
+            id={isPlanner ? 'planner-pumpTruck' : 'pumpTruck'}
             checked={needsPumpTruck}
             onChange={(e) => setNeedsPumpTruck(e.target.checked)}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="pumpTruck" className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+          <label
+            htmlFor={isPlanner ? 'planner-pumpTruck' : 'pumpTruck'}
+            className="text-sm text-gray-600 dark:text-gray-300 flex items-center"
+          >
             <Truck className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
             Need Pump Truck
           </label>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="saturdayDelivery"
+            id={isPlanner ? 'planner-saturdayDelivery' : 'saturdayDelivery'}
             checked={isSaturday}
             onChange={(e) => setIsSaturday(e.target.checked)}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="saturdayDelivery" className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+          <label
+            htmlFor={isPlanner ? 'planner-saturdayDelivery' : 'saturdayDelivery'}
+            className="text-sm text-gray-600 dark:text-gray-300 flex items-center"
+          >
             <Calendar className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
             Saturday Delivery
           </label>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="afterHoursDelivery"
+            id={isPlanner ? 'planner-afterHoursDelivery' : 'afterHoursDelivery'}
             checked={isAfterHours}
             onChange={(e) => setIsAfterHours(e.target.checked)}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded"
           />
-          <label htmlFor="afterHoursDelivery" className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+          <label
+            htmlFor={isPlanner ? 'planner-afterHoursDelivery' : 'afterHoursDelivery'}
+            className="text-sm text-gray-600 dark:text-gray-300 flex items-center"
+          >
             <Clock className="h-4 w-4 mr-1 text-gray-500 dark:text-gray-400" />
             After Hours Delivery
           </label>
@@ -359,48 +338,66 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       </div>
 
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
-        
+        {isPlanner && (
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Price Breakdown
+          </h3>
+        )}
+
         <div className="space-y-4">
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
             <div className="flex justify-between mb-2">
               <span className="text-gray-600 dark:text-gray-300">Concrete ({psi} PSI)</span>
-              <span className="font-medium text-gray-900 dark:text-white">{formatPrice(pricing?.pricePerYard || 0)}/yd³</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatPrice(pricing?.pricePerYard || 0)}/yd³
+              </span>
             </div>
             <div className="flex justify-between text-lg font-semibold">
               <div className="text-gray-900 dark:text-white">
                 <div className="sm:hidden">
                   <div>Concrete Cost</div>
-                  <div className="text-sm font-normal text-gray-600 dark:text-gray-400">({volumeYd.toFixed(2)} yd³)</div>
+                  <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                    ({volumeYd.toFixed(2)} yd³)
+                  </div>
                 </div>
                 <div className="hidden sm:block">
                   Concrete Cost ({volumeYd.toFixed(2)} yd³)
                 </div>
               </div>
-              <span className="text-blue-700 dark:text-blue-300">{formatPrice(pricing?.concreteCost || 0)}</span>
+              <span className="text-blue-700 dark:text-blue-300">
+                {formatPrice(pricing?.concreteCost || 0)}
+              </span>
             </div>
           </div>
-          
+
           {pricing?.deliveryFees && (
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900 dark:text-white mb-2">Delivery Fees</h4>
               <div className="space-y-1 mb-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-300">Base Delivery Fee</span>
-                  <span className="text-gray-900 dark:text-white">{formatPrice(pricing.deliveryFees.baseDeliveryFee)}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatPrice(pricing.deliveryFees.baseDeliveryFee)}
+                  </span>
                 </div>
                 {pricing.deliveryFees.smallLoadFee > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300">Small Load Fee</span>
-                    <span className="text-gray-900 dark:text-white">{formatPrice(pricing.deliveryFees.smallLoadFee)}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {formatPrice(pricing.deliveryFees.smallLoadFee)}
+                    </span>
                   </div>
                 )}
                 {pricing.deliveryFees.distanceFee > 0 && supplier && (
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300">
-                      Distance Fee ({Math.max(0, distance - supplier.pricing.deliveryFees.baseDistance)} miles beyond {supplier.pricing.deliveryFees.baseDistance} mile base)
+                      Distance Fee (
+                      {Math.max(0, distance - supplier.pricing.deliveryFees.baseDistance)} miles
+                      beyond {supplier.pricing.deliveryFees.baseDistance} mile base)
                     </span>
-                    <span className="text-gray-900 dark:text-white">{formatPrice(pricing.deliveryFees.distanceFee)}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {formatPrice(pricing.deliveryFees.distanceFee)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -410,27 +407,35 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               </div>
             </div>
           )}
-          
+
           {pricing?.additionalServices && (
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-2">Additional Services</h4>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                Additional Services
+              </h4>
               <div className="space-y-1 mb-3">
                 {pricing.additionalServices.pumpTruckFee > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300">Pump Truck</span>
-                    <span className="text-gray-900 dark:text-white">{formatPrice(pricing.additionalServices.pumpTruckFee)}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {formatPrice(pricing.additionalServices.pumpTruckFee)}
+                    </span>
                   </div>
                 )}
                 {pricing.additionalServices.saturdayFee > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300">Saturday Delivery</span>
-                    <span className="text-gray-900 dark:text-white">{formatPrice(pricing.additionalServices.saturdayFee)}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {formatPrice(pricing.additionalServices.saturdayFee)}
+                    </span>
                   </div>
                 )}
                 {pricing.additionalServices.afterHoursFee > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300">After Hours Delivery</span>
-                    <span className="text-gray-900 dark:text-white">{formatPrice(pricing.additionalServices.afterHoursFee)}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {formatPrice(pricing.additionalServices.afterHoursFee)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -440,11 +445,13 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               </div>
             </div>
           )}
-          
+
           <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
             <div className="flex justify-between text-lg font-bold">
               <span className="text-gray-900 dark:text-white">Total Estimated Cost</span>
-              <span className="text-blue-700 dark:text-blue-300">{formatPrice(pricing?.totalCost || 0)}</span>
+              <span className="text-blue-700 dark:text-blue-300">
+                {formatPrice(pricing?.totalCost || 0)}
+              </span>
             </div>
             {!supplier ? (
               <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
@@ -452,28 +459,13 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
               </p>
             ) : (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                * Prices are estimates only. Final pricing may vary based on actual conditions and market fluctuations.
+                * Prices are estimates only. Final pricing may vary based on actual conditions and
+                market fluctuations.
               </p>
             )}
           </div>
         </div>
 
-        {/* Save Pricing Button - Only Updates Existing Calculations */}
-        {showSaveButton && (
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-            <Button
-              onClick={handleSavePricing}
-              disabled={isSaving}
-              icon={isSaving ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              className="w-full"
-            >
-              {isSaving ? 'Saving Pricing...' : 'Save Pricing to Calculation'}
-            </Button>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-              This will update the calculation with the current pricing data
-            </p>
-          </div>
-        )}
       </div>
     </Card>
   );

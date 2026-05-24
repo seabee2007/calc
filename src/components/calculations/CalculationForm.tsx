@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Calculator, Cloud, Package, DollarSign, Zap, MapPin, Loader } from 'lucide-react';
+import { Calculator, Package, Zap, Save, Loader } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Card from '../ui/Card';
-import Toast from '../ui/Toast';
 import PricingCalculator from './PricingCalculator';
 import QuikreteModal from './QuikreteModal';
 import ReinforcementOptimizer from '../optimizer/ReinforcementOptimizer';
@@ -21,19 +20,14 @@ import {
   generateRecommendations,
   convertToDecimalFeet
 } from '../../utils/calculations';
-import { getWeatherByLocation } from '../../services/weatherService';
 import { useProjectStore } from '../../store';
 import { usePreferencesStore } from '../../store';
-import { Calculation, Weather } from '../../types';
-import WeatherInfo from '../weather/WeatherInfo';
-import LocationPermissionAlert from '../ui/LocationPermissionAlert';
-import { geocodeAddress, reverseGeocode, GeocodedLocation } from '../../utils/location';
-import { MIX_PROFILE_LABELS, MixProfileType } from '../../types/curing';
+import { Calculation } from '../../types';
+import { MixProfileType } from '../../types/curing';
 
 interface CalculationFormProps {
   onSave?: (calculation: Calculation) => Promise<Calculation | undefined> | void;
   onTypeChange?: (type: string) => void;
-  initialShowWeather?: boolean;
   calculation?: Calculation; // For editing mode
   onCancel?: () => void; // For editing mode
   isSaving?: boolean; // For editing mode
@@ -86,7 +80,6 @@ const fractionOptions = [
 const CalculationForm: React.FC<CalculationFormProps> = ({ 
   onSave, 
   onTypeChange,
-  initialShowWeather = false,
   calculation,
   onCancel,
   isSaving
@@ -132,15 +125,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const [calculationResult, setCalculationResult] = useState<Calculation['result'] | null>(
     calculation?.result || null
   );
-  const [weather, setWeather] = useState<Weather | null>(calculation?.weather || null);
-  const [showWeather, setShowWeather] = useState(!!calculation?.weather || false);
-  const [showLocationSection, setShowLocationSection] = useState(false);
-  const [jobLocation, setJobLocation] = useState<GeocodedLocation | null>(null);
-  const [locationInput, setLocationInput] = useState('');
-  const [locationSearchLoading, setLocationSearchLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const [selectedPsi, setSelectedPsi] = useState<string>(calculation?.psi || '3000');
-  const [showPricing, setShowPricing] = useState(false);
   const [showQuikreteModal, setShowQuikreteModal] = useState(false);
   const [selectedQuikreteProduct, setSelectedQuikreteProduct] = useState<{
     type: string;
@@ -152,31 +137,16 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   );
   const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
   const [calculationData, setCalculationData] = useState<any>(null);
-  const [pricingData, setPricingData] = useState<any>(null);
-  const weatherSectionRef = useRef<HTMLDivElement>(null);
-  
-  // Toast states for pricing save feedback
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+  const [pricingData, setPricingData] = useState<Calculation['result']['pricing'] | null>(
+    calculation?.result?.pricing || null
+  );
+  const [pendingDimensions, setPendingDimensions] = useState<Record<string, number> | null>(
+    calculation?.dimensions || null
+  );
+  const [isSavingCalculation, setIsSavingCalculation] = useState(false);
   const [currentCalculationId, setCurrentCalculationId] = useState<string | null>(
     calculation?.id || null
   );
-
-  useEffect(() => {
-    if (initialShowWeather) {
-      setShowLocationSection(true);
-    }
-  }, [initialShowWeather]);
-
-  useEffect(() => {
-    if (weather && weatherSectionRef.current) {
-      weatherSectionRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  }, [weather]);
 
   // Auto-update bags when Quikrete product changes
   useEffect(() => {
@@ -192,59 +162,23 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
   }, [selectedQuikreteProduct, lastCalculatedVolume]);
   
-  const applyJobLocation = async (loc: GeocodedLocation) => {
-    setJobLocation(loc);
-    setLocationInput(loc.address);
-    setLocationError(null);
-
-    const weatherData = await getWeatherByLocation(loc.latitude, loc.longitude);
-    if (weatherData) {
-      setWeather(weatherData);
-      setShowWeather(true);
-    }
-  };
-
-  const handleLocationReceived = async (lat: number, lon: number) => {
-    const address = await reverseGeocode(lat, lon);
-    await applyJobLocation({ latitude: lat, longitude: lon, address });
-  };
-
-  const handleLocationSearch = async () => {
-    if (!locationInput.trim()) return;
-
-    setLocationSearchLoading(true);
-    setLocationError(null);
-
-    try {
-      const loc = await geocodeAddress(locationInput);
-      if (loc) {
-        await applyJobLocation(loc);
-      } else {
-        setLocationError('Location not found. Try a city name or zip code.');
-      }
-    } catch {
-      setLocationError('Error searching location. Please try again.');
-    } finally {
-      setLocationSearchLoading(false);
-    }
-  };
-  
-  const toggleWeather = () => {
-    if (!showWeather) {
-      setShowLocationSection(true);
-    } else {
-      setShowWeather(false);
-      setWeather(null);
-    }
-  };
-  
-  const togglePricing = () => {
-    setShowPricing(!showPricing);
-  };
-
   const handleQuikreteSelect = (product: { type: string; weight: number; yield: number }) => {
     setSelectedQuikreteProduct(product);
     setShowQuikreteModal(false);
+  };
+
+  const mapPsiToMixProfile = (psi: string): MixProfileType => {
+    switch (psi) {
+      case '2500':
+      case '3000':
+        return 'standard';
+      case '4000':
+        return 'highEarly';
+      case '5000':
+        return 'highStrength';
+      default:
+        return 'standard';
+    }
   };
   
   const calculateVolume = async (data: FormInputs) => {
@@ -393,21 +327,13 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       ? calculateBags(volume, selectedQuikreteProduct.yield)
       : calculateBags(volume);
     
-    const recommendations = weather ? 
-      generateRecommendations(
-        weather.temperature,
-        weather.humidity,
-        weather.windSpeed,
-        calculationType,
-        dimensions
-      ) : 
-      generateRecommendations(
-        70,
-        50,
-        5,
-        calculationType,
-        dimensions
-      );
+    const recommendations = generateRecommendations(
+      70,
+      50,
+      5,
+      calculationType,
+      dimensions
+    );
     
     const result = {
       volume: parseFloat(volume.toFixed(2)),
@@ -416,6 +342,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     };
     
     setCalculationResult(result);
+    setPendingDimensions(dimensions);
     
     // Store calculation data for reinforcement optimizer
     setCalculationData({
@@ -425,45 +352,27 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       cubicYards: volumeCubicFeet / 27, // Convert from cubic feet to cubic yards
       height_ft: dimensions.height
     });
-    
-    // Helper function to map PSI to appropriate mix profile
-    const mapPsiToMixProfile = (psi: string): MixProfileType => {
-      switch (psi) {
-        case '2500':
-        case '3000':
-          return 'standard';
-        case '4000':
-          return 'highEarly';
-        case '5000':
-          return 'highStrength';
-        default:
-          return 'standard';
-      }
-    };
 
-    if (onSave) {
-      // Include pricing data if available
+    if (onSave && calculation) {
       const resultWithPricing = {
         ...result,
-        pricing: pricingData
+        pricing: pricingData || undefined,
       };
 
       const calculationToSave: Calculation = {
-        id: '',
+        id: calculation.id,
         type: calculationType,
         dimensions,
         result: resultWithPricing,
-        weather: weather || undefined,
-        createdAt: new Date().toISOString(),
+        createdAt: calculation.createdAt,
         psi: selectedPsi,
         mixProfile: mapPsiToMixProfile(selectedPsi),
-        quikreteProduct: selectedQuikreteProduct || undefined
+        quikreteProduct: selectedQuikreteProduct || undefined,
       };
-      
-      // Save calculation and capture the returned calculation with ID
+
       try {
         const savedCalc = await onSave(calculationToSave);
-        if (savedCalc && savedCalc.id) {
+        if (savedCalc?.id) {
           setCurrentCalculationId(savedCalc.id);
         }
       } catch (error) {
@@ -471,10 +380,48 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
       }
     }
   };
+
+  const buildCalculationPayload = (): Calculation | null => {
+    if (!calculationResult || !pendingDimensions) return null;
+
+    return {
+      id: currentCalculationId || '',
+      type: calculationType,
+      dimensions: pendingDimensions,
+      result: {
+        ...calculationResult,
+        pricing: pricingData || undefined,
+      },
+      createdAt: calculation?.createdAt || new Date().toISOString(),
+      psi: selectedPsi,
+      mixProfile: mapPsiToMixProfile(selectedPsi),
+      quikreteProduct: selectedQuikreteProduct || undefined,
+    };
+  };
+
+  const handleSaveToProject = async () => {
+    if (!onSave || !calculationResult) return;
+
+    const payload = buildCalculationPayload();
+    if (!payload) return;
+
+    setIsSavingCalculation(true);
+    try {
+      const savedCalc = await onSave(payload);
+      if (savedCalc?.id) {
+        setCurrentCalculationId(savedCalc.id);
+      }
+    } catch (error) {
+      console.error('Error saving calculation:', error);
+    } finally {
+      setIsSavingCalculation(false);
+    }
+  };
   
   const handleCalculationTypeChange = (value: string) => {
     setCalculationType(value as CalculationType);
     setCalculationResult(null);
+    setPendingDimensions(null);
     setLastCalculatedVolume(null);
     reset({
       ...watch()
@@ -487,6 +434,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const handleColumnTypeChange = (value: string) => {
     setColumnType(value as ColumnType);
     setCalculationResult(null);
+    setPendingDimensions(null);
     setLastCalculatedVolume(null);
     reset();
   };
@@ -508,18 +456,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     setShowReinforcementOptimizer(false);
   };
 
-  // Handle pricing data from PricingCalculator
-  const handlePricingCalculated = (pricing: any) => {
-    console.log('Pricing calculated:', pricing);
+  const handlePricingCalculated = (pricing: Calculation['result']['pricing'] | null) => {
     setPricingData(pricing);
-  };
-
-  // Handle pricing save feedback
-  const handlePricingSaved = (success: boolean, message: string) => {
-    setToastMessage(message);
-    setToastType(success ? 'success' : 'error');
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
   };
 
   const renderDimensionInputs = (baseName: string, label: string) => (
@@ -708,83 +646,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           
           {renderFields()}
           
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-            <div className="flex flex-col items-center justify-center space-y-3">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 text-center">
-                Get weather-based recommendations for your concrete pour
-              </p>
-              <Button 
-                type="button"
-                onClick={toggleWeather}
-                icon={<Cloud size={20} />}
-                className="w-full max-w-md"
-              >
-                {showWeather ? 'Hide Weather Data' : 'Include Weather Data'}
-              </Button>
-
-              {(showLocationSection || showWeather) && (
-                <div className="w-full max-w-md space-y-3">
-                  <LocationPermissionAlert
-                    onLocationReceived={handleLocationReceived}
-                    onError={(error) => setLocationError(error)}
-                    compact
-                  />
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Or enter your location
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="City name or zip code"
-                        value={locationInput}
-                        onChange={(e) => setLocationInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleLocationSearch();
-                          }
-                        }}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleLocationSearch}
-                        disabled={locationSearchLoading || !locationInput.trim()}
-                        icon={
-                          locationSearchLoading ? (
-                            <Loader className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <MapPin className="h-4 w-4" />
-                          )
-                        }
-                      >
-                        Search
-                      </Button>
-                    </div>
-                    {locationError && (
-                      <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
-                    )}
-                    {jobLocation && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Location set: {jobLocation.address}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {weather && (
-            <div className="mt-4" ref={weatherSectionRef}>
-              <WeatherInfo weather={weather} />
-            </div>
-          )}
-          
           <div className="pt-4">
             {calculation ? (
               <div className="flex flex-col sm:flex-row gap-3">
@@ -870,44 +731,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={togglePricing}
-                icon={<DollarSign size={16} />}
-                className="w-full"
-              >
-                {showPricing ? 'Hide Ready-Mix Details' : 'Ready-Mix Delivery & Estimate'}
-              </Button>
-
-              {calculationData && (calculationType === 'slab' || calculationType === 'column' || calculationType === 'footer') && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleReinforcementOptimizer}
-                  icon={<Zap size={16} />}
-                  className="w-full text-orange-600 hover:text-orange-800 border-orange-200 hover:border-orange-300 dark:text-orange-400 dark:hover:text-orange-300 dark:border-orange-800"
-                >
-                  Design Reinforcement
-                </Button>
-              )}
-            </div>
-
-            {showPricing && calculationResult.volume > 0 && (
-              <PricingCalculator
-                volume={calculationResult.volume}
-                volumeUnit={preferences.volumeUnit}
-                psi={selectedPsi}
-                calculationId={currentCalculationId || undefined}
-                initialLocation={jobLocation}
-                onPricingCalculated={handlePricingCalculated}
-                onPricingSaved={handlePricingSaved}
-              />
-            )}
-            
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Recommendations</h3>
               <ul className="space-y-2">
@@ -921,6 +744,57 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 ))}
               </ul>
             </div>
+
+            {calculationData &&
+              (calculationType === 'slab' ||
+                calculationType === 'column' ||
+                calculationType === 'footer') && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleReinforcementOptimizer}
+                icon={<Zap size={16} />}
+                className="w-full text-orange-600 hover:text-orange-800 border-orange-200 hover:border-orange-300 dark:text-orange-400 dark:hover:text-orange-300 dark:border-orange-800"
+              >
+                Design Reinforcement
+              </Button>
+            )}
+
+            {calculationResult.volume > 0 && (
+              <PricingCalculator
+                volume={calculationResult.volume}
+                volumeUnit={preferences.volumeUnit}
+                psi={selectedPsi}
+                variant="calculator"
+                onPricingCalculated={handlePricingCalculated}
+              />
+            )}
+
+            {!calculation && onSave && calculationResult.volume > 0 && (
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  onClick={handleSaveToProject}
+                  disabled={isSavingCalculation || !currentProject}
+                  icon={
+                    isSavingCalculation ? (
+                      <Loader className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )
+                  }
+                  className="w-full"
+                >
+                  {isSavingCalculation ? 'Saving...' : 'Save to Project'}
+                </Button>
+                {!currentProject && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 text-center">
+                    Select a project above to save this calculation
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64 text-center">
@@ -948,16 +822,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         />
       )}
       
-      {/* Toast for pricing save feedback */}
-      {showToast && (
-        <Toast
-          id="pricing-save"
-          title={toastType === 'success' ? 'Success' : 'Error'}
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setShowToast(false)}
-        />
-      )}
     </div>
   );
 };

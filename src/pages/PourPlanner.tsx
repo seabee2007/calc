@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   CloudSun,
+  Truck,
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -39,7 +40,9 @@ import {
   getMitigationOption,
 } from '../utils/pourMitigations';
 import { useProjectStore } from '../store';
+import { usePreferencesStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
+import PricingCalculator from '../components/calculations/PricingCalculator';
 
 const FORECAST_DAYS = 5;
 
@@ -54,6 +57,7 @@ const PLACEMENT_TYPE_OPTIONS = [
 const PourPlanner: React.FC = () => {
   const { user } = useAuth();
   const { projects, updateProject } = useProjectStore();
+  const { preferences } = usePreferencesStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +74,10 @@ const PourPlanner: React.FC = () => {
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
+  const [readyMixProjectId, setReadyMixProjectId] = useState('');
+  const [readyMixCalculationId, setReadyMixCalculationId] = useState('');
+  const [manualVolume, setManualVolume] = useState('');
+  const [readyMixPsi, setReadyMixPsi] = useState(preferences.defaultPSI || '3000');
   const [rawForecastDays, setRawForecastDays] = useState<
     (import('../types').ForecastDay & { avgHumidity?: number })[]
   >([]);
@@ -193,6 +201,22 @@ const PourPlanner: React.FC = () => {
     permission === 'denied' || Boolean(locationError);
 
   const bestWindow = findBestPourWindow(displayDays);
+
+  const readyMixProject = projects.find((p) => p.id === readyMixProjectId);
+  const readyMixCalculations = readyMixProject?.calculations ?? [];
+  const selectedReadyMixCalculation = readyMixCalculations.find(
+    (c) => c.id === readyMixCalculationId,
+  );
+
+  const readyMixVolume = selectedReadyMixCalculation
+    ? selectedReadyMixCalculation.result.volume
+    : parseFloat(manualVolume) || 0;
+
+  useEffect(() => {
+    if (selectedReadyMixCalculation?.psi) {
+      setReadyMixPsi(selectedReadyMixCalculation.psi);
+    }
+  }, [readyMixCalculationId, selectedReadyMixCalculation?.psi]);
 
   const handleSavePourDate = async () => {
     if (!selectedDate || !selectedProjectId || !user) return;
@@ -468,6 +492,113 @@ const PourPlanner: React.FC = () => {
           </div>
         </Card>
       )}
+
+      <div className="space-y-4">
+        {projects.length > 0 && (
+          <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Truck className="h-5 w-5" />
+              Pour volume
+            </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <Select
+              label="Project (optional)"
+              options={[
+                { value: '', label: 'No project — enter volume below' },
+                ...projects.map((p) => ({ value: p.id, label: p.name })),
+              ]}
+              value={readyMixProjectId}
+              onChange={(id) => {
+                setReadyMixProjectId(id);
+                setReadyMixCalculationId('');
+              }}
+            />
+            {readyMixProjectId && readyMixCalculations.length > 0 && (
+              <Select
+                label="Calculation"
+                options={[
+                  { value: '', label: 'Select a calculation…' },
+                  ...readyMixCalculations.map((c) => ({
+                    value: c.id,
+                    label: `${c.type.replace(/_/g, ' ')} — ${c.result.volume.toFixed(2)} ${
+                      preferences.volumeUnit === 'cubic_yards'
+                        ? 'yd³'
+                        : preferences.volumeUnit === 'cubic_feet'
+                          ? 'ft³'
+                          : 'm³'
+                    }`,
+                  })),
+                ]}
+                value={readyMixCalculationId}
+                onChange={setReadyMixCalculationId}
+              />
+            )}
+          </div>
+          </Card>
+        )}
+
+        {!projects.length && !readyMixCalculationId && (
+          <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Truck className="h-5 w-5" />
+              Pour volume
+            </h2>
+            <Input
+              label={`Volume (${preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'})`}
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="e.g. 12.5"
+              value={manualVolume}
+              onChange={(e) => setManualVolume(e.target.value)}
+            />
+          </Card>
+        )}
+
+        {projects.length > 0 && !readyMixCalculationId && (
+          <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
+            <Input
+              label={`Or enter volume (${preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'})`}
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="e.g. 12.5"
+              value={manualVolume}
+              onChange={(e) => setManualVolume(e.target.value)}
+            />
+          </Card>
+        )}
+
+        {readyMixVolume > 0 ? (
+          <>
+            <Card className="p-4 bg-white/95 dark:bg-gray-900/95 max-w-xs">
+              <Select
+                label="Concrete strength"
+                options={[
+                  { value: '2500', label: '2500 PSI' },
+                  { value: '3000', label: '3000 PSI' },
+                  { value: '4000', label: '4000 PSI' },
+                  { value: '5000', label: '5000 PSI' },
+                ]}
+                value={readyMixPsi}
+                onChange={setReadyMixPsi}
+              />
+            </Card>
+            <PricingCalculator
+              volume={readyMixVolume}
+              volumeUnit={preferences.volumeUnit}
+              psi={readyMixPsi}
+              variant="planner"
+            />
+          </>
+        ) : (
+          <Card className="p-6 bg-white/90 dark:bg-gray-900/90 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Select a saved calculation or enter a volume to plan ready-mix delivery and cost.
+            </p>
+          </Card>
+        )}
+      </div>
 
       <Modal
         isOpen={showScoringModal}

@@ -20,16 +20,10 @@ const CalculatorPage: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'warning' | 'error'>('success');
-  const [showWeatherPrompt, setShowWeatherPrompt] = useState(false);
-  
   useEffect(() => {
-    // Set current project from URL state if available
-    const state = location.state as { projectId?: string; openWeatherModal?: boolean };
+    const state = location.state as { projectId?: string };
     if (state?.projectId) {
       setCurrentProject(state.projectId);
-    }
-    if (state?.openWeatherModal) {
-      setShowWeatherPrompt(true);
     }
   }, [location.state, setCurrentProject]);
   
@@ -156,7 +150,6 @@ const CalculatorPage: React.FC = () => {
         <CalculationForm 
           onSave={handleSaveCalculation}
           onTypeChange={setCalculationType}
-          initialShowWeather={showWeatherPrompt}
         />
 
         {showCreateProjectModal && (
