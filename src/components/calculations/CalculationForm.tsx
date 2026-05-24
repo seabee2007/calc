@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Calculator, Cloud, Package, DollarSign, Zap } from 'lucide-react';
+import { Calculator, Cloud, Package, DollarSign, Zap, MapPin, Loader } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -26,7 +26,8 @@ import { useProjectStore } from '../../store';
 import { usePreferencesStore } from '../../store';
 import { Calculation, Weather } from '../../types';
 import WeatherInfo from '../weather/WeatherInfo';
-import LocationPrompt from '../weather/LocationPrompt';
+import LocationPermissionAlert from '../ui/LocationPermissionAlert';
+import { geocodeAddress, reverseGeocode, GeocodedLocation } from '../../utils/location';
 import { MIX_PROFILE_LABELS, MixProfileType } from '../../types/curing';
 
 interface CalculationFormProps {
@@ -133,7 +134,11 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   );
   const [weather, setWeather] = useState<Weather | null>(calculation?.weather || null);
   const [showWeather, setShowWeather] = useState(!!calculation?.weather || false);
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [showLocationSection, setShowLocationSection] = useState(false);
+  const [jobLocation, setJobLocation] = useState<GeocodedLocation | null>(null);
+  const [locationInput, setLocationInput] = useState('');
+  const [locationSearchLoading, setLocationSearchLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [selectedPsi, setSelectedPsi] = useState<string>(calculation?.psi || '3000');
   const [showPricing, setShowPricing] = useState(false);
   const [showQuikreteModal, setShowQuikreteModal] = useState(false);
@@ -160,7 +165,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
 
   useEffect(() => {
     if (initialShowWeather) {
-      setShowLocationPrompt(true);
+      setShowLocationSection(true);
     }
   }, [initialShowWeather]);
 
@@ -187,16 +192,46 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     }
   }, [selectedQuikreteProduct, lastCalculatedVolume]);
   
-  const handleLocationReceived = async (lat: number, lon: number) => {
-    const weatherData = await getWeatherByLocation(lat, lon);
+  const applyJobLocation = async (loc: GeocodedLocation) => {
+    setJobLocation(loc);
+    setLocationInput(loc.address);
+    setLocationError(null);
+
+    const weatherData = await getWeatherByLocation(loc.latitude, loc.longitude);
     if (weatherData) {
       setWeather(weatherData);
+      setShowWeather(true);
+    }
+  };
+
+  const handleLocationReceived = async (lat: number, lon: number) => {
+    const address = await reverseGeocode(lat, lon);
+    await applyJobLocation({ latitude: lat, longitude: lon, address });
+  };
+
+  const handleLocationSearch = async () => {
+    if (!locationInput.trim()) return;
+
+    setLocationSearchLoading(true);
+    setLocationError(null);
+
+    try {
+      const loc = await geocodeAddress(locationInput);
+      if (loc) {
+        await applyJobLocation(loc);
+      } else {
+        setLocationError('Location not found. Try a city name or zip code.');
+      }
+    } catch {
+      setLocationError('Error searching location. Please try again.');
+    } finally {
+      setLocationSearchLoading(false);
     }
   };
   
   const toggleWeather = () => {
     if (!showWeather) {
-      setShowLocationPrompt(true);
+      setShowLocationSection(true);
     } else {
       setShowWeather(false);
       setWeather(null);
@@ -674,17 +709,73 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           {renderFields()}
           
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 text-center">
                 Get weather-based recommendations for your concrete pour
               </p>
               <Button 
+                type="button"
                 onClick={toggleWeather}
                 icon={<Cloud size={20} />}
                 className="w-full max-w-md"
               >
                 {showWeather ? 'Hide Weather Data' : 'Include Weather Data'}
               </Button>
+
+              {(showLocationSection || showWeather) && (
+                <div className="w-full max-w-md space-y-3">
+                  <LocationPermissionAlert
+                    onLocationReceived={handleLocationReceived}
+                    onError={(error) => setLocationError(error)}
+                    compact
+                  />
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Or enter your location
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="City name or zip code"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleLocationSearch();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleLocationSearch}
+                        disabled={locationSearchLoading || !locationInput.trim()}
+                        icon={
+                          locationSearchLoading ? (
+                            <Loader className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MapPin className="h-4 w-4" />
+                          )
+                        }
+                      >
+                        Search
+                      </Button>
+                    </div>
+                    {locationError && (
+                      <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
+                    )}
+                    {jobLocation && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Location set: {jobLocation.address}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
@@ -811,6 +902,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 volumeUnit={preferences.volumeUnit}
                 psi={selectedPsi}
                 calculationId={currentCalculationId || undefined}
+                initialLocation={jobLocation}
                 onPricingCalculated={handlePricingCalculated}
                 onPricingSaved={handlePricingSaved}
               />
@@ -839,15 +931,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           </div>
         )}
       </Card>
-
-      <LocationPrompt
-        isOpen={showLocationPrompt}
-        onClose={() => setShowLocationPrompt(false)}
-        onLocationReceived={(lat, lon) => {
-          handleLocationReceived(lat, lon);
-          setShowWeather(true);
-        }}
-      />
 
       <QuikreteModal
         isOpen={showQuikreteModal}

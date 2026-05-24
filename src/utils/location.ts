@@ -162,6 +162,36 @@ export async function getCurrentPosition(options?: {
   });
 }
 
+export interface GeocodedLocation {
+  latitude: number;
+  longitude: number;
+  address: string;
+}
+
+/**
+ * Forward geocode a city, address, or zip code
+ */
+export async function geocodeAddress(query: string): Promise<GeocodedLocation | null> {
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query.trim())}`
+  );
+
+  if (!response.ok) {
+    throw new Error('Location search failed');
+  }
+
+  const data = await response.json();
+  if (!data?.[0]) {
+    return null;
+  }
+
+  return {
+    latitude: parseFloat(data[0].lat),
+    longitude: parseFloat(data[0].lon),
+    address: data[0].display_name
+  };
+}
+
 /**
  * Get readable address from coordinates using reverse geocoding
  */

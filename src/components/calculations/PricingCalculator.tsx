@@ -7,8 +7,7 @@ import { calculateConcreteCost, EMPTY_PRICING, formatPrice, getNearestLocation }
 import { volumeToCubicYards } from '../../utils/readyMixDelivery';
 import { LocationPricing, VolumeUnit } from '../../types';
 import { useProjectStore } from '../../store';
-import { useLocation } from '../../hooks/useLocation';
-import LocationPermissionAlert from '../ui/LocationPermissionAlert';
+import { geocodeAddress, GeocodedLocation } from '../../utils/location';
 import ReadyMixDelivery from './ReadyMixDelivery';
 
 interface PricingCalculatorProps {
@@ -17,6 +16,7 @@ interface PricingCalculatorProps {
   psi?: string;
   calculationId?: string;
   calculationData?: any;
+  initialLocation?: GeocodedLocation | null;
   onPricingCalculated?: (pricing: {
     concreteCost: number;
     pricePerYard: number;
@@ -49,6 +49,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   psi = '3000', 
   calculationId,
   calculationData,
+  initialLocation = null,
   onPricingCalculated,
   onPricingSaved,
   onCalculationSaved
@@ -64,46 +65,20 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const [locationInput, setLocationInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
-  const { currentProject, updateCalculation, addCalculation } = useProjectStore();
-  const { requestLocation, isLoading: gpsLoading } = useLocation();
+  const { currentProject, updateCalculation } = useProjectStore();
 
-  const handleLocationReceived = async (latitude: number, longitude: number) => {
-    const loc = {
-      latitude,
-      longitude,
-      address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-    };
-
-    // Try to get a readable address
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const address = data.address || {};
-        const parts = [address.road, address.city, address.state].filter((part): part is string => Boolean(part));
-        if (parts.length > 0) {
-          loc.address = parts.join(', ');
-        }
-      }
-    } catch (geocodeError) {
-      console.warn('Geocoding failed, using coordinates as address');
-    }
-
+  const applyLocation = (loc: GeocodedLocation) => {
     setUserLocation(loc);
-    const nearest = getNearestLocation(loc);
-    setSupplier(nearest);
+    setLocationInput(loc.address);
+    setSupplier(getNearestLocation(loc));
     setLocationError(null);
   };
 
-  const handleLocationError = (error: string) => {
-    setLocationError(error);
-  };
-
-  const handleUseLocation = async () => {
-    await requestLocation();
-  };
+  useEffect(() => {
+    if (initialLocation) {
+      applyLocation(initialLocation);
+    }
+  }, [initialLocation]);
 
   const handleLocationSearch = async () => {
     if (!locationInput.trim()) return;
@@ -112,27 +87,13 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     setLocationError(null);
 
     try {
-      // Use OpenStreetMap Nominatim API to geocode the location
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`
-      );
-      
-      if (!response.ok) throw new Error('Location search failed');
-      
-      const data = await response.json();
-      if (data && data[0]) {
-        const loc = {
-          latitude: parseFloat(data[0].lat),
-          longitude: parseFloat(data[0].lon),
-          address: data[0].display_name
-        };
-        setUserLocation(loc);
-        const nearest = getNearestLocation(loc);
-        setSupplier(nearest);
+      const loc = await geocodeAddress(locationInput);
+      if (loc) {
+        applyLocation(loc);
       } else {
         setLocationError('Location not found. Please try a different search.');
       }
-    } catch (error) {
+    } catch {
       setLocationError('Error searching location. Please try again.');
     } finally {
       setSearchLoading(false);
@@ -283,42 +244,35 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         </h4>
 
         <div className="space-y-4">
-          {!userLocation && !supplier && (
-            <LocationPermissionAlert
-              onLocationReceived={handleLocationReceived}
-              onError={handleLocationError}
-              compact={false}
-            />
-          )}
-          
-          {!userLocation && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Or search for your location
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="City Name/Zip Code"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleLocationSearch();
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLocationSearch}
-                  disabled={searchLoading || !locationInput.trim()}
-                  icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                >
-                  Search
-                </Button>
-              </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Job site location
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="City name or zip code"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleLocationSearch();
+                }}
+                className="flex-1"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLocationSearch}
+                disabled={searchLoading || !locationInput.trim()}
+                icon={searchLoading ? <Loader className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+              >
+                Apply
+              </Button>
             </div>
-          )}
+            {locationError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
