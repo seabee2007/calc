@@ -1,26 +1,21 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
-import {
-  Calendar,
-  MapPin,
-  Search,
-  Loader2,
-  AlertTriangle,
-  CheckCircle2,
-  CloudSun,
-  Truck,
-} from 'lucide-react';
+import { CloudSun } from 'lucide-react';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Select from '../components/ui/Select';
-import LocationPermissionAlert from '../components/ui/LocationPermissionAlert';
-import PourDayCard from '../components/weather/PourDayCard';
-import MitigationSelector from '../components/weather/MitigationSelector';
 import Modal from '../components/ui/Modal';
 import PlacementScoringGuide from '../components/weather/PlacementScoringGuide';
 import PlacementScoringLink from '../components/weather/PlacementScoringLink';
+import PourPlannerStepper from '../components/pour-planner/PourPlannerStepper';
+import OverviewSummaryCard from '../components/pour-planner/OverviewSummaryCard';
+import StepNavigation from '../components/pour-planner/StepNavigation';
+import StepProjectOverview from '../components/pour-planner/steps/StepProjectOverview';
+import StepMixSpec from '../components/pour-planner/steps/StepMixSpec';
+import StepDeliveryLogistics from '../components/pour-planner/steps/StepDeliveryLogistics';
+import StepEnvironmental from '../components/pour-planner/steps/StepEnvironmental';
+import StepPlacementProduction from '../components/pour-planner/steps/StepPlacementProduction';
+import StepRiskAnalysis from '../components/pour-planner/steps/StepRiskAnalysis';
+import StepQcExport from '../components/pour-planner/steps/StepQcExport';
 import { useLocation } from '../hooks/useLocation';
 import {
   getExtendedForecast,
@@ -29,35 +24,21 @@ import {
 } from '../services/weatherService';
 import {
   scoreForecastDays,
-  findBestPourWindow,
   PlacementType,
   pruneMitigationSelections,
-  buildWeatherContext,
 } from '../utils/pourScoring';
-import {
-  getApplicableMitigations,
-  getMaxMitigationRecovery,
-  getMitigationOption,
-} from '../utils/pourMitigations';
 import { useProjectStore } from '../store';
-import { usePreferencesStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
-import PricingCalculator from '../components/calculations/PricingCalculator';
+import {
+  usePourPlannerState,
+  POUR_PLANNER_STEPS,
+} from '../hooks/usePourPlannerState';
 
 const FORECAST_DAYS = 5;
-
-const PLACEMENT_TYPE_OPTIONS = [
-  { value: '', label: 'General placement' },
-  { value: 'flatwork', label: 'Slab / flatwork (more sensitive)' },
-  { value: 'footing', label: 'Footing (less surface exposure)' },
-  { value: 'wall', label: 'Vertical wall' },
-  { value: 'mass', label: 'Mass concrete (thermal-sensitive)' },
-];
 
 const PourPlanner: React.FC = () => {
   const { user } = useAuth();
   const { projects, updateProject } = useProjectStore();
-  const { preferences } = usePreferencesStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,22 +50,56 @@ const PourPlanner: React.FC = () => {
     error: locationError,
   } = useLocation();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
-  const [readyMixProjectId, setReadyMixProjectId] = useState('');
-  const [readyMixCalculationId, setReadyMixCalculationId] = useState('');
-  const [manualVolume, setManualVolume] = useState('');
-  const [readyMixPsi, setReadyMixPsi] = useState(preferences.defaultPSI || '3000');
   const [rawForecastDays, setRawForecastDays] = useState<
     (import('../types').ForecastDay & { avgHumidity?: number })[]
   >([]);
   const loadRequestIdRef = useRef(0);
 
-  const closeScoringModal = useCallback(() => setShowScoringModal(false), []);
-  const openScoringModal = useCallback(() => setShowScoringModal(true), []);
+  const displayDays = useMemo(
+    () =>
+      scoreForecastDays(rawForecastDays, {
+        placementType: placementType || undefined,
+        mitigationsByDate,
+      }),
+    [rawForecastDays, placementType, mitigationsByDate],
+  );
+
+  const selectedDay = displayDays.find((d) => d.date === selectedDate);
+  const planner = usePourPlannerState(selectedDay);
+
+  const { calculation, setField } = planner;
+
+  useEffect(() => {
+    if (calculation?.psi) {
+      setField('psi', calculation.psi);
+    }
+  }, [calculation?.psi, calculation?.id, setField]);
+
+  useEffect(() => {
+    if (rawForecastDays.length === 0) return;
+    setMitigationsByDate((prev) => {
+      let changed = false;
+      const next: Record<string, string[]> = { ...prev };
+      for (const day of rawForecastDays) {
+        const ids = next[day.date];
+        if (!ids?.length) continue;
+        const pruned = pruneMitigationSelections(
+          day,
+          ids,
+          placementType || undefined,
+        );
+        if (pruned.length !== ids.length) {
+          next[day.date] = pruned;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [rawForecastDays, placementType]);
 
   const loadForecast = useCallback(
     async (opts: { lat?: number; lon?: number; query?: string }) => {
@@ -94,7 +109,6 @@ const PourPlanner: React.FC = () => {
       setSaveMessage(null);
 
       let result = null;
-
       if (opts.query) {
         result = await getForecastByQuery(opts.query, FORECAST_DAYS);
       } else if (opts.lat != null && opts.lon != null) {
@@ -119,68 +133,15 @@ const PourPlanner: React.FC = () => {
     [],
   );
 
-  const displayDays = useMemo(
-    () =>
-      scoreForecastDays(rawForecastDays, {
-        placementType: placementType || undefined,
-        mitigationsByDate,
-      }),
-    [rawForecastDays, placementType, mitigationsByDate],
-  );
-
-  useEffect(() => {
-    if (rawForecastDays.length === 0) return;
-    setMitigationsByDate((prev) => {
-      let changed = false;
-      const next: Record<string, string[]> = { ...prev };
-      for (const day of rawForecastDays) {
-        const ids = next[day.date];
-        if (!ids?.length) continue;
-        const pruned = pruneMitigationSelections(
-          day,
-          ids,
-          placementType || undefined,
-        );
-        if (pruned.length !== ids.length) {
-          next[day.date] = pruned;
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [rawForecastDays, placementType]);
-
   const handleMitigationsChange = (date: string, ids: string[]) => {
     const day = rawForecastDays.find((d) => d.date === date);
     if (day) {
-      const pruned = pruneMitigationSelections(
-        day,
-        ids,
-        placementType || undefined,
-      );
+      const pruned = pruneMitigationSelections(day, ids, placementType || undefined);
       setMitigationsByDate((prev) => ({ ...prev, [date]: pruned }));
       return;
     }
     setMitigationsByDate((prev) => ({ ...prev, [date]: ids }));
   };
-
-  const selectedDay = displayDays.find((d) => d.date === selectedDate);
-
-  const selectedMitigationContext = useMemo(() => {
-    if (!selectedDay) return null;
-    return buildWeatherContext(selectedDay, {
-      evaporationRateKgM2H: selectedDay.evaporationRateKgM2H ?? 0,
-      evaporationRisk: selectedDay.evaporationRisk,
-      criticalFail: selectedDay.criticalFail,
-    });
-  }, [selectedDay]);
-
-  const applicableMitigations = selectedMitigationContext
-    ? getApplicableMitigations(selectedMitigationContext)
-    : [];
-  const maxMitigationRecovery = selectedMitigationContext
-    ? getMaxMitigationRecovery(selectedMitigationContext)
-    : 0;
 
   const handleUseMyLocation = async () => {
     setError(null);
@@ -197,35 +158,70 @@ const PourPlanner: React.FC = () => {
     await loadForecast({ query: q });
   };
 
-  const showLocationHelp =
-    permission === 'denied' || Boolean(locationError);
-
-  const bestWindow = findBestPourWindow(displayDays);
-
-  const readyMixProject = projects.find((p) => p.id === readyMixProjectId);
-  const readyMixCalculations = readyMixProject?.calculations ?? [];
-  const selectedReadyMixCalculation = readyMixCalculations.find(
-    (c) => c.id === readyMixCalculationId,
-  );
-
-  const readyMixVolume = selectedReadyMixCalculation
-    ? selectedReadyMixCalculation.result.volume
-    : parseFloat(manualVolume) || 0;
-
-  useEffect(() => {
-    if (selectedReadyMixCalculation?.psi) {
-      setReadyMixPsi(selectedReadyMixCalculation.psi);
-    }
-  }, [readyMixCalculationId, selectedReadyMixCalculation?.psi]);
+  const showLocationHelp = permission === 'denied' || Boolean(locationError);
 
   const handleSavePourDate = async () => {
-    if (!selectedDate || !selectedProjectId || !user) return;
+    if (!selectedDate || !planner.form.projectId || !user) return;
     const isoDate = `${selectedDate}T12:00:00.000Z`;
     try {
-      await updateProject(selectedProjectId, { pourDate: isoDate });
+      await updateProject(planner.form.projectId, { pourDate: isoDate });
       setSaveMessage(`Pour date saved for ${format(parseISO(selectedDate), 'MMM d, yyyy')}`);
     } catch {
       setError('Failed to save pour date to project.');
+    }
+  };
+
+  const stepTitle = POUR_PLANNER_STEPS[planner.activeStep].label;
+
+  const renderStep = () => {
+    switch (planner.activeStepId) {
+      case 'project':
+        return <StepProjectOverview planner={planner} />;
+      case 'mix':
+        return <StepMixSpec planner={planner} />;
+      case 'delivery':
+        return <StepDeliveryLogistics planner={planner} />;
+      case 'environment':
+        return (
+          <StepEnvironmental
+            planner={planner}
+            location={location}
+            locationQuery={locationQuery}
+            setLocationQuery={setLocationQuery}
+            loading={loading}
+            locationLoading={locationLoading}
+            error={error}
+            showLocationHelp={showLocationHelp}
+            displayDays={displayDays}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            placementType={placementType}
+            setPlacementType={setPlacementType}
+            mitigationsByDate={mitigationsByDate}
+            onMitigationsChange={handleMitigationsChange}
+            onUseMyLocation={handleUseMyLocation}
+            onLocationSearch={handleLocationSearch}
+            onLocationReceived={(lat, lon) => loadForecast({ lat, lon })}
+            onLocationError={(msg) => setError(msg)}
+          />
+        );
+      case 'production':
+        return <StepPlacementProduction planner={planner} />;
+      case 'risk':
+        return <StepRiskAnalysis planner={planner} selectedDay={selectedDay} />;
+      case 'qc':
+        return (
+          <StepQcExport
+            planner={planner}
+            selectedDate={selectedDate}
+            selectedDay={selectedDay}
+            onSavePourDate={handleSavePourDate}
+            saveMessage={saveMessage}
+            canSavePourDate={Boolean(user && projects.length > 0 && selectedDate && planner.form.projectId)}
+          />
+        );
+      default:
+        return null;
     }
   };
 
@@ -239,370 +235,64 @@ const PourPlanner: React.FC = () => {
         <div className="flex justify-center mb-3">
           <CloudSun className="h-12 w-12 text-cyan-400 drop-shadow" />
         </div>
-        <h1 className="text-3xl font-bold text-white drop-shadow-md">Placement Planner</h1>
+        <h1 className="text-3xl font-bold text-white drop-shadow-md">
+          Ready-Mix Placement Risk Analyzer
+        </h1>
         <p className="text-white/90 mt-2 max-w-2xl mx-auto drop-shadow">
-          Compare the next five days to pick the best window for placing concrete — based on
-          temperature, rain, and wind.
+          Plan the pour, check delivery feasibility, evaluate placement risk, and produce a
+          field-ready plan — step by step.
         </p>
         <div className="mt-3">
-          <PlacementScoringLink onClick={openScoringModal} />
+          <PlacementScoringLink onClick={() => setShowScoringModal(true)} />
         </div>
       </motion.div>
 
+      <OverviewSummaryCard planner={planner} />
+
+      <PourPlannerStepper
+        activeStep={planner.activeStep}
+        onStepClick={planner.goToStep}
+      />
+
       <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Location
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+          Step {planner.activeStep + 1}: {stepTitle}
         </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {planner.activeStep === 0 &&
+            'Start with project identity, volume, and placement method.'}
+          {planner.activeStep === 1 &&
+            'Document mix design intent and slump requirements from specs.'}
+          {planner.activeStep === 2 &&
+            'Check ASTM C94 delivery window against travel and discharge time.'}
+          {planner.activeStep === 3 &&
+            'Compare forecast days and override with field temperature readings.'}
+          {planner.activeStep === 4 &&
+            'Size crew and coordinate truck spacing with placement rate.'}
+          {planner.activeStep === 5 &&
+            'Review combined risk and recommended mitigations.'}
+          {planner.activeStep === 6 &&
+            'Record QC data and export the pour plan.'}
+        </p>
 
-        <div className="flex flex-col gap-4">
-          <Button
-            type="button"
-            onClick={handleUseMyLocation}
-            disabled={loading || locationLoading}
-            icon={<MapPin className="h-4 w-4" />}
-            className="w-full sm:w-auto"
-          >
-            {locationLoading ? 'Getting location…' : 'Use my location'}
-          </Button>
+        {renderStep()}
 
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-            <span className="text-sm text-gray-500 dark:text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-          </div>
-
-          <form onSubmit={handleLocationSearch} className="flex flex-col sm:flex-row gap-2">
-            <Input
-              label="ZIP, city, or country"
-              placeholder="e.g. 97201 or Portland, OR or London, UK"
-              value={locationQuery}
-              onChange={(e) => setLocationQuery(e.target.value)}
-              className="flex-1"
-            />
-            <div className="flex items-end">
-              <Button
-                type="submit"
-                variant="outline"
-                disabled={loading || !locationQuery.trim()}
-                icon={<Search className="h-4 w-4" />}
-              >
-                Search
-              </Button>
-            </div>
-          </form>
-        </div>
-
-        {showLocationHelp && (
-          <div className="mt-4">
-            <LocationPermissionAlert
-              onLocationReceived={(lat, lon) => loadForecast({ lat, lon })}
-              onError={(msg) => setError(msg)}
-            />
-          </div>
-        )}
-
-        {location && (
-          <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            {location.city}, {location.country}
-          </p>
-        )}
-
-        {error && (
-          <div className="mt-4 p-3 rounded-md bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm flex gap-2">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            {error}
-          </div>
-        )}
+        <StepNavigation
+          activeStep={planner.activeStep}
+          totalSteps={POUR_PLANNER_STEPS.length}
+          onBack={planner.goBack}
+          onNext={planner.goNext}
+          nextLabel={
+            planner.activeStep === POUR_PLANNER_STEPS.length - 1
+              ? 'Done'
+              : undefined
+          }
+        />
       </Card>
-
-      {loading && (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-10 w-10 animate-spin text-white" />
-        </div>
-      )}
-
-      {!loading && displayDays.length > 0 && (
-        <>
-          <Card className="p-4 bg-white/95 dark:bg-gray-900/95">
-            <Select
-              label="Placement type (optional sensitivity adjustment)"
-              options={PLACEMENT_TYPE_OPTIONS}
-              value={placementType}
-              onChange={(v) => setPlacementType(v as PlacementType | '')}
-            />
-          </Card>
-
-          {bestWindow ? (
-            <Card className="p-4 bg-green-50 dark:bg-green-900/25 border border-green-200 dark:border-green-800">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
-                <div>
-                  <p className="font-medium text-green-900 dark:text-green-100">
-                    Best placement window
-                  </p>
-                  <p className="text-sm text-green-800 dark:text-green-200 mt-1">
-                    {bestWindow.start === bestWindow.end
-                      ? format(parseISO(bestWindow.start), 'EEEE, MMMM d')
-                      : `${format(parseISO(bestWindow.start), 'MMM d')} – ${format(parseISO(bestWindow.end), 'MMM d')}`}
-                    {' '}
-                    ({bestWindow.days.length} day{bestWindow.days.length > 1 ? 's' : ''} rated Good or Excellent)
-                  </p>
-                </div>
-              </div>
-            </Card>
-          ) : (
-            <Card className="p-4 bg-amber-50 dark:bg-amber-900/25 border border-amber-200 dark:border-amber-800">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0" />
-                <p className="text-sm text-amber-900 dark:text-amber-100">
-                  No Excellent or Good days in the next five days. Review each day below or adjust your schedule.
-                </p>
-              </div>
-            </Card>
-          )}
-
-          <div>
-            <h2 className="text-lg font-semibold text-white drop-shadow mb-3 flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Day-by-day outlook
-            </h2>
-            <p className="text-sm text-white/80 mb-4 drop-shadow">
-              Tap a day to select a pour date. Green = Excellent/Good, yellow = Caution, red = Delay recommended.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-              {displayDays.map((day) => {
-                const isSelected = selectedDate === day.date;
-                return (
-                  <PourDayCard
-                    key={day.date}
-                    day={day}
-                    expanded={isSelected}
-                    selected={isSelected}
-                    placementType={placementType || undefined}
-                    onSelect={() =>
-                      setSelectedDate((d) => (d === day.date ? null : day.date))
-                    }
-                  />
-                );
-              })}
-            </div>
-          </div>
-
-          {selectedDate && selectedDay && (
-            <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                Mitigations for {format(parseISO(selectedDate), 'MMM d')}
-              </h3>
-              <MitigationSelector
-                options={applicableMitigations}
-                selected={mitigationsByDate[selectedDate] ?? []}
-                onChange={(ids) => handleMitigationsChange(selectedDate, ids)}
-                maxRecovery={maxMitigationRecovery}
-                disabled={maxMitigationRecovery === 0}
-              />
-              {selectedDay.appliedMitigations.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Base score: {selectedDay.baseScore} → Adjusted: {selectedDay.score}
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Mitigations applied to score (+{selectedDay.mitigationCredit} of{' '}
-                    {maxMitigationRecovery} max):
-                  </p>
-                  <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
-                    {selectedDay.appliedMitigations.map((id) => {
-                      const opt = getMitigationOption(id);
-                      return (
-                        <li key={id}>
-                          + {opt?.label ?? id} (+{opt?.credit ?? 0})
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </Card>
-          )}
-
-          {user && projects.length > 0 && selectedDate && (
-            <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                Save pour date to project
-              </h3>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Select
-                  label="Project"
-                  options={[
-                    { value: '', label: 'Select a project…' },
-                    ...projects.map((p) => ({ value: p.id, label: p.name })),
-                  ]}
-                  value={selectedProjectId}
-                  onChange={setSelectedProjectId}
-                  className="flex-1"
-                />
-                <div className="flex items-end">
-                  <Button
-                    onClick={handleSavePourDate}
-                    disabled={!selectedProjectId}
-                  >
-                    Save {format(parseISO(selectedDate), 'MMM d')}
-                  </Button>
-                </div>
-              </div>
-              {saveMessage && (
-                <p className="mt-2 text-sm text-green-600 dark:text-green-400">{saveMessage}</p>
-              )}
-            </Card>
-          )}
-
-          <Card className="p-4 bg-white/90 dark:bg-gray-800/90 text-sm text-gray-600 dark:text-gray-400">
-            <p className="text-gray-700 dark:text-gray-300">
-              Scores are based on forecast weather data and estimated field conditions. Actual site
-              conditions, mix design, concrete temperature, placement methods, and project
-              specifications may significantly affect performance. Always follow project
-              specifications, engineer requirements, and applicable ACI guidance.
-            </p>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Scores follow ACI 305R (hot weather) and 306R (cold weather). Tap a day for risks,
-              finishability, and recommended actions. Select mitigations to model score recovery.
-            </p>
-            <div className="mt-3">
-              <PlacementScoringLink
-                variant="onLight"
-                onClick={openScoringModal}
-              />
-            </div>
-          </Card>
-        </>
-      )}
-
-      {!loading && displayDays.length === 0 && !error && (
-        <Card className="p-8 text-center bg-white/90 dark:bg-gray-900/90">
-          <CloudSun className="h-10 w-10 mx-auto text-cyan-500 mb-3" />
-          <p className="text-gray-600 dark:text-gray-400">
-            Use my location or search by ZIP, city, or country to see day ratings.
-          </p>
-          <div className="mt-4">
-            <PlacementScoringLink
-              variant="onLight"
-              onClick={() => setShowScoringModal(true)}
-            />
-          </div>
-        </Card>
-      )}
-
-      <div className="space-y-4">
-        {projects.length > 0 && (
-          <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              Pour volume
-            </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <Select
-              label="Project (optional)"
-              options={[
-                { value: '', label: 'No project — enter volume below' },
-                ...projects.map((p) => ({ value: p.id, label: p.name })),
-              ]}
-              value={readyMixProjectId}
-              onChange={(id) => {
-                setReadyMixProjectId(id);
-                setReadyMixCalculationId('');
-              }}
-            />
-            {readyMixProjectId && readyMixCalculations.length > 0 && (
-              <Select
-                label="Calculation"
-                options={[
-                  { value: '', label: 'Select a calculation…' },
-                  ...readyMixCalculations.map((c) => ({
-                    value: c.id,
-                    label: `${c.type.replace(/_/g, ' ')} — ${c.result.volume.toFixed(2)} ${
-                      preferences.volumeUnit === 'cubic_yards'
-                        ? 'yd³'
-                        : preferences.volumeUnit === 'cubic_feet'
-                          ? 'ft³'
-                          : 'm³'
-                    }`,
-                  })),
-                ]}
-                value={readyMixCalculationId}
-                onChange={setReadyMixCalculationId}
-              />
-            )}
-          </div>
-          </Card>
-        )}
-
-        {!projects.length && !readyMixCalculationId && (
-          <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              Pour volume
-            </h2>
-            <Input
-              label={`Volume (${preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'})`}
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 12.5"
-              value={manualVolume}
-              onChange={(e) => setManualVolume(e.target.value)}
-            />
-          </Card>
-        )}
-
-        {projects.length > 0 && !readyMixCalculationId && (
-          <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-            <Input
-              label={`Or enter volume (${preferences.volumeUnit === 'cubic_yards' ? 'yd³' : preferences.volumeUnit === 'cubic_feet' ? 'ft³' : 'm³'})`}
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 12.5"
-              value={manualVolume}
-              onChange={(e) => setManualVolume(e.target.value)}
-            />
-          </Card>
-        )}
-
-        {readyMixVolume > 0 ? (
-          <>
-            <Card className="p-4 bg-white/95 dark:bg-gray-900/95 max-w-xs">
-              <Select
-                label="Concrete strength"
-                options={[
-                  { value: '2500', label: '2500 PSI' },
-                  { value: '3000', label: '3000 PSI' },
-                  { value: '4000', label: '4000 PSI' },
-                  { value: '5000', label: '5000 PSI' },
-                ]}
-                value={readyMixPsi}
-                onChange={setReadyMixPsi}
-              />
-            </Card>
-            <PricingCalculator
-              volume={readyMixVolume}
-              volumeUnit={preferences.volumeUnit}
-              psi={readyMixPsi}
-              variant="planner"
-            />
-          </>
-        ) : (
-          <Card className="p-6 bg-white/90 dark:bg-gray-900/90 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a saved calculation or enter a volume to plan ready-mix delivery and cost.
-            </p>
-          </Card>
-        )}
-      </div>
 
       <Modal
         isOpen={showScoringModal}
-        onClose={closeScoringModal}
+        onClose={() => setShowScoringModal(false)}
         title="Placement scoring & ACI references"
         size="lg"
       >
