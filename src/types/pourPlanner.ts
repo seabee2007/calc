@@ -62,7 +62,6 @@ export interface PourPlannerFormState {
   pumpRate: string;
   placementRateYdPerHr: string;
   slabSize: string;
-  placementSequence: string;
   dischargeRateYdPerHr: string;
 
   ticketNumber: string;
@@ -134,7 +133,6 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   pumpRate: '40',
   placementRateYdPerHr: '20',
   slabSize: '',
-  placementSequence: '',
   dischargeRateYdPerHr: '30',
 
   ticketNumber: '',

@@ -21,7 +21,7 @@ const DeliveryClock: React.FC<DeliveryClockProps> = ({ analysis, drumRpm }) => {
     <Card className={`p-5 border-2 ${timeRiskColor(analysis.riskLevel)}`}>
       <div className="flex items-center gap-2 mb-4">
         <Clock className="h-5 w-5" />
-        <h3 className="text-lg font-bold">Delivery clock</h3>
+        <h3 className="text-lg font-bold text-inherit">Delivery clock</h3>
       </div>
 
       <p className="text-sm mb-4 opacity-90">

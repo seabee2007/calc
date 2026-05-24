@@ -125,7 +125,9 @@ function RiskCard({
         {level !== 'ok' && (
           <AlertTriangle
             className={`h-4 w-4 ml-auto ${
-              level === 'critical' ? 'text-red-600' : 'text-amber-600'
+              level === 'critical'
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-amber-600 dark:text-amber-400'
             }`}
           />
         )}

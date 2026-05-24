@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { geocodeAddressSmart } from "../_shared/mapboxGeocode.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -10,32 +11,7 @@ interface GeocodedPoint {
 }
 
 async function geocode(address: string): Promise<GeocodedPoint> {
-  const url =
-    `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(address)}` +
-    `&limit=1&access_token=${MAPBOX_TOKEN}`;
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error("Mapbox geocode error:", res.status, errText);
-    throw new Error(`Could not geocode address: ${address}`);
-  }
-
-  const data = await res.json();
-  const feature = data.features?.[0];
-
-  if (!feature) {
-    throw new Error(`Could not geocode address: ${address}`);
-  }
-
-  const [lng, lat] = feature.geometry.coordinates as [number, number];
-  const props = feature.properties ?? {};
-
-  return {
-    lng,
-    lat,
-    placeName: props.full_address ?? props.name ?? address,
-  };
+  return geocodeAddressSmart(address, MAPBOX_TOKEN!);
 }
 
 async function getRoute(

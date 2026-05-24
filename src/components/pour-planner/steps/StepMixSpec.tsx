@@ -3,14 +3,16 @@ import Input from '../../ui/Input';
 import Select from '../../ui/Select';
 import Checkbox from '../../ui/Checkbox';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
+import { getCalculationPsi } from '../../../utils/calculationDimensions';
 
 interface StepProps {
   planner: PourPlannerContext;
 }
 
 export const StepMixSpec: React.FC<StepProps> = ({ planner }) => {
-  const { form, setField } = planner;
+  const { form, setField, calculation } = planner;
   const isPump = form.placementMethod === 'pump';
+  const psiFromCalc = getCalculationPsi(calculation);
 
   return (
     <div className="space-y-6">
@@ -34,6 +36,7 @@ export const StepMixSpec: React.FC<StepProps> = ({ planner }) => {
             ]}
             value={form.psi}
             onChange={(v) => setField('psi', v)}
+            disabled={Boolean(psiFromCalc)}
           />
           <Select
             label="Aggregate size"
@@ -46,6 +49,11 @@ export const StepMixSpec: React.FC<StepProps> = ({ planner }) => {
             value={form.aggregateSize}
             onChange={(v) => setField('aggregateSize', v)}
           />
+          {psiFromCalc && (
+            <p className="sm:col-span-2 text-xs text-gray-500 dark:text-gray-400">
+              PSI auto-filled from the linked concrete calculation ({psiFromCalc} PSI).
+            </p>
+          )}
           <Input
             label="Air entrainment %"
             type="number"

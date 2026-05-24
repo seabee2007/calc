@@ -1,19 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   Calendar,
   MapPin,
-  Search,
   Loader2,
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
+  Factory,
 } from 'lucide-react';
 import Input from '../../ui/Input';
 import Select from '../../ui/Select';
 import Checkbox from '../../ui/Checkbox';
-import Button from '../../ui/Button';
 import Card from '../../ui/Card';
-import LocationPermissionAlert from '../../ui/LocationPermissionAlert';
 import PourDayCard from '../../weather/PourDayCard';
 import MitigationSelector from '../../weather/MitigationSelector';
 import EvapGauge from '../../calculations/EvapGauge';
@@ -41,13 +40,12 @@ const PLACEMENT_TYPE_OPTIONS = [
 
 export interface StepEnvironmentalProps {
   planner: PourPlannerContext;
-  location: ForecastLocation | null;
-  locationQuery: string;
-  setLocationQuery: (q: string) => void;
+  batchPlantLocation: ForecastLocation | null;
+  jobsiteLocation: ForecastLocation | null;
+  batchPlantAddress: string;
+  jobsiteAddress: string;
   loading: boolean;
-  locationLoading: boolean;
   error: string | null;
-  showLocationHelp: boolean;
   displayDays: ScoredPourDay[];
   selectedDate: string | null;
   setSelectedDate: (d: string | null) => void;
@@ -55,21 +53,16 @@ export interface StepEnvironmentalProps {
   setPlacementType: (t: PlacementType | '') => void;
   mitigationsByDate: Record<string, string[]>;
   onMitigationsChange: (date: string, ids: string[]) => void;
-  onUseMyLocation: () => void;
-  onLocationSearch: (e: React.FormEvent) => void;
-  onLocationReceived: (lat: number, lon: number) => void;
-  onLocationError: (msg: string) => void;
 }
 
 export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
   planner,
-  location,
-  locationQuery,
-  setLocationQuery,
+  batchPlantLocation,
+  jobsiteLocation,
+  batchPlantAddress,
+  jobsiteAddress,
   loading,
-  locationLoading,
   error,
-  showLocationHelp,
   displayDays,
   selectedDate,
   setSelectedDate,
@@ -77,14 +70,21 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
   setPlacementType,
   mitigationsByDate,
   onMitigationsChange,
-  onUseMyLocation,
-  onLocationSearch,
-  onLocationReceived,
-  onLocationError,
 }) => {
   const { form, setField, hotWeather } = planner;
   const selectedDay = displayDays.find((d) => d.date === selectedDate);
   const bestWindow = findBestPourWindow(displayDays);
+  const [mitigationsExpanded, setMitigationsExpanded] = useState(false);
+
+  const hasBatchPlant = batchPlantAddress.trim().length > 0;
+  const hasJobsite = jobsiteAddress.trim().length > 0;
+  const selectedMitigationCount = selectedDate
+    ? (mitigationsByDate[selectedDate]?.length ?? 0)
+    : 0;
+
+  useEffect(() => {
+    setMitigationsExpanded(false);
+  }, [selectedDate]);
 
   const mitigationContext = selectedDay
     ? (() => {
@@ -104,59 +104,53 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
     <div className="space-y-6">
       <section>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-          Forecast location
+          Weather locations
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Load the 5-day forecast for jobsite weather scoring, then override field readings
-          below if needed.
+          Forecast and pour-day scoring use the batch plant from Step 1. Field conditions
+          use the jobsite forecast for the selected day — all loaded automatically.
         </p>
 
-        <Button
-          type="button"
-          onClick={onUseMyLocation}
-          disabled={loading || locationLoading}
-          icon={<MapPin className="h-4 w-4" />}
-          className="mb-4"
-        >
-          {locationLoading ? 'Getting location…' : 'Use my location'}
-        </Button>
-
-        <form onSubmit={onLocationSearch} className="flex flex-col sm:flex-row gap-2 mb-4">
-          <Input
-            label="ZIP, city, or country"
-            placeholder="e.g. 97201 or Portland, OR"
-            value={locationQuery}
-            onChange={(e) => setLocationQuery(e.target.value)}
-            className="flex-1"
-          />
-          <div className="flex items-end">
-            <Button
-              type="submit"
-              variant="outline"
-              disabled={loading || !locationQuery.trim()}
-              icon={<Search className="h-4 w-4" />}
-            >
-              Search
-            </Button>
+        <Card className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 space-y-3 text-sm">
+          <div className="flex items-start gap-2">
+            <Factory className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-gray-500 dark:text-gray-400">Batch plant forecast</span>
+              <p className="text-gray-900 dark:text-white">
+                {batchPlantAddress.trim() || 'Set batch plant address in Step 1'}
+              </p>
+              {batchPlantLocation && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {batchPlantLocation.city}, {batchPlantLocation.country}
+                </p>
+              )}
+            </div>
           </div>
-        </form>
+          <div className="flex items-start gap-2">
+            <MapPin className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-gray-500 dark:text-gray-400">Jobsite field conditions</span>
+              <p className="text-gray-900 dark:text-white">
+                {jobsiteAddress.trim() || 'Set jobsite address in Step 1'}
+              </p>
+              {jobsiteLocation && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {jobsiteLocation.city}, {jobsiteLocation.country}
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
 
-        {showLocationHelp && (
-          <LocationPermissionAlert
-            onLocationReceived={onLocationReceived}
-            onError={onLocationError}
-          />
-        )}
-
-        {location && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1 mb-4">
-            <MapPin className="h-4 w-4" />
-            {location.city}, {location.country}
+        {!hasBatchPlant && !hasJobsite && (
+          <p className="mt-3 text-sm text-amber-700 dark:text-amber-300 flex gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            Enter jobsite and batch plant addresses in Step 1 to load weather automatically.
           </p>
         )}
 
         {error && (
-          <div className="mb-4 p-3 rounded-md bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm flex gap-2">
+          <div className="mt-4 p-3 rounded-md bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm flex gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             {error}
           </div>
@@ -214,28 +208,52 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           </div>
 
           {selectedDate && selectedDay && mitigationContext && (
-            <Card className="p-4">
-              <h4 className="font-medium mb-3">
-                Mitigations for {format(parseISO(selectedDate), 'MMM d')}
-              </h4>
-              <MitigationSelector
-                options={mitigationContext.options}
-                selected={mitigationsByDate[selectedDate] ?? []}
-                onChange={(ids) => onMitigationsChange(selectedDate, ids)}
-                maxRecovery={mitigationContext.maxRecovery}
-                disabled={mitigationContext.maxRecovery === 0}
-              />
-              {selectedDay.appliedMitigations.length > 0 && (
-                <ul className="mt-3 text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                  {selectedDay.appliedMitigations.map((id) => {
-                    const opt = getMitigationOption(id);
-                    return (
-                      <li key={id}>
-                        + {opt?.label ?? id} (+{opt?.credit ?? 0})
-                      </li>
-                    );
-                  })}
-                </ul>
+            <Card className="p-0 overflow-hidden border border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setMitigationsExpanded((open) => !open)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                aria-expanded={mitigationsExpanded}
+              >
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Optional mitigations — {format(parseISO(selectedDate), 'MMM d')}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {selectedMitigationCount > 0
+                      ? `${selectedMitigationCount} selected`
+                      : 'Tap to adjust score with planned mitigations'}
+                  </p>
+                </div>
+                <ChevronDown
+                  className={`h-5 w-5 shrink-0 text-gray-500 dark:text-gray-400 transition-transform ${
+                    mitigationsExpanded ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {mitigationsExpanded && (
+                <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <MitigationSelector
+                    options={mitigationContext.options}
+                    selected={mitigationsByDate[selectedDate] ?? []}
+                    onChange={(ids) => onMitigationsChange(selectedDate, ids)}
+                    maxRecovery={mitigationContext.maxRecovery}
+                    disabled={mitigationContext.maxRecovery === 0}
+                  />
+                  {selectedDay.appliedMitigations.length > 0 && (
+                    <ul className="mt-3 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                      {selectedDay.appliedMitigations.map((id) => {
+                        const opt = getMitigationOption(id);
+                        return (
+                          <li key={id}>
+                            + {opt?.label ?? id} (+{opt?.credit ?? 0})
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               )}
             </Card>
           )}
@@ -243,14 +261,18 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
       )}
 
       <section className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-          Field conditions (override forecast)
+        <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+          Field conditions
         </h4>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          {selectedDate
+            ? `Auto-filled from forecast for ${format(parseISO(selectedDate), 'MMM d')}. Edit if field readings differ.`
+            : 'Select a pour day above to auto-fill from forecast, or enter readings manually.'}
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Ambient air temp (°F)"
             type="number"
-            placeholder={selectedDay ? String(Math.round(selectedDay.avgTemp)) : ''}
             value={form.ambientTemp}
             onChange={(e) => setField('ambientTemp', e.target.value)}
           />
@@ -271,11 +293,6 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
             type="number"
             min="0"
             max="100"
-            placeholder={
-              selectedDay?.avgHumidity != null
-                ? String(Math.round(selectedDay.avgHumidity))
-                : ''
-            }
             value={form.relativeHumidity}
             onChange={(e) => setField('relativeHumidity', e.target.value)}
           />
@@ -283,9 +300,6 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
             label="Wind speed (mph)"
             type="number"
             min="0"
-            placeholder={
-              selectedDay ? String(Math.round(selectedDay.maxWindSpeed)) : ''
-            }
             value={form.windSpeed}
             onChange={(e) => setField('windSpeed', e.target.value)}
           />

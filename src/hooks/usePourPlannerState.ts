@@ -73,16 +73,17 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
         placementRateYdPerHr: form.placementRateYdPerHr,
         truckCapacityYd: form.truckCapacityYd || deliveryPlan.planningCapacityYd,
         dischargeRateYdPerHr: form.dischargeRateYdPerHr,
-        recommendedTrucks: deliveryPlan.recommendedTrucks,
       }),
     [deliveryPlan, form.placementRateYdPerHr, form.truckCapacityYd, form.dischargeRateYdPerHr],
   );
 
-  const dischargeMin = useMemo(() => {
-    const trucks =
-      parseInt(form.numberOfTrucks, 10) || production.recommendedTrucks || 1;
-  return production.truckDischargeMinutes * trucks;
-  }, [form.numberOfTrucks, production]);
+  const truckCount =
+    parseInt(form.numberOfTrucks, 10) || production.recommendedTrucks || 0;
+
+  const dischargeMin = useMemo(
+    () => production.truckDischargeMinutes,
+    [production.truckDischargeMinutes],
+  );
 
   const deliveryWindow = useMemo(
     () =>
@@ -141,13 +142,13 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     () => ({
       volume,
       volumeYd: deliveryPlan.volumeYd,
-      truckCount: production.recommendedTrucks,
+      truckCount,
       pourDurationHours: production.placementDurationHours,
       weatherRisk: weatherRiskLabel,
       deliveryStatus: deliveryWindow.statusLabel,
       timeRemainingMin: deliveryWindow.remainingMinutes,
     }),
-    [volume, deliveryPlan, production, weatherRiskLabel, deliveryWindow],
+    [volume, deliveryPlan, production, truckCount, weatherRiskLabel, deliveryWindow],
   );
 
   const goNext = () => setActiveStep((s) => Math.min(s + 1, POUR_PLANNER_STEPS.length - 1));
@@ -171,6 +172,7 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     volume,
     deliveryPlan,
     production,
+    truckCount,
     deliveryWindow,
     hotWeather,
     slumpRisk,

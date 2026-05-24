@@ -65,9 +65,9 @@ function SummaryTile({
 }) {
   return (
     <Card className="p-3 text-center">
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{title}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{title}</p>
       <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="text-xs text-gray-500">{detail}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">{detail}</p>
     </Card>
   );
 }

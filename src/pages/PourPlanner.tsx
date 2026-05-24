@@ -16,9 +16,7 @@ import StepEnvironmental from '../components/pour-planner/steps/StepEnvironmenta
 import StepPlacementProduction from '../components/pour-planner/steps/StepPlacementProduction';
 import StepRiskAnalysis from '../components/pour-planner/steps/StepRiskAnalysis';
 import StepQcExport from '../components/pour-planner/steps/StepQcExport';
-import { useLocation } from '../hooks/useLocation';
 import {
-  getExtendedForecast,
   getForecastByQuery,
   ForecastLocation,
 } from '../services/weatherService';
@@ -33,6 +31,12 @@ import {
   usePourPlannerState,
   POUR_PLANNER_STEPS,
 } from '../hooks/usePourPlannerState';
+import { formatCalculationSlabSize, getCalculationPsi } from '../utils/calculationDimensions';
+import {
+  applyBatchPlantForecastToForm,
+  applyJobsiteForecastToForm,
+} from '../utils/pourWeatherFields';
+import { findBestPourWindow } from '../utils/pourScoring';
 
 const FORECAST_DAYS = 5;
 
@@ -40,15 +44,9 @@ const PourPlanner: React.FC = () => {
   const { user } = useAuth();
   const { projects, updateProject } = useProjectStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
+  const [jobsiteLocation, setJobsiteLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [locationQuery, setLocationQuery] = useState('');
-  const {
-    requestLocation,
-    isLoading: locationLoading,
-    permission,
-    error: locationError,
-  } = useLocation();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showScoringModal, setShowScoringModal] = useState(false);
@@ -57,7 +55,14 @@ const PourPlanner: React.FC = () => {
   const [rawForecastDays, setRawForecastDays] = useState<
     (import('../types').ForecastDay & { avgHumidity?: number })[]
   >([]);
+  const [jobsiteForecastDays, setJobsiteForecastDays] = useState<
+    (import('../types').ForecastDay & { avgHumidity?: number })[]
+  >([]);
   const loadRequestIdRef = useRef(0);
+  const weatherFetchKeyRef = useRef('');
+  const prevForecastCountRef = useRef(0);
+  const stepTopRef = useRef<HTMLHeadingElement>(null);
+  const skipInitialScrollRef = useRef(true);
 
   const displayDays = useMemo(
     () =>
@@ -71,13 +76,33 @@ const PourPlanner: React.FC = () => {
   const selectedDay = displayDays.find((d) => d.date === selectedDate);
   const planner = usePourPlannerState(selectedDay);
 
-  const { calculation, setField } = planner;
+  const { calculation, setField, preferences } = planner;
 
   useEffect(() => {
-    if (calculation?.psi) {
-      setField('psi', calculation.psi);
+    const psi = getCalculationPsi(calculation);
+    if (psi) {
+      setField('psi', psi);
+    } else if (!calculation) {
+      setField('psi', preferences.defaultPSI || '3000');
     }
-  }, [calculation?.psi, calculation?.id, setField]);
+  }, [calculation, preferences.defaultPSI, setField]);
+
+  useEffect(() => {
+    if (calculation) {
+      const size = formatCalculationSlabSize(calculation, preferences.lengthUnit);
+      if (size) setField('slabSize', size);
+    } else {
+      setField('slabSize', '');
+    }
+  }, [calculation, preferences.lengthUnit, setField]);
+
+  useEffect(() => {
+    if (skipInitialScrollRef.current) {
+      skipInitialScrollRef.current = false;
+      return;
+    }
+    stepTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [planner.activeStep]);
 
   useEffect(() => {
     if (rawForecastDays.length === 0) return;
@@ -101,37 +126,132 @@ const PourPlanner: React.FC = () => {
     });
   }, [rawForecastDays, placementType]);
 
-  const loadForecast = useCallback(
-    async (opts: { lat?: number; lon?: number; query?: string }) => {
-      const requestId = ++loadRequestIdRef.current;
-      setLoading(true);
-      setError(null);
-      setSaveMessage(null);
+  const loadStep4Weather = useCallback(
+    async (batchPlantAddress: string, jobsiteAddress: string) => {
+      const plant = batchPlantAddress.trim();
+      const jobsite = jobsiteAddress.trim();
+      const fetchKey = `${plant}|${jobsite}`;
 
-      let result = null;
-      if (opts.query) {
-        result = await getForecastByQuery(opts.query, FORECAST_DAYS);
-      } else if (opts.lat != null && opts.lon != null) {
-        result = await getExtendedForecast(opts.lat, opts.lon, FORECAST_DAYS);
-      }
-
-      if (requestId !== loadRequestIdRef.current) return;
-
-      if (!result) {
-        setError(
-          'Could not load forecast. Check your connection and that WEATHER_API_KEY is set on the edge function.',
-        );
+      if (!plant && !jobsite) {
         setRawForecastDays([]);
-        setLoading(false);
+        setJobsiteForecastDays([]);
+        setLocation(null);
+        setJobsiteLocation(null);
+        weatherFetchKeyRef.current = '';
         return;
       }
 
-      setLocation(result.location);
-      setRawForecastDays(result.forecast);
-      setLoading(false);
+      if (fetchKey === weatherFetchKeyRef.current) return;
+
+      const requestId = ++loadRequestIdRef.current;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [plantResult, jobsiteResult] = await Promise.all([
+          plant ? getForecastByQuery(plant, FORECAST_DAYS) : Promise.resolve(null),
+          jobsite ? getForecastByQuery(jobsite, FORECAST_DAYS) : Promise.resolve(null),
+        ]);
+
+        if (requestId !== loadRequestIdRef.current) return;
+
+        if (plantResult) {
+          setLocation(plantResult.location);
+          setRawForecastDays(plantResult.forecast);
+        } else {
+          setLocation(null);
+          setRawForecastDays([]);
+        }
+
+        if (jobsiteResult) {
+          setJobsiteLocation(jobsiteResult.location);
+          setJobsiteForecastDays(jobsiteResult.forecast);
+        } else {
+          setJobsiteLocation(null);
+          setJobsiteForecastDays([]);
+        }
+
+        if (!plantResult && !jobsiteResult) {
+          setError(
+            'Could not load forecast. Check your connection and that WEATHER_API_KEY is set on the edge function.',
+          );
+        } else {
+          weatherFetchKeyRef.current = fetchKey;
+        }
+      } catch {
+        if (requestId !== loadRequestIdRef.current) return;
+        setError('Could not load forecast for the step 1 addresses.');
+        setRawForecastDays([]);
+        setJobsiteForecastDays([]);
+      } finally {
+        if (requestId === loadRequestIdRef.current) {
+          setLoading(false);
+        }
+      }
     },
     [],
   );
+
+  useEffect(() => {
+    if (planner.activeStepId !== 'environment') return;
+    loadStep4Weather(planner.form.batchPlantAddress, planner.form.jobsiteAddress);
+  }, [
+    planner.activeStepId,
+    planner.form.batchPlantAddress,
+    planner.form.jobsiteAddress,
+    loadStep4Weather,
+  ]);
+
+  useEffect(() => {
+    if (planner.activeStepId !== 'environment') return;
+    if (rawForecastDays.length === 0) return;
+
+    const fieldDate = selectedDate ?? rawForecastDays[0]?.date;
+    if (!fieldDate) return;
+
+    const jobsiteDay =
+      jobsiteForecastDays.find((d) => d.date === fieldDate) ??
+      rawForecastDays.find((d) => d.date === fieldDate);
+    const plantDay =
+      rawForecastDays.find((d) => d.date === fieldDate) ?? jobsiteDay;
+
+    if (jobsiteDay) {
+      applyJobsiteForecastToForm(jobsiteDay, setField);
+    }
+    if (plantDay) {
+      applyBatchPlantForecastToForm(plantDay, setField);
+    }
+  }, [
+    planner.activeStepId,
+    selectedDate,
+    rawForecastDays,
+    jobsiteForecastDays,
+    setField,
+  ]);
+
+  useEffect(() => {
+    if (planner.activeStepId !== 'environment') return;
+    if (rawForecastDays.length === 0) {
+      prevForecastCountRef.current = 0;
+      return;
+    }
+
+    const forecastJustLoaded =
+      prevForecastCountRef.current === 0 && rawForecastDays.length > 0;
+    prevForecastCountRef.current = rawForecastDays.length;
+
+    if (!forecastJustLoaded || selectedDate) return;
+
+    const bestWindow = findBestPourWindow(displayDays);
+    if (bestWindow?.start) {
+      setSelectedDate(bestWindow.start);
+    }
+  }, [
+    planner.activeStepId,
+    rawForecastDays.length,
+    displayDays,
+    selectedDate,
+  ]);
 
   const handleMitigationsChange = (date: string, ids: string[]) => {
     const day = rawForecastDays.find((d) => d.date === date);
@@ -142,23 +262,6 @@ const PourPlanner: React.FC = () => {
     }
     setMitigationsByDate((prev) => ({ ...prev, [date]: ids }));
   };
-
-  const handleUseMyLocation = async () => {
-    setError(null);
-    const pos = await requestLocation();
-    if (pos) {
-      await loadForecast({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-    }
-  };
-
-  const handleLocationSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = locationQuery.trim();
-    if (!q) return;
-    await loadForecast({ query: q });
-  };
-
-  const showLocationHelp = permission === 'denied' || Boolean(locationError);
 
   const handleSavePourDate = async () => {
     if (!selectedDate || !planner.form.projectId || !user) return;
@@ -185,13 +288,12 @@ const PourPlanner: React.FC = () => {
         return (
           <StepEnvironmental
             planner={planner}
-            location={location}
-            locationQuery={locationQuery}
-            setLocationQuery={setLocationQuery}
+            batchPlantLocation={location}
+            jobsiteLocation={jobsiteLocation}
+            batchPlantAddress={planner.form.batchPlantAddress}
+            jobsiteAddress={planner.form.jobsiteAddress}
             loading={loading}
-            locationLoading={locationLoading}
             error={error}
-            showLocationHelp={showLocationHelp}
             displayDays={displayDays}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
@@ -199,10 +301,6 @@ const PourPlanner: React.FC = () => {
             setPlacementType={setPlacementType}
             mitigationsByDate={mitigationsByDate}
             onMitigationsChange={handleMitigationsChange}
-            onUseMyLocation={handleUseMyLocation}
-            onLocationSearch={handleLocationSearch}
-            onLocationReceived={(lat, lon) => loadForecast({ lat, lon })}
-            onLocationError={(msg) => setError(msg)}
           />
         );
       case 'production':
@@ -255,7 +353,10 @@ const PourPlanner: React.FC = () => {
       />
 
       <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+        <h2
+          ref={stepTopRef}
+          className="text-xl font-semibold text-gray-900 dark:text-white mb-1 scroll-mt-4"
+        >
           Step {planner.activeStep + 1}: {stepTitle}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
@@ -266,7 +367,7 @@ const PourPlanner: React.FC = () => {
           {planner.activeStep === 2 &&
             'Check ASTM C94 delivery window against travel and discharge time.'}
           {planner.activeStep === 3 &&
-            'Compare forecast days and override with field temperature readings.'}
+            'Review the batch plant forecast, pick a pour day, and confirm field conditions.'}
           {planner.activeStep === 4 &&
             'Size crew and coordinate truck spacing with placement rate.'}
           {planner.activeStep === 5 &&

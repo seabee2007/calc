@@ -3,7 +3,6 @@ import { FileDown } from 'lucide-react';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
-import PricingCalculator from '../../calculations/PricingCalculator';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import type { ScoredPourDay } from '../../../utils/pourScoring';
 import { format, parseISO } from 'date-fns';
@@ -25,7 +24,7 @@ export const StepQcExport: React.FC<StepProps> = ({
   saveMessage,
   canSavePourDate,
 }) => {
-  const { form, setField, volume, preferences } = planner;
+  const { form, setField } = planner;
 
   return (
     <div className="space-y-6">
@@ -126,15 +125,6 @@ export const StepQcExport: React.FC<StepProps> = ({
           />
         </div>
       </section>
-
-      {volume > 0 && (
-        <PricingCalculator
-          volume={volume}
-          volumeUnit={preferences.volumeUnit}
-          psi={form.psi}
-          variant="planner"
-        />
-      )}
 
       <section className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <h4 className="font-medium text-gray-900 dark:text-white mb-3">
