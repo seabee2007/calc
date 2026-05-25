@@ -763,10 +763,13 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
 
             {calculationResult.volume > 0 && (
               <PricingCalculator
+                key={currentProject?.id ?? 'no-project'}
                 volume={calculationResult.volume}
                 volumeUnit={preferences.volumeUnit}
                 psi={selectedPsi}
                 variant="calculator"
+                projectName={currentProject?.name}
+                projectJobsite={currentProject?.jobsiteAddress}
                 onPricingCalculated={handlePricingCalculated}
               />
             )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CloudSun, Wind, Droplets, Thermometer } from 'lucide-react';
-import Card from '../ui/Card';
+import OpsCard from './OpsCard';
+import { OPS_PANEL_INNER } from './opsTheme';
 import type { OpsRiskLevel, OperationsSnapshot } from '../../utils/operationsDashboard';
 import { Link } from 'react-router-dom';
 
@@ -30,43 +31,40 @@ interface PlacementRiskPanelProps {
 }
 
 const PlacementRiskPanel: React.FC<PlacementRiskPanelProps> = ({ snapshot }) => (
-  <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
+  <OpsCard>
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <CloudSun className="h-5 w-5 text-amber-400" />
-        <h3 className="font-semibold">Concrete placement risk</h3>
+        <h3 className="font-semibold text-white">Concrete placement risk</h3>
       </div>
-      <Link
-        to="/pour-planner"
-        className="text-xs text-cyan-400 hover:underline"
-      >
+      <Link to="/pour-planner" className="text-xs text-cyan-400 hover:underline">
         Full analysis →
       </Link>
     </div>
 
     <div className="grid grid-cols-2 gap-3 mb-4">
-      <div className="rounded-lg bg-slate-800/80 p-3">
+      <div className={OPS_PANEL_INNER + ' p-3'}>
         <Thermometer className="h-4 w-4 text-red-400 mb-1" />
         <p className="text-xs text-slate-400">Heat risk</p>
         <p className={`font-bold uppercase ${riskColor(snapshot.heatRisk)}`}>
           {snapshot.heatRisk}
         </p>
       </div>
-      <div className="rounded-lg bg-slate-800/80 p-3">
+      <div className={OPS_PANEL_INNER + ' p-3'}>
         <Droplets className="h-4 w-4 text-blue-400 mb-1" />
         <p className="text-xs text-slate-400">Rain risk</p>
         <p className={`font-bold uppercase ${riskColor(snapshot.rainRisk)}`}>
           {snapshot.rainRisk}
         </p>
       </div>
-      <div className="rounded-lg bg-slate-800/80 p-3">
+      <div className={OPS_PANEL_INNER + ' p-3'}>
         <Wind className="h-4 w-4 text-cyan-400 mb-1" />
         <p className="text-xs text-slate-400">Wind risk</p>
         <p className={`font-bold uppercase ${riskColor(snapshot.windRisk)}`}>
           {snapshot.windRisk}
         </p>
       </div>
-      <div className="rounded-lg bg-slate-800/80 p-3">
+      <div className={OPS_PANEL_INNER + ' p-3'}>
         <CloudSun className="h-4 w-4 text-amber-400 mb-1" />
         <p className="text-xs text-slate-400">Overall</p>
         <p className="font-bold text-white">{snapshot.weatherRiskLabel}</p>
@@ -84,7 +82,7 @@ const PlacementRiskPanel: React.FC<PlacementRiskPanelProps> = ({ snapshot }) => 
         <li key={m}>• {m}</li>
       ))}
     </ul>
-  </Card>
+  </OpsCard>
 );
 
 export default PlacementRiskPanel;

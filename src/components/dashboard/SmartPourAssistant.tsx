@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, AlertTriangle, Info } from 'lucide-react';
-import Card from '../ui/Card';
+import OpsCard from './OpsCard';
 import type { SmartPourTip } from '../../utils/operationsDashboard';
 
 const iconFor = (severity: SmartPourTip['severity']) => {
@@ -23,11 +23,11 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
   tips,
   readinessScore,
 }) => (
-  <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
+  <OpsCard>
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <Sparkles className="h-5 w-5 text-violet-400" />
-        <h3 className="font-semibold">Smart pour assistant</h3>
+        <h3 className="font-semibold text-white">Smart pour assistant</h3>
       </div>
       <div className="text-right">
         <p className="text-[10px] uppercase text-slate-500">Ops readiness</p>
@@ -45,7 +45,7 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
         </li>
       ))}
     </ul>
-  </Card>
+  </OpsCard>
 );
 
 export default SmartPourAssistant;

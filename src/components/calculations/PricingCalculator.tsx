@@ -1,19 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { DollarSign, Truck, Clock, Calendar, MapPin, Loader } from 'lucide-react';
+import { DollarSign, Truck, Clock, Calendar, MapPin } from 'lucide-react';
 import Card from '../ui/Card';
-import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { calculateConcreteCost, formatPrice, getNearestLocation } from '../../utils/pricing';
 import { volumeToCubicYards } from '../../utils/readyMixDelivery';
 import { LocationPricing, VolumeUnit } from '../../types';
-import { geocodeAddress, GeocodedLocation } from '../../utils/location';
-import USAddressFields from '../address/USAddressFields';
-import {
-  EMPTY_US_ADDRESS,
-  isUSAddressGeocodable,
-  validateUSAddress,
-  type USAddress,
-} from '../../types/address';
+import { GeocodedLocation } from '../../utils/location';
+import JobsiteLocationSection from '../address/JobsiteLocationSection';
+import { EMPTY_US_ADDRESS, type USAddress } from '../../types/address';
 import ReadyMixDelivery from './ReadyMixDelivery';
 
 export type PricingCalculatorVariant = 'calculator' | 'planner';
@@ -24,6 +18,9 @@ interface PricingCalculatorProps {
   psi?: string;
   variant?: PricingCalculatorVariant;
   initialLocation?: GeocodedLocation | null;
+  /** Jobsite from selected project — auto-fills pricing location when set. */
+  projectJobsite?: USAddress;
+  projectName?: string;
   onPricingCalculated?: (pricing: {
     concreteCost: number;
     pricePerYard: number;
@@ -54,6 +51,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   psi = '3000',
   variant = 'calculator',
   initialLocation = null,
+  projectJobsite,
+  projectName,
   onPricingCalculated,
 }) => {
   const isPlanner = variant === 'planner';
@@ -62,8 +61,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const [needsPumpTruck, setNeedsPumpTruck] = useState(false);
   const [isSaturday, setIsSaturday] = useState(false);
   const [isAfterHours, setIsAfterHours] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -74,7 +71,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const applyLocation = (loc: GeocodedLocation) => {
     setUserLocation(loc);
     setSupplier(getNearestLocation(loc));
-    setLocationError(null);
   };
 
   useEffect(() => {
@@ -82,35 +78,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       applyLocation(initialLocation);
     }
   }, [initialLocation]);
-
-  const handleLocationSearch = async () => {
-    const validation = validateUSAddress(jobsiteAddress, {
-      requireStreet: false,
-      requireZip: false,
-    });
-    if (!validation.ok) {
-      setLocationError(validation.errors[0]);
-      return;
-    }
-
-    setSearchLoading(true);
-    setLocationError(null);
-
-    try {
-      const loc = await geocodeAddress(jobsiteAddress);
-      if (loc) {
-        applyLocation(loc);
-      } else {
-        setLocationError(
-          'Location not found. Check city, state, and ZIP (street optional for pricing region).',
-        );
-      }
-    } catch {
-      setLocationError('Error searching location. Please try again.');
-    } finally {
-      setSearchLoading(false);
-    }
-  };
 
   const volumeYd = useMemo(
     () => volumeToCubicYards(volume, volumeUnit),
@@ -218,34 +185,19 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Job site location
             </label>
-            <USAddressFields
+            <JobsiteLocationSection
+              projectName={projectName}
+              projectJobsite={projectJobsite}
               value={jobsiteAddress}
               onChange={setJobsiteAddress}
+              onLocationApplied={applyLocation}
               idPrefix="pricing-jobsite"
+              applyButtonLabel="Apply for pricing"
+              helperText="Uses the project jobsite when available. Switch to enter a one-off address for this estimate only."
             />
-            <div className="mt-3 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLocationSearch}
-                disabled={searchLoading || !isUSAddressGeocodable(jobsiteAddress)}
-                icon={
-                  searchLoading ? (
-                    <Loader className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <MapPin className="h-4 w-4" />
-                  )
-                }
-              >
-                Apply location
-              </Button>
-            </div>
-            {locationError && (
-              <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
-            )}
           </div>
 
           <div>

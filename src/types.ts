@@ -1,10 +1,14 @@
 import { LengthUnit, VolumeUnit } from './types';
+import type { USAddress } from './types/address';
+
+export type { USAddress } from './types/address';
 
 // Project types
 export interface Project {
   id: string;
   name: string;
   description: string;
+  jobsiteAddress?: USAddress;
   createdAt: string;
   updatedAt: string;
   calculations: Calculation[];

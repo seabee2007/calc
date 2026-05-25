@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FolderOpen, Plus, Calculator, ArrowRight } from 'lucide-react';
+import { FolderOpen, Plus, ArrowRight } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CalculationForm from '../components/calculations/CalculationForm';
 import ProjectForm from '../components/projects/ProjectForm';
@@ -8,6 +8,8 @@ import { useProjectStore } from '../store';
 import Button from '../components/ui/Button';
 import Select from '../components/ui/Select';
 import Toast from '../components/ui/Toast';
+import { formatUSAddress, hasProjectJobsite } from '../types/address';
+import type { ProjectFormData } from '../components/projects/ProjectForm';
 import slabDiagram from '../assets/images/slab.webp';
 import thickSlabDiagram from '../assets/images/THICK SLAB.webp';
 
@@ -31,11 +33,7 @@ const CalculatorPage: React.FC = () => {
     setCurrentProject(projectId);
   };
   
-  const handleCreateProject = (data: {
-    name: string;
-    description: string;
-    jobsiteAddress?: import('../types').USAddress;
-  }) => {
+  const handleCreateProject = (data: ProjectFormData) => {
     addProject({
       name: data.name,
       description: data.description,
@@ -141,6 +139,16 @@ const CalculatorPage: React.FC = () => {
             <p className="text-sm text-blue-600 dark:text-white mt-1">
               All calculations will be saved to this project
             </p>
+            {hasProjectJobsite(currentProject.jobsiteAddress) ? (
+              <p className="text-sm text-blue-700/90 dark:text-blue-200/90 mt-2 flex items-start gap-1.5">
+                <span className="font-medium shrink-0">Jobsite:</span>
+                <span>{formatUSAddress(currentProject.jobsiteAddress)}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-2">
+                No jobsite on this project yet — add it under Projects or enter location in the price breakdown.
+              </p>
+            )}
           </div>
         )}
 

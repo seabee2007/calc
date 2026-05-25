@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, MapPin, Factory } from 'lucide-react';
-import Card from '../ui/Card';
+import OpsCard from './OpsCard';
 import type { DashboardProjectCard } from '../../utils/operationsDashboard';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,14 +12,14 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({ projects }) =
   const navigate = useNavigate();
 
   return (
-    <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
-      <h3 className="font-semibold mb-4">Active projects</h3>
+    <OpsCard>
+      <h3 className="font-semibold text-white mb-4">Active projects</h3>
       {projects.length === 0 ? (
         <p className="text-sm text-slate-400">
           No projects yet.{' '}
           <button
             type="button"
-            className="text-cyan-400 underline"
+            className="text-cyan-400 underline hover:text-cyan-300"
             onClick={() => navigate('/projects')}
           >
             Create a project
@@ -36,7 +36,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({ projects }) =
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold truncate">{p.name}</p>
+                    <p className="font-semibold truncate text-white">{p.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{p.remainingCyLabel}</p>
                     <p className="text-xs text-cyan-400/90 mt-1">Next: {p.nextPourLabel}</p>
                   </div>
@@ -77,7 +77,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({ projects }) =
           All projects <ChevronRight className="h-4 w-4" />
         </button>
       )}
-    </Card>
+    </OpsCard>
   );
 };
 

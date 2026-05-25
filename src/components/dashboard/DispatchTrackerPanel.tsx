@@ -1,6 +1,6 @@
 import React from 'react';
 import { Truck } from 'lucide-react';
-import Card from '../ui/Card';
+import OpsCard from './OpsCard';
 import type { DispatchTruckRow } from '../../utils/operationsDashboard';
 import { Link } from 'react-router-dom';
 
@@ -39,11 +39,11 @@ const DispatchTrackerPanel: React.FC<DispatchTrackerPanelProps> = ({
   const showDispatch = hasPlacementsToday && trucks.length > 0;
 
   return (
-    <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
+    <OpsCard>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Truck className="h-5 w-5 text-blue-400" />
-          <h3 className="font-semibold">Ready-mix dispatch</h3>
+          <h3 className="font-semibold text-white">Ready-mix dispatch</h3>
         </div>
         <Link to="/pour-planner" className="text-xs text-cyan-400 hover:underline">
           Order / plan →
@@ -64,15 +64,17 @@ const DispatchTrackerPanel: React.FC<DispatchTrackerPanelProps> = ({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-slate-500 border-b border-slate-700">
-                    <th className="pb-2 pr-4">Truck</th>
-                    <th className="pb-2 pr-4">Status</th>
-                    <th className="pb-2">ETA / time</th>
+                    <th className="pb-2 pr-4 font-medium">Truck</th>
+                    <th className="pb-2 pr-4 font-medium">Status</th>
+                    <th className="pb-2 font-medium">ETA / time</th>
                   </tr>
                 </thead>
                 <tbody>
                   {trucks.map((row) => (
                     <tr key={row.id} className="border-b border-slate-800/80">
-                      <td className="py-2.5 pr-4 font-mono">{row.truckNumber}</td>
+                      <td className="py-2.5 pr-4 font-mono text-slate-200">
+                        {row.truckNumber}
+                      </td>
                       <td className="py-2.5 pr-4">
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-xs font-medium text-white ${statusClass[row.status]}`}
@@ -99,7 +101,7 @@ const DispatchTrackerPanel: React.FC<DispatchTrackerPanelProps> = ({
           )}
         </>
       )}
-    </Card>
+    </OpsCard>
   );
 };
 

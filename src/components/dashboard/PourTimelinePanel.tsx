@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
-import Card from '../ui/Card';
+import OpsCard from './OpsCard';
 import type { TimelineEvent, TimelineStatus } from '../../utils/operationsDashboard';
 
 const statusStyles: Record<TimelineStatus, string> = {
@@ -13,7 +13,6 @@ const statusStyles: Record<TimelineStatus, string> = {
 interface PourTimelinePanelProps {
   events: TimelineEvent[];
   projectName?: string;
-  /** When false, show empty state (no placements scheduled today). */
   hasPlacementsToday: boolean;
 }
 
@@ -28,11 +27,11 @@ const PourTimelinePanel: React.FC<PourTimelinePanelProps> = ({
   const showSchedule = hasPlacementsToday && events.length > 0;
 
   return (
-    <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
+    <OpsCard>
       <div className="flex items-center gap-2 mb-4">
         <Clock className="h-5 w-5 text-cyan-400" />
         <div>
-          <h3 className="font-semibold">Placement timeline</h3>
+          <h3 className="font-semibold text-white">Placement timeline</h3>
           {showSchedule && projectName && (
             <p className="text-xs text-slate-400">{projectName}</p>
           )}
@@ -74,7 +73,7 @@ const PourTimelinePanel: React.FC<PourTimelinePanelProps> = ({
           </span>
         </div>
       )}
-    </Card>
+    </OpsCard>
   );
 };
 

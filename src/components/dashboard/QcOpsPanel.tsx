@@ -1,6 +1,7 @@
 import React from 'react';
 import { ClipboardCheck } from 'lucide-react';
-import Card from '../ui/Card';
+import OpsCard from './OpsCard';
+import { OPS_PANEL_INNER } from './opsTheme';
 import { useNavigate } from 'react-router-dom';
 
 interface QcOpsPanelProps {
@@ -17,22 +18,22 @@ const QcOpsPanel: React.FC<QcOpsPanelProps> = ({
   const navigate = useNavigate();
 
   return (
-    <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
+    <OpsCard>
       <div className="flex items-center gap-2 mb-4">
         <ClipboardCheck className="h-5 w-5 text-emerald-400" />
-        <h3 className="font-semibold">QC / inspection</h3>
+        <h3 className="font-semibold text-white">QC / inspection</h3>
       </div>
       <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-        <div className="rounded-lg bg-slate-800 p-2">
+        <div className={`${OPS_PANEL_INNER} p-2`}>
           <p className="text-xl font-bold text-amber-400">{testsDue}</p>
           <p className="text-[10px] text-slate-500 uppercase">Alerts</p>
         </div>
-        <div className="rounded-lg bg-slate-800 p-2">
-          <p className="text-xl font-bold">{totalRecords}</p>
+        <div className={`${OPS_PANEL_INNER} p-2`}>
+          <p className="text-xl font-bold text-white">{totalRecords}</p>
           <p className="text-[10px] text-slate-500 uppercase">Records</p>
         </div>
-        <div className="rounded-lg bg-slate-800 p-2">
-          <p className="text-xl font-bold">{projectsWithQc}</p>
+        <div className={`${OPS_PANEL_INNER} p-2`}>
+          <p className="text-xl font-bold text-white">{projectsWithQc}</p>
           <p className="text-[10px] text-slate-500 uppercase">Projects</p>
         </div>
       </div>
@@ -64,7 +65,7 @@ const QcOpsPanel: React.FC<QcOpsPanelProps> = ({
       >
         Open project QC logs →
       </button>
-    </Card>
+    </OpsCard>
   );
 };
 

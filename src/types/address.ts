@@ -18,6 +18,28 @@ export const EMPTY_US_ADDRESS: USAddress = {
   country: US_COUNTRY_LABEL,
 };
 
+export function copyUSAddress(addr?: Partial<USAddress> | null): USAddress {
+  if (!addr) return { ...EMPTY_US_ADDRESS };
+  return {
+    street: addr.street ?? '',
+    street2: addr.street2 ?? '',
+    city: addr.city ?? '',
+    state: normalizeStateCode(addr.state ?? ''),
+    zip: addr.zip ?? '',
+    country: US_COUNTRY_LABEL,
+  };
+}
+
+/** Project has enough address to pre-fill pricing / planner flows. */
+export function hasProjectJobsite(addr?: Partial<USAddress> | null): boolean {
+  if (!addr) return false;
+  return Boolean(
+    addr.city?.trim() &&
+      addr.state?.trim() &&
+      (addr.street?.trim() || addr.zip?.trim()),
+  );
+}
+
 export function formatUSAddress(addr: Partial<USAddress>): string {
   const streetParts = [addr.street?.trim(), addr.street2?.trim()].filter(Boolean);
   const streetLine = streetParts.join(', ');
