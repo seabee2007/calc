@@ -9,7 +9,7 @@ import ProjectForm from '../components/projects/ProjectForm';
 import Select from '../components/ui/Select';
 import Toast from '../components/ui/Toast';
 import StrengthProgress from '../components/projects/StrengthProgress';
-import QCRecords from '../components/projects/QCRecords';
+import TruckTicketRecords from '../components/projects/TruckTicketRecords';
 import ReinforcementDetails from '../components/projects/ReinforcementDetails';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
@@ -36,6 +36,9 @@ const Projects: React.FC = () => {
     updateProject,
     deleteCalculation,
     updateCalculation,
+    addTruckTicket,
+    updateTruckTicket,
+    deleteTruckTicket,
     loading,
     loadProjects
   } = useProjectStore();
@@ -649,75 +652,46 @@ const Projects: React.FC = () => {
                   )}
                 </div>
 
-                {/* QC Records Section */}
+                {/* Truck ticket QC */}
                 <div className="mt-8">
-                  <QCRecords
-                    projectId={currentProject.id}
-                    records={currentProject.qcRecords || []}
-                    onSave={async (record) => {
+                  <TruckTicketRecords
+                    project={currentProject}
+                    onSaveTicket={async (form, recordId) => {
                       try {
-                        const { data, error } = await supabase
-                          .from('qc_records')
-                          .insert([{
-                            project_id: currentProject.id,
-                            date: record.date,
-                            temperature: parseFloat(record.temperature.toString()) || 0,
-                            humidity: parseFloat(record.humidity.toString()) || 0,
-                            slump: parseFloat(record.slump.toString()) || 0,
-                            air_content: parseFloat(record.airContent.toString()) || 0,
-                            cylinders_made: parseInt(record.cylindersMade.toString()) || 0,
-                            notes: record.notes || ''
-                          }])
-                          .select()
-                          .single();
-
-                        if (error) throw error;
-                        
-                        // Update local state immediately
-                        if (data) {
-                          const updatedProject = {
-                            ...currentProject,
-                            qcRecords: [...(currentProject.qcRecords || []), data]
-                          };
-                          
-                          // Update the project in the store
-                          await updateProject(currentProject.id, updatedProject);
-                          
-                          // Refresh the current project
-                          setCurrentProject(currentProject.id);
+                        if (recordId) {
+                          await updateTruckTicket(currentProject.id, recordId, form);
+                          showToastMessage('Ticket record updated', 'success');
+                        } else {
+                          await addTruckTicket(currentProject.id, form);
+                          showToastMessage('Ticket record saved', 'success');
                         }
-                        
+                      } catch (err) {
+                        console.error('Error saving ticket record:', err);
+                        showToastMessage(
+                          err instanceof Error
+                            ? err.message
+                            : 'Error saving ticket record',
+                          'error',
+                        );
+                      }
+                    }}
+                    onDeleteTicket={async (recordId) => {
+                      try {
+                        await deleteTruckTicket(currentProject.id, recordId);
+                        showToastMessage('Record deleted', 'success');
+                      } catch (err) {
+                        console.error('Error deleting record:', err);
+                        showToastMessage('Error deleting record', 'error');
+                      }
+                    }}
+                    onSaveLegacyRecord={async (record) => {
+                      try {
+                        await addQCRecord(currentProject.id, record);
+                        setCurrentProject(currentProject.id);
                         showToastMessage('QC record added successfully', 'success');
                       } catch (err) {
                         console.error('Error saving QC record:', err);
                         showToastMessage('Error saving QC record', 'error');
-                      }
-                    }}
-                    onDelete={async (recordId) => {
-                      try {
-                        const { error } = await supabase
-                          .from('qc_records')
-                          .delete()
-                          .eq('id', recordId);
-
-                        if (error) throw error;
-                        
-                        // Update local state immediately
-                        const updatedProject = {
-                          ...currentProject,
-                          qcRecords: currentProject.qcRecords?.filter(record => record.id !== recordId) || []
-                        };
-                        
-                        // Update the project in the store
-                        await updateProject(currentProject.id, updatedProject);
-                        
-                        // Refresh the current project
-                        setCurrentProject(currentProject.id);
-                        
-                        showToastMessage('QC record deleted successfully', 'success');
-                      } catch (err) {
-                        console.error('Error deleting QC record:', err);
-                        showToastMessage('Error deleting QC record', 'error');
                       }
                     }}
                   />

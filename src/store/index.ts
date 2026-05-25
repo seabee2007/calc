@@ -17,6 +17,72 @@ import {
   ReinforcementSet
 } from '../types';
 import { MixProfileType } from '../types/curing';
+import type { TruckTicketFormState } from '../types/concreteTruckTicket';
+import {
+  mapTruckTicketFromDb,
+  mergeTruckTicketsForProject,
+} from '../utils/truckTicketDb';
+import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
+
+const PROJECT_SELECT = `
+  id, name, description,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  truck_tickets(*),
+  reinforcement_sets(*, cut_list_items(*))
+`;
+
+const PROJECT_SELECT_LEGACY = `
+  id, name, description,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  reinforcement_sets(*, cut_list_items(*))
+`;
+
+async function fetchProjectRows() {
+  const primary = await supabase
+    .from('projects')
+    .select(PROJECT_SELECT)
+    .order('created_at', { ascending: false });
+
+  if (!primary.error) return primary;
+
+  const msg = primary.error.message ?? '';
+  if (msg.includes('truck_tickets') || msg.includes('schema cache')) {
+    console.warn(
+      'truck_tickets table missing — run Supabase migration 20250525120000_truck_tickets.sql',
+    );
+    return supabase
+      .from('projects')
+      .select(PROJECT_SELECT_LEGACY)
+      .order('created_at', { ascending: false });
+  }
+
+  return primary;
+}
+
+function mapProjectFromRow(row: any): Project {
+  const qcRecords = (row.qc_records || []).map(mapQcRecordFromDb);
+  const truckTicketsFromDb = (row.truck_tickets || []).map(mapTruckTicketFromDb);
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    wasteFactor: row.waste_factor,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    pourDate: row.pour_date,
+    mixProfile: (row.mix_profile as MixProfileType) || 'standard',
+    calculations: (row.calculations || []).map(mapCalculationFromDb),
+    reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
+    qcRecords: qcRecords.filter((r) => !isTruckTicketRecord(r)),
+    truckTickets: mergeTruckTicketsForProject(qcRecords, truckTicketsFromDb),
+  };
+}
 
 interface ProjectState {
   projects: Project[];
@@ -54,6 +120,14 @@ interface ProjectState {
     recordData: Partial<QCRecord>
   ) => Promise<void>;
   deleteQCRecord: (projectId: string, recordId: string) => Promise<void>;
+
+  addTruckTicket: (projectId: string, form: TruckTicketFormState) => Promise<void>;
+  updateTruckTicket: (
+    projectId: string,
+    ticketId: string,
+    form: TruckTicketFormState,
+  ) => Promise<void>;
+  deleteTruckTicket: (projectId: string, ticketId: string) => Promise<void>;
 }
 
 interface PreferencesState {
@@ -248,32 +322,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
   loadProjects: async () => {
     set({ loading: true });
     try {
-      const { data: rows, error } = await supabase
-        .from('projects')
-        .select(`
-          id, name, description,
-          waste_factor, created_at, updated_at,
-          pour_date, mix_profile,
-          calculations(*),
-          qc_records(*, qc_checklists(*)),
-          reinforcement_sets(*, cut_list_items(*))
-        `)
-        .order('created_at', { ascending: false });
+      const { data: rows, error } = await fetchProjectRows();
       if (error) throw error;
 
-      const projects: Project[] = (rows || []).map((row: any) => ({
-        id:           row.id,
-        name:         row.name,
-        description:  row.description,
-        wasteFactor:  row.waste_factor,
-        createdAt:    row.created_at,
-        updatedAt:    row.updated_at,
-        pourDate:     row.pour_date,
-        mixProfile:   (row.mix_profile as MixProfileType) || 'standard',
-        calculations: (row.calculations || []).map(mapCalculationFromDb),
-        reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
-        qcRecords:    (row.qc_records || []).map(mapQcRecordFromDb),
-      }));
+      const projects: Project[] = (rows || []).map(mapProjectFromRow);
       set({ projects, loading: false });
     } catch (err) {
       console.error('Error loading projects:', err);
@@ -302,31 +354,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
         pour_date: project.pourDate ?? null,
         mix_profile: 'standard',
       })
-      .select(`
-        id, name, description,
-        waste_factor, created_at, updated_at,
-        pour_date, mix_profile,
-        calculations(*),
-        qc_records(*, qc_checklists(*)),
-        reinforcement_sets(*, cut_list_items(*))
-      `)
+      .select(PROJECT_SELECT)
       .single();
   
     if (error) throw error;
   
-    const newProj: Project = {
-      id: data.id,
-      name: data.name,
-      description: data.description,
-      wasteFactor: data.waste_factor,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      pourDate: data.pour_date,
-      mixProfile: (data.mix_profile as MixProfileType) || 'standard',
-      calculations: (data.calculations || []).map(mapCalculationFromDb),
-      reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
-      qcRecords: (data.qc_records || []).map(mapQcRecordFromDb),
-    };
+    const newProj = mapProjectFromRow(data);
   
     set((s) => ({
       projects: [newProj, ...s.projects],
@@ -346,30 +379,11 @@ export const useProjectStore = create<ProjectState>((set) => ({
       .from('projects')
       .update(payload)
       .eq('id', projectId)
-      .select(`
-        id, name, description,
-        waste_factor, created_at, updated_at,
-        pour_date, mix_profile,
-        calculations(*),
-        qc_records(*, qc_checklists(*)),
-        reinforcement_sets(*, cut_list_items(*))
-      `)
+      .select(PROJECT_SELECT)
       .single();
     if (error) throw error;
 
-    const updated: Project = {
-      id:           data.id,
-      name:         data.name,
-      description:  data.description,
-      wasteFactor:  data.waste_factor,
-      createdAt:    data.created_at,
-      updatedAt:    data.updated_at,
-      pourDate:     data.pour_date,
-      mixProfile:   (data.mix_profile as MixProfileType) || 'standard',
-      calculations: (data.calculations || []).map(mapCalculationFromDb),
-      reinforcements: (data.reinforcement_sets || []).map(mapReinforcementSetFromDb),
-      qcRecords:    (data.qc_records || []).map(mapQcRecordFromDb),
-    };
+    const updated = mapProjectFromRow(data);
     set((s) => ({
       projects:       s.projects.map(p => p.id === projectId ? updated : p),
       currentProject: s.currentProject?.id === projectId ? updated : s.currentProject
@@ -595,12 +609,106 @@ export const useProjectStore = create<ProjectState>((set) => ({
           ? {
               ...p,
               qcRecords: p.qcRecords?.filter(r => r.id !== recId) || [],
+              truckTickets: p.truckTickets?.filter(r => r.id !== recId) || [],
               updatedAt: new Date().toISOString()
             }
           : p;
       return {
         projects:       s.projects.map(update),
         currentProject: s.currentProject ? update(s.currentProject) : null
+      };
+    });
+  },
+
+  addTruckTicket: async (projectId, form) => {
+    const { data, error } = await supabase
+      .from('truck_tickets')
+      .insert({
+        project_id: projectId,
+        record_date: form.recordDate,
+        ticket_data: form,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+
+    const newTicket = mapTruckTicketFromDb(data);
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              truckTickets: [newTicket, ...(p.truckTickets || [])],
+              updatedAt: new Date().toISOString(),
+            }
+          : p;
+      return {
+        projects: s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null,
+      };
+    });
+  },
+
+  updateTruckTicket: async (projectId, ticketId, form) => {
+    const { data, error } = await supabase
+      .from('truck_tickets')
+      .update({
+        record_date: form.recordDate,
+        ticket_data: form,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', ticketId)
+      .select()
+      .single();
+    if (error) throw error;
+
+    const updatedTicket = mapTruckTicketFromDb(data);
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              truckTickets:
+                p.truckTickets?.map((t) =>
+                  t.id === ticketId ? updatedTicket : t,
+                ) || [],
+              updatedAt: new Date().toISOString(),
+            }
+          : p;
+      return {
+        projects: s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null,
+      };
+    });
+  },
+
+  deleteTruckTicket: async (projectId, ticketId) => {
+    const { error: truckError } = await supabase
+      .from('truck_tickets')
+      .delete()
+      .eq('id', ticketId);
+
+    if (truckError) {
+      const { error: legacyError } = await supabase
+        .from('qc_records')
+        .delete()
+        .eq('id', ticketId);
+      if (legacyError) throw legacyError;
+    }
+
+    set((s) => {
+      const update = (p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              truckTickets: p.truckTickets?.filter((t) => t.id !== ticketId) || [],
+              qcRecords: p.qcRecords?.filter((r) => r.id !== ticketId) || [],
+              updatedAt: new Date().toISOString(),
+            }
+          : p;
+      return {
+        projects: s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null,
       };
     });
   },

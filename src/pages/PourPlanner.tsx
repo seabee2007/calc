@@ -14,7 +14,6 @@ import StepDeliveryLogistics from '../components/pour-planner/steps/StepDelivery
 import StepEnvironmental from '../components/pour-planner/steps/StepEnvironmental';
 import StepPlacementProduction from '../components/pour-planner/steps/StepPlacementProduction';
 import StepRiskAnalysis from '../components/pour-planner/steps/StepRiskAnalysis';
-import StepQcExport from '../components/pour-planner/steps/StepQcExport';
 import {
   getForecastByQuery,
   ForecastLocation,
@@ -24,6 +23,8 @@ import {
   PlacementType,
   pruneMitigationSelections,
 } from '../utils/pourScoring';
+import { useProjectStore } from '../store';
+import { useAuth } from '../hooks/useAuth';
 import {
   usePourPlannerState,
   POUR_PLANNER_STEPS,
@@ -35,12 +36,16 @@ import { findBestPourWindow } from '../utils/pourScoring';
 const FORECAST_DAYS = 5;
 
 const PourPlanner: React.FC = () => {
+  const { user } = useAuth();
+  const { updateProject } = useProjectStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [jobsiteLocation, setJobsiteLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showScoringModal, setShowScoringModal] = useState(false);
+  const [savePourDateLoading, setSavePourDateLoading] = useState(false);
+  const [savePourDateMessage, setSavePourDateMessage] = useState<string | null>(null);
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
   const [rawForecastDays, setRawForecastDays] = useState<
@@ -229,6 +234,26 @@ const PourPlanner: React.FC = () => {
     setMitigationsByDate((prev) => ({ ...prev, [date]: ids }));
   };
 
+  const canSavePlacementDate = Boolean(
+    user && planner.form.projectId && selectedDate,
+  );
+
+  const handleSavePlacementDate = async () => {
+    if (!selectedDate || !planner.form.projectId) return;
+    setSavePourDateLoading(true);
+    setSavePourDateMessage(null);
+    setError(null);
+    const isoDate = `${selectedDate}T12:00:00.000Z`;
+    try {
+      await updateProject(planner.form.projectId, { pourDate: isoDate });
+      setSavePourDateMessage('Placement date saved to project.');
+    } catch {
+      setError('Failed to save placement date to project.');
+    } finally {
+      setSavePourDateLoading(false);
+    }
+  };
+
   const stepTitle = POUR_PLANNER_STEPS[planner.activeStep].label;
 
   const renderStep = () => {
@@ -262,8 +287,6 @@ const PourPlanner: React.FC = () => {
         return <StepPlacementProduction planner={planner} />;
       case 'risk':
         return <StepRiskAnalysis planner={planner} selectedDay={selectedDay} />;
-      case 'qc':
-        return <StepQcExport planner={planner} />;
       default:
         return null;
     }
@@ -317,10 +340,14 @@ const PourPlanner: React.FC = () => {
           {planner.activeStep === 4 &&
             'Size crew and coordinate truck spacing with placement rate.'}
           {planner.activeStep === 5 &&
-            'Review combined risk and recommended mitigations.'}
-          {planner.activeStep === 6 &&
-            'Record truck ticket and field QC data.'}
+            'Review combined risk and recommended mitigations, then save the placement date to your project.'}
         </p>
+
+        {savePourDateMessage && planner.activeStep === POUR_PLANNER_STEPS.length - 1 && (
+          <p className="text-sm text-green-600 dark:text-green-400 mb-4">
+            {savePourDateMessage}
+          </p>
+        )}
 
         {renderStep()}
 
@@ -329,11 +356,9 @@ const PourPlanner: React.FC = () => {
           totalSteps={POUR_PLANNER_STEPS.length}
           onBack={planner.goBack}
           onNext={planner.goNext}
-          nextLabel={
-            planner.activeStep === POUR_PLANNER_STEPS.length - 1
-              ? 'Done'
-              : undefined
-          }
+          onFinish={handleSavePlacementDate}
+          finishDisabled={!canSavePlacementDate}
+          finishLoading={savePourDateLoading}
         />
       </Card>
 

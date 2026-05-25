@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import Button from '../ui/Button';
 
 interface StepNavigationProps {
@@ -7,7 +7,10 @@ interface StepNavigationProps {
   totalSteps: number;
   onBack: () => void;
   onNext: () => void;
-  nextLabel?: string;
+  onFinish?: () => void;
+  finishLabel?: string;
+  finishDisabled?: boolean;
+  finishLoading?: boolean;
 }
 
 const StepNavigation: React.FC<StepNavigationProps> = ({
@@ -15,7 +18,10 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
   totalSteps,
   onBack,
   onNext,
-  nextLabel,
+  onFinish,
+  finishLabel = 'Save placement date',
+  finishDisabled = false,
+  finishLoading = false,
 }) => {
   const isFirst = activeStep === 0;
   const isLast = activeStep === totalSteps - 1;
@@ -31,10 +37,20 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
       >
         Back
       </Button>
-      <Button type="button" onClick={onNext}>
-        {nextLabel ?? (isLast ? 'Finish' : 'Continue')}
-        <ArrowRight className="h-4 w-4 ml-2 inline" />
-      </Button>
+      {isLast ? (
+        <Button
+          type="button"
+          onClick={onFinish}
+          disabled={finishDisabled || finishLoading}
+          icon={<Save className="h-4 w-4" />}
+        >
+          {finishLoading ? 'Saving…' : finishLabel}
+        </Button>
+      ) : (
+        <Button type="button" onClick={onNext}>
+          Continue
+        </Button>
+      )}
     </div>
   );
 };

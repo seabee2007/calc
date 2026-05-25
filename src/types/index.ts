@@ -1,4 +1,7 @@
 import { MixProfileType } from './curing';
+import type { StoredTruckTicketRecord } from './concreteTruckTicket';
+
+export type { StoredTruckTicketRecord } from './concreteTruckTicket';
 
 // User preferences interface
 export interface UserPreferences {
@@ -190,4 +193,5 @@ export interface Project {
   pourDate?: string;
   mixProfile?: MixProfileType;
   qcRecords?: QCRecord[];
+  truckTickets?: StoredTruckTicketRecord[];
 }

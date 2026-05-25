@@ -35,7 +35,6 @@ export const POUR_PLANNER_STEPS: {
   { id: 'environment', label: 'Weather & conditions', shortLabel: 'Weather' },
   { id: 'production', label: 'Crew & production', shortLabel: 'Production' },
   { id: 'risk', label: 'Risk analysis', shortLabel: 'Risk' },
-  { id: 'qc', label: 'QC & report', shortLabel: 'QC' },
 ];
 
 function patchField<K extends keyof PourPlannerFormState>(

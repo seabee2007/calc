@@ -11,8 +11,7 @@ export type PourPlannerStepId =
   | 'delivery'
   | 'environment'
   | 'production'
-  | 'risk'
-  | 'qc';
+  | 'risk';
 
 export interface PourPlannerFormState {
   projectName: string;
@@ -81,27 +80,6 @@ export interface PourPlannerFormState {
   burdenedHourlyRate: string;
   setupHours: string;
   cleanupHours: string;
-
-  ticketNumber: string;
-  truckNumber: string;
-  mixCode: string;
-  batchTime: string;
-  departTime: string;
-  arrivalTime: string;
-  dischargeStart: string;
-  dischargeEnd: string;
-  orderedYards: string;
-  deliveredYards: string;
-  slump: string;
-  slumpAfterAdjustment: string;
-  airContent: string;
-  concreteTemp: string;
-  waterAddedPlant: string;
-  waterAddedSite: string;
-  drumRevolutions: string;
-  ticketAccepted: boolean;
-  admixtureAddedOnSite: string;
-  inspectorInitials: string;
 }
 
 export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
@@ -171,25 +149,4 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   burdenedHourlyRate: '60',
   setupHours: '2',
   cleanupHours: '2',
-
-  ticketNumber: '',
-  truckNumber: '',
-  mixCode: '',
-  batchTime: '',
-  departTime: '',
-  arrivalTime: '',
-  dischargeStart: '',
-  dischargeEnd: '',
-  orderedYards: '',
-  deliveredYards: '',
-  slump: '',
-  slumpAfterAdjustment: '',
-  airContent: '',
-  concreteTemp: '',
-  waterAddedPlant: '',
-  waterAddedSite: '',
-  drumRevolutions: '',
-  ticketAccepted: false,
-  admixtureAddedOnSite: '',
-  inspectorInitials: '',
 };
