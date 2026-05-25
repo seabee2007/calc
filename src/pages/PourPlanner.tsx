@@ -32,10 +32,7 @@ import {
   POUR_PLANNER_STEPS,
 } from '../hooks/usePourPlannerState';
 import { formatCalculationSlabSize, getCalculationPsi } from '../utils/calculationDimensions';
-import {
-  applyBatchPlantForecastToForm,
-  applyJobsiteForecastToForm,
-} from '../utils/pourWeatherFields';
+import { applySelectedPourDayToForm } from '../utils/pourWeatherFields';
 import { findBestPourWindow } from '../utils/pourScoring';
 
 const FORECAST_DAYS = 5;
@@ -53,9 +50,6 @@ const PourPlanner: React.FC = () => {
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
   const [rawForecastDays, setRawForecastDays] = useState<
-    (import('../types').ForecastDay & { avgHumidity?: number })[]
-  >([]);
-  const [jobsiteForecastDays, setJobsiteForecastDays] = useState<
     (import('../types').ForecastDay & { avgHumidity?: number })[]
   >([]);
   const loadRequestIdRef = useRef(0);
@@ -134,7 +128,6 @@ const PourPlanner: React.FC = () => {
 
       if (!plant && !jobsite) {
         setRawForecastDays([]);
-        setJobsiteForecastDays([]);
         setLocation(null);
         setJobsiteLocation(null);
         weatherFetchKeyRef.current = '';
@@ -158,6 +151,9 @@ const PourPlanner: React.FC = () => {
         if (plantResult) {
           setLocation(plantResult.location);
           setRawForecastDays(plantResult.forecast);
+        } else if (jobsiteResult) {
+          setLocation(jobsiteResult.location);
+          setRawForecastDays(jobsiteResult.forecast);
         } else {
           setLocation(null);
           setRawForecastDays([]);
@@ -165,10 +161,8 @@ const PourPlanner: React.FC = () => {
 
         if (jobsiteResult) {
           setJobsiteLocation(jobsiteResult.location);
-          setJobsiteForecastDays(jobsiteResult.forecast);
         } else {
           setJobsiteLocation(null);
-          setJobsiteForecastDays([]);
         }
 
         if (!plantResult && !jobsiteResult) {
@@ -182,7 +176,6 @@ const PourPlanner: React.FC = () => {
         if (requestId !== loadRequestIdRef.current) return;
         setError('Could not load forecast for the step 1 addresses.');
         setRawForecastDays([]);
-        setJobsiteForecastDays([]);
       } finally {
         if (requestId === loadRequestIdRef.current) {
           setLoading(false);
@@ -204,30 +197,9 @@ const PourPlanner: React.FC = () => {
 
   useEffect(() => {
     if (planner.activeStepId !== 'environment') return;
-    if (rawForecastDays.length === 0) return;
-
-    const fieldDate = selectedDate ?? rawForecastDays[0]?.date;
-    if (!fieldDate) return;
-
-    const jobsiteDay =
-      jobsiteForecastDays.find((d) => d.date === fieldDate) ??
-      rawForecastDays.find((d) => d.date === fieldDate);
-    const plantDay =
-      rawForecastDays.find((d) => d.date === fieldDate) ?? jobsiteDay;
-
-    if (jobsiteDay) {
-      applyJobsiteForecastToForm(jobsiteDay, setField);
-    }
-    if (plantDay) {
-      applyBatchPlantForecastToForm(plantDay, setField);
-    }
-  }, [
-    planner.activeStepId,
-    selectedDate,
-    rawForecastDays,
-    jobsiteForecastDays,
-    setField,
-  ]);
+    if (!selectedDay) return;
+    applySelectedPourDayToForm(selectedDay, setField);
+  }, [planner.activeStepId, selectedDay, setField]);
 
   useEffect(() => {
     if (planner.activeStepId !== 'environment') return;

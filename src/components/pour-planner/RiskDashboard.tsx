@@ -25,7 +25,8 @@ const riskCardClass = (level: 'ok' | 'caution' | 'critical' | 'low' | 'moderate'
 };
 
 const RiskDashboard: React.FC<RiskDashboardProps> = ({ planner, selectedDay }) => {
-  const { deliveryWindow, hotWeather, slumpRisk, form, production } = planner;
+  const { deliveryWindow, hotWeather, slumpRisk, form, production, placementRateEstimate: est } =
+    planner;
   const isPump = form.placementMethod === 'pump';
   const pumpLineLen = parseFloat(form.pumpLineLength) || 0;
   const pumpRisk =
@@ -38,8 +39,12 @@ const RiskDashboard: React.FC<RiskDashboardProps> = ({ planner, selectedDay }) =
           : 'low';
 
   const crewSize = parseInt(form.crewSize, 10) || 0;
+  const finishers = parseInt(form.finishers, 10) || 0;
   const qcRisk =
-    crewSize < 4 || production.placementDurationHours > 4
+    crewSize < 4 ||
+    finishers < 2 ||
+    production.placementDurationHours > 4 ||
+    est.limitingFactor === 'finishing_crew'
       ? 'moderate'
       : 'low';
 
@@ -96,8 +101,9 @@ const RiskDashboard: React.FC<RiskDashboardProps> = ({ planner, selectedDay }) =
         title="QC / crew risk"
         level={qcRisk === 'moderate' ? 'caution' : 'ok'}
         items={[
-          `Crew size: ${crewSize || '—'}`,
-          `Placement duration: ${production.placementDurationHours.toFixed(1)} hr`,
+          `Crew: ${crewSize || '—'} (${est.laborers} placing · ${est.finishers} finishing)`,
+          `Bottleneck: ${est.limitingFactor.replace('_', ' ')} · ${est.adjustedRateCYHr} CY/hr`,
+          est.bottleneckRecommendation ?? `Pour duration: ${production.placementDurationHours.toFixed(1)} hr`,
           `Truck spacing: ${Math.round(production.truckSpacingMinutes)} min recommended`,
         ]}
       />

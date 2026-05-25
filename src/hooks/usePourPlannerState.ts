@@ -13,6 +13,7 @@ import {
   analyzePlacementProduction,
   analyzeSlumpRisk,
 } from '../utils/placementWindow';
+import { estimatePlacementProductionRate } from '../utils/placementProduction';
 import { ratingLabel } from '../utils/pourScoring';
 import type { ScoredPourDay } from '../utils/pourScoring';
 
@@ -66,15 +67,106 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     [volume, preferences.volumeUnit],
   );
 
+  const ambientTemp = form.ambientTemp || (selectedDay ? String(Math.round(selectedDay.avgTemp)) : '70');
+  const humidity =
+    form.relativeHumidity ||
+    (selectedDay?.avgHumidity != null ? String(Math.round(selectedDay.avgHumidity)) : '50');
+  const wind =
+    form.windSpeed ||
+    (selectedDay ? String(Math.round(selectedDay.maxWindSpeed)) : '5');
+  const concreteTemp =
+    form.expectedConcreteTempAtArrival ||
+    form.concreteTempAtPlant ||
+    (selectedDay ? String(Math.round(selectedDay.avgTemp + 8)) : '75');
+
+  const hotWeather = useMemo(
+    () =>
+      analyzeHotWeather({
+        airTempF: ambientTemp,
+        humidityPercent: humidity,
+        windMph: wind,
+        concreteTempF: concreteTemp,
+      }),
+    [ambientTemp, humidity, wind, concreteTemp],
+  );
+
+  const placementRateEstimate = useMemo(
+    () =>
+      estimatePlacementProductionRate({
+        crewSize: form.crewSize,
+        finishers: form.finishers,
+        vibrators: form.vibrators,
+        placementMethod: form.placementMethod,
+        pumpRateYdPerHr: form.pumpRate,
+        calculation,
+        slabSize: form.slabSize,
+        slabThicknessIn: form.slabThicknessIn,
+        laborerRateCYHr: form.laborerRateCYHr,
+        finisherRateSFHr: form.finisherRateSFHr,
+        placingProductivityCYPerLaborHour: form.placingProductivityCYPerLaborHour,
+        finishingProductivitySFPerLaborHour: form.finishingProductivitySFPerLaborHour,
+        crewEfficiency: form.crewEfficiency,
+        complexityFactor:
+          form.complexityFactor === 'auto'
+            ? undefined
+            : form.complexityFactor,
+        accessFactorMode: form.accessFactorMode,
+        weatherFactorMode: form.weatherFactorMode,
+        ambientTempF: ambientTemp,
+        rainForecast: form.rainForecast,
+        nightPour: form.nightPour,
+        hotWeatherRisk: hotWeather.riskLevel,
+        concreteVolumeYd: deliveryPlan.volumeYd,
+        burdenedHourlyRate: form.burdenedHourlyRate,
+        setupHours: form.setupHours,
+        cleanupHours: form.cleanupHours,
+      }),
+    [
+      form.crewSize,
+      form.finishers,
+      form.vibrators,
+      form.placementMethod,
+      form.pumpRate,
+      form.slabSize,
+      form.slabThicknessIn,
+      form.laborerRateCYHr,
+      form.finisherRateSFHr,
+      form.placingProductivityCYPerLaborHour,
+      form.finishingProductivitySFPerLaborHour,
+      form.crewEfficiency,
+      form.complexityFactor,
+      form.accessFactorMode,
+      form.weatherFactorMode,
+      form.rainForecast,
+      form.nightPour,
+      form.burdenedHourlyRate,
+      form.setupHours,
+      form.cleanupHours,
+      calculation,
+      deliveryPlan.volumeYd,
+      ambientTemp,
+      hotWeather.riskLevel,
+    ],
+  );
+
+  const effectivePlacementRateYdPerHr = form.placementRateManualOverride
+    ? parseFloat(form.placementRateYdPerHr) || placementRateEstimate.effectiveRateYdPerHr
+    : placementRateEstimate.effectiveRateYdPerHr;
+
   const production = useMemo(
     () =>
       analyzePlacementProduction({
         totalVolumeYd: deliveryPlan.volumeYd,
-        placementRateYdPerHr: form.placementRateYdPerHr,
+        placementRateYdPerHr: effectivePlacementRateYdPerHr,
         truckCapacityYd: form.truckCapacityYd || deliveryPlan.planningCapacityYd,
         dischargeRateYdPerHr: form.dischargeRateYdPerHr,
       }),
-    [deliveryPlan, form.placementRateYdPerHr, form.truckCapacityYd, form.dischargeRateYdPerHr],
+    [
+      deliveryPlan,
+      effectivePlacementRateYdPerHr,
+      form.truckCapacityYd,
+      form.dischargeRateYdPerHr,
+    ],
   );
 
   const truckCount =
@@ -99,29 +191,6 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
       form.siteWaitMinutes,
       dischargeMin,
     ],
-  );
-
-  const ambientTemp = form.ambientTemp || (selectedDay ? String(Math.round(selectedDay.avgTemp)) : '70');
-  const humidity =
-    form.relativeHumidity ||
-    (selectedDay?.avgHumidity != null ? String(Math.round(selectedDay.avgHumidity)) : '50');
-  const wind =
-    form.windSpeed ||
-    (selectedDay ? String(Math.round(selectedDay.maxWindSpeed)) : '5');
-  const concreteTemp =
-    form.expectedConcreteTempAtArrival ||
-    form.concreteTempAtPlant ||
-    (selectedDay ? String(Math.round(selectedDay.avgTemp + 8)) : '75');
-
-  const hotWeather = useMemo(
-    () =>
-      analyzeHotWeather({
-        airTempF: ambientTemp,
-        humidityPercent: humidity,
-        windMph: wind,
-        concreteTempF: concreteTemp,
-      }),
-    [ambientTemp, humidity, wind, concreteTemp],
   );
 
   const slumpRisk = useMemo(
@@ -172,6 +241,8 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     volume,
     deliveryPlan,
     production,
+    placementRateEstimate,
+    effectivePlacementRateYdPerHr,
     truckCount,
     deliveryWindow,
     hotWeather,

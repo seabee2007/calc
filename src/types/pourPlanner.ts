@@ -1,5 +1,10 @@
 export type PlacementMethod = 'chute' | 'pump' | 'conveyor' | 'buggy' | 'bucket' | '';
 
+export type CrewEfficiency = 'excellent' | 'average' | 'new';
+export type ComplexityLevel = 'open_slab' | 'heavy_rebar' | 'curbs_edges' | 'tight_access';
+export type AccessFactorKey = 'chute' | 'pump' | 'buggy' | 'wheelbarrow' | 'conveyor' | 'bucket';
+export type WeatherFactorKey = 'normal' | 'hot' | 'cold' | 'rain';
+
 export type PourPlannerStepId =
   | 'project'
   | 'mix'
@@ -52,7 +57,6 @@ export interface PourPlannerFormState {
   expectedConcreteTempAtArrival: string;
   relativeHumidity: string;
   windSpeed: string;
-  cloudCover: string;
   nightPour: boolean;
   rainForecast: boolean;
 
@@ -61,8 +65,22 @@ export interface PourPlannerFormState {
   vibrators: string;
   pumpRate: string;
   placementRateYdPerHr: string;
+  placementRateManualOverride: boolean;
   slabSize: string;
+  slabThicknessIn: string;
   dischargeRateYdPerHr: string;
+
+  laborerRateCYHr: string;
+  finisherRateSFHr: string;
+  placingProductivityCYPerLaborHour: string;
+  finishingProductivitySFPerLaborHour: string;
+  crewEfficiency: CrewEfficiency;
+  complexityFactor: ComplexityLevel | 'auto';
+  accessFactorMode: 'auto' | AccessFactorKey;
+  weatherFactorMode: 'auto' | WeatherFactorKey;
+  burdenedHourlyRate: string;
+  setupHours: string;
+  cleanupHours: string;
 
   ticketNumber: string;
   truckNumber: string;
@@ -123,7 +141,6 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   expectedConcreteTempAtArrival: '',
   relativeHumidity: '',
   windSpeed: '',
-  cloudCover: 'partly_cloudy',
   nightPour: false,
   rainForecast: false,
 
@@ -132,8 +149,22 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   vibrators: '2',
   pumpRate: '40',
   placementRateYdPerHr: '20',
+  placementRateManualOverride: false,
   slabSize: '',
+  slabThicknessIn: '6',
   dischargeRateYdPerHr: '30',
+
+  laborerRateCYHr: '3',
+  finisherRateSFHr: '200',
+  placingProductivityCYPerLaborHour: '2.5',
+  finishingProductivitySFPerLaborHour: '250',
+  crewEfficiency: 'average',
+  complexityFactor: 'auto',
+  accessFactorMode: 'auto',
+  weatherFactorMode: 'auto',
+  burdenedHourlyRate: '60',
+  setupHours: '2',
+  cleanupHours: '2',
 
   ticketNumber: '',
   truckNumber: '',

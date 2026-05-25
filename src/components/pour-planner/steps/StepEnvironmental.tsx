@@ -107,8 +107,8 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           Weather locations
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Forecast and pour-day scoring use the batch plant from Step 1. Field conditions
-          use the jobsite forecast for the selected day — all loaded automatically.
+          Pour-day scoring uses the batch plant forecast from Step 1. Field conditions
+          below mirror the selected day card — same temp, wind, and humidity values.
         </p>
 
         <Card className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 space-y-3 text-sm">
@@ -129,7 +129,7 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           <div className="flex items-start gap-2">
             <MapPin className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
             <div>
-              <span className="text-gray-500 dark:text-gray-400">Jobsite field conditions</span>
+              <span className="text-gray-500 dark:text-gray-400">Jobsite (Step 1)</span>
               <p className="text-gray-900 dark:text-white">
                 {jobsiteAddress.trim() || 'Set jobsite address in Step 1'}
               </p>
@@ -265,8 +265,8 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           Field conditions
         </h4>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {selectedDate
-            ? `Auto-filled from forecast for ${format(parseISO(selectedDate), 'MMM d')}. Edit if field readings differ.`
+          {selectedDay
+            ? `Matches selected day: ${Math.round(selectedDay.minTemp)}–${Math.round(selectedDay.maxTemp)}°F · ${Math.round(selectedDay.maxWindSpeed)} mph wind · ${selectedDay.avgHumidity != null ? `${Math.round(selectedDay.avgHumidity)}% RH` : 'RH n/a'}. Edit if field readings differ.`
             : 'Select a pour day above to auto-fill from forecast, or enter readings manually.'}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -302,16 +302,6 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
             min="0"
             value={form.windSpeed}
             onChange={(e) => setField('windSpeed', e.target.value)}
-          />
-          <Select
-            label="Sun / cloud"
-            options={[
-              { value: 'clear', label: 'Clear / full sun' },
-              { value: 'partly_cloudy', label: 'Partly cloudy' },
-              { value: 'overcast', label: 'Overcast' },
-            ]}
-            value={form.cloudCover}
-            onChange={(v) => setField('cloudCover', v)}
           />
         </div>
         <div className="flex flex-wrap gap-4 mt-4">
