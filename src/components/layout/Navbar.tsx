@@ -35,10 +35,22 @@ const Navbar: React.FC = () => {
 
   // Essential links that always show on desktop
   const essentialLinks = [
-    { name: 'Home', path: '/', icon: <Home size={20} /> },
-    ...(user ? [
-      { name: 'Calculator', path: '/calculator', icon: <Calculator size={20} />, shortName: 'Calc' },
-    ] : []),
+    {
+      name: user ? 'Operations' : 'Home',
+      path: '/',
+      icon: <Home size={20} />,
+      shortName: user ? 'Ops' : undefined,
+    },
+    ...(user
+      ? [
+          {
+            name: 'Calculator',
+            path: '/calculator',
+            icon: <Calculator size={20} />,
+            shortName: 'Calc',
+          },
+        ]
+      : []),
   ];
 
   // Additional links that go in hamburger menu on medium screens

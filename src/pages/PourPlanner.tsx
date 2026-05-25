@@ -303,6 +303,7 @@ const PourPlanner: React.FC = () => {
       preferences: planner.preferences,
       selectedDay,
       projectPourDateIso: planner.project?.pourDate,
+      hotWeatherRiskLevel: planner.hotWeather.riskLevel,
     });
 
     const order = placementOrderFromForm(planner.form);

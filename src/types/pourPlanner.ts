@@ -6,6 +6,9 @@ export type AccessFactorKey = 'chute' | 'pump' | 'buggy' | 'wheelbarrow' | 'conv
 export type WeatherFactorKey = 'normal' | 'hot' | 'cold' | 'rain';
 
 import type { PlacementOrderStatus } from './placementOrder';
+import { DEFAULT_CALL_SHEET_FIELDS, type CallSheetFields } from './callSheet';
+
+export type { PlacementAreaType } from './callSheet';
 
 export type PourPlannerStepId =
   | 'project'
@@ -15,7 +18,7 @@ export type PourPlannerStepId =
   | 'production'
   | 'risk';
 
-export interface PourPlannerFormState {
+export interface PourPlannerFormState extends CallSheetFields {
   projectName: string;
   jobsiteStreet: string;
   jobsiteStreet2: string;
@@ -189,4 +192,5 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   batchPlantContactSource: '',
   orderStatus: '',
   orderNotes: '',
+  ...DEFAULT_CALL_SHEET_FIELDS,
 };

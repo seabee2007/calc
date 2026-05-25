@@ -1,0 +1,491 @@
+import type { Project, Calculation, QCRecord } from '../types';
+import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrder';
+import { PLACEMENT_ORDER_STATUS_LABELS } from '../types/placementOrder';
+import { MITIGATION_OPTIONS } from './pourMitigations';
+
+export type OpsRiskLevel = 'low' | 'moderate' | 'high' | 'unknown';
+export type TimelineStatus = 'on_schedule' | 'at_risk' | 'delayed' | 'pending';
+
+export interface TimelineEvent {
+  id: string;
+  timeLabel: string;
+  sortMinutes: number;
+  label: string;
+  status: TimelineStatus;
+}
+
+export interface DispatchTruckRow {
+  id: string;
+  truckNumber: string;
+  status: 'scheduled' | 'loading' | 'en_route' | 'on_site' | 'washing_out';
+  etaLabel: string;
+}
+
+export interface DashboardProjectCard {
+  id: string;
+  name: string;
+  volumeYd: number;
+  remainingCyLabel: string;
+  nextPourLabel: string;
+  mixLabel: string;
+  statusLabel: string;
+  orderStatus: PlacementOrderStatus | null;
+  batchPlantName: string;
+  readinessScore: number;
+  qcCount: number;
+  hasJobsite: boolean;
+  pourDateIso?: string;
+}
+
+export interface SmartPourTip {
+  id: string;
+  severity: 'info' | 'warning' | 'critical';
+  message: string;
+}
+
+export interface OperationsSnapshot {
+  todayPourCount: number;
+  upcomingPourCount: number;
+  totalCyScheduled: number;
+  activeProjectCount: number;
+  weatherRisk: OpsRiskLevel;
+  weatherRiskLabel: string;
+  qcTestsDue: number;
+  deliveryStatusLabel: string;
+  pumpScheduledToday: boolean;
+  nextTruckEtaLabel: string;
+  globalReadiness: number;
+  projects: DashboardProjectCard[];
+  todayPours: DashboardProjectCard[];
+  timeline: TimelineEvent[];
+  dispatchTrucks: DispatchTruckRow[];
+  heatRisk: OpsRiskLevel;
+  rainRisk: OpsRiskLevel;
+  windRisk: OpsRiskLevel;
+  recommendedStartWindow: string;
+  mitigations: string[];
+  smartTips: SmartPourTip[];
+}
+
+function startOfDay(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return startOfDay(a).getTime() === startOfDay(b).getTime();
+}
+
+function parsePourDate(iso?: string): Date | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatPourDateLabel(d: Date): string {
+  return d.toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function calculationVolumeYd(calc: Calculation): number {
+  const v = calc.result?.volume ?? 0;
+  if (v <= 0) return 0;
+  return v;
+}
+
+function projectVolumeYd(project: Project): number {
+  return (project.calculations ?? []).reduce(
+    (sum, c) => sum + calculationVolumeYd(c),
+    0,
+  );
+}
+
+function parseSummaryNumber(lines: string[] | undefined, pattern: RegExp): number | null {
+  if (!lines?.length) return null;
+  for (const line of lines) {
+    const m = line.match(pattern);
+    if (m) return parseFloat(m[1]);
+  }
+  return null;
+}
+
+function parseStartTimeFromSummary(lines: string[] | undefined): string {
+  if (!lines?.length) return '07:00';
+  for (const line of lines) {
+    const m = line.match(/Requested Start Time:\s*(.+)/i);
+    if (m) {
+      const inner = m[1].match(/\((\d{1,2}:\d{2})\)/);
+      if (inner) return inner[1];
+      if (/^\d{1,2}:\d{2}/.test(m[1].trim())) return m[1].trim().slice(0, 5);
+    }
+  }
+  return '07:00';
+}
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(':').map((x) => parseInt(x, 10));
+  if (!Number.isFinite(h)) return 7 * 60;
+  return h * 60 + (Number.isFinite(m) ? m : 0);
+}
+
+function formatClock(min: number): string {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+export function computeReadinessScore(
+  project: Project,
+  order?: PlacementOrder,
+): { score: number; statusLabel: string } {
+  let score = 0;
+  if (project.jobsiteAddress?.city || project.jobsiteAddress?.street) score += 12;
+  if (project.calculations?.length) score += 18;
+  if (project.pourDate) score += 20;
+  if (order?.batchPlantName || order?.batchPlantAddress) score += 15;
+  if (order?.contact?.phone || order?.contact?.email) score += 10;
+  if (order?.summaryLines?.length) score += 10;
+  if (order?.status === 'scheduled') score += 15;
+  else if (order?.status === 'ordered') score += 10;
+  else if (order?.status === 'ready_to_call') score += 5;
+  if ((project.qcRecords?.length ?? 0) > 0) score += 10;
+
+  const statusLabel =
+    score >= 85
+      ? 'READY'
+      : score >= 65
+        ? 'ALMOST READY'
+        : score >= 40
+          ? 'IN PROGRESS'
+          : 'SETUP NEEDED';
+
+  return { score: Math.min(100, score), statusLabel };
+}
+
+export function buildPourTimeline(
+  order: PlacementOrder | undefined,
+  pourDate: Date | null,
+  now = new Date(),
+): TimelineEvent[] {
+  const lines = order?.summaryLines;
+  const startTime = parseStartTimeFromSummary(lines);
+  const spacing =
+    parseSummaryNumber(lines, /Truck Spacing[^:]*:\s*(\d+)/i) ?? 15;
+  const trucks = Math.max(
+    1,
+    Math.round(
+      parseSummaryNumber(lines, /Number of Trucks:\s*(\d+)/i) ??
+        parseSummaryNumber(lines, /Trucks:\s*(\d+)/i) ??
+        3,
+    ),
+  );
+  const pumpRequired = Boolean(
+    lines?.some((l) => /Pump Required:\s*Yes/i.test(l)) ||
+      order?.callSheet?.pumpCompany,
+  );
+
+  let cursor = timeToMinutes(startTime);
+  const events: TimelineEvent[] = [];
+
+  const statusFor = (eventMin: number): TimelineStatus => {
+    if (!pourDate || !isSameDay(pourDate, now)) return 'pending';
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    if (eventMin < nowMin - 20) return 'on_schedule';
+    if (eventMin < nowMin - 5) return 'at_risk';
+    if (eventMin <= nowMin + 30) return 'pending';
+    return 'pending';
+  };
+
+  if (pumpRequired) {
+    events.push({
+      id: 'pump',
+      timeLabel: formatClock(cursor - 30),
+      sortMinutes: cursor - 30,
+      label: 'Pump setup',
+      status: statusFor(cursor - 30),
+    });
+  }
+
+  for (let i = 0; i < trucks; i++) {
+    events.push({
+      id: `truck-${i}`,
+      timeLabel: formatClock(cursor),
+      sortMinutes: cursor,
+      label: `Truck ${i + 1}`,
+      status: statusFor(cursor),
+    });
+    cursor += spacing;
+  }
+
+  events.push({
+    id: 'finish',
+    timeLabel: formatClock(cursor),
+    sortMinutes: cursor,
+    label: 'Finish start (est.)',
+    status: statusFor(cursor),
+  });
+
+  events.push({
+    id: 'cure',
+    timeLabel: formatClock(cursor + 90),
+    sortMinutes: cursor + 90,
+    label: 'Cure start (est.)',
+    status: statusFor(cursor + 90),
+  });
+
+  return events.sort((a, b) => a.sortMinutes - b.sortMinutes);
+}
+
+export function buildDispatchTrucks(
+  order: PlacementOrder | undefined,
+  pourDate: Date | null,
+  now = new Date(),
+): DispatchTruckRow[] {
+  const lines = order?.summaryLines;
+  const trucks = Math.max(
+    1,
+    Math.round(parseSummaryNumber(lines, /Number of Trucks:\s*(\d+)/i) ?? 4),
+  );
+  const spacing =
+    parseSummaryNumber(lines, /Truck Spacing[^:]*:\s*(\d+)/i) ?? 15;
+  const startMin = timeToMinutes(parseStartTimeFromSummary(lines));
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const isToday = pourDate ? isSameDay(pourDate, now) : false;
+
+  const statuses: DispatchTruckRow['status'][] = [
+    'loading',
+    'en_route',
+    'on_site',
+    'washing_out',
+    'scheduled',
+  ];
+
+  return Array.from({ length: Math.min(trucks, 6) }, (_, i) => {
+    const truckMin = startMin + i * spacing;
+    let status: DispatchTruckRow['status'] = 'scheduled';
+    if (isToday) {
+      if (nowMin >= truckMin + spacing + 45) status = 'washing_out';
+      else if (nowMin >= truckMin + spacing) status = 'on_site';
+      else if (nowMin >= truckMin - 5) status = 'en_route';
+      else if (nowMin >= truckMin - 25) status = 'loading';
+    }
+    const etaMin = Math.max(0, truckMin - nowMin);
+    return {
+      id: `t-${i}`,
+      truckNumber: String(12 + i * 3),
+      status,
+      etaLabel:
+        !isToday || etaMin <= 0
+          ? formatClock(truckMin)
+          : `${etaMin} min`,
+    };
+  });
+}
+
+function orderStatusLabel(status: PlacementOrderStatus | null): string {
+  if (!status) return 'NOT ORDERED';
+  return PLACEMENT_ORDER_STATUS_LABELS[status].split('—')[0].trim().toUpperCase();
+}
+
+function countQcDue(records: QCRecord[]): number {
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const recent = records.filter((r) => new Date(r.date).getTime() >= weekAgo);
+  const missingSlump = recent.filter((r) => !r.slump && r.slump !== 0).length;
+  const cylindersNoBreak = recent.filter((r) => r.cylindersMade > 0).length;
+  return missingSlump + Math.min(cylindersNoBreak, 2);
+}
+
+export function buildSmartPourTips(
+  projects: DashboardProjectCard[],
+  snapshot: Pick<
+    OperationsSnapshot,
+    'weatherRisk' | 'heatRisk' | 'windRisk' | 'rainRisk'
+  >,
+): SmartPourTip[] {
+  const tips: SmartPourTip[] = [];
+
+  if (snapshot.heatRisk === 'high') {
+    tips.push({
+      id: 'heat',
+      severity: 'warning',
+      message:
+        'Delay pour or start 0300–0600 — heat index elevates set acceleration. Recommend retarder and chilled water.',
+    });
+  }
+  if (snapshot.windRisk === 'moderate' || snapshot.windRisk === 'high') {
+    tips.push({
+      id: 'wind',
+      severity: 'info',
+      message:
+        'Wind increases evaporation — consider wind breaks, misting, and tighter truck spacing review.',
+    });
+  }
+  if (snapshot.rainRisk === 'high') {
+    tips.push({
+      id: 'rain',
+      severity: 'critical',
+      message: 'Rain in forecast — hold order or prep plastic/rain plan per ACI 305.',
+    });
+  }
+
+  const lowReady = projects.filter((p) => p.readinessScore < 65 && p.pourDateIso);
+  if (lowReady.length > 0) {
+    tips.push({
+      id: 'ready',
+      severity: 'warning',
+      message: `${lowReady.length} pour(s) below 65 readiness — complete call sheet & batch plant contact in Placement Planner.`,
+    });
+  }
+
+  const noPlant = projects.filter((p) => !p.batchPlantName && p.volumeYd > 0);
+  if (noPlant.length > 0) {
+    tips.push({
+      id: 'plant',
+      severity: 'info',
+      message: 'Select batch plant in Step 1 before dispatching trucks.',
+    });
+  }
+
+  if (tips.length === 0) {
+    tips.push({
+      id: 'ok',
+      severity: 'info',
+      message: 'Operations look stable — confirm truck spacing with crew before first load.',
+    });
+  }
+
+  return tips;
+}
+
+export function buildOperationsSnapshot(
+  projects: Project[],
+  now = new Date(),
+): OperationsSnapshot {
+  const today = startOfDay(now);
+
+  const cards: DashboardProjectCard[] = projects.map((project) => {
+    const order = project.placementOrder;
+    const volumeYd = projectVolumeYd(project);
+    const pourDate = parsePourDate(project.pourDate);
+    const { score, statusLabel } = computeReadinessScore(project, order);
+    const psi =
+      project.calculations?.[0]?.psi ??
+      (order?.summaryLines?.find((l) => /PSI/i.test(l))?.match(/(\d{4})/)?.[1] ??
+        '');
+
+    return {
+      id: project.id,
+      name: project.name,
+      volumeYd,
+      remainingCyLabel:
+        volumeYd > 0 ? `${volumeYd.toFixed(0)} CY planned` : 'Volume TBD',
+      nextPourLabel: pourDate ? formatPourDateLabel(pourDate) : 'Pour date TBD',
+      mixLabel: psi ? `${psi} PSI` : 'Mix TBD',
+      statusLabel,
+      orderStatus: order?.status ?? null,
+      batchPlantName: order?.batchPlantName ?? '',
+      readinessScore: score,
+      qcCount: project.qcRecords?.length ?? 0,
+      hasJobsite: Boolean(
+        project.jobsiteAddress?.street || project.jobsiteAddress?.city,
+      ),
+      pourDateIso: project.pourDate,
+    };
+  });
+
+  const todayPours = cards.filter((c) => {
+    const d = parsePourDate(c.pourDateIso);
+    return d && isSameDay(d, now);
+  });
+
+  const upcomingPours = cards.filter((c) => {
+    const d = parsePourDate(c.pourDateIso);
+    return d && d > today && d.getTime() - today.getTime() < 14 * 86400000;
+  });
+
+  const primary =
+    todayPours[0] ??
+    cards.find((c) => c.orderStatus === 'scheduled' || c.orderStatus === 'ordered') ??
+    cards[0];
+
+  const primaryProject = projects.find((p) => p.id === primary?.id);
+  const primaryOrder = primaryProject?.placementOrder;
+  const primaryPour = parsePourDate(primary?.pourDateIso);
+
+  const timeline = buildPourTimeline(primaryOrder, primaryPour, now);
+  const dispatchTrucks = buildDispatchTrucks(primaryOrder, primaryPour, now);
+
+  const totalCy = todayPours.reduce((s, p) => s + p.volumeYd, 0);
+  const qcTestsDue = projects.reduce(
+    (s, p) => s + countQcDue(p.qcRecords ?? []),
+    0,
+  );
+
+  const scheduledOrders = cards.filter(
+    (c) => c.orderStatus === 'scheduled' || c.orderStatus === 'ordered',
+  ).length;
+
+  const pumpScheduledToday = Boolean(
+    primaryOrder?.summaryLines?.some((l) => /Pump Required:\s*Yes/i.test(l)) ||
+      primaryOrder?.callSheet?.pumpCompany,
+  );
+
+  const heatRisk: OpsRiskLevel =
+    totalCy > 80 ? 'high' : totalCy > 40 ? 'moderate' : 'low';
+  const rainRisk: OpsRiskLevel = 'low';
+  const windRisk: OpsRiskLevel = 'moderate';
+  const weatherRisk: OpsRiskLevel =
+    heatRisk === 'high' || rainRisk === 'high'
+      ? 'high'
+      : heatRisk === 'moderate' || windRisk === 'moderate'
+        ? 'moderate'
+        : 'low';
+
+  const mitigations = MITIGATION_OPTIONS.filter(
+    (m) => m.category === 'temperature' || m.category === 'wind-evaporation',
+  )
+    .slice(0, 5)
+    .map((m) => m.label);
+
+  const globalReadiness =
+    cards.length > 0
+      ? Math.round(
+          cards.reduce((s, c) => s + c.readinessScore, 0) / cards.length,
+        )
+      : 0;
+
+  const nextTruck = dispatchTrucks.find((t) => t.status !== 'scheduled');
+
+  return {
+    todayPourCount: todayPours.length,
+    upcomingPourCount: upcomingPours.length,
+    totalCyScheduled: totalCy,
+    activeProjectCount: projects.length,
+    weatherRisk,
+    weatherRiskLabel: weatherRisk.toUpperCase(),
+    qcTestsDue,
+    deliveryStatusLabel:
+      scheduledOrders > 0 ? `${scheduledOrders} ORDERED` : 'NO ACTIVE ORDERS',
+    pumpScheduledToday,
+    nextTruckEtaLabel: nextTruck?.etaLabel ?? '—',
+    globalReadiness,
+    projects: cards.sort((a, b) => b.readinessScore - a.readinessScore),
+    todayPours,
+    timeline,
+    dispatchTrucks,
+    heatRisk,
+    rainRisk,
+    windRisk,
+    recommendedStartWindow: heatRisk === 'high' ? '0300 – 0600' : '0600 – 0900',
+    mitigations,
+    smartTips: buildSmartPourTips(cards, { weatherRisk, heatRisk, windRisk, rainRisk }),
+  };
+}

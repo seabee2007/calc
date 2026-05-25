@@ -1,6 +1,7 @@
 import type { PourPlannerFormState } from '../types/pourPlanner';
 import type { PlacementOrder, BatchPlantContact } from '../types/placementOrder';
 import { DEFAULT_BATCH_PLANT_CONTACT } from '../types/placementOrder';
+import { applyCallSheetToForm, callSheetFieldsFromForm } from './callSheetForm';
 
 export function placementOrderFromForm(form: PourPlannerFormState): PlacementOrder {
   const contact: BatchPlantContact = {
@@ -18,6 +19,7 @@ export function placementOrderFromForm(form: PourPlannerFormState): PlacementOrd
     updatedAt: new Date().toISOString(),
     batchPlantName: form.batchPlantName.trim() || undefined,
     batchPlantAddress: form.batchPlantAddress.trim() || undefined,
+    callSheet: callSheetFieldsFromForm(form),
   };
 }
 
@@ -34,5 +36,6 @@ export function applyPlacementOrderToForm(
     batchPlantContactSource: c.source === 'ai' ? 'ai' : '',
     orderStatus: order.status ?? '',
     orderNotes: order.orderNotes ?? '',
+    ...applyCallSheetToForm(order.callSheet),
   };
 }

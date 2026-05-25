@@ -16,6 +16,7 @@ import Admixtures from './pages/resources/Admixtures';
 import ExternalResources from './pages/resources/ExternalResources';
 import MixDesignAdvisor from './pages/MixDesignAdvisor';
 import PourPlanner from './pages/PourPlanner';
+import OperationsDashboard from './pages/OperationsDashboard';
 import ProposalGenerator from './pages/ProposalGenerator';
 import Proposals from './pages/Proposals';
 import Login from './pages/auth/Login';
@@ -237,6 +238,22 @@ function App() {
               }
             />
             <Route
+              path="dispatch"
+              element={
+                <AuthGuard>
+                  <OperationsDashboard initialTab="dispatch" />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="qc"
+              element={
+                <AuthGuard>
+                  <OperationsDashboard initialTab="qc" />
+                </AuthGuard>
+              }
+            />
+            <Route
               path="pour-planner"
               element={
                 <AuthGuard>
@@ -293,7 +310,7 @@ function App() {
         </Routes>
 
         {chatStore.isVisible && (
-          <div className="fixed bottom-4 right-4 z-50">
+          <div className="fixed bottom-20 md:bottom-4 right-4 z-40">
             <ConcreteChat />
           </div>
         )}

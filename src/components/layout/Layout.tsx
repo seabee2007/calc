@@ -3,11 +3,15 @@ import { motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import BottomNav from './BottomNav';
+import { useAuth } from '../../hooks/useAuth';
 import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
 const Layout: React.FC = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const showBottomNav = Boolean(user) && !isAuthPage;
 
   useEffect(() => {
     // Scroll to top on route change
@@ -130,6 +134,7 @@ const Layout: React.FC = () => {
           <Outlet />
         </motion.main>
         <Footer />
+        {showBottomNav && <BottomNav />}
       </div>
     </div>
   );

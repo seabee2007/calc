@@ -17,10 +17,13 @@ export interface BatchPlantContact {
   lookupNotes?: string;
 }
 
+import type { CallSheetFields } from './callSheet';
+
 export interface PlacementOrder {
   status: PlacementOrderStatus;
   contact: BatchPlantContact;
   orderNotes: string;
+  callSheet?: Partial<CallSheetFields>;
   updatedAt: string;
   pourDateIso?: string;
   batchPlantName?: string;

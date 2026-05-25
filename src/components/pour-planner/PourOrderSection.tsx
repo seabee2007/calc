@@ -13,6 +13,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import PlannerStepLocationsCard from './PlannerStepLocationsCard';
+import CallSheetDetailsForm from './CallSheetDetailsForm';
 import type { PourPlannerContext } from '../../hooks/usePourPlannerState';
 import type { ScoredPourDay } from '../../utils/pourScoring';
 import { lookupBatchPlantContact } from '../../services/batchPlantContactService';
@@ -44,8 +45,17 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
   saveLoading = false,
   saveMessage = null,
 }) => {
-  const { form, setField, deliveryPlan, truckCount, production, deliveryWindow, preferences, project } =
-    planner;
+  const {
+    form,
+    setField,
+    deliveryPlan,
+    truckCount,
+    production,
+    deliveryWindow,
+    preferences,
+    project,
+    hotWeather,
+  } = planner;
 
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
@@ -69,6 +79,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
         preferences,
         selectedDay,
         projectPourDateIso: project?.pourDate,
+        hotWeatherRiskLevel: hotWeather.riskLevel,
       }),
     [
       form,
@@ -77,6 +88,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
       planner.truckCapacityYd,
       production.placementDurationHours,
       deliveryWindow.statusLabel,
+      hotWeather.riskLevel,
       preferences,
       selectedDay,
       project?.pourDate,
@@ -138,12 +150,14 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
           Order ready-mix
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Everything below is compiled from Steps 1–6. Look up batch plant contact (AI-assisted),
-          copy the call sheet for your dispatcher, then save status to the project for tracking.
+          Industry-style dispatch call sheet — project info, placement, mix, quantity, weather, QC,
+          and safety. Auto-fills from Steps 1–6; complete the fields below before calling the plant.
         </p>
       </div>
 
       <PlannerStepLocationsCard form={form} />
+
+      <CallSheetDetailsForm planner={planner} />
 
       <Card className="p-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -240,12 +254,12 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
           onChange={(v) => setField('orderStatus', v as PlacementOrderStatus)}
         />
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Notes for dispatcher
+          Additional notes (appears on call sheet)
           <textarea
-            className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm min-h-[80px]"
+            className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm min-h-[100px]"
             value={form.orderNotes}
             onChange={(e) => setField('orderNotes', e.target.value)}
-            placeholder="Gate code, inspection hold, special slump instructions…"
+            placeholder={'No washout on pavement.\nCall superintendent before entering convoy gate.\nSlump test each truck.'}
           />
         </label>
       </Card>
@@ -265,7 +279,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
             {copyDone ? 'Copied!' : 'Copy call sheet'}
           </Button>
         </div>
-        <pre className="text-xs whitespace-pre-wrap font-mono bg-gray-100 dark:bg-gray-800 rounded-lg p-3 max-h-80 overflow-y-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+        <pre className="text-xs whitespace-pre-wrap font-mono bg-gray-100 dark:bg-gray-800 rounded-lg p-3 max-h-[32rem] overflow-y-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
           {callSheetText}
         </pre>
       </Card>
