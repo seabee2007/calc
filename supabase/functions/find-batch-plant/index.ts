@@ -1,9 +1,13 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import {
+  detectRegionHint,
   geocodeAddressSmart,
   GUAM_BATCH_PLANT_QUERIES,
+  GUAM_BBOX,
+  GUAM_KNOWN_BATCH_PLANTS,
   isGuamLocation,
+  isWithinBbox,
   type GeocodedPoint,
 } from "../_shared/mapboxGeocode.ts";
 
@@ -95,6 +99,7 @@ async function searchNearbyPlants(
 
   if (isGuamLocation(origin)) {
     params.set("country", "US");
+    params.set("bbox", GUAM_BBOX.join(","));
   }
 
   const url = `https://api.mapbox.com/search/searchbox/v1/forward?${params}`;
@@ -152,6 +157,55 @@ async function searchNamedGuamPlants(origin: GeocodedPoint): Promise<SearchCandi
   return results.flat();
 }
 
+async function resolveCuratedGuamPlants(
+  origin: GeocodedPoint,
+): Promise<SearchCandidate[]> {
+  if (!isGuamLocation(origin) || !MAPBOX_TOKEN) return [];
+
+  const candidates: SearchCandidate[] = [];
+
+  for (const plant of GUAM_KNOWN_BATCH_PLANTS) {
+    if (plant.address === "Guam") continue;
+    try {
+      const point = await geocodeAddressSmart(plant.address, MAPBOX_TOKEN);
+      if (!isWithinBbox(point.lng, point.lat, GUAM_BBOX)) continue;
+
+      candidates.push({
+        id: `curated-${plant.name}`,
+        name: plant.name,
+        address: point.placeName,
+        latitude: point.lat,
+        longitude: point.lng,
+        distanceMiles: Number(
+          haversineMiles(origin.lat, origin.lng, point.lat, point.lng).toFixed(2),
+        ),
+        poiCategories: ["ready-mix", "curated"],
+        searchTerm: "guam-curated",
+      });
+    } catch (err) {
+      console.warn("Curated Guam plant geocode failed:", plant.name, err);
+    }
+  }
+
+  return candidates;
+}
+
+/** Drop mainland / wrong-ocean results when the jobsite is on Guam. */
+function filterCandidatesForOrigin(
+  origin: GeocodedPoint,
+  candidates: SearchCandidate[],
+): SearchCandidate[] {
+  const onGuam = isGuamLocation(origin);
+
+  return candidates.filter((c) => {
+    if (onGuam) {
+      return isWithinBbox(c.longitude, c.latitude, GUAM_BBOX);
+    }
+    const miles = haversineMiles(origin.lat, origin.lng, c.latitude, c.longitude);
+    return miles <= 250;
+  });
+}
+
 function dedupeCandidates(candidates: SearchCandidate[]): SearchCandidate[] {
   const seen = new Map<string, SearchCandidate>();
 
@@ -178,6 +232,10 @@ function scoreCandidate(candidate: SearchCandidate): number {
   if (haystack.includes("ready mix") || haystack.includes("ready-mix")) score += 3;
   if (haystack.includes("batch plant")) score += 4;
   if (haystack.includes("hawaiian rock")) score += 6;
+  if (haystack.includes("smithbridge")) score += 6;
+  if (haystack.includes("hanson")) score += 4;
+  if (haystack.includes("core tech")) score += 4;
+  if (candidate.searchTerm === "guam-curated") score += 12;
 
   score -= candidate.distanceMiles * 0.15;
   return score;
@@ -211,6 +269,10 @@ async function rankWithOpenAI(
 
   const payload = {
     projectLocation,
+    regionNote: projectLocation.toLowerCase().includes("guam") ||
+        projectLocation.includes(", GU")
+      ? "Jobsite is on Guam — reject any candidate outside Guam."
+      : undefined,
     candidates: candidates.slice(0, 10).map((candidate) => ({
       id: candidate.id,
       name: candidate.name,
@@ -241,7 +303,8 @@ async function rankWithOpenAI(
             "You select the most likely actual ready-mix concrete batch plant from Mapbox POI search results, " +
             "then format the best address for Mapbox routing. Only choose from the provided candidates — " +
             "never invent names or addresses. Prefer ready-mix plants, concrete suppliers, and batch plants. " +
-            "On Guam, prefer Hawaiian Rock Products, Smithbridge Guam, or Hanson Cement when they appear. " +
+            "On Guam, ONLY pick plants physically located on Guam (Hawaiian Rock Products, Smithbridge Guam, Hanson Cement, Core Tech). " +
+            "Never select California or mainland US plants for a Guam jobsite. " +
             'Respond with JSON only: {"candidateId": string, "plantName": string, "formattedAddress": string, "confidence": "high"|"medium"|"low", "reason": string}.',
         },
         {
@@ -308,17 +371,30 @@ async function resolveProjectOrigin(
   latitude?: number,
   longitude?: number,
 ): Promise<GeocodedPoint> {
+  const hint = detectRegionHint(projectLocation);
+
   if (
     typeof latitude === "number" &&
     typeof longitude === "number" &&
     Number.isFinite(latitude) &&
     Number.isFinite(longitude)
   ) {
-    return {
+    const point: GeocodedPoint = {
       lat: latitude,
       lng: longitude,
       placeName: projectLocation,
     };
+    if (
+      hint.bbox &&
+      !isWithinBbox(point.lng, point.lat, hint.bbox)
+    ) {
+      console.warn(
+        "Jobsite coordinates outside expected region; re-geocoding:",
+        projectLocation,
+      );
+      return geocodeAddressSmart(projectLocation, MAPBOX_TOKEN!);
+    }
+    return point;
   }
 
   return geocodeAddressSmart(projectLocation, MAPBOX_TOKEN!);
@@ -358,11 +434,23 @@ serve(async (req) => {
       longitude,
     );
 
-    const searchResults = await Promise.all([
-      ...SEARCH_TERMS.map((term) => searchNearbyPlants(origin, term)),
-      searchNamedGuamPlants(origin),
-    ]);
-    const candidates = dedupeCandidates(searchResults.flat());
+    const onGuam = isGuamLocation(origin);
+
+    const searchResults = onGuam
+      ? await Promise.all([
+          resolveCuratedGuamPlants(origin),
+          searchNamedGuamPlants(origin),
+          ...SEARCH_TERMS.map((term) => searchNearbyPlants(origin, term)),
+        ])
+      : await Promise.all([
+          ...SEARCH_TERMS.map((term) => searchNearbyPlants(origin, term)),
+          searchNamedGuamPlants(origin),
+        ]);
+
+    const candidates = filterCandidatesForOrigin(
+      origin,
+      dedupeCandidates(searchResults.flat()),
+    );
 
     if (candidates.length === 0) {
       return new Response(

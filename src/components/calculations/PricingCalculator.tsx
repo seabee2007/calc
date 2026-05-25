@@ -7,6 +7,13 @@ import { calculateConcreteCost, formatPrice, getNearestLocation } from '../../ut
 import { volumeToCubicYards } from '../../utils/readyMixDelivery';
 import { LocationPricing, VolumeUnit } from '../../types';
 import { geocodeAddress, GeocodedLocation } from '../../utils/location';
+import USAddressFields from '../address/USAddressFields';
+import {
+  EMPTY_US_ADDRESS,
+  isUSAddressGeocodable,
+  validateUSAddress,
+  type USAddress,
+} from '../../types/address';
 import ReadyMixDelivery from './ReadyMixDelivery';
 
 export type PricingCalculatorVariant = 'calculator' | 'planner';
@@ -63,10 +70,9 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     address: string;
   } | null>(null);
   const [supplier, setSupplier] = useState<LocationPricing | null>(null);
-  const [locationInput, setLocationInput] = useState('');
+  const [jobsiteAddress, setJobsiteAddress] = useState<USAddress>({ ...EMPTY_US_ADDRESS });
   const applyLocation = (loc: GeocodedLocation) => {
     setUserLocation(loc);
-    setLocationInput(loc.address);
     setSupplier(getNearestLocation(loc));
     setLocationError(null);
   };
@@ -78,17 +84,26 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   }, [initialLocation]);
 
   const handleLocationSearch = async () => {
-    if (!locationInput.trim()) return;
+    const validation = validateUSAddress(jobsiteAddress, {
+      requireStreet: false,
+      requireZip: false,
+    });
+    if (!validation.ok) {
+      setLocationError(validation.errors[0]);
+      return;
+    }
 
     setSearchLoading(true);
     setLocationError(null);
 
     try {
-      const loc = await geocodeAddress(locationInput);
+      const loc = await geocodeAddress(jobsiteAddress);
       if (loc) {
         applyLocation(loc);
       } else {
-        setLocationError('Location not found. Please try a different search.');
+        setLocationError(
+          'Location not found. Check city, state, and ZIP (street optional for pricing region).',
+        );
       }
     } catch {
       setLocationError('Error searching location. Please try again.');
@@ -203,25 +218,20 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Job site location
             </label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="City name or zip code"
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleLocationSearch();
-                }}
-                className="flex-1"
-              />
+            <USAddressFields
+              value={jobsiteAddress}
+              onChange={setJobsiteAddress}
+              idPrefix="pricing-jobsite"
+            />
+            <div className="mt-3 flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleLocationSearch}
-                disabled={searchLoading || !locationInput.trim()}
+                disabled={searchLoading || !isUSAddressGeocodable(jobsiteAddress)}
                 icon={
                   searchLoading ? (
                     <Loader className="h-4 w-4 animate-spin" />
@@ -230,7 +240,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
                   )
                 }
               >
-                Apply
+                Apply location
               </Button>
             </div>
             {locationError && (

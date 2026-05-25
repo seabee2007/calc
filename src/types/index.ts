@@ -1,5 +1,9 @@
 import { MixProfileType } from './curing';
 import type { StoredTruckTicketRecord } from './concreteTruckTicket';
+import type { USAddress } from './address';
+import type { PlacementOrder } from './placementOrder';
+
+export type { USAddress } from './address';
 
 export type { StoredTruckTicketRecord } from './concreteTruckTicket';
 
@@ -185,12 +189,14 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  jobsiteAddress?: USAddress;
   createdAt: string;
   updatedAt: string;
   calculations: Calculation[];
   reinforcements?: ReinforcementSet[];  // Add reinforcement sets
   wasteFactor?: number;
   pourDate?: string;
+  placementOrder?: PlacementOrder;
   mixProfile?: MixProfileType;
   qcRecords?: QCRecord[];
   truckTickets?: StoredTruckTicketRecord[];

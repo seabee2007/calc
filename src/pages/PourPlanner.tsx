@@ -16,6 +16,7 @@ import StepPlacementProduction from '../components/pour-planner/steps/StepPlacem
 import StepRiskAnalysis from '../components/pour-planner/steps/StepRiskAnalysis';
 import {
   getForecastByQuery,
+  getExtendedForecast,
   ForecastLocation,
 } from '../services/weatherService';
 import {
@@ -23,6 +24,10 @@ import {
   PlacementType,
   pruneMitigationSelections,
 } from '../utils/pourScoring';
+import {
+  jobsiteDisplayAddress,
+  parsePlannerCoord,
+} from '../utils/addressForm';
 import { useProjectStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -32,6 +37,8 @@ import {
 import { formatCalculationSlabSize, getCalculationPsi } from '../utils/calculationDimensions';
 import { applySelectedPourDayToForm } from '../utils/pourWeatherFields';
 import { findBestPourWindow } from '../utils/pourScoring';
+import { buildPourOrderCallSheet } from '../utils/pourOrderSummary';
+import { placementOrderFromForm } from '../utils/placementOrderForm';
 
 const FORECAST_DAYS = 5;
 
@@ -46,6 +53,8 @@ const PourPlanner: React.FC = () => {
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [savePourDateLoading, setSavePourDateLoading] = useState(false);
   const [savePourDateMessage, setSavePourDateMessage] = useState<string | null>(null);
+  const [saveOrderLoading, setSaveOrderLoading] = useState(false);
+  const [saveOrderMessage, setSaveOrderMessage] = useState<string | null>(null);
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
   const [rawForecastDays, setRawForecastDays] = useState<
@@ -120,10 +129,15 @@ const PourPlanner: React.FC = () => {
   }, [rawForecastDays, placementType]);
 
   const loadStep4Weather = useCallback(
-    async (batchPlantAddress: string, jobsiteAddress: string) => {
+    async (
+      batchPlantAddress: string,
+      jobsiteAddress: string,
+      jobsiteCoords?: { lat: number; lng: number },
+      plantCoords?: { lat: number; lng: number },
+    ) => {
       const plant = batchPlantAddress.trim();
       const jobsite = jobsiteAddress.trim();
-      const fetchKey = `${plant}|${jobsite}`;
+      const fetchKey = `${plant}|${jobsite}|${jobsiteCoords?.lat ?? ''}|${jobsiteCoords?.lng ?? ''}`;
 
       if (!plant && !jobsite) {
         setRawForecastDays([]);
@@ -141,8 +155,16 @@ const PourPlanner: React.FC = () => {
 
       try {
         const [plantResult, jobsiteResult] = await Promise.all([
-          plant ? getForecastByQuery(plant, FORECAST_DAYS) : Promise.resolve(null),
-          jobsite ? getForecastByQuery(jobsite, FORECAST_DAYS) : Promise.resolve(null),
+          plantCoords
+            ? getExtendedForecast(plantCoords.lat, plantCoords.lng, FORECAST_DAYS)
+            : plant
+              ? getForecastByQuery(plant, FORECAST_DAYS)
+              : Promise.resolve(null),
+          jobsiteCoords
+            ? getExtendedForecast(jobsiteCoords.lat, jobsiteCoords.lng, FORECAST_DAYS)
+            : jobsite
+              ? getForecastByQuery(jobsite, FORECAST_DAYS)
+              : Promise.resolve(null),
         ]);
 
         if (requestId !== loadRequestIdRef.current) return;
@@ -186,11 +208,34 @@ const PourPlanner: React.FC = () => {
 
   useEffect(() => {
     if (planner.activeStepId !== 'environment') return;
-    loadStep4Weather(planner.form.batchPlantAddress, planner.form.jobsiteAddress);
+    const jobsiteLine = jobsiteDisplayAddress(planner.form);
+    const jobsiteLat = parsePlannerCoord(planner.form.jobsiteLatitude);
+    const jobsiteLng = parsePlannerCoord(planner.form.jobsiteLongitude);
+    const plantLat = parsePlannerCoord(planner.form.batchPlantLatitude);
+    const plantLng = parsePlannerCoord(planner.form.batchPlantLongitude);
+
+    loadStep4Weather(
+      planner.form.batchPlantAddress,
+      jobsiteLine,
+      jobsiteLat != null && jobsiteLng != null
+        ? { lat: jobsiteLat, lng: jobsiteLng }
+        : undefined,
+      plantLat != null && plantLng != null
+        ? { lat: plantLat, lng: plantLng }
+        : undefined,
+    );
   }, [
     planner.activeStepId,
     planner.form.batchPlantAddress,
+    planner.form.batchPlantLatitude,
+    planner.form.batchPlantLongitude,
     planner.form.jobsiteAddress,
+    planner.form.jobsiteLatitude,
+    planner.form.jobsiteLongitude,
+    planner.form.jobsiteStreet,
+    planner.form.jobsiteCity,
+    planner.form.jobsiteState,
+    planner.form.jobsiteZip,
     loadStep4Weather,
   ]);
 
@@ -238,6 +283,45 @@ const PourPlanner: React.FC = () => {
     user && planner.form.projectId && selectedDate,
   );
 
+  const canSaveToProject = Boolean(user && planner.form.projectId);
+
+  const handleSavePlacementOrder = async () => {
+    if (!planner.form.projectId) return;
+    setSaveOrderLoading(true);
+    setSaveOrderMessage(null);
+    setError(null);
+
+    const summaryLines = buildPourOrderCallSheet({
+      form: planner.form,
+      volumeYd: planner.deliveryPlan.volumeYd,
+      truckCount: planner.truckCount,
+      truckCapacityYd: planner.truckCapacityYd,
+      pourDurationHours: planner.production.placementDurationHours,
+      travelTimeMin: parseFloat(planner.form.travelTimeMinutes) || 0,
+      travelDistanceMi: parseFloat(planner.form.travelDistance) || 0,
+      deliveryStatus: planner.deliveryWindow.statusLabel,
+      preferences: planner.preferences,
+      selectedDay,
+      projectPourDateIso: planner.project?.pourDate,
+    });
+
+    const order = placementOrderFromForm(planner.form);
+    order.summaryLines = summaryLines;
+    order.jobsiteAddress = jobsiteDisplayAddress(planner.form);
+    order.pourDateIso = selectedDate
+      ? `${selectedDate}T12:00:00.000Z`
+      : planner.project?.pourDate;
+
+    try {
+      await updateProject(planner.form.projectId, { placementOrder: order });
+      setSaveOrderMessage('Order saved to project.');
+    } catch {
+      setError('Failed to save order to project. Run DB migration if placement_order column is missing.');
+    } finally {
+      setSaveOrderLoading(false);
+    }
+  };
+
   const handleSavePlacementDate = async () => {
     if (!selectedDate || !planner.form.projectId) return;
     setSavePourDateLoading(true);
@@ -270,8 +354,6 @@ const PourPlanner: React.FC = () => {
             planner={planner}
             batchPlantLocation={location}
             jobsiteLocation={jobsiteLocation}
-            batchPlantAddress={planner.form.batchPlantAddress}
-            jobsiteAddress={planner.form.jobsiteAddress}
             loading={loading}
             error={error}
             displayDays={displayDays}
@@ -286,7 +368,16 @@ const PourPlanner: React.FC = () => {
       case 'production':
         return <StepPlacementProduction planner={planner} />;
       case 'risk':
-        return <StepRiskAnalysis planner={planner} selectedDay={selectedDay} />;
+        return (
+          <StepRiskAnalysis
+            planner={planner}
+            selectedDay={selectedDay}
+            canSaveToProject={canSaveToProject}
+            onSaveOrder={handleSavePlacementOrder}
+            saveOrderLoading={saveOrderLoading}
+            saveOrderMessage={saveOrderMessage}
+          />
+        );
       default:
         return null;
     }
@@ -340,7 +431,7 @@ const PourPlanner: React.FC = () => {
           {planner.activeStep === 4 &&
             'Size crew and coordinate truck spacing with placement rate.'}
           {planner.activeStep === 5 &&
-            'Review combined risk and recommended mitigations, then save the placement date to your project.'}
+            'Review risk, order ready-mix using the compiled call sheet, then save placement date and order status to your project.'}
         </p>
 
         {savePourDateMessage && planner.activeStep === POUR_PLANNER_STEPS.length - 1 && (

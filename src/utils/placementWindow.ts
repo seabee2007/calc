@@ -4,8 +4,6 @@ export const ASTM_C94_MAX_MINUTES = 90;
 export const ASTM_C94_MAX_DRUM_REVOLUTIONS = 300;
 export const PLASTIC_SHRINKAGE_THRESHOLD_LB_FT2_HR = 0.2;
 
-import { recommendedTruckCount } from './readyMixDelivery';
-
 export type TimeRiskLevel = 'ok' | 'caution' | 'critical';
 export type SlumpRiskLevel = 'low' | 'moderate' | 'high';
 export type EvaporationRiskLevel = 'low' | 'moderate' | 'high';
@@ -25,9 +23,14 @@ export interface DeliveryWindowAnalysis {
 
 export interface PlacementProductionAnalysis {
   placementDurationHours: number;
+  /** Recommended minutes between truck arrivals (discharge-based, not full placement per load). */
   truckSpacingMinutes: number;
   truckDischargeMinutes: number;
   recommendedTrucks: number;
+  /** Minutes to discharge one load at the given rate. */
+  minutesPerLoadDischarge: number;
+  /** Minutes to spread one full load at crew placement rate (for capacity warnings). */
+  minutesPerLoadPlacement: number;
 }
 
 export interface SlumpRiskAnalysis {
@@ -119,17 +122,24 @@ export function analyzePlacementProduction(params: {
     (totalVolumeYd > 0
       ? recommendedTruckCount(totalVolumeYd, truckCapacityYd)
       : 0);
+
+  const minutesPerLoadDischarge = (truckCapacityYd / dischargeRate) * 60;
+  const minutesPerLoadPlacement = (truckCapacityYd / placementRate) * 60;
+  const truckDischargeMinutes = minutesPerLoadDischarge;
+
+  // Arrival spacing: next truck when the previous truck finishes discharging.
+  // Fresh concrete can be placed while earlier loads are still being worked — finishing
+  // a full load before the next truck arrives is not required for a monolithic pour.
   const truckSpacingMinutes =
-    recommendedTrucks <= 1
-      ? 0
-      : (truckCapacityYd / placementRate) * 60;
-  const truckDischargeMinutes = (truckCapacityYd / dischargeRate) * 60;
+    recommendedTrucks <= 1 ? 0 : minutesPerLoadDischarge;
 
   return {
     placementDurationHours,
     truckSpacingMinutes,
     truckDischargeMinutes,
     recommendedTrucks,
+    minutesPerLoadDischarge,
+    minutesPerLoadPlacement,
   };
 }
 

@@ -20,9 +20,18 @@ export interface MapboxTravelTimeError {
   error: string;
 }
 
+export interface MapboxTravelCoords {
+  latitude?: number;
+  longitude?: number;
+}
+
 export async function getMapboxTravelTime(
   plantAddress: string,
   jobsiteAddress: string,
+  options?: {
+    plant?: MapboxTravelCoords;
+    jobsite?: MapboxTravelCoords;
+  },
 ): Promise<MapboxTravelTimeResult> {
   if (!FN_BASE || !ANON_KEY) {
     throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
@@ -42,7 +51,14 @@ export async function getMapboxTravelTime(
       apikey: ANON_KEY,
       Authorization: `Bearer ${ANON_KEY}`,
     },
-    body: JSON.stringify({ plantAddress: plant, jobsiteAddress: jobsite }),
+    body: JSON.stringify({
+      plantAddress: plant,
+      jobsiteAddress: jobsite,
+      plantLatitude: options?.plant?.latitude,
+      plantLongitude: options?.plant?.longitude,
+      jobsiteLatitude: options?.jobsite?.latitude,
+      jobsiteLongitude: options?.jobsite?.longitude,
+    }),
   });
 
   const data = (await res.json()) as MapboxTravelTimeResult | MapboxTravelTimeError;

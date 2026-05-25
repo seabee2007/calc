@@ -5,7 +5,7 @@ import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, S
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import ProjectCard from '../components/projects/ProjectCard';
-import ProjectForm from '../components/projects/ProjectForm';
+import ProjectForm, { type ProjectFormData } from '../components/projects/ProjectForm';
 import Select from '../components/ui/Select';
 import Toast from '../components/ui/Toast';
 import StrengthProgress from '../components/projects/StrengthProgress';
@@ -138,8 +138,13 @@ const Projects: React.FC = () => {
     }
   };
 
-  const handleCreateProject = (data: { name: string; description: string }) => {
-    addProject(data);
+  const handleCreateProject = (data: ProjectFormData) => {
+    addProject({
+      name: data.name,
+      description: data.description,
+      pourDate: data.pourDate,
+      jobsiteAddress: data.jobsiteAddress,
+    });
     setShowCreateForm(false);
     showToastMessage('Project created successfully', 'success');
   };
@@ -150,9 +155,14 @@ const Projects: React.FC = () => {
     setShowProjectDetails(true);
   };
 
-  const handleUpdateProject = (data: { name: string; description: string }) => {
+  const handleUpdateProject = (data: ProjectFormData) => {
     if (currentProject) {
-      updateProject(currentProject.id, data);
+      updateProject(currentProject.id, {
+        name: data.name,
+        description: data.description,
+        pourDate: data.pourDate,
+        jobsiteAddress: data.jobsiteAddress,
+      });
       setEditingProject(false);
       showToastMessage('Project updated successfully', 'success');
     }
@@ -747,7 +757,9 @@ const Projects: React.FC = () => {
                 onCancel={() => setEditingProject(false)}
                 initialData={{
                   name: currentProject.name,
-                  description: currentProject.description
+                  description: currentProject.description,
+                  pourDate: currentProject.pourDate?.split('T')[0],
+                  jobsiteAddress: currentProject.jobsiteAddress,
                 }}
                 isEditing
               />

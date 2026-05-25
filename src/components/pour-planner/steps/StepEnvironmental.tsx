@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   Calendar,
-  MapPin,
   Loader2,
   AlertTriangle,
   CheckCircle2,
   ChevronDown,
-  Factory,
 } from 'lucide-react';
 import Input from '../../ui/Input';
 import Select from '../../ui/Select';
@@ -29,6 +27,12 @@ import {
   buildWeatherContext,
 } from '../../../utils/pourMitigations';
 import { ForecastLocation } from '../../../services/weatherService';
+import PlannerStepLocationsCard from '../PlannerStepLocationsCard';
+import {
+  batchPlantDisplayLine,
+  hasVerifiedJobsiteCoords,
+  jobsiteDisplayAddress,
+} from '../../../utils/addressForm';
 
 const PLACEMENT_TYPE_OPTIONS = [
   { value: '', label: 'General placement' },
@@ -42,8 +46,6 @@ export interface StepEnvironmentalProps {
   planner: PourPlannerContext;
   batchPlantLocation: ForecastLocation | null;
   jobsiteLocation: ForecastLocation | null;
-  batchPlantAddress: string;
-  jobsiteAddress: string;
   loading: boolean;
   error: string | null;
   displayDays: ScoredPourDay[];
@@ -59,8 +61,6 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
   planner,
   batchPlantLocation,
   jobsiteLocation,
-  batchPlantAddress,
-  jobsiteAddress,
   loading,
   error,
   displayDays,
@@ -76,8 +76,9 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
   const bestWindow = findBestPourWindow(displayDays);
   const [mitigationsExpanded, setMitigationsExpanded] = useState(false);
 
-  const hasBatchPlant = batchPlantAddress.trim().length > 0;
-  const hasJobsite = jobsiteAddress.trim().length > 0;
+  const hasBatchPlant = batchPlantDisplayLine(form).length > 0;
+  const hasJobsite = jobsiteDisplayAddress(form).length > 0;
+  const jobsiteCoordsVerified = hasVerifiedJobsiteCoords(form);
   const selectedMitigationCount = selectedDate
     ? (mitigationsByDate[selectedDate]?.length ?? 0)
     : 0;
@@ -111,36 +112,25 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           below mirror the selected day card — same temp, wind, and humidity values.
         </p>
 
-        <Card className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 space-y-3 text-sm">
-          <div className="flex items-start gap-2">
-            <Factory className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Batch plant forecast</span>
-              <p className="text-gray-900 dark:text-white">
-                {batchPlantAddress.trim() || 'Set batch plant address in Step 1'}
+        <PlannerStepLocationsCard
+          form={form}
+          batchPlantNote={
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Pour-day scoring uses weather at the batch plant location above.
+            </p>
+          }
+          jobsiteNote={
+            jobsiteCoordsVerified ? (
+              <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                Jobsite forecast uses your verified map coordinates from Step 1.
               </p>
-              {batchPlantLocation && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {batchPlantLocation.city}, {batchPlantLocation.country}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <MapPin className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Jobsite (Step 1)</span>
-              <p className="text-gray-900 dark:text-white">
-                {jobsiteAddress.trim() || 'Set jobsite address in Step 1'}
+            ) : jobsiteLocation && hasJobsite ? (
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                Verify jobsite in Step 1 so weather uses your map pin, not text search.
               </p>
-              {jobsiteLocation && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {jobsiteLocation.city}, {jobsiteLocation.country}
-                </p>
-              )}
-            </div>
-          </div>
-        </Card>
+            ) : undefined
+          }
+        />
 
         {!hasBatchPlant && !hasJobsite && (
           <p className="mt-3 text-sm text-amber-700 dark:text-amber-300 flex gap-2">

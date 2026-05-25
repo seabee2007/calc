@@ -11,6 +11,7 @@ import {
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
+import PlannerStepLocationsCard from '../PlannerStepLocationsCard';
 import Select from '../../ui/Select';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import { BOTTLENECK_LABELS } from '../../../utils/placementProduction';
@@ -40,12 +41,18 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
     parseFloat(form.truckSpacingMinutes) || production.truckSpacingMinutes,
   );
   const dischargeMinutes = Math.round(production.truckDischargeMinutes);
+  const placementMinPerLoad = Math.round(production.minutesPerLoadPlacement);
   const trucksScheduled = truckCount || plannedTruckCount;
   const multiTruck = trucksScheduled > 1;
   const spacingTooTight =
     spacingMinutes > 0 &&
     dischargeMinutes > 0 &&
-    spacingMinutes < dischargeMinutes;
+    spacingMinutes < dischargeMinutes - 1;
+  const crewSlowerThanArrivals =
+    multiTruck &&
+    spacingMinutes > 0 &&
+    placementMinPerLoad > 0 &&
+    spacingMinutes < placementMinPerLoad - 2;
   const lastTruckArrivalMin =
     trucksScheduled > 1 ? (trucksScheduled - 1) * spacingMinutes : 0;
   const pourDurationMin = production.placementDurationHours * 60;
@@ -89,6 +96,8 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
           Placement rate uses the slowest bottleneck — placement crew vs finishing crew — then
           applies efficiency, access, weather, and complexity modifiers.
         </p>
+
+        <PlannerStepLocationsCard form={form} className="mb-4" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
@@ -496,18 +505,32 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
                   Per-truck discharge: <strong>{dischargeMinutes} min</strong>
                 </span>
                 <span className="block">
-                  Pour window: <strong>{Math.round(pourDurationMin)} min</strong>
+                  Pour duration (all loads):{' '}
+                  <strong>{Math.round(pourDurationMin)} min</strong>
+                  <span className="text-gray-500 dark:text-gray-400 font-normal">
+                    {' '}
+                    ({deliveryPlan.volumeYd.toFixed(1)} yd³ at {placementRate} CY/hr)
+                  </span>
                 </span>
               </p>
               {multiTruck && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Spacing = {truckCapacity} yd³ ÷ {placementRate} CY/hr between loads
+                  Recommended spacing ≈ {dischargeMinutes} min (per-truck discharge). Next truck
+                  can arrive when the previous truck finishes unloading — prior concrete does not
+                  need to be fully placed first.
+                </p>
+              )}
+              {crewSlowerThanArrivals && (
+                <p className="mt-3 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  Crew placement (~{placementMinPerLoad} min per {truckCapacity} yd³ load) is
+                  slower than this interval — expect trucks waiting onsite after discharge.
                 </p>
               )}
               {spacingTooTight && (
                 <p className="mt-3 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                  Spacing is shorter than discharge time — trucks may stack onsite.
+                  Spacing is shorter than per-truck discharge — trucks may stack at the chute or pump.
                 </p>
               )}
             </>

@@ -67,7 +67,9 @@ serve(async (req) => {
       });
     }
 
-    const { plantAddress, jobsiteAddress } = await req.json();
+    const body = await req.json();
+    const plantAddress = String(body.plantAddress ?? "").trim();
+    const jobsiteAddress = String(body.jobsiteAddress ?? "").trim();
 
     if (!plantAddress || !jobsiteAddress) {
       return new Response(
@@ -76,8 +78,32 @@ serve(async (req) => {
       );
     }
 
-    const plant = await geocode(String(plantAddress).trim());
-    const jobsite = await geocode(String(jobsiteAddress).trim());
+    async function resolvePoint(
+      address: string,
+      lat?: number,
+      lng?: number,
+    ): Promise<GeocodedPoint> {
+      if (
+        typeof lat === "number" &&
+        typeof lng === "number" &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lng)
+      ) {
+        return { lat, lng, placeName: address };
+      }
+      return geocode(address);
+    }
+
+    const plant = await resolvePoint(
+      plantAddress,
+      body.plantLatitude,
+      body.plantLongitude,
+    );
+    const jobsite = await resolvePoint(
+      jobsiteAddress,
+      body.jobsiteLatitude,
+      body.jobsiteLongitude,
+    );
     const route = await getRoute(plant, jobsite);
 
     const avgSpeedMph =

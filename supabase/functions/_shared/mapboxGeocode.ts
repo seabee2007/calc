@@ -17,8 +17,14 @@ interface MapboxFeature {
   properties?: Record<string, unknown>;
 }
 
-const GUAM_BBOX: [number, number, number, number] = [144.619, 13.234, 145.009, 13.654];
+export const GUAM_BBOX: [number, number, number, number] = [
+  144.619, 13.234, 145.009, 13.654,
+];
 const GUAM_PROXIMITY: [number, number] = [144.7937, 13.4443];
+
+/** Territory / state hint without relying on ZIP or the word "Guam" in the string. */
+const GU_STATE_PATTERN =
+  /(?:^|[,\s])(?:GU|G\.U\.)(?:\s*,|\s+\d{5}|\s*,|\s+|$)/i;
 
 const GUAM_ZIP_PATTERN = /\b969(?:1\d|2\d|3[0-2])\b/;
 
@@ -38,6 +44,16 @@ const US_TERRITORY_PATTERNS: Array<{
   },
   {
     test: /\bguam\b/i,
+    hint: {
+      normalizedQuery: "",
+      country: "US",
+      proximity: GUAM_PROXIMITY,
+      bbox: GUAM_BBOX,
+      regionLabel: "Guam",
+    },
+  },
+  {
+    test: GU_STATE_PATTERN,
     hint: {
       normalizedQuery: "",
       country: "US",
@@ -100,7 +116,7 @@ export function detectRegionHint(address: string): RegionHint {
     }
   }
 
-  return { normalizedQuery };
+  return { normalizedQuery, country: "US" };
 }
 
 export function isWithinBbox(
@@ -229,14 +245,13 @@ export async function geocodeAddressSmart(
     throw new Error(`Could not geocode address: ${address}`);
   }
 
-  if (hint.bbox) {
-    const [lng, lat] = bestFeature.geometry.coordinates;
-    if (!isWithinBbox(lng, lat, hint.bbox)) {
-      throw new Error(
-        `Could not verify address in ${hint.regionLabel ?? "the expected region"}. ` +
-          `Try adding the city and territory (e.g. Santa Rita, Guam 96915).`,
-      );
-    }
+  const [lng, lat] = bestFeature.geometry.coordinates;
+
+  if (hint.bbox && !isWithinBbox(lng, lat, hint.bbox)) {
+    throw new Error(
+      `Could not verify address in ${hint.regionLabel ?? "the expected region"}. ` +
+        `Try adding the city and territory (e.g. Santa Rita, GU 96915).`,
+    );
   }
 
   return featureToPoint(bestFeature, hint.normalizedQuery);
@@ -248,10 +263,43 @@ export function isGuamLocation(point: GeocodedPoint): boolean {
 
 export const GUAM_BATCH_PLANT_QUERIES = [
   "Hawaiian Rock Products Mangilao Guam",
-  "Hawaiian Rock Products Route 15 Guam",
+  "Hawaiian Rock Products Route 15 Mangilao Guam",
   "Hawaiian Rock Products Agat Guam",
-  "Smithbridge Guam Yigo batch plant",
-  "Smithbridge Guam Harmon batch plant",
-  "Hanson Cement Guam Piti",
   "Hawaiian Rock Products Fadian Guam",
+  "Smithbridge Guam Yigo ready mix",
+  "Smithbridge Guam Harmon Industrial Park",
+  "Hanson Cement Guam Piti",
+  "Core Tech International Guam concrete",
+];
+
+/** Curated ready-mix / batch plants on Guam — geocoded directly when POI search fails. */
+export const GUAM_KNOWN_BATCH_PLANTS: Array<{ name: string; address: string }> = [
+  {
+    name: "Hawaiian Rock Products (Mangilao)",
+    address: "1402 Route 15, Mangilao, GU 96913, United States",
+  },
+  {
+    name: "Hawaiian Rock Products (Agat)",
+    address: "Agat, GU 96928, United States",
+  },
+  {
+    name: "Hawaiian Rock Products (Fadian)",
+    address: "Fadian, GU 96918, United States",
+  },
+  {
+    name: "Smithbridge Guam (Yigo)",
+    address: "300 Chalan Padiron Haya, Route 15, Yigo, GU 96929, United States",
+  },
+  {
+    name: "Smithbridge Guam (Harmon)",
+    address: "136 Adrian Sanchez Street, Harmon Industrial Park, GU 96913, United States",
+  },
+  {
+    name: "Hanson Cement Guam (Piti)",
+    address: "Piti, GU 96915, United States",
+  },
+  {
+    name: "Core Tech International",
+    address: "Guam",
+  },
 ];

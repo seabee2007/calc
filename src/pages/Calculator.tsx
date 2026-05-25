@@ -31,8 +31,16 @@ const CalculatorPage: React.FC = () => {
     setCurrentProject(projectId);
   };
   
-  const handleCreateProject = (data: { name: string; description: string }) => {
-    addProject(data);
+  const handleCreateProject = (data: {
+    name: string;
+    description: string;
+    jobsiteAddress?: import('../types').USAddress;
+  }) => {
+    addProject({
+      name: data.name,
+      description: data.description,
+      jobsiteAddress: data.jobsiteAddress,
+    });
     setShowCreateProjectModal(false);
   };
   

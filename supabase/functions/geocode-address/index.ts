@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { geocodeAddressSmart } from "../_shared/mapboxGeocode.ts";
+import { formatUSAddress, validateUSAddressParts } from "../_shared/usAddress.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -24,15 +25,42 @@ serve(async (req) => {
       });
     }
 
-    const { address } = await req.json();
-    if (!address || typeof address !== "string" || !address.trim()) {
-      return new Response(JSON.stringify({ error: "address is required." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const body = await req.json();
+    let query = "";
+
+    if (body?.address && typeof body.address === "string" && body.address.trim()) {
+      query = body.address.trim();
+    } else if (body?.addressParts && typeof body.addressParts === "object") {
+      const parts = body.addressParts as Record<string, string>;
+      const validationError = validateUSAddressParts({
+        street: parts.street,
+        city: parts.city,
+        state: parts.state,
+        zip: parts.zip,
       });
+      if (validationError) {
+        return new Response(JSON.stringify({ error: validationError }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      query = formatUSAddress({
+        street: parts.street,
+        street2: parts.street2,
+        city: parts.city,
+        state: parts.state,
+        zip: parts.zip,
+      });
+    } else {
+      return new Response(
+        JSON.stringify({
+          error: "Provide address (string) or addressParts (street, city, state, zip).",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    const point = await geocodeAddressSmart(address.trim(), MAPBOX_TOKEN);
+    const point = await geocodeAddressSmart(query, MAPBOX_TOKEN);
 
     return new Response(
       JSON.stringify({

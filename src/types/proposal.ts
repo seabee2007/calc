@@ -1,14 +1,20 @@
+import type { USAddress } from './address';
+
 export interface ProposalData {
   businessName: string;
   businessLogoUrl?: string;      // optional logo
+  /** Formatted line for PDF/templates (synced from businessAddressParts). */
   businessAddress?: string;
+  businessAddressParts?: USAddress;
   businessPhone?: string;        // phone number
   businessEmail?: string;        // email address
   businessLicenseNumber?: string; // license number
   businessSlogan?: string;       // company motto/slogan
   clientName: string;
   clientCompany?: string;
+  /** Formatted line for PDF/templates (synced from clientAddressParts). */
   clientAddress?: string;
+  clientAddressParts?: USAddress;
   projectTitle: string;
   date: string;                  // e.g. "June 1, 2025"
   introduction: string;          // opening paragraph

@@ -168,28 +168,63 @@ export interface GeocodedLocation {
   address: string;
 }
 
+import {
+  formatUSAddress,
+  parseLegacyUSAddress,
+  validateUSAddress,
+  type USAddress,
+} from '../types/address';
+import { verifyJobsiteAddress } from '../services/geocodeService';
+
 /**
- * Forward geocode a city, address, or zip code
+ * Forward geocode a US address via Mapbox (Supabase edge function).
+ * Accepts a formatted string or structured USAddress.
  */
-export async function geocodeAddress(query: string): Promise<GeocodedLocation | null> {
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query.trim())}`
-  );
+export async function geocodeAddress(
+  query: string | USAddress,
+): Promise<GeocodedLocation | null> {
+  try {
+    if (typeof query !== 'string') {
+      const v = validateUSAddress(query, { requireStreet: false });
+      if (!v.ok) return null;
+      const result = await verifyJobsiteAddress(query);
+      return {
+        latitude: result.latitude,
+        longitude: result.longitude,
+        address: result.formattedAddress,
+      };
+    }
 
-  if (!response.ok) {
-    throw new Error('Location search failed');
-  }
+    const trimmed = query.trim();
+    if (!trimmed) return null;
 
-  const data = await response.json();
-  if (!data?.[0]) {
+    if (trimmed.includes('|')) {
+      const parsed = parseLegacyUSAddress(trimmed);
+      const v = validateUSAddress(parsed, { requireStreet: false });
+      if (!v.ok) return null;
+      const result = await verifyJobsiteAddress(parsed);
+      return {
+        latitude: result.latitude,
+        longitude: result.longitude,
+        address: result.formattedAddress,
+      };
+    }
+
+    const result = await verifyJobsiteAddress(trimmed);
+    return {
+      latitude: result.latitude,
+      longitude: result.longitude,
+      address: result.formattedAddress,
+    };
+  } catch (error) {
+    console.warn('Geocode failed:', error);
     return null;
   }
+}
 
-  return {
-    latitude: parseFloat(data[0].lat),
-    longitude: parseFloat(data[0].lon),
-    address: data[0].display_name
-  };
+/** Build a geocode-ready query from partial US address fields. */
+export function geocodeQueryFromUSAddress(addr: Partial<USAddress>): string {
+  return formatUSAddress(addr);
 }
 
 /**

@@ -4,13 +4,26 @@ import RecommendedActions from '../RecommendedActions';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import type { ScoredPourDay } from '../../../utils/pourScoring';
 import Card from '../../ui/Card';
+import PlannerStepLocationsCard from '../PlannerStepLocationsCard';
+import PourOrderSection from '../PourOrderSection';
 
 interface StepProps {
   planner: PourPlannerContext;
   selectedDay?: ScoredPourDay;
+  canSaveToProject?: boolean;
+  onSaveOrder?: () => Promise<void>;
+  saveOrderLoading?: boolean;
+  saveOrderMessage?: string | null;
 }
 
-export const StepRiskAnalysis: React.FC<StepProps> = ({ planner, selectedDay }) => {
+export const StepRiskAnalysis: React.FC<StepProps> = ({
+  planner,
+  selectedDay,
+  canSaveToProject = false,
+  onSaveOrder,
+  saveOrderLoading,
+  saveOrderMessage,
+}) => {
   const { deliveryWindow, hotWeather, slumpRisk, production } = planner;
 
   return (
@@ -22,6 +35,7 @@ export const StepRiskAnalysis: React.FC<StepProps> = ({ planner, selectedDay }) 
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           Combined delivery, weather, slump, and crew risk for this pour plan.
         </p>
+        <PlannerStepLocationsCard form={planner.form} className="mb-4" />
         <RiskDashboard planner={planner} selectedDay={selectedDay} />
       </section>
 
@@ -50,6 +64,17 @@ export const StepRiskAnalysis: React.FC<StepProps> = ({ planner, selectedDay }) 
         limits apply unless waived. Always follow project specifications and engineer
         requirements.
       </Card>
+
+      {onSaveOrder && (
+        <PourOrderSection
+          planner={planner}
+          selectedDay={selectedDay}
+          canSaveToProject={canSaveToProject}
+          onSaveOrder={onSaveOrder}
+          saveLoading={saveOrderLoading}
+          saveMessage={saveOrderMessage}
+        />
+      )}
     </div>
   );
 };

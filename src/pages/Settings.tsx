@@ -33,6 +33,13 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { useThemeStore } from '../store/themeStore';
 import { useSettingsStore, usePreferencesStore } from '../store';
+import USAddressFields from '../components/address/USAddressFields';
+import {
+  EMPTY_US_ADDRESS,
+  formatUSAddress,
+  parseLegacyUSAddress,
+  type USAddress,
+} from '../types/address';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -56,14 +63,20 @@ const Settings: React.FC = () => {
   });
 
   // Track if local state has been initialized to prevent overwrites during typing
+  const [businessAddress, setBusinessAddress] = useState<USAddress>({ ...EMPTY_US_ADDRESS });
   const [isLocalStateInitialized, setIsLocalStateInitialized] = useState(false);
   const initializationRef = useRef(false);
   const localCompanySettingsRef = useRef(localCompanySettings);
+  const businessAddressRef = useRef(businessAddress);
 
   // Update ref whenever local state changes
   useEffect(() => {
     localCompanySettingsRef.current = localCompanySettings;
   }, [localCompanySettings]);
+
+  useEffect(() => {
+    businessAddressRef.current = businessAddress;
+  }, [businessAddress]);
 
   // Load settings and preferences on mount
   useEffect(() => {
@@ -96,8 +109,9 @@ const Settings: React.FC = () => {
         phone: companySettings.phone || '',
         email: companySettings.email || '',
         licenseNumber: companySettings.licenseNumber || '',
-        motto: companySettings.motto || ''
+        motto: companySettings.motto || '',
       });
+      setBusinessAddress(parseLegacyUSAddress(companySettings.address || ''));
       setIsLocalStateInitialized(true);
     }
   }, [companySettings, isLocalStateInitialized]);
@@ -120,11 +134,13 @@ const Settings: React.FC = () => {
           // Only auto-save if preferences are loaded and auto-save is enabled
           if (!preferencesLoading && preferences.autoSave) {
             isCurrentlySaving = true;
-            const currentSettings = localCompanySettingsRef.current;
+            const currentSettings = {
+              ...localCompanySettingsRef.current,
+              address: formatUSAddress(businessAddressRef.current),
+            };
             console.log('Auto-saving all local settings:', currentSettings);
             
             try {
-              // Save ALL current local state, not just one field
               await updateCompanySettings(currentSettings);
               console.log('Auto-save successful for all fields');
               setSaveMessage({ 
@@ -262,7 +278,10 @@ const Settings: React.FC = () => {
   // Force save function for manual save or when auto-save is disabled
   const forceSaveChanges = async () => {
     try {
-      const currentSettings = localCompanySettingsRef.current;
+      const currentSettings = {
+        ...localCompanySettingsRef.current,
+        address: formatUSAddress(businessAddressRef.current),
+      };
       console.log('🔄 Force saving all local settings:', currentSettings);
       await updateCompanySettings(currentSettings);
       console.log('✅ Force save successful');
@@ -507,13 +526,18 @@ const Settings: React.FC = () => {
             />
           </div>
 
-          <Input
-            label="Business Address"
-            value={localCompanySettings.address}
-            onChange={(e) => handleCompanyTextChange('address', e.target.value)}
-            placeholder="123 Main St, City, State 12345"
-            icon={<MapPin size={16} />}
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <MapPin size={16} />
+              Business address
+            </label>
+            <USAddressFields
+              value={businessAddress}
+              onChange={setBusinessAddress}
+              showStreet2
+              idPrefix="company"
+            />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input

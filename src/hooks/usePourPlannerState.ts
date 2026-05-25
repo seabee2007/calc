@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useProjectStore } from '../store';
 import { usePreferencesStore } from '../store';
 import {
@@ -23,6 +23,7 @@ import {
 } from '../utils/readyMixDelivery';
 import { ratingLabel } from '../utils/pourScoring';
 import type { ScoredPourDay } from '../utils/pourScoring';
+import { applyPlacementOrderToForm } from '../utils/placementOrderForm';
 
 export const POUR_PLANNER_STEPS: {
   id: PourPlannerStepId;
@@ -53,6 +54,7 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     psi: preferences.defaultPSI || '3000',
   });
   const [activeStep, setActiveStep] = useState(0);
+  const hydratedOrderProjectIdRef = useRef<string | null>(null);
 
   const setField = useCallback(
     <K extends keyof PourPlannerFormState>(key: K, value: PourPlannerFormState[K]) => {
@@ -244,6 +246,21 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     setActiveStep(Math.max(0, Math.min(index, POUR_PLANNER_STEPS.length - 1)));
 
   useEffect(() => {
+    if (!form.projectId) {
+      hydratedOrderProjectIdRef.current = null;
+      return;
+    }
+    if (hydratedOrderProjectIdRef.current === form.projectId) return;
+    hydratedOrderProjectIdRef.current = form.projectId;
+    const p = projects.find((x) => x.id === form.projectId);
+    if (!p?.placementOrder) return;
+    setForm((prev) => {
+      if (prev.projectId !== p.id) return prev;
+      return { ...prev, ...applyPlacementOrderToForm(p.placementOrder) };
+    });
+  }, [form.projectId, projects]);
+
+  useEffect(() => {
     if (deliveryPlan.volumeYd <= 0) return;
 
     const cap = deliveryPlan.planningCapacityYd;
@@ -264,10 +281,24 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
         next.numberOfTrucks = String(trucks);
       }
 
+      const manualSpacing = parseFloat(prev.truckSpacingMinutes);
+      if (
+        trucks > 1 &&
+        production.truckSpacingMinutes > 0 &&
+        (!Number.isFinite(manualSpacing) || manualSpacing <= 0)
+      ) {
+        next.truckSpacingMinutes = String(Math.round(production.truckSpacingMinutes));
+      }
+
       if (Object.keys(next).length === 0) return prev;
       return { ...prev, ...next };
     });
-  }, [deliveryPlan.volumeYd, deliveryPlan.recommendedTrucks, deliveryPlan.planningCapacityYd]);
+  }, [
+    deliveryPlan.volumeYd,
+    deliveryPlan.recommendedTrucks,
+    deliveryPlan.planningCapacityYd,
+    production.truckSpacingMinutes,
+  ]);
 
   return {
     form,

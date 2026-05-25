@@ -7,6 +7,14 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import LocationPermissionAlert from '../components/ui/LocationPermissionAlert';
 import { getWeatherByLocation, getWeatherByQuery } from '../services/weatherService';
+import USAddressFields from '../components/address/USAddressFields';
+import {
+  EMPTY_US_ADDRESS,
+  formatUSAddress,
+  isUSAddressGeocodable,
+  validateUSAddress,
+  type USAddress,
+} from '../types/address';
 import { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
 import SpecGenerator from '../components/mix/SpecGenerator';
@@ -32,7 +40,7 @@ const MixDesignAdvisor: React.FC = () => {
   const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [locationQuery, setLocationQuery] = useState('');
+  const [jobsiteAddress, setJobsiteAddress] = useState<USAddress>({ ...EMPTY_US_ADDRESS });
 
   const calculateEvaporationRate = (temp: number, humidity: number, windSpeed: number) => {
     const TcF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
@@ -194,12 +202,21 @@ const MixDesignAdvisor: React.FC = () => {
 
   const handleLocationSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const query = locationQuery.trim();
+    const validation = validateUSAddress(jobsiteAddress, {
+      requireStreet: false,
+      requireZip: false,
+    });
+    if (!validation.ok) {
+      setLocationError(validation.errors[0]);
+      return;
+    }
+
+    const query = formatUSAddress(jobsiteAddress);
     if (!query) return;
 
     await fetchWeatherForLocation(
       () => getWeatherByQuery(query),
-      'Location not found. Try a ZIP code, city name, or city and state.',
+      'Location not found. Enter city, state/territory, and ZIP.',
     );
   };
 
@@ -383,26 +400,22 @@ const MixDesignAdvisor: React.FC = () => {
                     </div>
                   )}
 
-                  <form
-                    onSubmit={handleLocationSearch}
-                    className="flex flex-col sm:flex-row gap-2 sm:items-end"
-                  >
-                    <Input
-                      label={weather ? 'Location' : 'Enter location manually'}
-                      placeholder="e.g. 97201 or Portland, OR"
-                      value={locationQuery}
-                      onChange={(e) => setLocationQuery(e.target.value)}
-                      className="flex-1"
-                      disabled={loading}
+                  <form onSubmit={handleLocationSearch} className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {weather ? 'Update location' : 'Or enter a US jobsite address'}
+                    </p>
+                    <USAddressFields
+                      value={jobsiteAddress}
+                      onChange={setJobsiteAddress}
+                      idPrefix="mix-advisor"
                     />
                     <Button
                       type="submit"
                       variant="outline"
-                      disabled={loading || !locationQuery.trim()}
+                      disabled={loading || !isUSAddressGeocodable(jobsiteAddress)}
                       icon={<Search className="h-4 w-4" />}
-                      className="sm:mb-0.5"
                     >
-                      {weather ? 'Update' : 'Search'}
+                      {weather ? 'Update weather' : 'Search weather'}
                     </Button>
                   </form>
 

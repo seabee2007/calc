@@ -1,3 +1,9 @@
+import {
+  formatUSAddress,
+  validateUSAddress,
+  type USAddress,
+} from '../types/address';
+
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -20,21 +26,50 @@ function supabaseHeaders(): HeadersInit {
 }
 
 export async function verifyJobsiteAddress(
-  address: string,
+  addressOrParts: string | USAddress,
 ): Promise<GeocodedAddressResult> {
   if (!FN_BASE || !ANON_KEY) {
     throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL or VITE_SUPABASE_ANON_KEY');
   }
 
-  const trimmed = address.trim();
-  if (!trimmed) {
-    throw new Error('Enter a street address, city, and ZIP code.');
+  let body: { address?: string; addressParts?: USAddress };
+
+  if (typeof addressOrParts === 'string') {
+    const trimmed = addressOrParts.trim();
+    if (!trimmed) {
+      throw new Error('Enter street, city, state, and ZIP code.');
+    }
+    body = { address: trimmed };
+  } else {
+    const validation = validateUSAddress(addressOrParts, {
+      requireStreet: true,
+      requireZip: false,
+    });
+    if (!validation.ok) {
+      throw new Error(validation.errors[0]);
+    }
+    const formatted = formatUSAddress(addressOrParts);
+    if (!formatted) {
+      throw new Error('Enter street, city, state/territory, and ZIP code.');
+    }
+    // Always send formatted `address` for Mapbox (works with older edge deployments too).
+    body = {
+      address: formatted,
+      addressParts: {
+        street: addressOrParts.street,
+        street2: addressOrParts.street2,
+        city: addressOrParts.city,
+        state: addressOrParts.state,
+        zip: addressOrParts.zip,
+        country: addressOrParts.country,
+      },
+    };
   }
 
   const res = await fetch(`${FN_BASE}/geocode-address`, {
     method: 'POST',
     headers: supabaseHeaders(),
-    body: JSON.stringify({ address: trimmed }),
+    body: JSON.stringify(body),
   });
 
   const data = (await res.json()) as GeocodedAddressResult | GeocodedAddressError;

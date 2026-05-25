@@ -16,6 +16,19 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { formatPrice } from '../utils/pricing';
 import { soundService } from '../services/soundService';
+import USAddressFields from '../components/address/USAddressFields';
+import {
+  EMPTY_US_ADDRESS,
+  formatUSAddress,
+  parseLegacyUSAddress,
+  type USAddress,
+} from '../types/address';
+import {
+  displayBusinessAddress,
+  displayClientAddress,
+  hydrateProposalAddresses,
+  syncProposalAddressesForSave,
+} from '../utils/proposalAddress';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
@@ -39,10 +52,12 @@ const ProposalGenerator: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
 
-  const [proposalData, setProposalData] = useState<ProposalData>({
+  const [proposalData, setProposalData] = useState<ProposalData>(() =>
+    hydrateProposalAddresses({
     businessName: companySettings.companyName || '',
     businessLogoUrl: companySettings.logo || '',
     businessAddress: companySettings.address || '',
+    businessAddressParts: parseLegacyUSAddress(companySettings.address || ''),
     businessPhone: companySettings.phone || '',
     businessEmail: companySettings.email || '',
     businessLicenseNumber: companySettings.licenseNumber || '',
@@ -50,6 +65,7 @@ const ProposalGenerator: React.FC = () => {
     clientName: '',
     clientCompany: '',
     clientAddress: '',
+    clientAddressParts: { ...EMPTY_US_ADDRESS },
     projectTitle: '',
     date: new Date().toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -67,7 +83,8 @@ const ProposalGenerator: React.FC = () => {
     terms: '',
     preparedBy: '',
     preparedByTitle: '',
-  });
+  }),
+  );
 
   // Load proposal data when editing or previewing
   useEffect(() => {
@@ -79,7 +96,7 @@ const ProposalGenerator: React.FC = () => {
         setLoading(true);
         const proposal = await ProposalService.getById(id);
         setCurrentProposal(proposal);
-        setProposalData(proposal.data);
+        setProposalData(hydrateProposalAddresses(proposal.data));
         setSelectedTemplate(proposal.template_type);
         setProposalTitle(proposal.title);
         
@@ -233,11 +250,18 @@ const ProposalGenerator: React.FC = () => {
     }
 
     // Update proposal pricing with imported data
-    setProposalData(prev => ({
-      ...prev,
-      pricing: pricingItems,
-      projectTitle: prev.projectTitle || `${project.name} Concrete Work`
-    }));
+    const clientParts = project.jobsiteAddress;
+    setProposalData((prev) =>
+      hydrateProposalAddresses({
+        ...prev,
+        pricing: pricingItems,
+        projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
+        ...(clientParts && {
+          clientAddressParts: clientParts,
+          clientAddress: formatUSAddress(clientParts),
+        }),
+      }),
+    );
 
     setShowProjectPicker(false);
     alert(`Successfully imported ${pricingItems.length} consolidated pricing items from "${project.name}"`);
@@ -246,16 +270,20 @@ const ProposalGenerator: React.FC = () => {
   // Update proposal data when company settings change (for new proposals)
   useEffect(() => {
     if (!isEditing) {
-      setProposalData(prev => ({
-        ...prev,
-        businessName: companySettings.companyName || prev.businessName,
-        businessLogoUrl: companySettings.logo || prev.businessLogoUrl,
-        businessAddress: companySettings.address || prev.businessAddress,
-        businessPhone: companySettings.phone || prev.businessPhone,
-        businessEmail: companySettings.email || prev.businessEmail,
-        businessLicenseNumber: companySettings.licenseNumber || prev.businessLicenseNumber,
-        businessSlogan: companySettings.motto || prev.businessSlogan,
-      }));
+      const businessParts = parseLegacyUSAddress(companySettings.address || '');
+      setProposalData((prev) =>
+        hydrateProposalAddresses({
+          ...prev,
+          businessName: companySettings.companyName || prev.businessName,
+          businessLogoUrl: companySettings.logo || prev.businessLogoUrl,
+          businessAddress: companySettings.address || prev.businessAddress,
+          businessAddressParts: businessParts,
+          businessPhone: companySettings.phone || prev.businessPhone,
+          businessEmail: companySettings.email || prev.businessEmail,
+          businessLicenseNumber: companySettings.licenseNumber || prev.businessLicenseNumber,
+          businessSlogan: companySettings.motto || prev.businessSlogan,
+        }),
+      );
     }
   }, [companySettings, isEditing]);
 
@@ -269,12 +297,14 @@ const ProposalGenerator: React.FC = () => {
     try {
       setSaving(true);
       
+      const dataToSave = syncProposalAddressesForSave(proposalData);
+      setProposalData(dataToSave);
+
       if (isEditing && currentProposal) {
-        // Update existing proposal
         await ProposalService.update(currentProposal.id, {
           title: proposalTitle,
           template_type: selectedTemplate,
-          data: proposalData,
+          data: dataToSave,
         });
         alert('Proposal updated successfully!');
       } else {
@@ -282,7 +312,7 @@ const ProposalGenerator: React.FC = () => {
         const savedProposal = await ProposalService.create({
           title: proposalTitle,
           template_type: selectedTemplate,
-          data: proposalData,
+          data: dataToSave,
         });
         setCurrentProposal(savedProposal);
         alert('Proposal saved successfully!');
@@ -316,6 +346,24 @@ const ProposalGenerator: React.FC = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleBusinessAddressPartsChange = (parts: USAddress) => {
+    setProposalData((prev) =>
+      hydrateProposalAddresses({
+        ...prev,
+        businessAddressParts: parts,
+      }),
+    );
+  };
+
+  const handleClientAddressPartsChange = (parts: USAddress) => {
+    setProposalData((prev) =>
+      hydrateProposalAddresses({
+        ...prev,
+        clientAddressParts: parts,
+      }),
+    );
   };
 
   const handleTimelineChange = (index: number, field: keyof ProposalData['timeline'][0], value: string) => {
@@ -720,10 +768,16 @@ ${proposalData.preparedByTitle || ''}
     const displayData: ProposalData = {
       ...proposalData,
       businessName: getDisplayValue(proposalData.businessName, 'Your Business Name'),
-      businessAddress: getDisplayValue(proposalData.businessAddress, '123 Main St, Your City, State ZIP'),
+      businessAddress: getDisplayValue(
+        displayBusinessAddress(proposalData),
+        '123 Main St, Your City, ST 12345, United States',
+      ),
       clientName: getDisplayValue(proposalData.clientName, 'Client Name'),
       clientCompany: getDisplayValue(proposalData.clientCompany, 'Client Company'),
-      clientAddress: getDisplayValue(proposalData.clientAddress, '456 Client St, Client City, State ZIP'),
+      clientAddress: getDisplayValue(
+        displayClientAddress(proposalData),
+        '456 Client St, Client City, ST 12345, United States',
+      ),
       projectTitle: getDisplayValue(proposalData.projectTitle, 'Project Title'),
       introduction: getDisplayValue(proposalData.introduction, 'Thank you for considering our concrete services for your project. We specialize in high-strength, durable mixes designed for commercial and residential applications.'),
       scope: getDisplayValue(proposalData.scope, 'Supply and place ready-mix concrete, including all forms, vapor barriers, reinforcement placement, slump testing, and finishing to ACI standards.'),
@@ -1050,14 +1104,20 @@ ${proposalData.preparedByTitle || ''}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Address</label>
-                  <input
-                    type="text"
-                    placeholder="123 Main St, Your City, State ZIP"
-                    value={proposalData.businessAddress || ''}
-                    onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Business address
+                  </label>
+                  <USAddressFields
+                    value={proposalData.businessAddressParts ?? { ...EMPTY_US_ADDRESS }}
+                    onChange={handleBusinessAddressPartsChange}
+                    showStreet2
+                    idPrefix="proposal-business"
                   />
+                  {displayBusinessAddress(proposalData) && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Formatted: {displayBusinessAddress(proposalData)}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
@@ -1135,14 +1195,24 @@ ${proposalData.preparedByTitle || ''}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Address (optional)</label>
-                  <input
-                    type="text"
-                    placeholder="456 Client St, Client City, State ZIP"
-                    value={proposalData.clientAddress || ''}
-                    onChange={(e) => handleInputChange('clientAddress', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Client address <span className="font-normal text-gray-500">(optional)</span>
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Leave blank if not needed on the proposal. When entered, use street, city, and
+                    state/territory (ZIP optional).
+                  </p>
+                  <USAddressFields
+                    value={proposalData.clientAddressParts ?? { ...EMPTY_US_ADDRESS }}
+                    onChange={handleClientAddressPartsChange}
+                    showStreet2
+                    idPrefix="proposal-client"
                   />
+                  {displayClientAddress(proposalData) && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Formatted: {displayClientAddress(proposalData)}
+                    </p>
+                  )}
                 </div>
               </div>
             </motion.div>

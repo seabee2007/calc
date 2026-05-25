@@ -1,20 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Factory, Loader2, MapPin } from 'lucide-react';
 import Input from '../../ui/Input';
 import Select from '../../ui/Select';
 import Button from '../../ui/Button';
+import USAddressFields from '../../address/USAddressFields';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import { findBatchPlant, BatchPlantNotFoundError } from '../../../services/batchPlantService';
 import { getMapboxTravelTime } from '../../../services/mapboxTravelService';
 import { verifyJobsiteAddress } from '../../../services/geocodeService';
 import type { BatchPlantResult } from '../../../services/batchPlantService';
 import type { GeocodedAddressResult } from '../../../services/geocodeService';
+import {
+  formatUSAddress,
+  isUSAddressGeocodable,
+  normalizeUSAddressInput,
+  parseLegacyUSAddress,
+  validateUSAddress,
+} from '../../../types/address';
+import {
+  applyUSAddressToPourPlanner,
+  jobsiteFromPourPlannerForm,
+} from '../../../utils/addressForm';
 
 interface StepProps {
   planner: PourPlannerContext;
 }
 
 const CUSTOM_PROJECT_VALUE = '__custom__';
+
+function applyJobsiteFields(
+  setField: PourPlannerContext['setField'],
+  patch: ReturnType<typeof applyUSAddressToPourPlanner>,
+) {
+  (Object.entries(patch) as [keyof typeof patch, string][]).forEach(([key, value]) => {
+    if (value !== undefined) setField(key as keyof PourPlannerContext['form'], value);
+  });
+}
 
 export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
   const { form, setField, projects, preferences, calculation } = planner;
@@ -31,6 +52,23 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifiedJobsite, setVerifiedJobsite] = useState<GeocodedAddressResult | null>(null);
 
+  const jobsiteAddr = jobsiteFromPourPlannerForm(form);
+  const hasJobsiteAddress = isUSAddressGeocodable(jobsiteAddr);
+  const jobsiteReady = Boolean(verifiedJobsite);
+  const projectHasAddress = Boolean(
+    selectedProject?.jobsiteAddress &&
+      isUSAddressGeocodable(selectedProject.jobsiteAddress),
+  );
+
+  useEffect(() => {
+    if (form.jobsiteCity || form.jobsiteState) return;
+    if (!form.jobsiteAddress.trim()) return;
+    const parsed = parseLegacyUSAddress(form.jobsiteAddress);
+    if (parsed.city || parsed.state || parsed.street) {
+      applyJobsiteFields(setField, applyUSAddressToPourPlanner({}, parsed));
+    }
+  }, []);
+
   const volumeLabel =
     preferences.volumeUnit === 'cubic_yards'
       ? 'yd³'
@@ -38,15 +76,32 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
         ? 'ft³'
         : 'm³';
 
-  const hasJobsiteAddress = form.jobsiteAddress.trim().length > 0;
-  const jobsiteReady = Boolean(verifiedJobsite);
-
   const clearLocationState = () => {
     setFoundPlant(null);
     setFindPlantError(null);
     setRouteError(null);
     setVerifiedJobsite(null);
     setVerifyError(null);
+    setField('jobsiteAddress', '');
+    setField('jobsiteLatitude', '');
+    setField('jobsiteLongitude', '');
+    setField('batchPlantName', '');
+    setField('batchPlantLatitude', '');
+    setField('batchPlantLongitude', '');
+  };
+
+  const handleJobsiteAddressChange = (next: typeof jobsiteAddr) => {
+    applyJobsiteFields(setField, applyUSAddressToPourPlanner({}, next));
+    clearLocationState();
+  };
+
+  const handleUseProjectAddress = () => {
+    if (!selectedProject?.jobsiteAddress) return;
+    applyJobsiteFields(
+      setField,
+      applyUSAddressToPourPlanner({}, selectedProject.jobsiteAddress),
+    );
+    clearLocationState();
   };
 
   const handleProjectChange = (value: string) => {
@@ -68,6 +123,13 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
     setField('calculationId', '');
     if (project) {
       setField('projectName', project.name);
+      if (project.jobsiteAddress && isUSAddressGeocodable(project.jobsiteAddress)) {
+        applyJobsiteFields(
+          setField,
+          applyUSAddressToPourPlanner({}, project.jobsiteAddress),
+        );
+        clearLocationState();
+      }
     }
   };
 
@@ -76,6 +138,27 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
     : form.projectName.trim()
       ? CUSTOM_PROJECT_VALUE
       : '';
+
+  const resolveVerifiedJobsite = async (): Promise<GeocodedAddressResult> => {
+    const normalized = normalizeUSAddressInput(jobsiteAddr);
+    if (
+      normalized.street !== jobsiteAddr.street ||
+      normalized.city !== jobsiteAddr.city ||
+      normalized.state !== jobsiteAddr.state ||
+      normalized.zip !== jobsiteAddr.zip
+    ) {
+      applyJobsiteFields(setField, applyUSAddressToPourPlanner({}, normalized));
+    }
+
+    const validation = validateUSAddress(normalized, {
+      requireStreet: true,
+      requireZip: false,
+    });
+    if (!validation.ok) {
+      throw new Error(validation.errors.join(' '));
+    }
+    return verifyJobsiteAddress(normalized);
+  };
 
   const handleVerifyJobsite = async () => {
     if (!hasJobsiteAddress) return;
@@ -88,9 +171,11 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
     setRouteError(null);
 
     try {
-      const verified = await verifyJobsiteAddress(form.jobsiteAddress);
+      const verified = await resolveVerifiedJobsite();
       setVerifiedJobsite(verified);
       setField('jobsiteAddress', verified.formattedAddress);
+      setField('jobsiteLatitude', String(verified.latitude));
+      setField('jobsiteLongitude', String(verified.longitude));
     } catch (err) {
       setVerifyError(
         err instanceof Error ? err.message : 'Could not verify jobsite address.',
@@ -111,9 +196,11 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
     try {
       let jobsite = verifiedJobsite;
       if (!jobsite) {
-        jobsite = await verifyJobsiteAddress(form.jobsiteAddress);
+        jobsite = await resolveVerifiedJobsite();
         setVerifiedJobsite(jobsite);
         setField('jobsiteAddress', jobsite.formattedAddress);
+        setField('jobsiteLatitude', String(jobsite.latitude));
+        setField('jobsiteLongitude', String(jobsite.longitude));
       }
 
       const plant = await findBatchPlant(jobsite.formattedAddress, {
@@ -121,13 +208,20 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
         longitude: jobsite.longitude,
       });
       setFoundPlant(plant);
+      setField('batchPlantName', plant.plantName);
       setField('batchPlantAddress', plant.formattedAddress);
+      setField('batchPlantLatitude', String(plant.latitude));
+      setField('batchPlantLongitude', String(plant.longitude));
 
       setTravelLoading(true);
       try {
         const route = await getMapboxTravelTime(
           plant.formattedAddress,
           jobsite.formattedAddress,
+          {
+            plant: { latitude: plant.latitude, longitude: plant.longitude },
+            jobsite: { latitude: jobsite.latitude, longitude: jobsite.longitude },
+          },
         );
         setField('travelDistance', String(route.distanceMiles));
         setField('travelTimeMinutes', String(route.travelMinutes));
@@ -157,6 +251,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
   };
 
   const isSearching = findPlantLoading || travelLoading;
+  const formattedPreview = formatUSAddress(jobsiteAddr);
 
   return (
     <div>
@@ -239,27 +334,39 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
           />
 
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-gray-300">
-              Jobsite address
-            </label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1">
-                <Input
-                  value={form.jobsiteAddress}
-                  onChange={(e) => {
-                    setField('jobsiteAddress', e.target.value);
-                    clearLocationState();
-                  }}
-                  placeholder="119 Grand Rock Rd, Santa Rita, GU 96915"
-                  fullWidth
-                />
-              </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300">
+                Jobsite address
+              </label>
+              {usingSavedProject && projectHasAddress && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUseProjectAddress}
+                  className="whitespace-nowrap self-start sm:self-auto"
+                >
+                  Use project address
+                </Button>
+              )}
+            </div>
+            <USAddressFields
+              value={jobsiteAddr}
+              onChange={handleJobsiteAddressChange}
+              idPrefix="pour-jobsite"
+            />
+            {formattedPreview && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Formatted: {formattedPreview}
+              </p>
+            )}
+            <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleVerifyJobsite}
                 disabled={!hasJobsiteAddress || verifyLoading || isSearching}
-                className="sm:self-end whitespace-nowrap"
+                className="whitespace-nowrap"
                 icon={
                   verifyLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -272,7 +379,8 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
               </Button>
             </div>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Include street, city, and ZIP. For Guam use GU or Guam (e.g. Santa Rita, GU 96915).
+              Street, city, and state/territory are required for verify and batch plant search. ZIP
+              is optional but improves accuracy. US and territories only.
             </p>
             {verifyError && (
               <div className="mt-2 p-3 rounded-md bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm flex gap-2">
@@ -298,11 +406,14 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
                   value={form.batchPlantAddress}
                   onChange={(e) => {
                     setField('batchPlantAddress', e.target.value);
+                    setField('batchPlantName', '');
+                    setField('batchPlantLatitude', '');
+                    setField('batchPlantLongitude', '');
                     setFoundPlant(null);
                     setFindPlantError(null);
                     setRouteError(null);
                   }}
-                  placeholder="Ready-mix plant"
+                  placeholder="Ready-mix plant (from search or manual entry)"
                   fullWidth
                 />
               </div>
@@ -329,7 +440,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
             </div>
             {!hasJobsiteAddress && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Enter and verify the jobsite address first to search for nearby batch plants.
+                Complete and verify the jobsite address to search for nearby batch plants.
               </p>
             )}
             {findPlantError && (

@@ -14,10 +14,13 @@ import {
   Calculation,
   QCRecord,
   QCChecklist,
-  ReinforcementSet
+  ReinforcementSet,
+  USAddress,
 } from '../types';
+import { EMPTY_US_ADDRESS } from '../types/address';
 import { MixProfileType } from '../types/curing';
 import type { TruckTicketFormState } from '../types/concreteTruckTicket';
+import type { PlacementOrder } from '../types/placementOrder';
 import {
   mapTruckTicketFromDb,
   mergeTruckTicketsForProject,
@@ -25,6 +28,28 @@ import {
 import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
 
 const PROJECT_SELECT = `
+  id, name, description,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  truck_tickets(*),
+  reinforcement_sets(*, cut_list_items(*))
+`;
+
+const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
+  id, name, description,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  truck_tickets(*),
+  reinforcement_sets(*, cut_list_items(*))
+`;
+
+const PROJECT_SELECT_NO_JOBSITE = `
   id, name, description,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile,
@@ -43,26 +68,188 @@ const PROJECT_SELECT_LEGACY = `
   reinforcement_sets(*, cut_list_items(*))
 `;
 
+/** null = unknown, false = migration not applied yet */
+let projectJobsiteColumnsAvailable: boolean | null = null;
+
+function isJobsiteColumnError(message: string): boolean {
+  return (
+    message.includes('jobsite_street') ||
+    message.includes('jobsite_city') ||
+    message.includes('jobsite_state') ||
+    message.includes('jobsite_zip')
+  );
+}
+
+function isTruckTicketsSchemaError(message: string): boolean {
+  return message.includes('truck_tickets') || message.includes('schema cache');
+}
+
+function isPlacementOrderColumnError(message: string): boolean {
+  return message.includes('placement_order');
+}
+
+function parsePlacementOrder(raw: unknown): PlacementOrder | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const o = raw as PlacementOrder;
+  if (!o.status || !o.contact) return undefined;
+  return o;
+}
+
 async function fetchProjectRows() {
-  const primary = await supabase
-    .from('projects')
-    .select(PROJECT_SELECT)
-    .order('created_at', { ascending: false });
+  const selects = [
+    PROJECT_SELECT,
+    PROJECT_SELECT_NO_PLACEMENT_ORDER,
+    PROJECT_SELECT_NO_JOBSITE,
+    PROJECT_SELECT_LEGACY,
+  ];
 
-  if (!primary.error) return primary;
-
-  const msg = primary.error.message ?? '';
-  if (msg.includes('truck_tickets') || msg.includes('schema cache')) {
-    console.warn(
-      'truck_tickets table missing — run Supabase migration 20250525120000_truck_tickets.sql',
-    );
-    return supabase
+  for (let i = 0; i < selects.length; i++) {
+    const result = await supabase
       .from('projects')
-      .select(PROJECT_SELECT_LEGACY)
+      .select(selects[i])
       .order('created_at', { ascending: false });
+
+    if (!result.error) {
+      if (selects[i] === PROJECT_SELECT) {
+        projectJobsiteColumnsAvailable = true;
+      } else if (selects[i] === PROJECT_SELECT_NO_JOBSITE) {
+        projectJobsiteColumnsAvailable = false;
+        console.warn(
+          'Project jobsite address columns missing — run Supabase migration 20250525130000_project_jobsite_address.sql',
+        );
+      } else if (selects[i] === PROJECT_SELECT_NO_PLACEMENT_ORDER) {
+        console.warn(
+          'Project placement_order column missing — run migration 20250525140000_project_placement_order.sql',
+        );
+      }
+      return result;
+    }
+
+    const msg = result.error.message ?? '';
+    if (
+      isJobsiteColumnError(msg) ||
+      isTruckTicketsSchemaError(msg) ||
+      isPlacementOrderColumnError(msg)
+    ) {
+      continue;
+    }
+    return result;
   }
 
-  return primary;
+  return supabase
+    .from('projects')
+    .select(PROJECT_SELECT_LEGACY)
+    .order('created_at', { ascending: false });
+}
+
+function selectAfterProjectWrite(): string {
+  if (projectJobsiteColumnsAvailable === false) {
+    return PROJECT_SELECT_NO_JOBSITE;
+  }
+  return PROJECT_SELECT;
+}
+
+async function insertProjectRow(payload: Record<string, unknown>) {
+  const select = selectAfterProjectWrite();
+  let result = await supabase.from('projects').insert(payload).select(select).single();
+
+  if (result.error && isJobsiteColumnError(result.error.message ?? '')) {
+    projectJobsiteColumnsAvailable = false;
+    const {
+      jobsite_street: _s,
+      jobsite_street2: _s2,
+      jobsite_city: _c,
+      jobsite_state: _st,
+      jobsite_zip: _z,
+      ...withoutJobsite
+    } = payload;
+    console.warn(
+      'Saved project without jobsite columns — apply migration 20250525130000_project_jobsite_address.sql to persist addresses.',
+    );
+    result = await supabase
+      .from('projects')
+      .insert(withoutJobsite)
+      .select(PROJECT_SELECT_NO_JOBSITE)
+      .single();
+  }
+
+  return result;
+}
+
+async function updateProjectRow(
+  projectId: string,
+  payload: Record<string, unknown>,
+) {
+  const select = selectAfterProjectWrite();
+  let result = await supabase
+    .from('projects')
+    .update(payload)
+    .eq('id', projectId)
+    .select(select)
+    .single();
+
+  if (result.error && isJobsiteColumnError(result.error.message ?? '')) {
+    projectJobsiteColumnsAvailable = false;
+    const {
+      jobsite_street: _s,
+      jobsite_street2: _s2,
+      jobsite_city: _c,
+      jobsite_state: _st,
+      jobsite_zip: _z,
+      ...withoutJobsite
+    } = payload;
+    result = await supabase
+      .from('projects')
+      .update(withoutJobsite)
+      .eq('id', projectId)
+      .select(PROJECT_SELECT_NO_JOBSITE)
+      .single();
+  }
+
+  if (result.error && isPlacementOrderColumnError(result.error.message ?? '')) {
+    const { placement_order: _po, ...withoutOrder } = payload;
+    console.warn(
+      'Saved project without placement_order — apply migration 20250525140000_project_placement_order.sql',
+    );
+    result = await supabase
+      .from('projects')
+      .update(withoutOrder)
+      .eq('id', projectId)
+      .select(PROJECT_SELECT_NO_PLACEMENT_ORDER)
+      .single();
+  }
+
+  return result;
+}
+
+function mapJobsiteFromRow(row: {
+  jobsite_street?: string | null;
+  jobsite_street2?: string | null;
+  jobsite_city?: string | null;
+  jobsite_state?: string | null;
+  jobsite_zip?: string | null;
+}): USAddress | undefined {
+  const addr: USAddress = {
+    ...EMPTY_US_ADDRESS,
+    street: row.jobsite_street?.trim() ?? '',
+    street2: row.jobsite_street2?.trim() ?? '',
+    city: row.jobsite_city?.trim() ?? '',
+    state: row.jobsite_state?.trim() ?? '',
+    zip: row.jobsite_zip?.trim() ?? '',
+  };
+  if (!addr.city && !addr.state && !addr.zip && !addr.street) return undefined;
+  return addr;
+}
+
+function jobsitePayload(addr?: USAddress) {
+  if (!addr) return {};
+  return {
+    jobsite_street: addr.street?.trim() ?? '',
+    jobsite_street2: addr.street2?.trim() ?? '',
+    jobsite_city: addr.city?.trim() ?? '',
+    jobsite_state: addr.state?.trim() ?? '',
+    jobsite_zip: addr.zip?.trim() ?? '',
+  };
 }
 
 function mapProjectFromRow(row: any): Project {
@@ -72,10 +259,12 @@ function mapProjectFromRow(row: any): Project {
     id: row.id,
     name: row.name,
     description: row.description,
+    jobsiteAddress: mapJobsiteFromRow(row),
     wasteFactor: row.waste_factor,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     pourDate: row.pour_date,
+    placementOrder: parsePlacementOrder(row.placement_order),
     mixProfile: (row.mix_profile as MixProfileType) || 'standard',
     calculations: (row.calculations || []).map(mapCalculationFromDb),
     reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
@@ -344,19 +533,16 @@ export const useProjectStore = create<ProjectState>((set) => ({
       throw new Error('User not authenticated');
     }
   
-    const { data, error } = await supabase
-      .from('projects')
-      .insert({
-        user_id: user.id,
-        name: project.name,
-        description: project.description || '',
-        waste_factor: project.wasteFactor ?? 10,
-        pour_date: project.pourDate ?? null,
-        mix_profile: 'standard',
-      })
-      .select(PROJECT_SELECT)
-      .single();
-  
+    const { data, error } = await insertProjectRow({
+      user_id: user.id,
+      name: project.name,
+      description: project.description || '',
+      ...jobsitePayload(project.jobsiteAddress),
+      waste_factor: project.wasteFactor ?? 10,
+      pour_date: project.pourDate ?? null,
+      mix_profile: 'standard',
+    });
+
     if (error) throw error;
   
     const newProj = mapProjectFromRow(data);
@@ -370,17 +556,18 @@ export const useProjectStore = create<ProjectState>((set) => ({
   updateProject: async (projectId, projectData) => {
     const payload: any = { updated_at: new Date().toISOString() };
     if (projectData.name)        payload.name        = projectData.name;
-    if (projectData.description) payload.description = projectData.description;
+    if (projectData.description !== undefined) payload.description = projectData.description;
     if (projectData.wasteFactor) payload.waste_factor = projectData.wasteFactor;
     if (projectData.pourDate)    payload.pour_date    = projectData.pourDate;
     if (projectData.mixProfile)  payload.mix_profile  = projectData.mixProfile;
+    if (projectData.placementOrder !== undefined) {
+      payload.placement_order = projectData.placementOrder;
+    }
+    if (projectData.jobsiteAddress !== undefined) {
+      Object.assign(payload, jobsitePayload(projectData.jobsiteAddress));
+    }
 
-    const { data, error } = await supabase
-      .from('projects')
-      .update(payload)
-      .eq('id', projectId)
-      .select(PROJECT_SELECT)
-      .single();
+    const { data, error } = await updateProjectRow(projectId, payload);
     if (error) throw error;
 
     const updated = mapProjectFromRow(data);

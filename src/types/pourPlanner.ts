@@ -5,6 +5,8 @@ export type ComplexityLevel = 'open_slab' | 'heavy_rebar' | 'curbs_edges' | 'tig
 export type AccessFactorKey = 'chute' | 'pump' | 'buggy' | 'wheelbarrow' | 'conveyor' | 'bucket';
 export type WeatherFactorKey = 'normal' | 'hot' | 'cold' | 'rain';
 
+import type { PlacementOrderStatus } from './placementOrder';
+
 export type PourPlannerStepId =
   | 'project'
   | 'mix'
@@ -15,8 +17,19 @@ export type PourPlannerStepId =
 
 export interface PourPlannerFormState {
   projectName: string;
+  jobsiteStreet: string;
+  jobsiteStreet2: string;
+  jobsiteCity: string;
+  jobsiteState: string;
+  jobsiteZip: string;
+  /** Mapbox-verified single line used for routing / batch plant lookup */
   jobsiteAddress: string;
+  jobsiteLatitude: string;
+  jobsiteLongitude: string;
+  batchPlantName: string;
   batchPlantAddress: string;
+  batchPlantLatitude: string;
+  batchPlantLongitude: string;
   pourStartTime: string;
   placementMethod: PlacementMethod;
 
@@ -80,12 +93,31 @@ export interface PourPlannerFormState {
   burdenedHourlyRate: string;
   setupHours: string;
   cleanupHours: string;
+
+  /** Step 6 — batch plant contact & order tracking */
+  batchPlantPhone: string;
+  batchPlantEmail: string;
+  batchPlantDispatchContact: string;
+  batchPlantWebsite: string;
+  batchPlantContactSource: 'manual' | 'ai' | '';
+  orderStatus: PlacementOrderStatus | '';
+  orderNotes: string;
 }
 
 export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   projectName: '',
+  jobsiteStreet: '',
+  jobsiteStreet2: '',
+  jobsiteCity: '',
+  jobsiteState: '',
+  jobsiteZip: '',
   jobsiteAddress: '',
+  jobsiteLatitude: '',
+  jobsiteLongitude: '',
+  batchPlantName: '',
   batchPlantAddress: '',
+  batchPlantLatitude: '',
+  batchPlantLongitude: '',
   pourStartTime: '07:00',
   placementMethod: '',
 
@@ -149,4 +181,12 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   burdenedHourlyRate: '60',
   setupHours: '2',
   cleanupHours: '2',
+
+  batchPlantPhone: '',
+  batchPlantEmail: '',
+  batchPlantDispatchContact: '',
+  batchPlantWebsite: '',
+  batchPlantContactSource: '',
+  orderStatus: '',
+  orderNotes: '',
 };
