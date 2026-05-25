@@ -24,59 +24,83 @@ interface DispatchTrackerPanelProps {
   trucks: DispatchTruckRow[];
   batchPlantName?: string;
   deliveryLabel: string;
+  hasPlacementsToday: boolean;
 }
+
+const NO_PLACEMENTS_MSG =
+  'No placements scheduled for today. Truck dispatch appears here when a project has today\'s pour date and a saved placement order.';
 
 const DispatchTrackerPanel: React.FC<DispatchTrackerPanelProps> = ({
   trucks,
   batchPlantName,
   deliveryLabel,
-}) => (
-  <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <Truck className="h-5 w-5 text-blue-400" />
-        <h3 className="font-semibold">Ready-mix dispatch</h3>
+  hasPlacementsToday,
+}) => {
+  const showDispatch = hasPlacementsToday && trucks.length > 0;
+
+  return (
+    <Card className="p-5 bg-slate-900/95 border border-slate-700 text-white">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Truck className="h-5 w-5 text-blue-400" />
+          <h3 className="font-semibold">Ready-mix dispatch</h3>
+        </div>
+        <Link to="/pour-planner" className="text-xs text-cyan-400 hover:underline">
+          Order / plan →
+        </Link>
       </div>
-      <Link to="/pour-planner" className="text-xs text-cyan-400 hover:underline">
-        Order / plan →
-      </Link>
-    </div>
-    {batchPlantName && (
-      <p className="text-sm text-slate-400 mb-3">
-        Plant: <span className="text-slate-200">{batchPlantName}</span>
-      </p>
-    )}
-    <p className="text-xs text-slate-500 mb-3">{deliveryLabel}</p>
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-slate-500 border-b border-slate-700">
-            <th className="pb-2 pr-4">Truck</th>
-            <th className="pb-2 pr-4">Status</th>
-            <th className="pb-2">ETA / time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trucks.map((row) => (
-            <tr key={row.id} className="border-b border-slate-800/80">
-              <td className="py-2.5 pr-4 font-mono">{row.truckNumber}</td>
-              <td className="py-2.5 pr-4">
-                <span
-                  className={`inline-block px-2 py-0.5 rounded text-xs font-medium text-white ${statusClass[row.status]}`}
-                >
-                  {statusLabel[row.status]}
-                </span>
-              </td>
-              <td className="py-2.5 text-slate-300">{row.etaLabel}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <p className="text-xs text-slate-500 mt-3">
-      Live truck GPS requires plant integration — schedule shown from saved call sheet.
-    </p>
-  </Card>
-);
+      {!hasPlacementsToday ? (
+        <p className="text-sm text-slate-400">{NO_PLACEMENTS_MSG}</p>
+      ) : (
+        <>
+          {batchPlantName && (
+            <p className="text-sm text-slate-400 mb-3">
+              Plant: <span className="text-slate-200">{batchPlantName}</span>
+            </p>
+          )}
+          <p className="text-xs text-slate-500 mb-3">{deliveryLabel}</p>
+          {showDispatch ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-slate-500 border-b border-slate-700">
+                    <th className="pb-2 pr-4">Truck</th>
+                    <th className="pb-2 pr-4">Status</th>
+                    <th className="pb-2">ETA / time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trucks.map((row) => (
+                    <tr key={row.id} className="border-b border-slate-800/80">
+                      <td className="py-2.5 pr-4 font-mono">{row.truckNumber}</td>
+                      <td className="py-2.5 pr-4">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-medium text-white ${statusClass[row.status]}`}
+                        >
+                          {statusLabel[row.status]}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-slate-300">{row.etaLabel}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">
+              Placement is today — save the order call sheet in Placement Planner to show truck
+              intervals.
+            </p>
+          )}
+          {showDispatch && (
+            <p className="text-xs text-slate-500 mt-3">
+              Schedule from saved call sheet. Live truck GPS requires plant integration.
+            </p>
+          )}
+        </>
+      )}
+    </Card>
+  );
+};
 
 export default DispatchTrackerPanel;

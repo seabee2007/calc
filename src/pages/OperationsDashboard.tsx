@@ -50,7 +50,8 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
     [projects],
   );
 
-  const primaryPour = snapshot.todayPours[0] ?? snapshot.projects[0];
+  const primaryPourToday = snapshot.todayPours[0];
+  const hasPlacementsToday = snapshot.hasPlacementsToday;
   const totalQcRecords = projects.reduce(
     (s, p) => s + (p.qcRecords?.length ?? 0),
     0,
@@ -73,25 +74,24 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
     <div className="space-y-6 pb-24 md:pb-8">
       <header className="rounded-xl border border-slate-700/80 bg-slate-950/90 p-6 text-white shadow-xl">
         <p className="text-xs uppercase tracking-[0.2em] text-cyan-400 mb-2">
-          Mission control
-        </p>
+          
+                  </p>
         <h1 className="text-2xl sm:text-3xl font-bold">
-          Concrete field operations
+          Your Dashboard
         </h1>
         <p className="text-slate-400 mt-2 max-w-2xl text-sm sm:text-base">
-          Pours, weather risk, dispatch, QC, and project readiness — not just volume math.
+          View Upcoming tasks
         </p>
         <div className="flex flex-wrap gap-2 mt-4">
-          <Button size="sm" onClick={() => navigate('/pour-planner')}>
+          <Button size="sm" variant="outline" className="border-slate-600 text-white hover:bg-slate-800" onClick={() => navigate('/pour-planner')}>
             Placement planner
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => navigate('/calculator')}
-            className="border-slate-600 text-white hover:bg-slate-800"
-          >
-            Calculators
+            className="border-slate-600 text-white hover:bg-slate-800">
+            Calculator
           </Button>
         </div>
       </header>
@@ -126,7 +126,7 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           <OpsStatCard
-            label="Today's pours"
+            label="Today's placements"
             value={String(snapshot.todayPourCount)}
             sub={
               snapshot.upcomingPourCount > 0
@@ -183,7 +183,8 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <PourTimelinePanel
               events={snapshot.timeline}
-              projectName={primaryPour?.name}
+              projectName={primaryPourToday?.name}
+              hasPlacementsToday={hasPlacementsToday}
             />
             <PlacementRiskPanel snapshot={snapshot} />
           </div>
@@ -192,8 +193,9 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
             <ActiveProjectsPanel projects={snapshot.projects} />
             <DispatchTrackerPanel
               trucks={snapshot.dispatchTrucks}
-              batchPlantName={primaryPour?.batchPlantName}
+              batchPlantName={primaryPourToday?.batchPlantName}
               deliveryLabel={snapshot.deliveryStatusLabel}
+              hasPlacementsToday={hasPlacementsToday}
             />
           </div>
 
@@ -226,12 +228,14 @@ const OperationsDashboard: React.FC<OperationsDashboardProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <DispatchTrackerPanel
             trucks={snapshot.dispatchTrucks}
-            batchPlantName={primaryPour?.batchPlantName}
+            batchPlantName={primaryPourToday?.batchPlantName}
             deliveryLabel={snapshot.deliveryStatusLabel}
+            hasPlacementsToday={hasPlacementsToday}
           />
           <PourTimelinePanel
             events={snapshot.timeline}
-            projectName={primaryPour?.name}
+            projectName={primaryPourToday?.name}
+            hasPlacementsToday={hasPlacementsToday}
           />
           <div className="lg:col-span-2">
             <ActiveProjectsPanel

@@ -57,6 +57,8 @@ export interface OperationsSnapshot {
   globalReadiness: number;
   projects: DashboardProjectCard[];
   todayPours: DashboardProjectCard[];
+  /** True when at least one project has a pour date of today */
+  hasPlacementsToday: boolean;
   timeline: TimelineEvent[];
   dispatchTrucks: DispatchTruckRow[];
   heatRisk: OpsRiskLevel;
@@ -411,17 +413,20 @@ export function buildOperationsSnapshot(
     return d && d > today && d.getTime() - today.getTime() < 14 * 86400000;
   });
 
-  const primary =
-    todayPours[0] ??
-    cards.find((c) => c.orderStatus === 'scheduled' || c.orderStatus === 'ordered') ??
-    cards[0];
+  const hasPlacementsToday = todayPours.length > 0;
+  const todayPrimary = todayPours[0];
+  const todayPrimaryProject = todayPrimary
+    ? projects.find((p) => p.id === todayPrimary.id)
+    : undefined;
+  const todayOrder = todayPrimaryProject?.placementOrder;
+  const todayPourDate = parsePourDate(todayPrimary?.pourDateIso);
 
-  const primaryProject = projects.find((p) => p.id === primary?.id);
-  const primaryOrder = primaryProject?.placementOrder;
-  const primaryPour = parsePourDate(primary?.pourDateIso);
-
-  const timeline = buildPourTimeline(primaryOrder, primaryPour, now);
-  const dispatchTrucks = buildDispatchTrucks(primaryOrder, primaryPour, now);
+  const timeline = hasPlacementsToday
+    ? buildPourTimeline(todayOrder, todayPourDate, now)
+    : [];
+  const dispatchTrucks = hasPlacementsToday
+    ? buildDispatchTrucks(todayOrder, todayPourDate, now)
+    : [];
 
   const totalCy = todayPours.reduce((s, p) => s + p.volumeYd, 0);
   const qcTestsDue = projects.reduce(
@@ -433,10 +438,12 @@ export function buildOperationsSnapshot(
     (c) => c.orderStatus === 'scheduled' || c.orderStatus === 'ordered',
   ).length;
 
-  const pumpScheduledToday = Boolean(
-    primaryOrder?.summaryLines?.some((l) => /Pump Required:\s*Yes/i.test(l)) ||
-      primaryOrder?.callSheet?.pumpCompany,
-  );
+  const pumpScheduledToday =
+    hasPlacementsToday &&
+    Boolean(
+      todayOrder?.summaryLines?.some((l) => /Pump Required:\s*Yes/i.test(l)) ||
+        todayOrder?.callSheet?.pumpCompany,
+    );
 
   const heatRisk: OpsRiskLevel =
     totalCy > 80 ? 'high' : totalCy > 40 ? 'moderate' : 'low';
@@ -462,7 +469,9 @@ export function buildOperationsSnapshot(
         )
       : 0;
 
-  const nextTruck = dispatchTrucks.find((t) => t.status !== 'scheduled');
+  const nextTruck = hasPlacementsToday
+    ? dispatchTrucks.find((t) => t.status !== 'scheduled')
+    : undefined;
 
   return {
     todayPourCount: todayPours.length,
@@ -472,13 +481,17 @@ export function buildOperationsSnapshot(
     weatherRisk,
     weatherRiskLabel: weatherRisk.toUpperCase(),
     qcTestsDue,
-    deliveryStatusLabel:
-      scheduledOrders > 0 ? `${scheduledOrders} ORDERED` : 'NO ACTIVE ORDERS',
+    deliveryStatusLabel: hasPlacementsToday
+      ? scheduledOrders > 0
+        ? `${scheduledOrders} ORDERED`
+        : 'PLACEMENT TODAY — ORDER PENDING'
+      : 'NO PLACEMENTS TODAY',
     pumpScheduledToday,
-    nextTruckEtaLabel: nextTruck?.etaLabel ?? '—',
+    nextTruckEtaLabel: hasPlacementsToday ? (nextTruck?.etaLabel ?? '—') : '—',
     globalReadiness,
     projects: cards.sort((a, b) => b.readinessScore - a.readinessScore),
     todayPours,
+    hasPlacementsToday,
     timeline,
     dispatchTrucks,
     heatRisk,

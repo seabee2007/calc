@@ -12,7 +12,7 @@ const MarketingHome: React.FC = () => {
     {
       title: 'Operations dashboard',
       description:
-        'Mission control for pours, dispatch, weather risk, QC, and readiness scores',
+        'Dashboard for placements, dispatch, weather risk, QC, and readiness scores',
       icon: <LayoutDashboard className="h-10 w-10 text-white" />,
       action: () => navigate('/signup'),
       gradient: 'from-slate-700 to-slate-900',
