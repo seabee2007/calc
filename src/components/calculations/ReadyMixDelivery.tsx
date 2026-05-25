@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Truck, Clock, AlertTriangle } from 'lucide-react';
 import Select from '../ui/Select';
 import {
@@ -12,13 +12,19 @@ import { VolumeUnit } from '../../types';
 interface ReadyMixDeliveryProps {
   volume: number;
   volumeUnit: VolumeUnit;
+  defaultTruckTypeId?: string;
 }
 
 const ReadyMixDelivery: React.FC<ReadyMixDeliveryProps> = ({
   volume,
   volumeUnit,
+  defaultTruckTypeId = 'standard_rear',
 }) => {
-  const [truckTypeId, setTruckTypeId] = useState('standard_rear');
+  const [truckTypeId, setTruckTypeId] = useState(defaultTruckTypeId);
+
+  useEffect(() => {
+    setTruckTypeId(defaultTruckTypeId);
+  }, [defaultTruckTypeId]);
 
   const plan = useMemo(
     () => calculateReadyMixDelivery(volume, volumeUnit, truckTypeId),

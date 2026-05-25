@@ -1,6 +1,10 @@
+import { recommendedTruckCount } from './readyMixDelivery';
+
 export const ASTM_C94_MAX_MINUTES = 90;
 export const ASTM_C94_MAX_DRUM_REVOLUTIONS = 300;
 export const PLASTIC_SHRINKAGE_THRESHOLD_LB_FT2_HR = 0.2;
+
+import { recommendedTruckCount } from './readyMixDelivery';
 
 export type TimeRiskLevel = 'ok' | 'caution' | 'critical';
 export type SlumpRiskLevel = 'low' | 'moderate' | 'high';
@@ -110,11 +114,16 @@ export function analyzePlacementProduction(params: {
   const dischargeRate = Math.max(0.1, parseNum(params.dischargeRateYdPerHr, 30));
 
   const placementDurationHours = totalVolumeYd / placementRate;
-  const truckSpacingMinutes = (truckCapacityYd / placementRate) * 60;
-  const truckDischargeMinutes = (truckCapacityYd / dischargeRate) * 60;
   const recommendedTrucks =
     params.recommendedTrucks ??
-    (totalVolumeYd > 0 ? Math.ceil(totalVolumeYd / truckCapacityYd) : 0);
+    (totalVolumeYd > 0
+      ? recommendedTruckCount(totalVolumeYd, truckCapacityYd)
+      : 0);
+  const truckSpacingMinutes =
+    recommendedTrucks <= 1
+      ? 0
+      : (truckCapacityYd / placementRate) * 60;
+  const truckDischargeMinutes = (truckCapacityYd / dischargeRate) * 60;
 
   return {
     placementDurationHours,

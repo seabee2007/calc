@@ -1,42 +1,46 @@
-import React from 'react';
-import { FileDown } from 'lucide-react';
+import React, { useEffect } from 'react';
 import Input from '../../ui/Input';
-import Button from '../../ui/Button';
-import Card from '../../ui/Card';
+import TimeField from '../../ui/TimeField';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
-import type { ScoredPourDay } from '../../../utils/pourScoring';
-import { format, parseISO } from 'date-fns';
 
 interface StepProps {
   planner: PourPlannerContext;
-  selectedDate: string | null;
-  selectedDay?: ScoredPourDay;
-  onSavePourDate?: () => void;
-  saveMessage?: string | null;
-  canSavePourDate?: boolean;
 }
 
-export const StepQcExport: React.FC<StepProps> = ({
-  planner,
-  selectedDate,
-  selectedDay,
-  onSavePourDate,
-  saveMessage,
-  canSavePourDate,
-}) => {
-  const { form, setField } = planner;
+export const StepQcExport: React.FC<StepProps> = ({ planner }) => {
+  const { form, setField, deliveryPlan } = planner;
+
+  useEffect(() => {
+    if (deliveryPlan.volumeYd <= 0) return;
+    const current = parseFloat(form.orderedYards);
+    if (!Number.isFinite(current) || current <= 0) {
+      setField('orderedYards', deliveryPlan.volumeYd.toFixed(2));
+    }
+  }, [deliveryPlan.volumeYd, form.orderedYards, setField]);
+
+  useEffect(() => {
+    if (!form.mixCode && form.psi) {
+      const parts = [form.psi ? `${form.psi} PSI` : '', form.aggregateSize]
+        .filter(Boolean)
+        .join(' · ');
+      if (parts) setField('mixCode', parts);
+    }
+  }, [form.psi, form.aggregateSize, form.mixCode, setField]);
 
   return (
     <div className="space-y-6">
       <section>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-          QC & ticket tracking
+          Truck ticket & QC
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Record field QC data per truck. This turns the planner into a superintendent field
-          record.
+          Record delivery ticket data and field QC for this load. Batch plant comes from Step 1.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          Ticket identification
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <Input
             label="Ticket number"
             value={form.ticketNumber}
@@ -48,41 +52,89 @@ export const StepQcExport: React.FC<StepProps> = ({
             onChange={(e) => setField('truckNumber', e.target.value)}
           />
           <Input
+            label="Mix code"
+            value={form.mixCode}
+            onChange={(e) => setField('mixCode', e.target.value)}
+            placeholder="e.g. 3000 PSI · 3/4 aggregate"
+            className="sm:col-span-2"
+          />
+          <Input
+            label="Batch plant"
+            value={form.batchPlantAddress}
+            readOnly
+            helperText="Set in Step 1 — Project overview"
+            className="sm:col-span-2"
+          />
+        </div>
+
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          Schedule
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <TimeField
             label="Batch time"
-            type="time"
             value={form.batchTime}
-            onChange={(e) => setField('batchTime', e.target.value)}
+            onChange={(v) => setField('batchTime', v)}
           />
-          <Input
-            label="Time water added"
-            type="time"
-            value={form.waterAddedTime}
-            onChange={(e) => setField('waterAddedTime', e.target.value)}
+          <TimeField
+            label="Depart time"
+            value={form.departTime}
+            onChange={(v) => setField('departTime', v)}
           />
-          <Input
+          <TimeField
             label="Arrival time"
-            type="time"
             value={form.arrivalTime}
-            onChange={(e) => setField('arrivalTime', e.target.value)}
+            onChange={(v) => setField('arrivalTime', v)}
           />
-          <Input
+          <TimeField
             label="Discharge start"
-            type="time"
-            value={form.dischargeStartTime}
-            onChange={(e) => setField('dischargeStartTime', e.target.value)}
+            value={form.dischargeStart}
+            onChange={(v) => setField('dischargeStart', v)}
+          />
+          <TimeField
+            label="Discharge end"
+            value={form.dischargeEnd}
+            onChange={(v) => setField('dischargeEnd', v)}
+          />
+        </div>
+
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          Volume
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <Input
+            label="Ordered yards (yd³)"
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.orderedYards}
+            onChange={(e) => setField('orderedYards', e.target.value)}
+            helperText={
+              deliveryPlan.volumeYd > 0
+                ? `From pour plan: ${deliveryPlan.volumeYd.toFixed(2)} yd³`
+                : undefined
+            }
           />
           <Input
-            label="Discharge complete"
-            type="time"
-            value={form.dischargeFinishTime}
-            onChange={(e) => setField('dischargeFinishTime', e.target.value)}
+            label="Delivered yards (yd³)"
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.deliveredYards}
+            onChange={(e) => setField('deliveredYards', e.target.value)}
           />
+        </div>
+
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          Fresh concrete tests
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <Input
-            label="Slump at arrival (in)"
+            label="Slump (in)"
             type="number"
             step="0.5"
-            value={form.slumpAtArrival}
-            onChange={(e) => setField('slumpAtArrival', e.target.value)}
+            value={form.slump}
+            onChange={(e) => setField('slump', e.target.value)}
           />
           <Input
             label="Slump after adjustment (in)"
@@ -92,12 +144,6 @@ export const StepQcExport: React.FC<StepProps> = ({
             onChange={(e) => setField('slumpAfterAdjustment', e.target.value)}
           />
           <Input
-            label="Concrete temp at arrival (°F)"
-            type="number"
-            value={form.concreteTempAtArrival}
-            onChange={(e) => setField('concreteTempAtArrival', e.target.value)}
-          />
-          <Input
             label="Air content (%)"
             type="number"
             step="0.1"
@@ -105,13 +151,41 @@ export const StepQcExport: React.FC<StepProps> = ({
             onChange={(e) => setField('airContent', e.target.value)}
           />
           <Input
+            label="Concrete temp (°F)"
+            type="number"
+            value={form.concreteTemp}
+            onChange={(e) => setField('concreteTemp', e.target.value)}
+          />
+          <Input
+            label="Water added at plant (gal)"
+            type="number"
+            min="0"
+            step="0.1"
+            value={form.waterAddedPlant}
+            onChange={(e) => setField('waterAddedPlant', e.target.value)}
+          />
+          <Input
             label="Water added on site (gal)"
             type="number"
             min="0"
             step="0.1"
-            value={form.waterAddedOnSite}
-            onChange={(e) => setField('waterAddedOnSite', e.target.value)}
+            value={form.waterAddedSite}
+            onChange={(e) => setField('waterAddedSite', e.target.value)}
           />
+          <Input
+            label="Drum revolutions"
+            type="number"
+            min="0"
+            step="1"
+            value={form.drumRevolutions}
+            onChange={(e) => setField('drumRevolutions', e.target.value)}
+          />
+        </div>
+
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          Additional QC
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Admixture added on site"
             value={form.admixtureAddedOnSite}
@@ -121,57 +195,17 @@ export const StepQcExport: React.FC<StepProps> = ({
             label="Inspector / QC initials"
             value={form.inspectorInitials}
             onChange={(e) => setField('inspectorInitials', e.target.value)}
-            className="sm:col-span-2"
           />
+          <label className="sm:col-span-2 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.ticketAccepted}
+              onChange={(e) => setField('ticketAccepted', e.target.checked)}
+              className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+            />
+            Ticket accepted — load approved for placement
+          </label>
         </div>
-      </section>
-
-      <section className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-          Pour summary & export
-        </h4>
-        <Card className="p-4 text-sm space-y-2 text-gray-700 dark:text-gray-300">
-          <p>
-            <strong>Project:</strong> {form.projectName || '—'}
-          </p>
-          <p>
-            <strong>Pour date:</strong>{' '}
-            {selectedDate
-              ? format(parseISO(selectedDate), 'MMM d, yyyy')
-              : 'Not selected from forecast'}
-          </p>
-          <p>
-            <strong>Weather score:</strong>{' '}
-            {selectedDay ? `${selectedDay.rating} (${selectedDay.score})` : '—'}
-          </p>
-          <p>
-            <strong>Delivery status:</strong> {planner.deliveryWindow.statusLabel}
-          </p>
-          <p>
-            <strong>Truck spacing:</strong>{' '}
-            {Math.round(planner.production.truckSpacingMinutes)} min recommended
-          </p>
-        </Card>
-
-        <div className="flex flex-wrap gap-3 mt-4">
-          <Button
-            type="button"
-            variant="outline"
-            icon={<FileDown className="h-4 w-4" />}
-            disabled
-            title="PDF export coming soon"
-          >
-            Export PDF (coming soon)
-          </Button>
-          {canSavePourDate && onSavePourDate && (
-            <Button type="button" onClick={onSavePourDate}>
-              Save pour date to project
-            </Button>
-          )}
-        </div>
-        {saveMessage && (
-          <p className="mt-2 text-sm text-green-600 dark:text-green-400">{saveMessage}</p>
-        )}
       </section>
     </div>
   );

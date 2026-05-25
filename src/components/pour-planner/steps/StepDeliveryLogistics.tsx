@@ -1,19 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapPin, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { MapPin, Loader2, AlertTriangle, CheckCircle2, Truck } from 'lucide-react';
 import Input from '../../ui/Input';
 import Card from '../../ui/Card';
 import ReadyMixDelivery from '../../calculations/ReadyMixDelivery';
 import DeliveryClock from '../DeliveryClock';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import { getMapboxTravelTime } from '../../../services/mapboxTravelService';
+import { isShortLoad } from '../../../utils/readyMixDelivery';
 
 interface StepProps {
   planner: PourPlannerContext;
 }
 
 export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
-  const { form, setField, volume, preferences, deliveryWindow, production } =
-    planner;
+  const {
+    form,
+    setField,
+    volume,
+    preferences,
+    deliveryWindow,
+    production,
+    deliveryPlan,
+    plannedTruckCount,
+    truckCapacityYd,
+    isShortLoadPour,
+    suggestedTruckTypeId,
+  } = planner;
 
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState<string | null>(null);
@@ -30,6 +42,9 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
     Boolean(form.travelTimeMinutes && form.travelDistance) &&
     !routeError &&
     !routeLoading;
+
+  const spacingRecommended = Math.round(production.truckSpacingMinutes);
+  const multiTruck = plannedTruckCount > 1;
 
   useEffect(() => {
     if (!canCalculateRoute) {
@@ -209,6 +224,35 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
         <h4 className="font-medium text-gray-900 dark:text-white mb-3">
           Truck information
         </h4>
+
+        {deliveryPlan.volumeYd > 0 && (
+          <Card className="p-4 mb-4 bg-blue-50/80 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-start gap-2">
+              <Truck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                <p>
+                  <strong className="text-gray-900 dark:text-white">
+                    {plannedTruckCount} truck{plannedTruckCount !== 1 ? 's' : ''}
+                  </strong>{' '}
+                  for {deliveryPlan.volumeYd.toFixed(1)} yd³
+                  {isShortLoadPour && (
+                    <span className="text-amber-700 dark:text-amber-300">
+                      {' '}
+                      (short load — less than one full {truckCapacityYd} yd³ truck)
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Load size: up to {truckCapacityYd} yd³ per truck ·{' '}
+                  {multiTruck
+                    ? `recommended arrival spacing ~${spacingRecommended} min (set in Step 5)`
+                    : 'single delivery — no truck spacing needed'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <Input
             label="Truck capacity (yd³)"
@@ -217,22 +261,37 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
             step="0.5"
             value={form.truckCapacityYd}
             onChange={(e) => setField('truckCapacityYd', e.target.value)}
+            helperText={
+              deliveryPlan.volumeYd > 0 && isShortLoad(deliveryPlan.volumeYd, truckCapacityYd)
+                ? 'Consider a short-load truck (3–6 yd³) for small pours'
+                : undefined
+            }
           />
           <Input
             label="Number of trucks"
             type="number"
-            min="0"
-            placeholder={String(production.recommendedTrucks || '')}
+            min="1"
             value={form.numberOfTrucks}
             onChange={(e) => setField('numberOfTrucks', e.target.value)}
+            helperText={
+              plannedTruckCount > 0
+                ? `Recommended: ${plannedTruckCount} for this volume`
+                : undefined
+            }
           />
           <Input
             label="Truck spacing interval (min)"
             type="number"
             min="0"
-            placeholder={String(Math.round(production.truckSpacingMinutes) || '')}
             value={form.truckSpacingMinutes}
             onChange={(e) => setField('truckSpacingMinutes', e.target.value)}
+            disabled={!multiTruck}
+            placeholder={multiTruck ? String(spacingRecommended) : 'N/A'}
+            helperText={
+              multiTruck
+                ? `Recommended: ${spacingRecommended} min between arrivals`
+                : 'Not used for a single-truck pour'
+            }
           />
           <Input
             label="Drum RPM"
@@ -245,7 +304,11 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
         </div>
 
         {volume > 0 && (
-          <ReadyMixDelivery volume={volume} volumeUnit={preferences.volumeUnit} />
+          <ReadyMixDelivery
+            volume={volume}
+            volumeUnit={preferences.volumeUnit}
+            defaultTruckTypeId={suggestedTruckTypeId}
+          />
         )}
       </section>
 

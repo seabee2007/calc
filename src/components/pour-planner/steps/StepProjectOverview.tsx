@@ -50,10 +50,16 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
   };
 
   const handleProjectChange = (value: string) => {
-    if (value === CUSTOM_PROJECT_VALUE || value === '') {
+    if (value === '') {
       setField('projectId', '');
       setField('calculationId', '');
       setField('projectName', '');
+      return;
+    }
+
+    if (value === CUSTOM_PROJECT_VALUE) {
+      setField('projectId', '');
+      setField('calculationId', '');
       return;
     }
 
@@ -64,6 +70,12 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
       setField('projectName', project.name);
     }
   };
+
+  const projectSelectValue = form.projectId
+    ? form.projectId
+    : form.projectName.trim()
+      ? CUSTOM_PROJECT_VALUE
+      : '';
 
   const handleVerifyJobsite = async () => {
     if (!hasJobsiteAddress) return;
@@ -162,10 +174,11 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
               <Select
                 label="Project"
                 options={[
-                  { value: CUSTOM_PROJECT_VALUE, label: 'Enter project name manually…' },
+                  { value: '', label: 'Select a project' },
                   ...projects.map((p) => ({ value: p.id, label: p.name })),
+                  { value: CUSTOM_PROJECT_VALUE, label: 'Custom pour (manual name)' },
                 ]}
-                value={form.projectId || CUSTOM_PROJECT_VALUE}
+                value={projectSelectValue}
                 onChange={handleProjectChange}
               />
               {!usingSavedProject && (

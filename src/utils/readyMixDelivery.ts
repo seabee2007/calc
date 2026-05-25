@@ -73,6 +73,26 @@ export function volumeToCubicYards(volume: number, unit: VolumeUnit): number {
   }
 }
 
+/** Trucks needed for a pour — always at least 1 when volume > 0. */
+export function recommendedTruckCount(
+  volumeYd: number,
+  truckCapacityYd: number,
+): number {
+  if (volumeYd <= 0 || truckCapacityYd <= 0) return 0;
+  if (volumeYd <= truckCapacityYd) return 1;
+  return Math.ceil(volumeYd / truckCapacityYd);
+}
+
+export function isShortLoad(volumeYd: number, truckCapacityYd: number): boolean {
+  return volumeYd > 0 && volumeYd < truckCapacityYd;
+}
+
+export function suggestTruckTypeId(volumeYd: number): string {
+  if (volumeYd <= 0) return 'standard_rear';
+  if (volumeYd < 6) return 'short_load';
+  return 'standard_rear';
+}
+
 function planningCapacityForTruck(truck: ReadyMixTruckType): number {
   if (truck.id === 'volumetric') return 0;
   if (truck.id === 'short_load') return truck.capacityMax;
@@ -116,7 +136,7 @@ export function calculateReadyMixDelivery(
   if (usesVariableCapacity) {
     recommendedTrucks = 0;
   } else if (volumeYd > 0 && planningCapacityYd > 0) {
-    recommendedTrucks = Math.ceil(volumeYd / planningCapacityYd);
+    recommendedTrucks = recommendedTruckCount(volumeYd, planningCapacityYd);
   }
 
   const { min: dischargeMinutesMin, max: dischargeMinutesMax } =

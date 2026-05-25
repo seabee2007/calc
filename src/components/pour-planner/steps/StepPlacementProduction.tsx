@@ -26,6 +26,7 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
     production,
     deliveryPlan,
     truckCount,
+    plannedTruckCount,
     calculation,
     volume,
     placementRateEstimate: est,
@@ -39,7 +40,8 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
     parseFloat(form.truckSpacingMinutes) || production.truckSpacingMinutes,
   );
   const dischargeMinutes = Math.round(production.truckDischargeMinutes);
-  const trucksScheduled = truckCount || production.recommendedTrucks;
+  const trucksScheduled = truckCount || plannedTruckCount;
+  const multiTruck = trucksScheduled > 1;
   const spacingTooTight =
     spacingMinutes > 0 &&
     dischargeMinutes > 0 &&
@@ -484,8 +486,11 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
                   Load size: <strong>{truckCapacity} yd³</strong>
                 </span>
                 <span className="block">
-                  Arrival spacing: <strong>{spacingMinutes} min</strong>
-                  {form.truckSpacingMinutes ? '' : ' (recommended)'}
+                  Arrival spacing:{' '}
+                  <strong>
+                    {multiTruck ? `${spacingMinutes} min` : 'N/A (single truck)'}
+                  </strong>
+                  {multiTruck && !form.truckSpacingMinutes ? ' (recommended)' : ''}
                 </span>
                 <span className="block">
                   Per-truck discharge: <strong>{dischargeMinutes} min</strong>
@@ -494,9 +499,11 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
                   Pour window: <strong>{Math.round(pourDurationMin)} min</strong>
                 </span>
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Spacing = {truckCapacity} yd³ ÷ {placementRate} CY/hr
-              </p>
+              {multiTruck && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Spacing = {truckCapacity} yd³ ÷ {placementRate} CY/hr between loads
+                </p>
+              )}
               {spacingTooTight && (
                 <p className="mt-3 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />

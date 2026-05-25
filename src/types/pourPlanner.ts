@@ -84,16 +84,22 @@ export interface PourPlannerFormState {
 
   ticketNumber: string;
   truckNumber: string;
+  mixCode: string;
   batchTime: string;
-  waterAddedTime: string;
+  departTime: string;
   arrivalTime: string;
-  dischargeStartTime: string;
-  dischargeFinishTime: string;
-  slumpAtArrival: string;
+  dischargeStart: string;
+  dischargeEnd: string;
+  orderedYards: string;
+  deliveredYards: string;
+  slump: string;
   slumpAfterAdjustment: string;
-  concreteTempAtArrival: string;
   airContent: string;
-  waterAddedOnSite: string;
+  concreteTemp: string;
+  waterAddedPlant: string;
+  waterAddedSite: string;
+  drumRevolutions: string;
+  ticketAccepted: boolean;
   admixtureAddedOnSite: string;
   inspectorInitials: string;
 }
@@ -168,16 +174,22 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
 
   ticketNumber: '',
   truckNumber: '',
+  mixCode: '',
   batchTime: '',
-  waterAddedTime: '',
+  departTime: '',
   arrivalTime: '',
-  dischargeStartTime: '',
-  dischargeFinishTime: '',
-  slumpAtArrival: '',
+  dischargeStart: '',
+  dischargeEnd: '',
+  orderedYards: '',
+  deliveredYards: '',
+  slump: '',
   slumpAfterAdjustment: '',
-  concreteTempAtArrival: '',
   airContent: '',
-  waterAddedOnSite: '',
+  concreteTemp: '',
+  waterAddedPlant: '',
+  waterAddedSite: '',
+  drumRevolutions: '',
+  ticketAccepted: false,
   admixtureAddedOnSite: '',
   inspectorInitials: '',
 };

@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { format, parseISO } from 'date-fns';
 import { CloudSun } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Modal from '../components/ui/Modal';
@@ -25,8 +24,6 @@ import {
   PlacementType,
   pruneMitigationSelections,
 } from '../utils/pourScoring';
-import { useProjectStore } from '../store';
-import { useAuth } from '../hooks/useAuth';
 import {
   usePourPlannerState,
   POUR_PLANNER_STEPS,
@@ -38,14 +35,11 @@ import { findBestPourWindow } from '../utils/pourScoring';
 const FORECAST_DAYS = 5;
 
 const PourPlanner: React.FC = () => {
-  const { user } = useAuth();
-  const { projects, updateProject } = useProjectStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [jobsiteLocation, setJobsiteLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
@@ -235,17 +229,6 @@ const PourPlanner: React.FC = () => {
     setMitigationsByDate((prev) => ({ ...prev, [date]: ids }));
   };
 
-  const handleSavePourDate = async () => {
-    if (!selectedDate || !planner.form.projectId || !user) return;
-    const isoDate = `${selectedDate}T12:00:00.000Z`;
-    try {
-      await updateProject(planner.form.projectId, { pourDate: isoDate });
-      setSaveMessage(`Pour date saved for ${format(parseISO(selectedDate), 'MMM d, yyyy')}`);
-    } catch {
-      setError('Failed to save pour date to project.');
-    }
-  };
-
   const stepTitle = POUR_PLANNER_STEPS[planner.activeStep].label;
 
   const renderStep = () => {
@@ -280,16 +263,7 @@ const PourPlanner: React.FC = () => {
       case 'risk':
         return <StepRiskAnalysis planner={planner} selectedDay={selectedDay} />;
       case 'qc':
-        return (
-          <StepQcExport
-            planner={planner}
-            selectedDate={selectedDate}
-            selectedDay={selectedDay}
-            onSavePourDate={handleSavePourDate}
-            saveMessage={saveMessage}
-            canSavePourDate={Boolean(user && projects.length > 0 && selectedDate && planner.form.projectId)}
-          />
-        );
+        return <StepQcExport planner={planner} />;
       default:
         return null;
     }
@@ -345,7 +319,7 @@ const PourPlanner: React.FC = () => {
           {planner.activeStep === 5 &&
             'Review combined risk and recommended mitigations.'}
           {planner.activeStep === 6 &&
-            'Record QC data and export the pour plan.'}
+            'Record truck ticket and field QC data.'}
         </p>
 
         {renderStep()}

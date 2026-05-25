@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useProjectStore } from '../store';
 import { usePreferencesStore } from '../store';
 import {
@@ -13,7 +13,14 @@ import {
   analyzePlacementProduction,
   analyzeSlumpRisk,
 } from '../utils/placementWindow';
-import { estimatePlacementProductionRate } from '../utils/placementProduction';
+import {
+  estimatePlacementProductionRate,
+} from '../utils/placementProduction';
+import {
+  isShortLoad,
+  recommendedTruckCount,
+  suggestTruckTypeId,
+} from '../utils/readyMixDelivery';
 import { ratingLabel } from '../utils/pourScoring';
 import type { ScoredPourDay } from '../utils/pourScoring';
 
@@ -160,6 +167,7 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
         placementRateYdPerHr: effectivePlacementRateYdPerHr,
         truckCapacityYd: form.truckCapacityYd || deliveryPlan.planningCapacityYd,
         dischargeRateYdPerHr: form.dischargeRateYdPerHr,
+        recommendedTrucks: deliveryPlan.recommendedTrucks,
       }),
     [
       deliveryPlan,
@@ -169,8 +177,19 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     ],
   );
 
-  const truckCount =
-    parseInt(form.numberOfTrucks, 10) || production.recommendedTrucks || 0;
+  const truckCapacityYd =
+    parseFloat(form.truckCapacityYd) || deliveryPlan.planningCapacityYd || 10;
+
+  const plannedTruckCount = recommendedTruckCount(
+    deliveryPlan.volumeYd,
+    truckCapacityYd,
+  );
+
+  const truckCount = (() => {
+    const manual = parseInt(form.numberOfTrucks, 10);
+    if (Number.isFinite(manual) && manual > 0) return manual;
+    return plannedTruckCount;
+  })();
 
   const dischargeMin = useMemo(
     () => production.truckDischargeMinutes,
@@ -225,6 +244,32 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
   const goToStep = (index: number) =>
     setActiveStep(Math.max(0, Math.min(index, POUR_PLANNER_STEPS.length - 1)));
 
+  useEffect(() => {
+    if (deliveryPlan.volumeYd <= 0) return;
+
+    const cap = deliveryPlan.planningCapacityYd;
+    const trucks = deliveryPlan.recommendedTrucks;
+
+    setForm((prev) => {
+      const manualTrucks = parseInt(prev.numberOfTrucks, 10);
+      const manualCap = parseFloat(prev.truckCapacityYd);
+      const next: Partial<PourPlannerFormState> = {};
+
+      if (!Number.isFinite(manualCap) || manualCap <= 0) {
+        next.truckCapacityYd = String(cap);
+      }
+
+      if (!Number.isFinite(manualTrucks) || manualTrucks <= 0) {
+        next.numberOfTrucks = String(trucks);
+      } else if (manualTrucks > trucks && trucks > 0) {
+        next.numberOfTrucks = String(trucks);
+      }
+
+      if (Object.keys(next).length === 0) return prev;
+      return { ...prev, ...next };
+    });
+  }, [deliveryPlan.volumeYd, deliveryPlan.recommendedTrucks, deliveryPlan.planningCapacityYd]);
+
   return {
     form,
     setForm,
@@ -244,6 +289,10 @@ export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
     placementRateEstimate,
     effectivePlacementRateYdPerHr,
     truckCount,
+    plannedTruckCount,
+    truckCapacityYd,
+    isShortLoadPour: isShortLoad(deliveryPlan.volumeYd, truckCapacityYd),
+    suggestedTruckTypeId: suggestTruckTypeId(deliveryPlan.volumeYd),
     deliveryWindow,
     hotWeather,
     slumpRisk,
