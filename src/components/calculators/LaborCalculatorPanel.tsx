@@ -73,8 +73,8 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
           Crew & production
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Labor cost is itemized by trade (laborer, finisher, foreman). Crew size affects
-          mobilization man-hours and foreman time on site.
+          Crew & production planning, Placement rate uses the slowest bottleneck — placement crew vs
+          finishing crew — then applies efficiency, access, weather, and complexity modifiers.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">

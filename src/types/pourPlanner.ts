@@ -15,7 +15,6 @@ export type PourPlannerStepId =
   | 'mix'
   | 'delivery'
   | 'environment'
-  | 'production'
   | 'risk';
 
 export interface PourPlannerFormState extends CallSheetFields {

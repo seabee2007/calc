@@ -35,7 +35,6 @@ export const POUR_PLANNER_STEPS: {
   { id: 'mix', label: 'Mix & specs', shortLabel: 'Mix' },
   { id: 'delivery', label: 'Delivery logistics', shortLabel: 'Delivery' },
   { id: 'environment', label: 'Weather & conditions', shortLabel: 'Weather' },
-  { id: 'production', label: 'Crew & production', shortLabel: 'Production' },
   { id: 'risk', label: 'Risk analysis', shortLabel: 'Risk' },
 ];
 

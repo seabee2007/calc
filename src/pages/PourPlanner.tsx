@@ -22,7 +22,6 @@ import StepProjectOverview from '../components/pour-planner/steps/StepProjectOve
 import StepMixSpec from '../components/pour-planner/steps/StepMixSpec';
 import StepDeliveryLogistics from '../components/pour-planner/steps/StepDeliveryLogistics';
 import StepEnvironmental from '../components/pour-planner/steps/StepEnvironmental';
-import StepPlacementProduction from '../components/pour-planner/steps/StepPlacementProduction';
 import StepRiskAnalysis from '../components/pour-planner/steps/StepRiskAnalysis';
 import {
   getForecastByQuery,
@@ -440,8 +439,6 @@ const PourPlanner: React.FC = () => {
             onMitigationsChange={handleMitigationsChange}
           />
         );
-      case 'production':
-        return <StepPlacementProduction planner={planner} />;
       case 'risk':
         return (
           <StepRiskAnalysis
