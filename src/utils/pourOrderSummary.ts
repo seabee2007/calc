@@ -301,7 +301,6 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
     'Break Schedule:',
     `  ${check(form.qcBreak7Day)} 7-day`,
     `  ${check(form.qcBreak28Day)} 28-day`,
-    labelValue('ACI / NAVFAC Requirements', form.qcAciNavfac),
     labelValue('Special Inspection Required', yesNo(form.qcSpecialInspection)),
   );
 

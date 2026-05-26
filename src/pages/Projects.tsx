@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
+import {
+  isWorkflowActive,
+  getWorkflowProjectId,
+  workflowQuery,
+  workflowNavigateState,
+  type WorkflowLocationState,
+} from '../utils/workflow';
 import { Plus, FolderOpen, Calculator, Trash2, Edit, ArrowLeftCircle, Printer, Save, Loader, Edit3, FileText } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -27,6 +35,9 @@ import { hapticService } from '../services/hapticService';
 const Projects: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const workflowState = location.state as WorkflowLocationState | null;
+  const isBrowseMode = workflowState?.mode === 'browse';
+  const inWorkflow = isWorkflowActive(location.search, workflowState) && !isBrowseMode;
   const {
     projects,
     addProject,
@@ -60,13 +71,62 @@ const Projects: React.FC = () => {
   const [mixProfile, setMixProfile] = useState<MixProfileType>(currentProject?.mixProfile ?? 'standard');
 
   useEffect(() => {
-    // Check for navigation state
-    const state = location.state as { showProjectDetails?: boolean; projectId?: string };
+    const state = workflowState;
+
     if (state?.showProjectDetails && state?.projectId) {
       setCurrentProject(state.projectId);
       setShowProjectDetails(true);
+      setShowCreateForm(false);
+      return;
     }
-  }, [location.state, setCurrentProject]);
+
+    if (state?.mode === 'browse') {
+      if (loading) return;
+
+      setShowProjectDetails(false);
+      setEditingProject(false);
+
+      if (state.openCreate || projects.length === 0) {
+        setShowCreateForm(true);
+        setCurrentProject(null);
+      } else {
+        setShowCreateForm(false);
+        setCurrentProject(null);
+      }
+      return;
+    }
+
+    const projectIdFromUrl = getWorkflowProjectId(location.search, workflowState);
+    if (projectIdFromUrl && inWorkflow) {
+      setCurrentProject(projectIdFromUrl);
+      setShowProjectDetails(true);
+      setShowCreateForm(false);
+      return;
+    }
+
+    if (inWorkflow && !showProjectDetails && !showCreateForm && !state?.showProjectDetails) {
+      setShowCreateForm(true);
+    }
+  }, [
+    inWorkflow,
+    isBrowseMode,
+    location.search,
+    workflowState,
+    setCurrentProject,
+    showProjectDetails,
+    showCreateForm,
+    projects.length,
+    loading,
+  ]);
+
+  useEffect(() => {
+    if (isBrowseMode && location.search.includes('flow=1')) {
+      navigate('/projects', {
+        replace: true,
+        state: workflowState ?? { mode: 'browse' },
+      });
+    }
+  }, [isBrowseMode, location.search, navigate, workflowState]);
 
   useEffect(() => {
     if (currentProject) {
@@ -138,15 +198,30 @@ const Projects: React.FC = () => {
     }
   };
 
-  const handleCreateProject = (data: ProjectFormData) => {
-    addProject({
-      name: data.name,
-      description: data.description,
-      pourDate: data.pourDate,
-      jobsiteAddress: data.jobsiteAddress,
-    });
-    setShowCreateForm(false);
-    showToastMessage('Project created successfully', 'success');
+  const goToCalculator = (projectId: string) => {
+    navigate(
+      { pathname: '/calculator', search: workflowQuery(projectId) },
+      { state: workflowNavigateState(projectId) },
+    );
+  };
+
+  const handleCreateProject = async (data: ProjectFormData) => {
+    try {
+      await addProject({
+        name: data.name,
+        description: data.description,
+        pourDate: data.pourDate,
+        jobsiteAddress: data.jobsiteAddress,
+      });
+      setShowCreateForm(false);
+      showToastMessage('Project created successfully', 'success');
+      const projectId = useProjectStore.getState().currentProject?.id;
+      if (inWorkflow && projectId) {
+        goToCalculator(projectId);
+      }
+    } catch {
+      showToastMessage('Error creating project', 'error');
+    }
   };
 
   const handleProjectClick = (project: Project) => {
@@ -155,9 +230,13 @@ const Projects: React.FC = () => {
     setShowProjectDetails(true);
   };
 
-  const handleUpdateProject = (data: ProjectFormData) => {
-    if (currentProject) {
-      updateProject(currentProject.id, {
+  const handleUpdateProject = async (
+    data: ProjectFormData,
+    options?: { continueToCalculator?: boolean },
+  ) => {
+    if (!currentProject) return;
+    try {
+      await updateProject(currentProject.id, {
         name: data.name,
         description: data.description,
         pourDate: data.pourDate,
@@ -165,6 +244,11 @@ const Projects: React.FC = () => {
       });
       setEditingProject(false);
       showToastMessage('Project updated successfully', 'success');
+      if (inWorkflow && options?.continueToCalculator) {
+        goToCalculator(currentProject.id);
+      }
+    } catch {
+      showToastMessage('Error updating project', 'error');
     }
   };
 
@@ -276,13 +360,17 @@ const Projects: React.FC = () => {
 
   const handleCreateProposal = () => {
     if (currentProject) {
-      // Navigate to proposal generator and pre-fill with project name
-      navigate('/proposal-generator', {
-        state: {
-          projectName: currentProject.name,
-          projectDescription: currentProject.description
-        }
-      });
+      navigate(
+        { pathname: '/proposal-generator', search: workflowQuery(currentProject.id) },
+        {
+          state: {
+            workflow: true,
+            projectId: currentProject.id,
+            projectName: currentProject.name,
+            projectDescription: currentProject.description,
+          },
+        },
+      );
     }
   };
 
@@ -321,6 +409,7 @@ const Projects: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
       <div className="max-w-6xl mx-auto">
+        {!isBrowseMode && <WorkflowStepHeader />}
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">Projects</h1>
@@ -345,6 +434,12 @@ const Projects: React.FC = () => {
               onClick={() => {
                 setShowProjectDetails(false);
                 setCurrentProject(null);
+                if (isBrowseMode) {
+                  navigate('/projects', {
+                    replace: true,
+                    state: { mode: 'browse' },
+                  });
+                }
               }}
               icon={<ArrowLeftCircle size={20} />}
               className="bg-white/90 backdrop-blur-sm hover:bg-blue-50 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/30 border-gray-300"
@@ -363,9 +458,21 @@ const Projects: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <ProjectForm 
-                onSubmit={handleCreateProject} 
-                onCancel={() => setShowCreateForm(false)} 
+              <ProjectForm
+                onSubmit={handleCreateProject}
+                onCancel={() => {
+                  if (inWorkflow) {
+                    navigate('/');
+                  } else if (isBrowseMode && projects.length > 0) {
+                    setShowCreateForm(false);
+                  } else if (isBrowseMode) {
+                    navigate('/');
+                  } else {
+                    setShowCreateForm(false);
+                  }
+                }}
+                submitLabel={inWorkflow ? 'Save & continue to calculator' : undefined}
+                hidePourDate={inWorkflow}
               />
             </motion.div>
           )}
@@ -435,7 +542,19 @@ const Projects: React.FC = () => {
                   {currentProject.description || 'No description provided'}
                 </p>
 
-                {currentProject.calculations.length > 0 && (
+                {inWorkflow && (
+                  <div className="mb-6 flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => goToCalculator(currentProject.id)}
+                      icon={<Calculator size={18} />}
+                    >
+                      Continue to calculator
+                    </Button>
+                  </div>
+                )}
+
+                {currentProject.calculations.length > 0 &&
+                  (!inWorkflow || currentProject.pourDate) && (
                   <StrengthProgress
                     project={currentProject}
                     mixProfile={mixProfile}
@@ -752,8 +871,10 @@ const Projects: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <ProjectForm 
-                onSubmit={handleUpdateProject} 
+              <ProjectForm
+                onSubmit={(data) =>
+                  handleUpdateProject(data, { continueToCalculator: inWorkflow })
+                }
                 onCancel={() => setEditingProject(false)}
                 initialData={{
                   name: currentProject.name,
@@ -762,6 +883,10 @@ const Projects: React.FC = () => {
                   jobsiteAddress: currentProject.jobsiteAddress,
                 }}
                 isEditing
+                submitLabel={
+                  inWorkflow ? 'Save & continue to calculator' : undefined
+                }
+                hidePourDate={inWorkflow}
               />
             </motion.div>
           )}

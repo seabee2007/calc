@@ -1,14 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   AlertTriangle,
   Building2,
   ClipboardCopy,
   Loader2,
+  MapPin,
   Phone,
   Save,
   Search,
 } from 'lucide-react';
-import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -23,6 +23,7 @@ import {
   type PlacementOrderStatus,
 } from '../../types/placementOrder';
 import { batchPlantDisplayLine, parsePlannerCoord } from '../../utils/addressForm';
+import { hasSavedBatchPlantContact } from '../../utils/projectLocation';
 
 interface PourOrderSectionProps {
   planner: PourPlannerContext;
@@ -36,6 +37,10 @@ interface PourOrderSectionProps {
 const ORDER_STATUS_OPTIONS = (
   Object.entries(PLACEMENT_ORDER_STATUS_LABELS) as [PlacementOrderStatus, string][]
 ).map(([value, label]) => ({ value, label }));
+
+/** Dark-surface card for call sheet step (readable on planner page background). */
+const DARK_CARD =
+  'p-4 space-y-4 bg-slate-800/95 border border-slate-600 shadow-lg text-gray-100';
 
 const PourOrderSection: React.FC<PourOrderSectionProps> = ({
   planner,
@@ -61,9 +66,20 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [lookupNotes, setLookupNotes] = useState<string | null>(null);
   const [copyDone, setCopyDone] = useState(false);
+  const contactLookupKeyRef = useRef<string | null>(null);
 
   const plantLine = batchPlantDisplayLine(form);
-  const canLookup = Boolean(form.batchPlantName.trim() || plantLine);
+  const plantName = form.batchPlantName.trim();
+  const hasPlantFromEarlierSteps = Boolean(plantName || plantLine);
+  const canLookup = hasPlantFromEarlierSteps;
+  const savedContactOnProject = hasSavedBatchPlantContact(project);
+  const hasContactFields = Boolean(
+    form.batchPlantPhone.trim() ||
+      form.batchPlantEmail.trim() ||
+      form.batchPlantDispatchContact.trim(),
+  );
+  const showAiLookup =
+    canLookup && !hasContactFields && !savedContactOnProject;
 
   const callSheetText = useMemo(
     () =>
@@ -95,7 +111,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
     ],
   );
 
-  const handleLookupContact = async () => {
+  const runContactLookup = async () => {
     if (!canLookup) return;
     setLookupLoading(true);
     setLookupError(null);
@@ -105,7 +121,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
       const lat = parsePlannerCoord(form.batchPlantLatitude);
       const lng = parsePlannerCoord(form.batchPlantLongitude);
       const result = await lookupBatchPlantContact({
-        plantName: form.batchPlantName.trim(),
+        plantName: plantName,
         plantAddress: plantLine,
         latitude: lat ?? undefined,
         longitude: lng ?? undefined,
@@ -130,6 +146,15 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (!showAiLookup) return;
+    const key = `${plantName}|${plantLine}|${form.batchPlantLatitude}|${form.batchPlantLongitude}`;
+    if (contactLookupKeyRef.current === key) return;
+    contactLookupKeyRef.current = key;
+    void runContactLookup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per plant identity
+  }, [showAiLookup, plantName, plantLine, form.batchPlantLatitude, form.batchPlantLongitude]);
+
   const handleCopyCallSheet = async () => {
     try {
       await navigator.clipboard.writeText(callSheetText);
@@ -141,17 +166,19 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
   };
 
   const orderStatus = form.orderStatus || 'draft';
+  const travelMi = parseFloat(form.travelDistance);
+  const travelMin = parseFloat(form.travelTimeMinutes);
 
   return (
-    <section className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <section className="space-y-4 pt-4 border-t border-slate-600">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-blue-600" />
+        <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-cyan-400" />
           Order ready-mix
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-slate-300">
           Industry-style dispatch call sheet — project info, placement, mix, quantity, weather, QC,
-          and safety. Auto-fills from Steps 1–6; complete the fields below before calling the plant.
+          and safety. Batch plant details carry forward from earlier planner steps.
         </p>
       </div>
 
@@ -159,42 +186,81 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
 
       <CallSheetDetailsForm planner={planner} />
 
-      <Card className="p-4 space-y-4">
+      <div className={DARK_CARD}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Batch plant contact
-          </h4>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleLookupContact}
-            disabled={!canLookup || lookupLoading}
-            icon={
-              lookupLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )
-            }
-          >
-            {lookupLoading ? 'Looking up…' : 'Find contact (AI)'}
-          </Button>
+          <h4 className="text-sm font-semibold text-white">Batch plant contact</h4>
+          {showAiLookup && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void runContactLookup()}
+              disabled={lookupLoading}
+              icon={
+                lookupLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )
+              }
+              className="border-slate-500 text-slate-100 hover:bg-slate-700"
+            >
+              {lookupLoading ? 'Looking up…' : 'Refresh contact (AI)'}
+            </Button>
+          )}
         </div>
 
-        <p className="text-xs text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-md p-2 flex gap-2">
-          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>
-            AI lookup uses public directory knowledge only — always confirm phone and email with the
-            plant before placing an order. Edit fields manually if anything looks wrong.
-          </span>
-        </p>
+        {hasPlantFromEarlierSteps && (
+          <div className="rounded-lg bg-slate-900/90 border border-slate-600 p-3 space-y-2 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-400/90">
+              From planner steps
+            </p>
+            {plantName && (
+              <p className="font-medium text-white flex items-start gap-2">
+                <Building2 className="h-4 w-4 shrink-0 text-cyan-400 mt-0.5" />
+                {plantName}
+              </p>
+            )}
+            {plantLine && (
+              <p className="text-slate-300 flex items-start gap-2">
+                <MapPin className="h-4 w-4 shrink-0 text-slate-400 mt-0.5" />
+                {plantLine}
+              </p>
+            )}
+            {(Number.isFinite(travelMi) && travelMi > 0) ||
+            (Number.isFinite(travelMin) && travelMin > 0) ? (
+              <p className="text-slate-400 text-xs">
+                Route:{' '}
+                {Number.isFinite(travelMi) && travelMi > 0 ? `${travelMi.toFixed(1)} mi` : '—'}
+                {Number.isFinite(travelMin) && travelMin > 0
+                  ? ` · ${Math.round(travelMin)} min drive`
+                  : ''}
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        {hasContactFields && (
+          <p className="text-xs text-emerald-200/90 bg-emerald-950/50 border border-emerald-800/60 rounded-md p-2">
+            Contact details are filled from your batch plant search. Edit below if anything changed.
+          </p>
+        )}
+
+        {showAiLookup && !lookupLoading && (
+          <p className="text-xs text-amber-200/90 bg-amber-950/40 border border-amber-800/50 rounded-md p-2 flex gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>
+              Looking up dispatch contact from your selected plant. Confirm phone and email with
+              the plant before ordering.
+            </span>
+          </p>
+        )}
 
         {lookupError && (
-          <p className="text-sm text-red-600 dark:text-red-400">{lookupError}</p>
+          <p className="text-sm text-red-400">{lookupError}</p>
         )}
         {lookupNotes && (
-          <p className="text-xs text-gray-600 dark:text-gray-400">{lookupNotes}</p>
+          <p className="text-xs text-slate-400">{lookupNotes}</p>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -202,20 +268,29 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
             label="Plant phone"
             type="tel"
             value={form.batchPlantPhone}
-            onChange={(e) => setField('batchPlantPhone', e.target.value)}
+            onChange={(e) => {
+              setField('batchPlantPhone', e.target.value);
+              setField('batchPlantContactSource', '');
+            }}
             placeholder="Main or dispatch line"
           />
           <Input
             label="Plant email"
             type="email"
             value={form.batchPlantEmail}
-            onChange={(e) => setField('batchPlantEmail', e.target.value)}
+            onChange={(e) => {
+              setField('batchPlantEmail', e.target.value);
+              setField('batchPlantContactSource', '');
+            }}
             placeholder="orders@…"
           />
           <Input
             label="Dispatch / contact name"
             value={form.batchPlantDispatchContact}
-            onChange={(e) => setField('batchPlantDispatchContact', e.target.value)}
+            onChange={(e) => {
+              setField('batchPlantDispatchContact', e.target.value);
+              setField('batchPlantContactSource', '');
+            }}
             placeholder="Dispatcher or sales"
             className="sm:col-span-2"
           />
@@ -233,7 +308,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
             {form.batchPlantPhone && (
               <a
                 href={`tel:${form.batchPlantPhone.replace(/\s/g, '')}`}
-                className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-cyan-400 hover:underline"
               >
                 <Phone className="h-4 w-4" />
                 Call plant
@@ -241,48 +316,45 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
             )}
           </div>
         )}
-      </Card>
+      </div>
 
-      <Card className="p-4 space-y-3">
-        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Order status & notes
-        </h4>
+      <div className={DARK_CARD}>
+        <h4 className="text-sm font-semibold text-white">Order status & notes</h4>
         <Select
           label="Placement order status"
           options={ORDER_STATUS_OPTIONS}
           value={orderStatus}
           onChange={(v) => setField('orderStatus', v as PlacementOrderStatus)}
         />
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="block text-sm font-medium text-slate-200">
           Additional notes (appears on call sheet)
           <textarea
-            className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm min-h-[100px]"
+            className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-900 text-white px-3 py-2 text-sm min-h-[100px] placeholder:text-slate-500"
             value={form.orderNotes}
             onChange={(e) => setField('orderNotes', e.target.value)}
             placeholder={'No washout on pavement.\nCall superintendent before entering convoy gate.\nSlump test each truck.'}
           />
         </label>
-      </Card>
+      </div>
 
-      <Card className="p-4 space-y-3">
+      <div className={DARK_CARD}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Order call sheet
-          </h4>
+          <h4 className="text-sm font-semibold text-white">Order call sheet</h4>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleCopyCallSheet}
             icon={<ClipboardCopy className="h-4 w-4" />}
+            className="border-slate-500 text-slate-100 hover:bg-slate-700"
           >
             {copyDone ? 'Copied!' : 'Copy call sheet'}
           </Button>
         </div>
-        <pre className="text-xs whitespace-pre-wrap font-mono bg-gray-100 dark:bg-gray-800 rounded-lg p-3 max-h-[32rem] overflow-y-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+        <pre className="text-xs whitespace-pre-wrap font-mono bg-slate-950 rounded-lg p-3 max-h-[32rem] overflow-y-auto text-slate-200 border border-slate-600">
           {callSheetText}
         </pre>
-      </Card>
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <Button
@@ -300,16 +372,16 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
           {saveLoading ? 'Saving…' : 'Save order to project'}
         </Button>
         {!canSaveToProject && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-slate-400">
             Link a saved project in Step 1 to store order status (for a future orders dashboard).
           </p>
         )}
         {saveMessage && (
-          <p className="text-sm text-green-600 dark:text-green-400">{saveMessage}</p>
+          <p className="text-sm text-emerald-400">{saveMessage}</p>
         )}
       </div>
 
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-xs text-slate-400">
         Saved orders store contact, status, and this call sheet on the project. A dashboard for
         ordered vs scheduled placements can use this data later.
       </p>

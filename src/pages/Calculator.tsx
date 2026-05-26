@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FolderOpen, Plus, ArrowRight } from 'lucide-react';
+import { FolderOpen, Plus, ArrowRight, FileText } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
+import {
+  isWorkflowActive,
+  getWorkflowProjectId,
+  workflowQuery,
+  workflowNavigateState,
+  type WorkflowLocationState,
+} from '../utils/workflow';
 import CalculationForm from '../components/calculations/CalculationForm';
 import ProjectForm from '../components/projects/ProjectForm';
 import { useProjectStore } from '../store';
@@ -22,12 +30,30 @@ const CalculatorPage: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'warning' | 'error'>('success');
+  const [lastSavedCalculationId, setLastSavedCalculationId] = useState<string | null>(null);
+  const workflowState = location.state as WorkflowLocationState | null;
+  const inWorkflow = isWorkflowActive(location.search, workflowState);
+
   useEffect(() => {
-    const state = location.state as { projectId?: string };
-    if (state?.projectId) {
-      setCurrentProject(state.projectId);
+    const projectId =
+      workflowState?.projectId ?? getWorkflowProjectId(location.search, workflowState);
+    if (projectId) {
+      setCurrentProject(projectId);
     }
-  }, [location.state, setCurrentProject]);
+  }, [location.state, location.search, workflowState, setCurrentProject]);
+
+  useEffect(() => {
+    if (!inWorkflow || !currentProject?.calculations?.length) return;
+    const withVolume = [...currentProject.calculations]
+      .filter((c) => c.result?.volume > 0)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    if (withVolume[0]?.id) {
+      setLastSavedCalculationId(withVolume[0].id);
+    }
+  }, [inWorkflow, currentProject?.calculations, currentProject?.id]);
   
   const handleProjectChange = (projectId: string) => {
     setCurrentProject(projectId);
@@ -42,15 +68,30 @@ const CalculatorPage: React.FC = () => {
     setShowCreateProjectModal(false);
   };
   
+  const goToProposal = (projectId: string, calculationId?: string) => {
+    navigate(
+      { pathname: '/proposal-generator', search: workflowQuery(projectId) },
+      {
+        state: {
+          ...workflowNavigateState(projectId),
+          projectName: currentProject?.name,
+          projectDescription: currentProject?.description,
+          calculationId,
+        },
+      },
+    );
+  };
+
   const handleSaveCalculation = async (calculation: any) => {
     if (currentProject) {
       try {
         const savedCalculation = await addCalculation(currentProject.id, calculation);
-        
+
         setToastMessage(`Calculation saved to project: ${currentProject.name}`);
         setToastType('success');
-        
-        // Return the saved calculation with ID for the form to use
+        if (savedCalculation?.id) {
+          setLastSavedCalculationId(savedCalculation.id);
+        }
         return savedCalculation;
       } catch (error) {
         console.error('Error saving calculation:', error);
@@ -73,6 +114,7 @@ const CalculatorPage: React.FC = () => {
       transition={{ duration: 0.3 }}
     >
       <div className="max-w-6xl mx-auto">
+        <WorkflowStepHeader />
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
             Concrete Calculator
@@ -163,16 +205,37 @@ const CalculatorPage: React.FC = () => {
           </div>
         </div>
         
-        <CalculationForm 
+        <CalculationForm
           onSave={handleSaveCalculation}
           onTypeChange={setCalculationType}
         />
+
+        {inWorkflow && currentProject && (
+          <div className="mt-6 p-4 rounded-lg bg-cyan-950/40 border border-cyan-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p className="text-sm text-cyan-100/90">
+              {lastSavedCalculationId
+                ? 'Calculation saved. Continue to build your proposal with imported quantities.'
+                : 'Save your calculation, then continue to the proposal step.'}
+            </p>
+            <Button
+              onClick={() =>
+                goToProposal(currentProject.id, lastSavedCalculationId ?? undefined)
+              }
+              disabled={!lastSavedCalculationId}
+              icon={<FileText size={18} />}
+              className="shrink-0"
+            >
+              Continue to proposal
+            </Button>
+          </div>
+        )}
 
         {showCreateProjectModal && (
           <ProjectForm
             onSubmit={handleCreateProject}
             onCancel={() => setShowCreateProjectModal(false)}
             isModal={true}
+            hidePourDate
           />
         )}
 

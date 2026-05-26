@@ -1,7 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload } from 'lucide-react';
+import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload, Beaker, CloudSun, SkipForward } from 'lucide-react';
+import { useWorkflowProgressStore } from '../store/workflowProgressStore';
+import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
+import {
+  isWorkflowActive,
+  getWorkflowProjectId,
+  workflowQuery,
+  workflowNavigateState,
+  type WorkflowLocationState,
+} from '../utils/workflow';
 import { ProposalData } from '../types/proposal';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
@@ -42,7 +51,12 @@ const ProposalGenerator: React.FC = () => {
   const { companySettings } = useSettingsStore();
   const { projects } = useProjectStore();
   const location = useLocation();
-  
+  const workflowState = location.state as WorkflowLocationState | null;
+  const inWorkflow = isWorkflowActive(location.search, workflowState);
+  const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
+  const importedPricingRef = useRef<string | null>(null);
+  const [workflowStepReady, setWorkflowStepReady] = useState(false);
+
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
   const [showPreview, setShowPreview] = useState(isPreviewMode);
   const [currentProposal, setCurrentProposal] = useState<SavedProposal | null>(null);
@@ -114,31 +128,48 @@ const ProposalGenerator: React.FC = () => {
     loadProposal();
   }, [editId, previewId, navigate]);
 
-  // Handle project data from navigation state
+  // Handle project data from navigation state (guided workflow)
   useEffect(() => {
-    const state = location.state as { projectName?: string; projectDescription?: string };
-    if (state?.projectName && !isEditing && !isPreviewMode) {
-      // Pre-fill proposal data with project information
-      setProposalTitle(`${state.projectName} - Concrete Proposal`);
-      setProposalData(prev => ({
+    const state = workflowState;
+    if (isEditing || isPreviewMode) return;
+
+    const projectId = state?.projectId ?? workflowProjectId;
+    const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
+    const projectName = state?.projectName ?? project?.name;
+    const projectDescription = state?.projectDescription ?? project?.description;
+
+    if (projectName) {
+      setProposalTitle((prev) => prev || `${projectName} - Concrete Proposal`);
+      setProposalData((prev) => ({
         ...prev,
-        projectTitle: state.projectName || '',
-        introduction: state.projectDescription 
-          ? `We are pleased to submit this proposal for your ${state.projectName} project. ${state.projectDescription}`
-          : `We are pleased to submit this proposal for your ${state.projectName || 'concrete'} project.`,
-        scope: `This proposal covers all concrete work required for the ${state.projectName || 'concrete'} project, including materials, labor, and related services.`
+        projectTitle: projectName,
+        introduction: projectDescription
+          ? `We are pleased to submit this proposal for your ${projectName} project. ${projectDescription}`
+          : `We are pleased to submit this proposal for your ${projectName || 'concrete'} project.`,
+        scope: `This proposal covers all concrete work required for the ${projectName || 'concrete'} project, including materials, labor, and related services.`,
       }));
-      
-      // Clear the navigation state to prevent re-applying on subsequent renders
-      window.history.replaceState({}, '', window.location.pathname + window.location.search);
     }
-  }, [location.state, isEditing, isPreviewMode]);
+
+    if (
+      projectId &&
+      importedPricingRef.current !== projectId &&
+      project?.calculations?.length
+    ) {
+      importedPricingRef.current = projectId;
+      importPricingFromProject(projectId, { silent: true });
+    }
+  }, [workflowState, workflowProjectId, isEditing, isPreviewMode, projects]);
 
   // Import pricing from selected project
-  const importPricingFromProject = (projectId: string) => {
+  const importPricingFromProject = (
+    projectId: string,
+    options?: { silent?: boolean },
+  ) => {
     const project = projects.find(p => p.id === projectId);
     if (!project || !project.calculations?.length) {
-      alert('Selected project has no calculations with pricing data.');
+      if (!options?.silent) {
+        alert('Selected project has no calculations with pricing data.');
+      }
       return;
     }
 
@@ -154,7 +185,11 @@ const ProposalGenerator: React.FC = () => {
     console.log('💎 Calculations with pricing:', calculationsWithPricing);
 
     if (calculationsWithPricing.length === 0) {
-      alert('No calculations with pricing data found in this project. Please ensure you have calculated pricing for at least one calculation.');
+      if (!options?.silent) {
+        alert(
+          'No calculations with pricing data found in this project. Please ensure you have calculated pricing for at least one calculation.',
+        );
+      }
       return;
     }
     
@@ -245,7 +280,9 @@ const ProposalGenerator: React.FC = () => {
     });
 
     if (pricingItems.length === 0) {
-      alert('No pricing data could be extracted from the selected project.');
+      if (!options?.silent) {
+        alert('No pricing data could be extracted from the selected project.');
+      }
       return;
     }
 
@@ -264,7 +301,35 @@ const ProposalGenerator: React.FC = () => {
     );
 
     setShowProjectPicker(false);
-    alert(`Successfully imported ${pricingItems.length} consolidated pricing items from "${project.name}"`);
+    if (!options?.silent) {
+      alert(
+        `Successfully imported ${pricingItems.length} consolidated pricing items from "${project.name}"`,
+      );
+    }
+  };
+
+  const goToMixDesign = () => {
+    if (!workflowProjectId) return;
+    navigate(
+      { pathname: '/mix-design-advisor', search: workflowQuery(workflowProjectId) },
+      { state: workflowNavigateState(workflowProjectId) },
+    );
+  };
+
+  const recordVisit = useWorkflowProgressStore((s) => s.recordVisit);
+
+  const goToPlacementPlanner = () => {
+    if (!workflowProjectId) return;
+    recordVisit(workflowProjectId, 'placement');
+    navigate(
+      { pathname: '/pour-planner', search: workflowQuery(workflowProjectId) },
+      { state: workflowNavigateState(workflowProjectId) },
+    );
+  };
+
+  const skipProposal = () => {
+    recordVisit(workflowProjectId, 'proposal');
+    goToPlacementPlanner();
   };
 
   // Update proposal data when company settings change (for new proposals)
@@ -306,19 +371,37 @@ const ProposalGenerator: React.FC = () => {
           template_type: selectedTemplate,
           data: dataToSave,
         });
-        alert('Proposal updated successfully!');
+        if (!inWorkflow) {
+          alert('Proposal updated successfully!');
+        } else {
+          setWorkflowStepReady(true);
+        }
       } else {
-        // Create new proposal
         const savedProposal = await ProposalService.create({
           title: proposalTitle,
           template_type: selectedTemplate,
           data: dataToSave,
         });
         setCurrentProposal(savedProposal);
-        alert('Proposal saved successfully!');
-        
-        // Update URL to edit mode
-        navigate(`/proposal-generator?edit=${savedProposal.id}`, { replace: true });
+        if (inWorkflow) {
+          setWorkflowStepReady(true);
+          navigate(
+            {
+              pathname: '/proposal-generator',
+              search: workflowQuery(workflowProjectId),
+            },
+            {
+              replace: true,
+              state: {
+                ...workflowNavigateState(workflowProjectId),
+                projectName: proposalData.projectTitle,
+              },
+            },
+          );
+        } else {
+          alert('Proposal saved successfully!');
+          navigate(`/proposal-generator?edit=${savedProposal.id}`, { replace: true });
+        }
       }
     } catch (error) {
       console.error('Failed to save proposal:', error);
@@ -952,6 +1035,49 @@ ${proposalData.preparedByTitle || ''}
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4">
+        <WorkflowStepHeader />
+        {inWorkflow && !workflowStepReady && (
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
+            <p className="text-sm text-slate-300">
+              Skip this step if you do not need a formal proposal — you can still plan the pour in
+              Placement Planner.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={skipProposal}
+              icon={<SkipForward size={16} />}
+              className="border-slate-500 text-white hover:bg-slate-800 shrink-0"
+            >
+              Skip proposal
+            </Button>
+          </div>
+        )}
+        {inWorkflow && workflowStepReady && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 rounded-xl border border-cyan-700/40 bg-slate-900/90 p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center sm:justify-between"
+          >
+            <p className="text-sm text-cyan-100/90">
+              Proposal saved. Mix design is optional — placement planning is the next required step.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToMixDesign}
+                icon={<Beaker size={16} />}
+                className="border-slate-600 text-white hover:bg-slate-800"
+              >
+                Mix design (optional)
+              </Button>
+              <Button size="sm" onClick={goToPlacementPlanner} icon={<CloudSun size={16} />}>
+                Continue to placement planner
+              </Button>
+            </div>
+          </motion.div>
+        )}
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

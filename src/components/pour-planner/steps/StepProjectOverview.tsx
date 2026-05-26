@@ -6,6 +6,8 @@ import Button from '../../ui/Button';
 import USAddressFields from '../../address/USAddressFields';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import { findBatchPlant, BatchPlantNotFoundError } from '../../../services/batchPlantService';
+import { lookupBatchPlantContact } from '../../../services/batchPlantContactService';
+import { hasSavedBatchPlantContact } from '../../../utils/projectLocation';
 import { getMapboxTravelTime } from '../../../services/mapboxTravelService';
 import { verifyJobsiteAddress } from '../../../services/geocodeService';
 import type { BatchPlantResult } from '../../../services/batchPlantService';
@@ -21,6 +23,10 @@ import {
   applyUSAddressToPourPlanner,
   jobsiteFromPourPlannerForm,
 } from '../../../utils/addressForm';
+import {
+  hasSavedBatchPlant,
+  getSavedPlacementOrder,
+} from '../../../utils/projectLocation';
 
 interface StepProps {
   planner: PourPlannerContext;
@@ -188,6 +194,18 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
   const handleFindBatchPlant = async () => {
     if (!hasJobsiteAddress) return;
 
+    if (hasSavedBatchPlant(selectedProject) && form.batchPlantName.trim()) {
+      setFindPlantError(null);
+      const saved = getSavedPlacementOrder(selectedProject);
+      if (saved?.batchPlantName) {
+        setField('batchPlantName', saved.batchPlantName);
+      }
+      if (saved?.batchPlantAddress) {
+        setField('batchPlantAddress', saved.batchPlantAddress);
+      }
+      return;
+    }
+
     setFindPlantLoading(true);
     setFindPlantError(null);
     setRouteError(null);
@@ -227,6 +245,26 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
         setField('travelTimeMinutes', String(route.travelMinutes));
         if (route.avgSpeedMph > 0) {
           setField('truckSpeed', String(route.avgSpeedMph));
+        }
+
+        if (!hasSavedBatchPlantContact(selectedProject)) {
+          try {
+            const contact = await lookupBatchPlantContact({
+              plantName: plant.plantName,
+              plantAddress: plant.formattedAddress,
+              latitude: plant.latitude,
+              longitude: plant.longitude,
+            });
+            if (contact.phone) setField('batchPlantPhone', contact.phone);
+            if (contact.email) setField('batchPlantEmail', contact.email);
+            if (contact.dispatchContact) {
+              setField('batchPlantDispatchContact', contact.dispatchContact);
+            }
+            if (contact.website) setField('batchPlantWebsite', contact.website);
+            setField('batchPlantContactSource', 'ai');
+          } catch {
+            /* contact lookup is optional; user can enter manually on call sheet */
+          }
         }
       } catch (routeErr) {
         setRouteError(

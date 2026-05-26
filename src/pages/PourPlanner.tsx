@@ -1,6 +1,15 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CloudSun } from 'lucide-react';
+import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
+import {
+  isWorkflowActive,
+  getWorkflowProjectId,
+  type WorkflowLocationState,
+} from '../utils/workflow';
+import { applyUSAddressToPourPlanner } from '../utils/addressForm';
+import { isUSAddressGeocodable } from '../types/address';
 import Card from '../components/ui/Card';
 import Modal from '../components/ui/Modal';
 import PlacementScoringGuide from '../components/weather/PlacementScoringGuide';
@@ -43,8 +52,14 @@ import { placementOrderFromForm } from '../utils/placementOrderForm';
 const FORECAST_DAYS = 5;
 
 const PourPlanner: React.FC = () => {
+  const navigate = useNavigate();
+  const routerLocation = useLocation();
+  const workflowState = routerLocation.state as WorkflowLocationState | null;
+  const inWorkflow = isWorkflowActive(routerLocation.search, workflowState);
+  const workflowProjectId = getWorkflowProjectId(routerLocation.search, workflowState);
+
   const { user } = useAuth();
-  const { updateProject } = useProjectStore();
+  const { updateProject, projects } = useProjectStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [jobsiteLocation, setJobsiteLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,6 +94,27 @@ const PourPlanner: React.FC = () => {
   const planner = usePourPlannerState(selectedDay);
 
   const { calculation, setField, preferences } = planner;
+
+  useEffect(() => {
+    if (!workflowProjectId || planner.form.projectId === workflowProjectId) return;
+    const project = projects.find((p) => p.id === workflowProjectId);
+    if (!project) return;
+
+    setField('projectId', workflowProjectId);
+    setField('projectName', project.name);
+    if (project.jobsiteAddress && isUSAddressGeocodable(project.jobsiteAddress)) {
+      const patch = applyUSAddressToPourPlanner({}, project.jobsiteAddress);
+      (Object.entries(patch) as [keyof typeof patch, string][]).forEach(([key, value]) => {
+        if (value !== undefined) {
+          setField(key as keyof typeof patch, value);
+        }
+      });
+    }
+    const firstCalc = project.calculations?.[0];
+    if (firstCalc) {
+      setField('calculationId', firstCalc.id);
+    }
+  }, [workflowProjectId, projects, planner.form.projectId, setField]);
 
   useEffect(() => {
     const psi = getCalculationPsi(calculation);
@@ -330,8 +366,14 @@ const PourPlanner: React.FC = () => {
     setError(null);
     const isoDate = `${selectedDate}T12:00:00.000Z`;
     try {
+      if (inWorkflow && planner.activeStepId === 'risk') {
+        await handleSavePlacementOrder();
+      }
       await updateProject(planner.form.projectId, { pourDate: isoDate });
       setSavePourDateMessage('Placement date saved to project.');
+      if (inWorkflow) {
+        navigate('/');
+      }
     } catch {
       setError('Failed to save placement date to project.');
     } finally {
@@ -386,6 +428,7 @@ const PourPlanner: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
+      <WorkflowStepHeader />
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -451,6 +494,11 @@ const PourPlanner: React.FC = () => {
           onFinish={handleSavePlacementDate}
           finishDisabled={!canSavePlacementDate}
           finishLoading={savePourDateLoading}
+          finishLabel={
+            inWorkflow
+              ? 'Save call sheet & return to dashboard'
+              : 'Save placement date'
+          }
         />
       </Card>
 

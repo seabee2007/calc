@@ -4,6 +4,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import BottomNav from './BottomNav';
+import ToolsModal from '../workflow/ToolsModal';
+import MoreMenuModal from '../workflow/MoreMenuModal';
 import { useAuth } from '../../hooks/useAuth';
 import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
@@ -135,6 +137,12 @@ const Layout: React.FC = () => {
         </motion.main>
         <Footer />
         {showBottomNav && <BottomNav />}
+        {user && (
+          <>
+            <ToolsModal />
+            <MoreMenuModal />
+          </>
+        )}
       </div>
     </div>
   );

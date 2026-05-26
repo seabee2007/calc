@@ -27,7 +27,7 @@ const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) 
   }, [form.slabSize, form.specificPlacementArea, setField]);
 
   return (
-    <Card className="p-4 space-y-6">
+    <Card className="p-4 space-y-6 bg-white/95 dark:bg-slate-800/95 border border-gray-200 dark:border-slate-600">
       <div>
         <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
           Call sheet details
@@ -189,12 +189,6 @@ const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) 
             onChange={(e) => setField('qcSpecialInspection', e.target.checked)}
           />
         </div>
-        <Input
-          label="ACI / NAVFAC requirements"
-          value={form.qcAciNavfac}
-          onChange={(e) => setField('qcAciNavfac', e.target.value)}
-          placeholder="e.g. NAVFAC slump each truck, cylinders every 50 CY"
-        />
       </fieldset>
 
       <fieldset className="space-y-3">

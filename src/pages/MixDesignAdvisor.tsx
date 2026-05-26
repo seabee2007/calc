@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Beaker, Thermometer, Droplets, Wind, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle, Search } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Beaker, Thermometer, Droplets, Wind, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle, Search, CloudSun, SkipForward } from 'lucide-react';
+import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
+import { useProjectStore } from '../store';
+import {
+  isWorkflowActive,
+  getWorkflowProjectId,
+  workflowQuery,
+  workflowNavigateState,
+  type WorkflowLocationState,
+} from '../utils/workflow';
+import { hasProjectJobsite } from '../types/address';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -32,6 +43,13 @@ interface MixDesignRecommendation {
 }
 
 const MixDesignAdvisor: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { projects } = useProjectStore();
+  const workflowState = location.state as WorkflowLocationState | null;
+  const inWorkflow = isWorkflowActive(location.search, workflowState);
+  const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
+
   const [weather, setWeather] = useState<Weather | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedPsi, setSelectedPsi] = useState<string>('4000');
@@ -41,6 +59,22 @@ const MixDesignAdvisor: React.FC = () => {
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
   const [locationError, setLocationError] = useState<string | null>(null);
   const [jobsiteAddress, setJobsiteAddress] = useState<USAddress>({ ...EMPTY_US_ADDRESS });
+
+  useEffect(() => {
+    if (!workflowProjectId) return;
+    const project = projects.find((p) => p.id === workflowProjectId);
+    if (project?.jobsiteAddress && hasProjectJobsite(project.jobsiteAddress)) {
+      setJobsiteAddress({ ...project.jobsiteAddress });
+    }
+  }, [workflowProjectId, projects]);
+
+  const goToPlacementPlanner = () => {
+    if (!workflowProjectId) return;
+    navigate(
+      { pathname: '/pour-planner', search: workflowQuery(workflowProjectId) },
+      { state: workflowNavigateState(workflowProjectId) },
+    );
+  };
 
   const calculateEvaporationRate = (temp: number, humidity: number, windSpeed: number) => {
     const TcF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
@@ -301,6 +335,22 @@ const MixDesignAdvisor: React.FC = () => {
       transition={{ duration: 0.3 }}
     >
       <div className="max-w-6xl mx-auto">
+        <WorkflowStepHeader />
+        {inWorkflow && (
+          <div className="mb-6 flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={goToPlacementPlanner}
+              icon={<SkipForward size={18} />}
+              className="dark:text-white dark:border-slate-600"
+            >
+              Skip to placement planner
+            </Button>
+            <Button onClick={goToPlacementPlanner} icon={<CloudSun size={18} />}>
+              Continue to placement planner
+            </Button>
+          </div>
+        )}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
             Mix-Design Advisor

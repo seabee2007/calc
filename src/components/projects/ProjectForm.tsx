@@ -21,6 +21,9 @@ interface ProjectFormProps {
   initialData?: Partial<ProjectFormData>;
   isEditing?: boolean;
   isModal?: boolean;
+  submitLabel?: string;
+  /** Hide pour date until placement planner (workflow / calculator). */
+  hidePourDate?: boolean;
 }
 
 const defaultJobsite = (): USAddress => ({ ...EMPTY_US_ADDRESS });
@@ -31,6 +34,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   initialData,
   isEditing = false,
   isModal = false,
+  submitLabel,
+  hidePourDate = false,
 }) => {
   const {
     register,
@@ -94,29 +99,31 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Pour Date
-        </label>
-        <div className="relative">
-          <Input
-            type="date"
-            icon={<Calendar size={18} />}
-            {...register('pourDate')}
-            fullWidth
-          />
+      {!hidePourDate && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Pour Date
+          </label>
+          <div className="relative">
+            <Input
+              type="date"
+              icon={<Calendar size={18} />}
+              {...register('pourDate')}
+              fullWidth
+            />
+          </div>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Set the concrete pour date to track strength development
+          </p>
         </div>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Set the concrete pour date to track strength development
-        </p>
-      </div>
+      )}
 
       <div className="flex justify-end space-x-3 pt-2">
         <Button type="button" variant="outline" onClick={onCancel} icon={<X size={18} />}>
           Cancel
         </Button>
         <Button type="submit" icon={<Save size={18} />}>
-          {isEditing ? 'Update Project' : 'Create Project'}
+          {submitLabel ?? (isEditing ? 'Update Project' : 'Create Project')}
         </Button>
       </div>
     </form>
