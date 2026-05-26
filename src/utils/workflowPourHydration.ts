@@ -1,8 +1,12 @@
 import type { Project, Calculation } from '../types';
 import type { PourPlannerFormState } from '../types/pourPlanner';
+import { placementAreaFromCalculationType } from '../types/callSheet';
 import { applyUSAddressToPourPlanner } from './addressForm';
 import { applyPlacementOrderToForm } from './placementOrderForm';
-import { getCalculationPsi } from './calculationDimensions';
+import {
+  formatCalculationSlabSize,
+  getCalculationPsi,
+} from './calculationDimensions';
 import { isUSAddressGeocodable } from '../types/address';
 
 /** Pre-fill pour planner from workflow project + latest calculation. */
@@ -28,6 +32,21 @@ export function hydratePourPlannerFromProject(
     patch.calculationId = calc.id;
     const psi = getCalculationPsi(calc);
     if (psi) patch.psi = psi;
+
+    const slabSize = formatCalculationSlabSize(calc, 'feet');
+    if (slabSize) patch.slabSize = slabSize;
+
+    const areaType = placementAreaFromCalculationType(calc.type);
+    if (areaType) patch.placementAreaType = areaType;
+
+    const d = calc.dimensions;
+    if (d?.thickness != null && Number(d.thickness) > 0) {
+      patch.slabThicknessIn = String(Math.round(Number(d.thickness) * 12));
+    } else if (d?.baseThickness != null && Number(d.baseThickness) > 0) {
+      patch.slabThicknessIn = String(Math.round(Number(d.baseThickness) * 12));
+    } else if (d?.base_thickness != null && Number(d.base_thickness) > 0) {
+      patch.slabThicknessIn = String(Math.round(Number(d.base_thickness) * 12));
+    }
   }
 
   return patch;

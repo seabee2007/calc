@@ -187,10 +187,14 @@ const ProposalGenerator: React.FC = () => {
       }));
     }
 
+    const hasImportablePricing =
+      (project?.calculations?.length ?? 0) > 0 ||
+      (project?.placementOrder?.production?.laborCost ?? 0) > 0;
+
     if (
       projectId &&
       importedPricingRef.current !== projectId &&
-      project?.calculations?.length
+      hasImportablePricing
     ) {
       importedPricingRef.current = projectId;
       importPricingFromProject(projectId, { silent: true });
@@ -210,9 +214,21 @@ const ProposalGenerator: React.FC = () => {
     options?: { silent?: boolean },
   ) => {
     const project = projects.find(p => p.id === projectId);
-    if (!project || !project.calculations?.length) {
+    const placementLaborCost = project?.placementOrder?.production?.laborCost ?? 0;
+    const hasPlacementLabor = placementLaborCost > 0;
+
+    if (!project) {
       if (!options?.silent) {
-        alert('Selected project has no calculations with pricing data.');
+        alert('Project not found.');
+      }
+      return;
+    }
+
+    if (!project.calculations?.length && !hasPlacementLabor) {
+      if (!options?.silent) {
+        alert(
+          'Selected project has no calculations or saved placement labor. Run the calculator or save an order in Placement Planner first.',
+        );
       }
       return;
     }
@@ -221,17 +237,17 @@ const ProposalGenerator: React.FC = () => {
     console.log('📊 Available calculations:', project.calculations);
 
     // Filter to only calculations that have pricing data
-    const calculationsWithPricing = project.calculations.filter(calc => {
+    const calculationsWithPricing = (project.calculations ?? []).filter(calc => {
       const pricing = (calc.result as any).pricing;
       return pricing && pricing.concreteCost > 0;
     });
 
     console.log('💎 Calculations with pricing:', calculationsWithPricing);
 
-    if (calculationsWithPricing.length === 0) {
+    if (calculationsWithPricing.length === 0 && !hasPlacementLabor) {
       if (!options?.silent) {
         alert(
-          'No calculations with pricing data found in this project. Please ensure you have calculated pricing for at least one calculation.',
+          'No calculations with pricing data found in this project. Please ensure you have calculated pricing for at least one calculation, or save placement labor in Placement Planner.',
         );
       }
       return;
@@ -316,6 +332,18 @@ const ProposalGenerator: React.FC = () => {
       });
     });
 
+    const placementLabor = project.placementOrder?.production;
+    if (placementLabor?.laborCost != null && placementLabor.laborCost > 0) {
+      const hoursLabel =
+        placementLabor.adjustedLaborHours > 0
+          ? ` — ${placementLabor.adjustedLaborHours.toFixed(1)} labor-hrs`
+          : '';
+      pricingItems.push({
+        description: `Placement labor${hoursLabel}`,
+        amount: formatPrice(placementLabor.laborCost),
+      });
+    }
+
     console.log('📝 Consolidated pricing items:', pricingItems);
     console.log('🧮 Consolidation summary:', {
       concreteByPsi,
@@ -356,7 +384,11 @@ const ProposalGenerator: React.FC = () => {
     if (!workflowProjectId) return;
     navigate(
       { pathname: '/mix-design-advisor', search: workflowQuery(workflowProjectId) },
-      { state: workflowNavigateState(workflowProjectId) },
+      {
+        state: workflowNavigateState(workflowProjectId, {
+          calculationId: workflowState?.calculationId,
+        }),
+      },
     );
   };
 
@@ -365,7 +397,11 @@ const ProposalGenerator: React.FC = () => {
     recordVisit(workflowProjectId, 'placement');
     navigate(
       { pathname: '/pour-planner', search: workflowQuery(workflowProjectId) },
-      { state: workflowNavigateState(workflowProjectId) },
+      {
+        state: workflowNavigateState(workflowProjectId, {
+          calculationId: workflowState?.calculationId,
+        }),
+      },
     );
   };
 

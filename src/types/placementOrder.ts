@@ -18,6 +18,40 @@ export interface BatchPlantContact {
 }
 
 import type { CallSheetFields } from './callSheet';
+import type {
+  AccessFactorKey,
+  ComplexityLevel,
+  CrewEfficiency,
+  PlacementMethod,
+  WeatherFactorKey,
+} from './pourPlanner';
+
+/** Placement production / labor estimate captured from Placement Planner. */
+export interface PlacementProductionSnapshot {
+  laborCost: number;
+  adjustedLaborHours: number;
+  placingLaborHours: number;
+  finishingLaborHours: number;
+  setupCleanupHours: number;
+  estimatedCrewDurationHours: number;
+  burdenedHourlyRate: number;
+  volumeYd?: number;
+  capturedAt: string;
+  crewSize: string;
+  finishers: string;
+  vibrators: string;
+  laborerRateCYHr: string;
+  finisherRateSFHr: string;
+  placingProductivityCYPerLaborHour: string;
+  finishingProductivitySFPerLaborHour: string;
+  setupHours: string;
+  cleanupHours: string;
+  crewEfficiency: CrewEfficiency;
+  complexityFactor: ComplexityLevel | 'auto';
+  accessFactorMode: 'auto' | AccessFactorKey;
+  weatherFactorMode: 'auto' | WeatherFactorKey;
+  placementMethod: PlacementMethod;
+}
 
 export interface PlacementOrder {
   status: PlacementOrderStatus;
@@ -31,6 +65,8 @@ export interface PlacementOrder {
   jobsiteAddress?: string;
   /** Snapshot of the call sheet at last save (dashboard-ready). */
   summaryLines?: string[];
+  /** Labor cost and production inputs from Placement Planner step 5. */
+  production?: PlacementProductionSnapshot;
 }
 
 export const PLACEMENT_ORDER_STATUS_LABELS: Record<PlacementOrderStatus, string> = {

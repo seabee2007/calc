@@ -116,9 +116,10 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       const project = projects.find((p) => p.id === projectId);
       const existing: PlacementOrder | undefined = project?.placementOrder;
       const order: PlacementOrder = {
+        ...existing,
         status: existing?.status ?? 'draft',
         contact: existing?.contact ?? { ...DEFAULT_BATCH_PLANT_CONTACT },
-        orderNotes: existing?.orderNotes,
+        orderNotes: existing?.orderNotes ?? '',
         updatedAt: new Date().toISOString(),
         batchPlantName: plant.plantName,
         batchPlantAddress: plant.formattedAddress,

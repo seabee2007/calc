@@ -9,10 +9,20 @@ import { getCalculationPsi } from '../utils/calculationDimensions';
 import {
   isWorkflowActive,
   getWorkflowProjectId,
+  getWorkflowCalculation,
   workflowQuery,
   workflowNavigateState,
   type WorkflowLocationState,
 } from '../utils/workflow';
+import {
+  MIX_DESIGN_PSI_OPTIONS,
+  getEvaporationRiskLevel,
+  parseMixDesignPsi,
+  suggestConcreteParameters,
+  weatherToMixInputs,
+  type MixDesignRecommendation,
+  type MixExposure,
+} from '../utils/mixDesign';
 import {
   copyUSAddress,
   formatUSAddress,
@@ -37,17 +47,6 @@ import { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
 import SpecGenerator from '../components/mix/SpecGenerator';
 import { generateMixSpecPDF } from '../utils/pdf';
-
-interface MixDesignRecommendation {
-  waterCementRatio: number;
-  targetAir: [number, number];
-  aeFactor: number;
-  evaporationRate: {
-    imperial: number;
-    metric: number;
-  };
-  recommendations: string[];
-}
 
 function jobsiteFromProject(project: Project | undefined): USAddress | null {
   if (!project?.jobsiteAddress) return null;
@@ -86,8 +85,8 @@ const MixDesignAdvisor: React.FC = () => {
 
   const [weather, setWeather] = useState<Weather | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedPsi, setSelectedPsi] = useState<string>('4000');
-  const [exposure, setExposure] = useState<'F1' | 'F2' | 'F3' | 'none'>('F1');
+  const [selectedPsi, setSelectedPsi] = useState<string>('3000');
+  const [exposure, setExposure] = useState<MixExposure>('F1');
   const [recommendation, setRecommendation] = useState<MixDesignRecommendation | null>(null);
   const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
@@ -114,38 +113,33 @@ const MixDesignAdvisor: React.FC = () => {
     const project = projects.find((p) => p.id === workflowProjectId);
     const draft = getMixDesignDraft(workflowProjectId);
     const projectAddr = jobsiteFromProject(project);
+    const workflowCalc = getWorkflowCalculation(project, workflowState);
+    const psiFromCalc = getCalculationPsi(workflowCalc);
 
-    if (draft && draftHasJobsite(draft.jobsiteAddress)) {
-      const key = `draft:${workflowProjectId}`;
-      if (lastHydrationKeyRef.current === key) return;
-      setSelectedPsi(draft.selectedPsi);
-      setExposure(draft.exposure);
-      setUnitSystem(draft.unitSystem);
-      setClimate(draft.climate);
-      setJobsiteAddress(copyUSAddress(draft.jobsiteAddress));
-      lastHydrationKeyRef.current = key;
-      return;
-    }
+    const key = `project:${workflowProjectId}:${project?.updatedAt ?? ''}:${workflowCalc?.id ?? ''}:${psiFromCalc ?? ''}`;
+    if (lastHydrationKeyRef.current === key) return;
 
     if (!project) return;
 
-    const key = `project:${workflowProjectId}:${project.updatedAt}`;
-    if (lastHydrationKeyRef.current === key) return;
-
-    if (projectAddr) {
-      setJobsiteAddress(projectAddr);
-    }
-    const latestCalc = project.calculations?.[project.calculations.length - 1];
-    const psi = getCalculationPsi(latestCalc);
-    if (psi) setSelectedPsi(psi);
-    if (draft) {
+    if (draft && draftHasJobsite(draft.jobsiteAddress)) {
+      setJobsiteAddress(copyUSAddress(draft.jobsiteAddress));
       setExposure(draft.exposure);
       setUnitSystem(draft.unitSystem);
       setClimate(draft.climate);
+      if (!psiFromCalc) setSelectedPsi(draft.selectedPsi);
+    } else if (projectAddr) {
+      setJobsiteAddress(projectAddr);
+      if (draft) {
+        setExposure(draft.exposure);
+        setUnitSystem(draft.unitSystem);
+        setClimate(draft.climate);
+      }
     }
 
+    if (psiFromCalc) setSelectedPsi(psiFromCalc);
+
     lastHydrationKeyRef.current = key;
-  }, [workflowProjectId, projects, getMixDesignDraft]);
+  }, [workflowProjectId, projects, getMixDesignDraft, workflowState]);
 
   const projectJobsiteImported =
     inWorkflow &&
@@ -173,137 +167,55 @@ const MixDesignAdvisor: React.FC = () => {
     saveMixDesignDraft,
   ]);
 
+  const workflowCalc = workflowProject
+    ? getWorkflowCalculation(workflowProject, workflowState)
+    : undefined;
+  const psiFromWorkflowCalc = getCalculationPsi(workflowCalc);
+
   const goToPlacementPlanner = () => {
     if (!workflowProjectId) return;
     navigate(
       { pathname: '/pour-planner', search: workflowQuery(workflowProjectId) },
-      { state: workflowNavigateState(workflowProjectId) },
+      {
+        state: workflowNavigateState(workflowProjectId, {
+          calculationId: workflowCalc?.id,
+        }),
+      },
     );
   };
 
-  const calculateEvaporationRate = (temp: number, humidity: number, windSpeed: number) => {
-    const TcF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
-    const TaF = TcF;
-    const RH = humidity / 100;
-    const V = unitSystem === 'metric' ? windSpeed * 0.621371 : windSpeed;
+  const buildRecommendation = useCallback(
+    (weatherData: Weather): MixDesignRecommendation => {
+      const { tempF, humidityPercent, windMph } = weatherToMixInputs(
+        weatherData.temperature,
+        weatherData.humidity,
+        weatherData.windSpeed,
+      );
+      return suggestConcreteParameters({
+        tempF,
+        humidityPercent,
+        windMph,
+        psi: parseMixDesignPsi(selectedPsi),
+        exposure,
+        climate,
+      });
+    },
+    [selectedPsi, exposure, climate],
+  );
 
-    const E_us = (Math.pow(TcF, 2.5) - RH * Math.pow(TaF, 2.5)) * (1 + 0.4 * V) * 1e-6;
-    const E_metric = E_us * 4.88243;
+  const applyWeatherData = useCallback(
+    (weatherData: Weather) => {
+      setWeather(weatherData);
+      setLocationError(null);
+      setRecommendation(buildRecommendation(weatherData));
+    },
+    [buildRecommendation],
+  );
 
-    return { imperial: E_us, metric: E_metric };
-  };
-
-  const getEvaporationRiskLevel = (rate: number) => {
-    if (rate <= 0.5) return { level: 'Low', color: 'green', icon: <CheckCircle className="h-6 w-6 text-green-500" /> };
-    if (rate <= 1.0) return { level: 'Moderate', color: 'yellow', icon: <AlertTriangle className="h-6 w-6 text-yellow-500" /> };
-    return { level: 'High', color: 'red', icon: <XCircle className="h-6 w-6 text-red-500" /> };
-  };
-
-  const getMitigationSteps = (rate: number): string[] => {
-    if (rate <= 0.5) return [
-      'Standard curing procedures are adequate',
-      'Monitor surface moisture during finishing',
-      'Apply curing compound after final finishing'
-    ];
-    
-    if (rate <= 1.0) return [
-      'Erect windbreaks or sun-shades around pour area',
-      'Begin light fogging every 15-30 minutes',
-      'Apply curing compound when bleeding stops',
-      'Consider rescheduling pour for better conditions'
-    ];
-    
-    return [
-      'IMMEDIATE ACTION REQUIRED',
-      'Apply evaporation retarder right after screeding',
-      'Cover surface with wet burlap or poly sheeting',
-      'Mandatory wet curing for minimum 24 hours',
-      'Use windbreaks and sunshades',
-      'Reschedule pour if possible'
-    ];
-  };
-
-  const suggestConcreteParameters = (
-    temp: number,
-    humidity: number,
-    windSpeed: number,
-    psi: number,
-    exposure: 'F1' | 'F2' | 'F3' | 'none'
-  ): MixDesignRecommendation => {
-    const tempF = unitSystem === 'metric' ? (temp * 9/5) + 32 : temp;
-    const tempC = unitSystem === 'metric' ? temp : (temp - 32) * 5/9;
-    
-    const baseWc = { 3500: 0.54, 4000: 0.50, 5000: 0.45 }[psi] || 0.50;
-    
-    const delta = Math.max(0, (tempC - 21) / 11) * 0.025;
-    const wc = Math.min(0.60, baseWc + delta);
-    
-    const airContent = climate === 'tropical' ? 
-      { 'none': [2, 4], 'F1': [3, 5], 'F2': [4, 6], 'F3': [5, 7] }[exposure] :
-      { 'none': [3, 5], 'F1': [4, 6], 'F2': [5, 7], 'F3': [6, 8] }[exposure];
-    
-    const aeAdjustment = tempC > 38 ? 1.25 : tempC < 4 ? 0.60 : 1.0;
-    
-    const evapRate = calculateEvaporationRate(tempF, humidity, windSpeed);
-    
-    const recommendations: string[] = [];
-    
-    if (climate === 'temperate') {
-      if (tempF < 40) {
-        recommendations.push('Use Type C non-chloride accelerator');
-        recommendations.push('Heat mixing water (max 140°F/60°C)');
-        recommendations.push('Protect concrete from freezing');
-      }
-    }
-
-    if (tempF > 90 || (climate === 'tropical' && tempF > 85)) {
-      recommendations.push('CRITICAL: Use Type D water-reducing retarder');
-      recommendations.push('Schedule pour for early morning or evening');
-      recommendations.push('Consider using chilled water or ice as partial water replacement');
-      recommendations.push('Use light-colored curing compounds to reduce heat absorption');
-    }
-
-    if (climate === 'tropical') {
-      recommendations.push('Use Type F or G superplasticizer for improved workability');
-      recommendations.push('Consider using fly ash to reduce heat of hydration');
-      if (humidity > 80) {
-        recommendations.push('Increase setting time with appropriate admixtures');
-      }
-    }
-
-    recommendations.push(...getMitigationSteps(evapRate.metric));
-
-    if (humidity < 30) {
-      recommendations.push('Increase curing compound application rate by 25%');
-      recommendations.push('Use synthetic fiber reinforcement');
-    }
-
-    return {
-      waterCementRatio: wc,
-      targetAir: airContent as [number, number],
-      aeFactor: aeAdjustment,
-      evaporationRate: evapRate,
-      recommendations
-    };
-  };
-
-  const applyWeatherData = (weatherData: Weather) => {
-    setWeather(weatherData);
-    setLocationError(null);
-
-    const rec = suggestConcreteParameters(
-      unitSystem === 'metric'
-        ? (weatherData.temperature - 32) * (5 / 9)
-        : weatherData.temperature,
-      weatherData.humidity,
-      unitSystem === 'metric'
-        ? weatherData.windSpeed * 1.60934
-        : weatherData.windSpeed,
-      parseInt(selectedPsi),
-      exposure,
-    );
-    setRecommendation(rec);
-  };
+  useEffect(() => {
+    if (!weather) return;
+    setRecommendation(buildRecommendation(weather));
+  }, [weather, buildRecommendation]);
 
   const fetchWeatherForLocation = async (
     fetcher: () => Promise<Weather | null>,
@@ -394,10 +306,28 @@ const MixDesignAdvisor: React.FC = () => {
     return `${speed} mph`;
   };
 
+  const evaporationRiskDisplay = (metricRate: number) => {
+    const risk = getEvaporationRiskLevel(metricRate);
+    const icon =
+      risk.level === 'Low' ? (
+        <CheckCircle className="h-6 w-6 text-green-500" />
+      ) : risk.level === 'Moderate' ? (
+        <AlertTriangle className="h-6 w-6 text-yellow-500" />
+      ) : (
+        <XCircle className="h-6 w-6 text-red-500" />
+      );
+    return { ...risk, icon };
+  };
+
   const aeDosageRange = () => {
     const baseRange = [0.5, 1.0];
     return baseRange.map(dose => dose * recommendation!.aeFactor);
   };
+
+  const recommendedTargetAir =
+    recommendation != null
+      ? (recommendation.targetAir[0] + recommendation.targetAir[1]) / 2
+      : undefined;
 
   const wrDosage = () => {
     return [3.0, 5.0];
@@ -518,15 +448,19 @@ const MixDesignAdvisor: React.FC = () => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">Select Design Strength</h3>
                 </div>
                 <Select
-                  options={[
-                    { value: '3500', label: unitSystem === 'metric' ? '24 MPa (3,500 PSI)' : '3,500 PSI' },
-                    { value: '4000', label: unitSystem === 'metric' ? '28 MPa (4,000 PSI)' : '4,000 PSI' },
-                    { value: '5000', label: unitSystem === 'metric' ? '35 MPa (5,000 PSI)' : '5,000 PSI' }
-                  ]}
+                  options={MIX_DESIGN_PSI_OPTIONS.map((o) => ({
+                    value: o.value,
+                    label: unitSystem === 'metric' ? o.labelMetric : o.labelImperial,
+                  }))}
                   value={selectedPsi}
                   onChange={setSelectedPsi}
                   fullWidth
                 />
+                {psiFromWorkflowCalc && (
+                  <p className="mt-2 text-xs text-cyan-800 dark:text-cyan-300">
+                    Imported from calculator: {psiFromWorkflowCalc} PSI
+                  </p>
+                )}
               </div>
 
               <div>
@@ -669,10 +603,21 @@ const MixDesignAdvisor: React.FC = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        {getEvaporationRiskLevel(recommendation.evaporationRate.metric).icon}
-                        <span className={`font-medium text-${getEvaporationRiskLevel(recommendation.evaporationRate.metric).color}-600 dark:text-${getEvaporationRiskLevel(recommendation.evaporationRate.metric).color}-400`}>
-                          {getEvaporationRiskLevel(recommendation.evaporationRate.metric).level} Risk
-                        </span>
+                        {(() => {
+                          const evap = evaporationRiskDisplay(
+                            recommendation.evaporationRate.metric,
+                          );
+                          return (
+                            <>
+                              {evap.icon}
+                              <span
+                                className={`font-medium text-${evap.color}-600 dark:text-${evap.color}-400`}
+                              >
+                                {evap.level} Risk
+                              </span>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                     
@@ -752,9 +697,10 @@ const MixDesignAdvisor: React.FC = () => {
               </Card>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <AdmixtureCalculator 
+                <AdmixtureCalculator
                   temperature={weather?.temperature || 70}
                   unitsImperial={unitSystem === 'imperial'}
+                  recommendedTargetAir={recommendedTargetAir}
                 />
                 
                 <SpecGenerator

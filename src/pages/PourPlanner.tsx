@@ -6,6 +6,7 @@ import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import {
   isWorkflowActive,
   getWorkflowProjectId,
+  getWorkflowCalculation,
   type WorkflowLocationState,
 } from '../utils/workflow';
 import { hydratePourPlannerFromProject } from '../utils/workflowPourHydration';
@@ -59,7 +60,7 @@ const PourPlanner: React.FC = () => {
   const workflowProjectId = getWorkflowProjectId(routerLocation.search, workflowState);
 
   const { user } = useAuth();
-  const { updateProject, projects } = useProjectStore();
+  const { updateProject, projects, setCurrentProject } = useProjectStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [jobsiteLocation, setJobsiteLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
@@ -95,27 +96,53 @@ const PourPlanner: React.FC = () => {
     workflowProjectId: inWorkflow ? workflowProjectId : undefined,
   });
   const getPourPlannerDraft = useWorkflowDraftStore((s) => s.getPourPlannerDraft);
-  const workflowHydratedRef = useRef(false);
+  const workflowHydrationKeyRef = useRef('');
 
   const { calculation, setField, preferences, setForm } = planner;
 
   useEffect(() => {
-    if (!inWorkflow || !workflowProjectId || workflowHydratedRef.current) return;
+    if (inWorkflow && workflowProjectId) {
+      setCurrentProject(workflowProjectId);
+    }
+  }, [inWorkflow, workflowProjectId, setCurrentProject]);
+
+  useEffect(() => {
+    if (!inWorkflow || !workflowProjectId) return;
     const project = projects.find((p) => p.id === workflowProjectId);
     if (!project) return;
 
-    if (getPourPlannerDraft(workflowProjectId)) {
-      workflowHydratedRef.current = true;
-      return;
-    }
+    const calc = getWorkflowCalculation(project, workflowState);
+    const hydrationKey = `${workflowProjectId}:${calc?.id ?? ''}:${project.updatedAt}`;
+    if (workflowHydrationKeyRef.current === hydrationKey) return;
 
-    const latestCalc = project.calculations?.[project.calculations.length - 1];
-    setForm((prev) => ({
-      ...prev,
-      ...hydratePourPlannerFromProject(project, latestCalc),
-    }));
-    workflowHydratedRef.current = true;
-  }, [inWorkflow, workflowProjectId, projects, getPourPlannerDraft, setForm]);
+    const patch = hydratePourPlannerFromProject(project, calc);
+    const draft = getPourPlannerDraft(workflowProjectId);
+
+    setForm((prev) => {
+      const merged = {
+        ...prev,
+        ...(draft?.form ?? {}),
+        ...patch,
+        projectId: workflowProjectId,
+        projectName: project.name,
+        calculationId: calc?.id ?? patch.calculationId ?? prev.calculationId,
+      };
+      if (patch.psi) merged.psi = patch.psi;
+      if (patch.slabSize) merged.slabSize = patch.slabSize;
+      if (patch.placementAreaType) merged.placementAreaType = patch.placementAreaType;
+      if (patch.slabThicknessIn) merged.slabThicknessIn = patch.slabThicknessIn;
+      return merged;
+    });
+
+    workflowHydrationKeyRef.current = hydrationKey;
+  }, [
+    inWorkflow,
+    workflowProjectId,
+    workflowState?.calculationId,
+    projects,
+    getPourPlannerDraft,
+    setForm,
+  ]);
 
   useEffect(() => {
     const psi = getCalculationPsi(calculation);
@@ -343,7 +370,11 @@ const PourPlanner: React.FC = () => {
       hotWeatherRiskLevel: planner.hotWeather.riskLevel,
     });
 
-    const order = placementOrderFromForm(planner.form);
+    const order = placementOrderFromForm(planner.form, {
+      productionEstimate: planner.placementRateEstimate,
+      volumeYd: planner.deliveryPlan.volumeYd,
+      preserveProduction: planner.project?.placementOrder?.production,
+    });
     order.summaryLines = summaryLines;
     order.jobsiteAddress = jobsiteDisplayAddress(planner.form);
     order.pourDateIso = selectedDate

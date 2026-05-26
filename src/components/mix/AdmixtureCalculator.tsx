@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Beaker } from 'lucide-react';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
@@ -6,14 +6,23 @@ import Input from '../ui/Input';
 interface AdmixtureCalculatorProps {
   temperature: number;
   unitsImperial?: boolean;
+  /** Midpoint of recommended target air from mix advisor (syncs dosage math). */
+  recommendedTargetAir?: number;
 }
 
-const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({ 
+const AdmixtureCalculator: React.FC<AdmixtureCalculatorProps> = ({
   temperature,
-  unitsImperial = true 
+  unitsImperial = true,
+  recommendedTargetAir,
 }) => {
-  const [targetAir, setTargetAir] = useState<number>(6);
+  const [targetAir, setTargetAir] = useState<number>(recommendedTargetAir ?? 6);
   const [wcReduction, setWcReduction] = useState<number>(5);
+
+  useEffect(() => {
+    if (recommendedTargetAir != null && recommendedTargetAir > 0) {
+      setTargetAir(recommendedTargetAir);
+    }
+  }, [recommendedTargetAir]);
 
   const aeDosageRange = () => {
     const basePerPercent = 0.01;

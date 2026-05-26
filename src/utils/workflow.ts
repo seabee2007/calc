@@ -48,8 +48,31 @@ export function workflowQuery(projectId?: string): string {
   return `?${params.toString()}`;
 }
 
-export function workflowNavigateState(projectId?: string): WorkflowLocationState {
-  return { workflow: true, ...(projectId ? { projectId } : {}) };
+export function workflowNavigateState(
+  projectId?: string,
+  extra?: Omit<WorkflowLocationState, 'workflow' | 'projectId'>,
+): WorkflowLocationState {
+  return { workflow: true, ...(projectId ? { projectId } : {}), ...extra };
+}
+
+/** Prefer navigation state calc id, else latest calculation with volume. */
+export function getWorkflowCalculation<
+  T extends { id: string; createdAt: string; result?: { volume?: number } },
+>(project: { calculations?: T[] } | undefined, state?: WorkflowLocationState | null): T | undefined {
+  const calcs = project?.calculations;
+  if (!calcs?.length) return undefined;
+
+  const fromState = state?.calculationId
+    ? calcs.find((c) => c.id === state.calculationId)
+    : undefined;
+  if (fromState) return fromState;
+
+  const withVolume = [...calcs]
+    .filter((c) => (c.result?.volume ?? 0) > 0)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  if (withVolume[0]) return withVolume[0];
+
+  return calcs[calcs.length - 1];
 }
 
 export function getWorkflowStepFromPath(pathname: string): WorkflowStepId {
