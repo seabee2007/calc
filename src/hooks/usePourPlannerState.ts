@@ -24,6 +24,7 @@ import {
 import { ratingLabel } from '../utils/pourScoring';
 import type { ScoredPourDay } from '../utils/pourScoring';
 import { applyPlacementOrderToForm } from '../utils/placementOrderForm';
+import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 
 export const POUR_PLANNER_STEPS: {
   id: PourPlannerStepId;
@@ -46,15 +47,40 @@ function patchField<K extends keyof PourPlannerFormState>(
   return { ...prev, [key]: value };
 }
 
-export function usePourPlannerState(selectedDay: ScoredPourDay | undefined) {
+export function usePourPlannerState(
+  selectedDay: ScoredPourDay | undefined,
+  options?: { workflowProjectId?: string },
+) {
   const { projects } = useProjectStore();
   const { preferences } = usePreferencesStore();
-  const [form, setForm] = useState<PourPlannerFormState>({
-    ...DEFAULT_POUR_PLANNER_STATE,
-    psi: preferences.defaultPSI || '3000',
+  const workflowProjectId = options?.workflowProjectId;
+  const getPourPlannerDraft = useWorkflowDraftStore((s) => s.getPourPlannerDraft);
+  const savePourPlannerDraft = useWorkflowDraftStore((s) => s.savePourPlannerDraft);
+
+  const [form, setForm] = useState<PourPlannerFormState>(() => {
+    const base: PourPlannerFormState = {
+      ...DEFAULT_POUR_PLANNER_STATE,
+      psi: preferences.defaultPSI || '3000',
+    };
+    if (workflowProjectId) {
+      const draft = getPourPlannerDraft(workflowProjectId);
+      if (draft?.form) return draft.form;
+    }
+    return base;
   });
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(() => {
+    if (workflowProjectId) {
+      const draft = getPourPlannerDraft(workflowProjectId);
+      if (draft) return draft.activeStep;
+    }
+    return 0;
+  });
   const hydratedOrderProjectIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!workflowProjectId) return;
+    savePourPlannerDraft(workflowProjectId, { form, activeStep });
+  }, [workflowProjectId, form, activeStep, savePourPlannerDraft]);
 
   const setField = useCallback(
     <K extends keyof PourPlannerFormState>(key: K, value: PourPlannerFormState[K]) => {

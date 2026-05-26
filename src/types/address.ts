@@ -1,4 +1,42 @@
+import { US_STATES_TERRITORIES } from '../constants/usStatesTerritories';
+
 export const US_COUNTRY_LABEL = 'United States' as const;
+
+const VALID_STATE_CODES = new Set(US_STATES_TERRITORIES.map((s) => s.value));
+
+function buildStateNameToCode(): Record<string, string> {
+  const map: Record<string, string> = {
+    'u.s. virgin islands': 'VI',
+    'us virgin islands': 'VI',
+    'virgin islands': 'VI',
+  };
+  for (const { value, label } of US_STATES_TERRITORIES) {
+    const name = label.split(/[—–-]/).pop()?.trim().toLowerCase();
+    if (name) map[name] = value;
+  }
+  return map;
+}
+
+const STATE_NAME_TO_CODE: Record<string, string> = buildStateNameToCode();
+
+export function isUSStateOrTerritoryName(text: string): boolean {
+  return Boolean(STATE_NAME_TO_CODE[text.trim().toLowerCase()]);
+}
+
+/** Resolve to a 2-letter state/territory code, or empty if unknown. */
+export function resolveStateCode(input: string): string {
+  const t = input.trim();
+  if (!t) return '';
+  if (/^[A-Z]{2}$/i.test(t)) {
+    const up = t.toUpperCase();
+    return VALID_STATE_CODES.has(up) ? up : '';
+  }
+  return STATE_NAME_TO_CODE[t.toLowerCase()] ?? '';
+}
+
+export function normalizeStateCode(input: string): string {
+  return resolveStateCode(input);
+}
 
 export interface USAddress {
   street: string;
@@ -150,13 +188,38 @@ export function parseLegacyUSAddress(raw: string): USAddress {
   let city = '';
   if (zip) {
     const beforeZip = trimmed.replace(/\b\d{5}(-\d{4})?\b.*$/, '').trim();
-    const parts = beforeZip.split(',').map((p) => p.trim()).filter(Boolean);
+    const parts = beforeZip
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .filter((p) => !/^united states$/i.test(p));
     if (parts.length >= 2) {
       const lastPart = parts[parts.length - 1];
-      city = lastPart.replace(/\b[A-Z]{2}\s*$/i, '').trim();
-      street = parts.slice(0, -1).join(', ');
-      const abbr = lastPart.match(/\b([A-Z]{2})\s*$/i);
-      if (abbr && !state) state = abbr[1].toUpperCase();
+      const stateFromName = STATE_NAME_TO_CODE[lastPart.toLowerCase()];
+      if (stateFromName) {
+        state = stateFromName;
+        city = parts.length >= 3 ? parts[parts.length - 2] : '';
+        street = parts.length >= 3 ? parts.slice(0, -2).join(', ') : parts[0];
+      } else if (parts.length >= 3 && /^[A-Z]{2}$/i.test(parts[parts.length - 1])) {
+        state = parts[parts.length - 1].toUpperCase();
+        city = parts[parts.length - 2];
+        street = parts.slice(0, -2).join(', ');
+      } else {
+      const stateOnly = lastPart.match(/^([A-Z]{2})$/i);
+      if (stateOnly) {
+        state = stateOnly[1].toUpperCase();
+        city = parts.length >= 3 ? parts[parts.length - 2] : '';
+        street = parts.slice(0, stateOnly ? (city ? -2 : -1) : -1).join(', ');
+        if (!city && parts.length === 2) {
+          street = parts[0];
+        }
+      } else {
+        city = lastPart.replace(/\b[A-Z]{2}\s*$/i, '').trim();
+        street = parts.slice(0, -1).join(', ');
+        const abbr = lastPart.match(/\b([A-Z]{2})\s*$/i);
+        if (abbr && !state) state = abbr[1].toUpperCase();
+      }
+      }
     } else if (parts.length === 1 && !state) {
       city = parts[0];
       street = '';
@@ -174,33 +237,85 @@ export function parseLegacyUSAddress(raw: string): USAddress {
     city = city.replace(/\bpuerto rico\b/gi, '').trim();
   }
 
-  return {
+  return sanitizeUSAddress({
     street,
     street2: '',
     city,
     state,
     zip,
+  });
+}
+
+/** Strip city/state/zip tokens from street; normalize state to 2-letter code. */
+export function sanitizeUSAddress(addr?: Partial<USAddress> | null): USAddress {
+  const base = copyUSAddress(addr);
+  let { street, street2, city, state, zip } = base;
+
+  state = resolveStateCode(state);
+
+  const cityTrim = city.trim();
+  const cityLower = cityTrim.toLowerCase();
+
+  if (cityTrim && isUSStateOrTerritoryName(cityTrim)) {
+    if (!state) state = resolveStateCode(cityTrim);
+    city = '';
+  }
+
+  if (/^[A-Z]{2}$/i.test(cityTrim) && cityTrim.toUpperCase() === state) {
+    city = '';
+  }
+
+  if (cityLower && street) {
+    const segments = street.split(',').map((p) => p.trim()).filter(Boolean);
+    const filtered = segments.filter((seg) => seg.toLowerCase() !== cityLower);
+    if (filtered.length > 0 && filtered.length < segments.length) {
+      street = filtered.join(', ');
+    }
+  }
+
+  return {
+    street: street.trim(),
+    street2: street2.trim(),
+    city: cityTrim,
+    state,
+    zip: zip.replace(/\D/g, '').slice(0, 5),
     country: US_COUNTRY_LABEL,
   };
 }
 
-const STATE_NAME_TO_CODE: Record<string, string> = {
-  alabama: 'AL',
-  alaska: 'AK',
-  guam: 'GU',
-  'puerto rico': 'PR',
-  'u.s. virgin islands': 'VI',
-  'us virgin islands': 'VI',
-  'northern mariana islands': 'MP',
-  'american samoa': 'AS',
-  'district of columbia': 'DC',
-};
+/** Merge Mapbox formatted line with user-entered fields (avoid state landing in city). */
+export function mergeVerifiedJobsiteAddress(
+  userInput: USAddress,
+  formattedLine: string,
+): USAddress {
+  const user = sanitizeUSAddress(userInput);
+  const parsed = parseLegacyUSAddress(formattedLine);
 
-export function normalizeStateCode(input: string): string {
-  const t = input.trim();
-  if (!t) return '';
-  if (/^[A-Z]{2}$/i.test(t)) return t.toUpperCase();
-  return STATE_NAME_TO_CODE[t.toLowerCase()] ?? t.toUpperCase();
+  const state = resolveStateCode(parsed.state) || user.state;
+  let city = parsed.city.trim() || user.city;
+
+  if (isUSStateOrTerritoryName(city)) {
+    city = user.city;
+  }
+  if (resolveStateCode(parsed.city)) {
+    city = user.city;
+  }
+  if (!city) {
+    city = user.city;
+  }
+
+  return sanitizeUSAddress({
+    street: parsed.street || user.street,
+    street2: parsed.street2 || user.street2,
+    city,
+    state,
+    zip: parsed.zip || user.zip,
+  });
+}
+
+/** Fix jobsite rows where state was saved into the city field or state is a full name. */
+export function repairJobsiteAddress(addr?: Partial<USAddress> | null): USAddress {
+  return sanitizeUSAddress(addr);
 }
 
 /** True when formatted address should geocode within Guam (state GU, zip 969xx, or name). */

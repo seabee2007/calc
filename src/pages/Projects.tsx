@@ -29,6 +29,7 @@ import { generateProjectPDF } from '../utils/pdf';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { MixProfileType, MIX_PROFILE_LABELS } from '../types/curing';
+import { repairJobsiteAddress, sanitizeUSAddress } from '../types/address';
 import { soundService } from '../services/soundService';
 import { hapticService } from '../services/hapticService';
 
@@ -82,8 +83,9 @@ const Projects: React.FC = () => {
 
     if (state?.mode === 'browse') {
       if (loading) return;
+      // Do not reset when the user has opened a project or edit form from the list.
+      if (showProjectDetails || editingProject || showCreateForm) return;
 
-      setShowProjectDetails(false);
       setEditingProject(false);
 
       if (state.openCreate || projects.length === 0) {
@@ -99,7 +101,8 @@ const Projects: React.FC = () => {
     const projectIdFromUrl = getWorkflowProjectId(location.search, workflowState);
     if (projectIdFromUrl && inWorkflow) {
       setCurrentProject(projectIdFromUrl);
-      setShowProjectDetails(true);
+      setEditingProject(true);
+      setShowProjectDetails(false);
       setShowCreateForm(false);
       return;
     }
@@ -115,6 +118,7 @@ const Projects: React.FC = () => {
     setCurrentProject,
     showProjectDetails,
     showCreateForm,
+    editingProject,
     projects.length,
     loading,
   ]);
@@ -210,8 +214,9 @@ const Projects: React.FC = () => {
       await addProject({
         name: data.name,
         description: data.description,
-        pourDate: data.pourDate,
-        jobsiteAddress: data.jobsiteAddress,
+        jobsiteAddress: data.jobsiteAddress
+          ? sanitizeUSAddress(data.jobsiteAddress)
+          : undefined,
       });
       setShowCreateForm(false);
       showToastMessage('Project created successfully', 'success');
@@ -472,7 +477,8 @@ const Projects: React.FC = () => {
                   }
                 }}
                 submitLabel={inWorkflow ? 'Save & continue to calculator' : undefined}
-                hidePourDate={inWorkflow}
+                hidePourDate
+                requireVerifiedAddress={inWorkflow}
               />
             </motion.div>
           )}
@@ -872,6 +878,7 @@ const Projects: React.FC = () => {
               transition={{ duration: 0.3 }}
             >
               <ProjectForm
+                key={`edit-${currentProject.id}-${currentProject.updatedAt}`}
                 onSubmit={(data) =>
                   handleUpdateProject(data, { continueToCalculator: inWorkflow })
                 }
@@ -880,18 +887,21 @@ const Projects: React.FC = () => {
                   name: currentProject.name,
                   description: currentProject.description,
                   pourDate: currentProject.pourDate?.split('T')[0],
-                  jobsiteAddress: currentProject.jobsiteAddress,
+                  jobsiteAddress: currentProject.jobsiteAddress
+                    ? repairJobsiteAddress(currentProject.jobsiteAddress)
+                    : undefined,
                 }}
                 isEditing
                 submitLabel={
                   inWorkflow ? 'Save & continue to calculator' : undefined
                 }
                 hidePourDate={inWorkflow}
+                requireVerifiedAddress={inWorkflow}
               />
             </motion.div>
           )}
           
-          {!showCreateForm && !showProjectDetails && (
+          {!showCreateForm && !showProjectDetails && !editingProject && (
             <motion.div
               key="project-list"
               initial={{ opacity: 0 }}

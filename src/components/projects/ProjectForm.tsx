@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Save, X, Calendar } from 'lucide-react';
+import { Save, X, Calendar, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
 import USAddressFields from '../address/USAddressFields';
 import { Project, USAddress } from '../../types';
-import { EMPTY_US_ADDRESS } from '../../types/address';
+import {
+  EMPTY_US_ADDRESS,
+  formatUSAddress,
+  isUSAddressGeocodable,
+  copyUSAddress,
+  mergeVerifiedJobsiteAddress,
+  repairJobsiteAddress,
+  sanitizeUSAddress,
+  validateUSAddress,
+} from '../../types/address';
+import { verifyJobsiteAddress } from '../../services/geocodeService';
 
 export interface ProjectFormData {
   name: string;
@@ -16,14 +26,15 @@ export interface ProjectFormData {
 }
 
 interface ProjectFormProps {
-  onSubmit: (data: ProjectFormData) => void;
+  onSubmit: (data: ProjectFormData) => void | Promise<void>;
   onCancel: () => void;
   initialData?: Partial<ProjectFormData>;
   isEditing?: boolean;
   isModal?: boolean;
   submitLabel?: string;
-  /** Hide pour date until placement planner (workflow / calculator). */
   hidePourDate?: boolean;
+  /** Require Mapbox-verified jobsite before create/update (workflow step 1). */
+  requireVerifiedAddress?: boolean;
 }
 
 const defaultJobsite = (): USAddress => ({ ...EMPTY_US_ADDRESS });
@@ -36,26 +47,109 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   isModal = false,
   submitLabel,
   hidePourDate = false,
+  requireVerifiedAddress = false,
 }) => {
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [verifiedLine, setVerifiedLine] = useState<string | null>(null);
+  const [verifiedAddress, setVerifiedAddress] = useState<USAddress | null>(null);
+
+  const buildDefaults = (): ProjectFormData => ({
+    name: initialData?.name ?? '',
+    description: initialData?.description ?? '',
+    pourDate: hidePourDate
+      ? initialData?.pourDate
+      : initialData?.pourDate ?? new Date().toISOString().split('T')[0],
+    jobsiteAddress: initialData?.jobsiteAddress
+      ? repairJobsiteAddress(initialData.jobsiteAddress)
+      : defaultJobsite(),
+  });
+
   const {
     register,
     handleSubmit,
     control,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<ProjectFormData>({
-    defaultValues: {
-      name: initialData?.name ?? '',
-      description: initialData?.description ?? '',
-      pourDate: initialData?.pourDate ?? new Date().toISOString().split('T')[0],
-      jobsiteAddress: initialData?.jobsiteAddress ?? defaultJobsite(),
-    },
+    defaultValues: buildDefaults(),
   });
 
+  useEffect(() => {
+    reset(buildDefaults());
+  }, [
+    initialData?.name,
+    initialData?.description,
+    initialData?.pourDate,
+    initialData?.jobsiteAddress?.street,
+    initialData?.jobsiteAddress?.street2,
+    initialData?.jobsiteAddress?.city,
+    initialData?.jobsiteAddress?.state,
+    initialData?.jobsiteAddress?.zip,
+    hidePourDate,
+    reset,
+  ]);
+
+  const runVerify = async (addr: USAddress): Promise<USAddress | null> => {
+    const validation = validateUSAddress(addr, {
+      requireStreet: true,
+      requireZip: false,
+    });
+    if (!validation.ok) {
+      setVerifyError(validation.errors.join(' '));
+      setVerifiedLine(null);
+      setVerifiedAddress(null);
+      return null;
+    }
+
+    setVerifyLoading(true);
+    setVerifyError(null);
+
+    try {
+      const result = await verifyJobsiteAddress(addr);
+      setVerifiedLine(result.formattedAddress);
+      const normalized = mergeVerifiedJobsiteAddress(copyUSAddress(addr), result.formattedAddress);
+      setVerifiedAddress(normalized);
+      reset({ ...getValues(), jobsiteAddress: normalized });
+      return normalized;
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : 'Could not verify address.');
+      setVerifiedLine(null);
+      setVerifiedAddress(null);
+      return null;
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleVerifyClick = () => {
+    void runVerify(getValues('jobsiteAddress'));
+  };
+
+  const onFormSubmit = async (data: ProjectFormData) => {
+    let jobsite = data.jobsiteAddress;
+
+    if (requireVerifiedAddress && isUSAddressGeocodable(jobsite)) {
+      if (verifiedAddress && verifiedLine) {
+        jobsite = verifiedAddress;
+      } else {
+        const normalized = await runVerify(jobsite);
+        if (!normalized) return;
+        jobsite = normalized;
+      }
+    }
+
+    const payload: ProjectFormData = {
+      ...data,
+      jobsiteAddress: sanitizeUSAddress(jobsite),
+    };
+    if (hidePourDate) delete payload.pourDate;
+    await onSubmit(payload);
+  };
+
   const formBody = (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
       <Input
         label="Project Name"
         fullWidth
@@ -83,7 +177,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           Jobsite address
         </h4>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          Used for weather, routing, and batch plant lookup in Placement Planner.
+          {requireVerifiedAddress
+            ? 'Verify the address before continuing — used for batch plant search, weather, and routing.'
+            : 'Used for weather, routing, and batch plant lookup in Placement Planner.'}
         </p>
         <Controller
           name="jobsiteAddress"
@@ -91,12 +187,46 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           render={({ field }) => (
             <USAddressFields
               value={field.value}
-              onChange={field.onChange}
+              onChange={(next) => {
+                field.onChange(next);
+                setVerifiedLine(null);
+                setVerifiedAddress(null);
+                setVerifyError(null);
+              }}
               showStreet2
               idPrefix="project-jobsite"
             />
           )}
         />
+        {requireVerifiedAddress && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleVerifyClick}
+              disabled={verifyLoading}
+              icon={
+                verifyLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MapPin className="h-4 w-4" />
+                )
+              }
+            >
+              {verifyLoading ? 'Verifying…' : 'Verify address'}
+            </Button>
+            {verifiedLine && (
+              <span className="text-xs text-green-700 dark:text-green-400 flex items-center gap-1">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                {verifiedLine}
+              </span>
+            )}
+          </div>
+        )}
+        {verifyError && (
+          <p className="text-sm text-red-600 dark:text-red-400 mt-2">{verifyError}</p>
+        )}
       </div>
 
       {!hidePourDate && (

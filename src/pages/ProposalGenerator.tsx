@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload, Beaker, CloudSun, SkipForward } from 'lucide-react';
 import { useWorkflowProgressStore } from '../store/workflowProgressStore';
+import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import {
   isWorkflowActive,
@@ -55,6 +56,10 @@ const ProposalGenerator: React.FC = () => {
   const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
   const importedPricingRef = useRef<string | null>(null);
+  const proposalDraftRestoredRef = useRef(false);
+  const recordVisit = useWorkflowProgressStore((s) => s.recordVisit);
+  const getProposalDraft = useWorkflowDraftStore((s) => s.getProposalDraft);
+  const saveProposalDraft = useWorkflowDraftStore((s) => s.saveProposalDraft);
   const [workflowStepReady, setWorkflowStepReady] = useState(false);
 
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
@@ -128,12 +133,44 @@ const ProposalGenerator: React.FC = () => {
     loadProposal();
   }, [editId, previewId, navigate]);
 
+  useEffect(() => {
+    if (!inWorkflow || !workflowProjectId || isEditing || isPreviewMode) return;
+    saveProposalDraft(workflowProjectId, {
+      proposalData,
+      proposalTitle,
+      selectedTemplate,
+      showPreview,
+    });
+  }, [
+    inWorkflow,
+    workflowProjectId,
+    proposalData,
+    proposalTitle,
+    selectedTemplate,
+    showPreview,
+    isEditing,
+    isPreviewMode,
+    saveProposalDraft,
+  ]);
+
   // Handle project data from navigation state (guided workflow)
   useEffect(() => {
     const state = workflowState;
     if (isEditing || isPreviewMode) return;
 
     const projectId = state?.projectId ?? workflowProjectId;
+    const draft = projectId ? getProposalDraft(projectId) : undefined;
+    if (draft && !proposalDraftRestoredRef.current) {
+      setProposalData(draft.proposalData);
+      setProposalTitle(draft.proposalTitle);
+      setSelectedTemplate(draft.selectedTemplate);
+      setShowPreview(draft.showPreview);
+      proposalDraftRestoredRef.current = true;
+      if (projectId) importedPricingRef.current = projectId;
+      return;
+    }
+    proposalDraftRestoredRef.current = true;
+
     const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
     const projectName = state?.projectName ?? project?.name;
     const projectDescription = state?.projectDescription ?? project?.description;
@@ -158,7 +195,14 @@ const ProposalGenerator: React.FC = () => {
       importedPricingRef.current = projectId;
       importPricingFromProject(projectId, { silent: true });
     }
-  }, [workflowState, workflowProjectId, isEditing, isPreviewMode, projects]);
+  }, [
+    workflowState,
+    workflowProjectId,
+    isEditing,
+    isPreviewMode,
+    projects,
+    getProposalDraft,
+  ]);
 
   // Import pricing from selected project
   const importPricingFromProject = (
@@ -316,8 +360,6 @@ const ProposalGenerator: React.FC = () => {
     );
   };
 
-  const recordVisit = useWorkflowProgressStore((s) => s.recordVisit);
-
   const goToPlacementPlanner = () => {
     if (!workflowProjectId) return;
     recordVisit(workflowProjectId, 'placement');
@@ -328,8 +370,9 @@ const ProposalGenerator: React.FC = () => {
   };
 
   const skipProposal = () => {
+    if (!workflowProjectId) return;
     recordVisit(workflowProjectId, 'proposal');
-    goToPlacementPlanner();
+    goToMixDesign();
   };
 
   // Update proposal data when company settings change (for new proposals)
@@ -1039,8 +1082,8 @@ ${proposalData.preparedByTitle || ''}
         {inWorkflow && !workflowStepReady && (
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
             <p className="text-sm text-slate-300">
-              Skip this step if you do not need a formal proposal — you can still plan the pour in
-              Placement Planner.
+              Skip this step if you do not need a formal proposal — you will continue to mix design,
+              then placement planning.
             </p>
             <Button
               variant="outline"

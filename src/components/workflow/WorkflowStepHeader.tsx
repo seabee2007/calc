@@ -6,6 +6,7 @@ import {
   getWorkflowStepFromPath,
   stepIndex,
   workflowQuery,
+  workflowNavigateState,
   getWorkflowProjectId,
   isWorkflowActive,
   type WorkflowLocationState,
@@ -47,7 +48,7 @@ const WorkflowStepHeader: React.FC<WorkflowStepHeaderProps> = ({
     if (idx > maxIdx) return;
     navigate(
       { pathname: path, search: workflowQuery(projectId) },
-      { state: { workflow: true, projectId } },
+      { state: workflowNavigateState(projectId) },
     );
   };
 

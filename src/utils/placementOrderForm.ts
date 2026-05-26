@@ -29,6 +29,8 @@ export function applyPlacementOrderToForm(
   if (!order) return {};
   const c = order.contact ?? DEFAULT_BATCH_PLANT_CONTACT;
   return {
+    batchPlantName: order.batchPlantName ?? '',
+    batchPlantAddress: order.batchPlantAddress ?? '',
     batchPlantPhone: c.phone ?? '',
     batchPlantEmail: c.email ?? '',
     batchPlantDispatchContact: c.dispatchContact ?? '',

@@ -770,6 +770,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
                 variant="calculator"
                 projectName={currentProject?.name}
                 projectJobsite={currentProject?.jobsiteAddress}
+                projectId={currentProject?.id}
                 onPricingCalculated={handlePricingCalculated}
               />
             )}

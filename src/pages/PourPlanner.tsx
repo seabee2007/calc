@@ -8,8 +8,8 @@ import {
   getWorkflowProjectId,
   type WorkflowLocationState,
 } from '../utils/workflow';
-import { applyUSAddressToPourPlanner } from '../utils/addressForm';
-import { isUSAddressGeocodable } from '../types/address';
+import { hydratePourPlannerFromProject } from '../utils/workflowPourHydration';
+import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import Card from '../components/ui/Card';
 import Modal from '../components/ui/Modal';
 import PlacementScoringGuide from '../components/weather/PlacementScoringGuide';
@@ -91,30 +91,31 @@ const PourPlanner: React.FC = () => {
   );
 
   const selectedDay = displayDays.find((d) => d.date === selectedDate);
-  const planner = usePourPlannerState(selectedDay);
+  const planner = usePourPlannerState(selectedDay, {
+    workflowProjectId: inWorkflow ? workflowProjectId : undefined,
+  });
+  const getPourPlannerDraft = useWorkflowDraftStore((s) => s.getPourPlannerDraft);
+  const workflowHydratedRef = useRef(false);
 
-  const { calculation, setField, preferences } = planner;
+  const { calculation, setField, preferences, setForm } = planner;
 
   useEffect(() => {
-    if (!workflowProjectId || planner.form.projectId === workflowProjectId) return;
+    if (!inWorkflow || !workflowProjectId || workflowHydratedRef.current) return;
     const project = projects.find((p) => p.id === workflowProjectId);
     if (!project) return;
 
-    setField('projectId', workflowProjectId);
-    setField('projectName', project.name);
-    if (project.jobsiteAddress && isUSAddressGeocodable(project.jobsiteAddress)) {
-      const patch = applyUSAddressToPourPlanner({}, project.jobsiteAddress);
-      (Object.entries(patch) as [keyof typeof patch, string][]).forEach(([key, value]) => {
-        if (value !== undefined) {
-          setField(key as keyof typeof patch, value);
-        }
-      });
+    if (getPourPlannerDraft(workflowProjectId)) {
+      workflowHydratedRef.current = true;
+      return;
     }
-    const firstCalc = project.calculations?.[0];
-    if (firstCalc) {
-      setField('calculationId', firstCalc.id);
-    }
-  }, [workflowProjectId, projects, planner.form.projectId, setField]);
+
+    const latestCalc = project.calculations?.[project.calculations.length - 1];
+    setForm((prev) => ({
+      ...prev,
+      ...hydratePourPlannerFromProject(project, latestCalc),
+    }));
+    workflowHydratedRef.current = true;
+  }, [inWorkflow, workflowProjectId, projects, getPourPlannerDraft, setForm]);
 
   useEffect(() => {
     const psi = getCalculationPsi(calculation);
@@ -427,42 +428,68 @@ const PourPlanner: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className={`mx-auto space-y-6 pb-12 ${inWorkflow ? 'max-w-6xl' : 'max-w-5xl'}`}>
       <WorkflowStepHeader />
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+      {!inWorkflow && (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="flex justify-center mb-3">
+              <CloudSun className="h-12 w-12 text-cyan-400 drop-shadow" />
+            </div>
+            <h1 className="text-3xl font-bold text-white drop-shadow-md">
+              Ready-Mix Placement Risk Analyzer
+            </h1>
+            <p className="text-white/90 mt-2 max-w-2xl mx-auto drop-shadow">
+              Plan the pour, check delivery feasibility, evaluate placement risk, and produce a
+              field-ready plan — step by step.
+            </p>
+            <div className="mt-3">
+              <PlacementScoringLink onClick={() => setShowScoringModal(true)} />
+            </div>
+          </motion.div>
+
+          <OverviewSummaryCard planner={planner} />
+
+          <PourPlannerStepper
+            activeStep={planner.activeStep}
+            onStepClick={planner.goToStep}
+          />
+        </>
+      )}
+
+      {inWorkflow && (
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            Placement Planner
+          </h1>
+          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+            Plan delivery, weather, crew production, and field-ready pour details for this project.
+          </p>
+        </div>
+      )}
+
+      <Card
+        className={`p-6 ${
+          inWorkflow
+            ? 'bg-white/90 dark:bg-gray-800 backdrop-blur-sm shadow-lg'
+            : 'bg-white/95 dark:bg-gray-900/95'
+        }`}
       >
-        <div className="flex justify-center mb-3">
-          <CloudSun className="h-12 w-12 text-cyan-400 drop-shadow" />
-        </div>
-        <h1 className="text-3xl font-bold text-white drop-shadow-md">
-          Ready-Mix Placement Risk Analyzer
-        </h1>
-        <p className="text-white/90 mt-2 max-w-2xl mx-auto drop-shadow">
-          Plan the pour, check delivery feasibility, evaluate placement risk, and produce a
-          field-ready plan — step by step.
-        </p>
-        <div className="mt-3">
-          <PlacementScoringLink onClick={() => setShowScoringModal(true)} />
-        </div>
-      </motion.div>
-
-      <OverviewSummaryCard planner={planner} />
-
-      <PourPlannerStepper
-        activeStep={planner.activeStep}
-        onStepClick={planner.goToStep}
-      />
-
-      <Card className="p-6 bg-white/95 dark:bg-gray-900/95">
         <h2
           ref={stepTopRef}
           className="text-xl font-semibold text-gray-900 dark:text-white mb-1 scroll-mt-4"
         >
-          Step {planner.activeStep + 1}: {stepTitle}
+          {inWorkflow ? stepTitle : `Step ${planner.activeStep + 1}: ${stepTitle}`}
         </h2>
+        {inWorkflow && planner.activeStep === 3 && (
+          <div className="mb-4">
+            <PlacementScoringLink onClick={() => setShowScoringModal(true)} />
+          </div>
+        )}
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
           {planner.activeStep === 0 &&
             'Start with project identity, volume, and placement method.'}

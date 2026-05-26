@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Beaker, Thermometer, Droplets, Wind, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle, Search, CloudSun, SkipForward } from 'lucide-react';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import { useProjectStore } from '../store';
+import { useWorkflowDraftStore } from '../store/workflowDraftStore';
+import { getCalculationPsi } from '../utils/calculationDimensions';
 import {
   isWorkflowActive,
   getWorkflowProjectId,
@@ -11,17 +13,22 @@ import {
   workflowNavigateState,
   type WorkflowLocationState,
 } from '../utils/workflow';
-import { hasProjectJobsite } from '../types/address';
+import {
+  copyUSAddress,
+  formatUSAddress,
+  hasProjectJobsite,
+  repairJobsiteAddress,
+} from '../types/address';
+import type { Project } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
-import LocationPermissionAlert from '../components/ui/LocationPermissionAlert';
 import { getWeatherByLocation, getWeatherByQuery } from '../services/weatherService';
+import { geocodeAddress } from '../utils/location';
 import USAddressFields from '../components/address/USAddressFields';
 import {
   EMPTY_US_ADDRESS,
-  formatUSAddress,
   isUSAddressGeocodable,
   validateUSAddress,
   type USAddress,
@@ -42,10 +49,37 @@ interface MixDesignRecommendation {
   recommendations: string[];
 }
 
+function jobsiteFromProject(project: Project | undefined): USAddress | null {
+  if (!project?.jobsiteAddress) return null;
+  const addr = copyUSAddress(repairJobsiteAddress(project.jobsiteAddress));
+  if (!addr.street?.trim() && !addr.city?.trim() && !addr.state?.trim()) {
+    return null;
+  }
+  return addr;
+}
+
+function draftHasJobsite(addr: USAddress | undefined): boolean {
+  if (!addr) return false;
+  return Boolean(
+    (addr.street?.trim() || addr.city?.trim()) && addr.state?.trim(),
+  );
+}
+
+/** Compact city/state query — WeatherAPI handles this better than full street lines. */
+function weatherQueryFromJobsite(addr: USAddress): string {
+  const city = addr.city.trim();
+  const state = addr.state.trim();
+  const zip = addr.zip.trim();
+  if (city && state) {
+    return zip ? `${city}, ${state} ${zip}` : `${city}, ${state}`;
+  }
+  return formatUSAddress(addr);
+}
+
 const MixDesignAdvisor: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { projects } = useProjectStore();
+  const { projects, setCurrentProject } = useProjectStore();
   const workflowState = location.state as WorkflowLocationState | null;
   const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
@@ -59,14 +93,85 @@ const MixDesignAdvisor: React.FC = () => {
   const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
   const [locationError, setLocationError] = useState<string | null>(null);
   const [jobsiteAddress, setJobsiteAddress] = useState<USAddress>({ ...EMPTY_US_ADDRESS });
+  const getMixDesignDraft = useWorkflowDraftStore((s) => s.getMixDesignDraft);
+  const saveMixDesignDraft = useWorkflowDraftStore((s) => s.saveMixDesignDraft);
+  const lastHydrationKeyRef = useRef('');
+  const weatherAutoKeyRef = useRef('');
+
+  const workflowProject = workflowProjectId
+    ? projects.find((p) => p.id === workflowProjectId)
+    : undefined;
+
+  useEffect(() => {
+    if (inWorkflow && workflowProjectId) {
+      setCurrentProject(workflowProjectId);
+    }
+  }, [inWorkflow, workflowProjectId, setCurrentProject]);
 
   useEffect(() => {
     if (!workflowProjectId) return;
+
     const project = projects.find((p) => p.id === workflowProjectId);
-    if (project?.jobsiteAddress && hasProjectJobsite(project.jobsiteAddress)) {
-      setJobsiteAddress({ ...project.jobsiteAddress });
+    const draft = getMixDesignDraft(workflowProjectId);
+    const projectAddr = jobsiteFromProject(project);
+
+    if (draft && draftHasJobsite(draft.jobsiteAddress)) {
+      const key = `draft:${workflowProjectId}`;
+      if (lastHydrationKeyRef.current === key) return;
+      setSelectedPsi(draft.selectedPsi);
+      setExposure(draft.exposure);
+      setUnitSystem(draft.unitSystem);
+      setClimate(draft.climate);
+      setJobsiteAddress(copyUSAddress(draft.jobsiteAddress));
+      lastHydrationKeyRef.current = key;
+      return;
     }
-  }, [workflowProjectId, projects]);
+
+    if (!project) return;
+
+    const key = `project:${workflowProjectId}:${project.updatedAt}`;
+    if (lastHydrationKeyRef.current === key) return;
+
+    if (projectAddr) {
+      setJobsiteAddress(projectAddr);
+    }
+    const latestCalc = project.calculations?.[project.calculations.length - 1];
+    const psi = getCalculationPsi(latestCalc);
+    if (psi) setSelectedPsi(psi);
+    if (draft) {
+      setExposure(draft.exposure);
+      setUnitSystem(draft.unitSystem);
+      setClimate(draft.climate);
+    }
+
+    lastHydrationKeyRef.current = key;
+  }, [workflowProjectId, projects, getMixDesignDraft]);
+
+  const projectJobsiteImported =
+    inWorkflow &&
+    workflowProject &&
+    hasProjectJobsite(jobsiteAddress) &&
+    hasProjectJobsite(workflowProject.jobsiteAddress);
+
+  useEffect(() => {
+    if (!inWorkflow || !workflowProjectId) return;
+    saveMixDesignDraft(workflowProjectId, {
+      selectedPsi,
+      exposure,
+      unitSystem,
+      climate,
+      jobsiteAddress,
+    });
+  }, [
+    inWorkflow,
+    workflowProjectId,
+    selectedPsi,
+    exposure,
+    unitSystem,
+    climate,
+    jobsiteAddress,
+    saveMixDesignDraft,
+  ]);
 
   const goToPlacementPlanner = () => {
     if (!workflowProjectId) return;
@@ -185,9 +290,6 @@ const MixDesignAdvisor: React.FC = () => {
   const applyWeatherData = (weatherData: Weather) => {
     setWeather(weatherData);
     setLocationError(null);
-    setLocationQuery(
-      `${weatherData.location.city}, ${weatherData.location.country}`,
-    );
 
     const rec = suggestConcreteParameters(
       unitSystem === 'metric'
@@ -227,12 +329,39 @@ const MixDesignAdvisor: React.FC = () => {
     }
   };
 
-  const handleLocationReceived = async (latitude: number, longitude: number) => {
-    await fetchWeatherForLocation(
-      () => getWeatherByLocation(latitude, longitude),
-      'Unable to get weather data. Please try again.',
-    );
-  };
+  const resolveWeatherForJobsite = useCallback(
+    async (addr: USAddress): Promise<Weather | null> => {
+      const geocoded = await geocodeAddress(addr);
+      if (geocoded) {
+        const byCoords = await getWeatherByLocation(
+          geocoded.latitude,
+          geocoded.longitude,
+        );
+        if (byCoords) return byCoords;
+      }
+      return getWeatherByQuery(weatherQueryFromJobsite(addr));
+    },
+    [],
+  );
+
+  const loadWeatherForJobsite = useCallback(
+    async (addr: USAddress) => {
+      if (!isUSAddressGeocodable(addr)) return;
+      await fetchWeatherForLocation(
+        () => resolveWeatherForJobsite(addr),
+        'Could not find weather for this jobsite. Check city, state, and ZIP, then try again.',
+      );
+    },
+    [resolveWeatherForJobsite],
+  );
+
+  useEffect(() => {
+    if (!inWorkflow || !isUSAddressGeocodable(jobsiteAddress)) return;
+    const key = formatUSAddress(jobsiteAddress);
+    if (weatherAutoKeyRef.current === key) return;
+    weatherAutoKeyRef.current = key;
+    void loadWeatherForJobsite(jobsiteAddress);
+  }, [inWorkflow, jobsiteAddress, loadWeatherForJobsite]);
 
   const handleLocationSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -245,17 +374,8 @@ const MixDesignAdvisor: React.FC = () => {
       return;
     }
 
-    const query = formatUSAddress(jobsiteAddress);
-    if (!query) return;
-
-    await fetchWeatherForLocation(
-      () => getWeatherByQuery(query),
-      'Location not found. Enter city, state/territory, and ZIP.',
-    );
-  };
-
-  const handleLocationError = (error: string) => {
-    setLocationError(error);
+    weatherAutoKeyRef.current = formatUSAddress(jobsiteAddress);
+    await loadWeatherForJobsite(jobsiteAddress);
   };
 
   const formatTemperature = (temp: number): string => {
@@ -434,26 +554,30 @@ const MixDesignAdvisor: React.FC = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {!weather && (
-                    <LocationPermissionAlert
-                      onLocationReceived={handleLocationReceived}
-                      onError={handleLocationError}
-                      compact={false}
-                    />
-                  )}
-
-                  {!weather && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-                      <span className="text-sm text-gray-500 dark:text-gray-400">or</span>
-                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-                    </div>
-                  )}
-
                   <form onSubmit={handleLocationSearch} className="space-y-3">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {weather ? 'Update location' : 'Or enter a US jobsite address'}
+                      {inWorkflow
+                        ? 'Jobsite weather (from project address)'
+                        : weather
+                          ? 'Update jobsite for weather'
+                          : 'Enter a US jobsite address for weather'}
                     </p>
+                    {inWorkflow && isUSAddressGeocodable(jobsiteAddress) && !weather && loading && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Loading weather for your project jobsite…
+                      </p>
+                    )}
+                    {projectJobsiteImported && (
+                      <p className="text-xs text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800 rounded-lg px-3 py-2 flex items-start gap-2">
+                        <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
+                        <span>
+                          Loaded from step 1:{' '}
+                          <span className="font-medium">
+                            {formatUSAddress(jobsiteAddress)}
+                          </span>
+                        </span>
+                      </p>
+                    )}
                     <USAddressFields
                       value={jobsiteAddress}
                       onChange={setJobsiteAddress}
@@ -465,7 +589,7 @@ const MixDesignAdvisor: React.FC = () => {
                       disabled={loading || !isUSAddressGeocodable(jobsiteAddress)}
                       icon={<Search className="h-4 w-4" />}
                     >
-                      {weather ? 'Update weather' : 'Search weather'}
+                      {weather ? 'Refresh weather' : 'Get weather'}
                     </Button>
                   </form>
 
