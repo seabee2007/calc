@@ -27,6 +27,16 @@ export function hydratePourPlannerFromProject(
     Object.assign(patch, applyPlacementOrderToForm(project.placementOrder));
   }
 
+  const labor = project.laborEstimates?.[0];
+  if (labor?.inputs) {
+    const li = labor.inputs;
+    if (li.crewSize) patch.crewSize = li.crewSize;
+    if (li.finishers) patch.finishers = li.finishers;
+    if (li.manualVolume && !patch.calculationId) {
+      patch.manualVolume = li.manualVolume;
+    }
+  }
+
   const calc = calculation ?? project.calculations?.[project.calculations.length - 1];
   if (calc) {
     patch.calculationId = calc.id;

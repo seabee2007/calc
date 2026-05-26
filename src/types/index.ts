@@ -2,6 +2,8 @@ import { MixProfileType } from './curing';
 import type { StoredTruckTicketRecord } from './concreteTruckTicket';
 import type { USAddress } from './address';
 import type { PlacementOrder } from './placementOrder';
+import type { LaborEstimate } from './laborEstimate';
+import type { ReinforcementPricing } from './laborEstimate';
 
 export type { USAddress } from './address';
 
@@ -182,6 +184,7 @@ export interface ReinforcementSet {
   
   createdAt: string;
   updatedAt: string;
+  pricing?: ReinforcementPricing;
 }
 
 // Update Project interface
@@ -193,7 +196,8 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
   calculations: Calculation[];
-  reinforcements?: ReinforcementSet[];  // Add reinforcement sets
+  reinforcements?: ReinforcementSet[];
+  laborEstimates?: LaborEstimate[];
   wasteFactor?: number;
   pourDate?: string;
   placementOrder?: PlacementOrder;

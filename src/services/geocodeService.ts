@@ -1,5 +1,7 @@
 import {
+  copyUSAddress,
   formatUSAddress,
+  mergeVerifiedJobsiteAddress,
   validateUSAddress,
   type USAddress,
 } from '../types/address';
@@ -11,6 +13,8 @@ export interface GeocodedAddressResult {
   formattedAddress: string;
   latitude: number;
   longitude: number;
+  /** Normalized fields after merging Mapbox result with user input */
+  addressParts?: USAddress;
 }
 
 export interface GeocodedAddressError {
@@ -86,5 +90,19 @@ export async function verifyJobsiteAddress(
     throw new Error(data.error);
   }
 
-  return data as GeocodedAddressResult;
+  const result = data as GeocodedAddressResult;
+
+  if (typeof addressOrParts !== 'string') {
+    const merged = mergeVerifiedJobsiteAddress(
+      copyUSAddress(addressOrParts),
+      result.formattedAddress,
+    );
+    return {
+      ...result,
+      addressParts: merged,
+      formattedAddress: formatUSAddress(merged),
+    };
+  }
+
+  return result;
 }

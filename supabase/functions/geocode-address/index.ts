@@ -60,11 +60,27 @@ serve(async (req) => {
       );
     }
 
+    const userParts =
+      body?.addressParts && typeof body.addressParts === "object"
+        ? (body.addressParts as Record<string, string>)
+        : undefined;
+
     const point = await geocodeAddressSmart(query, MAPBOX_TOKEN);
+
+    let formattedAddress = point.placeName;
+    if (userParts?.street?.trim() && userParts?.city?.trim() && userParts?.state?.trim()) {
+      formattedAddress = formatUSAddress({
+        street: userParts.street,
+        street2: userParts.street2 ?? "",
+        city: userParts.city,
+        state: userParts.state,
+        zip: userParts.zip ?? "",
+      });
+    }
 
     return new Response(
       JSON.stringify({
-        formattedAddress: point.placeName,
+        formattedAddress,
         latitude: point.lat,
         longitude: point.lng,
       }),

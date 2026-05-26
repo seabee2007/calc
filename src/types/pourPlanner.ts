@@ -93,7 +93,6 @@ export interface PourPlannerFormState extends CallSheetFields {
   complexityFactor: ComplexityLevel | 'auto';
   accessFactorMode: 'auto' | AccessFactorKey;
   weatherFactorMode: 'auto' | WeatherFactorKey;
-  burdenedHourlyRate: string;
   setupHours: string;
   cleanupHours: string;
 
@@ -181,7 +180,6 @@ export const DEFAULT_POUR_PLANNER_STATE: PourPlannerFormState = {
   complexityFactor: 'auto',
   accessFactorMode: 'auto',
   weatherFactorMode: 'auto',
-  burdenedHourlyRate: '60',
   setupHours: '2',
   cleanupHours: '2',
 

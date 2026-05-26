@@ -15,6 +15,7 @@ import type { GeocodedAddressResult } from '../../../services/geocodeService';
 import {
   formatUSAddress,
   isUSAddressGeocodable,
+  mergeVerifiedJobsiteAddress,
   normalizeUSAddressInput,
   parseLegacyUSAddress,
   validateUSAddress,
@@ -178,8 +179,13 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
 
     try {
       const verified = await resolveVerifiedJobsite();
+      const normalized = normalizeUSAddressInput(jobsiteFromPourPlannerForm(form));
+      const merged =
+        verified.addressParts ??
+        mergeVerifiedJobsiteAddress(normalized, verified.formattedAddress);
       setVerifiedJobsite(verified);
-      setField('jobsiteAddress', verified.formattedAddress);
+      applyJobsiteFields(setField, applyUSAddressToPourPlanner({}, merged));
+      setField('jobsiteAddress', formatUSAddress(merged));
       setField('jobsiteLatitude', String(verified.latitude));
       setField('jobsiteLongitude', String(verified.longitude));
     } catch (err) {
@@ -215,8 +221,13 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
       let jobsite = verifiedJobsite;
       if (!jobsite) {
         jobsite = await resolveVerifiedJobsite();
+        const normalized = normalizeUSAddressInput(jobsiteFromPourPlannerForm(form));
+        const merged =
+          jobsite.addressParts ??
+          mergeVerifiedJobsiteAddress(normalized, jobsite.formattedAddress);
         setVerifiedJobsite(jobsite);
-        setField('jobsiteAddress', jobsite.formattedAddress);
+        applyJobsiteFields(setField, applyUSAddressToPourPlanner({}, merged));
+        setField('jobsiteAddress', formatUSAddress(merged));
         setField('jobsiteLatitude', String(jobsite.latitude));
         setField('jobsiteLongitude', String(jobsite.longitude));
       }

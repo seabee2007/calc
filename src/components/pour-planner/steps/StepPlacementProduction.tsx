@@ -15,6 +15,8 @@ import PlannerStepLocationsCard from '../PlannerStepLocationsCard';
 import Select from '../../ui/Select';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import { BOTTLENECK_LABELS } from '../../../utils/placementProduction';
+import LaborRatesItemized from '../../labor/LaborRatesItemized';
+import LaborCostBreakdownSummary from '../../labor/LaborCostBreakdownSummary';
 
 interface StepProps {
   planner: PourPlannerContext;
@@ -385,19 +387,14 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
             value={form.cleanupHours}
             onChange={(e) => setField('cleanupHours', e.target.value)}
           />
-          <Input
-            label="Burdened hourly labor rate ($)"
-            type="number"
-            min="0"
-            step="1"
-            value={form.burdenedHourlyRate}
-            onChange={(e) => setField('burdenedHourlyRate', e.target.value)}
-            className="sm:col-span-2"
-          />
+        </div>
+
+        <div className="mt-4">
+          <LaborRatesItemized compact />
         </div>
 
         {volume > 0 ? (
-          <Card className="p-4">
+          <Card className="p-4 mt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-700 dark:text-gray-300">
               <p>
                 Estimated placing labor:{' '}
@@ -433,10 +430,18 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
                   {est.estimatedCrewDurationHours.toFixed(1)} hours
                 </strong>
               </p>
+              {est.laborCostBreakdown && (
+                <LaborCostBreakdownSummary
+                  breakdown={est.laborCostBreakdown}
+                  formatCurrency={formatCurrency}
+                  laborers={est.laborers}
+                  finishers={est.finishers}
+                />
+              )}
               {est.laborCost != null && (
-                <p className="sm:col-span-2 flex items-center gap-1.5">
+                <p className="sm:col-span-2 flex items-center gap-1.5 pt-2 border-t border-gray-200 dark:border-gray-700">
                   <DollarSign className="h-4 w-4 text-green-600" />
-                  Labor cost:{' '}
+                  Total labor:{' '}
                   <strong className="text-gray-900 dark:text-white text-base">
                     {formatCurrency(est.laborCost)}
                   </strong>

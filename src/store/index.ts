@@ -17,10 +17,12 @@ import {
   ReinforcementSet,
   USAddress,
 } from '../types';
+import type { LaborEstimate, LaborEstimateInputs } from '../types/laborEstimate';
 import { EMPTY_US_ADDRESS } from '../types/address';
 import { MixProfileType } from '../types/curing';
 import type { TruckTicketFormState } from '../types/concreteTruckTicket';
 import type { PlacementOrder } from '../types/placementOrder';
+import { defaultPlacementOrder } from '../types/placementOrder';
 import {
   mapTruckTicketFromDb,
   mergeTruckTicketsForProject,
@@ -28,6 +30,18 @@ import {
 import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
 
 const PROJECT_SELECT = `
+  id, name, description,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  truck_tickets(*),
+  reinforcement_sets(*, cut_list_items(*)),
+  labor_estimates(*)
+`;
+
+const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
   id, name, description,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
@@ -88,6 +102,42 @@ function isPlacementOrderColumnError(message: string): boolean {
   return message.includes('placement_order');
 }
 
+function isLaborEstimatesSchemaError(message: string): boolean {
+  return message.includes('labor_estimates');
+}
+
+function shouldFallbackLaborToPlacementOrder(error: {
+  message?: string;
+  code?: string;
+}): boolean {
+  const msg = (error.message ?? '').toLowerCase();
+  if (isLaborEstimatesSchemaError(msg)) return true;
+  if (msg.includes('row-level security') || msg.includes('permission denied')) {
+    return true;
+  }
+  if (error.code === '42P01' || error.code === 'PGRST204' || error.code === 'PGRST205') {
+    return true;
+  }
+  return false;
+}
+
+/** User-facing message when labor save fails (after any fallback attempt). */
+export function laborSaveErrorMessage(err: unknown): string {
+  const msg =
+    err && typeof err === 'object' && 'message' in err
+      ? String((err as { message: string }).message)
+      : err instanceof Error
+        ? err.message
+        : String(err);
+  if (isLaborEstimatesSchemaError(msg)) {
+    return 'Labor table missing — run Supabase migration 20250526120000_labor_estimates_reinforcement_pricing.sql';
+  }
+  if (msg.toLowerCase().includes('row-level security')) {
+    return 'Labor table blocked by RLS — run migration 20250526120100_labor_estimates_rls.sql in Supabase SQL editor';
+  }
+  return msg || 'Could not save labor estimate';
+}
+
 function parsePlacementOrder(raw: unknown): PlacementOrder | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   const o = raw as PlacementOrder;
@@ -98,6 +148,7 @@ function parsePlacementOrder(raw: unknown): PlacementOrder | undefined {
 async function fetchProjectRows() {
   const selects = [
     PROJECT_SELECT,
+    PROJECT_SELECT_NO_LABOR_ESTIMATES,
     PROJECT_SELECT_NO_PLACEMENT_ORDER,
     PROJECT_SELECT_NO_JOBSITE,
     PROJECT_SELECT_LEGACY,
@@ -129,8 +180,14 @@ async function fetchProjectRows() {
     if (
       isJobsiteColumnError(msg) ||
       isTruckTicketsSchemaError(msg) ||
-      isPlacementOrderColumnError(msg)
+      isPlacementOrderColumnError(msg) ||
+      isLaborEstimatesSchemaError(msg)
     ) {
+      if (isLaborEstimatesSchemaError(msg)) {
+        console.warn(
+          'labor_estimates table missing — run migration 20250526120000_labor_estimates_reinforcement_pricing.sql',
+        );
+      }
       continue;
     }
     return result;
@@ -268,6 +325,7 @@ function mapProjectFromRow(row: any): Project {
     mixProfile: (row.mix_profile as MixProfileType) || 'standard',
     calculations: (row.calculations || []).map(mapCalculationFromDb),
     reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
+    laborEstimates: (row.labor_estimates || []).map(mapLaborEstimateFromDb),
     qcRecords: qcRecords.filter((r) => !isTruckTicketRecord(r)),
     truckTickets: mergeTruckTicketsForProject(qcRecords, truckTicketsFromDb),
   };
@@ -298,6 +356,18 @@ interface ProjectState {
     calculationData: Partial<Calculation>
   ) => Promise<void>;
   deleteCalculation: (projectId: string, calculationId: string) => Promise<void>;
+
+  saveLaborEstimate: (
+    projectId: string,
+    estimate: {
+      label?: string;
+      volumeYd?: number;
+      inputs: LaborEstimateInputs;
+      laborCost: number;
+      adjustedLaborHours?: number;
+      production?: import('../types/placementOrder').PlacementProductionSnapshot;
+    },
+  ) => Promise<LaborEstimate>;
 
   addQCRecord: (
     projectId: string,
@@ -496,14 +566,28 @@ const mapReinforcementSetFromDb = (r: any): ReinforcementSet => ({
   // Mesh specific
   mesh_sheets: r.mesh_sheets,
   mesh_sheet_size: r.mesh_sheet_size,
-  
+  pricing: r.pricing ?? undefined,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
 
+const mapLaborEstimateFromDb = (row: any): LaborEstimate => ({
+  id: row.id,
+  projectId: row.project_id,
+  label: row.label ?? 'Placement labor',
+  volumeYd: row.volume_yd != null ? Number(row.volume_yd) : undefined,
+  inputs: (row.inputs ?? {}) as LaborEstimateInputs,
+  laborCost: Number(row.labor_cost) || 0,
+  adjustedLaborHours:
+    row.adjusted_labor_hours != null ? Number(row.adjusted_labor_hours) : undefined,
+  production: row.inputs?.production,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
 // --- Zustand store ---
 
-export const useProjectStore = create<ProjectState>((set) => ({
+export const useProjectStore = create<ProjectState>((set, get) => ({
   projects: [],
   currentProject: null,
   loading: false,
@@ -710,6 +794,157 @@ export const useProjectStore = create<ProjectState>((set) => ({
         currentProject: s.currentProject ? update(s.currentProject) : null
       };
     });
+  },
+
+  saveLaborEstimate: async (projectId, estimate) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const inputsPayload = {
+      ...estimate.inputs,
+      ...(estimate.production ? { production: estimate.production } : {}),
+    };
+
+    const existing = get()
+      .projects.find((p) => p.id === projectId)?.laborEstimates?.[0];
+
+    if (existing?.id === 'placement-production' && estimate.production) {
+      const project = get().projects.find((p) => p.id === projectId);
+      const order = project?.placementOrder ?? defaultPlacementOrder();
+      await get().updateProject(projectId, {
+        placementOrder: {
+          ...order,
+          production: estimate.production,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      const mapped: LaborEstimate = {
+        id: 'placement-production',
+        projectId,
+        label: estimate.label ?? 'Placement labor',
+        volumeYd: estimate.volumeYd,
+        inputs: estimate.inputs,
+        laborCost: estimate.laborCost,
+        adjustedLaborHours: estimate.adjustedLaborHours,
+        production: estimate.production,
+        createdAt: existing.createdAt,
+        updatedAt: new Date().toISOString(),
+      };
+      set((s) => {
+        const update = (p: Project) => {
+          if (p.id !== projectId) return p;
+          const others = (p.laborEstimates ?? []).filter((e) => e.id !== mapped.id);
+          return {
+            ...p,
+            laborEstimates: [mapped, ...others],
+            updatedAt: new Date().toISOString(),
+          };
+        };
+        return {
+          projects: s.projects.map(update),
+          currentProject: s.currentProject ? update(s.currentProject) : null,
+        };
+      });
+      return mapped;
+    }
+
+    let data: any;
+    let error: { message?: string; code?: string } | null = null;
+
+    if (existing?.id && existing.id !== 'placement-production') {
+      const res = await supabase
+        .from('labor_estimates')
+        .update({
+          label: estimate.label ?? existing.label,
+          volume_yd: estimate.volumeYd ?? null,
+          inputs: inputsPayload,
+          labor_cost: estimate.laborCost,
+          adjusted_labor_hours: estimate.adjustedLaborHours ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id)
+        .select('*')
+        .single();
+      data = res.data;
+      error = res.error;
+    } else if (!existing?.id || existing.id === 'placement-production') {
+      const res = await supabase
+        .from('labor_estimates')
+        .insert({
+          project_id: projectId,
+          user_id: user?.id ?? null,
+          label: estimate.label ?? 'Placement labor',
+          volume_yd: estimate.volumeYd ?? null,
+          inputs: inputsPayload,
+          labor_cost: estimate.laborCost,
+          adjusted_labor_hours: estimate.adjustedLaborHours ?? null,
+        })
+        .select('*')
+        .single();
+      data = res.data;
+      error = res.error;
+    }
+
+    if (error) {
+      if (estimate.production && shouldFallbackLaborToPlacementOrder(error)) {
+        const project = get().projects.find((p) => p.id === projectId);
+        const order = project?.placementOrder ?? defaultPlacementOrder();
+        await get().updateProject(projectId, {
+          placementOrder: {
+            ...order,
+            production: estimate.production,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+        const mapped: LaborEstimate = {
+          id: 'placement-production',
+          projectId,
+          label: estimate.label ?? 'Placement labor',
+          volumeYd: estimate.volumeYd,
+          inputs: estimate.inputs,
+          laborCost: estimate.laborCost,
+          adjustedLaborHours: estimate.adjustedLaborHours,
+          production: estimate.production,
+          createdAt: existing?.createdAt ?? new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        set((s) => {
+          const update = (p: Project) => {
+            if (p.id !== projectId) return p;
+            const others = (p.laborEstimates ?? []).filter((e) => e.id !== mapped.id);
+            return {
+              ...p,
+              laborEstimates: [mapped, ...others],
+              updatedAt: new Date().toISOString(),
+            };
+          };
+          return {
+            projects: s.projects.map(update),
+            currentProject: s.currentProject ? update(s.currentProject) : null,
+          };
+        });
+        return mapped;
+      }
+      throw error;
+    }
+
+    const mapped = mapLaborEstimateFromDb(data);
+    set((s) => {
+      const update = (p: Project) => {
+        if (p.id !== projectId) return p;
+        const others = (p.laborEstimates ?? []).filter((e) => e.id !== mapped.id);
+        return {
+          ...p,
+          laborEstimates: [mapped, ...others],
+          updatedAt: new Date().toISOString(),
+        };
+      };
+      return {
+        projects: s.projects.map(update),
+        currentProject: s.currentProject ? update(s.currentProject) : null,
+      };
+    });
+    return mapped;
   },
 
   // --- QC Record CRUD ---

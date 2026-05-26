@@ -21,6 +21,8 @@ export interface WorkflowLocationState {
   /** Tools / Projects nav: show library list, not guided workflow create step */
   mode?: 'browse' | 'workflow';
   openCreate?: boolean;
+  /** Tools → Projects: force project library list (not create form) */
+  view?: 'list' | 'create';
   showProjectDetails?: boolean;
 }
 
@@ -81,6 +83,7 @@ export function getWorkflowStepFromPath(pathname: string): WorkflowStepId {
   }
   if (pathname.startsWith('/projects')) return 'project';
   if (pathname.startsWith('/calculator')) return 'calculator';
+  // sub-routes (concrete, reinforcement, labor) still count as calculator step
   if (pathname.startsWith('/proposal')) return 'proposal';
   if (pathname.startsWith('/mix-design-advisor')) return 'mix';
   if (pathname.startsWith('/pour-planner')) return 'placement';

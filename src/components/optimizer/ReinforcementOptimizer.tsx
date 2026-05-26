@@ -18,6 +18,13 @@ import {
 } from '../../utils/reinforcement';
 import { saveReinforcement } from '../../utils/saveReinforcement';
 import { useProjectStore } from '../../store';
+import {
+  collectRebarCutItems,
+  estimateRebarMaterialCost,
+} from '../../utils/rebarCostEstimate';
+import { regionalMultiplierKeyFromAddress } from '../../data/regionalMultipliers';
+import RebarCostEstimateSummary from '../rebar/RebarCostEstimateSummary';
+import type { ReinforcementPricing } from '../../types/reinforcementPricing';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
@@ -25,18 +32,19 @@ import Select from '../ui/Select';
 import { generateReinforcementPDF } from '../../utils/pdf';
 
 interface ReinforcementOptimizerProps {
-  // TODO: Get these from calculator store
   calculatorData: {
     length_ft: number;
     width_ft: number;
     thickness_in: number;
     cubicYards: number;
-    height_ft?: number; // For columns
+    height_ft?: number;
   };
   projectName?: string;
   onClose?: () => void;
   onSaved?: (setId: string) => void;
-  isColumn?: boolean; // New prop to indicate column mode
+  isColumn?: boolean;
+  /** Render inline (standalone calculator page) instead of modal overlay */
+  embedded?: boolean;
 }
 
 type ReinforcementMode = 'rebar' | 'mesh' | 'fiber';
@@ -46,9 +54,11 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
   projectName,
   onClose,
   onSaved,
-  isColumn = false
+  isColumn = false,
+  embedded = false,
 }) => {
   const { currentProject } = useProjectStore();
+  const regionalKey = regionalMultiplierKeyFromAddress(currentProject?.jobsiteAddress);
   
   const [coverIn, setCoverIn] = useState(isColumn ? 1.5 : 2);
   const [mode, setMode] = useState<ReinforcementMode>('rebar');
@@ -104,6 +114,34 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         return null;
     }
   }, [calculatorData, mode, coverIn, fiberType, duty, stockLength, manualRebarSize, spacingXIn, spacingYIn, verticalBars, isColumn]);
+
+  const rebarPricing = useMemo((): ReinforcementPricing | null => {
+    if (mode !== 'rebar' || !result) return null;
+    const rebarResult = result as RebarResult | ColumnRebarResult;
+    const barSize = rebarResult.pick.size;
+
+    if (isColumn) {
+      const col = rebarResult as ColumnRebarResult;
+      return estimateRebarMaterialCost({
+        barSize,
+        cutItems: collectRebarCutItems(col.verticalBars, col.tieList),
+        stockFt: stockLength,
+        regionalKey,
+        jobsiteAddress: currentProject?.jobsiteAddress,
+        totalLinearFt: col.totalLinearFt,
+      });
+    }
+
+    const slab = rebarResult as RebarResult;
+    return estimateRebarMaterialCost({
+      barSize,
+      cutItems: collectRebarCutItems(slab.listX, slab.listY),
+      stockFt: stockLength,
+      regionalKey,
+      jobsiteAddress: currentProject?.jobsiteAddress,
+      totalLinearFt: slab.totalLinearFt,
+    });
+  }, [mode, result, isColumn, stockLength, regionalKey, currentProject?.jobsiteAddress]);
 
   // Export functions
   const handleExportCSV = async () => {
@@ -256,8 +294,10 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         });
       }
 
-      console.log('Final save options:', saveOptions);
-      
+      if (mode === 'rebar' && rebarPricing) {
+        saveOptions.pricing = rebarPricing;
+      }
+
       const setId = await saveReinforcement(saveOptions);
       console.log('Save successful, setId:', setId);
       
@@ -330,15 +370,13 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
     }
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto"
-    >
-      <Card className="w-full max-w-4xl my-4 bg-white dark:bg-gray-800/90 min-h-0">
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+  const shell = (
+      <Card
+        className={`w-full bg-white dark:bg-gray-800/90 flex flex-col ${
+          embedded ? '' : 'max-w-4xl my-4 max-h-[calc(100vh-2rem)]'
+        }`}
+      >
+        <div className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -356,7 +394,20 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
           )}
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto">
+        <div
+          className={
+            embedded
+              ? 'p-4 sm:p-6 space-y-4 sm:space-y-6'
+              : 'flex flex-col flex-1 min-h-0'
+          }
+        >
+          <div
+            className={
+              embedded
+                ? 'space-y-4 sm:space-y-6'
+                : 'flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 sm:space-y-6'
+            }
+          >
           {/* Project Info */}
           <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <h3 className="font-medium text-blue-900 dark:text-white mb-2">
@@ -560,16 +611,22 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
               </div>
             </div>
           )}
+          </div>
 
-          {/* Results */}
+          {/* Results — outside scroll area so the full card stays visible */}
           {result && (
-            <div className="mt-6 bg-gray-50 dark:bg-gray-800/90 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-4">
+            <div
+              className={`flex-shrink-0 bg-gray-50 dark:bg-gray-800/90 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 ${
+                embedded ? 'rounded-b-lg' : ''
+              }`}
+            >
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   {getModeIcon(mode)}
                   {mode === 'rebar' ? 'Rebar Design' : mode === 'fiber' ? 'Fiber Dosage' : 'Mesh Layout'}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     onClick={handleSave}
                     disabled={isSaving}
@@ -603,13 +660,41 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                 </div>
               </div>
 
-              {mode === 'rebar' && <RebarResults result={result as RebarResult | ColumnRebarResult} calculatorData={calculatorData} coverIn={coverIn} spacingXIn={getSpacingValue(spacingXIn)} spacingYIn={getSpacingValue(spacingYIn)} verticalBars={verticalBars} isColumn={isColumn} />}
+              {mode === 'rebar' && (
+                <>
+                  <RebarResults
+                    result={result as RebarResult | ColumnRebarResult}
+                    calculatorData={calculatorData}
+                    coverIn={coverIn}
+                    spacingXIn={getSpacingValue(spacingXIn)}
+                    spacingYIn={getSpacingValue(spacingYIn)}
+                    verticalBars={verticalBars}
+                    isColumn={isColumn}
+                  />
+                  {rebarPricing && <RebarCostEstimateSummary pricing={rebarPricing} />}
+                </>
+              )}
               {mode === 'fiber' && <FiberResults result={result as FiberResult} fiberType={fiberType} />}
               {mode === 'mesh' && <MeshResults result={result as MeshResult} />}
+              </div>
             </div>
           )}
         </div>
       </Card>
+  );
+
+  if (embedded) {
+    return shell;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
+    >
+      {shell}
     </motion.div>
   );
 };

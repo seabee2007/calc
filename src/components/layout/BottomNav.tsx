@@ -51,7 +51,9 @@ const BottomNav: React.FC = () => {
       icon: FolderKanban,
       match: (p: string) => p.startsWith('/projects'),
       onClick: () => {
-        navigate('/projects', { state: { mode: 'browse' } });
+        navigate('/projects', {
+          state: { mode: 'browse', view: 'list' },
+        });
       },
     },
     {

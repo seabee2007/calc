@@ -177,6 +177,13 @@ function scoreFeature(
   if (featureType === "address" || featureType === "street") score += 15;
   if (featureType === "place" || featureType === "locality") score += 5;
 
+  const queryHasStreetNumber = /\d/.test(hint.normalizedQuery || "");
+  if (queryHasStreetNumber) {
+    if (featureType === "address") score += 35;
+    if (featureType === "street") score += 20;
+    if (featureType === "place" || featureType === "region") score -= 25;
+  }
+
   return score;
 }
 

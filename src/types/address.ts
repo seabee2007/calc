@@ -23,6 +23,50 @@ export function isUSStateOrTerritoryName(text: string): boolean {
   return Boolean(STATE_NAME_TO_CODE[text.trim().toLowerCase()]);
 }
 
+/** Territory / island name — not a street line (common in Mapbox Guam results). */
+export function isTerritoryPlaceName(text: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+  if (/^(guam|puerto rico|u\.?s\.? virgin islands|virgin islands)$/i.test(t)) {
+    return true;
+  }
+  return isUSStateOrTerritoryName(t);
+}
+
+/** Drop leading territory tokens from comma-separated address parts. */
+function stripLeadingTerritoryParts(
+  parts: string[],
+): { parts: string[]; stateHint: string } {
+  const remaining = [...parts];
+  let stateHint = '';
+  while (remaining.length > 0 && isTerritoryPlaceName(remaining[0])) {
+    const code = resolveStateCode(remaining[0]);
+    if (code) stateHint = code;
+    else if (/\bguam\b/i.test(remaining[0])) stateHint = 'GU';
+    else if (/\bpuerto rico\b/i.test(remaining[0])) stateHint = 'PR';
+    else if (/\bvirgin islands\b/i.test(remaining[0])) stateHint = 'VI';
+    remaining.shift();
+  }
+  return { parts: remaining, stateHint };
+}
+
+function pickVerifiedStreet(userStreet: string, parsedStreet: string): string {
+  const user = userStreet.trim();
+  const parsed = parsedStreet.trim();
+  if (!parsed) return user;
+  if (isTerritoryPlaceName(parsed)) return user;
+  if (user && /\d/.test(user) && !/\d/.test(parsed)) return user;
+  const parsedSegments = parsed.split(',').map((s) => s.trim()).filter(Boolean);
+  if (
+    user &&
+    parsedSegments.length > 0 &&
+    parsedSegments.every((seg) => isTerritoryPlaceName(seg))
+  ) {
+    return user;
+  }
+  return parsed;
+}
+
 /** Resolve to a 2-letter state/territory code, or empty if unknown. */
 export function resolveStateCode(input: string): string {
   const t = input.trim();
@@ -188,11 +232,15 @@ export function parseLegacyUSAddress(raw: string): USAddress {
   let city = '';
   if (zip) {
     const beforeZip = trimmed.replace(/\b\d{5}(-\d{4})?\b.*$/, '').trim();
-    const parts = beforeZip
+    let parts = beforeZip
       .split(',')
       .map((p) => p.trim())
       .filter(Boolean)
       .filter((p) => !/^united states$/i.test(p));
+    const stripped = stripLeadingTerritoryParts(parts);
+    parts = stripped.parts;
+    if (stripped.stateHint && !state) state = stripped.stateHint;
+
     if (parts.length >= 2) {
       const lastPart = parts[parts.length - 1];
       const stateFromName = STATE_NAME_TO_CODE[lastPart.toLowerCase()];
@@ -201,7 +249,7 @@ export function parseLegacyUSAddress(raw: string): USAddress {
         city = parts.length >= 3 ? parts[parts.length - 2] : '';
         street = parts.length >= 3 ? parts.slice(0, -2).join(', ') : parts[0];
       } else if (parts.length >= 3 && /^[A-Z]{2}$/i.test(parts[parts.length - 1])) {
-        state = parts[parts.length - 1].toUpperCase();
+        state = resolveStateCode(parts[parts.length - 1]) || parts[parts.length - 1].toUpperCase();
         city = parts[parts.length - 2];
         street = parts.slice(0, -2).join(', ');
       } else {
@@ -229,6 +277,32 @@ export function parseLegacyUSAddress(raw: string): USAddress {
   if (!state && /\bguam\b/i.test(trimmed)) state = 'GU';
   if (!state && /\bpuerto rico\b/i.test(trimmed)) state = 'PR';
   if (!state && /\b(u\.?s\.? )?virgin islands\b/i.test(trimmed)) state = 'VI';
+
+  if (!zip && trimmed.includes(',')) {
+    let looseParts = trimmed
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .filter((p) => !/^united states$/i.test(p));
+    const looseStripped = stripLeadingTerritoryParts(looseParts);
+    looseParts = looseStripped.parts;
+    if (looseStripped.stateHint && !state) state = looseStripped.stateHint;
+    if (looseParts.length >= 2 && /^[A-Z]{2}$/i.test(looseParts[looseParts.length - 1])) {
+      const code = resolveStateCode(looseParts[looseParts.length - 1]);
+      if (code) {
+        state = code;
+        city = looseParts[looseParts.length - 2];
+        street = looseParts.slice(0, -2).join(', ');
+      }
+    } else if (looseParts.length >= 2) {
+      city = looseParts[looseParts.length - 1];
+      street = looseParts.slice(0, -1).join(', ');
+    }
+  }
+
+  if (isTerritoryPlaceName(street)) {
+    street = '';
+  }
 
   if (state === 'GU' && /\bguam\b/i.test(city)) {
     city = city.replace(/\bguam\b/gi, '').trim();
@@ -305,7 +379,7 @@ export function mergeVerifiedJobsiteAddress(
   }
 
   return sanitizeUSAddress({
-    street: parsed.street || user.street,
+    street: pickVerifiedStreet(user.street, parsed.street),
     street2: parsed.street2 || user.street2,
     city,
     state,

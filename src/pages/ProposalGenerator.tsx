@@ -24,7 +24,10 @@ import { useProjectStore } from '../store';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
-import { formatPrice } from '../utils/pricing';
+import {
+  buildProposalPricingFromProject,
+  projectHasImportablePricing,
+} from '../utils/proposalPricingImport';
 import { soundService } from '../services/soundService';
 import USAddressFields from '../components/address/USAddressFields';
 import {
@@ -187,9 +190,7 @@ const ProposalGenerator: React.FC = () => {
       }));
     }
 
-    const hasImportablePricing =
-      (project?.calculations?.length ?? 0) > 0 ||
-      (project?.placementOrder?.production?.laborCost ?? 0) > 0;
+    const hasImportablePricing = project ? projectHasImportablePricing(project) : false;
 
     if (
       projectId &&
@@ -208,157 +209,31 @@ const ProposalGenerator: React.FC = () => {
     getProposalDraft,
   ]);
 
-  // Import pricing from selected project
   const importPricingFromProject = (
     projectId: string,
     options?: { silent?: boolean },
   ) => {
-    const project = projects.find(p => p.id === projectId);
-    const placementLaborCost = project?.placementOrder?.production?.laborCost ?? 0;
-    const hasPlacementLabor = placementLaborCost > 0;
-
+    const project = projects.find((p) => p.id === projectId);
     if (!project) {
-      if (!options?.silent) {
-        alert('Project not found.');
-      }
+      if (!options?.silent) alert('Project not found.');
       return;
     }
 
-    if (!project.calculations?.length && !hasPlacementLabor) {
+    if (!projectHasImportablePricing(project)) {
       if (!options?.silent) {
         alert(
-          'Selected project has no calculations or saved placement labor. Run the calculator or save an order in Placement Planner first.',
+          'No pricing found. Run the concrete, reinforcement, and/or labor calculators on step 2 and save each estimate to this project.',
         );
       }
       return;
     }
 
-    console.log('🔍 Importing from project:', project.name);
-    console.log('📊 Available calculations:', project.calculations);
-
-    // Filter to only calculations that have pricing data
-    const calculationsWithPricing = (project.calculations ?? []).filter(calc => {
-      const pricing = (calc.result as any).pricing;
-      return pricing && pricing.concreteCost > 0;
-    });
-
-    console.log('💎 Calculations with pricing:', calculationsWithPricing);
-
-    if (calculationsWithPricing.length === 0 && !hasPlacementLabor) {
-      if (!options?.silent) {
-        alert(
-          'No calculations with pricing data found in this project. Please ensure you have calculated pricing for at least one calculation, or save placement labor in Placement Planner.',
-        );
-      }
-      return;
-    }
-    
-    // Consolidation objects
-    const concreteByPsi: { [psi: string]: { volume: number; cost: number; calcTypes: string[] } } = {};
-    let totalDeliveryFees = 0;
-    const additionalServicesCosts: { [service: string]: number } = {};
-    
-    calculationsWithPricing.forEach((calc, index) => {
-      console.log(`📋 Processing calculation ${index + 1}:`, calc);
-      
-      const volume = calc.result.volume;
-      const calcType = calc.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-      const psi = (calc as any).psi || '3000';
-      const pricing = (calc.result as any).pricing;
-      
-      console.log(`🔧 Processing:`, { volume, calcType, psi, pricing });
-      
-      // Consolidate concrete by PSI
-      if (pricing?.concreteCost > 0) {
-        if (!concreteByPsi[psi]) {
-          concreteByPsi[psi] = { volume: 0, cost: 0, calcTypes: [] };
-        }
-        concreteByPsi[psi].volume += volume;
-        concreteByPsi[psi].cost += pricing.concreteCost;
-        if (!concreteByPsi[psi].calcTypes.includes(calcType)) {
-          concreteByPsi[psi].calcTypes.push(calcType);
-        }
-      }
-
-      // Consolidate delivery fees
-      if (pricing?.deliveryFees?.totalDeliveryFees > 0) {
-        totalDeliveryFees += pricing.deliveryFees.totalDeliveryFees;
-      }
-
-      // Consolidate additional services
-      if (pricing?.additionalServices) {
-        if (pricing.additionalServices.pumpTruckFee > 0) {
-          additionalServicesCosts['Pump Truck'] = (additionalServicesCosts['Pump Truck'] || 0) + pricing.additionalServices.pumpTruckFee;
-        }
-        if (pricing.additionalServices.saturdayFee > 0) {
-          additionalServicesCosts['Saturday Delivery'] = (additionalServicesCosts['Saturday Delivery'] || 0) + pricing.additionalServices.saturdayFee;
-        }
-        if (pricing.additionalServices.afterHoursFee > 0) {
-          additionalServicesCosts['After Hours Delivery'] = (additionalServicesCosts['After Hours Delivery'] || 0) + pricing.additionalServices.afterHoursFee;
-        }
-      }
-    });
-
-    // Build consolidated pricing items
-    const pricingItems: { description: string; amount: string }[] = [];
-
-    // Add consolidated concrete items
-    Object.entries(concreteByPsi).forEach(([psi, data]) => {
-      const calcTypesStr = data.calcTypes.length === 1 
-        ? data.calcTypes[0] 
-        : data.calcTypes.length === 2 
-          ? data.calcTypes.join(' & ')
-          : 'Mixed Concrete Work';
-          
-      pricingItems.push({
-        description: `${calcTypesStr} - ${data.volume.toFixed(2)} yd³ concrete (${psi} PSI)`,
-        amount: formatPrice(data.cost)
-      });
-    });
-
-    // Add consolidated delivery fees
-    if (totalDeliveryFees > 0) {
-      pricingItems.push({
-        description: 'Delivery & Transportation',
-        amount: formatPrice(totalDeliveryFees)
-      });
-    }
-
-    // Add consolidated additional services
-    Object.entries(additionalServicesCosts).forEach(([service, cost]) => {
-      pricingItems.push({
-        description: service,
-        amount: formatPrice(cost)
-      });
-    });
-
-    const placementLabor = project.placementOrder?.production;
-    if (placementLabor?.laborCost != null && placementLabor.laborCost > 0) {
-      const hoursLabel =
-        placementLabor.adjustedLaborHours > 0
-          ? ` — ${placementLabor.adjustedLaborHours.toFixed(1)} labor-hrs`
-          : '';
-      pricingItems.push({
-        description: `Placement labor${hoursLabel}`,
-        amount: formatPrice(placementLabor.laborCost),
-      });
-    }
-
-    console.log('📝 Consolidated pricing items:', pricingItems);
-    console.log('🧮 Consolidation summary:', {
-      concreteByPsi,
-      totalDeliveryFees,
-      additionalServicesCosts
-    });
-
+    const pricingItems = buildProposalPricingFromProject(project);
     if (pricingItems.length === 0) {
-      if (!options?.silent) {
-        alert('No pricing data could be extracted from the selected project.');
-      }
+      if (!options?.silent) alert('No pricing data could be extracted from this project.');
       return;
     }
 
-    // Update proposal pricing with imported data
     const clientParts = project.jobsiteAddress;
     setProposalData((prev) =>
       hydrateProposalAddresses({
@@ -375,7 +250,7 @@ const ProposalGenerator: React.FC = () => {
     setShowProjectPicker(false);
     if (!options?.silent) {
       alert(
-        `Successfully imported ${pricingItems.length} consolidated pricing items from "${project.name}"`,
+        `Imported ${pricingItems.length} pricing line(s) from "${project.name}" (concrete, reinforcement, and labor).`,
       );
     }
   };

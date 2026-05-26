@@ -7,6 +7,8 @@ import {
   Beaker,
   CloudSun,
   BookOpen,
+  Grid3x3,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
@@ -38,7 +40,9 @@ const ToolsModal: React.FC = () => {
       replace: false,
       state: {
         mode: 'browse' as const,
-        ...(openCreate ? { openCreate: true } : {}),
+        ...(openCreate
+          ? { openCreate: true, view: 'create' as const }
+          : { view: 'list' as const }),
       },
     });
   };
@@ -58,10 +62,22 @@ const ToolsModal: React.FC = () => {
       icon: FileText,
     },
     {
-      title: 'Calculator',
-      description: 'Volume, pricing, and rebar',
-      path: '/calculator',
+      title: 'Concrete calculator',
+      description: 'Volume and ready-mix pricing',
+      path: '/calculator/concrete',
       icon: Calculator,
+    },
+    {
+      title: 'Reinforcement calculator',
+      description: 'Rebar, mesh, and fiber design',
+      path: '/calculator/reinforcement',
+      icon: Grid3x3,
+    },
+    {
+      title: 'Labor calculator',
+      description: 'Crew and production labor cost',
+      path: '/calculator/labor',
+      icon: Users,
     },
     {
       title: 'Mix Design Advisor',

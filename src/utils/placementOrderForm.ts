@@ -7,6 +7,7 @@ import type {
 import { DEFAULT_BATCH_PLANT_CONTACT } from '../types/placementOrder';
 import { applyCallSheetToForm, callSheetFieldsFromForm } from './callSheetForm';
 import type { PlacementRateEstimate } from './placementProduction';
+import { LABOR_RATES_2026 } from '../data/nationalLaborRates2026';
 
 const PRODUCTION_FORM_KEYS = [
   'crewSize',
@@ -16,7 +17,6 @@ const PRODUCTION_FORM_KEYS = [
   'finisherRateSFHr',
   'placingProductivityCYPerLaborHour',
   'finishingProductivitySFPerLaborHour',
-  'burdenedHourlyRate',
   'setupHours',
   'cleanupHours',
   'crewEfficiency',
@@ -33,7 +33,6 @@ export function buildProductionSnapshot(
 ): PlacementProductionSnapshot | undefined {
   if (estimate.laborCost == null || estimate.laborCost <= 0) return undefined;
 
-  const burdenedHourlyRate = parseFloat(form.burdenedHourlyRate);
   return {
     laborCost: estimate.laborCost,
     adjustedLaborHours: estimate.adjustedLaborHours,
@@ -41,7 +40,7 @@ export function buildProductionSnapshot(
     finishingLaborHours: estimate.finishingLaborHours,
     setupCleanupHours: estimate.setupCleanupHours,
     estimatedCrewDurationHours: estimate.estimatedCrewDurationHours,
-    burdenedHourlyRate: Number.isFinite(burdenedHourlyRate) ? burdenedHourlyRate : 0,
+    laborRates: LABOR_RATES_2026.laborRates,
     volumeYd: volumeYd > 0 ? volumeYd : undefined,
     capturedAt: new Date().toISOString(),
     crewSize: form.crewSize,

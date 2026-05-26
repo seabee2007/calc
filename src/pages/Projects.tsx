@@ -70,6 +70,7 @@ const Projects: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'project' | 'calculation'; id: string } | null>(null);
   const [mixProfile, setMixProfile] = useState<MixProfileType>(currentProject?.mixProfile ?? 'standard');
+  const browseNavigationKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const state = workflowState;
@@ -83,7 +84,25 @@ const Projects: React.FC = () => {
 
     if (state?.mode === 'browse') {
       if (loading) return;
-      // Do not reset when the user has opened a project or edit form from the list.
+
+      const isNewBrowseNavigation =
+        browseNavigationKeyRef.current !== location.key;
+      browseNavigationKeyRef.current = location.key;
+
+      const showProjectList =
+        state.view === 'list' ||
+        (!state.openCreate && projects.length > 0 && state.view !== 'create');
+
+      // Tools → Projects (or Projects tab): always return to library list
+      if (isNewBrowseNavigation && showProjectList) {
+        setShowCreateForm(false);
+        setShowProjectDetails(false);
+        setEditingProject(false);
+        setCurrentProject(null);
+        return;
+      }
+
+      // Do not reset when the user opened create/detail from the list on the same visit
       if (showProjectDetails || editingProject || showCreateForm) return;
 
       setEditingProject(false);
@@ -121,6 +140,7 @@ const Projects: React.FC = () => {
     editingProject,
     projects.length,
     loading,
+    location.key,
   ]);
 
   useEffect(() => {

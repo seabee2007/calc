@@ -4,6 +4,9 @@ import { useThemeStore } from './store/themeStore';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Calculator from './pages/Calculator';
+import ConcreteCalculatorPage from './pages/calculators/ConcreteCalculatorPage';
+import ReinforcementCalculatorPage from './pages/calculators/ReinforcementCalculatorPage';
+import LaborCalculatorPage from './pages/calculators/LaborCalculatorPage';
 import Projects from './pages/Projects';
 import Settings from './pages/Settings';
 import Resources from './pages/Resources';
@@ -226,6 +229,30 @@ function App() {
               element={
                 <AuthGuard>
                   <Calculator />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="calculator/concrete"
+              element={
+                <AuthGuard>
+                  <ConcreteCalculatorPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="calculator/reinforcement"
+              element={
+                <AuthGuard>
+                  <ReinforcementCalculatorPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="calculator/labor"
+              element={
+                <AuthGuard>
+                  <LaborCalculatorPage />
                 </AuthGuard>
               }
             />

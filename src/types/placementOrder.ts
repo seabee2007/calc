@@ -25,6 +25,7 @@ import type {
   PlacementMethod,
   WeatherFactorKey,
 } from './pourPlanner';
+import type { LaborRatesCatalog } from '../data/nationalLaborRates2026';
 
 /** Placement production / labor estimate captured from Placement Planner. */
 export interface PlacementProductionSnapshot {
@@ -34,7 +35,9 @@ export interface PlacementProductionSnapshot {
   finishingLaborHours: number;
   setupCleanupHours: number;
   estimatedCrewDurationHours: number;
-  burdenedHourlyRate: number;
+  laborRates: LaborRatesCatalog;
+  /** @deprecated Replaced by laborRates — kept when loading older snapshots */
+  burdenedHourlyRate?: number;
   volumeYd?: number;
   capturedAt: string;
   crewSize: string;

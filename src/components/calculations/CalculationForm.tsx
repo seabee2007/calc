@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Calculator, Package, Zap, Save, Loader } from 'lucide-react';
+import { Calculator, Package, Save, Loader } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Card from '../ui/Card';
 import PricingCalculator from './PricingCalculator';
 import QuikreteModal from './QuikreteModal';
-import ReinforcementOptimizer from '../optimizer/ReinforcementOptimizer';
 import { 
   calculateSlabVolume, 
   calculateFooterVolume, 
@@ -135,8 +134,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   const [lastCalculatedVolume, setLastCalculatedVolume] = useState<number | null>(
     calculation?.result?.volume || null
   );
-  const [showReinforcementOptimizer, setShowReinforcementOptimizer] = useState(false);
-  const [calculationData, setCalculationData] = useState<any>(null);
   const [pricingData, setPricingData] = useState<Calculation['result']['pricing'] | null>(
     calculation?.result?.pricing || null
   );
@@ -344,15 +341,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     setCalculationResult(result);
     setPendingDimensions(dimensions);
     
-    // Store calculation data for reinforcement optimizer
-    setCalculationData({
-      length_ft: dimensions.length || dimensions.diameter || 0,
-      width_ft: dimensions.width || dimensions.diameter || 0,
-      thickness_in: (dimensions.thickness || dimensions.baseThickness || dimensions.depth || 0) * 12,
-      cubicYards: volumeCubicFeet / 27, // Convert from cubic feet to cubic yards
-      height_ft: dimensions.height
-    });
-
     if (onSave && calculation) {
       const resultWithPricing = {
         ...result,
@@ -441,19 +429,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
 
   const handlePsiChange = (value: string) => {
     setSelectedPsi(value);
-  };
-
-  const handleReinforcementOptimizer = () => {
-    setShowReinforcementOptimizer(true);
-  };
-
-  const handleReinforcementOptimizerClose = () => {
-    setShowReinforcementOptimizer(false);
-  };
-
-  const handleReinforcementSaved = (setId: string) => {
-    console.log('Reinforcement set saved:', setId);
-    setShowReinforcementOptimizer(false);
   };
 
   const handlePricingCalculated = (pricing: Calculation['result']['pricing'] | null) => {
@@ -745,22 +720,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               </ul>
             </div>
 
-            {calculationData &&
-              (calculationType === 'slab' ||
-                calculationType === 'column' ||
-                calculationType === 'footer') && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleReinforcementOptimizer}
-                icon={<Zap size={16} />}
-                className="w-full text-orange-600 hover:text-orange-800 border-orange-200 hover:border-orange-300 dark:text-orange-400 dark:hover:text-orange-300 dark:border-orange-800"
-              >
-                Design Reinforcement
-              </Button>
-            )}
-
             {calculationResult.volume > 0 && (
               <PricingCalculator
                 key={currentProject?.id ?? 'no-project'}
@@ -816,16 +775,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         onSelect={handleQuikreteSelect}
       />
 
-      {showReinforcementOptimizer && calculationData && (
-        <ReinforcementOptimizer
-          calculatorData={calculationData}
-          projectName={currentProject?.name}
-          onClose={handleReinforcementOptimizerClose}
-          onSaved={handleReinforcementSaved}
-          isColumn={calculationType === 'column'}
-        />
-      )}
-      
     </div>
   );
 };

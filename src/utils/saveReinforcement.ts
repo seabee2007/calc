@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { CutListItem } from './reinforcement';
+import type { ReinforcementPricing } from '../types/reinforcementPricing';
 
 export interface SaveReinforcementOptions {
   projectId?: string;  // Add project ID for integration
@@ -41,6 +42,9 @@ export interface SaveReinforcementOptions {
     sheets: number;
     sheetSize: string;
   };
+
+  /** Full pricing snapshot — persisted to reinforcement_sets.pricing (jsonb). */
+  pricing?: ReinforcementPricing | null;
 }
 
 /**
@@ -90,6 +94,7 @@ export async function saveReinforcement(opts: SaveReinforcementOptions): Promise
       // Mesh data
       mesh_sheets: opts.meshData?.sheets,
       mesh_sheet_size: opts.meshData?.sheetSize,
+      pricing: opts.pricing ?? null,
     })
     .select('id')
     .single();
