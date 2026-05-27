@@ -137,6 +137,41 @@ function formatPourDateLabel(d: Date): string {
   });
 }
 
+/** Calendar date for ops displays, e.g. "31 May 2026". */
+export function formatProfessionalCalendarDate(d: Date): string {
+  const day = d.getDate();
+  const month = d.toLocaleDateString('en-GB', { month: 'long' });
+  return `${day} ${month} ${d.getFullYear()}`;
+}
+
+export function formatPourTimeLabel(d: Date): string {
+  return d.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+export function calendarDaysUntil(target: Date, from: Date): number {
+  const fromDay = startOfDay(from);
+  const targetDay = startOfDay(target);
+  return Math.round((targetDay.getTime() - fromDay.getTime()) / 86400000);
+}
+
+export function formatNextPlacementLeadLabel(daysUntil: number): string {
+  if (daysUntil <= 0) return 'Next placement today';
+  if (daysUntil === 1) return 'Next placement tomorrow';
+  return `Next placement in ${daysUntil} days`;
+}
+
+export function resolveNextUpcomingPlacement(
+  upcoming: UpcomingPlacementRow[],
+  hasPlacementsToday: boolean,
+): UpcomingPlacementRow | null {
+  if (hasPlacementsToday || upcoming.length === 0) return null;
+  return upcoming[0];
+}
+
 function calculationVolumeYd(calc: Calculation): number {
   const v = calc.result?.volume ?? 0;
   if (v <= 0) return 0;

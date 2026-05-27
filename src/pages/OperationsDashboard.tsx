@@ -6,7 +6,11 @@ import { useAuth } from '../hooks/useAuth';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
 import { useToolsModalStore } from '../store/toolsModalStore';
 import { workflowQuery } from '../utils/workflow';
-import { buildOperationsSnapshot } from '../utils/operationsDashboard';
+import { buildOperationsSnapshot, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
+import {
+  buildProjectRiskReview,
+  resolveFeaturedRiskProject,
+} from '../utils/projectRiskReview';
 import DashboardHero from '../components/dashboard/DashboardHero';
 import FeaturedPlacementConditions from '../components/dashboard/FeaturedPlacementConditions';
 import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDeliveryScheduleCard';
@@ -20,12 +24,6 @@ import Button from '../components/ui/Button';
 
 const OPS_SHELL =
   'dark text-white isolation-auto rounded-xl min-h-[200px]';
-
-function startOfToday(now: Date): Date {
-  const d = new Date(now);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
 
 function parseIsoMaybe(iso?: string): Date | null {
   if (!iso) return null;
@@ -67,15 +65,36 @@ const OperationsDashboard: React.FC = () => {
 
   const { pipeline, financial } = snapshot.proposalMetrics;
   const primaryPourToday = snapshot.todayPours[0];
-  const selectedPrePlacementProject = useMemo(() => {
-    const now = new Date();
-    const today = startOfToday(now).getTime();
-    const candidates = projects
-      .map((p) => ({ p, d: parseIsoMaybe((p as any).pourDate as string | undefined) }))
-      .filter((x) => x.d && x.d.getTime() >= today)
-      .sort((a, b) => (a.d!.getTime() - b.d!.getTime()));
-    return candidates[0]?.p ?? null;
-  }, [projects]);
+  const nextUpcomingPlacement = resolveNextUpcomingPlacement(
+    snapshot.upcomingPlacements,
+    snapshot.hasPlacementsToday,
+  );
+  const featuredRiskProject = useMemo(
+    () => resolveFeaturedRiskProject(projects),
+    [projects],
+  );
+
+  const projectRiskReview = useMemo(
+    () =>
+      buildProjectRiskReview(featuredRiskProject, {
+        heatRisk: snapshot.heatRisk,
+        rainRisk: snapshot.rainRisk,
+        windRisk: snapshot.windRisk,
+        evaporationRisk: snapshot.evaporationRisk,
+        weatherRisk: snapshot.weatherRisk,
+      }, proposals),
+    [
+      featuredRiskProject,
+      snapshot.heatRisk,
+      snapshot.rainRisk,
+      snapshot.windRisk,
+      snapshot.evaporationRisk,
+      snapshot.weatherRisk,
+      proposals,
+    ],
+  );
+
+  const selectedPrePlacementProject = featuredRiskProject;
 
   const prePlacement = useMemo(() => {
     if (!selectedPrePlacementProject) {
@@ -184,6 +203,7 @@ const OperationsDashboard: React.FC = () => {
           schedule={snapshot.deliverySchedule}
           timeline={snapshot.timeline}
           hasPlacementsToday={snapshot.hasPlacementsToday}
+          nextPlacement={nextUpcomingPlacement}
           primaryProjectId={primaryPourToday?.id}
         />
         <SmartPourAssistant
@@ -193,7 +213,7 @@ const OperationsDashboard: React.FC = () => {
           checks={prePlacement.checks}
           attention={prePlacement.attention}
         />
-        <ProjectHealthCard score={snapshot.globalHealthScore} />
+        <ProjectHealthCard review={projectRiskReview} />
         <QcAlertsCard
           testsDue={snapshot.qcTestsDue}
           totalRecords={totalQcRecords}
@@ -216,6 +236,7 @@ const OperationsDashboard: React.FC = () => {
             schedule={snapshot.deliverySchedule}
             timeline={snapshot.timeline}
             hasPlacementsToday={snapshot.hasPlacementsToday}
+            nextPlacement={nextUpcomingPlacement}
             primaryProjectId={primaryPourToday?.id}
           />
         </section>
@@ -227,7 +248,7 @@ const OperationsDashboard: React.FC = () => {
             checks={prePlacement.checks}
             attention={prePlacement.attention}
           />
-          <ProjectHealthCard score={snapshot.globalHealthScore} />
+          <ProjectHealthCard review={projectRiskReview} />
           <QcAlertsCard
             testsDue={snapshot.qcTestsDue}
             totalRecords={totalQcRecords}
