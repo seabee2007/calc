@@ -25,7 +25,7 @@ const Projects: React.FC = () => {
             Projects
           </h1>
           <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
-            Manage and organize your concrete calculation projects
+            Track active jobs, next actions, readiness, and financials
           </p>
         </div>
 
@@ -47,7 +47,7 @@ const Projects: React.FC = () => {
             icon={<ArrowLeftCircle size={20} />}
             size="lg"
             variant="outline"
-            className="shadow-lg hover:shadow-xl transition-shadow !bg-white/10 backdrop-blur-sm border-white/30 text-white hover:!bg-white/20"
+            className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <span className="hidden sm:inline">Back to Projects</span>
           </Button>

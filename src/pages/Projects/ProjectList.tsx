@@ -2,7 +2,7 @@ import React from 'react';
 import { FolderOpen, Plus } from 'lucide-react';
 import ProjectCard from '../../components/projects/ProjectCard';
 import Button from '../../components/ui/Button';
-import { Project } from '../../types';
+import type { Project } from '../../types';
 
 interface ProjectListProps {
   projects: Project[];

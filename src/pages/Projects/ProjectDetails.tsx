@@ -1,5 +1,17 @@
-import React from 'react';
-import { FolderOpen, Calculator, Save, Printer, Edit, Trash2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  FolderOpen,
+  Save,
+  Printer,
+  Edit,
+  Trash2,
+  ArrowRight,
+  AlertTriangle,
+  Calendar,
+  DollarSign,
+  ClipboardCheck,
+  CloudSun,
+} from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useProjects } from './useProjects';
@@ -9,28 +21,282 @@ import MixDesignSection from './MixDesignSection';
 import QCSection from './QCSection';
 import ReinforcementSection from './ReinforcementSection';
 import StrengthProgress from '../../components/projects/StrengthProgress';
+import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
+import { useTrackedProposals } from '../../hooks/useTrackedProposals';
+import { computeProposalFinancials } from '../../utils/proposalFinancials';
+import { workflowQuery } from '../../utils/workflow';
+import type { TrackedProposalRow } from '../../types/proposalTracking';
+import type { ForecastDay } from '../../types';
+import {
+  findBestTimeOfDayWindow,
+  formatTimeWindow,
+  scorePourDay,
+  type ScoredPourDay,
+} from '../../utils/pourScoring';
 
 export default function ProjectDetails() {
   const { currentProject, ui, setUi, handlers } = useProjects();
+  const { proposals } = useTrackedProposals();
   
   if (!currentProject) return null;
+  const p = currentProject as any;
+
+  const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
+    return proposals.find(
+      (p) =>
+        p.data?.projectTitle === currentProject.name ||
+        p.title.toLowerCase().includes(currentProject.name.toLowerCase()),
+    );
+  }, [proposals, currentProject.name]);
+
+  const proposalStatusLabel = useMemo(() => {
+    const s = matchedProposal?.status ?? null;
+    if (!s) return 'No proposal linked';
+    const map: Record<string, string> = {
+      draft: 'Draft',
+      sent: 'Proposal Sent',
+      opened: 'Proposal Opened',
+      viewed: 'Proposal Viewed',
+      accepted: 'Accepted',
+      declined: 'Declined',
+      deposit_paid: 'Deposit Paid',
+      scheduled: 'Scheduled',
+    };
+    return map[String(s)] ?? String(s).replace(/_/g, ' ').toUpperCase();
+  }, [matchedProposal?.status]);
+
+  const pourDateLabel = useMemo(() => {
+    if (!currentProject.pourDate) return '—';
+    try {
+      return format(new Date(currentProject.pourDate), 'EEEE HH:mm');
+    } catch {
+      return '—';
+    }
+  }, [currentProject.pourDate]);
+
+  const workflow = useMemo(() => {
+    return resolveProjectWorkflow(currentProject, {
+      hasProposalDraft: Boolean(matchedProposal),
+      proposalStatus: matchedProposal?.status,
+      windRisk: 'unknown',
+      heatRisk: 'unknown',
+      readinessScore: 0,
+      now: new Date(),
+    });
+  }, [currentProject, matchedProposal, matchedProposal?.status]);
+
+  const financial = useMemo(() => {
+    const data = matchedProposal?.data;
+    if (!data) return null;
+    const fin = computeProposalFinancials(data);
+    const estLabor = currentProject.laborEstimates?.[0]?.laborCost ?? 0;
+    const estMaterial = fin.material_cost;
+    const value = fin.total_amount;
+    const profit = value > 0 ? value - (estLabor + estMaterial) : 0;
+    const margin = value > 0 ? profit / value : 0;
+    return { value, estLabor, estMaterial, profit, margin };
+  }, [matchedProposal?.data, currentProject.laborEstimates]);
+
+  const nextActions = useMemo(() => {
+    const issues: { msg: string; action: 'proposal' | 'placement' | 'project' }[] = [];
+    if (!matchedProposal) {
+      issues.push({ msg: 'Proposal not created / linked', action: 'proposal' });
+    } else if (matchedProposal.status !== 'accepted' && matchedProposal.status !== 'deposit_paid' && matchedProposal.status !== 'scheduled') {
+      issues.push({ msg: 'Proposal not accepted', action: 'proposal' });
+    }
+
+    const order = currentProject.placementOrder;
+    const plantAssigned = Boolean(order?.batchPlantName?.trim() || order?.batchPlantAddress?.trim());
+    if (!plantAssigned) issues.push({ msg: 'No batch plant assigned', action: 'placement' });
+
+    const truckSpacing = Boolean(order?.summaryLines?.some((l) => /Truck Spacing/i.test(l)));
+    if (!truckSpacing) issues.push({ msg: 'Truck spacing not configured', action: 'placement' });
+
+    if (!currentProject.pourDate) issues.push({ msg: 'Pour date not scheduled', action: 'project' });
+
+    const volumeYd = (currentProject.calculations ?? []).reduce(
+      (s, c) => s + ((c.result?.volume as number) ?? 0),
+      0,
+    );
+    if (volumeYd <= 0) issues.push({ msg: 'Volume not calculated', action: 'project' });
+
+    return issues.slice(0, 5);
+  }, [currentProject, matchedProposal]);
+
+  const stageOrder: ProjectWorkflowStage[] = [
+    'created',
+    'estimating',
+    'proposal_sent',
+    'accepted',
+    'mix_approved',
+    'placement_scheduled',
+    'ordered',
+    'placed',
+    'closed',
+  ];
+  const stageIndex = stageOrder.indexOf(workflow.stage);
+  const progressPct = stageIndex >= 0 ? Math.round((stageIndex / (stageOrder.length - 1)) * 100) : 0;
+
+  const pourDetails = useMemo(() => {
+    const order = p.placementOrder;
+    const cs = order?.callSheet ?? {};
+    const lines: string[] = order?.summaryLines ?? [];
+
+    const volumeYd = (p.calculations ?? []).reduce(
+      (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
+      0,
+    );
+
+    const psiFromCalc =
+      p.calculations?.[0]?.psi ??
+      p.calculations?.[0]?.mixDesign?.psi ??
+      cs.mixDesignNumber?.match(/\d{3,5}/)?.[0] ??
+      '';
+    const mixLabel = psiFromCalc ? `${psiFromCalc} PSI` : (cs.mixDesignNumber?.trim() ? cs.mixDesignNumber : '—');
+
+    const placement =
+      cs.pumpCompany?.trim()
+        ? 'Pump'
+        : 'Chute';
+
+    const laborInputs = p.laborEstimates?.[0]?.inputs ?? null;
+    const finishType = laborInputs?.finishType ? titleCase(String(laborInputs.finishType)) : '—';
+
+    const production = order?.production ?? p.laborEstimates?.[0]?.production ?? null;
+    const crewSize = parseInt(String(production?.crewSize ?? laborInputs?.crewSize ?? ''), 10);
+    const finishers = parseInt(String(production?.finishers ?? laborInputs?.finishers ?? ''), 10);
+    const laborers = Number.isFinite(crewSize) && Number.isFinite(finishers) ? Math.max(0, crewSize - finishers) : NaN;
+    const crewLabel =
+      Number.isFinite(crewSize) && crewSize > 0
+        ? Number.isFinite(finishers) && finishers > 0
+          ? `${laborers} Laborers / ${finishers} Finishers`
+          : `${crewSize} crew`
+        : '—';
+
+    const batchPlant = order?.batchPlantName?.trim() ? order.batchPlantName : '—';
+
+    const firstTruck =
+      parseSummaryValue(lines, /Requested Start Time:\s*(.+)/i) ??
+      (p.pourDate ? format(new Date(p.pourDate), 'HH:mm') : null) ??
+      '—';
+
+    const spacing =
+      parseSummaryValue(lines, /Truck Spacing:\s*(.+)/i) ??
+      parseSummaryValue(lines, /Spacing:\s*(.+)/i) ??
+      '—';
+
+    return {
+      volumeLabel: volumeYd > 0 ? `${volumeYd.toFixed(0)} CY` : '—',
+      mixLabel,
+      placement,
+      finishType,
+      crewLabel,
+      batchPlant,
+      pumpCompany: cs.pumpCompany?.trim() ? cs.pumpCompany : null,
+      firstTruck,
+      spacing,
+    };
+  }, [p]);
+
+  const placementConditions = useMemo(() => {
+    const pourDate = p.pourDate ? new Date(p.pourDate) : null;
+    const forecast: ForecastDay[] | undefined = p.calculations?.[0]?.weather?.forecast;
+    if (!forecast || forecast.length === 0) return null;
+
+    const key = pourDate ? toISODate(pourDate) : toISODate(new Date());
+    const day = forecast.find((d) => d.date === key) ?? forecast[0];
+    if (!day) return null;
+
+    const scored: ScoredPourDay = scorePourDay(day as any, {});
+    const bestWindow = findBestTimeOfDayWindow(day as any);
+    const windowLabel = bestWindow ? formatTimeWindow(bestWindow) : '—';
+
+    const riskLabel =
+      scored.rating === 'excellent' || scored.rating === 'good'
+        ? 'LOW RISK'
+        : scored.rating === 'fair'
+          ? 'MODERATE RISK'
+          : 'HIGH RISK';
+
+    const riskTone =
+      riskLabel === 'LOW RISK'
+        ? 'text-emerald-400'
+        : riskLabel === 'MODERATE RISK'
+          ? 'text-amber-400'
+          : 'text-red-400';
+
+    const hourly = day.hourly ?? [];
+    const maxWind = hourly.length
+      ? Math.max(...hourly.map((h) => h.windSpeed ?? 0))
+      : day.maxWindSpeed ?? 0;
+    const maxRainChance = hourly.length
+      ? Math.max(...hourly.map((h) => h.chanceOfRain ?? 0))
+      : day.chanceOfRain ?? 0;
+    const maxTemp = hourly.length ? Math.max(...hourly.map((h) => h.temp ?? 0)) : day.maxTemp ?? 0;
+
+    const after10 = hourly.filter((h) => (h.hour ?? 0) >= 10);
+    const before10 = hourly.filter((h) => (h.hour ?? 0) < 10);
+    const maxWindAfter10 = after10.length ? Math.max(...after10.map((h) => h.windSpeed ?? 0)) : null;
+    const maxWindBefore10 = before10.length ? Math.max(...before10.map((h) => h.windSpeed ?? 0)) : null;
+
+    const concerns: string[] = [...(scored.primaryRisks ?? [])];
+
+    if (
+      maxWindAfter10 != null &&
+      maxWindBefore10 != null &&
+      maxWindAfter10 >= maxWindBefore10 + 6
+    ) {
+      concerns.unshift('Wind increasing after 10:00');
+    }
+    if (maxRainChance >= 50) {
+      concerns.push(`Rain probability peaks near ${Math.round(maxRainChance)}%`);
+    }
+    if (scored.evaporationRisk === 'severe') {
+      concerns.push('Evaporation severe (plastic shrinkage risk)');
+    } else if (scored.evaporationRisk === 'moderate') {
+      concerns.push('Evaporation moderate (monitor fogging & windbreaks)');
+    }
+
+    const mitigations = (scored.recommendedActions ?? []).slice(0, 4);
+
+    return {
+      dateLabel: day.date,
+      riskLabel,
+      riskTone,
+      recommendedWindow: windowLabel,
+      stats: {
+        heatF: Math.round(maxTemp),
+        windMph: Math.round(maxWind),
+        rainPct: Math.round(maxRainChance),
+        evaporation: scored.evaporationRisk,
+        rating: scored.rating,
+        score: Math.round(scored.score),
+      },
+      concerns: concerns.slice(0, 4),
+      mitigations,
+    };
+  }, [p]);
 
   return (
     <Card className="p-6 mb-6 dark:bg-gray-800/90">
-      <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between mb-6">
-        <div className="mt-4 sm:mt-0">
-          <div className="flex items-center">
-            <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2" />
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{currentProject.name}</h2>
+      {/* SECTION 1 — PROJECT COMMAND HEADER */}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-start justify-between gap-3">
+          <div className="mt-2 sm:mt-0 min-w-0">
+            <div className="flex items-center">
+              <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2 shrink-0" />
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white truncate">
+                {currentProject.name}
+              </h2>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Created: {format(new Date(currentProject.createdAt), 'MM/dd/yyyy')} • Last updated:{' '}
+              {format(new Date(currentProject.updatedAt), 'MM/dd/yyyy')}
+            </p>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Created: {format(new Date(currentProject.createdAt), 'MM/dd/yyyy')} • 
-            Last updated: {format(new Date(currentProject.updatedAt), 'MM/dd/yyyy')}
-          </p>
-        </div>
-        
-        <div className="flex items-center justify-center gap-2">
-          <Button
+
+          <div className="flex items-center justify-center gap-2 shrink-0">
+            <Button
             variant="outline"
             size="sm"
             onClick={handlers.saveWasteFactor}
@@ -38,49 +304,376 @@ export default function ProjectDetails() {
             icon={<Save size={16} />}
           >
             <span className="hidden sm:inline">Save</span>
-          </Button>
-          <Button
+            </Button>
+            <Button
             variant="outline"
             size="sm"
             onClick={handlers.printPDF}
             icon={<Printer size={16} />}
           />
-          <Button
+            <Button
             variant="outline"
             size="sm"
             onClick={() => setUi(s => ({ ...s, editing: true }))}
             icon={<Edit size={16} />}
           />
-          <Button
+            <Button
             variant="danger"
             size="sm"
             onClick={() => handlers.confirmDelete('project', currentProject.id)}
             icon={<Trash2 size={16} />}
           />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+            <p className="text-gray-600 dark:text-gray-300">
+              {currentProject.description || 'No description provided'}
+            </p>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                <Calendar className="h-4 w-4 text-blue-500" />
+                <span className="text-gray-500 dark:text-gray-400">Pour date:</span>
+                <span className="font-semibold">{pourDateLabel}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                <ClipboardCheck className="h-4 w-4 text-emerald-500" />
+                <span className="text-gray-500 dark:text-gray-400">Status:</span>
+                <span className="font-semibold">{proposalStatusLabel}</span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.assign(`/proposals${workflowQuery()}&project=${currentProject.id}`)}
+                icon={<ArrowRight size={16} />}
+              >
+                Open Proposal
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.assign(`/pour-planner?flow=1&project=${currentProject.id}`)}
+                icon={<ArrowRight size={16} />}
+              >
+                Placement Planner
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setUi((s) => ({ ...s, editing: true }))}
+                icon={<Edit size={16} />}
+              >
+                Edit Project
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Financial visibility
+            </p>
+            <div className="mt-2 space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-emerald-500" /> Project value
+                </span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {financial ? `$${financial.value.toLocaleString()}` : '—'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Estimated profit</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {financial ? `$${Math.round(financial.profit).toLocaleString()}` : '—'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Margin</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {financial ? `${Math.round(financial.margin * 100)}%` : '—'}
+                </span>
+              </div>
+              {!financial && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Link a proposal to unlock value/margin.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-      
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
-        {currentProject.description || 'No description provided'}
-      </p>
 
-      {currentProject.calculations.length > 0 && (
-        <StrengthProgress
-          project={currentProject}
-          mixProfile={ui.mixProfile}
-          onMixProfileChange={handlers.mixProfileChange}
-          onPourDateChange={handlers.dateChange}
-        />
-      )}
+      {/* SECTION 2 — PROJECT WORKFLOW STATUS */}
+      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Project workflow
+            </p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+              {PROJECT_WORKFLOW_LABELS[workflow.stage]}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Progress</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{progressPct}%</p>
+          </div>
+        </div>
+        <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 text-[10px] uppercase tracking-wide">
+          {stageOrder.map((s, i) => {
+            const done = stageIndex >= i;
+            return (
+              <div
+                key={s}
+                className={`px-2 py-1 rounded border ${
+                  done
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-gray-100 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                {PROJECT_WORKFLOW_LABELS[s]}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MixDesignSection />
-        <CalculationSection />
+      {/* SECTION 3 — NEXT ACTION PANEL */}
+      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">Next actions</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Next: <span className="font-semibold">{workflow.nextAction.label}</span>
+          </p>
+        </div>
+        {nextActions.length === 0 ? (
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            No blockers detected — proceed to placement planning and dispatch confirmation.
+          </p>
+        ) : (
+          <ul className="space-y-1.5 mt-2">
+            {nextActions.map((x) => (
+              <li key={x.msg} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-200">
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <span>{x.msg}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-3 flex flex-col sm:flex-row gap-2">
+          <Button
+            size="sm"
+            className="whitespace-nowrap"
+            onClick={() => window.location.assign(`${workflow.nextAction.path}${workflow.nextAction.search ?? ''}`)}
+            icon={<ArrowRight size={16} />}
+          >
+            {workflow.nextAction.label}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="whitespace-nowrap"
+            onClick={() => window.location.assign(`/pour-planner?flow=1&project=${currentProject.id}`)}
+            icon={<ArrowRight size={16} />}
+          >
+            Configure Placement
+          </Button>
+        </div>
+      </div>
+
+      {/* SECTION 4 — POUR INFORMATION */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+            Pour details
+          </p>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <InfoRow label="Volume" value={pourDetails.volumeLabel} />
+            <InfoRow label="Mix" value={pourDetails.mixLabel} />
+            <InfoRow label="Placement" value={pourDetails.placement} />
+            <InfoRow label="Finish" value={pourDetails.finishType} />
+            <InfoRow label="Crew" value={pourDetails.crewLabel} />
+            <InfoRow label="Batch plant" value={pourDetails.batchPlant} />
+            <InfoRow label="First truck" value={pourDetails.firstTruck} />
+            <InfoRow label="Truck spacing" value={pourDetails.spacing} />
+          </div>
+          {pourDetails.pumpCompany && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Pump: <span className="font-semibold text-gray-700 dark:text-gray-200">{pourDetails.pumpCompany}</span>
+            </p>
+          )}
+        </div>
+
+        {/* SECTION 5 — WEATHER & RISK */}
+        <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CloudSun className="h-5 w-5 text-amber-500" />
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Placement conditions</p>
+          </div>
+          {!placementConditions ? (
+            <>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.
+              </p>
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.location.assign(`/pour-planner?flow=1&project=${currentProject.id}`)}
+                  icon={<ArrowRight size={16} />}
+                >
+                  Open Placement Planner
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={`text-lg font-bold ${placementConditions.riskTone}`}>
+                {placementConditions.riskLabel}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <InfoRow label="Heat (max)" value={`${placementConditions.stats.heatF}°F`} />
+                <InfoRow label="Wind (max)" value={`${placementConditions.stats.windMph} mph`} />
+                <InfoRow label="Rain chance" value={`${placementConditions.stats.rainPct}%`} />
+                <InfoRow
+                  label="Evaporation"
+                  value={titleCase(String(placementConditions.stats.evaporation))}
+                />
+              </div>
+
+              <p className="text-sm text-gray-700 dark:text-gray-200 mt-2">
+                Recommended window:{' '}
+                <span className="font-semibold">{placementConditions.recommendedWindow}</span>
+              </p>
+
+              <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
+                Concerns
+              </p>
+              {placementConditions.concerns.length === 0 ? (
+                <p className="text-sm text-gray-600 dark:text-gray-300">No major concerns detected.</p>
+              ) : (
+                <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                  {placementConditions.concerns.map((c) => (
+                    <li key={c} className="flex gap-2">
+                      <span className="text-amber-500">•</span>
+                      <span>{c}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
+                Mitigations
+              </p>
+              {placementConditions.mitigations.length === 0 ? (
+                <p className="text-sm text-gray-600 dark:text-gray-300">—</p>
+              ) : (
+                <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                  {placementConditions.mitigations.map((m) => (
+                    <li key={m} className="flex gap-2">
+                      <span className="text-cyan-500">•</span>
+                      <span>{m}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* SECTION 6 — FINANCIALS */}
+      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Financial snapshot</p>
+        {financial ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <InfoRow label="Proposal value" value={`$${financial.value.toLocaleString()}`} />
+            <InfoRow label="Est material" value={`$${Math.round(financial.estMaterial).toLocaleString()}`} />
+            <InfoRow label="Est labor" value={`$${Math.round(financial.estLabor).toLocaleString()}`} />
+            <InfoRow label="Projected profit" value={`$${Math.round(financial.profit).toLocaleString()} (${Math.round(financial.margin * 100)}%)`} />
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            No proposal linked yet — create/link a proposal to unlock margin and profit tracking.
+          </p>
+        )}
+      </div>
+
+      {/* SECTION 7 — PROJECT DOCUMENTS (starter list; real attachments later) */}
+      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Project files</p>
+        <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+          <li>• Proposal (tracked)</li>
+          <li>• Pour call sheet (Placement Planner)</li>
+          <li>• QC logs</li>
+          <li>• Mix report / calculator outputs</li>
+        </ul>
+      </div>
+
+      {/* TECHNICAL DETAILS (downgraded prominence) */}
+      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Technical details</p>
+        {currentProject.calculations.length > 0 && (
+          <StrengthProgress
+            project={currentProject}
+            mixProfile={ui.mixProfile}
+            onMixProfileChange={handlers.mixProfileChange}
+            onPourDateChange={handlers.dateChange}
+          />
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <MixDesignSection />
+          <CalculationSection />
+        </div>
       </div>
 
       <QCSection />
-      
       <ReinforcementSection />
     </Card>
   );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 px-3 py-2">
+      <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 truncate">{value}</p>
+    </div>
+  );
+}
+
+function parseSummaryValue(lines: string[], pattern: RegExp): string | null {
+  for (const line of lines) {
+    const m = line.match(pattern);
+    if (m?.[1]) return String(m[1]).trim();
+  }
+  return null;
+}
+
+function toISODate(d: Date): string {
+  const x = new Date(d);
+  x.setMinutes(x.getMinutes() - x.getTimezoneOffset());
+  return x.toISOString().slice(0, 10);
+}
+
+function titleCase(s: string): string {
+  return s
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+    .join(' ');
 }
