@@ -366,6 +366,7 @@ interface ProjectState {
       laborCost: number;
       adjustedLaborHours?: number;
       production?: import('../types/placementOrder').PlacementProductionSnapshot;
+      professionalLabor?: import('../types/concreteLaborEstimate').ProfessionalConcreteLaborResult;
     },
   ) => Promise<LaborEstimate>;
 
@@ -571,19 +572,27 @@ const mapReinforcementSetFromDb = (r: any): ReinforcementSet => ({
   updatedAt: r.updated_at,
 });
 
-const mapLaborEstimateFromDb = (row: any): LaborEstimate => ({
-  id: row.id,
-  projectId: row.project_id,
-  label: row.label ?? 'Placement labor',
-  volumeYd: row.volume_yd != null ? Number(row.volume_yd) : undefined,
-  inputs: (row.inputs ?? {}) as LaborEstimateInputs,
-  laborCost: Number(row.labor_cost) || 0,
-  adjustedLaborHours:
-    row.adjusted_labor_hours != null ? Number(row.adjusted_labor_hours) : undefined,
-  production: row.inputs?.production,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-});
+const mapLaborEstimateFromDb = (row: any): LaborEstimate => {
+  const inputs = (row.inputs ?? {}) as LaborEstimateInputs & {
+    professionalLabor?: LaborEstimate['professionalLabor'];
+    production?: LaborEstimate['production'];
+  };
+  const { professionalLabor: embeddedLabor, production, ...formInputs } = inputs;
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    label: row.label ?? 'Placement labor',
+    volumeYd: row.volume_yd != null ? Number(row.volume_yd) : undefined,
+    inputs: formInputs as LaborEstimateInputs,
+    laborCost: Number(row.labor_cost) || 0,
+    adjustedLaborHours:
+      row.adjusted_labor_hours != null ? Number(row.adjusted_labor_hours) : undefined,
+    production,
+    professionalLabor: embeddedLabor,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
 
 // --- Zustand store ---
 
@@ -803,6 +812,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const inputsPayload = {
       ...estimate.inputs,
       ...(estimate.production ? { production: estimate.production } : {}),
+      ...(estimate.professionalLabor
+        ? { professionalLabor: estimate.professionalLabor }
+        : {}),
     };
 
     const existing = get()

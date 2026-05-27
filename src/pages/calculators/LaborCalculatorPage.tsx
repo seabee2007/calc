@@ -34,7 +34,7 @@ const LaborCalculatorPage: React.FC = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <ProjectCalculatorShell
         title="Labor Calculator"
-        description="Crew and production planning — labor cost imports into your proposal."
+        description="Task-based crew labor estimating — cost imports into your proposal."
       >
         <LaborCalculatorPanel
           calculation={latestConcrete}
@@ -50,7 +50,7 @@ const LaborCalculatorPage: React.FC = () => {
                 inputs: payload.inputs,
                 laborCost: payload.laborCost,
                 adjustedLaborHours: payload.adjustedLaborHours,
-                production: payload.production,
+                professionalLabor: payload.professionalLabor,
               });
               setToast({ msg: 'Labor estimate saved to project', type: 'success' });
             } catch (err) {

@@ -34,7 +34,7 @@ const LaborCostBreakdownSummary: React.FC<LaborCostBreakdownSummaryProps> = ({
       </p>
     )}
     <p className="text-gray-500 dark:text-gray-400 text-xs sm:col-span-2">
-      Crew on pour: {laborers} laborer{laborers !== 1 ? 's' : ''}, {finishers} finisher
+      Crew on placement: {laborers} laborer{laborers !== 1 ? 's' : ''}, {finishers} finisher
       {finishers !== 1 ? 's' : ''}
     </p>
   </>

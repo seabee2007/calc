@@ -75,11 +75,21 @@ export interface PlacementRateEstimate {
   bottleneckRecommendation: string | null;
   placingLaborHours: number;
   finishingLaborHours: number;
+  /** Clock hours for setup + cleanup (before multiplying by crew). */
   setupCleanupHours: number;
+  /** Setup + cleanup × full crew (man-hours). */
+  mobilizationManHours: number;
+  /** Calendar hours for placing work (placing man-hrs ÷ laborers). */
+  placingCalendarHours: number;
+  /** Calendar hours for finishing work (finishing man-hrs ÷ finishers). */
+  finishingCalendarHours: number;
+  /** On-site placement duration — max of placing vs finishing calendar, with modifiers. */
+  pourCalendarHours: number;
   baseLaborHours: number;
   adjustedLaborHours: number;
+  /** Estimated time on site: placement calendar + setup/cleanup clock. */
   estimatedCrewDurationHours: number;
-  /** Total worker-hours (placing + finishing + mobilization). */
+  /** Total paid man-hours (placing + finishing + mobilization), before cost. */
   totalManHours: number;
   laborCost: number | null;
   laborCostBreakdown: LaborCostBreakdown | null;
@@ -150,11 +160,23 @@ export function parseSlabThicknessIn(slabSize: string): number | null {
   return Number.isFinite(inches) && inches > 0 ? inches : null;
 }
 
+/** Area (ft²) from placement volume and slab thickness when footprint is not entered. */
+export function slabAreaSqFtFromVolume(volumeYd: number, slabThicknessFt: number): number | null {
+  if (volumeYd <= 0 || slabThicknessFt <= 0) return null;
+  return (volumeYd * 27) / slabThicknessFt;
+}
+
 export function resolveSlabAreaSqFt(
   calculation: Calculation | undefined,
   slabSize: string,
+  options?: { volumeYd?: number; slabThicknessFt?: number },
 ): number | null {
-  return getCalculationAreaSqFt(calculation) ?? parseSlabAreaSqFt(slabSize);
+  const fromDims = getCalculationAreaSqFt(calculation) ?? parseSlabAreaSqFt(slabSize);
+  if (fromDims != null && fromDims > 0) return fromDims;
+
+  const volumeYd = options?.volumeYd ?? 0;
+  const thicknessFt = options?.slabThicknessFt ?? 0;
+  return slabAreaSqFtFromVolume(volumeYd, thicknessFt);
 }
 
 export function resolveSlabThicknessFt(
@@ -297,7 +319,12 @@ function computeLaborCost(params: {
   adjustedLaborHours: number;
   placingLaborHours: number;
   finishingLaborHours: number;
-  setupCleanupHours: number;
+  setupCleanupClockHours: number;
+  mobilizationManHours: number;
+  placingCalendarHours: number;
+  finishingCalendarHours: number;
+  pourCalendarHours: number;
+  estimatedCrewDurationHours: number;
   totalManHours: number;
 } {
   const {
@@ -332,11 +359,13 @@ function computeLaborCost(params: {
   const finishingCost = finishingManHours * mult * finisherRate;
   const mobilizationCost = mobilizationManHours * mult * laborerRate;
 
-  const placingCalendar =
+  const placingCalendarHours =
     laborers > 0 ? placingManHours / laborers : placingManHours;
-  const finishingCalendar =
+  const finishingCalendarHours =
     finishers > 0 ? finishingManHours / finishers : 0;
-  const pourCalendarHours = Math.max(placingCalendar, finishingCalendar) * mult;
+  /** Parallel pour — limited by slower trade; modifiers apply to field conditions. */
+  const pourCalendarHours =
+    Math.max(placingCalendarHours, finishingCalendarHours) * mult;
   const foremanCost = includeForeman
     ? (pourCalendarHours + setupCleanupClock) * foremanRate
     : 0;
@@ -344,6 +373,7 @@ function computeLaborCost(params: {
   const laborCost = placingCost + finishingCost + mobilizationCost + foremanCost;
   const totalManHours = placingManHours + finishingManHours + mobilizationManHours;
   const adjustedLaborHours = totalManHours * mult;
+  const estimatedCrewDurationHours = pourCalendarHours + setupCleanupClock;
 
   return {
     laborCost: Math.round(laborCost),
@@ -362,7 +392,12 @@ function computeLaborCost(params: {
     adjustedLaborHours: round1(adjustedLaborHours),
     placingLaborHours: round1(placingManHours),
     finishingLaborHours: round1(finishingManHours),
-    setupCleanupHours: round1(setupCleanupClock),
+    setupCleanupClockHours: round1(setupCleanupClock),
+    mobilizationManHours: round1(mobilizationManHours),
+    placingCalendarHours: round1(placingCalendarHours),
+    finishingCalendarHours: round1(finishingCalendarHours),
+    pourCalendarHours: round1(pourCalendarHours),
+    estimatedCrewDurationHours: round1(estimatedCrewDurationHours),
     totalManHours: round1(totalManHours),
   };
 }
@@ -408,12 +443,16 @@ export function estimatePlacementProductionRate(params: {
     DEFAULT_FINISHING_SF_PER_LABOR_HR,
   );
 
-  const slabAreaSqFt = resolveSlabAreaSqFt(params.calculation, params.slabSize ?? '');
   const slabThicknessFt = resolveSlabThicknessFt(
     params.calculation,
     params.slabSize ?? '',
     params.slabThicknessIn ?? '',
   );
+  const volumeYd = Math.max(0, params.concreteVolumeYd ?? 0);
+  const slabAreaSqFt = resolveSlabAreaSqFt(params.calculation, params.slabSize ?? '', {
+    volumeYd,
+    slabThicknessFt,
+  });
 
   const placementCrewRateCYHr = laborers * laborerRate;
   const finishingRateCYHr = finisherCYHr(finishers, finisherSFHr, slabThicknessFt);
@@ -458,7 +497,6 @@ export function estimatePlacementProductionRate(params: {
   adjustedRateCYHr = Math.max(1, Math.min(60, adjustedRateCYHr));
   const effectiveRateYdPerHr = round1(adjustedRateCYHr);
 
-  const volumeYd = Math.max(0, params.concreteVolumeYd ?? 0);
   const setupHours = parseRate(params.setupHours, 2);
   const cleanupHours = parseRate(params.cleanupHours, 2);
   const laborMultiplier = weather * access * complexity;
@@ -481,14 +519,16 @@ export function estimatePlacementProductionRate(params: {
 
   const placingLaborHours = laborCostResult?.placingLaborHours ?? 0;
   const finishingLaborHours = laborCostResult?.finishingLaborHours ?? 0;
-  const setupCleanupHours = laborCostResult?.setupCleanupHours ?? setupHours + cleanupHours;
+  const setupCleanupHours = laborCostResult?.setupCleanupClockHours ?? setupHours + cleanupHours;
+  const mobilizationManHours = laborCostResult?.mobilizationManHours ?? 0;
+  const placingCalendarHours = laborCostResult?.placingCalendarHours ?? 0;
+  const finishingCalendarHours = laborCostResult?.finishingCalendarHours ?? 0;
+  const pourCalendarHours = laborCostResult?.pourCalendarHours ?? 0;
   const baseLaborHours =
-    placingLaborHours + finishingLaborHours + (laborCostResult?.breakdown.mobilizationManHours ?? setupCleanupHours);
+    placingLaborHours + finishingLaborHours + mobilizationManHours;
   const adjustedLaborHours = laborCostResult?.adjustedLaborHours ?? 0;
   const totalManHours = laborCostResult?.totalManHours ?? 0;
-  const crewForDuration = crew > 0 ? crew : 1;
-  const estimatedCrewDurationHours =
-    crewForDuration > 0 ? adjustedLaborHours / crewForDuration : 0;
+  const estimatedCrewDurationHours = laborCostResult?.estimatedCrewDurationHours ?? 0;
   const laborCost = laborCostResult?.laborCost ?? null;
   const laborCostBreakdown = laborCostResult?.breakdown ?? null;
 
@@ -542,6 +582,10 @@ export function estimatePlacementProductionRate(params: {
     placingLaborHours: round1(placingLaborHours),
     finishingLaborHours: round1(finishingLaborHours),
     setupCleanupHours: round1(setupCleanupHours),
+    mobilizationManHours: round1(mobilizationManHours),
+    placingCalendarHours: round1(placingCalendarHours),
+    finishingCalendarHours: round1(finishingCalendarHours),
+    pourCalendarHours: round1(pourCalendarHours),
     baseLaborHours: round1(baseLaborHours),
     adjustedLaborHours: round1(adjustedLaborHours),
     estimatedCrewDurationHours: round1(estimatedCrewDurationHours),
@@ -592,7 +636,7 @@ function buildBottleneckRecommendation(params: {
 
   if (params.limitingFactor === 'pump') {
     const pumpRate = parseFloat(params.pumpRateYdPerHr ?? '') || 40;
-    return `Pump output (${pumpRate} CY/hr) is limiting — increase pump capacity or reduce pour volume per hour`;
+    return `Pump output (${pumpRate} CY/hr) is limiting — increase pump capacity or reduce placement volume per hour`;
   }
 
   return null;
