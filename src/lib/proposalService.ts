@@ -82,7 +82,7 @@ export class ProposalService {
       throw new Error('Failed to save proposal');
     }
 
-    return data as SavedProposal;
+    return normalizeProposal(data as Record<string, unknown>);
   }
 
   static async update(id: string, updates: UpdateProposalData): Promise<SavedProposal> {

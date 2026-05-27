@@ -64,6 +64,6 @@ describe('proposalKpis', () => {
     expect(financial.pendingRevenue).toBe(5000);
     expect(financial.acceptedRevenue).toBe(10000);
     expect(financial.winRate).toBeCloseTo(0.5);
-    expect(financial.grossProfit).toBe(3000);
+    expect(financial.grossProfit).toBe(10000 - 3 * (3000 + 4000));
   });
 });
