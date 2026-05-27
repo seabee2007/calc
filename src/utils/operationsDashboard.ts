@@ -2,6 +2,14 @@ import type { Project, Calculation, QCRecord } from '../types';
 import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrder';
 import { PLACEMENT_ORDER_STATUS_LABELS } from '../types/placementOrder';
 import { MITIGATION_OPTIONS } from './pourMitigations';
+import {
+  buildProposalPipeline,
+  buildReadinessIssues,
+  resolveProjectWorkflow,
+  type ProjectNextAction,
+  type ProjectWorkflowStage,
+  type ProposalPipelineStats,
+} from './projectWorkflow';
 
 export type OpsRiskLevel = 'low' | 'moderate' | 'high' | 'unknown';
 export type TimelineStatus = 'on_schedule' | 'at_risk' | 'delayed' | 'pending';
@@ -35,6 +43,19 @@ export interface DashboardProjectCard {
   qcCount: number;
   hasJobsite: boolean;
   pourDateIso?: string;
+  workflowStage: ProjectWorkflowStage;
+  workflowLabel: string;
+  nextAction: ProjectNextAction;
+  healthScore: number;
+}
+
+export interface DeliveryScheduleSnapshot {
+  projectName: string;
+  truckIndex: number;
+  truckTotal: number;
+  etaLabel: string;
+  spacingMin: number;
+  plantName: string;
 }
 
 export interface SmartPourTip {
@@ -64,9 +85,15 @@ export interface OperationsSnapshot {
   heatRisk: OpsRiskLevel;
   rainRisk: OpsRiskLevel;
   windRisk: OpsRiskLevel;
+  evaporationRisk: OpsRiskLevel;
   recommendedStartWindow: string;
   mitigations: string[];
   smartTips: SmartPourTip[];
+  deliverySchedule: DeliveryScheduleSnapshot | null;
+  proposalPipeline: ProposalPipelineStats;
+  proposalsSentCount: number;
+  globalHealthScore: number;
+  primaryReadinessIssues: { message: string; fixPath: string; fixSearch?: string }[];
 }
 
 function startOfDay(d: Date): Date {
@@ -142,6 +169,56 @@ function formatClock(min: number): string {
   const ampm = h >= 12 ? 'PM' : 'AM';
   const hour = h % 12 || 12;
   return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function formatMilitaryTime(min: number): string {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+export function buildDeliverySchedule(
+  order: PlacementOrder | undefined,
+  pourDate: Date | null,
+  projectName: string,
+  now = new Date(),
+): DeliveryScheduleSnapshot | null {
+  if (!pourDate || !isSameDay(pourDate, now) || !order) return null;
+
+  const lines = order.summaryLines;
+  const truckTotal = Math.max(
+    1,
+    Math.round(parseSummaryNumber(lines, /Number of Trucks:\s*(\d+)/i) ?? 4),
+  );
+  const spacingMin =
+    parseSummaryNumber(lines, /Truck Spacing[^:]*:\s*(\d+)/i) ?? 20;
+  const startMin = timeToMinutes(parseStartTimeFromSummary(lines));
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  let truckIndex = 1;
+  for (let i = 0; i < truckTotal; i++) {
+    const truckMin = startMin + i * spacingMin;
+    if (nowMin < truckMin + spacingMin) {
+      truckIndex = i + 1;
+      return {
+        projectName,
+        truckIndex,
+        truckTotal,
+        etaLabel: formatMilitaryTime(truckMin),
+        spacingMin,
+        plantName: order.batchPlantName ?? 'Batch plant TBD',
+      };
+    }
+  }
+
+  return {
+    projectName,
+    truckIndex: truckTotal,
+    truckTotal,
+    etaLabel: formatMilitaryTime(startMin + (truckTotal - 1) * spacingMin),
+    spacingMin,
+    plantName: order.batchPlantName ?? 'Batch plant TBD',
+  };
 }
 
 export function computeReadinessScore(
@@ -369,15 +446,33 @@ export function buildSmartPourTips(
 
 export function buildOperationsSnapshot(
   projects: Project[],
-  now = new Date(),
+  options?: {
+    now?: Date;
+    proposalDrafts?: Record<string, { proposal?: { proposalData?: import('../types/proposal').ProposalData } }>;
+  },
 ): OperationsSnapshot {
+  const now = options?.now ?? new Date();
+  const proposalDrafts = options?.proposalDrafts ?? {};
   const today = startOfDay(now);
+
+  const heatRiskEarly: OpsRiskLevel = 'moderate';
+  const windRiskEarly: OpsRiskLevel = 'moderate';
 
   const cards: DashboardProjectCard[] = projects.map((project) => {
     const order = project.placementOrder;
     const volumeYd = projectVolumeYd(project);
     const pourDate = parsePourDate(project.pourDate);
     const { score, statusLabel } = computeReadinessScore(project, order);
+    const hasProposalDraft = Boolean(
+      proposalDrafts[project.id]?.proposal?.proposalData?.clientName?.trim(),
+    );
+    const workflow = resolveProjectWorkflow(project, {
+      hasProposalDraft,
+      windRisk: windRiskEarly,
+      heatRisk: heatRiskEarly,
+      readinessScore: score,
+      now,
+    });
     const psi =
       project.calculations?.[0]?.psi ??
       (order?.summaryLines?.find((l) => /PSI/i.test(l))?.match(/(\d{4})/)?.[1] ??
@@ -389,7 +484,7 @@ export function buildOperationsSnapshot(
       volumeYd,
       remainingCyLabel:
         volumeYd > 0 ? `${volumeYd.toFixed(0)} CY planned` : 'Volume TBD',
-      nextPourLabel: pourDate ? formatPourDateLabel(pourDate) : 'Pour date TBD',
+      nextPourLabel: pourDate ? formatPourDateLabel(pourDate) : 'Placement date TBD',
       mixLabel: psi ? `${psi} PSI` : 'Mix TBD',
       statusLabel,
       orderStatus: order?.status ?? null,
@@ -400,6 +495,10 @@ export function buildOperationsSnapshot(
         project.jobsiteAddress?.street || project.jobsiteAddress?.city,
       ),
       pourDateIso: project.pourDate,
+      workflowStage: workflow.stage,
+      workflowLabel: workflow.stageLabel,
+      nextAction: workflow.nextAction,
+      healthScore: workflow.healthScore,
     };
   });
 
@@ -449,6 +548,12 @@ export function buildOperationsSnapshot(
     totalCy > 80 ? 'high' : totalCy > 40 ? 'moderate' : 'low';
   const rainRisk: OpsRiskLevel = 'low';
   const windRisk: OpsRiskLevel = 'moderate';
+  const evaporationRisk: OpsRiskLevel =
+    windRisk === 'high' || heatRisk === 'high'
+      ? 'high'
+      : windRisk === 'moderate' || heatRisk === 'moderate'
+        ? 'moderate'
+        : 'low';
   const weatherRisk: OpsRiskLevel =
     heatRisk === 'high' || rainRisk === 'high'
       ? 'high'
@@ -457,9 +562,12 @@ export function buildOperationsSnapshot(
         : 'low';
 
   const mitigations = MITIGATION_OPTIONS.filter(
-    (m) => m.category === 'temperature' || m.category === 'wind-evaporation',
+    (m) =>
+      m.category === 'temperature' ||
+      m.category === 'wind-evaporation' ||
+      m.category === 'operational',
   )
-    .slice(0, 5)
+    .slice(0, 4)
     .map((m) => m.label);
 
   const globalReadiness =
@@ -469,9 +577,42 @@ export function buildOperationsSnapshot(
         )
       : 0;
 
-  const nextTruck = hasPlacementsToday
-    ? dispatchTrucks.find((t) => t.status !== 'scheduled')
-    : undefined;
+  const deliverySchedule = hasPlacementsToday
+    ? buildDeliverySchedule(
+        todayOrder,
+        todayPourDate,
+        todayPrimary?.name ?? 'Today\'s placement',
+        now,
+      )
+    : null;
+
+  const proposalPipeline = buildProposalPipeline(
+    projects,
+    Object.fromEntries(
+      Object.entries(proposalDrafts).map(([id, v]) => [
+        id,
+        v.proposal ? { proposalData: v.proposal.proposalData } : undefined,
+      ]),
+    ),
+  );
+
+  const proposalsSentCount = proposalPipeline.sent + proposalPipeline.accepted;
+
+  const globalHealthScore =
+    cards.length > 0
+      ? Math.round(cards.reduce((s, c) => s + c.healthScore, 0) / cards.length)
+      : 0;
+
+  const primaryReadinessIssues = todayPrimaryProject
+    ? buildReadinessIssues(todayPrimaryProject, todayOrder, {
+        wind: windRisk,
+        heat: heatRisk,
+      }).map((i) => ({
+        message: i.message,
+        fixPath: i.fixPath,
+        fixSearch: i.fixSearch,
+      }))
+    : [];
 
   return {
     todayPourCount: todayPours.length,
@@ -487,7 +628,7 @@ export function buildOperationsSnapshot(
         : 'PLACEMENT TODAY — ORDER PENDING'
       : 'NO PLACEMENTS TODAY',
     pumpScheduledToday,
-    nextTruckEtaLabel: hasPlacementsToday ? (nextTruck?.etaLabel ?? '—') : '—',
+    nextTruckEtaLabel: deliverySchedule?.etaLabel ?? '—',
     globalReadiness,
     projects: cards.sort((a, b) => b.readinessScore - a.readinessScore),
     todayPours,
@@ -497,8 +638,14 @@ export function buildOperationsSnapshot(
     heatRisk,
     rainRisk,
     windRisk,
-    recommendedStartWindow: heatRisk === 'high' ? '0300 – 0600' : '0600 – 0900',
+    evaporationRisk,
+    recommendedStartWindow: heatRisk === 'high' ? '0300–0600' : '0600–0900',
     mitigations,
     smartTips: buildSmartPourTips(cards, { weatherRisk, heatRisk, windRisk, rainRisk }),
+    deliverySchedule,
+    proposalPipeline,
+    proposalsSentCount,
+    globalHealthScore,
+    primaryReadinessIssues,
   };
 }

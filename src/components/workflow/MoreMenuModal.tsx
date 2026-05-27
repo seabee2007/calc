@@ -1,13 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Settings,
-  BookOpen,
-  Truck,
-  ClipboardCheck,
-  LogOut,
-  type LucideIcon,
-} from 'lucide-react';
+import { Settings, BookOpen, LogOut, type LucideIcon } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { useMoreMenuStore } from '../../store/moreMenuStore';
@@ -22,8 +15,6 @@ interface MoreItem {
 const MORE_ITEMS: MoreItem[] = [
   { title: 'Settings', path: '/settings', icon: Settings },
   { title: 'Resources', path: '/resources', icon: BookOpen },
-  { title: 'Dispatch', path: '/dispatch', icon: Truck },
-  { title: 'QC', path: '/qc', icon: ClipboardCheck },
 ];
 
 const MoreMenuModal: React.FC = () => {

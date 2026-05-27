@@ -1,14 +1,10 @@
 import { supabase } from './supabase';
 import { ProposalData } from '../types/proposal';
+import type { ProposalStatus } from '../types/proposalTracking';
+import type { TrackedProposalRow } from '../types/proposalTracking';
+import { computeProposalFinancials } from '../utils/proposalFinancials';
 
-export interface SavedProposal {
-  id: string;
-  title: string;
-  template_type: 'classic' | 'modern' | 'minimal';
-  data: ProposalData;
-  created_at: string;
-  updated_at: string;
-}
+export type SavedProposal = TrackedProposalRow;
 
 export interface CreateProposalData {
   title: string;
@@ -20,16 +16,32 @@ export interface UpdateProposalData {
   title?: string;
   template_type?: 'classic' | 'modern' | 'minimal';
   data?: ProposalData;
+  status?: ProposalStatus;
+  total_amount?: number;
+  labor_cost?: number;
+  material_cost?: number;
+  deposit_amount?: number;
+}
+
+function withFinancials(
+  data: ProposalData,
+  extra?: Partial<UpdateProposalData>,
+): Record<string, unknown> {
+  const financials = computeProposalFinancials(data);
+  return { ...extra, ...financials };
 }
 
 export class ProposalService {
-  // Save a new proposal
   static async create(proposalData: CreateProposalData): Promise<SavedProposal> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       throw new Error('User must be authenticated to save proposals');
     }
+
+    const financials = computeProposalFinancials(proposalData.data);
 
     const { data, error } = await supabase
       .from('proposals')
@@ -39,7 +51,9 @@ export class ProposalService {
           title: proposalData.title,
           template_type: proposalData.template_type,
           data: proposalData.data,
-        }
+          status: 'draft',
+          ...financials,
+        },
       ])
       .select()
       .single();
@@ -49,20 +63,26 @@ export class ProposalService {
       throw new Error('Failed to save proposal');
     }
 
-    return data;
+    return data as SavedProposal;
   }
 
-  // Update an existing proposal
   static async update(id: string, updates: UpdateProposalData): Promise<SavedProposal> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       throw new Error('User must be authenticated to update proposals');
     }
 
+    const payload: Record<string, unknown> = { ...updates };
+    if (updates.data) {
+      Object.assign(payload, withFinancials(updates.data));
+    }
+
     const { data, error } = await supabase
       .from('proposals')
-      .update(updates)
+      .update(payload)
       .eq('id', id)
       .eq('user_id', user.id)
       .select()
@@ -73,13 +93,14 @@ export class ProposalService {
       throw new Error('Failed to update proposal');
     }
 
-    return data;
+    return data as SavedProposal;
   }
 
-  // Get all proposals for the current user
   static async getAll(): Promise<SavedProposal[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       throw new Error('User must be authenticated to view proposals');
     }
@@ -95,13 +116,14 @@ export class ProposalService {
       throw new Error('Failed to fetch proposals');
     }
 
-    return data || [];
+    return (data as SavedProposal[]) || [];
   }
 
-  // Get a specific proposal by ID
   static async getById(id: string): Promise<SavedProposal> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       throw new Error('User must be authenticated to view proposals');
     }
@@ -118,13 +140,14 @@ export class ProposalService {
       throw new Error('Failed to fetch proposal');
     }
 
-    return data;
+    return data as SavedProposal;
   }
 
-  // Delete a proposal
   static async delete(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       throw new Error('User must be authenticated to delete proposals');
     }
@@ -141,10 +164,9 @@ export class ProposalService {
     }
   }
 
-  // Duplicate a proposal
   static async duplicate(id: string, newTitle: string): Promise<SavedProposal> {
     const original = await this.getById(id);
-    
+
     return this.create({
       title: newTitle,
       template_type: original.template_type,
@@ -152,45 +174,29 @@ export class ProposalService {
     });
   }
 
-  // Export proposal as JSON
   static exportAsJSON(proposal: SavedProposal): void {
     try {
-      console.log('Starting export for proposal:', proposal.title);
-      
       const dataStr = JSON.stringify(proposal, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
-      console.log('Created blob URL:', url);
-      
       const fileName = `${proposal.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_proposal.json`;
-      console.log('Download filename:', fileName);
-      
-      // Create download link
+
       const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       link.style.display = 'none';
-      
-      // Add to document, click, and remove
       document.body.appendChild(link);
-      console.log('Triggering download...');
       link.click();
-      
-      // Clean up
+
       setTimeout(() => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        console.log('Download cleanup completed');
       }, 100);
-      
-    } catch (error) {
-      console.error('Export failed:', error);
+    } catch {
       throw new Error('Failed to download proposal file');
     }
   }
 
-  // Import proposal from JSON file
   static async importFromJSON(file: File): Promise<ProposalData> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -198,17 +204,15 @@ export class ProposalService {
         try {
           const content = e.target?.result as string;
           const proposal = JSON.parse(content);
-          
-          // Validate that it has the required structure
+
           if (proposal.data && typeof proposal.data === 'object') {
             resolve(proposal.data);
           } else if (proposal.businessName || proposal.projectTitle) {
-            // Direct proposal data
             resolve(proposal);
           } else {
             reject(new Error('Invalid proposal file format'));
           }
-        } catch (error) {
+        } catch {
           reject(new Error('Failed to parse proposal file'));
         }
       };
@@ -216,4 +220,4 @@ export class ProposalService {
       reader.readAsText(file);
     });
   }
-} 
+}

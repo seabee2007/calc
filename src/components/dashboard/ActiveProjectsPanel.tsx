@@ -3,52 +3,91 @@ import { ChevronRight, MapPin, Factory } from 'lucide-react';
 import OpsCard from './OpsCard';
 import type { DashboardProjectCard } from '../../utils/operationsDashboard';
 import { useNavigate } from 'react-router-dom';
+import Button from '../ui/Button';
+import { PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
 
 interface ActiveProjectsPanelProps {
   projects: DashboardProjectCard[];
+  compact?: boolean;
 }
 
-const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({ projects }) => {
+const WORKFLOW_STAGES: ProjectWorkflowStage[] = [
+  'created',
+  'estimating',
+  'proposal_sent',
+  'accepted',
+  'mix_approved',
+  'placement_scheduled',
+  'ordered',
+  'placed',
+  'closed',
+];
+
+const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
+  projects,
+  compact = false,
+}) => {
   const navigate = useNavigate();
+  const list = compact ? projects.slice(0, 4) : projects.slice(0, 8);
 
   return (
     <OpsCard>
       <h3 className="font-semibold text-white mb-4">Active projects</h3>
       {projects.length === 0 ? (
-        <p className="text-sm text-slate-400">
-          No projects yet.{' '}
-          <button
-            type="button"
-            className="text-cyan-400 underline hover:text-cyan-300"
+        <div className="text-center py-4">
+          <p className="text-sm text-slate-400 mb-3">No active projects</p>
+          <Button
+            size="sm"
+            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white"
             onClick={() => navigate('/projects')}
           >
-            Create a project
-          </button>
-        </p>
+            Start Project
+          </Button>
+        </div>
       ) : (
-        <ul className="space-y-3 max-h-96 overflow-y-auto pr-1">
-          {projects.slice(0, 8).map((p) => (
+        <ul className="space-y-3 max-h-[28rem] overflow-y-auto pr-1">
+          {list.map((p) => (
             <li key={p.id}>
-              <button
-                type="button"
-                onClick={() => navigate('/projects')}
-                className="w-full text-left rounded-lg border border-slate-700 bg-slate-800/60 p-3 hover:border-cyan-600/50 transition-colors"
-              >
+              <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-semibold truncate text-white">{p.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{p.remainingCyLabel}</p>
-                    <p className="text-xs text-cyan-400/90 mt-1">Next: {p.nextPourLabel}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-lg font-bold text-emerald-400">{p.readinessScore}</p>
-                    <p className="text-[10px] uppercase text-slate-500">readiness</p>
+                    <p className="text-lg font-bold text-cyan-400">{p.healthScore}%</p>
+                    <p className="text-[10px] uppercase text-slate-500">health</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-2 text-xs text-slate-400">
-                  <span>Mix: {p.mixLabel}</span>
-                  <span className="text-amber-400/90">{p.statusLabel}</span>
+
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {WORKFLOW_STAGES.map((stage) => {
+                    const active = p.workflowStage === stage;
+                    const past =
+                      WORKFLOW_STAGES.indexOf(stage) <
+                      WORKFLOW_STAGES.indexOf(p.workflowStage);
+                    return (
+                      <span
+                        key={stage}
+                        title={PROJECT_WORKFLOW_LABELS[stage]}
+                        className={`h-1.5 w-3 rounded-full ${
+                          active
+                            ? 'bg-cyan-400'
+                            : past
+                              ? 'bg-emerald-600/80'
+                              : 'bg-slate-700'
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
+                <p className="text-[10px] text-slate-500 mt-1">{p.workflowLabel}</p>
+
+                <div className="mt-2 pt-2 border-t border-slate-700/80">
+                  <p className="text-[10px] uppercase text-slate-500">Next action</p>
+                  <p className="text-sm font-medium text-cyan-300">{p.nextAction.label}</p>
+                </div>
+
                 <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
                   {p.batchPlantName && (
                     <span className="flex items-center gap-1">
@@ -63,7 +102,18 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({ projects }) =
                     </span>
                   )}
                 </div>
-              </button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="!border-slate-600 !text-white mt-3 w-full sm:w-auto"
+                  onClick={() =>
+                    navigate(`${p.nextAction.path}${p.nextAction.search ?? ''}`)
+                  }
+                >
+                  {p.nextAction.label}
+                </Button>
+              </div>
             </li>
           ))}
         </ul>

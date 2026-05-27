@@ -264,22 +264,8 @@ function App() {
                 </AuthGuard>
               }
             />
-            <Route
-              path="dispatch"
-              element={
-                <AuthGuard>
-                  <OperationsDashboard initialTab="dispatch" />
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="qc"
-              element={
-                <AuthGuard>
-                  <OperationsDashboard initialTab="qc" />
-                </AuthGuard>
-              }
-            />
+            <Route path="dispatch" element={<Navigate to="/" replace />} />
+            <Route path="qc" element={<Navigate to="/" replace />} />
             <Route
               path="pour-planner"
               element={

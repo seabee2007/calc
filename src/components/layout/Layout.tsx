@@ -113,8 +113,8 @@ const Layout: React.FC = () => {
           zIndex: 0
         }}
       >
-        {/* Semi-transparent overlay - only in dark mode */}
-        <div className="absolute inset-0 bg-black/40 dark:block hidden" />
+        {/* Quieter background — stronger card contrast on dashboard */}
+        <div className="absolute inset-0 bg-white/55 dark:bg-slate-950/72" />
       </div>
       
       {/* Content container */}
