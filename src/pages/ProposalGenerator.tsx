@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload, Beaker, CloudSun, SkipForward } from 'lucide-react';
+import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload, Beaker, CloudSun, SkipForward, Send, Link2 } from 'lucide-react';
 import { useWorkflowProgressStore } from '../store/workflowProgressStore';
 import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
@@ -14,6 +14,10 @@ import {
 } from '../utils/workflow';
 import { ProposalData } from '../types/proposal';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
+import {
+  getPublicProposalUrl,
+  markProposalSent,
+} from '../lib/proposalTracking';
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
 import ProposalTemplateModern from '../components/proposals/ProposalTemplateModern';
 import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMinimal';
@@ -756,6 +760,57 @@ const ProposalGenerator: React.FC = () => {
     }
   };
 
+  const persistProposal = async (): Promise<SavedProposal> => {
+    if (!proposalTitle.trim()) {
+      throw new Error('Please enter a proposal title');
+    }
+    const dataToSave = syncProposalAddressesForSave(proposalData);
+    setProposalData(dataToSave);
+
+    if (isEditing && currentProposal) {
+      return ProposalService.update(currentProposal.id, {
+        title: proposalTitle,
+        template_type: selectedTemplate,
+        data: dataToSave,
+      });
+    }
+
+    const saved = await ProposalService.create({
+      title: proposalTitle,
+      template_type: selectedTemplate,
+      data: dataToSave,
+    });
+    setCurrentProposal(saved);
+    if (!inWorkflow) {
+      navigate(`/proposal-generator?edit=${saved.id}`, { replace: true });
+    }
+    return saved;
+  };
+
+  const handleSendProposal = async () => {
+    try {
+      setSaving(true);
+      const saved = await persistProposal();
+      const sent = await markProposalSent(saved.id);
+      const url = getPublicProposalUrl(sent.public_token);
+      try {
+        await navigator.clipboard.writeText(url);
+        alert(
+          `Proposal marked as sent.\n\nClient link copied to clipboard:\n${url}`,
+        );
+      } catch {
+        alert(`Proposal sent. Share this link with your client:\n${url}`);
+      }
+    } catch (error) {
+      console.error('Send proposal failed:', error);
+      alert(
+        error instanceof Error ? error.message : 'Failed to send proposal.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleEmailProposal = async () => {
     if (!printRef.current) {
       alert('Preview not ready for email. Please try again in a moment.');
@@ -763,35 +818,30 @@ const ProposalGenerator: React.FC = () => {
     }
 
     try {
+      setSaving(true);
+      const saved = await persistProposal();
+      const sent = await markProposalSent(saved.id);
+      const proposalUrl = getPublicProposalUrl(sent.public_token);
+
       const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
       const htmlContent = printRef.current.innerHTML;
-      
-      // Generate the PDF first
+
       await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, proposalData);
-      
-      // If we're in a Capacitor environment (mobile app), the PDF will be shared via native share sheet
-      // Otherwise, for web, we'll fall back to mailto link
+
       if (!('Capacitor' in window)) {
-        const subject = encodeURIComponent(`Concrete Proposal - ${proposalData.projectTitle || 'Project'}`);
-        const body = encodeURIComponent(`
-Please find attached our concrete proposal for your project.
-
-Project: ${proposalData.projectTitle || 'Project'}
-Client: ${proposalData.clientName || 'Client Name'}
-Business: ${proposalData.businessName || 'Your Business Name'}
-
-${proposalData.introduction || 'Please see the attached proposal for full details.'}
-
-Best regards,
-${proposalData.preparedBy || 'Your Name'}
-${proposalData.preparedByTitle || ''}
-        `);
-        
+        const subject = encodeURIComponent(
+          `Concrete Proposal - ${proposalData.projectTitle || 'Project'}`,
+        );
+        const body = encodeURIComponent(
+          `Please review our proposal online:\n${proposalUrl}\n\nProject: ${proposalData.projectTitle || 'Project'}\nClient: ${proposalData.clientName || 'Client'}\n\n${proposalData.introduction || ''}\n\nBest regards,\n${proposalData.preparedBy || ''}\n${proposalData.preparedByTitle || ''}`,
+        );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
       }
     } catch (error) {
       console.error('Error preparing proposal for email:', error);
       alert('Failed to prepare proposal for email. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -948,7 +998,16 @@ ${proposalData.preparedByTitle || ''}
                 </Button>
               )}
               <Button
+                onClick={handleSendProposal}
+                disabled={saving}
+                icon={<Send size={18} />}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <span className="hidden md:inline">Send to Client</span>
+              </Button>
+              <Button
                 onClick={handleEmailProposal}
+                disabled={saving}
                 icon={<Mail size={18} />}
                 variant="outline"
                 className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -1123,6 +1182,15 @@ ${proposalData.preparedByTitle || ''}
                     className="whitespace-nowrap bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {saving ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
+                  </Button>
+                  <Button
+                    onClick={handleSendProposal}
+                    disabled={saving || !proposalTitle.trim()}
+                    icon={<Link2 size={18} />}
+                    variant="outline"
+                    className="whitespace-nowrap border-emerald-600 text-emerald-700 dark:text-emerald-400"
+                  >
+                    Send
                   </Button>
                 </div>
               </div>

@@ -1,8 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Edit, Trash2, Copy, Download, Upload, Plus, Calendar, Eye } from 'lucide-react';
+import {
+  FileText,
+  Edit,
+  Trash2,
+  Copy,
+  Download,
+  Upload,
+  Plus,
+  Calendar,
+  Eye,
+  Link2,
+  CheckCircle,
+} from 'lucide-react';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
+import {
+  PROPOSAL_STATUS_LABELS,
+  type ProposalStatus,
+} from '../types/proposalTracking';
+import {
+  getPublicProposalUrl,
+  markDepositPaid,
+  markScheduled,
+} from '../lib/proposalTracking';
+import { formatProposalMoney } from '../utils/proposalKpis';
 import Button from '../components/ui/Button';
 import { soundService } from '../services/soundService';
 
@@ -99,6 +121,54 @@ const Proposals: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleCopyClientLink = async (proposal: SavedProposal) => {
+    if (proposal.status === 'draft') {
+      setError('Send the proposal first to generate a client link.');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(getPublicProposalUrl(proposal.public_token));
+      soundService.play('save');
+    } catch {
+      setError('Could not copy link.');
+    }
+  };
+
+  const handleMarkDeposit = async (id: string) => {
+    try {
+      await markDepositPaid(id);
+      await loadProposals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status');
+    }
+  };
+
+  const handleMarkScheduled = async (id: string) => {
+    try {
+      await markScheduled(id);
+      await loadProposals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status');
+    }
+  };
+
+  const getStatusColor = (status: ProposalStatus) => {
+    switch (status) {
+      case 'accepted':
+      case 'deposit_paid':
+      case 'scheduled':
+        return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
+      case 'declined':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
+      case 'sent':
+      case 'viewed':
+      case 'opened':
+        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300';
+      default:
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
+    }
   };
 
   const getTemplateColor = (template: string) => {
@@ -223,11 +293,24 @@ const Proposals: React.FC = () => {
                     <span>Proposal - {formatDate(proposal.updated_at)}</span>
                   </div>
                   
-                  <div>
-                    <span className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${getTemplateColor(proposal.template_type)}`}>
-                      {proposal.template_type.charAt(0).toUpperCase() + proposal.template_type.slice(1)} Professional
+                  <div className="flex flex-wrap gap-2">
+                    <span
+                      className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(proposal.status ?? 'draft')}`}
+                    >
+                      {PROPOSAL_STATUS_LABELS[proposal.status ?? 'draft']}
+                    </span>
+                    <span
+                      className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${getTemplateColor(proposal.template_type)}`}
+                    >
+                      {proposal.template_type.charAt(0).toUpperCase() +
+                        proposal.template_type.slice(1)}
                     </span>
                   </div>
+                  {Number(proposal.total_amount) > 0 && (
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {formatProposalMoney(Number(proposal.total_amount))}
+                    </p>
+                  )}
                 </div>
 
                 {/* Action Buttons */}
@@ -261,7 +344,41 @@ const Proposals: React.FC = () => {
                     >
                       <Download size={20} />
                     </button>
+                    {proposal.status !== 'draft' && (
+                      <button
+                        onClick={() => handleCopyClientLink(proposal)}
+                        className="p-2.5 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-md transition-colors"
+                        title="Copy client link"
+                      >
+                        <Link2 size={20} />
+                      </button>
+                    )}
                   </div>
+                  {(proposal.status === 'accepted' ||
+                    proposal.status === 'deposit_paid') && (
+                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      {proposal.status === 'accepted' && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkDeposit(proposal.id)}
+                          className="text-xs px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300"
+                        >
+                          Mark deposit paid
+                        </button>
+                      )}
+                      {(proposal.status === 'accepted' ||
+                        proposal.status === 'deposit_paid') && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkScheduled(proposal.id)}
+                          className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 flex items-center gap-1"
+                        >
+                          <CheckCircle size={14} />
+                          Mark scheduled
+                        </button>
+                      )}
+                    </div>
+                  )}
                   
                   <button
                     onClick={() => {

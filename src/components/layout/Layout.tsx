@@ -12,7 +12,11 @@ import backgroundImage from '../../assets/images/bkgrnd.jpg';
 const Layout: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isPublicProposal = location.pathname.startsWith('/proposal/');
+  const isAuthPage =
+    location.pathname === '/login' ||
+    location.pathname === '/signup' ||
+    isPublicProposal;
   const showBottomNav = Boolean(user) && !isAuthPage;
 
   useEffect(() => {

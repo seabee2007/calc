@@ -3,13 +3,16 @@ import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrd
 import { PLACEMENT_ORDER_STATUS_LABELS } from '../types/placementOrder';
 import { MITIGATION_OPTIONS } from './pourMitigations';
 import {
-  buildProposalPipeline,
   buildReadinessIssues,
   resolveProjectWorkflow,
   type ProjectNextAction,
   type ProjectWorkflowStage,
-  type ProposalPipelineStats,
 } from './projectWorkflow';
+import type { TrackedProposalRow } from '../types/proposalTracking';
+import {
+  buildProposalDashboardMetrics,
+  type ProposalDashboardMetrics,
+} from './proposalKpis';
 
 export type OpsRiskLevel = 'low' | 'moderate' | 'high' | 'unknown';
 export type TimelineStatus = 'on_schedule' | 'at_risk' | 'delayed' | 'pending';
@@ -58,6 +61,16 @@ export interface DeliveryScheduleSnapshot {
   plantName: string;
 }
 
+export interface UpcomingPlacementRow {
+  projectId: string;
+  projectName: string;
+  pourDateLabel: string;
+  sortTime: number;
+  volumeYd: number;
+  batchPlantName: string;
+  nextLoadLabel: string;
+}
+
 export interface SmartPourTip {
   id: string;
   severity: 'info' | 'warning' | 'critical';
@@ -90,7 +103,8 @@ export interface OperationsSnapshot {
   mitigations: string[];
   smartTips: SmartPourTip[];
   deliverySchedule: DeliveryScheduleSnapshot | null;
-  proposalPipeline: ProposalPipelineStats;
+  proposalMetrics: ProposalDashboardMetrics;
+  upcomingPlacements: UpcomingPlacementRow[];
   proposalsSentCount: number;
   globalHealthScore: number;
   primaryReadinessIssues: { message: string; fixPath: string; fixSearch?: string }[];
@@ -444,14 +458,57 @@ export function buildSmartPourTips(
   return tips;
 }
 
+function projectHasTrackedProposal(
+  project: Project,
+  proposals: TrackedProposalRow[],
+): boolean {
+  return proposals.some(
+    (p) =>
+      p.data?.projectTitle === project.name ||
+      p.title.toLowerCase().includes(project.name.toLowerCase()),
+  );
+}
+
+export function buildUpcomingPlacements(
+  projects: Project[],
+  now = new Date(),
+): UpcomingPlacementRow[] {
+  const today = startOfDay(now);
+  const rows: UpcomingPlacementRow[] = [];
+
+  for (const project of projects) {
+    const pourDate = parsePourDate(project.pourDate);
+    if (!pourDate || pourDate < today) continue;
+
+    const order = project.placementOrder;
+    const schedule = isSameDay(pourDate, now)
+      ? buildDeliverySchedule(order, pourDate, project.name, now)
+      : null;
+
+    rows.push({
+      projectId: project.id,
+      projectName: project.name,
+      pourDateLabel: formatPourDateLabel(pourDate),
+      sortTime: pourDate.getTime(),
+      volumeYd: projectVolumeYd(project),
+      batchPlantName: order?.batchPlantName ?? '—',
+      nextLoadLabel: schedule?.etaLabel ?? 'Call sheet pending',
+    });
+  }
+
+  return rows.sort((a, b) => a.sortTime - b.sortTime);
+}
+
 export function buildOperationsSnapshot(
   projects: Project[],
   options?: {
     now?: Date;
+    proposals?: TrackedProposalRow[];
     proposalDrafts?: Record<string, { proposal?: { proposalData?: import('../types/proposal').ProposalData } }>;
   },
 ): OperationsSnapshot {
   const now = options?.now ?? new Date();
+  const proposals = options?.proposals ?? [];
   const proposalDrafts = options?.proposalDrafts ?? {};
   const today = startOfDay(now);
 
@@ -463,11 +520,17 @@ export function buildOperationsSnapshot(
     const volumeYd = projectVolumeYd(project);
     const pourDate = parsePourDate(project.pourDate);
     const { score, statusLabel } = computeReadinessScore(project, order);
-    const hasProposalDraft = Boolean(
-      proposalDrafts[project.id]?.proposal?.proposalData?.clientName?.trim(),
+    const matchedProposal = proposals.find(
+      (p) =>
+        p.data?.projectTitle === project.name ||
+        p.title.toLowerCase().includes(project.name.toLowerCase()),
     );
+    const hasProposalDraft =
+      Boolean(matchedProposal) ||
+      Boolean(proposalDrafts[project.id]?.proposal?.proposalData?.clientName?.trim());
     const workflow = resolveProjectWorkflow(project, {
       hasProposalDraft,
+      proposalStatus: matchedProposal?.status,
       windRisk: windRiskEarly,
       heatRisk: heatRiskEarly,
       readinessScore: score,
@@ -586,17 +649,21 @@ export function buildOperationsSnapshot(
       )
     : null;
 
-  const proposalPipeline = buildProposalPipeline(
-    projects,
-    Object.fromEntries(
-      Object.entries(proposalDrafts).map(([id, v]) => [
-        id,
-        v.proposal ? { proposalData: v.proposal.proposalData } : undefined,
-      ]),
-    ),
-  );
+  const proposalMetrics = buildProposalDashboardMetrics(proposals, now);
+  const upcomingPlacements = buildUpcomingPlacements(projects, now);
 
-  const proposalsSentCount = proposalPipeline.sent + proposalPipeline.accepted;
+  const sentStatuses = new Set([
+    'sent',
+    'viewed',
+    'opened',
+    'accepted',
+    'declined',
+    'deposit_paid',
+    'scheduled',
+  ]);
+  const proposalsSentCount = proposals.filter((p) =>
+    sentStatuses.has(p.status ?? 'draft'),
+  ).length;
 
   const globalHealthScore =
     cards.length > 0
@@ -643,7 +710,8 @@ export function buildOperationsSnapshot(
     mitigations,
     smartTips: buildSmartPourTips(cards, { weatherRisk, heatRisk, windRisk, rainRisk }),
     deliverySchedule,
-    proposalPipeline,
+    proposalMetrics,
+    upcomingPlacements,
     proposalsSentCount,
     globalHealthScore,
     primaryReadinessIssues,

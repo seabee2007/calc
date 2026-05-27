@@ -22,6 +22,7 @@ import PourPlanner from './pages/PourPlanner';
 import OperationsDashboard from './pages/OperationsDashboard';
 import ProposalGenerator from './pages/ProposalGenerator';
 import Proposals from './pages/Proposals';
+import PublicProposal from './pages/PublicProposal';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -315,6 +316,7 @@ function App() {
             <Route path="resources/admixtures" element={<Admixtures />} />
             <Route path="resources/external-resources" element={<ExternalResources />} />
           </Route>
+          <Route path="/proposal/:token" element={<PublicProposal />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPassword />} />

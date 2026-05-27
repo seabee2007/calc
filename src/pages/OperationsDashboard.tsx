@@ -2,8 +2,8 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderKanban } from 'lucide-react';
 import { useProjectStore } from '../store';
-import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import { useAuth } from '../hooks/useAuth';
+import { useTrackedProposals } from '../hooks/useTrackedProposals';
 import { useToolsModalStore } from '../store/toolsModalStore';
 import { workflowQuery } from '../utils/workflow';
 import { buildOperationsSnapshot } from '../utils/operationsDashboard';
@@ -14,6 +14,8 @@ import SmartPourAssistant from '../components/dashboard/SmartPourAssistant';
 import PourTimelinePanel from '../components/dashboard/PourTimelinePanel';
 import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
 import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
+import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
+import UpcomingPlacementsCard from '../components/dashboard/UpcomingPlacementsCard';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
 import Button from '../components/ui/Button';
@@ -35,22 +37,25 @@ function resolveDisplayName(
 }
 
 const OperationsDashboard: React.FC = () => {
-  const { projects, loading } = useProjectStore();
+  const { projects, loading: projectsLoading } = useProjectStore();
   const { user } = useAuth();
+  const { proposals, loading: proposalsLoading } = useTrackedProposals();
   const navigate = useNavigate();
   const openTools = useToolsModalStore((s) => s.open);
-  const proposalDrafts = useWorkflowDraftStore((s) => s.byProject);
 
   const snapshot = useMemo(
-    () => buildOperationsSnapshot(projects, { proposalDrafts }),
-    [projects, proposalDrafts],
+    () => buildOperationsSnapshot(projects, { proposals }),
+    [projects, proposals],
   );
 
+  const { pipeline, financial } = snapshot.proposalMetrics;
   const primaryPourToday = snapshot.todayPours[0];
   const totalQcRecords = projects.reduce(
     (s, p) => s + (p.qcRecords?.length ?? 0),
     0,
   );
+
+  const loading = projectsLoading || proposalsLoading;
 
   if (loading) {
     return (
@@ -72,12 +77,12 @@ const OperationsDashboard: React.FC = () => {
         onTools={openTools}
       />
 
-      {/* Mobile priority: placement risk → upcoming → active projects */}
       <section className="space-y-4 lg:hidden">
         <FeaturedPlacementConditions
           snapshot={snapshot}
           hasPlacementsToday={snapshot.hasPlacementsToday}
         />
+        <UpcomingPlacementsCard placements={snapshot.upcomingPlacements} />
         <PourTimelinePanel
           events={snapshot.timeline}
           projectName={primaryPourToday?.name}
@@ -85,6 +90,11 @@ const OperationsDashboard: React.FC = () => {
           primaryProjectId={primaryPourToday?.id}
         />
         <ActiveProjectsPanel projects={snapshot.projects} compact />
+        <ProposalPipelineCard
+          pipeline={pipeline}
+          pendingRevenue={financial.pendingRevenue}
+        />
+        <FinancialSnapshotCard financial={financial} />
         <SmartPourAssistant
           readinessScore={snapshot.globalReadiness}
           weatherRisk={snapshot.weatherRisk}
@@ -93,7 +103,6 @@ const OperationsDashboard: React.FC = () => {
         />
       </section>
 
-      {/* Desktop: featured conditions + delivery + readiness row */}
       <section className="hidden lg:grid lg:grid-cols-3 gap-5">
         <FeaturedPlacementConditions
           snapshot={snapshot}
@@ -110,6 +119,15 @@ const OperationsDashboard: React.FC = () => {
           issues={snapshot.primaryReadinessIssues}
           hasPlacementsToday={snapshot.hasPlacementsToday}
         />
+      </section>
+
+      <section className="hidden lg:grid lg:grid-cols-3 gap-5">
+        <ProposalPipelineCard
+          pipeline={pipeline}
+          pendingRevenue={financial.pendingRevenue}
+        />
+        <FinancialSnapshotCard financial={financial} />
+        <UpcomingPlacementsCard placements={snapshot.upcomingPlacements} />
       </section>
 
       <section className="hidden lg:grid lg:grid-cols-3 gap-5">
@@ -130,19 +148,21 @@ const OperationsDashboard: React.FC = () => {
         <div className="lg:col-span-2">
           <ActiveProjectsPanel projects={snapshot.projects} />
         </div>
-        <ProposalPipelineCard pipeline={snapshot.proposalPipeline} />
-      </section>
-
-      {/* Tablet: collapsed extras */}
-      <section className="hidden md:grid md:grid-cols-2 lg:hidden gap-4">
         <ConcreteDeliveryScheduleCard
           schedule={snapshot.deliverySchedule}
           hasPlacementsToday={snapshot.hasPlacementsToday}
           primaryProjectId={primaryPourToday?.id}
         />
+      </section>
+
+      <section className="hidden md:grid md:grid-cols-2 lg:hidden gap-4">
+        <FinancialSnapshotCard financial={financial} />
+        <ProposalPipelineCard
+          pipeline={pipeline}
+          pendingRevenue={financial.pendingRevenue}
+        />
+        <UpcomingPlacementsCard placements={snapshot.upcomingPlacements} />
         <ProjectHealthCard score={snapshot.globalHealthScore} />
-        <QcAlertsCard testsDue={snapshot.qcTestsDue} totalRecords={totalQcRecords} />
-        <ProposalPipelineCard pipeline={snapshot.proposalPipeline} />
       </section>
 
       {projects.length === 0 && (

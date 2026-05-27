@@ -6,6 +6,25 @@ import { computeProposalFinancials } from '../utils/proposalFinancials';
 
 export type SavedProposal = TrackedProposalRow;
 
+function normalizeProposal(row: Record<string, unknown>): SavedProposal {
+  return {
+    ...(row as SavedProposal),
+    status: (row.status as SavedProposal['status']) ?? 'draft',
+    total_amount: Number(row.total_amount ?? 0),
+    labor_cost: Number(row.labor_cost ?? 0),
+    material_cost: Number(row.material_cost ?? 0),
+    deposit_amount: Number(row.deposit_amount ?? 0),
+    public_token: String(row.public_token ?? ''),
+    sent_at: (row.sent_at as string | null) ?? null,
+    viewed_at: (row.viewed_at as string | null) ?? null,
+    opened_at: (row.opened_at as string | null) ?? null,
+    accepted_at: (row.accepted_at as string | null) ?? null,
+    declined_at: (row.declined_at as string | null) ?? null,
+    deposit_paid_at: (row.deposit_paid_at as string | null) ?? null,
+    scheduled_at: (row.scheduled_at as string | null) ?? null,
+  };
+}
+
 export interface CreateProposalData {
   title: string;
   template_type: 'classic' | 'modern' | 'minimal';
@@ -93,7 +112,7 @@ export class ProposalService {
       throw new Error('Failed to update proposal');
     }
 
-    return data as SavedProposal;
+    return normalizeProposal(data as Record<string, unknown>);
   }
 
   static async getAll(): Promise<SavedProposal[]> {
@@ -116,7 +135,7 @@ export class ProposalService {
       throw new Error('Failed to fetch proposals');
     }
 
-    return (data as SavedProposal[]) || [];
+    return ((data as Record<string, unknown>[]) || []).map(normalizeProposal);
   }
 
   static async getById(id: string): Promise<SavedProposal> {
@@ -140,7 +159,7 @@ export class ProposalService {
       throw new Error('Failed to fetch proposal');
     }
 
-    return data as SavedProposal;
+    return normalizeProposal(data as Record<string, unknown>);
   }
 
   static async delete(id: string): Promise<void> {

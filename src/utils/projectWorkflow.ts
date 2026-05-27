@@ -1,6 +1,7 @@
 import type { Project } from '../types';
 import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrder';
 import type { ProposalData } from '../types/proposal';
+import type { ProposalStatus } from '../types/proposalTracking';
 import type { OpsRiskLevel } from './operationsDashboard';
 
 /** Global project lifecycle — drives dashboard, filters, and next actions. */
@@ -75,6 +76,7 @@ function inferStage(
   project: Project,
   order: PlacementOrder | undefined,
   hasProposalDraft: boolean,
+  proposalStatus?: ProposalStatus,
   now = new Date(),
 ): ProjectWorkflowStage {
   const pourDate = parsePourDate(project.pourDate);
@@ -93,6 +95,17 @@ function inferStage(
   }
 
   if (status === 'ready_to_call') return 'mix_approved';
+
+  if (proposalStatus === 'scheduled' || proposalStatus === 'deposit_paid') {
+    return proposalStatus === 'scheduled' ? 'placement_scheduled' : 'accepted';
+  }
+  if (proposalStatus === 'accepted') return 'accepted';
+  if (
+    proposalStatus &&
+    ['sent', 'viewed', 'opened'].includes(proposalStatus)
+  ) {
+    return 'proposal_sent';
+  }
 
   if (hasProposalDraft && volume > 0) return 'proposal_sent';
 
@@ -243,6 +256,7 @@ export function resolveProjectWorkflow(
   project: Project,
   options?: {
     hasProposalDraft?: boolean;
+    proposalStatus?: ProposalStatus;
     windRisk?: OpsRiskLevel;
     heatRisk?: OpsRiskLevel;
     readinessScore?: number;
@@ -257,6 +271,7 @@ export function resolveProjectWorkflow(
     project,
     order,
     options?.hasProposalDraft ?? false,
+    options?.proposalStatus,
     options?.now,
   );
   const readinessIssues = buildReadinessIssues(project, order, {
