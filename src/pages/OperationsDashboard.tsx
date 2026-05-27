@@ -11,17 +11,34 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 import FeaturedPlacementConditions from '../components/dashboard/FeaturedPlacementConditions';
 import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDeliveryScheduleCard';
 import SmartPourAssistant from '../components/dashboard/SmartPourAssistant';
-import PourTimelinePanel from '../components/dashboard/PourTimelinePanel';
 import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
 import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
 import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
-import UpcomingPlacementsCard from '../components/dashboard/UpcomingPlacementsCard';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
 import Button from '../components/ui/Button';
 
 const OPS_SHELL =
   'dark text-white isolation-auto rounded-xl min-h-[200px]';
+
+function startOfToday(now: Date): Date {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function parseIsoMaybe(iso?: string): Date | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatPourDateLabel(d: Date): string {
+  const weekday = d.toLocaleDateString(undefined, { weekday: 'long' });
+  const monthDay = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${weekday}, ${monthDay} • ${time}`;
+}
 
 function resolveDisplayName(
   user: ReturnType<typeof useAuth>['user'],
@@ -50,8 +67,89 @@ const OperationsDashboard: React.FC = () => {
 
   const { pipeline, financial } = snapshot.proposalMetrics;
   const primaryPourToday = snapshot.todayPours[0];
+  const selectedPrePlacementProject = useMemo(() => {
+    const now = new Date();
+    const today = startOfToday(now).getTime();
+    const candidates = projects
+      .map((p) => ({ p, d: parseIsoMaybe((p as any).pourDate as string | undefined) }))
+      .filter((x) => x.d && x.d.getTime() >= today)
+      .sort((a, b) => (a.d!.getTime() - b.d!.getTime()));
+    return candidates[0]?.p ?? null;
+  }, [projects]);
+
+  const prePlacement = useMemo(() => {
+    if (!selectedPrePlacementProject) {
+      return {
+        projectId: undefined,
+        projectName: undefined,
+        pourDateLabel: undefined,
+        checks: {
+          mixSelected: false,
+          volumeCalculated: false,
+          weatherAcceptable: false,
+          pourDateScheduled: false,
+          batchPlantAssigned: false,
+          truckSpacingEntered: false,
+          curingMethodSelected: false,
+          callSheetReady: false,
+        },
+        attention: [] as string[],
+      };
+    }
+
+    const project = selectedPrePlacementProject as any;
+    const order = project.placementOrder as
+      | { batchPlantName?: string; batchPlantAddress?: string; summaryLines?: string[]; callSheet?: Record<string, unknown> }
+      | undefined;
+    const pourDate = parseIsoMaybe(project.pourDate as string | undefined);
+    const volumeYd = (project.calculations ?? []).reduce(
+      (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
+      0,
+    );
+
+    const mixSelected = Boolean(
+      order?.callSheet?.mixDesignNumber ||
+        order?.callSheet?.waterCementRatio ||
+        order?.callSheet?.mixDesignNumber === '',
+    );
+    const volumeCalculated = volumeYd > 0;
+    const weatherAcceptable = snapshot.weatherRisk !== 'high';
+    const pourDateScheduled = Boolean(project.pourDate);
+    const batchPlantAssigned = Boolean(order?.batchPlantName?.trim() || order?.batchPlantAddress?.trim());
+    const truckSpacingEntered = Boolean(
+      order?.summaryLines?.some((l: string) => /Truck Spacing/i.test(l)),
+    );
+    const curingMethodSelected = Boolean(project.mixProfile);
+    const callSheetReady = Boolean(order?.summaryLines?.length);
+
+    const attention: string[] = [];
+    if (!batchPlantAssigned) attention.push('Batch plant not assigned');
+    if (!truckSpacingEntered) attention.push('Truck spacing missing');
+    if (!curingMethodSelected) attention.push('No curing method selected');
+    if (!mixSelected) attention.push('Mix not selected');
+    if (!volumeCalculated) attention.push('Volume not calculated');
+    if (!callSheetReady) attention.push('Call sheet incomplete');
+
+    return {
+      projectId: project.id as string,
+      projectName: project.name as string,
+      pourDateLabel: pourDate ? formatPourDateLabel(pourDate) : undefined,
+      checks: {
+        mixSelected,
+        volumeCalculated,
+        weatherAcceptable,
+        pourDateScheduled,
+        batchPlantAssigned,
+        truckSpacingEntered,
+        curingMethodSelected,
+        callSheetReady,
+      },
+      attention: attention.slice(0, 6),
+    };
+  }, [selectedPrePlacementProject, snapshot.weatherRisk]);
+
   const totalQcRecords = projects.reduce(
-    (s, p) => s + (p.qcRecords?.length ?? 0),
+    (s, p) => s + (((p as any).qcRecords?.length as number | undefined) ?? 0),
     0,
   );
 
@@ -82,88 +180,70 @@ const OperationsDashboard: React.FC = () => {
           snapshot={snapshot}
           hasPlacementsToday={snapshot.hasPlacementsToday}
         />
-        <UpcomingPlacementsCard placements={snapshot.upcomingPlacements} />
-        <PourTimelinePanel
-          events={snapshot.timeline}
-          projectName={primaryPourToday?.name}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-          primaryProjectId={primaryPourToday?.id}
-        />
-        <ActiveProjectsPanel projects={snapshot.projects} compact />
-        <ProposalPipelineCard
-          pipeline={pipeline}
-          pendingRevenue={financial.pendingRevenue}
-        />
-        <FinancialSnapshotCard financial={financial} />
-        <SmartPourAssistant
-          readinessScore={snapshot.globalReadiness}
-          weatherRisk={snapshot.weatherRisk}
-          issues={snapshot.primaryReadinessIssues}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-        />
-      </section>
-
-      <section className="hidden lg:grid lg:grid-cols-3 gap-5">
-        <FeaturedPlacementConditions
-          snapshot={snapshot}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-        />
         <ConcreteDeliveryScheduleCard
           schedule={snapshot.deliverySchedule}
+          timeline={snapshot.timeline}
           hasPlacementsToday={snapshot.hasPlacementsToday}
           primaryProjectId={primaryPourToday?.id}
         />
         <SmartPourAssistant
-          readinessScore={snapshot.globalReadiness}
-          weatherRisk={snapshot.weatherRisk}
-          issues={snapshot.primaryReadinessIssues}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-        />
-      </section>
-
-      <section className="hidden lg:grid lg:grid-cols-3 gap-5">
-        <ProposalPipelineCard
-          pipeline={pipeline}
-          pendingRevenue={financial.pendingRevenue}
-        />
-        <FinancialSnapshotCard financial={financial} />
-        <UpcomingPlacementsCard placements={snapshot.upcomingPlacements} />
-      </section>
-
-      <section className="hidden lg:grid lg:grid-cols-3 gap-5">
-        <PourTimelinePanel
-          events={snapshot.timeline}
-          projectName={primaryPourToday?.name}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-          primaryProjectId={primaryPourToday?.id}
+          projectId={prePlacement.projectId}
+          projectName={prePlacement.projectName}
+          pourDateLabel={prePlacement.pourDateLabel}
+          checks={prePlacement.checks}
+          attention={prePlacement.attention}
         />
         <ProjectHealthCard score={snapshot.globalHealthScore} />
         <QcAlertsCard
           testsDue={snapshot.qcTestsDue}
           totalRecords={totalQcRecords}
         />
-      </section>
-
-      <section className="hidden lg:grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
-          <ActiveProjectsPanel projects={snapshot.projects} />
-        </div>
-        <ConcreteDeliveryScheduleCard
-          schedule={snapshot.deliverySchedule}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-          primaryProjectId={primaryPourToday?.id}
-        />
-      </section>
-
-      <section className="hidden md:grid md:grid-cols-2 lg:hidden gap-4">
         <FinancialSnapshotCard financial={financial} />
+        <ActiveProjectsPanel projects={snapshot.projects} compact />
         <ProposalPipelineCard
           pipeline={pipeline}
           pendingRevenue={financial.pendingRevenue}
         />
-        <UpcomingPlacementsCard placements={snapshot.upcomingPlacements} />
-        <ProjectHealthCard score={snapshot.globalHealthScore} />
       </section>
+
+      <div className="hidden lg:block space-y-5">
+        <section className="grid grid-cols-2 gap-5">
+          <FeaturedPlacementConditions
+            snapshot={snapshot}
+            hasPlacementsToday={snapshot.hasPlacementsToday}
+          />
+          <ConcreteDeliveryScheduleCard
+            schedule={snapshot.deliverySchedule}
+            timeline={snapshot.timeline}
+            hasPlacementsToday={snapshot.hasPlacementsToday}
+            primaryProjectId={primaryPourToday?.id}
+          />
+        </section>
+        <section className="grid grid-cols-3 gap-5">
+          <SmartPourAssistant
+            projectId={prePlacement.projectId}
+            projectName={prePlacement.projectName}
+            pourDateLabel={prePlacement.pourDateLabel}
+            checks={prePlacement.checks}
+            attention={prePlacement.attention}
+          />
+          <ProjectHealthCard score={snapshot.globalHealthScore} />
+          <QcAlertsCard
+            testsDue={snapshot.qcTestsDue}
+            totalRecords={totalQcRecords}
+          />
+        </section>
+        <section>
+          <FinancialSnapshotCard financial={financial} />
+        </section>
+        <section className="grid grid-cols-2 gap-5">
+          <ActiveProjectsPanel projects={snapshot.projects} />
+          <ProposalPipelineCard
+            pipeline={pipeline}
+            pendingRevenue={financial.pendingRevenue}
+          />
+        </section>
+      </div>
 
       {projects.length === 0 && (
         <div className="rounded-xl border border-dashed border-slate-600 bg-slate-800/90 p-8 text-center">

@@ -40,7 +40,7 @@ const FeaturedPlacementConditions: React.FC<FeaturedPlacementConditionsProps> = 
   snapshot,
   hasPlacementsToday,
 }) => (
-  <OpsCard className="lg:col-span-2 border-cyan-900/40">
+  <OpsCard className="border-cyan-900/40">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-cyan-400/90 mb-1">

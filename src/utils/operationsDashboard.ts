@@ -69,6 +69,7 @@ export interface UpcomingPlacementRow {
   volumeYd: number;
   batchPlantName: string;
   nextLoadLabel: string;
+  timeline: TimelineEvent[];
 }
 
 export interface SmartPourTip {
@@ -481,6 +482,7 @@ export function buildUpcomingPlacements(
     if (!pourDate || pourDate < today) continue;
 
     const order = project.placementOrder;
+    const timeline = buildPourTimeline(order, pourDate, now);
     const schedule = isSameDay(pourDate, now)
       ? buildDeliverySchedule(order, pourDate, project.name, now)
       : null;
@@ -493,6 +495,7 @@ export function buildUpcomingPlacements(
       volumeYd: projectVolumeYd(project),
       batchPlantName: order?.batchPlantName ?? '—',
       nextLoadLabel: schedule?.etaLabel ?? 'Call sheet pending',
+      timeline,
     });
   }
 

@@ -1,102 +1,126 @@
 import React from 'react';
-import { Sparkles, AlertTriangle } from 'lucide-react';
+import { ClipboardCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import Button from '../ui/Button';
-import type { OpsRiskLevel } from '../../utils/operationsDashboard';
-
-interface ReadinessIssueRow {
-  message: string;
-  fixPath: string;
-  fixSearch?: string;
-}
 
 interface SmartPourAssistantProps {
-  readinessScore: number;
-  weatherRisk: OpsRiskLevel;
-  issues: ReadinessIssueRow[];
-  hasPlacementsToday: boolean;
+  className?: string;
+  projectId?: string;
+  projectName?: string;
+  pourDateLabel?: string;
+  checks: {
+    mixSelected: boolean;
+    volumeCalculated: boolean;
+    weatherAcceptable: boolean;
+    pourDateScheduled: boolean;
+    batchPlantAssigned: boolean;
+    truckSpacingEntered: boolean;
+    curingMethodSelected: boolean;
+    callSheetReady: boolean;
+  };
+  attention: string[];
 }
 
-function readinessLevel(score: number, issueCount: number): string {
-  if (issueCount >= 3 || score < 50) return 'LOW';
-  if (issueCount >= 1 || score < 75) return 'MODERATE';
-  return 'HIGH';
-}
+const CHECK_ITEMS: { key: keyof SmartPourAssistantProps['checks']; label: string }[] = [
+  { key: 'mixSelected', label: 'Mix selected' },
+  { key: 'volumeCalculated', label: 'Volume calculated' },
+  { key: 'weatherAcceptable', label: 'Weather acceptable' },
+  { key: 'pourDateScheduled', label: 'Pour date scheduled' },
+  { key: 'batchPlantAssigned', label: 'Batch plant assigned' },
+  { key: 'truckSpacingEntered', label: 'Truck spacing entered' },
+  { key: 'curingMethodSelected', label: 'Curing method selected' },
+  { key: 'callSheetReady', label: 'Call sheet ready' },
+];
 
 const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
-  readinessScore,
-  weatherRisk,
-  issues,
-  hasPlacementsToday,
+  className,
+  projectId,
+  projectName,
+  pourDateLabel,
+  checks,
+  attention,
 }) => {
   const navigate = useNavigate();
-  const level = readinessLevel(readinessScore, issues.length);
-  const fixTarget = issues[0];
 
   return (
-    <OpsCard>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-violet-400" />
-          <h3 className="font-semibold text-white">Placement readiness</h3>
-        </div>
-        <span
-          className={`text-sm font-bold uppercase ${
-            level === 'HIGH'
-              ? 'text-emerald-400'
-              : level === 'MODERATE'
-                ? 'text-amber-400'
-                : 'text-red-400'
-          }`}
-        >
-          {level}
-        </span>
+    <OpsCard className={className}>
+      <div className="flex items-center gap-2 mb-2">
+        <ClipboardCheck className="h-5 w-5 text-cyan-400 shrink-0" />
+        <h3 className="font-semibold text-white text-sm">Pre-placement review</h3>
       </div>
 
-      {!hasPlacementsToday ? (
-        <p className="text-sm text-slate-400">
-          Schedule a placement to see readiness checks for weather, plant, and call
-          sheet.
-        </p>
-      ) : issues.length === 0 ? (
-        <p className="text-sm text-slate-300">
-          No blocking issues — confirm truck spacing with the crew before first load.
-          {weatherRisk !== 'low' && (
-            <span className="block mt-2 text-amber-400/90">
-              Weather risk is {weatherRisk}; follow mitigations above.
-            </span>
-          )}
-        </p>
+      {!projectId ? (
+        <>
+          <p className="text-base font-semibold text-white">No placement scheduled</p>
+          <p className="text-sm text-slate-400 mt-1">
+            Schedule a pour date to run the pre-placement review.
+          </p>
+          <Button
+            size="sm"
+            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+            onClick={() => navigate('/projects')}
+          >
+            Schedule Placement
+          </Button>
+        </>
       ) : (
         <>
-          <p className="text-xs text-slate-500 uppercase mb-2">Issues</p>
-          <ul className="space-y-2 mb-4">
-            {issues.map((issue) => (
-              <li
-                key={issue.message}
-                className="flex gap-2 text-sm text-slate-300 bg-slate-800/50 rounded-lg p-2 border border-slate-700/80"
-              >
-                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>{issue.message}</span>
-              </li>
+          <p className="text-base font-bold text-white leading-snug">{projectName}</p>
+          {pourDateLabel && (
+            <p className="text-xs text-slate-400 mt-0.5 leading-snug">{pourDateLabel}</p>
+          )}
+
+          <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-3 mb-1.5">
+            Ready
+          </p>
+          <ul className="grid grid-cols-1 gap-y-0.5 text-xs">
+            {CHECK_ITEMS.map(({ key, label }) => (
+              <CheckRow key={key} ok={checks[key]} label={label} />
             ))}
           </ul>
-          {fixTarget && (
-            <Button
-              size="sm"
-              className="!bg-violet-700 hover:!bg-violet-600 !text-white w-full sm:w-auto"
-              onClick={() =>
-                navigate(`${fixTarget.fixPath}${fixTarget.fixSearch ?? ''}`)
-              }
-            >
-              Fix Issues
-            </Button>
+
+          <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-3 mb-1.5">
+            Attention required
+          </p>
+          {attention.length === 0 ? (
+            <p className="text-xs text-slate-300">No blockers — confirm with plant and crew.</p>
+          ) : (
+            <ul className="space-y-1">
+              {attention.map((msg) => (
+                <li
+                  key={msg}
+                  className="flex gap-1.5 text-xs text-slate-300 bg-slate-800/50 rounded-md px-2 py-1 border border-slate-700/80"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-px" />
+                  <span>{msg}</span>
+                </li>
+              ))}
+            </ul>
           )}
+
+          <Button
+            size="sm"
+            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+            onClick={() => navigate(`/pour-planner?flow=1&project=${projectId}`)}
+          >
+            Open Placement Planner
+          </Button>
         </>
       )}
     </OpsCard>
   );
 };
+
+function CheckRow({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <li className="flex items-center gap-1.5">
+      <CheckCircle2
+        className={`h-3.5 w-3.5 shrink-0 ${ok ? 'text-emerald-400' : 'text-slate-600'}`}
+      />
+      <span className={ok ? 'text-slate-200' : 'text-slate-500'}>✓ {label}</span>
+    </li>
+  );
+}
 
 export default SmartPourAssistant;
