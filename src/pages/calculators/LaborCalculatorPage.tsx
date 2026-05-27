@@ -67,7 +67,7 @@ const LaborCalculatorPage: React.FC = () => {
         {inWorkflow && (
           <div className="mt-6">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() =>
                 navigate({
                   pathname: '/calculator',
@@ -75,7 +75,7 @@ const LaborCalculatorPage: React.FC = () => {
                   state: workflowNavigateState(workflowProjectId),
                 })
               }
-              className="dark:text-white"
+              className="shadow-sm"
             >
               Back to all calculators
             </Button>

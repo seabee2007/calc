@@ -64,7 +64,7 @@ const CommonProblems: React.FC = () => {
                     <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
                       <li>Use evaporation retarders or fog spray</li>
                       <li>Erect windbreaks around fresh concrete</li>
-                      <li>Schedule pours during cooler parts of the day</li>
+                      <li>Schedule placements during cooler parts of the day</li>
                       <li>Cover concrete with wet burlap immediately after finishing</li>
                     </ul>
                   </div>
@@ -102,7 +102,7 @@ const CommonProblems: React.FC = () => {
                     <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Characteristics</h4>
                     <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
                       <li>Result from temperature differentials within the concrete</li>
-                      <li>Common in thick pours (&gt;18 in.) or mass concrete</li>
+                      <li>Common in thick placements (&gt;18 in.) or mass concrete</li>
                       <li>Can occur during early hydration or seasonal temperature swings</li>
                       <li>May extend through the full thickness of the member</li>
                     </ul>
@@ -111,7 +111,7 @@ const CommonProblems: React.FC = () => {
                     <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Prevention</h4>
                     <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
                       <li>Use fly ash or slag to reduce heat of hydration</li>
-                      <li>Cool aggregates or mixing water for large pours</li>
+                      <li>Cool aggregates or mixing water for large placements</li>
                       <li>Insulate surfaces to slow cooling rates</li>
                       <li>Plan construction joints to accommodate thermal movement</li>
                     </ul>

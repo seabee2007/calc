@@ -12,7 +12,7 @@ const PourPlannerStepper: React.FC<PourPlannerStepperProps> = ({
   onStepClick,
 }) => {
   return (
-    <nav aria-label="Pour planning steps" className="mb-6">
+    <nav aria-label="Placement planning steps" className="mb-6">
       <ol className="flex flex-wrap gap-2 sm:gap-0 sm:justify-between">
         {POUR_PLANNER_STEPS.map((step, index) => {
           const isComplete = index < activeStep;

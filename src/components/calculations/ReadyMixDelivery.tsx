@@ -75,7 +75,7 @@ const ReadyMixDelivery: React.FC<ReadyMixDeliveryProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-100 dark:border-gray-600">
-          <p className="text-gray-600 dark:text-gray-400">Pour volume</p>
+          <p className="text-gray-600 dark:text-gray-400">Placement volume</p>
           <p className="text-lg font-bold text-gray-900 dark:text-white">
             {volume.toFixed(2)} {volumeLabel}
             <span className="block text-sm font-normal text-gray-600 dark:text-gray-400 mt-0.5">

@@ -95,7 +95,7 @@ const Admixtures: React.FC = () => {
                     <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
                       <li>Slow hydration rate, extending working time by 1–4 hours</li>
                       <li>Typical dosage: 0.05–0.2% by cement weight</li>
-                      <li>Useful in hot climates or large pours to prevent cold joints</li>
+                      <li>Useful in hot climates or large placements to prevent cold joints</li>
                     </ul>
                   </div>
                   

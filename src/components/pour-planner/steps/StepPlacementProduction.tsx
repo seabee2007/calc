@@ -460,7 +460,7 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-blue-600" />
-            <h4 className="font-semibold text-gray-900 dark:text-white">Pour duration</h4>
+            <h4 className="font-semibold text-gray-900 dark:text-white">Placement duration</h4>
           </div>
           {volume > 0 ? (
             <>
@@ -478,7 +478,7 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
             </>
           ) : (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a calculation or enter volume in step 1 to estimate pour duration.
+              Select a calculation or enter volume in step 1 to estimate placement duration.
             </p>
           )}
         </Card>
@@ -510,7 +510,7 @@ export const StepPlacementProduction: React.FC<StepProps> = ({ planner }) => {
                   Per-truck discharge: <strong>{dischargeMinutes} min</strong>
                 </span>
                 <span className="block">
-                  Pour duration (all loads):{' '}
+                  Placement duration (all loads):{' '}
                   <strong>{Math.round(pourDurationMin)} min</strong>
                   <span className="text-gray-500 dark:text-gray-400 font-normal">
                     {' '}

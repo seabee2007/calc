@@ -34,38 +34,38 @@ export default function MixDesignSection() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600">Portland Cement</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm text-gray-200">Portland Cement</p>
+              <p className="text-lg font-semibold text-gray-200 dark:text-white">
                 {mixDesign.materials.cement} yd³
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Fine Aggregate (Sand)</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm text-gray-200">Fine Aggregate (Sand)</p>
+              <p className="text-lg font-semibold text-gray-200 dark:text-white">
                 {mixDesign.materials.sand} yd³
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Coarse Aggregate</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm text-gray-200">Coarse Aggregate</p>
+              <p className="text-lg font-semibold text-gray-200 dark:text-white">
                 {mixDesign.materials.aggregate} yd³
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Water</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm text-gray-200">Water</p>
+              <p className="text-lg font-semibold text-gray-200 dark:text-white">
                 {mixDesign.materials.water} gal
               </p>
             </div>
             <div className="col-span-2 pt-2">
-              <p className="text-sm text-gray-600">Slump Range</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm text-gray-200">Slump Range</p>
+              <p className="text-lg font-semibold text-gray-200 dark:text-white">
                 {mixDesign.slump.min}" - {mixDesign.slump.max}"
               </p>
             </div>
             <div className="col-span-2">
-              <p className="text-sm text-gray-600">Water/Cement Ratio</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm text-gray-200">Water/Cement Ratio</p>
+              <p className="text-lg font-semibold text-gray-200 dark:text-white">
                 {mixDesign.waterCementRatio}
               </p>
             </div>

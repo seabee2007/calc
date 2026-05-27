@@ -108,7 +108,7 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           Weather locations
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Pour-day scoring uses the batch plant forecast from Step 1. Field conditions
+          Placement-day scoring uses the batch plant forecast from Step 1. Field conditions
           below mirror the selected day card — same temp, wind, and humidity values.
         </p>
 
@@ -116,7 +116,7 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
           form={form}
           batchPlantNote={
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Pour-day scoring uses weather at the batch plant location above.
+              Placement-day scoring uses weather at the batch plant location above.
             </p>
           }
           jobsiteNote={
@@ -257,7 +257,7 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           {selectedDay
             ? `Matches selected day: ${Math.round(selectedDay.minTemp)}–${Math.round(selectedDay.maxTemp)}°F · ${Math.round(selectedDay.maxWindSpeed)} mph wind · ${selectedDay.avgHumidity != null ? `${Math.round(selectedDay.avgHumidity)}% RH` : 'RH n/a'}. Edit if field readings differ.`
-            : 'Select a pour day above to auto-fill from forecast, or enter readings manually.'}
+            : 'Select a placement day above to auto-fill from forecast, or enter readings manually.'}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
@@ -296,7 +296,7 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
         </div>
         <div className="flex flex-wrap gap-4 mt-4">
           <Checkbox
-            label="Night pour"
+            label="Night placement"
             checked={form.nightPour}
             onChange={(e) => setField('nightPour', e.target.checked)}
           />

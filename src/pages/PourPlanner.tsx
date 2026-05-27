@@ -472,7 +472,7 @@ const PourPlanner: React.FC = () => {
               Ready-Mix Placement Risk Analyzer
             </h1>
             <p className="text-white/90 mt-2 max-w-2xl mx-auto drop-shadow">
-              Plan the pour, check delivery feasibility, evaluate placement risk, and produce a
+              Plan the placement, check delivery feasibility, evaluate placement risk, and produce a
               field-ready plan — step by step.
             </p>
             <div className="mt-3">
@@ -495,7 +495,7 @@ const PourPlanner: React.FC = () => {
             Placement Planner
           </h1>
           <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
-            Plan delivery, weather, crew production, and field-ready pour details for this project.
+            Plan delivery, weather, crew production, and field-ready placement details for this project.
           </p>
         </div>
       )}
@@ -526,7 +526,7 @@ const PourPlanner: React.FC = () => {
           {planner.activeStep === 2 &&
             'Check ASTM C94 delivery window against travel and discharge time.'}
           {planner.activeStep === 3 &&
-            'Review the batch plant forecast, pick a pour day, and confirm field conditions.'}
+            'Review the batch plant forecast, pick a placement day, and confirm field conditions.'}
           {planner.activeStep === 4 &&
             'Size crew and coordinate truck spacing with placement rate.'}
           {planner.activeStep === 5 &&

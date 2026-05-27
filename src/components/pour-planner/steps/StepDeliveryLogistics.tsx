@@ -266,7 +266,7 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
               helperText={
                 multiTruck
                   ? `Recommended: ~${spacingRecommended} min between arrivals (per-truck discharge time)`
-                  : 'Not used for a single-truck pour'
+                  : 'Not used for a single-truck placement'
               }
             />
             <Input

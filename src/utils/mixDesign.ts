@@ -85,10 +85,10 @@ function getMitigationSteps(metricRate: number): string[] {
   }
   if (metricRate <= 1.0) {
     return [
-      'Erect windbreaks or sun-shades around pour area',
+      'Erect windbreaks or sun-shades around placement area',
       'Begin light fogging every 15-30 minutes',
       'Apply curing compound when bleeding stops',
-      'Consider rescheduling pour for better conditions',
+      'Consider rescheduling placement for better conditions',
     ];
   }
   return [
@@ -97,7 +97,7 @@ function getMitigationSteps(metricRate: number): string[] {
     'Cover surface with wet burlap or poly sheeting',
     'Mandatory wet curing for minimum 24 hours',
     'Use windbreaks and sunshades',
-    'Reschedule pour if possible',
+    'Reschedule placement if possible',
   ];
 }
 
@@ -138,7 +138,7 @@ export function suggestConcreteParameters(params: {
 
   if (tempF > 90 || (climate === 'tropical' && tempF > 85)) {
     recommendations.push('CRITICAL: Use Type D water-reducing retarder');
-    recommendations.push('Schedule pour for early morning or evening');
+    recommendations.push('Schedule placement for early morning or evening');
     recommendations.push(
       'Consider using chilled water or ice as partial water replacement',
     );

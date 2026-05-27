@@ -111,7 +111,7 @@ export const MITIGATION_OPTIONS: MitigationOption[] = [
     label: 'Early morning placement',
     credit: 8,
     category: 'temperature',
-    description: 'Schedule pour dawn to mid-morning before peak heat',
+    description: 'Schedule placement dawn to mid-morning before peak heat',
     appliesWhen: (ctx) => isHot(ctx),
   },
   {
@@ -263,7 +263,7 @@ export const MITIGATION_OPTIONS: MitigationOption[] = [
   },
   {
     id: 'phased-pours',
-    label: 'Reduced placement area / phased pours',
+    label: 'Reduced placement area / phased placements',
     credit: 5,
     category: 'wind-evaporation',
     description: 'Limit open surface during high evaporation',
@@ -413,7 +413,7 @@ export const MITIGATION_OPTIONS: MitigationOption[] = [
     label: 'Extra manpower scheduled',
     credit: 2,
     category: 'operational',
-    description: 'Large or fast-track pours',
+    description: 'Large or fast-track placements',
     appliesWhen: (ctx) => hasPlacementStress(ctx) && (isElevatedEvap(ctx) || isVeryHot(ctx)),
   },
   {
@@ -434,7 +434,7 @@ export const MITIGATION_OPTIONS: MitigationOption[] = [
   },
   {
     id: 'pre-pour-meeting',
-    label: 'Pre-pour coordination meeting',
+    label: 'Pre-placement coordination meeting',
     credit: 2,
     category: 'operational',
     description: 'QC alignment before placement',
@@ -445,7 +445,7 @@ export const MITIGATION_OPTIONS: MitigationOption[] = [
     label: 'Dedicated QC inspector',
     credit: 3,
     category: 'operational',
-    description: 'Risk reduction on demanding pours',
+    description: 'Risk reduction on demanding placements',
     appliesWhen: (ctx) => hasPlacementStress(ctx) && (isElevatedEvap(ctx) || isFreezing(ctx)),
   },
   {
@@ -453,7 +453,7 @@ export const MITIGATION_OPTIONS: MitigationOption[] = [
     label: 'Mock-up / test placement completed',
     credit: 5,
     category: 'operational',
-    description: 'Complex pours or unfamiliar conditions',
+    description: 'Complex placements or unfamiliar conditions',
     appliesWhen: (ctx) =>
       isExtremeEvap(ctx) || isExtremeCold(ctx) || isExtremeHeat(ctx),
   },

@@ -87,7 +87,7 @@ const ConcreteCalculatorPage: React.FC = () => {
               </p>
               <div className="flex gap-2 shrink-0">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={() =>
                     navigate({
                       pathname: '/calculator',
@@ -95,7 +95,7 @@ const ConcreteCalculatorPage: React.FC = () => {
                       state: workflowNavigateState(workflowProjectId),
                     })
                   }
-                  className="dark:text-white"
+                  className="shadow-sm"
                 >
                   All calculators
                 </Button>

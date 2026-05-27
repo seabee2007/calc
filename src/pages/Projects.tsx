@@ -197,10 +197,10 @@ const Projects: React.FC = () => {
         if (error) throw error;
 
         await updateProject(currentProject.id, { pourDate: utcDate.toISOString() });
-        showToastMessage('Pour date updated successfully', 'success');
+        showToastMessage('Placement date updated successfully', 'success');
       } catch (error) {
         console.error('Error updating pour date:', error);
-        showToastMessage('Error updating pour date', 'error');
+        showToastMessage('Error updating placement date', 'error');
       } finally {
         setIsSaving(false);
       }
@@ -864,6 +864,12 @@ const Projects: React.FC = () => {
                 <div className="mt-8">
                   <ReinforcementDetails
                     reinforcements={currentProject.reinforcements || []}
+                    onOpenCalculator={() =>
+                      navigate(
+                        `/calculator/reinforcement${workflowQuery(currentProject.id)}`,
+                        { state: workflowNavigateState(currentProject.id) },
+                      )
+                    }
                     onDelete={async (reinforcementId) => {
                       try {
                         const { error } = await supabase

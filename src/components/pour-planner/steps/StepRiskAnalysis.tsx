@@ -33,7 +33,7 @@ export const StepRiskAnalysis: React.FC<StepProps> = ({
           Risk dashboard
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Combined delivery, weather, slump, and crew risk for this pour plan.
+          Combined delivery, weather, slump, and crew risk for this placement plan.
         </p>
         <PlannerStepLocationsCard form={planner.form} className="mb-4" />
         <RiskDashboard planner={planner} selectedDay={selectedDay} />

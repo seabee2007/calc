@@ -28,7 +28,7 @@ interface DispatchTrackerPanelProps {
 }
 
 const NO_PLACEMENTS_MSG =
-  'No placements scheduled for today. Truck dispatch appears here when a project has today\'s pour date and a saved placement order.';
+  'No placements scheduled for today. Truck dispatch appears here when a project has today\'s placement date and a saved placement order.';
 
 const DispatchTrackerPanel: React.FC<DispatchTrackerPanelProps> = ({
   trucks,

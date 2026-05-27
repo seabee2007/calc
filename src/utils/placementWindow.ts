@@ -223,7 +223,7 @@ export function analyzeHotWeather(params: {
   }
   if (riskLevel === 'high') {
     actions.push('Reduce truck spacing to limit onsite wait');
-    actions.push('Consider earlier pour time or reschedule to cooler hours');
+    actions.push('Consider earlier placement time or reschedule to cooler hours');
   }
 
   return {

@@ -159,8 +159,8 @@ const ReinforcementCalculatorPage: React.FC = () => {
 
         {inWorkflow && (
           <Button
-            variant="outline"
-            className="mt-4 dark:text-white"
+            variant="secondary"
+            className="mt-4 shadow-sm"
             onClick={() =>
               navigate({
                 pathname: '/calculator',

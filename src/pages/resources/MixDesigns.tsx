@@ -36,7 +36,7 @@ const MixDesigns: React.FC = () => {
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Defining Requirements</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Every successful mix design begins by asking, "What do I need this concrete to do?" If you're pouring a home foundation, you might need a compressive strength of 25–30 MPa (3,600–4,350 psi). A driveway slab might only need 20 MPa (2,900 psi), but must resist freeze–thaw cycles in winter. Structural beams often call for 35–40 MPa (5,000–5,800 psi) so they safely carry heavy loads.
+              Every successful mix design begins by asking, "What do I need this concrete to do?" If you're placing a home foundation, you might need a compressive strength of 25–30 MPa (3,600–4,350 psi). A driveway slab might only need 20 MPa (2,900 psi), but must resist freeze–thaw cycles in winter. Structural beams often call for 35–40 MPa (5,000–5,800 psi) so they safely carry heavy loads.
             </p>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               In each case, you also think about durability. For a sidewalk exposed to deicing salts, you'll plan for air-entrainment to resist cracking, and perhaps a sulfate-resistant cement if the soil contains harmful chemicals. Finally, consider how you'll place the concrete: pumping long distances requires a more fluid mix (higher slump), while hand-placing around tightly spaced reinforcement may call for a stiffer mix (lower slump).
@@ -63,7 +63,7 @@ const MixDesigns: React.FC = () => {
                   <li><strong>Type I:</strong> General-purpose cement for sidewalks, foundations, and buildings</li>
                   <li><strong>Type II:</strong> Offers moderate sulfate resistance—ideal where soil or groundwater carries sulfates</li>
                   <li><strong>Type III:</strong> High-early-strength cement, useful when you need the concrete to carry loads quickly</li>
-                  <li><strong>Type IV:</strong> Produces low heat during hydration, reducing cracking risk in large pours</li>
+                  <li><strong>Type IV:</strong> Produces low heat during hydration, reducing cracking risk in large placements</li>
                   <li><strong>Type V:</strong> Provides the highest sulfate resistance for very aggressive environments</li>
                 </ul>
               </div>
@@ -85,7 +85,7 @@ const MixDesigns: React.FC = () => {
                 <p className="text-gray-700 dark:text-gray-300 mb-2">The water–cement (w/c) ratio controls strength and workability:</p>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
                   <li><strong>Low w/c (0.35):</strong> Higher strength, but stiffer mix that can be hard to place</li>
-                  <li><strong>High w/c (0.55):</strong> More fluid mix, easier to pour, but lower ultimate strength</li>
+                  <li><strong>High w/c (0.55):</strong> More fluid mix, easier to place, but lower ultimate strength</li>
                   <li><strong>Typical range:</strong> 0.40 to 0.50 for structural concrete</li>
                 </ul>
               </div>
@@ -154,7 +154,7 @@ const MixDesigns: React.FC = () => {
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Trial Mixes and Testing</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Before you pour thousands of liters, you verify your design in the lab or on a small batch plant. You weigh out materials exactly as calculated and mix them thoroughly. First, you measure slump: if it's more than 25 mm off your target, you adjust water or admixture dosage.
+              Before you place thousands of liters, you verify your design in the lab or on a small batch plant. You weigh out materials exactly as calculated and mix them thoroughly. First, you measure slump: if it's more than 25 mm off your target, you adjust water or admixture dosage.
             </p>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               Next, you cast cylinders for compressive strength tests at 7 and 28 days. If the 7-day strength is too low, you might increase cement by 10 kg/m³ or reduce w/c by 0.02. You also check air content with a pressure meter: if it's under 1.2% when you wanted 1.5%, you add a bit more air-entrainer.

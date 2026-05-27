@@ -115,7 +115,7 @@ const PlacementScoringGuide: React.FC = () => {
         <ScoreTable
           headers={['Category', 'Examples', 'Typical credit']}
           rows={[
-            ['Temperature', 'Night pour, chilled water, heated enclosure', '+5 to +20'],
+            ['Temperature', 'Night placement, chilled water, heated enclosure', '+5 to +20'],
             ['Wind & evaporation', 'Wind breaks, evap retarder, fogging', '+2 to +10'],
             ['Rain & severe', 'Tarps, enclosure, storm delay buffer', '+3 to +10'],
             ['Mix design', 'Retarder, SRA, SCMs', '+2 to +5'],

@@ -103,7 +103,7 @@ const RiskDashboard: React.FC<RiskDashboardProps> = ({ planner, selectedDay }) =
         items={[
           `Crew: ${crewSize || '—'} (${est.laborers} placing · ${est.finishers} finishing)`,
           `Bottleneck: ${est.limitingFactor.replace('_', ' ')} · ${est.adjustedRateCYHr} CY/hr`,
-          est.bottleneckRecommendation ?? `Pour duration: ${production.placementDurationHours.toFixed(1)} hr`,
+          est.bottleneckRecommendation ?? `Placement duration: ${production.placementDurationHours.toFixed(1)} hr`,
           `Truck arrival spacing: ${Math.round(production.truckSpacingMinutes)} min (discharge interval)`,
         ]}
       />

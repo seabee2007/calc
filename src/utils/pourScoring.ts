@@ -313,11 +313,11 @@ function scoreHotWeather(maxTemp: number, reasons: string[], precautions: string
   if (maxTemp > 100) {
     penalty = 55;
     reasons.push(`Severe hot-weather placement (${Math.round(maxTemp)}°F, ACI 305R)`);
-    precautions.push('Avoid midday pour; use retarder, chilled water, and immediate curing');
+    precautions.push('Avoid midday placement; use retarder, chilled water, and immediate curing');
   } else if (maxTemp > 90) {
     penalty = 40;
     reasons.push(`Rapid set / cracking risk (${Math.round(maxTemp)}°F, ACI 305R)`);
-    precautions.push('Pour early morning or evening; Type D retarder and fogging as needed');
+    precautions.push('Place early morning or evening; Type D retarder and fogging as needed');
   } else if (maxTemp > 85) {
     penalty = 18;
     reasons.push(`Elevated hot-weather risk (${Math.round(maxTemp)}°F)`);

@@ -75,7 +75,7 @@ function formatPourDateMilitary(
     d = new Date(projectPourDateIso);
   }
   if (!d || Number.isNaN(d.getTime())) {
-    return 'TBD — set pour day in Step 4 or save placement date';
+    return 'TBD — set placement day in Step 4 or save placement date';
   }
   const day = d.getDate();
   const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
@@ -180,10 +180,10 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
     labelValue('Superintendent', form.superintendent),
     labelValue('Point of Contact', form.pointOfContact),
     labelValue('Phone Number', pocPhone),
-    labelValue('Date of Pour', formatPourDateMilitary(selectedDay, projectPourDateIso)),
+    labelValue('Date of Placement', formatPourDateMilitary(selectedDay, projectPourDateIso)),
     labelValue('Requested Start Time', formatStartTime(form.pourStartTime)),
     labelValue(
-      'Estimated Pour Duration',
+      'Estimated Placement Duration',
       pourDurationHours > 0 ? `${pourDurationHours.toFixed(1)} hours` : undefined,
     ),
   );
@@ -283,7 +283,7 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
     labelValue('Cold Weather Placement', yesNo(inferColdWeather(form))),
     labelValue('Wind Concerns', yesNo(inferWindConcerns(form, selectedDay))),
     form.windSpeed ? labelValue('Wind Speed', `${form.windSpeed} mph`) : null,
-    labelValue('Night Pour', yesNo(form.nightPour)),
+    labelValue('Night Placement', yesNo(form.nightPour)),
     selectedDay
       ? labelValue('Forecast Rating', selectedDay.rating)
       : null,

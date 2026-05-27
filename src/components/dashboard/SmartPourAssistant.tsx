@@ -26,7 +26,7 @@ const CHECK_ITEMS: { key: keyof SmartPourAssistantProps['checks']; label: string
   { key: 'mixSelected', label: 'Mix selected' },
   { key: 'volumeCalculated', label: 'Volume calculated' },
   { key: 'weatherAcceptable', label: 'Weather acceptable' },
-  { key: 'pourDateScheduled', label: 'Pour date scheduled' },
+  { key: 'pourDateScheduled', label: 'Placement date scheduled' },
   { key: 'batchPlantAssigned', label: 'Batch plant assigned' },
   { key: 'truckSpacingEntered', label: 'Truck spacing entered' },
   { key: 'curingMethodSelected', label: 'Curing method selected' },
@@ -54,7 +54,7 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
         <>
           <p className="text-base font-semibold text-white">No placement scheduled</p>
           <p className="text-sm text-slate-400 mt-1">
-            Schedule a pour date to run the pre-placement review.
+            Schedule a placement date to run the pre-placement review.
           </p>
           <Button
             size="sm"

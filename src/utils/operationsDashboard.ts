@@ -446,7 +446,7 @@ export function buildSmartPourTips(
       id: 'heat',
       severity: 'warning',
       message:
-        'Delay pour or start 0300–0600 — heat index elevates set acceleration. Recommend retarder and chilled water.',
+        'Delay placement or start 0300–0600 — heat index elevates set acceleration. Recommend retarder and chilled water.',
     });
   }
   if (snapshot.windRisk === 'moderate' || snapshot.windRisk === 'high') {
@@ -470,7 +470,7 @@ export function buildSmartPourTips(
     tips.push({
       id: 'ready',
       severity: 'warning',
-      message: `${lowReady.length} pour(s) below 65 readiness — complete call sheet & batch plant contact in Placement Planner.`,
+      message: `${lowReady.length} placement(s) below 65 readiness — complete call sheet & batch plant contact in Placement Planner.`,
     });
   }
 

@@ -54,14 +54,14 @@ export default function CalculationSection() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-blue-50 dark:bg-gray-900 p-2 rounded-md">
-                      <p className="text-sm text-blue-700">Volume</p>
-                      <p className="text-lg font-semibold text-blue-900">
+                      <p className="text-sm text-gray-200">Volume</p>
+                      <p className="text-lg font-semibold text-gray-200">
                         {calc.result.volume} yd³
                       </p>
                     </div>
                     <div className="bg-green-50 dark:bg-gray-900 p-2 rounded-md">
-                      <p className="text-sm text-green-700">Bags Required</p>
-                      <p className="text-lg font-semibold text-green-900">
+                      <p className="text-sm text-gray-200">Bags Required</p>
+                      <p className="text-lg font-semibold text-gray-200">
                         {calc.result.bags} bags
                       </p>
                     </div>

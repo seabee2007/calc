@@ -105,7 +105,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
   const stageIdx = Math.max(0, STAGE_ORDER.indexOf(workflow.stage));
   const progressPct = Math.round((stageIdx / (STAGE_ORDER.length - 1)) * 100);
   const pourDate = parsePourDate(p.pourDate);
-  const pourLabel = pourDate ? format(pourDate, 'EEE HH:mm') : 'Pour date: —';
+  const pourLabel = pourDate ? format(pourDate, 'EEE HH:mm') : 'Placement date: —';
   const tone = priorityTone(workflow.stage, Boolean(p.pourDate));
 
   const volumeYd = (p.calculations ?? []).reduce(

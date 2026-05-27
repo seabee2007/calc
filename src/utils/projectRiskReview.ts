@@ -150,7 +150,7 @@ export function buildProjectRiskReview(
     return {
       riskLevel: 'low',
       riskLabel: 'NO ACTIVE PLACEMENT',
-      attention: ['Schedule a pour date on a project to run risk review.'],
+      attention: ['Schedule a placement date on a project to run risk review.'],
       good: [],
     };
   }
@@ -179,7 +179,7 @@ export function buildProjectRiskReview(
   }
 
   if (weather.heatRisk === 'high') {
-    attention.push('Heat index high — consider night pour or retarder');
+    attention.push('Heat index high — consider night placement or retarder');
   } else if (weather.heatRisk === 'moderate') {
     attention.push('Heat may accelerate set — confirm start time');
   }
@@ -202,8 +202,8 @@ export function buildProjectRiskReview(
     good.push('Rebar / materials complete');
   }
 
-  if (!project.pourDate) attention.push('Pour date not scheduled');
-  else good.push('Pour date scheduled');
+  if (!project.pourDate) attention.push('Placement date not scheduled');
+  else good.push('Placement date scheduled');
 
   if (!hasTruckSpacing(order?.summaryLines)) {
     attention.push('Delivery spacing incomplete');

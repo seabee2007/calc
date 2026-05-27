@@ -12,6 +12,9 @@ export default function ReinforcementSection() {
       <ReinforcementDetails
         reinforcements={currentProject.reinforcements || []}
         onDelete={handlers.deleteReinforcement}
+        onOpenCalculator={() =>
+          handlers.navigateToReinforcementCalculator(currentProject.id)
+        }
       />
     </div>
   );

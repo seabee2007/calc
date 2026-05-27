@@ -190,11 +190,11 @@ export function generateRecommendations(
   } else if (temperature > 85 && temperature <= 90) {
     recommendations.push('Hot weather alert - Use water-reducing retarder (Type D) to maintain workability.');
     recommendations.push('Consider using chilled water or ice as partial water replacement.');
-    recommendations.push('Schedule pour for early morning or evening to avoid peak heat.');
+    recommendations.push('Schedule placement for early morning or evening to avoid peak heat.');
   } else if (temperature > 90) {
     recommendations.push('CRITICAL: Extreme heat - Use both water-reducing retarder and polycarboxylate superplasticizer.');
     recommendations.push('Use ice as partial water replacement to control concrete temperature.');
-    recommendations.push('Mandatory early morning or evening pour schedule.');
+    recommendations.push('Mandatory early morning or evening placement schedule.');
   }
 
   // Humidity-based recommendations
@@ -231,7 +231,7 @@ export function generateRecommendations(
         recommendations.push('Consider adding control joints at thickness transition points.');
         
         if (edgeThickness > baseThickness * 2) {
-          recommendations.push('Large thickness difference - Pour edge thickening first, then main slab.');
+          recommendations.push('Large thickness difference - Place edge thickening first, then main slab.');
         }
         
         if (baseThickness < 4/12) {

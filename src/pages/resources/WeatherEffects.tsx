@@ -75,7 +75,7 @@ const WeatherEffects: React.FC = () => {
                     </ul>
                   </li>
                   <li>
-                    <strong>Schedule pours for cooler hours</strong>
+                    <strong>Schedule placements for cooler hours</strong>
                     <ul className="list-circle pl-5 mt-1 space-y-1">
                       <li>Early morning or late evening placement avoids peak heat</li>
                     </ul>
@@ -174,7 +174,7 @@ const WeatherEffects: React.FC = () => {
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">Solar Radiation</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">Heats surface unevenly → thermal gradients, crazing cracks</td>
-                    <td className="px-6 py-4 text-gray-900 dark:text-white">Shade pour area, use reflective covers, schedule shaded pours</td>
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">Shade placement area, use reflective covers, schedule shaded placements</td>
                   </tr>
                 </tbody>
               </table>
@@ -207,7 +207,7 @@ const WeatherEffects: React.FC = () => {
           <div className="bg-blue-50/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold text-blue-900 mb-4">Summary</h2>
             <p className="text-blue-800">
-              By closely monitoring temperature, wind, humidity, and solar load—and by using cooling/heating techniques, admixtures, protective coverings, and well-timed pours—you can control the curing environment. This ensures uniform hydration, minimizes cracking, and achieves the target strength and durability, no matter what the weather brings.
+              By closely monitoring temperature, wind, humidity, and solar load—and by using cooling/heating techniques, admixtures, protective coverings, and well-timed placements—you can control the curing environment. This ensures uniform hydration, minimizes cracking, and achieves the target strength and durability, no matter what the weather brings.
             </p>
           </div>
         </div>

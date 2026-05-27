@@ -6,6 +6,7 @@ import { MixProfileType } from '../../types/curing';
 import { Project, QCRecord } from '../../types';
 import { generateProjectPDF } from '../../utils/pdf';
 import { CONCRETE_MIX_DESIGNS } from '../../types';
+import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
 
 export function useProjects() {
   const navigate = useNavigate();
@@ -92,6 +93,12 @@ export function useProjects() {
       navigate('/calculator', { state: { projectId } });
     },
 
+    navigateToReinforcementCalculator: (projectId: string) => {
+      navigate(`/calculator/reinforcement${workflowQuery(projectId)}`, {
+        state: workflowNavigateState(projectId),
+      });
+    },
+
     mixProfileChange: async (newProfile: MixProfileType) => {
       if (!currentProject) return;
       setUi(s => ({ ...s, isSaving: true }));
@@ -114,10 +121,10 @@ export function useProjects() {
           // Create a proper ISO date string for the pourDate
           const isoDate = new Date(date + 'T00:00:00.000Z').toISOString();
           await updateProject(currentProject.id, { pourDate: isoDate });
-          toast('Pour date updated successfully', 'success');
+          toast('Placement date updated successfully', 'success');
         } catch (error) {
           console.error('Error updating pour date:', error);
-          toast('Error updating pour date', 'error');
+          toast('Error updating placement date', 'error');
         } finally {
           setUi(s => ({ ...s, isSaving: false }));
         }

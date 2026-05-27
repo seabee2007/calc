@@ -137,7 +137,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
             </div>
           ) : (
             <p className="text-xs text-slate-500 mt-4">
-              Call sheet pending — build truck spacing in Placement Planner before pour day.
+              Call sheet pending — build truck spacing in Placement Planner before placement day.
             </p>
           )}
 

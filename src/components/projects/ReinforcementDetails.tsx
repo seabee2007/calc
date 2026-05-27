@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Layers, Zap, Trash2, Calendar } from 'lucide-react';
+import { BarChart3, Layers, Zap, Trash2, Calendar, Plus } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -10,6 +10,7 @@ import { soundService } from '../../services/soundService';
 interface ReinforcementDetailsProps {
   reinforcements: ReinforcementSet[];
   onDelete?: (setId: string) => void;
+  onOpenCalculator?: () => void;
 }
 
 // Interface for cut list items from database
@@ -35,18 +36,24 @@ const formatLength = (lengthFt: number): string => {
   }
 };
 
-const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({ 
-  reinforcements, 
-  onDelete 
+const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
+  reinforcements,
+  onDelete,
+  onOpenCalculator,
 }) => {
   if (!reinforcements || reinforcements.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <BarChart3 className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Reinforcement Designs</h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          Create reinforcement designs from the calculator to see them here
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
+          Run the rebar calculator for this project to add designs here.
         </p>
+        {onOpenCalculator && (
+          <Button onClick={onOpenCalculator} icon={<Plus size={16} />}>
+            Open Rebar Calculator
+          </Button>
+        )}
       </div>
     );
   }
@@ -98,10 +105,21 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Reinforcement Designs ({reinforcements.length})
         </h3>
+        {onOpenCalculator && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onOpenCalculator}
+            icon={<Plus size={16} />}
+          >
+            <span className="hidden sm:inline">Rebar Calculator</span>
+            <span className="sm:hidden">Calculator</span>
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

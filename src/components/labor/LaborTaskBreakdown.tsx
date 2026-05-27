@@ -147,7 +147,7 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
           Task breakdown (clock hours per task)
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          Pour-day duration uses parallel work — placement and finishing overlap; prior-day
+          Placement-day duration uses parallel work — placement and finishing overlap; prior-day
           prep lines are shown for scope but not added to on-site clock.
         </p>
         <ul className="space-y-1">

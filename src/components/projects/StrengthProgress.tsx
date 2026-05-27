@@ -24,7 +24,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
       <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Strength Progress</h3>
         <p className="text-gray-600 dark:text-gray-300">
-          Set a pour date to track concrete strength development over time.
+          Set a placement date to track concrete strength development over time.
         </p>
       </div>
     );
@@ -43,7 +43,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
     return (
       <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Strength Progress</h3>
-        <p className="text-gray-600 dark:text-gray-300">Invalid pour date format.</p>
+        <p className="text-gray-600 dark:text-gray-300">Invalid placement date format.</p>
       </div>
     );
   }
@@ -136,7 +136,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
           <div className="mt-2 space-y-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Pour Date
+                Placement Date
               </label>
               <Input
                 type="date"
@@ -217,7 +217,7 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
           </div>
         </div>
         <p className="text-sm text-blue-600">
-          {daysPassed} days since pour • {28 - daysPassed} days until full strength
+          {daysPassed} days since placement • {28 - daysPassed} days until full strength
         </p>
       </div>
     </div>

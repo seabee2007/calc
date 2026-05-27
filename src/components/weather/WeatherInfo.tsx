@@ -127,7 +127,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weather, className = '' }) =>
       <div className="mt-4 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
         <p className="text-sm text-blue-800 dark:text-blue-200">
           {weather.temperature > 85 
-            ? "Hot weather alert: Consider using retarders and scheduling pour for cooler hours."
+            ? "Hot weather alert: Consider using retarders and scheduling placement for cooler hours."
             : weather.temperature < 50
             ? "Cold weather alert: Consider accelerators and protection from freezing."
             : "Good conditions for concrete placement."}

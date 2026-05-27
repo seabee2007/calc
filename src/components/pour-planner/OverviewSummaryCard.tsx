@@ -20,7 +20,7 @@ const OverviewSummaryCard: React.FC<OverviewSummaryCardProps> = ({ planner }) =>
   return (
     <Card className="p-4 bg-white/95 dark:bg-gray-900/95 border border-blue-100 dark:border-blue-900/50">
       <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-        Pour snapshot
+        Placement snapshot
       </h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat
@@ -44,7 +44,7 @@ const OverviewSummaryCard: React.FC<OverviewSummaryCardProps> = ({ planner }) =>
         />
         <Stat
           icon={<Clock className="h-4 w-4 text-blue-600" />}
-          label="Pour duration"
+          label="Placement duration"
           value={
             overview.pourDurationHours > 0
               ? `${overview.pourDurationHours.toFixed(1)} hr`

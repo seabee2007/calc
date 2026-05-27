@@ -112,7 +112,7 @@ export default function ProjectDetails() {
     const truckSpacing = Boolean(order?.summaryLines?.some((l) => /Truck Spacing/i.test(l)));
     if (!truckSpacing) issues.push({ msg: 'Truck spacing not configured', action: 'placement' });
 
-    if (!currentProject.pourDate) issues.push({ msg: 'Pour date not scheduled', action: 'project' });
+    if (!currentProject.pourDate) issues.push({ msg: 'Placement date not scheduled', action: 'project' });
 
     const volumeYd = (currentProject.calculations ?? []).reduce(
       (s, c) => s + ((c.result?.volume as number) ?? 0),
@@ -335,7 +335,7 @@ export default function ProjectDetails() {
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                 <Calendar className="h-4 w-4 text-blue-500" />
-                <span className="text-gray-500 dark:text-gray-400">Pour date:</span>
+                <span className="text-gray-500 dark:text-gray-400">Placement date:</span>
                 <span className="font-semibold">{pourDateLabel}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
@@ -492,11 +492,11 @@ export default function ProjectDetails() {
         </div>
       </div>
 
-      {/* SECTION 4 — POUR INFORMATION */}
+      {/* SECTION 4 — PLACEMENT INFORMATION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
-            Pour details
+          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-200 mb-2">
+            Placement details
           </p>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <InfoRow label="Volume" value={pourDetails.volumeLabel} />
@@ -616,7 +616,7 @@ export default function ProjectDetails() {
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Project files</p>
         <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
           <li>• Proposal (tracked)</li>
-          <li>• Pour call sheet (Placement Planner)</li>
+          <li>• Placement call sheet (Placement Planner)</li>
           <li>• QC logs</li>
           <li>• Mix report / calculator outputs</li>
         </ul>

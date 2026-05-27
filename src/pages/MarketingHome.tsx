@@ -33,7 +33,7 @@ const MarketingHome: React.FC = () => {
     },
     {
       title: 'Project management',
-      description: 'QC logs, truck tickets, jobsite addresses, and pour dates',
+      description: 'QC logs, truck tickets, jobsite addresses, and placement dates',
       icon: <Folder className="h-10 w-10 text-white" />,
       action: () => navigate('/projects'),
       gradient: 'from-indigo-500 to-indigo-700',

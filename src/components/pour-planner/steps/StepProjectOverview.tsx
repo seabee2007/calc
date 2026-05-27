@@ -309,7 +309,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
           Project overview
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Choose a saved project or enter a pour name, verify the jobsite location, then find or
+          Choose a saved project or enter a placement name, verify the jobsite location, then find or
           enter the batch plant address.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -320,7 +320,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
                 options={[
                   { value: '', label: 'Select a project' },
                   ...projects.map((p) => ({ value: p.id, label: p.name })),
-                  { value: CUSTOM_PROJECT_VALUE, label: 'Custom pour (manual name)' },
+                  { value: CUSTOM_PROJECT_VALUE, label: 'Custom placement (manual name)' },
                 ]}
                 value={projectSelectValue}
                 onChange={handleProjectChange}
@@ -330,7 +330,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
                   label="Project name"
                   value={form.projectName}
                   onChange={(e) => setField('projectName', e.target.value)}
-                  placeholder="e.g. Main St slab pour"
+                  placeholder="e.g. Main St slab placement"
                 />
               )}
             </>
@@ -339,7 +339,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
               label="Project name"
               value={form.projectName}
               onChange={(e) => setField('projectName', e.target.value)}
-              placeholder="e.g. Main St slab pour"
+              placeholder="e.g. Main St slab placement"
             />
           )}
 
@@ -376,7 +376,7 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
           )}
 
           <Input
-            label="Pour start time"
+            label="Placement start time"
             type="time"
             value={form.pourStartTime}
             onChange={(e) => setField('pourStartTime', e.target.value)}
