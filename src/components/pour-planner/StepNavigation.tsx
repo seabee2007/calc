@@ -11,6 +11,9 @@ interface StepNavigationProps {
   finishLabel?: string;
   finishDisabled?: boolean;
   finishLoading?: boolean;
+  /** Override default "Continue" label on non-final steps */
+  nextLabel?: string;
+  nextDisabled?: boolean;
 }
 
 const StepNavigation: React.FC<StepNavigationProps> = ({
@@ -22,6 +25,8 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
   finishLabel = 'Save placement date',
   finishDisabled = false,
   finishLoading = false,
+  nextLabel = 'Continue',
+  nextDisabled = false,
 }) => {
   const isFirst = activeStep === 0;
   const isLast = activeStep === totalSteps - 1;
@@ -34,10 +39,11 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
         onClick={onBack}
         disabled={isFirst}
         icon={<ArrowLeft className="h-4 w-4" />}
+        className="dark:text-gray-200 dark:border-gray-600"
       >
         Back
       </Button>
-      {isLast ? (
+      {isLast && onFinish ? (
         <Button
           type="button"
           onClick={onFinish}
@@ -46,11 +52,11 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
         >
           {finishLoading ? 'Saving…' : finishLabel}
         </Button>
-      ) : (
-        <Button type="button" onClick={onNext}>
-          Continue
+      ) : !isLast ? (
+        <Button type="button" onClick={onNext} disabled={nextDisabled}>
+          {nextLabel}
         </Button>
-      )}
+      ) : null}
     </div>
   );
 };

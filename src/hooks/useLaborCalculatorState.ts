@@ -92,7 +92,7 @@ export function useLaborCalculatorState(calculation?: Calculation) {
       volumeYd,
       inputs,
       laborCost,
-      adjustedLaborHours: professionalLabor?.billableCrewHours,
+      adjustedLaborHours: professionalLabor?.totalManHours,
       professionalLabor: professionalLabor ?? undefined,
     };
   }, [inputs, professionalLabor, volumeYd]);

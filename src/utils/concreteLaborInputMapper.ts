@@ -134,11 +134,12 @@ export function buildConcreteLaborEstimateInput(
   const thicknessInches = slabThicknessFt != null ? slabThicknessFt * 12 : 6;
   const volumeYd = Math.max(0, options.volumeYd);
 
-  const areaSqFt =
-    resolveSlabAreaSqFt(options.calculation, inputs.slabSize ?? '', {
-      volumeYd,
-      slabThicknessFt: slabThicknessFt ?? thicknessInches / 12,
-    }) ?? 0;
+  const { areaSqFt } = resolveConsistentAreaSqFt(
+    options.calculation,
+    inputs.slabSize ?? '',
+    volumeYd,
+    inputs.slabThicknessIn ?? '6',
+  );
 
   const burdenMultiplier =
     parseFloat(inputs.burdenMultiplier) || DEFAULT_BURDEN;
@@ -190,6 +191,41 @@ export function buildConcreteLaborEstimateInput(
   };
 }
 
+/**
+ * Prefer volume × thickness when footprint disagrees (avoids 52 CY on 1,040 SF → 16" thick).
+ */
+export function resolveConsistentAreaSqFt(
+  calculation: Calculation | undefined,
+  slabSize: string,
+  volumeYd: number,
+  slabThicknessIn: string,
+): {
+  areaSqFt: number;
+  thicknessInches: number;
+  reconciledFromVolume: boolean;
+} {
+  const thicknessFt =
+    resolveSlabThicknessFt(calculation, slabSize, slabThicknessIn) ??
+    (parseFloat(slabThicknessIn) / 12 || 0.5);
+  const thicknessInches = thicknessFt * 12;
+
+  const fromVolume =
+    volumeYd > 0 && thicknessFt > 0 ? (volumeYd * 27) / thicknessFt : 0;
+  const footprint =
+    getCalculationAreaSqFt(calculation) ?? parseSlabAreaSqFt(slabSize) ?? 0;
+
+  if (fromVolume > 0 && footprint > 0) {
+    const ratio = footprint / fromVolume;
+    if (ratio >= 0.85 && ratio <= 1.15) {
+      return { areaSqFt: footprint, thicknessInches, reconciledFromVolume: false };
+    }
+    return { areaSqFt: fromVolume, thicknessInches, reconciledFromVolume: true };
+  }
+
+  const areaSqFt = footprint > 0 ? footprint : fromVolume;
+  return { areaSqFt, thicknessInches, reconciledFromVolume: false };
+}
+
 /** Area from explicit footprint or volume × thickness. */
 export function resolveLaborAreaSqFt(
   calculation: Calculation | undefined,
@@ -197,14 +233,10 @@ export function resolveLaborAreaSqFt(
   volumeYd: number,
   slabThicknessIn: string,
 ): number {
-  const thicknessFt = resolveSlabThicknessFt(calculation, slabSize, slabThicknessIn);
-  return (
-    resolveSlabAreaSqFt(calculation, slabSize, {
-      volumeYd,
-      slabThicknessFt: thicknessFt ?? (parseFloat(slabThicknessIn) / 12 || 0.5),
-    }) ??
-    getCalculationAreaSqFt(calculation) ??
-    parseSlabAreaSqFt(slabSize) ??
-    0
-  );
+  return resolveConsistentAreaSqFt(
+    calculation,
+    slabSize,
+    volumeYd,
+    slabThicknessIn,
+  ).areaSqFt;
 }

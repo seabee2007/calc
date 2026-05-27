@@ -31,6 +31,22 @@ export function getBaseWaterCementRatio(psi: number): number {
   return 0.58;
 }
 
+/** Max w/c for durability — not increased for hot weather. */
+export function getMaxAllowedWaterCementRatio(params: {
+  psi: number;
+  exposure: MixExposure;
+  sulfateExposure?: boolean;
+  chlorideExposure?: boolean;
+  marineCoastal?: boolean;
+}): number {
+  let maxWc = getBaseWaterCementRatio(params.psi);
+  if (params.exposure === 'F2') maxWc = Math.min(maxWc, 0.5);
+  if (params.exposure === 'F3') maxWc = Math.min(maxWc, 0.45);
+  if (params.sulfateExposure) maxWc = Math.min(maxWc, 0.45);
+  if (params.chlorideExposure || params.marineCoastal) maxWc = Math.min(maxWc, 0.4);
+  return maxWc;
+}
+
 export function parseMixDesignPsi(value: string): number {
   const n = parseInt(String(value).replace(/[^\d]/g, ''), 10);
   return Number.isFinite(n) && n > 0 ? n : 4000;
@@ -96,9 +112,13 @@ export function suggestConcreteParameters(params: {
   const { tempF, humidityPercent, windMph, psi, exposure, climate } = params;
   const tempC = ((tempF - 32) * 5) / 9;
 
-  const baseWc = getBaseWaterCementRatio(psi);
-  const delta = Math.max(0, (tempC - 21) / 11) * 0.025;
-  const wc = Math.min(0.6, baseWc + delta);
+  const wc = getMaxAllowedWaterCementRatio({
+    psi,
+    exposure,
+    sulfateExposure: false,
+    chlorideExposure: false,
+    marineCoastal: false,
+  });
 
   const airContent =
     climate === 'tropical'

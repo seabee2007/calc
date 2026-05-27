@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Beaker, Thermometer, Droplets, Wind, AlertTriangle, Info, MapPin, Scale, Clock, CheckCircle, XCircle, Search, CloudSun, SkipForward } from 'lucide-react';
+import { Beaker, Thermometer, Droplets, Wind, CloudSun, SkipForward, Info } from 'lucide-react';
+import StepNavigation from '../components/pour-planner/StepNavigation';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import { useProjectStore } from '../store';
 import { useWorkflowDraftStore } from '../store/workflowDraftStore';
@@ -14,39 +15,31 @@ import {
   workflowNavigateState,
   type WorkflowLocationState,
 } from '../utils/workflow';
-import {
-  MIX_DESIGN_PSI_OPTIONS,
-  getEvaporationRiskLevel,
-  parseMixDesignPsi,
-  suggestConcreteParameters,
-  weatherToMixInputs,
-  type MixDesignRecommendation,
-  type MixExposure,
-} from '../utils/mixDesign';
-import {
-  copyUSAddress,
-  formatUSAddress,
-  hasProjectJobsite,
-  repairJobsiteAddress,
-} from '../types/address';
+import { MIX_DESIGN_PSI_OPTIONS, weatherToMixInputs } from '../utils/mixDesign';
+import { buildProfessionalMixRecommendation } from '../utils/mixDesignProfessional';
+import type { ProfessionalMixDesignResult } from '../types/mixDesignAdvisor';
+import type { MixDesignAdvisorFormState } from '../types/mixDesignAdvisor';
+import { copyUSAddress, repairJobsiteAddress } from '../types/address';
 import type { Project } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
-import { getWeatherByLocation, getWeatherByQuery } from '../services/weatherService';
-import { geocodeAddress } from '../utils/location';
-import USAddressFields from '../components/address/USAddressFields';
-import {
-  EMPTY_US_ADDRESS,
-  isUSAddressGeocodable,
-  validateUSAddress,
-  type USAddress,
-} from '../types/address';
+import Input from '../components/ui/Input';
+import MixAdvisorWeatherLocation from '../components/mix/MixAdvisorWeatherLocation';
+import { type USAddress } from '../types/address';
 import { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
 import SpecGenerator from '../components/mix/SpecGenerator';
+import MixDesignOutputCards from '../components/mix/MixDesignOutputCards';
 import { generateMixSpecPDF } from '../utils/pdf';
+import {
+  DEFAULT_MIX_ADVISOR_FORM,
+  MIX_ADVISOR_STEPS,
+} from '../constants/mixDesignAdvisorDefaults';
+import { isExteriorFlatworkUse } from '../utils/mixDesignProfessional';
+
+const MIX_DISCLAIMER =
+  'Planning-level recommendation only. Final mix design must comply with project specifications, approved submittals, local code, and supplier trial batch data. This is not an engineered stamped mix design.';
 
 function jobsiteFromProject(project: Project | undefined): USAddress | null {
   if (!project?.jobsiteAddress) return null;
@@ -64,16 +57,34 @@ function draftHasJobsite(addr: USAddress | undefined): boolean {
   );
 }
 
-/** Compact city/state query — WeatherAPI handles this better than full street lines. */
-function weatherQueryFromJobsite(addr: USAddress): string {
-  const city = addr.city.trim();
-  const state = addr.state.trim();
-  const zip = addr.zip.trim();
-  if (city && state) {
-    return zip ? `${city}, ${state} ${zip}` : `${city}, ${state}`;
-  }
-  return formatUSAddress(addr);
+function mergeFormWithDraft(
+  draft: Partial<MixDesignAdvisorFormState> | undefined,
+): MixDesignAdvisorFormState {
+  if (!draft) return { ...DEFAULT_MIX_ADVISOR_FORM };
+  return {
+    ...DEFAULT_MIX_ADVISOR_FORM,
+    ...draft,
+    jobsiteAddress: draft.jobsiteAddress
+      ? copyUSAddress(draft.jobsiteAddress)
+      : DEFAULT_MIX_ADVISOR_FORM.jobsiteAddress,
+  };
 }
+
+const LargeCheckbox: React.FC<{
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}> = ({ label, checked, onChange }) => (
+  <label className="flex items-center gap-3 min-h-[48px] py-2 cursor-pointer">
+    <input
+      type="checkbox"
+      className="h-5 w-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+      checked={checked}
+      onChange={(e) => onChange(e.target.checked)}
+    />
+    <span className="text-base text-gray-800 dark:text-gray-200">{label}</span>
+  </label>
+);
 
 const MixDesignAdvisor: React.FC = () => {
   const location = useLocation();
@@ -83,19 +94,24 @@ const MixDesignAdvisor: React.FC = () => {
   const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
 
+  const [form, setForm] = useState<MixDesignAdvisorFormState>(DEFAULT_MIX_ADVISOR_FORM);
+  const [stepIndex, setStepIndex] = useState(0);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedPsi, setSelectedPsi] = useState<string>('3000');
-  const [exposure, setExposure] = useState<MixExposure>('F1');
-  const [recommendation, setRecommendation] = useState<MixDesignRecommendation | null>(null);
-  const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
-  const [climate, setClimate] = useState<'temperate' | 'tropical'>('temperate');
+  const [recommendation, setRecommendation] = useState<ProfessionalMixDesignResult | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [jobsiteAddress, setJobsiteAddress] = useState<USAddress>({ ...EMPTY_US_ADDRESS });
+
   const getMixDesignDraft = useWorkflowDraftStore((s) => s.getMixDesignDraft);
   const saveMixDesignDraft = useWorkflowDraftStore((s) => s.saveMixDesignDraft);
   const lastHydrationKeyRef = useRef('');
-  const weatherAutoKeyRef = useRef('');
+
+  const setField = <K extends keyof MixDesignAdvisorFormState>(
+    key: K,
+    value: MixDesignAdvisorFormState[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setRecommendation(null);
+  };
 
   const workflowProject = workflowProjectId
     ? projects.find((p) => p.id === workflowProjectId)
@@ -109,63 +125,33 @@ const MixDesignAdvisor: React.FC = () => {
 
   useEffect(() => {
     if (!workflowProjectId) return;
-
     const project = projects.find((p) => p.id === workflowProjectId);
     const draft = getMixDesignDraft(workflowProjectId);
     const projectAddr = jobsiteFromProject(project);
     const workflowCalc = getWorkflowCalculation(project, workflowState);
     const psiFromCalc = getCalculationPsi(workflowCalc);
-
     const key = `project:${workflowProjectId}:${project?.updatedAt ?? ''}:${workflowCalc?.id ?? ''}:${psiFromCalc ?? ''}`;
     if (lastHydrationKeyRef.current === key) return;
-
     if (!project) return;
 
+    let next = mergeFormWithDraft(draft ?? undefined);
     if (draft && draftHasJobsite(draft.jobsiteAddress)) {
-      setJobsiteAddress(copyUSAddress(draft.jobsiteAddress));
-      setExposure(draft.exposure);
-      setUnitSystem(draft.unitSystem);
-      setClimate(draft.climate);
-      if (!psiFromCalc) setSelectedPsi(draft.selectedPsi);
+      next = { ...next, jobsiteAddress: copyUSAddress(draft.jobsiteAddress) };
     } else if (projectAddr) {
-      setJobsiteAddress(projectAddr);
-      if (draft) {
-        setExposure(draft.exposure);
-        setUnitSystem(draft.unitSystem);
-        setClimate(draft.climate);
-      }
+      next = { ...next, jobsiteAddress: projectAddr };
     }
-
-    if (psiFromCalc) setSelectedPsi(psiFromCalc);
-
+    if (psiFromCalc) next = { ...next, selectedPsi: psiFromCalc };
+    if (isExteriorFlatworkUse(next.projectUse)) {
+      next = { ...next, airEntrainmentRequired: true };
+    }
+    setForm(next);
     lastHydrationKeyRef.current = key;
   }, [workflowProjectId, projects, getMixDesignDraft, workflowState]);
 
-  const projectJobsiteImported =
-    inWorkflow &&
-    workflowProject &&
-    hasProjectJobsite(jobsiteAddress) &&
-    hasProjectJobsite(workflowProject.jobsiteAddress);
-
   useEffect(() => {
     if (!inWorkflow || !workflowProjectId) return;
-    saveMixDesignDraft(workflowProjectId, {
-      selectedPsi,
-      exposure,
-      unitSystem,
-      climate,
-      jobsiteAddress,
-    });
-  }, [
-    inWorkflow,
-    workflowProjectId,
-    selectedPsi,
-    exposure,
-    unitSystem,
-    climate,
-    jobsiteAddress,
-    saveMixDesignDraft,
-  ]);
+    saveMixDesignDraft(workflowProjectId, form);
+  }, [inWorkflow, workflowProjectId, form, saveMixDesignDraft]);
 
   const workflowCalc = workflowProject
     ? getWorkflowCalculation(workflowProject, workflowState)
@@ -184,210 +170,373 @@ const MixDesignAdvisor: React.FC = () => {
     );
   };
 
-  const buildRecommendation = useCallback(
-    (weatherData: Weather): MixDesignRecommendation => {
+  const generateRecommendation = useCallback(
+    (weatherData: Weather): ProfessionalMixDesignResult => {
       const { tempF, humidityPercent, windMph } = weatherToMixInputs(
         weatherData.temperature,
         weatherData.humidity,
         weatherData.windSpeed,
       );
-      return suggestConcreteParameters({
+      return buildProfessionalMixRecommendation({
+        form,
         tempF,
         humidityPercent,
         windMph,
-        psi: parseMixDesignPsi(selectedPsi),
-        exposure,
-        climate,
       });
     },
-    [selectedPsi, exposure, climate],
+    [form],
   );
 
   const applyWeatherData = useCallback(
     (weatherData: Weather) => {
       setWeather(weatherData);
       setLocationError(null);
-      setRecommendation(buildRecommendation(weatherData));
-    },
-    [buildRecommendation],
-  );
-
-  useEffect(() => {
-    if (!weather) return;
-    setRecommendation(buildRecommendation(weather));
-  }, [weather, buildRecommendation]);
-
-  const fetchWeatherForLocation = async (
-    fetcher: () => Promise<Weather | null>,
-    notFoundMessage: string,
-  ) => {
-    setLoading(true);
-    setLocationError(null);
-
-    try {
-      const weatherData = await fetcher();
-      if (weatherData) {
-        applyWeatherData(weatherData);
-      } else {
-        setLocationError(notFoundMessage);
-      }
-    } catch (error) {
-      console.error('Error getting weather:', error);
-      setLocationError(
-        'Error getting weather data. Please check your connection and try again.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resolveWeatherForJobsite = useCallback(
-    async (addr: USAddress): Promise<Weather | null> => {
-      const geocoded = await geocodeAddress(addr);
-      if (geocoded) {
-        const byCoords = await getWeatherByLocation(
-          geocoded.latitude,
-          geocoded.longitude,
-        );
-        if (byCoords) return byCoords;
-      }
-      return getWeatherByQuery(weatherQueryFromJobsite(addr));
     },
     [],
   );
 
-  const loadWeatherForJobsite = useCallback(
-    async (addr: USAddress) => {
-      if (!isUSAddressGeocodable(addr)) return;
-      await fetchWeatherForLocation(
-        () => resolveWeatherForJobsite(addr),
-        'Could not find weather for this jobsite. Check city, state, and ZIP, then try again.',
-      );
-    },
-    [resolveWeatherForJobsite],
-  );
-
   useEffect(() => {
-    if (!inWorkflow || !isUSAddressGeocodable(jobsiteAddress)) return;
-    const key = formatUSAddress(jobsiteAddress);
-    if (weatherAutoKeyRef.current === key) return;
-    weatherAutoKeyRef.current = key;
-    void loadWeatherForJobsite(jobsiteAddress);
-  }, [inWorkflow, jobsiteAddress, loadWeatherForJobsite]);
+    if (!weather || stepIndex < MIX_ADVISOR_STEPS.length - 1) return;
+    setRecommendation(generateRecommendation(weather));
+  }, [weather, form, stepIndex, generateRecommendation]);
 
-  const handleLocationSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validation = validateUSAddress(jobsiteAddress, {
-      requireStreet: false,
-      requireZip: false,
-    });
-    if (!validation.ok) {
-      setLocationError(validation.errors[0]);
+  const handleGenerate = () => {
+    if (!weather) {
+      setLocationError('Load jobsite weather before generating a recommendation.');
+      setStepIndex(3);
       return;
     }
-
-    weatherAutoKeyRef.current = formatUSAddress(jobsiteAddress);
-    await loadWeatherForJobsite(jobsiteAddress);
+    const rec = generateRecommendation(weather);
+    setRecommendation(rec);
+    setStepIndex(MIX_ADVISOR_STEPS.length - 1);
   };
 
-  const formatTemperature = (temp: number): string => {
-    if (unitSystem === 'metric') {
-      const celsius = (temp - 32) * 5/9;
-      return `${celsius.toFixed(1)}°C`;
-    }
-    return `${temp}°F`;
-  };
+  const formatTemperature = (temp: number) =>
+    form.unitSystem === 'metric'
+      ? `${(((temp - 32) * 5) / 9).toFixed(1)}°C`
+      : `${temp}°F`;
 
-  const formatWindSpeed = (speed: number): string => {
-    if (unitSystem === 'metric') {
-      const kmh = speed * 1.60934;
-      return `${kmh.toFixed(1)} km/h`;
-    }
-    return `${speed} mph`;
-  };
-
-  const evaporationRiskDisplay = (metricRate: number) => {
-    const risk = getEvaporationRiskLevel(metricRate);
-    const icon =
-      risk.level === 'Low' ? (
-        <CheckCircle className="h-6 w-6 text-green-500" />
-      ) : risk.level === 'Moderate' ? (
-        <AlertTriangle className="h-6 w-6 text-yellow-500" />
-      ) : (
-        <XCircle className="h-6 w-6 text-red-500" />
-      );
-    return { ...risk, icon };
-  };
+  const formatWindSpeed = (speed: number) =>
+    form.unitSystem === 'metric'
+      ? `${(speed * 1.60934).toFixed(1)} km/h`
+      : `${speed} mph`;
 
   const aeDosageRange = () => {
-    const baseRange = [0.5, 1.0];
-    return baseRange.map(dose => dose * recommendation!.aeFactor);
+    if (!recommendation) return [0.5, 1.0];
+    return [0.5, 1.0].map((d) => d * recommendation.aeFactor);
   };
 
-  const recommendedTargetAir =
-    recommendation != null
-      ? (recommendation.targetAir[0] + recommendation.targetAir[1]) / 2
-      : undefined;
-
-  const wrDosage = () => {
-    return [3.0, 5.0];
-  };
-
-  const getAccelRetarder = () => {
-    const temp = weather?.temperature || 70;
-    if (temp < 50) {
-      return { type: 'Accelerator', range: '16-32' };
-    }
-    return { type: 'Retarder', range: '2-4' };
-  };
+  const recommendedTargetAir = recommendation
+    ? (recommendation.targetAir[0] + recommendation.targetAir[1]) / 2
+    : undefined;
 
   const handleDownloadSpec = async () => {
-    if (recommendation) {
-      console.log('Download button clicked, calling generateMixSpecPDF');
-      try {
-        const success = await generateMixSpecPDF(
-          selectedPsi,
-          recommendation.targetAir,
-          recommendation.waterCementRatio,
-          [
-            `Air-Entraining Agent (${aeDosageRange()[0].toFixed(2)}-${aeDosageRange()[1].toFixed(2)} oz/cwt)`,
-            `Water Reducer (${wrDosage()[0].toFixed(1)}-${wrDosage()[1].toFixed(1)} oz/cwt)`,
-            `${getAccelRetarder().type} (${getAccelRetarder().range} oz/cwt)`
-          ]
-        );
-        
-        if (success) {
-          console.log('PDF generation successful');
-        } else {
-          console.log('PDF generation failed, fallback used');
-        }
-      } catch (error) {
-        console.error('Error in handleDownloadSpec:', error);
-        alert('Failed to generate PDF. Please try again.');
-      }
-    } else {
-      console.log('No recommendation available for download');
-      alert('Please calculate mix design first to download specifications.');
+    if (!recommendation) return;
+    try {
+      await generateMixSpecPDF(
+        form.selectedPsi,
+        recommendation.targetAir,
+        recommendation.waterCementRatio,
+        recommendation.admixtureRecommendations.slice(0, 5),
+      );
+    } catch {
+      alert('Failed to generate PDF. Please try again.');
     }
   };
 
-  const StepCircle: React.FC<{ number: number }> = ({ number }) => (
-    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-medium">
-      {number}
-    </div>
-  );
+  const step = MIX_ADVISOR_STEPS[stepIndex];
+  const totalSteps = MIX_ADVISOR_STEPS.length;
+  const isLastStep = stepIndex === totalSteps - 1;
+  const weatherStepIndex = MIX_ADVISOR_STEPS.findIndex((s) => s.id === 'weather');
+  const isWeatherStep = stepIndex === weatherStepIndex;
+
+  const goNext = () => {
+    if (isWeatherStep) {
+      handleGenerate();
+      return;
+    }
+    setStepIndex((i) => Math.min(totalSteps - 1, i + 1));
+  };
+
+  const renderStep = () => {
+    switch (step.id) {
+      case 'project':
+        return (
+          <div className="space-y-4">
+            <Select
+              label="Project use"
+              value={form.projectUse}
+              onChange={(v) => {
+                setField('projectUse', v as MixDesignAdvisorFormState['projectUse']);
+                if (isExteriorFlatworkUse(v as MixDesignAdvisorFormState['projectUse'])) {
+                  setField('airEntrainmentRequired', true);
+                }
+              }}
+              options={[
+                { value: 'slab_on_grade', label: 'Slab on grade' },
+                { value: 'driveway', label: 'Driveway' },
+                { value: 'sidewalk', label: 'Sidewalk' },
+                { value: 'footing', label: 'Footing' },
+                { value: 'wall', label: 'Wall' },
+                { value: 'curb_gutter', label: 'Curb / gutter' },
+                { value: 'structural_slab', label: 'Structural slab' },
+                { value: 'exterior_flatwork', label: 'Exterior flatwork' },
+                { value: 'marine_coastal', label: 'Marine / coastal' },
+              ]}
+            />
+            <Select
+              label="Design PSI"
+              value={form.selectedPsi}
+              onChange={(v) => setField('selectedPsi', v)}
+              options={MIX_DESIGN_PSI_OPTIONS.map((o) => ({
+                value: o.value,
+                label: form.unitSystem === 'metric' ? o.labelMetric : o.labelImperial,
+              }))}
+            />
+            {psiFromWorkflowCalc && (
+              <p className="text-xs text-cyan-800 dark:text-cyan-300">
+                Imported from calculator: {psiFromWorkflowCalc} PSI
+              </p>
+            )}
+            <Select
+              label="Exposure class (freeze-thaw)"
+              value={form.exposure}
+              onChange={(v) => setField('exposure', v as MixDesignAdvisorFormState['exposure'])}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'F1', label: 'F1 — Moderate' },
+                { value: 'F2', label: 'F2 — Severe' },
+                { value: 'F3', label: 'F3 — Very severe' },
+              ]}
+            />
+            <Input
+              label="Slump target (in)"
+              type="number"
+              min="2"
+              max="8"
+              step="0.5"
+              value={form.slumpTargetIn}
+              onChange={(e) => setField('slumpTargetIn', e.target.value)}
+            />
+            <Select
+              label="Max aggregate size"
+              value={form.maxAggregateIn}
+              onChange={(v) => setField('maxAggregateIn', v)}
+              options={[
+                { value: '0.75', label: '3/4 in (#57)' },
+                { value: '1', label: '1 in' },
+                { value: '1.5', label: '1-1/2 in' },
+              ]}
+            />
+            <LargeCheckbox
+              label="Air entrainment required"
+              checked={form.airEntrainmentRequired}
+              onChange={(v) => setField('airEntrainmentRequired', v)}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Select
+                label="Units"
+                value={form.unitSystem}
+                onChange={(v) => setField('unitSystem', v as 'imperial' | 'metric')}
+                options={[
+                  { value: 'imperial', label: 'Imperial' },
+                  { value: 'metric', label: 'Metric' },
+                ]}
+              />
+              <Select
+                label="Climate"
+                value={form.climate}
+                onChange={(v) => setField('climate', v as MixDesignAdvisorFormState['climate'])}
+                options={[
+                  { value: 'temperate', label: 'Temperate' },
+                  { value: 'tropical', label: 'Tropical' },
+                ]}
+              />
+            </div>
+          </div>
+        );
+
+      case 'placement':
+        return (
+          <div className="space-y-4">
+            <Select
+              label="Placement method"
+              value={form.placementMethod}
+              onChange={(v) => {
+                const method = v as MixDesignAdvisorFormState['placementMethod'];
+                setForm((prev) => ({
+                  ...prev,
+                  placementMethod: method,
+                  pumpRequired: method === 'pump' ? true : prev.pumpRequired,
+                }));
+                setRecommendation(null);
+              }}
+              options={[
+                { value: 'chute', label: 'Chute' },
+                { value: 'pump', label: 'Pump' },
+                { value: 'buggy', label: 'Buggy' },
+                { value: 'wheelbarrow', label: 'Wheelbarrow' },
+                { value: 'conveyor', label: 'Conveyor' },
+              ]}
+            />
+            <Select
+              label="Finish type"
+              value={form.finishType}
+              onChange={(v) => setField('finishType', v as MixDesignAdvisorFormState['finishType'])}
+              options={[
+                { value: 'broom', label: 'Broom' },
+                { value: 'hard_trowel', label: 'Hard trowel' },
+                { value: 'burnished', label: 'Burnished' },
+                { value: 'stamp', label: 'Stamp' },
+                { value: 'exposed_aggregate', label: 'Exposed aggregate' },
+              ]}
+            />
+            <LargeCheckbox
+              label="Pump required"
+              checked={form.pumpRequired}
+              onChange={(v) => setField('pumpRequired', v)}
+            />
+            <Input
+              label="Haul time (minutes)"
+              type="number"
+              min="0"
+              step="15"
+              value={form.haulTimeMinutes}
+              onChange={(e) => setField('haulTimeMinutes', e.target.value)}
+            />
+          </div>
+        );
+
+      case 'materials':
+        return (
+          <div className="space-y-4">
+            <Select
+              label="Cement type"
+              value={form.cementType}
+              onChange={(v) => setField('cementType', v as MixDesignAdvisorFormState['cementType'])}
+              options={[
+                { value: 'type_i', label: 'Type I — General' },
+                { value: 'type_ii', label: 'Type II — Moderate sulfate' },
+                { value: 'type_iii', label: 'Type III — High early' },
+                { value: 'type_v', label: 'Type V — Sulfate resistant' },
+              ]}
+            />
+            <Select
+              label="SCM option"
+              value={form.scmOption}
+              onChange={(v) => setField('scmOption', v as MixDesignAdvisorFormState['scmOption'])}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'fly_ash', label: 'Fly ash' },
+                { value: 'slag', label: 'Slag' },
+                { value: 'silica_fume', label: 'Silica fume' },
+                { value: 'fly_ash_slag', label: 'Fly ash + slag' },
+              ]}
+            />
+            <LargeCheckbox
+              label="Chloride / deicing exposure"
+              checked={form.chlorideExposure}
+              onChange={(v) => setField('chlorideExposure', v)}
+            />
+            <LargeCheckbox
+              label="Sulfate exposure"
+              checked={form.sulfateExposure}
+              onChange={(v) => {
+                setField('sulfateExposure', v);
+                if (v) setField('cementType', 'type_v');
+              }}
+            />
+            <LargeCheckbox
+              label="Freeze-thaw exposure"
+              checked={form.freezeThawExposure}
+              onChange={(v) => setField('freezeThawExposure', v)}
+            />
+          </div>
+        );
+
+      case 'weather':
+        return (
+          <div className="space-y-4">
+            <MixAdvisorWeatherLocation
+              value={form.jobsiteAddress}
+              onChange={(addr) => setField('jobsiteAddress', addr)}
+              projects={projects}
+              workflowProject={workflowProject}
+              weather={weather}
+              loading={loading}
+              locationError={locationError}
+              onWeatherLoaded={applyWeatherData}
+              onError={setLocationError}
+              onLoadingChange={setLoading}
+            />
+            {weather && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-blue-50 dark:bg-blue-900/40 p-3 rounded-lg">
+                  <Thermometer className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {formatTemperature(weather.temperature)}
+                  </p>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/40 p-3 rounded-lg">
+                  <Droplets className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {weather.humidity}% RH
+                  </p>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/40 p-3 rounded-lg col-span-2">
+                  <Wind className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {formatWindSpeed(weather.windSpeed)}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {weather.location.city}, {weather.location.country}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'results':
+        return recommendation && weather ? (
+          <div className="space-y-6">
+            <MixDesignOutputCards
+              result={recommendation}
+              selectedPsi={form.selectedPsi}
+            />
+            <div className="grid grid-cols-1 gap-4">
+              <AdmixtureCalculator
+                temperature={weather.temperature}
+                unitsImperial={form.unitSystem === 'imperial'}
+                recommendedTargetAir={recommendedTargetAir}
+              />
+              <SpecGenerator
+                psi={form.selectedPsi}
+                airContent={recommendation.targetAir}
+                waterCementRatio={recommendation.waterCementRatio}
+                admixtures={recommendation.admixtureRecommendations.slice(0, 4)}
+                onDownload={handleDownloadSpec}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Generate a recommendation after loading weather on the previous step.
+          </p>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="max-w-6xl mx-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="max-w-4xl mx-auto px-4 pb-8">
         <WorkflowStepHeader />
+
         {inWorkflow && (
-          <div className="mb-6 flex flex-col sm:flex-row gap-2 sm:justify-end">
+          <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
             <Button
               variant="outline"
               onClick={goToPlacementPlanner}
@@ -396,328 +545,70 @@ const MixDesignAdvisor: React.FC = () => {
             >
               Skip to placement planner
             </Button>
-            <Button onClick={goToPlacementPlanner} icon={<CloudSun size={18} />}>
-              Continue to placement planner
-            </Button>
           </div>
         )}
+
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-            Mix-Design Advisor
+          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] flex items-center gap-2">
+            <Beaker className="h-8 w-8" />
+            Mix Design Advisor
           </h1>
           <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
-            Get ACI-based concrete mix recommendations based on current weather conditions
+            Field placement and submittal planning — strength, durability, and weather
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Mix Design Parameters</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <StepCircle number={1} />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Choose Unit System</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    options={[
-                      { value: 'imperial', label: 'Imperial (°F, mph)' },
-                      { value: 'metric', label: 'Metric (°C, km/h)' }
-                    ]}
-                    value={unitSystem}
-                    onChange={(value) => setUnitSystem(value as 'imperial' | 'metric')}
-                    fullWidth
-                  />
-                  <Select
-                    options={[
-                      { value: 'temperate', label: 'Temperate (Freeze-Thaw)' },
-                      { value: 'tropical', label: 'Tropical (No Freeze)' }
-                    ]}
-                    value={climate}
-                    onChange={(value) => setClimate(value as 'temperate' | 'tropical')}
-                    fullWidth
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <StepCircle number={2} />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Select Design Strength</h3>
-                </div>
-                <Select
-                  options={MIX_DESIGN_PSI_OPTIONS.map((o) => ({
-                    value: o.value,
-                    label: unitSystem === 'metric' ? o.labelMetric : o.labelImperial,
-                  }))}
-                  value={selectedPsi}
-                  onChange={setSelectedPsi}
-                  fullWidth
-                />
-                {psiFromWorkflowCalc && (
-                  <p className="mt-2 text-xs text-cyan-800 dark:text-cyan-300">
-                    Imported from calculator: {psiFromWorkflowCalc} PSI
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <StepCircle number={3} />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Set Exposure Condition</h3>
-                </div>
-                <Select
-                  options={[
-                    { value: 'none', label: 'No Exposure' },
-                    { value: 'F1', label: 'F1 - Moderate' },
-                    { value: 'F2', label: 'F2 - Severe' },
-                    { value: 'F3', label: 'F3 - Very Severe' }
-                  ]}
-                  value={exposure}
-                  onChange={(value) => setExposure(value as 'F1' | 'F2' | 'F3' | 'none')}
-                  fullWidth
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <StepCircle number={4} />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Get Weather-Based Recommendations</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <form onSubmit={handleLocationSearch} className="space-y-3">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {inWorkflow
-                        ? 'Jobsite weather (from project address)'
-                        : weather
-                          ? 'Update jobsite for weather'
-                          : 'Enter a US jobsite address for weather'}
-                    </p>
-                    {inWorkflow && isUSAddressGeocodable(jobsiteAddress) && !weather && loading && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Loading weather for your project jobsite…
-                      </p>
-                    )}
-                    {projectJobsiteImported && (
-                      <p className="text-xs text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800 rounded-lg px-3 py-2 flex items-start gap-2">
-                        <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
-                        <span>
-                          Loaded from step 1:{' '}
-                          <span className="font-medium">
-                            {formatUSAddress(jobsiteAddress)}
-                          </span>
-                        </span>
-                      </p>
-                    )}
-                    <USAddressFields
-                      value={jobsiteAddress}
-                      onChange={setJobsiteAddress}
-                      idPrefix="mix-advisor"
-                    />
-                    <Button
-                      type="submit"
-                      variant="outline"
-                      disabled={loading || !isUSAddressGeocodable(jobsiteAddress)}
-                      icon={<Search className="h-4 w-4" />}
-                    >
-                      {weather ? 'Refresh weather' : 'Get weather'}
-                    </Button>
-                  </form>
-
-                  {locationError && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
-                  )}
-
-                  {loading && (
-                    <div className="flex items-center justify-center p-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
-                      <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                        Getting weather data...
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {weather && (
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Conditions</h3>
-                  <div className="flex items-center text-gray-600 dark:text-gray-300">
-                    <MapPin size={16} className="mr-1" />
-                    <span className="text-sm">{weather.location.city}, {weather.location.country}</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Thermometer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm text-blue-600 dark:text-blue-300">Temperature</span>
-                    </div>
-                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
-                      {formatTemperature(weather.temperature)}
-                    </p>
-                  </div>
-
-                  <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Droplets className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm text-blue-600 dark:text-blue-300">Humidity</span>
-                    </div>
-                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
-                      {weather.humidity}%
-                    </p>
-                  </div>
-
-                  <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Wind className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm text-blue-600 dark:text-blue-300">Wind Speed</span>
-                    </div>
-                    <p className="text-xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
-                      {formatWindSpeed(weather.windSpeed)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {recommendation && (
-            <>
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Mix Design Recommendations</h2>
-                <div className="space-y-6">
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Evaporation Rate Risk</h3>
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Current Rate</p>
-                        <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                          {recommendation.evaporationRate.metric.toFixed(2)} kg/m²·hr
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {(() => {
-                          const evap = evaporationRiskDisplay(
-                            recommendation.evaporationRate.metric,
-                          );
-                          return (
-                            <>
-                              {evap.icon}
-                              <span
-                                className={`font-medium text-${evap.color}-600 dark:text-${evap.color}-400`}
-                              >
-                                {evap.level} Risk
-                              </span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-gray-700 dark:text-gray-300">Low Risk (≤ 0.5): Standard curing adequate</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span className="text-gray-700 dark:text-gray-300">Moderate Risk (0.5-1.0): Take precautions</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span className="text-gray-700 dark:text-gray-300">High Risk (&gt; 1.0): Immediate action required</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Mix Properties</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Water-Cement Ratio</p>
-                        <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                          {recommendation.waterCementRatio.toFixed(2)}
-                        </p>
-                      </div>
-
-                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Target Air Content</p>
-                        <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                          {recommendation.targetAir[0]}% - {recommendation.targetAir[1]}%
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Required Actions</h3>
-                    <div className="space-y-2">
-                      {recommendation.recommendations.map((rec, index) => (
-                        <div 
-                          key={index}
-                          className={`p-3 rounded-lg flex items-start gap-2 ${
-                            rec.startsWith('CRITICAL') || rec.startsWith('IMMEDIATE')
-                              ? 'bg-red-50 dark:bg-red-900/50 text-red-800 dark:text-red-200' 
-                              : rec.includes('Consider') || rec.includes('Monitor')
-                              ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
-                              : 'bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
-                          }`}
-                        >
-                          {rec.startsWith('CRITICAL') || rec.startsWith('IMMEDIATE') ? (
-                            <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                          ) : rec.includes('Consider') || rec.includes('Monitor') ? (
-                            <Info className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                          ) : (
-                            <Clock className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                          )}
-                          <p className="text-sm">{rec}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <h4 className="font-medium text-blue-900 dark:text-blue-100">Important Note</h4>
-                    </div>
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                      Start curing immediately when bleed water sheen disappears (typically 30-60 minutes after placement).
-                      Maintain chosen curing method for at least 7 days, or 14 days if exposure is severe.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <AdmixtureCalculator
-                  temperature={weather?.temperature || 70}
-                  unitsImperial={unitSystem === 'imperial'}
-                  recommendedTargetAir={recommendedTargetAir}
-                />
-                
-                <SpecGenerator
-                  psi={selectedPsi}
-                  airContent={recommendation.targetAir}
-                  waterCementRatio={recommendation.waterCementRatio}
-                  admixtures={[
-                    `Air-Entraining Agent (${aeDosageRange()[0].toFixed(2)}-${aeDosageRange()[1].toFixed(2)} oz/cwt)`,
-                    `Water Reducer (${wrDosage()[0].toFixed(1)}-${wrDosage()[1].toFixed(1)} oz/cwt)`,
-                    `${getAccelRetarder().type} (${getAccelRetarder().range} oz/cwt)`
-                  ]}
-                  onDownload={handleDownloadSpec}
-                />
-              </div>
-            </>
-          )}
+        <div className="mb-4 flex gap-1 overflow-x-auto pb-1 scrollbar-hide rounded-lg bg-white/90 dark:bg-gray-800 backdrop-blur-sm p-2 shadow-lg border border-slate-200/80 dark:border-gray-700">
+          {MIX_ADVISOR_STEPS.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setStepIndex(i)}
+              className={`shrink-0 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium min-h-[40px] transition-colors ${
+                i === stepIndex
+                  ? 'bg-cyan-600 text-white shadow-sm'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              {i + 1}. {s.title}
+            </button>
+          ))}
         </div>
+
+        <Card
+          className={`p-4 sm:p-6 ${
+            inWorkflow
+              ? 'bg-white/90 dark:bg-gray-800 backdrop-blur-sm shadow-lg border border-slate-200/80 dark:border-gray-700'
+              : ''
+          }`}
+        >
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+            {step.title}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            Step {stepIndex + 1} of {totalSteps}
+            {isWeatherStep && ' — load and verify jobsite weather before generating.'}
+          </p>
+
+          {renderStep()}
+
+          <p className="mt-6 mb-4 flex gap-2 items-start text-xs text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-4">
+            <Info className="h-4 w-4 shrink-0 mt-0.5 text-cyan-600 dark:text-cyan-400" />
+            {MIX_DISCLAIMER}
+          </p>
+
+          <StepNavigation
+            activeStep={stepIndex}
+            totalSteps={totalSteps}
+            onBack={() => setStepIndex((i) => Math.max(0, i - 1))}
+            onNext={goNext}
+            nextLabel={isWeatherStep ? 'Generate recommendation' : 'Continue'}
+            nextDisabled={isWeatherStep && !weather}
+            onFinish={inWorkflow ? goToPlacementPlanner : undefined}
+            finishLabel="Continue to placement planner"
+            finishDisabled={!recommendation}
+          />
+        </Card>
       </div>
     </motion.div>
   );

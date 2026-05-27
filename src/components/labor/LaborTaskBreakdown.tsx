@@ -2,19 +2,19 @@ import React from 'react';
 import type { ProfessionalConcreteLaborResult } from '../../types/concreteLaborEstimate';
 import type { ConcreteLaborEstimateInput } from '../../types/concreteLaborEstimate';
 
-const TASK_LABELS: { key: keyof ProfessionalConcreteLaborResult['taskHours']; label: string }[] = [
-  { key: 'mobilization', label: 'Mobilization / setup' },
-  { key: 'subgradePrep', label: 'Subgrade prep check' },
-  { key: 'formworkEdgePrep', label: 'Formwork / edge prep' },
+const TASK_LABELS: { key: keyof ProfessionalConcreteLaborResult['taskHours']; label: string; pourDay?: boolean }[] = [
+  { key: 'mobilization', label: 'Mobilization / setup', pourDay: true },
+  { key: 'subgradePrep', label: 'Subgrade prep check (prior day)' },
+  { key: 'formworkEdgePrep', label: 'Formwork / edge prep (prior day)' },
   { key: 'vaporBarrier', label: 'Vapor barrier / base prep' },
-  { key: 'reinforcement', label: 'Reinforcement install' },
-  { key: 'placement', label: 'Concrete placement' },
-  { key: 'screeding', label: 'Screeding' },
-  { key: 'bullFloating', label: 'Bull floating' },
-  { key: 'edgingJointing', label: 'Edging / jointing' },
-  { key: 'finishing', label: 'Finishing' },
-  { key: 'curing', label: 'Curing / protection' },
-  { key: 'cleanup', label: 'Cleanup / demobilization' },
+  { key: 'reinforcement', label: 'Reinforcement install (prior day)' },
+  { key: 'placement', label: 'Concrete placement', pourDay: true },
+  { key: 'screeding', label: 'Screeding', pourDay: true },
+  { key: 'bullFloating', label: 'Bull floating', pourDay: true },
+  { key: 'edgingJointing', label: 'Edging / jointing', pourDay: true },
+  { key: 'finishing', label: 'Finishing', pourDay: true },
+  { key: 'curing', label: 'Curing / protection', pourDay: true },
+  { key: 'cleanup', label: 'Cleanup / demobilization', pourDay: true },
 ];
 
 const PLACEMENT_LABELS: Record<string, string> = {
@@ -58,12 +58,14 @@ interface LaborTaskBreakdownProps {
   input: ConcreteLaborEstimateInput;
   result: ProfessionalConcreteLaborResult;
   formatCurrency: (n: number) => string;
+  areaReconciledFromVolume?: boolean;
 }
 
 const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
   input,
   result,
   formatCurrency,
+  areaReconciledFromVolume,
 }) => {
   const { costs, taskHours } = result;
 
@@ -83,7 +85,23 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
               ? `${Math.round(input.areaSqFt).toLocaleString()} SF`
               : '—'}
           </strong>
+          {input.thicknessInches > 0 && (
+            <span className="text-gray-500 dark:text-gray-400">
+              {' '}
+              · {input.thicknessInches.toFixed(1)} in thick
+            </span>
+          )}
         </p>
+        {areaReconciledFromVolume && (
+          <p className="sm:col-span-2 text-xs text-amber-700 dark:text-amber-300">
+            Area adjusted from placement volume and thickness — footprint did not match
+            volume (would imply ~
+            {result.impliedThicknessInches != null
+              ? `${result.impliedThicknessInches.toFixed(1)} in`
+              : 'incorrect'}{' '}
+            if footprint were used).
+          </p>
+        )}
         <p>
           Crew:{' '}
           <strong className="text-gray-900 dark:text-white">
@@ -126,7 +144,11 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
-          Task breakdown (crew-hours)
+          Task breakdown (clock hours per task)
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          Pour-day duration uses parallel work — placement and finishing overlap; prior-day
+          prep lines are shown for scope but not added to on-site clock.
         </p>
         <ul className="space-y-1">
           {TASK_LABELS.map(({ key, label }) => {
@@ -146,23 +168,36 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
 
       <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-1">
         <p className="flex justify-between">
-          <span>Direct crew-hours</span>
+          <span>Estimated job duration (clock)</span>
           <strong className="text-gray-900 dark:text-white">
-            {result.directCrewHours.toFixed(1)}
+            {result.estimatedJobDurationHours.toFixed(1)} hrs
           </strong>
         </p>
         <p className="flex justify-between">
-          <span>Total billable crew-hours</span>
+          <span>Billable job duration (clock)</span>
           <strong className="text-gray-900 dark:text-white">
-            {result.billableCrewHours.toFixed(1)}
+            {result.billableJobDurationHours.toFixed(1)} hrs
           </strong>
         </p>
-        {result.overtimeHours > 0 && (
+        <p className="flex justify-between text-gray-600 dark:text-gray-400">
+          <span>Total man-hours (clock × crew)</span>
+          <strong className="text-gray-900 dark:text-white">
+            {result.totalManHours.toFixed(1)}
+          </strong>
+        </p>
+        {result.overtimeJobHours > 0 && (
           <p className="flex justify-between text-amber-700 dark:text-amber-300">
-            <span>Overtime crew-hours</span>
-            <strong>{result.overtimeHours.toFixed(1)}</strong>
+            <span>Overtime (clock / man-hrs)</span>
+            <strong>
+              {result.overtimeJobHours.toFixed(1)} / {result.overtimeManHours.toFixed(1)}
+            </strong>
           </p>
         )}
+        <p className="text-xs text-gray-500 dark:text-gray-400 pt-1">
+          Placement duration: {taskHours.placement.toFixed(1)} hrs · Regular:{' '}
+          {result.regularManHours.toFixed(0)} man-hrs · OT:{' '}
+          {result.overtimeManHours.toFixed(0)} man-hrs
+        </p>
       </div>
 
       <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-1">
@@ -174,12 +209,6 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
           <p className="flex justify-between">
             <span>Overtime</span>
             <span>{formatCurrency(costs.overtimeCost)}</span>
-          </p>
-        )}
-        {costs.supervisionCost > 0 && (
-          <p className="flex justify-between">
-            <span>Supervision</span>
-            <span>{formatCurrency(costs.supervisionCost)}</span>
           </p>
         )}
         <p className="flex justify-between">

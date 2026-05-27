@@ -19,13 +19,7 @@ export interface ProposalWorkflowDraft {
   showPreview: boolean;
 }
 
-export interface MixDesignWorkflowDraft {
-  selectedPsi: string;
-  exposure: 'F1' | 'F2' | 'F3' | 'none';
-  unitSystem: 'imperial' | 'metric';
-  climate: 'temperate' | 'tropical';
-  jobsiteAddress: USAddress;
-}
+export type MixDesignWorkflowDraft = import('../types/mixDesignAdvisor').MixDesignAdvisorFormState;
 
 interface WorkflowDraftsByProject {
   pourPlanner?: PourPlannerDraft;

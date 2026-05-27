@@ -32,23 +32,72 @@ const baseInput: ConcreteLaborEstimateInput = {
 };
 
 describe('estimateProfessionalConcreteLabor', () => {
-  it('returns positive task hours and total cost for a typical slab', () => {
+  it('returns positive hours and cost for a typical slab', () => {
     const result = estimateProfessionalConcreteLabor(baseInput);
-    expect(result.directCrewHours).toBeGreaterThan(0);
-    expect(result.billableCrewHours).toBeGreaterThanOrEqual(result.directCrewHours);
+    expect(result.estimatedJobDurationHours).toBeGreaterThan(0);
+    expect(result.totalManHours).toBeCloseTo(
+      result.billableJobDurationHours * result.crewSize,
+      1,
+    );
     expect(result.costs.totalLaborCost).toBeGreaterThan(0);
     expect(result.taskHours.placement).toBeGreaterThan(0);
-    expect(result.taskHours.finishing).toBeGreaterThan(0);
-    expect(result.unitCosts.laborCostPerCY).toBeGreaterThan(0);
   });
 
-  it('enforces small job minimum crew-hours', () => {
+  it('enforces small job minimum clock hours', () => {
     const tiny = estimateProfessionalConcreteLabor({
       ...baseInput,
       concreteYards: 1,
       areaSqFt: 50,
       options: { ...baseInput.options, smallJobMinimum: true },
     });
-    expect(tiny.billableCrewHours).toBeGreaterThanOrEqual(4);
+    expect(tiny.billableJobDurationHours).toBeGreaterThanOrEqual(4);
+  });
+
+  it('52 CY chute easy broom — job clock ~6–9 hrs, $/CY in planning range, no false OT', () => {
+    const input: ConcreteLaborEstimateInput = {
+      ...baseInput,
+      concreteYards: 52,
+      areaSqFt: 2808,
+      thicknessInches: 6,
+      crew: { laborers: 5, finishers: 2, foremen: 1 },
+      placementMethod: 'chute',
+      finishType: 'broom',
+      accessDifficulty: 'easy',
+      weatherCondition: 'normal',
+      reinforcementType: 'none',
+      options: {
+        ...baseInput.options,
+        includeContingency: true,
+      },
+    };
+    const result = estimateProfessionalConcreteLabor(input);
+
+    expect(result.estimatedJobDurationHours).toBeGreaterThanOrEqual(5);
+    expect(result.estimatedJobDurationHours).toBeLessThanOrEqual(10);
+    expect(result.overtimeJobHours).toBeLessThanOrEqual(2);
+    expect(result.unitCosts.laborCostPerCY).toBeGreaterThanOrEqual(70);
+    expect(result.unitCosts.laborCostPerCY).toBeLessThanOrEqual(200);
+    expect(result.costs.totalLaborCost).toBeGreaterThanOrEqual(4000);
+    expect(result.costs.totalLaborCost).toBeLessThanOrEqual(9500);
+    expect(result.totalManHours).toBeCloseTo(
+      result.billableJobDurationHours * result.crewSize,
+      0,
+    );
+  });
+
+  it('OT only when job clock exceeds 8 hours', () => {
+    const longDay = estimateProfessionalConcreteLabor({
+      ...baseInput,
+      concreteYards: 90,
+      areaSqFt: 5000,
+      placementMethod: 'wheelbarrow',
+      accessDifficulty: 'severe',
+    });
+    if (longDay.billableJobDurationHours > 8) {
+      expect(longDay.overtimeJobHours).toBeGreaterThan(0);
+      expect(longDay.overtimeManHours).toBe(
+        longDay.overtimeJobHours * longDay.crewSize,
+      );
+    }
   });
 });

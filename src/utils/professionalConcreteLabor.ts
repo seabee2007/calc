@@ -39,36 +39,37 @@ export const WEATHER_FACTOR: Record<WeatherCondition, number> = {
   windy: 0.85,
 };
 
+/** Whole-crew placement productivity (CY per clock hour on site). */
+const PLACEMENT_CY_PER_JOB_HOUR: Record<LaborPlacementMethod, number> = {
+  chute: 10,
+  pump: 12,
+  buggy: 6,
+  wheelbarrow: 3.5,
+};
+
 const TASK_RATES = {
   mobilizationHours: 1.5,
   subgradePrepHours: 0.75,
-  formworkEdgePrepSqFtPerCrewHour: 4000,
-  vaporBarrierSqFtPerCrewHour: 1200,
+  formworkEdgePrepSqFtPerJobHour: 4000,
+  vaporBarrierSqFtPerJobHour: 1200,
 
-  placementCYPerCrewHour: {
-    chute: 4.5,
-    pump: 7.0,
-    buggy: 3.0,
-    wheelbarrow: 1.75,
-  } satisfies Record<LaborPlacementMethod, number>,
+  screedSqFtPerJobHour: 750,
+  bullFloatSqFtPerJobHour: 1200,
+  broomFinishSqFtPerJobHour: 1000,
+  hardTrowelSqFtPerJobHour: 600,
+  stampSqFtPerJobHour: 300,
+  exposedAggregateSqFtPerJobHour: 450,
+  edgingSqFtPerJobHour: 1800,
 
-  screedSqFtPerCrewHour: 750,
-  bullFloatSqFtPerCrewHour: 1200,
-  broomFinishSqFtPerCrewHour: 1000,
-  hardTrowelSqFtPerCrewHour: 600,
-  stampSqFtPerCrewHour: 300,
-  exposedAggregateSqFtPerCrewHour: 450,
-  edgingSqFtPerCrewHour: 1800,
-
-  rebarSqFtPerCrewHour: {
+  rebarSqFtPerJobHour: {
     none: 999_999,
     wire_mesh: 900,
     rebar_single_mat: 350,
     rebar_double_mat: 200,
   } satisfies Record<ReinforcementType, number>,
 
-  sawCutLfPerCrewHour: 250,
-  curingSqFtPerCrewHour: 2500,
+  sawCutLfPerJobHour: 250,
+  curingSqFtPerJobHour: 2500,
   curingMinimumHours: 0.25,
   cleanupHours: 1.0,
 };
@@ -86,28 +87,48 @@ function finishHoursForType(
 
   const rate =
     finishType === 'broom'
-      ? TASK_RATES.broomFinishSqFtPerCrewHour
+      ? TASK_RATES.broomFinishSqFtPerJobHour
       : finishType === 'hard_trowel' || finishType === 'burnished'
-        ? TASK_RATES.hardTrowelSqFtPerCrewHour
+        ? TASK_RATES.hardTrowelSqFtPerJobHour
         : finishType === 'stamp'
-          ? TASK_RATES.stampSqFtPerCrewHour
+          ? TASK_RATES.stampSqFtPerJobHour
           : finishType === 'exposed_aggregate'
-            ? TASK_RATES.exposedAggregateSqFtPerCrewHour
-            : TASK_RATES.broomFinishSqFtPerCrewHour;
+            ? TASK_RATES.exposedAggregateSqFtPerJobHour
+            : TASK_RATES.broomFinishSqFtPerJobHour;
 
   return areaSqFt / (rate * finishFactor);
 }
 
-/** Estimate perimeter LF for jointing when only area is known (square footprint). */
 function estimateJointLinearFeet(areaSqFt: number): number {
   if (areaSqFt <= 0) return 0;
-  const side = Math.sqrt(areaSqFt);
-  return 4 * side;
+  return 4 * Math.sqrt(areaSqFt);
 }
 
 /**
- * Task-based, crew-hour concrete labor estimate (planning / proposal level).
- * Total cost = Σ(task crew-hours × crew × burdened rates) + OT + supervision + tools + contingency.
+ * Pour-day clock duration: prep/mobilize, then max(placement, finishing stack), then cure/cleanup.
+ * Finishing tasks overlap placement — not additive with placement clock.
+ */
+function estimatePourDayJobHours(taskHours: ProfessionalConcreteLaborTaskHours): number {
+  const finishingCore = Math.max(
+    taskHours.screeding,
+    taskHours.bullFloating,
+    taskHours.finishing,
+  );
+  const finishingStack = finishingCore + taskHours.edgingJointing * 0.5;
+
+  const placementAndFinish = Math.max(taskHours.placement, finishingStack);
+
+  return (
+    taskHours.mobilization +
+    placementAndFinish +
+    taskHours.curing +
+    taskHours.cleanup
+  );
+}
+
+/**
+ * Task-based labor estimate. Task lines are clock hours; job duration uses parallel logic.
+ * Cost = man-hours (job clock × crew) × burdened blended rate; OT only when job clock > 8.
  */
 export function estimateProfessionalConcreteLabor(
   input: ConcreteLaborEstimateInput,
@@ -140,6 +161,14 @@ export function estimateProfessionalConcreteLabor(
 
   const areaSqFt = Math.max(0, input.areaSqFt);
   const concreteYards = Math.max(0, input.concreteYards);
+  const impliedThicknessInches =
+    areaSqFt > 0 && concreteYards > 0
+      ? round2(((concreteYards * 27) / areaSqFt) * 12)
+      : undefined;
+
+  const areaReconciledFromVolume =
+    impliedThicknessInches != null &&
+    Math.abs(impliedThicknessInches - input.thicknessInches) > 2;
 
   const mobilization = TASK_RATES.mobilizationHours;
 
@@ -150,45 +179,46 @@ export function estimateProfessionalConcreteLabor(
 
   const formworkEdgePrep =
     areaSqFt > 0
-      ? areaSqFt / (TASK_RATES.formworkEdgePrepSqFtPerCrewHour * placementFactor)
+      ? areaSqFt / (TASK_RATES.formworkEdgePrepSqFtPerJobHour * placementFactor)
       : 0.5;
 
   const vaporBarrier = input.options.vaporBarrier
-    ? areaSqFt / TASK_RATES.vaporBarrierSqFtPerCrewHour
+    ? areaSqFt / TASK_RATES.vaporBarrierSqFtPerJobHour
     : 0;
 
   const reinforcement =
     input.reinforcementType === 'none'
       ? 0
-      : areaSqFt / TASK_RATES.rebarSqFtPerCrewHour[input.reinforcementType];
+      : areaSqFt / TASK_RATES.rebarSqFtPerJobHour[input.reinforcementType];
 
+  const placementBase =
+    PLACEMENT_CY_PER_JOB_HOUR[input.placementMethod] * placementFactor;
   const placement =
-    concreteYards > 0
-      ? concreteYards /
-        (TASK_RATES.placementCYPerCrewHour[input.placementMethod] * placementFactor)
+    concreteYards > 0 && placementBase > 0
+      ? concreteYards / placementBase
       : 0;
 
   const screeding =
     areaSqFt > 0
-      ? areaSqFt / (TASK_RATES.screedSqFtPerCrewHour * placementFactor)
+      ? areaSqFt / (TASK_RATES.screedSqFtPerJobHour * placementFactor)
       : 0;
 
   const bullFloating =
     areaSqFt > 0
-      ? areaSqFt / (TASK_RATES.bullFloatSqFtPerCrewHour * finishFactor)
+      ? areaSqFt / (TASK_RATES.bullFloatSqFtPerJobHour * finishFactor)
       : 0;
 
   const finishing = finishHoursForType(areaSqFt, input.finishType, finishFactor);
 
   const edgingJointing = input.options.sawCutJoints
-    ? estimateJointLinearFeet(areaSqFt) / TASK_RATES.sawCutLfPerCrewHour
+    ? estimateJointLinearFeet(areaSqFt) / TASK_RATES.sawCutLfPerJobHour
     : areaSqFt > 0
-      ? areaSqFt / (TASK_RATES.edgingSqFtPerCrewHour * finishFactor)
+      ? areaSqFt / (TASK_RATES.edgingSqFtPerJobHour * finishFactor)
       : 0;
 
   const curing = input.options.curingCompound
     ? areaSqFt > 0
-      ? areaSqFt / TASK_RATES.curingSqFtPerCrewHour
+      ? areaSqFt / TASK_RATES.curingSqFtPerJobHour
       : TASK_RATES.curingMinimumHours
     : TASK_RATES.curingMinimumHours;
 
@@ -209,33 +239,32 @@ export function estimateProfessionalConcreteLabor(
     cleanup: round2(cleanup),
   };
 
-  const directCrewHours = round2(
-    Object.values(taskHours).reduce((sum, h) => sum + h, 0),
+  const estimatedJobDurationHours = round2(estimatePourDayJobHours(taskHours));
+
+  const minimumJobHours = input.options.smallJobMinimum ? 4 : 2;
+  const billableJobDurationHours = round2(
+    Math.max(estimatedJobDurationHours, minimumJobHours),
   );
 
-  const minimumHours = input.options.smallJobMinimum ? 4 : 2;
-  const billableCrewHours = round2(Math.max(directCrewHours, minimumHours));
+  const regularJobHours = Math.min(billableJobDurationHours, 8);
+  const overtimeJobHours = round2(Math.max(billableJobDurationHours - 8, 0));
 
-  const regularHours = Math.min(billableCrewHours, 8);
-  const overtimeHours = round2(Math.max(billableCrewHours - 8, 0));
+  const totalManHours = round2(billableJobDurationHours * crewSize);
+  const regularManHours = round2(regularJobHours * crewSize);
+  const overtimeManHours = round2(overtimeJobHours * crewSize);
 
-  const regularCost = regularHours * crewSize * averageCrewRate;
+  const regularCost = regularManHours * averageCrewRate;
   const overtimeCost =
-    overtimeHours * crewSize * averageCrewRate * input.rates.overtimeMultiplier;
-
-  const supervisionCost =
-    input.crew.foremen > 0
-      ? billableCrewHours * input.crew.foremen * burdenedForemanRate
-      : 0;
+    overtimeManHours * averageCrewRate * input.rates.overtimeMultiplier;
 
   const smallToolsAndPpe = (regularCost + overtimeCost) * 0.05;
 
   const contingency = input.options.includeContingency
-    ? (regularCost + overtimeCost + supervisionCost) * 0.1
+    ? (regularCost + overtimeCost) * 0.1
     : 0;
 
   const totalLaborCost =
-    regularCost + overtimeCost + supervisionCost + smallToolsAndPpe + contingency;
+    regularCost + overtimeCost + smallToolsAndPpe + contingency;
 
   return {
     crewSize,
@@ -246,14 +275,16 @@ export function estimateProfessionalConcreteLabor(
       foreman: round2(burdenedForemanRate),
     },
     taskHours,
-    directCrewHours,
-    billableCrewHours,
-    regularHours: round2(regularHours),
-    overtimeHours,
+    estimatedJobDurationHours,
+    billableJobDurationHours,
+    totalManHours,
+    regularJobHours: round2(regularJobHours),
+    overtimeJobHours,
+    regularManHours,
+    overtimeManHours,
     costs: {
       regularCost: round2(regularCost),
       overtimeCost: round2(overtimeCost),
-      supervisionCost: round2(supervisionCost),
       smallToolsAndPpe: round2(smallToolsAndPpe),
       contingency: round2(contingency),
       totalLaborCost: round2(totalLaborCost),
@@ -265,5 +296,7 @@ export function estimateProfessionalConcreteLabor(
     },
     placementFactor: round2(placementFactor),
     finishFactor: round2(finishFactor),
+    areaReconciledFromVolume,
+    impliedThicknessInches,
   };
 }

@@ -67,6 +67,7 @@ export interface ConcreteLaborEstimateInput {
   };
 }
 
+/** Per-task clock hours (shown in breakdown; not all sum to job duration). */
 export interface ProfessionalConcreteLaborTaskHours {
   mobilization: number;
   subgradePrep: number;
@@ -91,14 +92,18 @@ export interface ProfessionalConcreteLaborResult {
     foreman: number;
   };
   taskHours: ProfessionalConcreteLaborTaskHours;
-  directCrewHours: number;
-  billableCrewHours: number;
-  regularHours: number;
-  overtimeHours: number;
+  /** Clock hours on site (parallel tasks collapsed, not summed). */
+  estimatedJobDurationHours: number;
+  billableJobDurationHours: number;
+  /** estimatedJobDurationHours × crewSize */
+  totalManHours: number;
+  regularJobHours: number;
+  overtimeJobHours: number;
+  regularManHours: number;
+  overtimeManHours: number;
   costs: {
     regularCost: number;
     overtimeCost: number;
-    supervisionCost: number;
     smallToolsAndPpe: number;
     contingency: number;
     totalLaborCost: number;
@@ -109,4 +114,7 @@ export interface ProfessionalConcreteLaborResult {
   };
   placementFactor: number;
   finishFactor: number;
+  /** True when footprint area disagrees with volume × thickness. */
+  areaReconciledFromVolume?: boolean;
+  impliedThicknessInches?: number;
 }
