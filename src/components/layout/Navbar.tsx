@@ -82,10 +82,13 @@ const Navbar: React.FC = () => {
         },
         {
           name: 'Start Project',
-          path: `/projects${workflowQuery()}`,
+          path: '/projects',
           icon: <FolderPlus size={20} />,
           shortName: 'Start',
-          onClick: undefined,
+          onClick: () => {
+            setIsMobileMenuOpen(false);
+            navigate('/projects', { state: { openCreate: true } });
+          },
         },
         {
           name: 'Tools',

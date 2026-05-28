@@ -14,6 +14,7 @@ const TIMESTAMP_COLUMN: Record<ProposalStatus, string | null> = {
   declined: 'declined_at',
   deposit_paid: 'deposit_paid_at',
   scheduled: 'scheduled_at',
+  paid: 'paid_at',
 };
 
 export function getPublicProposalUrl(publicToken: string): string {
@@ -104,6 +105,12 @@ export async function markDepositPaid(proposalId: string): Promise<TrackedPropos
 export async function markScheduled(proposalId: string): Promise<TrackedProposalRow> {
   const { data, error } = await updateProposalStatus(proposalId, 'scheduled');
   if (error || !data) throw error ?? new Error('Failed to mark scheduled');
+  return data;
+}
+
+export async function markPaid(proposalId: string): Promise<TrackedProposalRow> {
+  const { data, error } = await updateProposalStatus(proposalId, 'paid');
+  if (error || !data) throw error ?? new Error('Failed to mark paid');
   return data;
 }
 

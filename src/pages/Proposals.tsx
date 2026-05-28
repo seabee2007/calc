@@ -15,6 +15,7 @@ import {
   getPublicProposalUrl,
   markDepositPaid,
   markProposalSent,
+  markPaid,
   markScheduled,
 } from '../lib/proposalTracking';
 import {
@@ -168,6 +169,15 @@ const Proposals: React.FC = () => {
     }
   };
 
+  const handleMarkPaid = async (id: string) => {
+    try {
+      await markPaid(id);
+      await loadProposals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status');
+    }
+  };
+
   const filteredProposals = useMemo(() => {
     if (selectedStatus === 'all') return proposals;
     return proposals.filter((p) => (p.status ?? 'draft') === selectedStatus);
@@ -207,6 +217,8 @@ const Proposals: React.FC = () => {
         return 'Schedule placement';
       case 'scheduled':
         return 'Confirm schedule and mobilize crew';
+      case 'paid':
+        return 'Close out and archive job';
       case 'declined':
         return 'Review feedback and revise bid';
       default:
@@ -395,6 +407,7 @@ const Proposals: React.FC = () => {
                 const sentAt = proposal.sent_at;
                 const viewedAt = proposal.viewed_at ?? proposal.opened_at;
                 const acceptedAt = proposal.accepted_at;
+                const paidAt = proposal.paid_at;
 
                 return (
                   <motion.div
@@ -469,6 +482,12 @@ const Proposals: React.FC = () => {
                             {acceptedAt ? formatDateOnly(acceptedAt) : 'Pending'}
                           </span>
                         </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-600 dark:text-gray-400">Paid</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {paidAt ? formatDateOnly(paidAt) : 'Pending'}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -520,6 +539,15 @@ const Proposals: React.FC = () => {
                                   key: 'mark_scheduled',
                                   label: 'Mark scheduled',
                                   onClick: () => handleMarkScheduled(proposal.id),
+                                },
+                              ]
+                            : []),
+                          ...(proposal.status === 'scheduled' || proposal.status === 'deposit_paid'
+                            ? [
+                                {
+                                  key: 'mark_paid',
+                                  label: 'Mark paid',
+                                  onClick: () => handleMarkPaid(proposal.id),
                                 },
                               ]
                             : []),

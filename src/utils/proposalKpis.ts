@@ -22,11 +22,33 @@ export interface ProposalDashboardMetrics {
 }
 
 const PENDING_STATUSES: ProposalStatus[] = ['sent', 'viewed', 'opened'];
+const WON_STATUSES: ProposalStatus[] = ['accepted', 'deposit_paid', 'scheduled', 'paid'];
 
 function num(v: number | string | null | undefined): number {
   if (v == null) return 0;
   const n = typeof v === 'number' ? v : parseFloat(String(v));
   return Number.isFinite(n) ? n : 0;
+}
+
+function isPending(status: ProposalStatus): boolean {
+  return PENDING_STATUSES.includes(status);
+}
+
+function isWon(status: ProposalStatus): boolean {
+  return WON_STATUSES.includes(status);
+}
+
+function wonAt(p: TrackedProposalRow): string | null {
+  // Use the most meaningful "won" timestamp available for monthly rollups.
+  // Fall back to updated_at if we have no stage timestamp (older rows).
+  return (
+    (p.paid_at as any) ??
+    p.scheduled_at ??
+    p.deposit_paid_at ??
+    p.accepted_at ??
+    p.updated_at ??
+    null
+  );
 }
 
 export function buildProposalPipelineCounts(
@@ -49,36 +71,43 @@ export function buildProposalFinancialKpis(
   proposals: TrackedProposalRow[],
   now = new Date(),
 ): ProposalFinancialKpis {
-  const acceptedProposals = proposals.filter((p) => p.status === 'accepted');
-  const acceptedCount = acceptedProposals.length;
-  const declinedCount = proposals.filter((p) => p.status === 'declined').length;
+  const wonProposals = proposals.filter((p) => isWon(p.status));
+  const pendingProposals = proposals.filter((p) => isPending(p.status));
+  const declinedProposals = proposals.filter((p) => p.status === 'declined');
 
-  const totalRevenue = acceptedProposals.reduce(
+  const wonCount = wonProposals.length;
+  const declinedCount = declinedProposals.length;
+  const sentCount = wonCount + declinedCount + pendingProposals.length;
+
+  const totalRevenue = wonProposals.reduce(
     (sum, p) => sum + num(p.total_amount),
     0,
   );
 
-  const pendingRevenue = proposals
-    .filter((p) => PENDING_STATUSES.includes(p.status))
-    .reduce((sum, p) => sum + num(p.total_amount), 0);
+  const pendingRevenue = pendingProposals.reduce(
+    (sum, p) => sum + num(p.total_amount),
+    0,
+  );
 
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthlyRevenue = acceptedProposals
+  const monthlyRevenue = wonProposals
     .filter((p) => {
-      const at = p.accepted_at ?? p.updated_at;
-      return at && new Date(at) >= monthStart;
+      const at = wonAt(p);
+      return at ? new Date(at) >= monthStart : false;
     })
     .reduce((sum, p) => sum + num(p.total_amount), 0);
 
-  const winRate =
-    acceptedCount + declinedCount > 0
-      ? acceptedCount / (acceptedCount + declinedCount)
-      : 0;
+  // Win rate = won / sent (excluding drafts)
+  const winRate = sentCount > 0 ? wonCount / sentCount : 0;
 
-  const averageJobSize = acceptedCount > 0 ? totalRevenue / acceptedCount : 0;
+  const averageJobSize = wonCount > 0 ? totalRevenue / wonCount : 0;
 
-  const laborCostTotal = proposals.reduce((sum, p) => sum + num(p.labor_cost), 0);
-  const materialCostTotal = proposals.reduce(
+  // Costs should be compared to revenue for the same cohort (won).
+  const laborCostTotal = wonProposals.reduce(
+    (sum, p) => sum + num(p.labor_cost),
+    0,
+  );
+  const materialCostTotal = wonProposals.reduce(
     (sum, p) => sum + num(p.material_cost),
     0,
   );
@@ -94,7 +123,7 @@ export function buildProposalFinancialKpis(
     laborCostTotal,
     materialCostTotal,
     grossProfit,
-    acceptedCount,
+    acceptedCount: wonCount,
     declinedCount,
   };
 }

@@ -96,6 +96,7 @@ function inferStage(
 
   if (status === 'ready_to_call') return 'mix_approved';
 
+  if (proposalStatus === 'paid') return 'closed';
   if (proposalStatus === 'scheduled' || proposalStatus === 'deposit_paid') {
     return proposalStatus === 'scheduled' ? 'placement_scheduled' : 'accepted';
   }

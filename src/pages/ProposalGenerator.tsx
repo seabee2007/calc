@@ -32,6 +32,7 @@ import {
   buildProposalPricingFromProject,
   projectHasImportablePricing,
 } from '../utils/proposalPricingImport';
+import { parseProposalAmount } from '../utils/proposalFinancials';
 import { soundService } from '../services/soundService';
 import USAddressFields from '../components/address/USAddressFields';
 import {
@@ -111,6 +112,7 @@ const ProposalGenerator: React.FC = () => {
     preparedByTitle: '',
   }),
   );
+  const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
 
   // Load proposal data when editing or previewing
   useEffect(() => {
@@ -938,6 +940,33 @@ const ProposalGenerator: React.FC = () => {
     });
   };
 
+  const applyProfitMargin = () => {
+    const margin = Math.max(0, Math.min(90, Number(profitMarginPct) || 0)) / 100;
+    setProfitMarginPct(Math.round(margin * 100));
+
+    setProposalData((prev) => {
+      const PROFIT_DESC = 'Profit (Markup)';
+      const items = [...(prev.pricing ?? [])];
+
+      const nonProfit = items.filter(
+        (x) => (x.description ?? '').trim().toLowerCase() !== PROFIT_DESC.toLowerCase(),
+      );
+      const baseCost = nonProfit.reduce((sum, x) => sum + parseProposalAmount(x.amount), 0);
+      const sellPrice = margin >= 0.9 ? baseCost : baseCost / (1 - margin);
+      const profit = Math.max(0, sellPrice - baseCost);
+
+      const profitLine = {
+        description: PROFIT_DESC,
+        amount: profit > 0 ? `$${profit.toFixed(2)}` : '',
+      };
+
+      return {
+        ...prev,
+        pricing: [...nonProfit, profitLine],
+      };
+    });
+  };
+
   if (showPreview) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
@@ -1504,6 +1533,36 @@ const ProposalGenerator: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Profit / markup */}
+              <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Profit margin (%)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={90}
+                      value={profitMarginPct}
+                      onChange={(e) => setProfitMarginPct(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Adds/updates a “Profit (Markup)” line item so totals reflect margin.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={applyProfitMargin}
+                    className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
+                  >
+                    Apply Profit
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 {proposalData.pricing.map((item, index) => (
                   <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">

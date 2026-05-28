@@ -21,7 +21,7 @@ const BottomNav: React.FC = () => {
 
   if (!user) return null;
 
-  const startPath = `/projects${workflowQuery()}`;
+  const startPath = '/projects';
 
   const linkItems = [
     {
@@ -36,7 +36,9 @@ const BottomNav: React.FC = () => {
       label: 'Start',
       icon: FolderPlus,
       match: (p: string) => p.startsWith('/projects'),
-      onClick: undefined,
+      onClick: () => {
+        navigate('/projects', { state: { openCreate: true } });
+      },
     },
     {
       path: '',

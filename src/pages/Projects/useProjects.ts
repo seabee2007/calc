@@ -35,10 +35,19 @@ export function useProjects() {
 
   // Sync URL state
   useEffect(() => {
-    const state = location.state as { showProjectDetails?: boolean; projectId?: string };
+    const state = location.state as {
+      showProjectDetails?: boolean;
+      projectId?: string;
+      openCreate?: boolean;
+    };
     if (state?.showProjectDetails && state?.projectId) {
       setCurrentProject(state.projectId);
       setUi(s => ({ ...s, showDetails: true }));
+      return;
+    }
+    if (state?.openCreate) {
+      setCurrentProject(null);
+      setUi((s) => ({ ...s, showCreate: true, showDetails: false, editing: false }));
     }
   }, [location.state, setCurrentProject]);
 

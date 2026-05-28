@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
 import { Folder, Clock, Trash2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
@@ -8,6 +8,8 @@ import type { Project } from '../../types';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
 import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
+import { useTrackedProposals } from '../../hooks/useTrackedProposals';
+import type { TrackedProposalRow } from '../../types/proposalTracking';
 
 interface ProjectCardProps {
   project: Project;
@@ -68,6 +70,7 @@ function priorityTone(stage: ProjectWorkflowStage, hasPourDate: boolean): {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete }) => {
   const p = project as any;
+  const { proposals } = useTrackedProposals();
   const stopCardOpen = (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -92,8 +95,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
     }
   })();
 
-  const workflow = resolveProjectWorkflow(project, {
-    hasProposalDraft: false,
+  const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
+    const name = project.name?.trim() ?? '';
+    if (!name) return undefined;
+    const lower = name.toLowerCase();
+    return proposals.find(
+      (proposal) =>
+        proposal.data?.projectTitle === name ||
+        proposal.title?.toLowerCase().includes(lower),
+    );
+  }, [proposals, project.name]);
+
+  const workflow = resolveProjectWorkflow(project as any, {
+    hasProposalDraft: Boolean(matchedProposal),
+    proposalStatus: matchedProposal?.status,
     windRisk: 'unknown',
     heatRisk: 'unknown',
     readinessScore: 0,

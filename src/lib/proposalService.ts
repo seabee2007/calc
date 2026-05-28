@@ -22,6 +22,7 @@ function normalizeProposal(row: Record<string, unknown>): SavedProposal {
     declined_at: (row.declined_at as string | null) ?? null,
     deposit_paid_at: (row.deposit_paid_at as string | null) ?? null,
     scheduled_at: (row.scheduled_at as string | null) ?? null,
+    paid_at: (row.paid_at as string | null) ?? null,
   };
 }
 

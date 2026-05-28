@@ -10,6 +10,7 @@ const LABOR_KEYWORDS =
   /\b(labor|labour|crew|finishing|placement|mobilization|supervision|man[- ]?hour)\b/i;
 const MATERIAL_KEYWORDS =
   /\b(concrete|rebar|reinforcement|ready[- ]?mix|material|delivery|pump|steel|wire mesh)\b/i;
+const PROFIT_KEYWORDS = /\b(profit|markup|mark[- ]?up|margin)\b/i;
 
 /** Split pricing lines into labor vs material totals for KPI storage. */
 export function computeProposalFinancials(
@@ -19,11 +20,16 @@ export function computeProposalFinancials(
   let labor_cost = 0;
   let material_cost = 0;
   let other = 0;
+  let profit = 0;
 
   for (const row of data.pricing ?? []) {
     const amt = parseProposalAmount(row.amount);
     if (amt <= 0) continue;
     const desc = row.description ?? '';
+    if (PROFIT_KEYWORDS.test(desc)) {
+      profit += amt;
+      continue;
+    }
     if (LABOR_KEYWORDS.test(desc)) {
       labor_cost += amt;
     } else if (MATERIAL_KEYWORDS.test(desc)) {
@@ -40,7 +46,7 @@ export function computeProposalFinancials(
     labor_cost += other * 0.3;
   }
 
-  const total_amount = labor_cost + material_cost;
+  const total_amount = labor_cost + material_cost + profit;
   const deposit_amount =
     total_amount > 0 ? Math.round(total_amount * depositPercent * 100) / 100 : 0;
 

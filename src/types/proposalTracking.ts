@@ -8,7 +8,8 @@ export type ProposalStatus =
   | 'accepted'
   | 'declined'
   | 'deposit_paid'
-  | 'scheduled';
+  | 'scheduled'
+  | 'paid';
 
 export const PROPOSAL_STATUS_LABELS: Record<ProposalStatus, string> = {
   draft: 'Draft',
@@ -19,6 +20,7 @@ export const PROPOSAL_STATUS_LABELS: Record<ProposalStatus, string> = {
   declined: 'Declined',
   deposit_paid: 'Deposit Paid',
   scheduled: 'Scheduled',
+  paid: 'Paid',
 };
 
 export const PROPOSAL_PIPELINE_STATUSES: ProposalStatus[] = [
@@ -30,6 +32,7 @@ export const PROPOSAL_PIPELINE_STATUSES: ProposalStatus[] = [
   'declined',
   'deposit_paid',
   'scheduled',
+  'paid',
 ];
 
 export interface ProposalFinancialFields {
@@ -55,6 +58,7 @@ export interface TrackedProposalRow {
   declined_at: string | null;
   deposit_paid_at: string | null;
   scheduled_at: string | null;
+  paid_at: string | null;
   total_amount: number;
   labor_cost: number;
   material_cost: number;

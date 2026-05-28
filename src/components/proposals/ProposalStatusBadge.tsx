@@ -21,6 +21,8 @@ const STATUS_STYLES: Record<ProposalStatus, string> = {
     'bg-teal-100/90 text-teal-900 ring-teal-200 dark:bg-teal-900/30 dark:text-teal-200 dark:ring-teal-800/60',
   scheduled:
     'bg-purple-100/90 text-purple-900 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:ring-purple-800/60',
+  paid:
+    'bg-emerald-100/90 text-emerald-900 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800/60',
 };
 
 export default function ProposalStatusBadge({
