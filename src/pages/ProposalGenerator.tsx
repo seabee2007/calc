@@ -45,6 +45,8 @@ import {
   displayBusinessAddress,
   displayClientAddress,
   hydrateProposalAddresses,
+  mergeProjectIntoProposalFields,
+  mergeProjectJobsiteIntoClientAddress,
   syncProposalAddressesForSave,
 } from '../utils/proposalAddress';
 
@@ -168,9 +170,10 @@ const ProposalGenerator: React.FC = () => {
     if (isEditing || isPreviewMode) return;
 
     const projectId = state?.projectId ?? workflowProjectId;
+    const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
     const draft = projectId ? getProposalDraft(projectId) : undefined;
     if (draft && !proposalDraftRestoredRef.current) {
-      setProposalData(draft.proposalData);
+      setProposalData(mergeProjectIntoProposalFields(draft.proposalData, project));
       setProposalTitle(draft.proposalTitle);
       setSelectedTemplate(draft.selectedTemplate);
       setShowPreview(draft.showPreview);
@@ -180,20 +183,26 @@ const ProposalGenerator: React.FC = () => {
     }
     proposalDraftRestoredRef.current = true;
 
-    const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
     const projectName = state?.projectName ?? project?.name;
     const projectDescription = state?.projectDescription ?? project?.description;
 
     if (projectName) {
       setProposalTitle((prev) => prev || `${projectName} - Concrete Proposal`);
-      setProposalData((prev) => ({
-        ...prev,
-        projectTitle: projectName,
-        introduction: projectDescription
-          ? `We are pleased to submit this proposal for your ${projectName} project. ${projectDescription}`
-          : `We are pleased to submit this proposal for your ${projectName || 'concrete'} project.`,
-        scope: `This proposal covers all concrete work required for the ${projectName || 'concrete'} project, including materials, labor, and related services.`,
-      }));
+      setProposalData((prev) =>
+        mergeProjectIntoProposalFields(
+          {
+            ...prev,
+            projectTitle: projectName,
+            introduction: projectDescription
+              ? `We are pleased to submit this proposal for your ${projectName} project. ${projectDescription}`
+              : `We are pleased to submit this proposal for your ${projectName || 'concrete'} project.`,
+            scope: `This proposal covers all concrete work required for the ${projectName || 'concrete'} project, including materials, labor, and related services.`,
+          },
+          project,
+        ),
+      );
+    } else if (project) {
+      setProposalData((prev) => mergeProjectIntoProposalFields(prev, project));
     }
 
     const hasImportablePricing = project ? projectHasImportablePricing(project) : false;
@@ -213,6 +222,24 @@ const ProposalGenerator: React.FC = () => {
     isPreviewMode,
     projects,
     getProposalDraft,
+  ]);
+
+  // Jobsite may load after projects fetch — fill client address when it arrives.
+  useEffect(() => {
+    if (isEditing || isPreviewMode) return;
+    const projectId = workflowState?.projectId ?? workflowProjectId;
+    if (!projectId) return;
+    const project = projects.find((p) => p.id === projectId);
+    if (!project?.jobsiteAddress) return;
+    setProposalData((prev) =>
+      mergeProjectJobsiteIntoClientAddress(prev, project.jobsiteAddress),
+    );
+  }, [
+    workflowProjectId,
+    workflowState?.projectId,
+    projects,
+    isEditing,
+    isPreviewMode,
   ]);
 
   const importPricingFromProject = (
@@ -240,17 +267,15 @@ const ProposalGenerator: React.FC = () => {
       return;
     }
 
-    const clientParts = project.jobsiteAddress;
     setProposalData((prev) =>
-      hydrateProposalAddresses({
-        ...prev,
-        pricing: pricingItems,
-        projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
-        ...(clientParts && {
-          clientAddressParts: clientParts,
-          clientAddress: formatUSAddress(clientParts),
+      mergeProjectJobsiteIntoClientAddress(
+        hydrateProposalAddresses({
+          ...prev,
+          pricing: pricingItems,
+          projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
         }),
-      }),
+        project.jobsiteAddress,
+      ),
     );
 
     setShowProjectPicker(false);

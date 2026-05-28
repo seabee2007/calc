@@ -104,6 +104,41 @@ export function normalizeAddressQuery(address: string): string {
   return normalized;
 }
 
+/** Rough Oklahoma bounds — used to score geocodes, not hard-reject. */
+export const OKLAHOMA_BBOX: [number, number, number, number] = [
+  -103.0, 33.5, -94.4, 37.0,
+];
+
+const US_STATE_ABBR =
+  /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/i;
+
+/** Parse ", City, ST" from a US mailing-style address. */
+export function parseUSCityState(address: string): {
+  city?: string;
+  state?: string;
+} {
+  const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
+  for (let i = parts.length - 1; i >= 1; i--) {
+    const stateMatch = parts[i].match(US_STATE_ABBR);
+    if (stateMatch) {
+      const state = stateMatch[1].toUpperCase();
+      const city = parts[i - 1]?.trim();
+      if (city && !US_STATE_ABBR.test(city)) {
+        return { city, state };
+      }
+    }
+  }
+  return {};
+}
+
+const CITY_PROXIMITY: Record<string, [number, number]> = {
+  "tulsa": [-95.9928, 36.154],
+  "broken arrow": [-95.7897, 36.0526],
+  "oklahoma city": [-97.5164, 35.4676],
+  "norman": [-97.4395, 35.2226],
+  "edmond": [-97.4783, 35.6528],
+};
+
 export function detectRegionHint(address: string): RegionHint {
   const normalizedQuery = normalizeAddressQuery(address);
 
@@ -114,6 +149,26 @@ export function detectRegionHint(address: string): RegionHint {
         normalizedQuery,
       };
     }
+  }
+
+  const { city, state } = parseUSCityState(normalizedQuery);
+  if (state === "OK" || /\boklahoma\b/i.test(normalizedQuery)) {
+    const cityKey = city?.toLowerCase() ?? "";
+    const proximity = CITY_PROXIMITY[cityKey] ?? [-97.5164, 35.4676];
+    return {
+      normalizedQuery,
+      country: "US",
+      proximity,
+      regionLabel: "Oklahoma",
+    };
+  }
+
+  if (city && state && state.length === 2) {
+    return {
+      normalizedQuery,
+      country: "US",
+      regionLabel: `${city}, ${state}`,
+    };
   }
 
   return { normalizedQuery, country: "US" };
@@ -182,6 +237,20 @@ function scoreFeature(
     if (featureType === "address") score += 35;
     if (featureType === "street") score += 20;
     if (featureType === "place" || featureType === "region") score -= 25;
+  }
+
+  const queryText = (hint.normalizedQuery || "").toLowerCase();
+  if (
+    (queryText.includes(", ok") || queryText.includes("oklahoma")) &&
+    hint.regionLabel === "Oklahoma"
+  ) {
+    if (isWithinBbox(lng, lat, OKLAHOMA_BBOX)) score += 70;
+    else score -= 100;
+  }
+
+  if (queryText.includes("tulsa") && hint.regionLabel === "Oklahoma") {
+    const tulsaDist = haversineMiles(36.154, -95.9928, lat, lng);
+    score += Math.max(0, 40 - tulsaDist * 2);
   }
 
   return score;

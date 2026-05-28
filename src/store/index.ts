@@ -522,6 +522,7 @@ const mapCalculationFromDb = (c: any): Calculation => ({
   psi: c.psi,
   mixProfile: c.mix_profile,
   quikreteProduct: c.quikrete_product,
+  mixDesignApproval: c.mix_design_approval ?? undefined,
   createdAt: c.created_at,
 });
 
@@ -703,7 +704,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         weather:    calc.weather,
         psi:        calc.psi,
         mix_profile: calc.mixProfile,
-        quikrete_product: calc.quikreteProduct
+        quikrete_product: calc.quikreteProduct,
+        mix_design_approval: calc.mixDesignApproval ?? null,
       })
       .select('*, created_at')
       .single();
@@ -718,6 +720,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       psi:       data.psi,
       mixProfile: data.mix_profile,
       quikreteProduct: data.quikrete_product,
+      mixDesignApproval: data.mix_design_approval ?? undefined,
       createdAt: data.created_at
     };
     set((s) => {
@@ -749,7 +752,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         weather:    calcData.weather,
         psi:        calcData.psi,
         mix_profile: calcData.mixProfile,
-        quikrete_product: calcData.quikreteProduct
+        quikrete_product: calcData.quikreteProduct,
+        ...(calcData.mixDesignApproval !== undefined
+          ? { mix_design_approval: calcData.mixDesignApproval }
+          : {}),
       })
       .eq('id', calcId)
       .select('*, created_at')
@@ -765,6 +771,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       psi:       data.psi,
       mixProfile: data.mix_profile,
       quikreteProduct: data.quikrete_product,
+      mixDesignApproval: data.mix_design_approval ?? undefined,
       createdAt: data.created_at
     };
     set((s) => {

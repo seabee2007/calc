@@ -241,6 +241,10 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
       setField('batchPlantAddress', plant.formattedAddress);
       setField('batchPlantLatitude', String(plant.latitude));
       setField('batchPlantLongitude', String(plant.longitude));
+      setField('travelDistance', String(plant.distanceMiles));
+      if (plant.driveMinutes != null && plant.driveMinutes > 0) {
+        setField('travelTimeMinutes', String(plant.driveMinutes));
+      }
 
       setTravelLoading(true);
       try {
@@ -508,11 +512,14 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
               <div className="mt-2 p-3 rounded-md bg-green-50 dark:bg-green-900/25 text-green-800 dark:text-green-200 text-sm flex gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                  Found {foundPlant.plantName} ({foundPlant.distanceMiles} mi away,{' '}
+                  Found {foundPlant.plantName} (
+                  {form.travelDistance || String(foundPlant.distanceMiles)} mi drive,{' '}
                   {foundPlant.confidence} confidence)
-                  {form.travelTimeMinutes && form.travelDistance
-                    ? ` · ${form.travelDistance} mi · ${form.travelTimeMinutes} min drive`
-                    : ''}
+                  {form.travelTimeMinutes
+                    ? ` · ${form.travelTimeMinutes} min`
+                    : foundPlant.driveMinutes
+                      ? ` · ${foundPlant.driveMinutes} min`
+                      : ''}
                 </span>
               </div>
             )}

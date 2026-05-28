@@ -202,6 +202,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
               <ArrowRight className="h-4 w-4 text-cyan-500" />
               <span className="truncate">{workflow.nextAction.label}</span>
             </p>
+            {workflow.mixDesign && workflow.mixDesign.totalPlacements > 0 && (
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                Mix designs: {workflow.mixDesign.approvedCount}/
+                {workflow.mixDesign.totalPlacements} approved
+              </p>
+            )}
           </div>
 
           <div className="mb-3" onClick={handleCardClick}>

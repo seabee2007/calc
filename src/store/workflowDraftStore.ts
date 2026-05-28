@@ -24,7 +24,9 @@ export type MixDesignWorkflowDraft = import('../types/mixDesignAdvisor').MixDesi
 interface WorkflowDraftsByProject {
   pourPlanner?: PourPlannerDraft;
   proposal?: ProposalWorkflowDraft;
+  /** @deprecated — use mixDesignByCalculation */
   mixDesign?: MixDesignWorkflowDraft;
+  mixDesignByCalculation?: Record<string, MixDesignWorkflowDraft>;
 }
 
 interface WorkflowDraftState {
@@ -33,8 +35,15 @@ interface WorkflowDraftState {
   savePourPlannerDraft: (projectId: string, draft: PourPlannerDraft) => void;
   getProposalDraft: (projectId: string) => ProposalWorkflowDraft | undefined;
   saveProposalDraft: (projectId: string, draft: ProposalWorkflowDraft) => void;
-  getMixDesignDraft: (projectId: string) => MixDesignWorkflowDraft | undefined;
-  saveMixDesignDraft: (projectId: string, draft: MixDesignWorkflowDraft) => void;
+  getMixDesignDraft: (
+    projectId: string,
+    calculationId?: string,
+  ) => MixDesignWorkflowDraft | undefined;
+  saveMixDesignDraft: (
+    projectId: string,
+    calculationId: string | undefined,
+    draft: MixDesignWorkflowDraft,
+  ) => void;
 }
 
 function readStored(): Record<string, WorkflowDraftsByProject> {
@@ -84,13 +93,34 @@ export const useWorkflowDraftStore = create<WorkflowDraftState>((set, get) => ({
     });
   },
 
-  getMixDesignDraft: (projectId) => get().byProject[projectId]?.mixDesign,
+  getMixDesignDraft: (projectId, calculationId) => {
+    const bucket = get().byProject[projectId];
+    if (!bucket) return undefined;
+    if (calculationId && bucket.mixDesignByCalculation?.[calculationId]) {
+      return bucket.mixDesignByCalculation[calculationId];
+    }
+    if (calculationId) return undefined;
+    return bucket.mixDesign;
+  },
 
-  saveMixDesignDraft: (projectId, draft) => {
+  saveMixDesignDraft: (projectId, calculationId, draft) => {
     set((s) => {
+      const prev = s.byProject[projectId] ?? {};
+      let mixDesignByCalculation = { ...prev.mixDesignByCalculation };
+      if (calculationId) {
+        mixDesignByCalculation = {
+          ...mixDesignByCalculation,
+          [calculationId]: draft,
+        };
+      }
       const next = {
         ...s.byProject,
-        [projectId]: { ...s.byProject[projectId], mixDesign: draft },
+        [projectId]: {
+          ...prev,
+          ...(calculationId
+            ? { mixDesignByCalculation }
+            : { mixDesign: draft }),
+        },
       };
       writeStored(next);
       return { byProject: next };

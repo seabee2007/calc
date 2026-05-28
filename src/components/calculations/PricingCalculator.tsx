@@ -153,6 +153,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
           longitude: coords.longitude,
         });
         setBatchPlant(plant);
+        setDistance(Math.max(1, Math.round(plant.distanceMiles * 10) / 10));
 
         let travelMiles = plant.distanceMiles ?? 10;
         let routeTravel: { travelTimeMinutes: number; travelDistanceMi: number } | undefined;
@@ -406,13 +407,23 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
           )}
 
           {plantSearchError && (
-            <p className="text-sm text-red-600 dark:text-red-400">{plantSearchError}</p>
+            <div className="text-sm text-red-600 dark:text-red-400 space-y-1">
+              <p>{plantSearchError}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Mapbox may not list every ready-mix plant. If you know a local supplier, enter
+                their address manually on the placement planner call sheet.
+              </p>
+            </div>
           )}
 
           {batchPlant && (
             <div className="space-y-2 text-sm">
               <p className="font-medium text-gray-900 dark:text-white">{batchPlant.plantName}</p>
               <p className="text-gray-600 dark:text-gray-400">{batchPlant.formattedAddress}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {batchPlant.distanceMiles.toFixed(1)} mi drive to jobsite
+                {batchPlant.driveMinutes ? ` · ~${batchPlant.driveMinutes} min` : ''}
+              </p>
               {pricingSourceLabel && (
                 <p className="text-xs text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5" />

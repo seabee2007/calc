@@ -15,16 +15,16 @@ const Checkbox: React.FC<CheckboxProps> = ({
     <div className="flex items-center">
       <input
         type="checkbox"
-        className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${className}`}
+        className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-500 rounded dark:bg-slate-800 ${className}`}
         {...props}
       />
       {label && (
-        <label className="ml-2 block text-sm text-gray-700">
+        <label className="ml-2 block text-sm text-gray-700 dark:text-gray-200">
           {label}
         </label>
       )}
       {error && (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
+        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
       )}
     </div>
   );

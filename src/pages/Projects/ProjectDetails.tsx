@@ -132,8 +132,17 @@ export default function ProjectDetails() {
     );
     if (volumeYd <= 0) issues.push({ msg: 'Volume not calculated', action: 'project' });
 
-    return issues.slice(0, 5);
-  }, [project, matchedProposal]);
+    const mixCtx = workflow.mixDesign;
+    if (mixCtx?.nextPendingCalculation) {
+      const label = mixCtx.nextPendingCalculation.type?.replace(/_/g, ' ') ?? 'placement';
+      issues.push({
+        msg: `Mix design pending for ${label}`,
+        action: 'placement',
+      });
+    }
+
+    return issues.slice(0, 6);
+  }, [project, matchedProposal, workflow.mixDesign]);
 
   const stageOrder: ProjectWorkflowStage[] = [
     'created',

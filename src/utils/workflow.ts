@@ -1,5 +1,7 @@
 /** Guided contractor workflow: project → calc → proposal → mix → placement → dashboard */
 
+import type { NavigateFunction } from 'react-router-dom';
+
 export const WORKFLOW_STEPS = [
   { id: 'project', label: 'Project Info', path: '/projects' },
   { id: 'calculator', label: 'Calculator', path: '/calculator' },
@@ -32,7 +34,14 @@ export function isWorkflowActive(
 ): boolean {
   if (state?.workflow) return true;
   const params = new URLSearchParams(search);
-  return params.get('flow') === '1';
+  const flag = params.get('flow') ?? params.get('workflow');
+  return flag === '1' || flag === 'true';
+}
+
+/** Project id from workflow URL (`?project=`) even when not in guided flow. */
+export function getProjectIdFromSearch(search: string): string | undefined {
+  const params = new URLSearchParams(search);
+  return params.get('project') ?? undefined;
 }
 
 export function getWorkflowProjectId(
@@ -40,14 +49,36 @@ export function getWorkflowProjectId(
   state?: WorkflowLocationState | null,
 ): string | undefined {
   if (state?.projectId) return state.projectId;
-  const params = new URLSearchParams(search);
-  return params.get('project') ?? undefined;
+  return getProjectIdFromSearch(search);
 }
 
-export function workflowQuery(projectId?: string): string {
+/** Open the modular Projects page with this project's detail panel. */
+export function navigateToProjectDetail(
+  navigate: NavigateFunction,
+  projectId: string,
+): void {
+  navigate('/projects', {
+    state: {
+      showProjectDetails: true,
+      projectId,
+    },
+  });
+}
+
+export function workflowQuery(projectId?: string, calculationId?: string): string {
   const params = new URLSearchParams({ flow: '1' });
   if (projectId) params.set('project', projectId);
+  if (calculationId) params.set('calc', calculationId);
   return `?${params.toString()}`;
+}
+
+export function getWorkflowCalculationId(
+  search: string,
+  state?: WorkflowLocationState | null,
+): string | undefined {
+  if (state?.calculationId) return state.calculationId;
+  const params = new URLSearchParams(search);
+  return params.get('calc') ?? undefined;
 }
 
 export function workflowNavigateState(
@@ -60,13 +91,16 @@ export function workflowNavigateState(
 /** Prefer navigation state calc id, else latest calculation with volume. */
 export function getWorkflowCalculation<
   T extends { id: string; createdAt: string; result?: { volume?: number } },
->(project: { calculations?: T[] } | undefined, state?: WorkflowLocationState | null): T | undefined {
+>(
+  project: { calculations?: T[] } | undefined,
+  state?: WorkflowLocationState | null,
+  search?: string,
+): T | undefined {
   const calcs = project?.calculations;
   if (!calcs?.length) return undefined;
 
-  const fromState = state?.calculationId
-    ? calcs.find((c) => c.id === state.calculationId)
-    : undefined;
+  const calcId = getWorkflowCalculationId(search ?? '', state);
+  const fromState = calcId ? calcs.find((c) => c.id === calcId) : undefined;
   if (fromState) return fromState;
 
   const withVolume = [...calcs]

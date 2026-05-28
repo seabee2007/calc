@@ -13,6 +13,8 @@ import {
   type WorkflowStepId,
 } from '../../utils/workflow';
 import { useWorkflowProgressStore } from '../../store/workflowProgressStore';
+import WorkflowProjectNav from './WorkflowProjectNav';
+import { getProjectIdFromSearch } from '../../utils/workflow';
 
 interface WorkflowStepHeaderProps {
   /** Override auto-detected current step */
@@ -35,13 +37,14 @@ const WorkflowStepHeader: React.FC<WorkflowStepHeaderProps> = ({
   const currentIdx = stepIndex(currentStep);
   const projectId = getWorkflowProjectId(location.search, state);
   const maxIdx = getMaxStepIndex(projectId);
+  const hasProjectContext = Boolean(projectId || getProjectIdFromSearch(location.search));
 
   useEffect(() => {
     if (!inWorkflow) return;
     recordVisit(projectId, currentStep);
   }, [inWorkflow, projectId, currentStep, recordVisit]);
 
-  if (!inWorkflow) return null;
+  if (!inWorkflow && !hasProjectContext) return null;
 
   const goToStep = (stepId: WorkflowStepId, path: string) => {
     const idx = stepIndex(stepId);
@@ -57,10 +60,13 @@ const WorkflowStepHeader: React.FC<WorkflowStepHeaderProps> = ({
       aria-label="Workflow progress"
       className={`rounded-xl border border-slate-700/80 bg-slate-900/95 p-3 sm:p-4 mb-6 ${className}`}
     >
-      <p className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-400/90 mb-3 font-medium">
-        Contractor workflow
-      </p>
-      <ol className="flex flex-wrap items-center gap-1 sm:gap-0">
+      <WorkflowProjectNav />
+      {inWorkflow && (
+        <>
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-400/90 mb-3 font-medium">
+            Contractor workflow
+          </p>
+          <ol className="flex flex-wrap items-center gap-1 sm:gap-0">
         {WORKFLOW_STEPS.map((step, index) => {
           const done = index < currentIdx;
           const active = step.id === currentStep;
@@ -112,7 +118,9 @@ const WorkflowStepHeader: React.FC<WorkflowStepHeaderProps> = ({
             </li>
           );
         })}
-      </ol>
+          </ol>
+        </>
+      )}
     </nav>
   );
 };

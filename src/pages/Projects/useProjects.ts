@@ -7,6 +7,7 @@ import { Project, QCRecord } from '../../types';
 import { generateProjectPDF } from '../../utils/pdf';
 import { CONCRETE_MIX_DESIGNS } from '../../types';
 import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
+import type { ProjectFormData } from '../../components/projects/ProjectForm';
 
 export function useProjects() {
   const navigate = useNavigate();
@@ -33,23 +34,30 @@ export function useProjects() {
     toast: { show: false, msg: '', type: 'success' as 'success'|'error'|'warning' },
   });
 
-  // Sync URL state
+  // Sync URL / navigation state (workflow return, deep links, Start Project)
   useEffect(() => {
     const state = location.state as {
       showProjectDetails?: boolean;
       projectId?: string;
       openCreate?: boolean;
     };
+    const projectIdFromQuery = new URLSearchParams(location.search).get('project');
+
     if (state?.showProjectDetails && state?.projectId) {
       setCurrentProject(state.projectId);
-      setUi(s => ({ ...s, showDetails: true }));
+      setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
+      return;
+    }
+    if (projectIdFromQuery) {
+      setCurrentProject(projectIdFromQuery);
+      setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
       return;
     }
     if (state?.openCreate) {
       setCurrentProject(null);
       setUi((s) => ({ ...s, showCreate: true, showDetails: false, editing: false }));
     }
-  }, [location.state, setCurrentProject]);
+  }, [location.state, location.search, setCurrentProject]);
 
   // Sync current project state
   useEffect(() => {
@@ -63,9 +71,29 @@ export function useProjects() {
   }, [currentProject]);
 
   const handlers = {
-    create: async (data: { name: string; description: string }) => {
-      await addProject(data);
-      setUi(s => ({ ...s, showCreate: false }));
+    create: async (data: ProjectFormData) => {
+      await addProject({
+        name: data.name,
+        description: data.description,
+        jobsiteAddress: data.jobsiteAddress,
+        pourDate: data.pourDate,
+      });
+      const newProjectId = useProjectStore.getState().currentProject?.id;
+      if (newProjectId) {
+        setCurrentProject(newProjectId);
+      }
+      setUi((s) => ({
+        ...s,
+        showCreate: false,
+        showDetails: true,
+        editing: false,
+      }));
+      navigate('/projects', {
+        replace: true,
+        state: newProjectId
+          ? { showProjectDetails: true, projectId: newProjectId }
+          : undefined,
+      });
       toast('Project created successfully', 'success');
     },
 

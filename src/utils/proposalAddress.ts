@@ -1,7 +1,10 @@
 import type { ProposalData } from '../types/proposal';
+import type { Project } from '../types';
 import {
   EMPTY_US_ADDRESS,
+  copyUSAddress,
   formatUSAddress,
+  hasProjectJobsite,
   isUSAddressGeocodable,
   parseLegacyUSAddress,
   type USAddress,
@@ -46,6 +49,41 @@ export function syncProposalAddressesForSave(data: ProposalData): ProposalData {
 
 export function displayClientAddress(data: ProposalData): string {
   return formattedLine(data.clientAddressParts, data.clientAddress);
+}
+
+/**
+ * Pre-fill proposal client address from the project jobsite when the client block is empty.
+ * Used in guided workflow so step 3 has the address from project creation.
+ */
+export function mergeProjectJobsiteIntoClientAddress(
+  data: ProposalData,
+  jobsite?: Partial<USAddress> | null,
+): ProposalData {
+  const hydrated = hydrateProposalAddresses(data);
+  if (!jobsite || !hasProjectJobsite(jobsite)) return hydrated;
+  if (isUSAddressGeocodable(hydrated.clientAddressParts)) return hydrated;
+
+  const clientParts = copyUSAddress(jobsite);
+  return {
+    ...hydrated,
+    clientAddressParts: clientParts,
+    clientAddress: formatUSAddress(clientParts),
+  };
+}
+
+export function mergeProjectIntoProposalFields(
+  data: ProposalData,
+  project: Pick<Project, 'name' | 'description' | 'jobsiteAddress'> | undefined,
+): ProposalData {
+  if (!project) return data;
+
+  let next = { ...data };
+  if (project.name?.trim()) {
+    next.projectTitle = next.projectTitle?.trim()
+      ? next.projectTitle
+      : `${project.name} Concrete Work`;
+  }
+  return mergeProjectJobsiteIntoClientAddress(next, project.jobsiteAddress);
 }
 
 export function displayBusinessAddress(data: ProposalData): string {

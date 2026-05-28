@@ -8,23 +8,31 @@ import {
   GUAM_KNOWN_BATCH_PLANTS,
   isGuamLocation,
   isWithinBbox,
+  parseUSCityState,
   type GeocodedPoint,
 } from "../_shared/mapboxGeocode.ts";
+import { getDrivingRouteMiles } from "../_shared/mapboxDirections.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
 const SEARCH_TERMS = [
   "ready mix concrete",
+  "ready-mix concrete",
   "concrete batch plant",
   "concrete supplier",
   "concrete plant",
+  "redi-mix",
+  "readymix",
 ];
 
 const PLANT_KEYWORDS = [
   "ready mix",
   "ready-mix",
+  "ready mix",
   "readymix",
+  "redi-mix",
+  "redi mix",
   "concrete",
   "batch",
   "cement",
@@ -33,7 +41,36 @@ const PLANT_KEYWORDS = [
   "hawaiian rock",
   "smithbridge",
   "hanson",
+  "surroca",
+  "nexlevel",
+  "greenhill",
+  "schwarz",
+  "ozinga",
+  "cemex",
+  "lafarge",
+  "vulcan",
 ];
+
+/** Curated ready-mix plants by US state — geocoded when Mapbox POI search is sparse. */
+const US_KNOWN_BATCH_PLANTS: Record<
+  string,
+  Array<{ name: string; address: string }>
+> = {
+  OK: [
+    {
+      name: "SurRoca Redi-Mix (Tulsa)",
+      address: "8908 West 81st Street, Tulsa, OK 74131, United States",
+    },
+    {
+      name: "SurRoca Redi-Mix (Tulsa Whirlpool)",
+      address: "7044 Whirlpool Drive, Tulsa, OK 74117, United States",
+    },
+    {
+      name: "NexLevel Redi-Mix",
+      address: "10819 S 257th E Ave, Broken Arrow, OK 74014, United States",
+    },
+  ],
+};
 
 interface SearchCandidate {
   id: string;
@@ -51,7 +88,12 @@ interface BatchPlantResult {
   formattedAddress: string;
   latitude: number;
   longitude: number;
+  /** Driving distance plant → jobsite when Directions API succeeds. */
   distanceMiles: number;
+  /** Straight-line miles (fallback / reference). */
+  straightLineMiles?: number;
+  /** Estimated drive time when Directions API succeeds. */
+  driveMinutes?: number;
   confidence: "high" | "medium" | "low";
   source: string;
 }
@@ -84,49 +126,42 @@ function formatAddress(props: Record<string, unknown>, fallback: string): string
   return fallback;
 }
 
-async function searchNearbyPlants(
+function featureCoordinates(
+  feature: Record<string, unknown>,
+): { lat: number; lng: number } | null {
+  const props = (feature.properties ?? {}) as Record<string, unknown>;
+  const nested = props.coordinates as
+    | { latitude?: number; longitude?: number }
+    | undefined;
+  if (
+    typeof nested?.latitude === "number" &&
+    typeof nested?.longitude === "number"
+  ) {
+    return { lat: nested.latitude, lng: nested.longitude };
+  }
+
+  const geometry = feature.geometry as { coordinates?: [number, number] } | undefined;
+  const coords = geometry?.coordinates;
+  if (!coords) return null;
+  const [lng, lat] = coords;
+  return { lat, lng };
+}
+
+function mapSearchBoxFeatures(
+  features: Record<string, unknown>[],
   origin: GeocodedPoint,
   query: string,
-): Promise<SearchCandidate[]> {
-  const params = new URLSearchParams({
-    q: query,
-    proximity: `${origin.lng},${origin.lat}`,
-    origin: `${origin.lng},${origin.lat}`,
-    limit: "5",
-    types: "poi",
-    access_token: MAPBOX_TOKEN!,
-  });
-
-  if (isGuamLocation(origin)) {
-    params.set("country", "US");
-    params.set("bbox", GUAM_BBOX.join(","));
-  }
-
-  const url = `https://api.mapbox.com/search/searchbox/v1/forward?${params}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error("Mapbox search error:", query, res.status, errText);
-    return [];
-  }
-
-  const data = await res.json();
-  const features = Array.isArray(data.features) ? data.features : [];
-
+): SearchCandidate[] {
   return features
     .map((feature: Record<string, unknown>, index: number) => {
-      const geometry = feature.geometry as { coordinates?: [number, number] } | undefined;
-      const coords = geometry?.coordinates;
-      if (!coords) return null;
+      const point = featureCoordinates(feature);
+      if (!point) return null;
 
       const props = (feature.properties ?? {}) as Record<string, unknown>;
-      const [lng, lat] = coords;
+      const { lat, lng } = point;
       const name = String(props.name ?? props.full_address ?? "Unknown plant");
       const address = formatAddress(props, name);
-      const distanceMeters = typeof props.distance === "number" ? props.distance : null;
-      const distanceMiles = distanceMeters != null
-        ? distanceMeters / 1609.344
-        : haversineMiles(origin.lat, origin.lng, lat, lng);
+      const distanceMiles = haversineMiles(origin.lat, origin.lng, lat, lng);
 
       const poiCategories = Array.isArray(props.poi_category)
         ? props.poi_category.map(String)
@@ -146,6 +181,156 @@ async function searchNearbyPlants(
     .filter((candidate: SearchCandidate | null): candidate is SearchCandidate =>
       candidate !== null
     );
+}
+
+async function fetchSearchBox(
+  origin: GeocodedPoint,
+  query: string,
+  options?: { types?: string; limit?: number },
+): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams({
+    q: query,
+    proximity: `${origin.lng},${origin.lat}`,
+    limit: String(options?.limit ?? 10),
+    country: "US",
+    access_token: MAPBOX_TOKEN!,
+  });
+
+  if (options?.types) params.set("types", options.types);
+
+  if (isGuamLocation(origin)) {
+    params.set("bbox", GUAM_BBOX.join(","));
+  }
+
+  const url = `https://api.mapbox.com/search/searchbox/v1/forward?${params}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error("Mapbox search error:", query, res.status, errText);
+    return [];
+  }
+
+  const data = await res.json();
+  return Array.isArray(data.features) ? data.features : [];
+}
+
+async function searchNearbyPlants(
+  origin: GeocodedPoint,
+  query: string,
+): Promise<SearchCandidate[]> {
+  const [poiFeatures, broadFeatures] = await Promise.all([
+    fetchSearchBox(origin, query, { types: "poi", limit: 10 }),
+    fetchSearchBox(origin, query, { limit: 8 }),
+  ]);
+
+  const merged = [...poiFeatures, ...broadFeatures];
+  return mapSearchBoxFeatures(merged, origin, query);
+}
+
+/** Geocoding API — finds businesses Mapbox may omit from POI-only search. */
+async function searchGeocodeBusinesses(
+  origin: GeocodedPoint,
+  query: string,
+): Promise<SearchCandidate[]> {
+  const params = new URLSearchParams({
+    q: query,
+    proximity: `${origin.lng},${origin.lat}`,
+    limit: "8",
+    country: "US",
+    access_token: MAPBOX_TOKEN!,
+  });
+
+  const res = await fetch(
+    `https://api.mapbox.com/search/geocode/v6/forward?${params.toString()}`,
+  );
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  const features = Array.isArray(data.features) ? data.features : [];
+
+  return features
+    .map((feature: Record<string, unknown>, index: number) => {
+      const geometry = feature.geometry as { coordinates?: [number, number] } | undefined;
+      const coords = geometry?.coordinates;
+      if (!coords) return null;
+
+      const props = (feature.properties ?? {}) as Record<string, unknown>;
+      const [lng, lat] = coords;
+      const name = String(props.name ?? props.full_address ?? "Unknown");
+      const address = formatAddress(props, name);
+      const haystack = `${name} ${address}`.toLowerCase();
+      const looksLikePlant = PLANT_KEYWORDS.some((kw) => haystack.includes(kw));
+      if (!looksLikePlant) return null;
+
+      return {
+        id: String(props.mapbox_id ?? `geocode-${query}-${index}`),
+        name,
+        address,
+        latitude: lat,
+        longitude: lng,
+        distanceMiles: Number(
+          haversineMiles(origin.lat, origin.lng, lat, lng).toFixed(2),
+        ),
+        poiCategories: ["geocode-business"],
+        searchTerm: `geocode:${query}`,
+      } satisfies SearchCandidate;
+    })
+    .filter((candidate: SearchCandidate | null): candidate is SearchCandidate =>
+      candidate !== null
+    );
+}
+
+function buildRegionalSearchQueries(projectLocation: string): string[] {
+  const { city, state } = parseUSCityState(projectLocation);
+  if (!city && !state) return [];
+
+  const queries: string[] = [];
+  const cityState = [city, state].filter(Boolean).join(" ");
+  if (cityState) {
+    queries.push(`ready mix concrete ${cityState}`);
+    queries.push(`concrete plant ${cityState}`);
+    queries.push(`redi-mix ${cityState}`);
+  }
+  if (city) {
+    queries.push(`ready mix ${city}`);
+    queries.push(`${city} concrete supplier`);
+  }
+  return queries;
+}
+
+async function resolveCuratedRegionalPlants(
+  origin: GeocodedPoint,
+  projectLocation: string,
+): Promise<SearchCandidate[]> {
+  if (isGuamLocation(origin)) return [];
+
+  const { state } = parseUSCityState(projectLocation);
+  const plants = state ? US_KNOWN_BATCH_PLANTS[state] : undefined;
+  if (!plants?.length) return [];
+
+  const candidates: SearchCandidate[] = [];
+
+  for (const plant of plants) {
+    try {
+      const point = await geocodeAddressSmart(plant.address, MAPBOX_TOKEN!);
+      candidates.push({
+        id: `curated-${state}-${plant.name}`,
+        name: plant.name,
+        address: point.placeName,
+        latitude: point.lat,
+        longitude: point.lng,
+        distanceMiles: Number(
+          haversineMiles(origin.lat, origin.lng, point.lat, point.lng).toFixed(2),
+        ),
+        poiCategories: ["ready-mix", "curated"],
+        searchTerm: `curated-${state}`,
+      });
+    } catch (err) {
+      console.warn("Curated regional plant geocode failed:", plant.name, err);
+    }
+  }
+
+  return candidates;
 }
 
 async function searchNamedGuamPlants(origin: GeocodedPoint): Promise<SearchCandidate[]> {
@@ -236,6 +421,8 @@ function scoreCandidate(candidate: SearchCandidate): number {
   if (haystack.includes("hanson")) score += 4;
   if (haystack.includes("core tech")) score += 4;
   if (candidate.searchTerm === "guam-curated") score += 12;
+  if (candidate.searchTerm.startsWith("curated-")) score += 10;
+  if (candidate.searchTerm.startsWith("geocode:")) score += 3;
 
   score -= candidate.distanceMiles * 0.15;
   return score;
@@ -300,11 +487,13 @@ async function rankWithOpenAI(
         {
           role: "system",
           content:
-            "You select the most likely actual ready-mix concrete batch plant from Mapbox POI search results, " +
+            "You select the most likely actual ready-mix concrete batch plant from search results, " +
             "then format the best address for Mapbox routing. Only choose from the provided candidates — " +
             "never invent names or addresses. Prefer ready-mix plants, concrete suppliers, and batch plants. " +
+            "Reject unrelated POIs (restaurants, hardware stores, general contractors) unless no plant exists. " +
             "On Guam, ONLY pick plants physically located on Guam (Hawaiian Rock Products, Smithbridge Guam, Hanson Cement, Core Tech). " +
             "Never select California or mainland US plants for a Guam jobsite. " +
+            "For US mainland jobsites, pick the nearest credible ready-mix supplier to the project. " +
             'Respond with JSON only: {"candidateId": string, "plantName": string, "formattedAddress": string, "confidence": "high"|"medium"|"low", "reason": string}.',
         },
         {
@@ -361,8 +550,59 @@ function toBatchPlantResult(
     latitude: candidate.latitude,
     longitude: candidate.longitude,
     distanceMiles: candidate.distanceMiles,
+    straightLineMiles: candidate.distanceMiles,
     confidence,
     source: "Mapbox",
+  };
+}
+
+/** Re-geocode plant address so distance uses street-level coords, not coarse POI pins. */
+async function refinePlantCoordinates(
+  result: BatchPlantResult,
+): Promise<BatchPlantResult> {
+  try {
+    const point = await geocodeAddressSmart(result.formattedAddress, MAPBOX_TOKEN!);
+    return {
+      ...result,
+      latitude: point.lat,
+      longitude: point.lng,
+      formattedAddress: point.placeName,
+    };
+  } catch {
+    return result;
+  }
+}
+
+async function enrichWithDrivingDistance(
+  origin: GeocodedPoint,
+  result: BatchPlantResult,
+): Promise<BatchPlantResult> {
+  const straightLineMiles = haversineMiles(
+    origin.lat,
+    origin.lng,
+    result.latitude,
+    result.longitude,
+  );
+
+  const driving = await getDrivingRouteMiles(
+    { lat: result.latitude, lng: result.longitude },
+    origin,
+    MAPBOX_TOKEN!,
+  );
+
+  if (driving) {
+    return {
+      ...result,
+      distanceMiles: driving.distanceMiles,
+      straightLineMiles: Number(straightLineMiles.toFixed(2)),
+      driveMinutes: driving.travelMinutes,
+    };
+  }
+
+  return {
+    ...result,
+    distanceMiles: Number(straightLineMiles.toFixed(2)),
+    straightLineMiles: Number(straightLineMiles.toFixed(2)),
   };
 }
 
@@ -435,6 +675,7 @@ serve(async (req) => {
     );
 
     const onGuam = isGuamLocation(origin);
+    const regionalQueries = buildRegionalSearchQueries(projectLocation.trim());
 
     const searchResults = onGuam
       ? await Promise.all([
@@ -443,7 +684,10 @@ serve(async (req) => {
           ...SEARCH_TERMS.map((term) => searchNearbyPlants(origin, term)),
         ])
       : await Promise.all([
+          resolveCuratedRegionalPlants(origin, projectLocation.trim()),
           ...SEARCH_TERMS.map((term) => searchNearbyPlants(origin, term)),
+          ...regionalQueries.map((q) => searchNearbyPlants(origin, q)),
+          ...regionalQueries.map((q) => searchGeocodeBusinesses(origin, q)),
           searchNamedGuamPlants(origin),
         ]);
 
@@ -489,6 +733,9 @@ serve(async (req) => {
         confidenceFromScore(scoreCandidate(best)),
       );
     }
+
+    result = await refinePlantCoordinates(result);
+    result = await enrichWithDrivingDistance(origin, result);
 
     return new Response(
       JSON.stringify({

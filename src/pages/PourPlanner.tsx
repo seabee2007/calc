@@ -107,7 +107,7 @@ const PourPlanner: React.FC = () => {
     const project = projects.find((p) => p.id === workflowProjectId);
     if (!project) return;
 
-    const calc = getWorkflowCalculation(project, workflowState);
+    const calc = getWorkflowCalculation(project, workflowState, routerLocation.search);
     const hydrationKey = `${workflowProjectId}:${calc?.id ?? ''}:${project.updatedAt}`;
     if (workflowHydrationKeyRef.current === hydrationKey) return;
 

@@ -13,7 +13,13 @@ interface CallSheetDetailsFormProps {
 }
 
 const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) => {
-  const { form, setField, calculation } = planner;
+  const { form, setField, calculation, project } = planner;
+
+  useEffect(() => {
+    if (form.projectName.trim()) return;
+    const name = project?.name?.trim() || form.projectNumber.trim();
+    if (name) setField('projectName', name);
+  }, [project?.id, project?.name, form.projectName, form.projectNumber, setField]);
 
   useEffect(() => {
     if (!calculation || form.placementAreaType) return;
@@ -44,9 +50,10 @@ const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) 
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
-            label="Project number"
-            value={form.projectNumber}
-            onChange={(e) => setField('projectNumber', e.target.value)}
+            label="Project name"
+            value={form.projectName}
+            onChange={(e) => setField('projectName', e.target.value)}
+            placeholder={project?.name ?? 'From linked project or enter manually'}
           />
           <Input
             label="Contractor"
@@ -109,15 +116,11 @@ const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) 
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-white">
           Mix (call sheet extras)
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input
-            label="Mix design number"
-            value={form.mixDesignNumber}
-            onChange={(e) => setField('mixDesignNumber', e.target.value)}
-          />
+         
           <Input
             label="Water-cement ratio"
             value={form.waterCementRatio}
@@ -154,7 +157,7 @@ const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) 
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-white">
           QC requirements
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -191,48 +194,7 @@ const CallSheetDetailsForm: React.FC<CallSheetDetailsFormProps> = ({ planner }) 
         </div>
       </fieldset>
 
-      <fieldset className="space-y-3">
-        <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-          Safety / site conditions
-        </legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <Checkbox
-            label="PPE requirements"
-            checked={form.safetyPpe}
-            onChange={(e) => setField('safetyPpe', e.target.checked)}
-          />
-          <Checkbox
-            label="Traffic control"
-            checked={form.safetyTrafficControl}
-            onChange={(e) => setField('safetyTrafficControl', e.target.checked)}
-          />
-          <Checkbox
-            label="Spotter required"
-            checked={form.safetySpotter}
-            onChange={(e) => setField('safetySpotter', e.target.checked)}
-          />
-          <Checkbox
-            label="Powerline hazards"
-            checked={form.safetyPowerlines}
-            onChange={(e) => setField('safetyPowerlines', e.target.checked)}
-          />
-          <Checkbox
-            label="Limited access"
-            checked={form.safetyLimitedAccess}
-            onChange={(e) => setField('safetyLimitedAccess', e.target.checked)}
-          />
-          <Checkbox
-            label="Crane nearby"
-            checked={form.safetyCraneNearby}
-            onChange={(e) => setField('safetyCraneNearby', e.target.checked)}
-          />
-          <Checkbox
-            label="Uneven terrain"
-            checked={form.safetyUnevenTerrain}
-            onChange={(e) => setField('safetyUnevenTerrain', e.target.checked)}
-          />
-        </div>
-      </fieldset>
+      
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input

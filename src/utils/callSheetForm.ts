@@ -11,6 +11,8 @@ export function callSheetFieldsFromForm(
   for (const key of CALL_SHEET_KEYS) {
     (out as Record<string, unknown>)[key] = form[key];
   }
+  // Legacy call-sheet field — keep in sync with planner project name
+  out.projectNumber = form.projectName.trim();
   return out;
 }
 

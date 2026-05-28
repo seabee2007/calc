@@ -6,7 +6,10 @@ export interface BatchPlantResult {
   formattedAddress: string;
   latitude: number;
   longitude: number;
+  /** Driving distance to jobsite (Directions API), or straight-line if routing unavailable. */
   distanceMiles: number;
+  straightLineMiles?: number;
+  driveMinutes?: number;
   confidence: 'high' | 'medium' | 'low';
   source: string;
   jobsite?: {
@@ -64,8 +67,9 @@ export async function findBatchPlant(
 
   if (res.status === 404) {
     throw new BatchPlantNotFoundError(
-      data.error ||
-        'No nearby batch plant found. Please enter the batch plant address manually.',
+      ('error' in data && data.error)
+        ? `${data.error} You can enter a plant name and address manually below.`
+        : 'No nearby batch plant found for this jobsite. Verify the jobsite is correct, then try again—or enter the batch plant address manually.',
     );
   }
 

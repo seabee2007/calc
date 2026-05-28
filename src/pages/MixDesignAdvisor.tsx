@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Beaker, Thermometer, Droplets, Wind, CloudSun, SkipForward, Info } from 'lucide-react';
+import { Beaker, Thermometer, Droplets, Wind, SkipForward, Info, CheckCircle2 } from 'lucide-react';
 import StepNavigation from '../components/pour-planner/StepNavigation';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import { useProjectStore } from '../store';
@@ -11,10 +11,20 @@ import {
   isWorkflowActive,
   getWorkflowProjectId,
   getWorkflowCalculation,
+  getWorkflowCalculationId,
   workflowQuery,
   workflowNavigateState,
   type WorkflowLocationState,
 } from '../utils/workflow';
+import {
+  buildMixDesignApprovalSnapshot,
+  getMixDesignWorkflowContext,
+} from '../utils/mixDesignWorkflow';
+import {
+  formatPlacementCalculationLabel,
+  getPlacementCalculations,
+  isMixDesignApproved,
+} from '../utils/placementCalculations';
 import { MIX_DESIGN_PSI_OPTIONS, weatherToMixInputs } from '../utils/mixDesign';
 import { buildProfessionalMixRecommendation } from '../utils/mixDesignProfessional';
 import type { ProfessionalMixDesignResult } from '../types/mixDesignAdvisor';
@@ -95,7 +105,7 @@ const LargeCheckbox: React.FC<{
 const MixDesignAdvisor: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { projects, setCurrentProject } = useProjectStore();
+  const { projects, setCurrentProject, updateCalculation } = useProjectStore();
   const workflowState = location.state as WorkflowLocationState | null;
   const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
@@ -125,23 +135,57 @@ const MixDesignAdvisor: React.FC = () => {
     ? projects.find((p) => p.id === workflowProjectId)
     : undefined;
 
+  const placementCalcs = workflowProject
+    ? getPlacementCalculations(workflowProject)
+    : [];
+  const mixContext = workflowProject
+    ? getMixDesignWorkflowContext(workflowProject)
+    : undefined;
+
+  const urlCalcId = getWorkflowCalculationId(location.search, workflowState);
+  const activeCalculationId =
+    urlCalcId ??
+    mixContext?.nextPendingCalculationId ??
+    placementCalcs[0]?.id;
+
+  const activeCalculation = placementCalcs.find((c) => c.id === activeCalculationId);
+
   useEffect(() => {
-    if (inWorkflow && workflowProjectId) {
+    if (workflowProjectId) {
       setCurrentProject(workflowProjectId);
     }
-  }, [inWorkflow, workflowProjectId, setCurrentProject]);
+  }, [workflowProjectId, setCurrentProject]);
+
+  const persistMixApproval = useCallback(
+    async (rec: ProfessionalMixDesignResult) => {
+      if (!workflowProjectId || !activeCalculationId) return;
+      const approval = buildMixDesignApprovalSnapshot(form, rec);
+      try {
+        await updateCalculation(workflowProjectId, activeCalculationId, {
+          mixDesignApproval: approval,
+        });
+      } catch {
+        /* non-blocking — draft still saved locally */
+      }
+    },
+    [workflowProjectId, activeCalculationId, form, updateCalculation],
+  );
 
   useEffect(() => {
     if (!workflowProjectId) return;
     const project = projects.find((p) => p.id === workflowProjectId);
-    const draft = getMixDesignDraft(workflowProjectId);
+    const draft = getMixDesignDraft(workflowProjectId, activeCalculationId);
     const projectAddr = jobsiteFromProject(project);
-    const workflowCalc = getWorkflowCalculation(project, workflowState);
+    const workflowCalc = getWorkflowCalculation(
+      project,
+      workflowState,
+      location.search,
+    );
     const psiFromCalc = getCalculationPsi(workflowCalc);
     const pourDraft = getPourPlannerDraft(workflowProjectId);
     const resolvedHaul = resolveHaulTimeMinutesFromProject(project, pourDraft?.form);
     const haulKey = resolvedHaul ?? '';
-    const key = `project:${workflowProjectId}:${project?.updatedAt ?? ''}:${project?.placementOrder?.updatedAt ?? ''}:${workflowCalc?.id ?? ''}:${psiFromCalc ?? ''}:${haulKey}`;
+    const key = `project:${workflowProjectId}:${activeCalculationId ?? ''}:${project?.updatedAt ?? ''}:${project?.placementOrder?.updatedAt ?? ''}:${workflowCalc?.id ?? ''}:${psiFromCalc ?? ''}:${haulKey}`;
     if (lastHydrationKeyRef.current === key) return;
     if (!project) return;
 
@@ -159,13 +203,22 @@ const MixDesignAdvisor: React.FC = () => {
       next = { ...next, airEntrainmentRequired: true };
     }
     setForm(next);
+    setRecommendation(null);
     lastHydrationKeyRef.current = key;
-  }, [workflowProjectId, projects, getMixDesignDraft, getPourPlannerDraft, workflowState]);
+  }, [
+    workflowProjectId,
+    activeCalculationId,
+    projects,
+    getMixDesignDraft,
+    getPourPlannerDraft,
+    workflowState,
+    location.search,
+  ]);
 
   useEffect(() => {
     if (!workflowProjectId) return;
     const project = projects.find((p) => p.id === workflowProjectId);
-    const mixDraft = getMixDesignDraft(workflowProjectId);
+    const mixDraft = getMixDesignDraft(workflowProjectId, activeCalculationId);
     if (draftHasCustomHaulTime(mixDraft?.haulTimeMinutes)) return;
 
     const pourDraft = getPourPlannerDraft(workflowProjectId);
@@ -197,28 +250,45 @@ const MixDesignAdvisor: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [workflowProjectId, projects, getMixDesignDraft, getPourPlannerDraft]);
+  }, [workflowProjectId, activeCalculationId, projects, getMixDesignDraft, getPourPlannerDraft]);
 
   useEffect(() => {
-    if (!inWorkflow || !workflowProjectId) return;
-    saveMixDesignDraft(workflowProjectId, form);
-  }, [inWorkflow, workflowProjectId, form, saveMixDesignDraft]);
+    if (!workflowProjectId) return;
+    saveMixDesignDraft(workflowProjectId, activeCalculationId, form);
+  }, [workflowProjectId, activeCalculationId, form, saveMixDesignDraft]);
 
   const workflowCalc = workflowProject
-    ? getWorkflowCalculation(workflowProject, workflowState)
+    ? getWorkflowCalculation(workflowProject, workflowState, location.search)
     : undefined;
   const psiFromWorkflowCalc = getCalculationPsi(workflowCalc);
 
   const goToPlacementPlanner = () => {
     if (!workflowProjectId) return;
     navigate(
-      { pathname: '/pour-planner', search: workflowQuery(workflowProjectId) },
+      {
+        pathname: '/pour-planner',
+        search: workflowQuery(workflowProjectId, activeCalculationId),
+      },
       {
         state: workflowNavigateState(workflowProjectId, {
-          calculationId: workflowCalc?.id,
+          calculationId: activeCalculationId ?? workflowCalc?.id,
         }),
       },
     );
+  };
+
+  const switchPlacement = (calculationId: string) => {
+    if (!workflowProjectId) return;
+    navigate(
+      {
+        pathname: '/mix-design-advisor',
+        search: workflowQuery(workflowProjectId, calculationId),
+      },
+      { state: workflowNavigateState(workflowProjectId, { calculationId }) },
+    );
+    setStepIndex(0);
+    setRecommendation(null);
+    lastHydrationKeyRef.current = '';
   };
 
   const generateRecommendation = useCallback(
@@ -251,7 +321,7 @@ const MixDesignAdvisor: React.FC = () => {
     setRecommendation(generateRecommendation(weather));
   }, [weather, form, stepIndex, generateRecommendation]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!weather) {
       setLocationError('Load jobsite weather before generating a recommendation.');
       setStepIndex(3);
@@ -260,6 +330,7 @@ const MixDesignAdvisor: React.FC = () => {
     const rec = generateRecommendation(weather);
     setRecommendation(rec);
     setStepIndex(MIX_ADVISOR_STEPS.length - 1);
+    await persistMixApproval(rec);
   };
 
   const formatTemperature = (temp: number) =>
@@ -586,6 +657,48 @@ const MixDesignAdvisor: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 pb-8">
         <WorkflowStepHeader />
 
+        {workflowProjectId && placementCalcs.length > 0 && (
+          <div className="mb-4 rounded-xl border border-slate-700/80 bg-slate-900/95 p-3 sm:p-4">
+            <p className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-400/90 mb-2 font-medium">
+              Placements on this project
+            </p>
+            <div className="flex flex-col gap-2">
+              {placementCalcs.map((calc, idx) => {
+                const approved = isMixDesignApproved(calc);
+                const active = calc.id === activeCalculationId;
+                return (
+                  <button
+                    key={calc.id}
+                    type="button"
+                    onClick={() => switchPlacement(calc.id)}
+                    className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                      active
+                        ? 'bg-cyan-600/25 text-cyan-100 ring-1 ring-cyan-500/50'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="truncate">
+                      {formatPlacementCalculationLabel(calc, idx)}
+                    </span>
+                    {approved ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                    ) : (
+                      <span className="text-[10px] uppercase text-amber-400/90 shrink-0">
+                        Pending
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {mixContext && mixContext.totalPlacements > 1 && (
+              <p className="text-xs text-slate-400 mt-2">
+                {mixContext.approvedCount} of {mixContext.totalPlacements} mix designs approved
+              </p>
+            )}
+          </div>
+        )}
+
         {inWorkflow && (
           <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
             <Button
@@ -655,8 +768,29 @@ const MixDesignAdvisor: React.FC = () => {
             onNext={goNext}
             nextLabel={isWeatherStep ? 'Generate recommendation' : 'Continue'}
             nextDisabled={isWeatherStep && !weather}
-            onFinish={inWorkflow ? goToPlacementPlanner : undefined}
-            finishLabel="Continue to placement planner"
+            onFinish={
+              inWorkflow && recommendation
+                ? async () => {
+                    await persistMixApproval(recommendation);
+                    const freshProject = useProjectStore
+                      .getState()
+                      .projects.find((p) => p.id === workflowProjectId);
+                    const ctx = freshProject
+                      ? getMixDesignWorkflowContext(freshProject)
+                      : undefined;
+                    if (ctx?.nextPendingCalculationId) {
+                      switchPlacement(ctx.nextPendingCalculationId);
+                      return;
+                    }
+                    goToPlacementPlanner();
+                  }
+                : undefined
+            }
+            finishLabel={
+              mixContext && mixContext.pendingCount > 1 && recommendation
+                ? 'Approve & next placement'
+                : 'Continue to placement planner'
+            }
             finishDisabled={!recommendation}
           />
         </Card>

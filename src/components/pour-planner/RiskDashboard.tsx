@@ -126,7 +126,9 @@ function RiskCard({
   return (
     <Card className={`p-4 border ${riskCardClass(mapLevel)}`}>
       <div className="flex items-center gap-2 mb-3">
-        {icon}
+        <span className="shrink-0 text-gray-800 dark:text-white [&_svg]:text-current">
+          {icon}
+        </span>
         <h4 className="font-semibold text-gray-900 dark:text-white">{title}</h4>
         {level !== 'ok' && (
           <AlertTriangle

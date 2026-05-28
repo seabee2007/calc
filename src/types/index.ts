@@ -4,6 +4,7 @@ import type { USAddress } from './address';
 import type { PlacementOrder } from './placementOrder';
 import type { LaborEstimate } from './laborEstimate';
 import type { ReinforcementPricing } from './laborEstimate';
+import type { MixDesignApproval } from './mixDesignApproval';
 
 export type { USAddress } from './address';
 
@@ -74,6 +75,8 @@ export interface Calculation {
     weight: number;
     yield: number;
   };
+  /** Set when Mix Design Advisor recommendation is generated for this placement. */
+  mixDesignApproval?: MixDesignApproval;
   createdAt: string;
 }
 

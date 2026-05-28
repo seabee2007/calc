@@ -175,7 +175,6 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
   push(
     lines,
     labelValue('Project Name', form.projectName),
-    labelValue('Project Number', form.projectNumber),
     labelValue('Contractor', form.contractor),
     labelValue('Superintendent', form.superintendent),
     labelValue('Point of Contact', form.pointOfContact),
