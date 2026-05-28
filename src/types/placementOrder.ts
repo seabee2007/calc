@@ -65,6 +65,10 @@ export interface PlacementOrder {
   pourDateIso?: string;
   batchPlantName?: string;
   batchPlantAddress?: string;
+  /** Drive time from batch plant to jobsite (minutes). */
+  travelTimeMinutes?: number;
+  /** Drive distance from batch plant to jobsite (miles). */
+  travelDistanceMi?: number;
   jobsiteAddress?: string;
   /** Snapshot of the call sheet at last save (dashboard-ready). */
   summaryLines?: string[];

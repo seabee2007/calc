@@ -107,6 +107,14 @@ export function placementOrderFromForm(
     updatedAt: new Date().toISOString(),
     batchPlantName: form.batchPlantName.trim() || undefined,
     batchPlantAddress: form.batchPlantAddress.trim() || undefined,
+    travelTimeMinutes: (() => {
+      const n = parseFloat(form.travelTimeMinutes);
+      return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined;
+    })(),
+    travelDistanceMi: (() => {
+      const n = parseFloat(form.travelDistance);
+      return Number.isFinite(n) && n > 0 ? n : undefined;
+    })(),
     callSheet: callSheetFieldsFromForm(form),
     ...(production ? { production } : {}),
   };
@@ -120,6 +128,14 @@ export function applyPlacementOrderToForm(
   return {
     batchPlantName: order.batchPlantName ?? '',
     batchPlantAddress: order.batchPlantAddress ?? '',
+    travelTimeMinutes:
+      order.travelTimeMinutes != null && order.travelTimeMinutes > 0
+        ? String(Math.round(order.travelTimeMinutes))
+        : '',
+    travelDistance:
+      order.travelDistanceMi != null && order.travelDistanceMi > 0
+        ? String(order.travelDistanceMi)
+        : '',
     batchPlantPhone: c.phone ?? '',
     batchPlantEmail: c.email ?? '',
     batchPlantDispatchContact: c.dispatchContact ?? '',

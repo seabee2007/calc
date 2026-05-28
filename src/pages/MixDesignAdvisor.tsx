@@ -37,6 +37,12 @@ import {
   MIX_ADVISOR_STEPS,
 } from '../constants/mixDesignAdvisorDefaults';
 import { isExteriorFlatworkUse } from '../utils/mixDesignProfessional';
+import {
+  draftHasCustomHaulTime,
+  resolveHaulTimeMinutesFromProject,
+} from '../utils/mixDesignHaulTime';
+import { projectJobsiteLine } from '../utils/projectLocation';
+import { getMapboxTravelTime } from '../services/mapboxTravelService';
 
 const MIX_DISCLAIMER =
   'Planning-level recommendation only. Final mix design must comply with project specifications, approved submittals, local code, and supplier trial batch data. This is not an engineered stamped mix design.';
@@ -103,7 +109,9 @@ const MixDesignAdvisor: React.FC = () => {
 
   const getMixDesignDraft = useWorkflowDraftStore((s) => s.getMixDesignDraft);
   const saveMixDesignDraft = useWorkflowDraftStore((s) => s.saveMixDesignDraft);
+  const getPourPlannerDraft = useWorkflowDraftStore((s) => s.getPourPlannerDraft);
   const lastHydrationKeyRef = useRef('');
+  const haulRouteFetchedRef = useRef('');
 
   const setField = <K extends keyof MixDesignAdvisorFormState>(
     key: K,
@@ -130,7 +138,10 @@ const MixDesignAdvisor: React.FC = () => {
     const projectAddr = jobsiteFromProject(project);
     const workflowCalc = getWorkflowCalculation(project, workflowState);
     const psiFromCalc = getCalculationPsi(workflowCalc);
-    const key = `project:${workflowProjectId}:${project?.updatedAt ?? ''}:${workflowCalc?.id ?? ''}:${psiFromCalc ?? ''}`;
+    const pourDraft = getPourPlannerDraft(workflowProjectId);
+    const resolvedHaul = resolveHaulTimeMinutesFromProject(project, pourDraft?.form);
+    const haulKey = resolvedHaul ?? '';
+    const key = `project:${workflowProjectId}:${project?.updatedAt ?? ''}:${project?.placementOrder?.updatedAt ?? ''}:${workflowCalc?.id ?? ''}:${psiFromCalc ?? ''}:${haulKey}`;
     if (lastHydrationKeyRef.current === key) return;
     if (!project) return;
 
@@ -141,12 +152,52 @@ const MixDesignAdvisor: React.FC = () => {
       next = { ...next, jobsiteAddress: projectAddr };
     }
     if (psiFromCalc) next = { ...next, selectedPsi: psiFromCalc };
+    if (resolvedHaul && !draftHasCustomHaulTime(draft?.haulTimeMinutes)) {
+      next = { ...next, haulTimeMinutes: resolvedHaul };
+    }
     if (isExteriorFlatworkUse(next.projectUse)) {
       next = { ...next, airEntrainmentRequired: true };
     }
     setForm(next);
     lastHydrationKeyRef.current = key;
-  }, [workflowProjectId, projects, getMixDesignDraft, workflowState]);
+  }, [workflowProjectId, projects, getMixDesignDraft, getPourPlannerDraft, workflowState]);
+
+  useEffect(() => {
+    if (!workflowProjectId) return;
+    const project = projects.find((p) => p.id === workflowProjectId);
+    const mixDraft = getMixDesignDraft(workflowProjectId);
+    if (draftHasCustomHaulTime(mixDraft?.haulTimeMinutes)) return;
+
+    const pourDraft = getPourPlannerDraft(workflowProjectId);
+    const syncHaul = resolveHaulTimeMinutesFromProject(project, pourDraft?.form);
+    if (syncHaul) return;
+
+    const plantAddress = project?.placementOrder?.batchPlantAddress?.trim();
+    const jobsiteLine = projectJobsiteLine(project);
+    if (!plantAddress || !jobsiteLine) return;
+
+    const routeKey = `${workflowProjectId}:${plantAddress}:${jobsiteLine}`;
+    if (haulRouteFetchedRef.current === routeKey) return;
+    haulRouteFetchedRef.current = routeKey;
+
+    let cancelled = false;
+    void getMapboxTravelTime(plantAddress, jobsiteLine)
+      .then((route) => {
+        if (cancelled) return;
+        const minutes = String(Math.round(route.travelMinutes));
+        setForm((prev) => {
+          if (draftHasCustomHaulTime(prev.haulTimeMinutes)) return prev;
+          return { ...prev, haulTimeMinutes: minutes };
+        });
+      })
+      .catch(() => {
+        /* keep default or prior value */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workflowProjectId, projects, getMixDesignDraft, getPourPlannerDraft]);
 
   useEffect(() => {
     if (!inWorkflow || !workflowProjectId) return;

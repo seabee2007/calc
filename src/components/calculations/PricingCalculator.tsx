@@ -111,7 +111,10 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   }, [initialLocation, applyJobsiteCoords]);
 
   const persistBatchPlantToProject = useCallback(
-    async (plant: BatchPlantResult) => {
+    async (
+      plant: BatchPlantResult,
+      travel?: { travelTimeMinutes: number; travelDistanceMi: number },
+    ) => {
       if (!projectId) return;
       const project = projects.find((p) => p.id === projectId);
       const existing: PlacementOrder | undefined = project?.placementOrder;
@@ -123,6 +126,12 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         updatedAt: new Date().toISOString(),
         batchPlantName: plant.plantName,
         batchPlantAddress: plant.formattedAddress,
+        ...(travel
+          ? {
+              travelTimeMinutes: Math.round(travel.travelTimeMinutes),
+              travelDistanceMi: travel.travelDistanceMi,
+            }
+          : {}),
       };
       try {
         await updateProject(projectId, { placementOrder: order });
@@ -146,6 +155,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         setBatchPlant(plant);
 
         let travelMiles = plant.distanceMiles ?? 10;
+        let routeTravel: { travelTimeMinutes: number; travelDistanceMi: number } | undefined;
         try {
           const route = await getMapboxTravelTime(
             plant.formattedAddress,
@@ -156,10 +166,16 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
             },
           );
           travelMiles = route.distanceMiles;
+          routeTravel = {
+            travelTimeMinutes: route.travelMinutes,
+            travelDistanceMi: route.distanceMiles,
+          };
           setDistance(Math.max(1, Math.round(route.distanceMiles * 10) / 10));
         } catch {
           setDistance(Math.max(1, Math.round((plant.distanceMiles ?? 10) * 10) / 10));
         }
+
+        await persistBatchPlantToProject(plant, routeTravel);
 
         const { defaults } = regionalDefaultsFromLocation({
           latitude: coords.latitude,
@@ -212,7 +228,6 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
             : 'Regional default pricing',
         );
         setPricingNotes(bundle.pricingNotes);
-        await persistBatchPlantToProject(plant);
       } catch (err) {
         setBatchPlant(null);
         if (err instanceof BatchPlantNotFoundError) {
