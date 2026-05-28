@@ -5,7 +5,6 @@ import { useProjects } from './useProjects';
 import ProjectList from './ProjectList';
 import ProjectDetails from './ProjectDetails';
 import ProjectForm from '../../components/projects/ProjectForm';
-import DeleteConfirm from './DeleteConfirm';
 import ToastManager from './ToastManager';
 import Button from '../../components/ui/Button';
 
@@ -24,8 +23,8 @@ const Projects: React.FC = () => {
           <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
             Projects
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
-            Track active jobs, next actions, readiness, and financials
+          <p className="text-white text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
+  Track active jobs, next actions, readiness, and financials
           </p>
         </div>
 
@@ -59,6 +58,7 @@ const Projects: React.FC = () => {
           <ProjectForm 
             onSubmit={handlers.create} 
             onCancel={() => setUi(s => ({ ...s, showCreate: false }))} 
+            hidePourDate
           />
         )}
 
@@ -83,16 +83,10 @@ const Projects: React.FC = () => {
             projects={projects}
             onSelect={handlers.selectProject}
             onDelete={(id) => handlers.confirmDelete('project', id)}
+            onCreate={() => setUi(s => ({ ...s, showCreate: true }))}
           />
         )}
       </AnimatePresence>
-
-      <DeleteConfirm 
-        show={ui.deleteConfirm.show}
-        type={ui.deleteConfirm.type}
-        onCancel={handlers.cancelDelete}
-        onConfirm={handlers.handleDeleteConfirm}
-      />
 
       <ToastManager {...ui.toast} />
     </motion.div>

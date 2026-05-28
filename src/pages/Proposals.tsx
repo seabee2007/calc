@@ -1,32 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  FileText,
-  Edit,
-  Trash2,
-  Copy,
-  Download,
   Upload,
   Plus,
-  Calendar,
-  Eye,
-  Link2,
-  CheckCircle,
 } from 'lucide-react';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import {
   PROPOSAL_STATUS_LABELS,
+  PROPOSAL_PIPELINE_STATUSES,
   type ProposalStatus,
 } from '../types/proposalTracking';
 import {
   getPublicProposalUrl,
   markDepositPaid,
+  markProposalSent,
   markScheduled,
 } from '../lib/proposalTracking';
-import { formatProposalMoney } from '../utils/proposalKpis';
+import {
+  buildProposalDashboardMetrics,
+  formatProposalMoney,
+  formatWinRate,
+} from '../utils/proposalKpis';
 import Button from '../components/ui/Button';
 import { soundService } from '../services/soundService';
+import KPIStatCard from '../components/proposals/KPIStatCard';
+import ProposalStatusBadge from '../components/proposals/ProposalStatusBadge';
+import ProposalActionButtons from '../components/proposals/ProposalActionButtons';
 
 const Proposals: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +34,7 @@ const Proposals: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'all' | ProposalStatus>('all');
 
   useEffect(() => {
     loadProposals();
@@ -52,10 +53,6 @@ const Proposals: React.FC = () => {
     }
   };
 
-  const handleEdit = (proposal: SavedProposal) => {
-    navigate(`/proposal-generator?edit=${proposal.id}`);
-  };
-
   const handleDelete = async (id: string) => {
     try {
       soundService.play('trash');
@@ -69,7 +66,9 @@ const Proposals: React.FC = () => {
 
   const handleDuplicate = async (proposal: SavedProposal) => {
     try {
-      const newTitle = `${proposal.title} (Copy)`;
+      const baseTitle =
+        proposal.data?.projectTitle?.trim() || proposal.title?.trim() || 'Proposal';
+      const newTitle = `${baseTitle} (Copy)`;
       await ProposalService.duplicate(proposal.id, newTitle);
       loadProposals(); // Refresh the list
     } catch (err) {
@@ -113,15 +112,21 @@ const Proposals: React.FC = () => {
     navigate(`/proposal-generator?preview=${proposal.id}`);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
-  };
+
+  const formatDateOnly = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
 
   const handleCopyClientLink = async (proposal: SavedProposal) => {
     if (proposal.status === 'draft') {
@@ -133,6 +138,15 @@ const Proposals: React.FC = () => {
       soundService.play('save');
     } catch {
       setError('Could not copy link.');
+    }
+  };
+
+  const handleSend = async (proposalId: string) => {
+    try {
+      await markProposalSent(proposalId);
+      await loadProposals();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send proposal');
     }
   };
 
@@ -154,38 +168,59 @@ const Proposals: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: ProposalStatus) => {
+  const filteredProposals = useMemo(() => {
+    if (selectedStatus === 'all') return proposals;
+    return proposals.filter((p) => (p.status ?? 'draft') === selectedStatus);
+  }, [proposals, selectedStatus]);
+
+  const metrics = useMemo(() => buildProposalDashboardMetrics(proposals), [proposals]);
+  const awaitingResponseCount = useMemo(() => {
+    const pipeline = metrics.pipeline;
+    return (pipeline.sent ?? 0) + (pipeline.viewed ?? 0) + (pipeline.opened ?? 0);
+  }, [metrics.pipeline]);
+
+  const tabs: Array<{ key: 'all' | ProposalStatus; label: string; count?: number }> =
+    useMemo(() => {
+      const pipeline = metrics.pipeline;
+      return [
+        { key: 'all', label: 'All', count: proposals.length },
+        ...PROPOSAL_PIPELINE_STATUSES.map((s) => ({
+          key: s,
+          label: PROPOSAL_STATUS_LABELS[s],
+          count: pipeline[s],
+        })),
+      ];
+    }, [metrics.pipeline, proposals.length]);
+
+  const getNextAction = (p: SavedProposal): string => {
+    const status = p.status ?? 'draft';
     switch (status) {
-      case 'accepted':
-      case 'deposit_paid':
-      case 'scheduled':
-        return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
-      case 'declined':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
+      case 'draft':
+        return 'Send proposal';
       case 'sent':
       case 'viewed':
       case 'opened':
-        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300';
+        return 'Follow up with client';
+      case 'accepted':
+        return 'Awaiting deposit';
+      case 'deposit_paid':
+        return 'Schedule placement';
+      case 'scheduled':
+        return 'Confirm schedule and mobilize crew';
+      case 'declined':
+        return 'Review feedback and revise bid';
       default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
-    }
-  };
-
-  const getTemplateColor = (template: string) => {
-    switch (template) {
-      case 'classic': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
-      case 'modern': return 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300';
-      case 'minimal': return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
-      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
+        return 'Review proposal';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading proposals...</p>
+          <p className="text-white dark:white font-semibold tracking-wide drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+  Loading proposals...
+</p>
         </div>
       </div>
     );
@@ -193,208 +228,323 @@ const Proposals: React.FC = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-white/90 dark:bg-gray-900 backdrop-blur-sm rounded-lg shadow-lg p-6 sm:p-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center mb-8"
-        >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Proposals</h1>
-            <p className="text-gray-600 dark:text-gray-300">Manage your saved concrete project proposals</p>
-          </div>
-          
-          <div className="flex space-x-3">
-            {/* Import Button */}
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                className="hidden"
-              />
-              <Button
-                variant="outline"
-                icon={<Upload size={18} />}
-                className="whitespace-nowrap border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                <span className="hidden md:inline">Import</span>
-              </Button>
-            </label>
-            
-            {/* New Proposal Button */}
-            <Button
-              onClick={() => navigate('/proposal-generator')}
-              icon={<Plus size={18} />}
-              className="bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white"
-            >
-              <span className="hidden md:inline">New Proposal</span>
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Error Message */}
-        {error && (
+      <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-800/70 sm:p-6">
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6"
+            className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
           >
-            <p className="text-red-700 dark:text-red-300">{error}</p>
-            <button 
-              onClick={() => setError(null)}
-              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 text-sm mt-1"
-            >
-              Dismiss
-            </button>
-          </motion.div>
-        )}
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                Proposal Pipeline
+              </h1>
+              <p className="mt-1 text-sm text-slate-600 dark:text-gray-300">
+                Track bids, client activity, revenue, and upcoming work.
+              </p>
+            </div>
 
-        {/* Proposals Grid */}
-        {proposals.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <FileText size={64} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">No proposals yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first proposal to get started</p>
-            <Button
-              onClick={() => navigate('/proposal-generator')}
-              icon={<Plus size={18} />}
-              className="bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white"
-            >
-              Create First Proposal
-            </Button>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {proposals.map((proposal, index) => (
-              <motion.div
-                key={proposal.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg dark:hover:shadow-2xl transition-shadow p-6"
+            <div className="flex items-center gap-3">
+              {/* Import Button */}
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  className="hidden"
+                />
+                <Button variant="outline" icon={<Upload size={18} />}>
+                  Import
+                </Button>
+              </label>
+
+              {/* New Proposal Button */}
+              <Button
+                onClick={() => navigate('/proposal-generator')}
+                icon={<Plus size={18} />}
               >
-                {/* Proposal Header - Responsive Full Width Title */}
-                <div className="mb-3">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white w-full">
-                    {proposal.title}
-                  </h3>
-                </div>
+                New Proposal
+              </Button>
+            </div>
+          </motion.div>
 
-                {/* Proposal Details - Date and Template */}
-                <div className="space-y-3 mb-5">
-                  <div className="flex items-center text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                    <Calendar size={16} className="mr-2 flex-shrink-0" />
-                    <span>Proposal - {formatDate(proposal.updated_at)}</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    <span
-                      className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(proposal.status ?? 'draft')}`}
-                    >
-                      {PROPOSAL_STATUS_LABELS[proposal.status ?? 'draft']}
-                    </span>
-                    <span
-                      className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium ${getTemplateColor(proposal.template_type)}`}
-                    >
-                      {proposal.template_type.charAt(0).toUpperCase() +
-                        proposal.template_type.slice(1)}
-                    </span>
-                  </div>
-                  {Number(proposal.total_amount) > 0 && (
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                      {formatProposalMoney(Number(proposal.total_amount))}
-                    </p>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-between items-center">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handlePreview(proposal)}
-                      className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
-                      title="Preview"
-                    >
-                      <Eye size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleEdit(proposal)}
-                      className="p-2.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
-                      title="Edit"
-                    >
-                      <Edit size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleDuplicate(proposal)}
-                      className="p-2.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
-                      title="Duplicate"
-                    >
-                      <Copy size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleExport(proposal)}
-                      className="p-2.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md transition-colors"
-                      title="Download"
-                    >
-                      <Download size={20} />
-                    </button>
-                    {proposal.status !== 'draft' && (
-                      <button
-                        onClick={() => handleCopyClientLink(proposal)}
-                        className="p-2.5 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-md transition-colors"
-                        title="Copy client link"
-                      >
-                        <Link2 size={20} />
-                      </button>
-                    )}
-                  </div>
-                  {(proposal.status === 'accepted' ||
-                    proposal.status === 'deposit_paid') && (
-                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                      {proposal.status === 'accepted' && (
-                        <button
-                          type="button"
-                          onClick={() => handleMarkDeposit(proposal.id)}
-                          className="text-xs px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300"
-                        >
-                          Mark deposit paid
-                        </button>
-                      )}
-                      {(proposal.status === 'accepted' ||
-                        proposal.status === 'deposit_paid') && (
-                        <button
-                          type="button"
-                          onClick={() => handleMarkScheduled(proposal.id)}
-                          className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 flex items-center gap-1"
-                        >
-                          <CheckCircle size={14} />
-                          Mark scheduled
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  
-                  <button
-                    onClick={() => {
-                      soundService.play('modal');
-                      setDeleteConfirm(proposal.id);
-                    }}
-                    className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+          {/* KPI row */}
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <KPIStatCard
+              label="Pending Revenue"
+              value={formatProposalMoney(metrics.financial.pendingRevenue)}
+              hint="Sent • Viewed • Opened"
+            />
+            <KPIStatCard
+              label="Accepted This Month"
+              value={formatProposalMoney(metrics.financial.monthlyRevenue)}
+            />
+            <KPIStatCard
+              label="Win Rate"
+              value={formatWinRate(metrics.financial.winRate)}
+              hint={`${metrics.financial.acceptedCount} won • ${metrics.financial.declinedCount} lost`}
+            />
+            <KPIStatCard
+              label="Awaiting Response"
+              value={String(awaitingResponseCount)}
+              hint="Needs follow-up"
+            />
           </div>
-        )}
+
+          {/* Status filter tabs */}
+          <div className="mt-5 flex flex-wrap gap-2">
+            {tabs.map((t) => {
+              const selected = t.key === selectedStatus;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setSelectedStatus(t.key)}
+                  className={[
+                    'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
+                    selected
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
+                  ].join(' ')}
+                >
+                  <span>{t.label}</span>
+                  <span
+                    className={[
+                      'rounded-full px-2 py-0.5 text-xs',
+                      selected
+                        ? 'bg-white/20 text-white'
+                        : 'bg-white text-slate-700 ring-1 ring-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:ring-gray-700',
+                    ].join(' ')}
+                  >
+                    {t.count ?? 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
+            >
+              <p className="text-red-700 dark:text-red-300">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="mt-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+
+          {/* Proposals Grid */}
+          {proposals.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-12 text-center"
+            >
+              <h3 className="text-xl font-semibold text-slate-200 dark:text-white">
+                No proposals yet
+              </h3>
+              <p className="mt-2 text-sm text-slate-600 dark:text-gray-300">
+                Create your first proposal to start tracking bids and revenue.
+              </p>
+              <div className="mt-6">
+                <Button onClick={() => navigate('/proposal-generator')} icon={<Plus size={18} />}>
+                  New Proposal
+                </Button>
+              </div>
+            </motion.div>
+          ) : filteredProposals.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-12 text-center"
+            >
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                No proposals in this stage
+              </h3>
+              <p className="mt-2 text-sm text-slate-600 dark:text-gray-300">
+                Try another status tab or create a new proposal.
+              </p>
+              <div className="mt-6">
+                <Button onClick={() => navigate('/proposal-generator')} icon={<Plus size={18} />}>
+                  New Proposal
+                </Button>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredProposals.map((proposal, index) => {
+                const projectName =
+                  proposal.data?.projectTitle?.trim() || proposal.title || 'Untitled project';
+                const clientName = proposal.data?.clientName?.trim() || 'Client';
+
+                const total = Number(proposal.total_amount ?? 0);
+                const profit = total - Number(proposal.labor_cost ?? 0) - Number(proposal.material_cost ?? 0);
+                const margin = total > 0 ? profit / total : 0;
+
+                const status = proposal.status ?? 'draft';
+                const nextAction = getNextAction(proposal);
+
+                const sentAt = proposal.sent_at;
+                const viewedAt = proposal.viewed_at ?? proposal.opened_at;
+                const acceptedAt = proposal.accepted_at;
+
+                return (
+                  <motion.div
+                    key={proposal.id}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(index * 0.05, 0.35) }}
+                    className="group rounded-2xl border border-slate-200/70 bg-white/70 p-5 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/60 dark:hover:border-blue-700/70"
+                  >
+                    {/* Top */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-lg font-bold text-slate-900 dark:text-white">
+                          {projectName}
+                        </div>
+                        <div className="truncate text-sm text-slate-600 dark:text-gray-300">
+                          {clientName}
+                        </div>
+                      </div>
+                      <ProposalStatusBadge status={status} className="shrink-0" />
+                    </div>
+
+                    {/* Middle */}
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="col-span-2">
+                        <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-gray-400">
+                          Proposal Value
+                        </div>
+                        <div className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                          {formatProposalMoney(total)}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
+                        <div className="text-xs font-semibold text-slate-600 dark:text-gray-400">
+                          Projected Profit
+                        </div>
+                        <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+                          {formatProposalMoney(profit)}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
+                        <div className="text-xs font-semibold text-slate-600 dark:text-gray-400">
+                          Margin
+                        </div>
+                        <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+                          {formatWinRate(margin)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Client activity */}
+                    <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
+                      <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-gray-400">
+                        Client Activity
+                      </div>
+                      <div className="mt-2 space-y-1 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-600 dark:text-gray-400">Sent</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {sentAt ? formatDateOnly(sentAt) : '—'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-600 dark:text-gray-400">Viewed</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {viewedAt ? formatDateTime(viewedAt) : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-600 dark:text-gray-400">Accepted</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {acceptedAt ? formatDateOnly(acceptedAt) : 'Pending'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Next action */}
+                    <div className="mt-4 rounded-xl border border-blue-200/60 bg-blue-50/60 px-3 py-2 dark:border-blue-900/50 dark:bg-blue-950/30">
+                      <div className="text-xs font-semibold tracking-wide text-blue-800 dark:text-blue-200">
+                        Next Action
+                      </div>
+                      <div className="mt-0.5 text-sm font-bold text-blue-900 dark:text-blue-100">
+                        {nextAction}
+                      </div>
+                    </div>
+
+                    {/* Project link */}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/projects')}
+                      className="mt-4 w-full rounded-xl border border-slate-200/70 bg-white/40 px-3 py-2 text-left transition-colors hover:bg-white/70 dark:border-gray-800 dark:bg-gray-950/30 dark:hover:bg-gray-900/70"
+                    >
+                      <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-gray-400">
+                        Project
+                      </div>
+                      <div className="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-white">
+                        {projectName}
+                      </div>
+                    </button>
+
+                    {/* Bottom actions */}
+                    <div className="mt-4">
+                      <ProposalActionButtons
+                        onOpen={() => handlePreview(proposal)}
+                        onSend={() => handleSend(proposal.id)}
+                        onDuplicate={() => handleDuplicate(proposal)}
+                        onPdf={() => handlePreview(proposal)}
+                        onShareLink={() => handleCopyClientLink(proposal)}
+                        overflowItems={[
+                          ...(proposal.status === 'accepted'
+                            ? [
+                                {
+                                  key: 'mark_deposit',
+                                  label: 'Mark deposit paid',
+                                  onClick: () => handleMarkDeposit(proposal.id),
+                                },
+                              ]
+                            : []),
+                          ...(proposal.status === 'accepted' || proposal.status === 'deposit_paid'
+                            ? [
+                                {
+                                  key: 'mark_scheduled',
+                                  label: 'Mark scheduled',
+                                  onClick: () => handleMarkScheduled(proposal.id),
+                                },
+                              ]
+                            : []),
+                          {
+                            key: 'download_json',
+                            label: 'Export JSON',
+                            onClick: () => handleExport(proposal),
+                          },
+                          {
+                            key: 'delete',
+                            label: 'Delete',
+                            variant: 'danger',
+                            onClick: () => {
+                              soundService.play('modal');
+                              setDeleteConfirm(proposal.id);
+                            },
+                          },
+                        ]}
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
@@ -423,6 +573,7 @@ const Proposals: React.FC = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

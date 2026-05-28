@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   FolderOpen,
   Save,
@@ -37,17 +37,19 @@ import {
 export default function ProjectDetails() {
   const { currentProject, ui, setUi, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
-  
-  if (!currentProject) return null;
-  const p = currentProject as any;
+  const project = (currentProject as any) ?? null;
+  const p = (project ?? {}) as any;
 
   const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
+    if (!project) return undefined;
+    const name = project.name ?? '';
+    if (!name) return undefined;
     return proposals.find(
-      (p) =>
-        p.data?.projectTitle === currentProject.name ||
-        p.title.toLowerCase().includes(currentProject.name.toLowerCase()),
+      (proposal) =>
+        proposal.data?.projectTitle === name ||
+        proposal.title.toLowerCase().includes(name.toLowerCase()),
     );
-  }, [proposals, currentProject.name]);
+  }, [proposals, project?.name]);
 
   const proposalStatusLabel = useMemo(() => {
     const s = matchedProposal?.status ?? null;
@@ -66,16 +68,22 @@ export default function ProjectDetails() {
   }, [matchedProposal?.status]);
 
   const pourDateLabel = useMemo(() => {
-    if (!currentProject.pourDate) return '—';
+    if (!project?.pourDate) return '—';
     try {
-      return format(new Date(currentProject.pourDate), 'EEEE HH:mm');
+      return format(new Date(project.pourDate), 'EEEE HH:mm');
     } catch {
       return '—';
     }
-  }, [currentProject.pourDate]);
+  }, [project?.pourDate]);
 
   const workflow = useMemo(() => {
-    return resolveProjectWorkflow(currentProject, {
+    if (!project) {
+      return {
+        stage: 'created',
+        nextAction: { label: 'Open Project', path: '/projects', search: '' },
+      } as any;
+    }
+    return resolveProjectWorkflow(project as any, {
       hasProposalDraft: Boolean(matchedProposal),
       proposalStatus: matchedProposal?.status,
       windRisk: 'unknown',
@@ -83,45 +91,48 @@ export default function ProjectDetails() {
       readinessScore: 0,
       now: new Date(),
     });
-  }, [currentProject, matchedProposal, matchedProposal?.status]);
+  }, [project, matchedProposal, matchedProposal?.status]);
 
   const financial = useMemo(() => {
     const data = matchedProposal?.data;
-    if (!data) return null;
+    if (!data || !project) return null;
     const fin = computeProposalFinancials(data);
-    const estLabor = currentProject.laborEstimates?.[0]?.laborCost ?? 0;
+    const estLabor = project.laborEstimates?.[0]?.laborCost ?? 0;
     const estMaterial = fin.material_cost;
     const value = fin.total_amount;
     const profit = value > 0 ? value - (estLabor + estMaterial) : 0;
     const margin = value > 0 ? profit / value : 0;
     return { value, estLabor, estMaterial, profit, margin };
-  }, [matchedProposal?.data, currentProject.laborEstimates]);
+  }, [matchedProposal?.data, project, project?.laborEstimates]);
 
   const nextActions = useMemo(() => {
     const issues: { msg: string; action: 'proposal' | 'placement' | 'project' }[] = [];
+    if (!project) return issues;
     if (!matchedProposal) {
       issues.push({ msg: 'Proposal not created / linked', action: 'proposal' });
     } else if (matchedProposal.status !== 'accepted' && matchedProposal.status !== 'deposit_paid' && matchedProposal.status !== 'scheduled') {
       issues.push({ msg: 'Proposal not accepted', action: 'proposal' });
     }
 
-    const order = currentProject.placementOrder;
+    const order = project.placementOrder;
     const plantAssigned = Boolean(order?.batchPlantName?.trim() || order?.batchPlantAddress?.trim());
     if (!plantAssigned) issues.push({ msg: 'No batch plant assigned', action: 'placement' });
 
-    const truckSpacing = Boolean(order?.summaryLines?.some((l) => /Truck Spacing/i.test(l)));
+    const truckSpacing = Boolean(
+      order?.summaryLines?.some((l: string) => /Truck Spacing/i.test(l)),
+    );
     if (!truckSpacing) issues.push({ msg: 'Truck spacing not configured', action: 'placement' });
 
-    if (!currentProject.pourDate) issues.push({ msg: 'Placement date not scheduled', action: 'project' });
+    if (!project.pourDate) issues.push({ msg: 'Placement date not scheduled', action: 'project' });
 
-    const volumeYd = (currentProject.calculations ?? []).reduce(
-      (s, c) => s + ((c.result?.volume as number) ?? 0),
+    const volumeYd = (project.calculations ?? []).reduce(
+      (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
       0,
     );
     if (volumeYd <= 0) issues.push({ msg: 'Volume not calculated', action: 'project' });
 
     return issues.slice(0, 5);
-  }, [currentProject, matchedProposal]);
+  }, [project, matchedProposal]);
 
   const stageOrder: ProjectWorkflowStage[] = [
     'created',
@@ -277,6 +288,8 @@ export default function ProjectDetails() {
     };
   }, [p]);
 
+  if (!project) return null;
+
   return (
     <Card className="p-6 mb-6 dark:bg-gray-800/90">
       {/* SECTION 1 — PROJECT COMMAND HEADER */}
@@ -286,12 +299,12 @@ export default function ProjectDetails() {
             <div className="flex items-center">
               <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2 shrink-0" />
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white truncate">
-                {currentProject.name}
+                {project.name}
               </h2>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Created: {format(new Date(currentProject.createdAt), 'MM/dd/yyyy')} • Last updated:{' '}
-              {format(new Date(currentProject.updatedAt), 'MM/dd/yyyy')}
+              Created: {format(new Date(project.createdAt), 'MM/dd/yyyy')} • Last updated:{' '}
+              {format(new Date(project.updatedAt), 'MM/dd/yyyy')}
             </p>
           </div>
 
@@ -320,7 +333,7 @@ export default function ProjectDetails() {
             <Button
             variant="danger"
             size="sm"
-            onClick={() => handlers.confirmDelete('project', currentProject.id)}
+            onClick={() => handlers.confirmDelete('project', project.id)}
             icon={<Trash2 size={16} />}
           />
           </div>
@@ -329,7 +342,7 @@ export default function ProjectDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
             <p className="text-gray-600 dark:text-gray-300">
-              {currentProject.description || 'No description provided'}
+              {project.description || 'No description provided'}
             </p>
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -345,32 +358,7 @@ export default function ProjectDetails() {
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.location.assign(`/proposals${workflowQuery()}&project=${currentProject.id}`)}
-                icon={<ArrowRight size={16} />}
-              >
-                Open Proposal
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.location.assign(`/pour-planner?flow=1&project=${currentProject.id}`)}
-                icon={<ArrowRight size={16} />}
-              >
-                Placement Planner
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setUi((s) => ({ ...s, editing: true }))}
-                icon={<Edit size={16} />}
-              >
-                Edit Project
-              </Button>
-            </div>
+            
           </div>
 
           <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
@@ -416,7 +404,7 @@ export default function ProjectDetails() {
               Project workflow
             </p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {PROJECT_WORKFLOW_LABELS[workflow.stage]}
+              {PROJECT_WORKFLOW_LABELS[workflow.stage as ProjectWorkflowStage]}
             </p>
           </div>
           <div className="text-right">
@@ -484,7 +472,7 @@ export default function ProjectDetails() {
             size="sm"
             variant="outline"
             className="whitespace-nowrap"
-            onClick={() => window.location.assign(`/pour-planner?flow=1&project=${currentProject.id}`)}
+            onClick={() => window.location.assign(`/pour-planner?flow=1&project=${project.id}`)}
             icon={<ArrowRight size={16} />}
           >
             Configure Placement
@@ -530,7 +518,7 @@ export default function ProjectDetails() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => window.location.assign(`/pour-planner?flow=1&project=${currentProject.id}`)}
+                  onClick={() => window.location.assign(`/pour-planner?flow=1&project=${project.id}`)}
                   icon={<ArrowRight size={16} />}
                 >
                   Open Placement Planner
@@ -625,9 +613,9 @@ export default function ProjectDetails() {
       {/* TECHNICAL DETAILS (downgraded prominence) */}
       <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Technical details</p>
-        {currentProject.calculations.length > 0 && (
+        {project.calculations.length > 0 && (
           <StrengthProgress
-            project={currentProject}
+            project={project}
             mixProfile={ui.mixProfile}
             onMixProfileChange={handlers.mixProfileChange}
             onPourDateChange={handlers.dateChange}

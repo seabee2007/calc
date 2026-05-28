@@ -68,12 +68,10 @@ function priorityTone(stage: ProjectWorkflowStage, hasPourDate: boolean): {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete }) => {
   const p = project as any;
-  const handleDelete = (e: React.MouseEvent) => {
+  const stopCardOpen = (e: React.SyntheticEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    soundService.play('trash');
-    onDelete();
   };
-
   const handleCardClick = async () => {
     await hapticService.selection();
     onClick();
@@ -129,11 +127,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
       <Card 
         className={`cursor-pointer h-full ${tone.ring}`}
         shadow="md"
-        onClick={handleCardClick}
       >
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0" onClick={handleCardClick}>
               <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
                 <Folder className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
@@ -141,16 +138,31 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
                 {project.name}
               </h3>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              icon={<Trash2 size={16} />}
-              className="text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400"
-            />
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onPointerDownCapture={stopCardOpen}
+              onMouseDownCapture={stopCardOpen}
+              onTouchStartCapture={stopCardOpen}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  soundService.play('trash');
+                  onDelete();
+                }}
+                icon={<Trash2 size={16} />}
+                className="text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center justify-between gap-2 mb-3" onClick={handleCardClick}>
             <span
               className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${tone.badge}`}
             >
@@ -159,7 +171,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             <span className="text-xs text-gray-500 dark:text-gray-400">{pourLabel}</span>
           </div>
 
-          <div className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 p-3 mb-3">
+          <div
+            className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 p-3 mb-3"
+            onClick={handleCardClick}
+          >
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
               {PROJECT_WORKFLOW_LABELS[workflow.stage]}
@@ -172,7 +187,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             </p>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-3" onClick={handleCardClick}>
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
               <span>Progress</span>
               <span className="font-semibold text-gray-700 dark:text-gray-200">{progressPct}%</span>
@@ -185,13 +200,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300">
+          <div
+            className="grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300"
+            onClick={handleCardClick}
+          >
             <div className="truncate">{volumeYd > 0 ? `${volumeYd.toFixed(0)} CY` : 'Vol: —'}</div>
             <div className="truncate">{psi}</div>
             <div className="truncate">{plant}</div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3">
+          <div
+            className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3"
+            onClick={handleCardClick}
+          >
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1" />
               <span>{formattedDate}</span>

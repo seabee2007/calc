@@ -31,7 +31,6 @@ export function useProjects() {
     mixProfile: (currentProject?.mixProfile || 'standard') as MixProfileType,
     isSaving: false,
     toast: { show: false, msg: '', type: 'success' as 'success'|'error'|'warning' },
-    deleteConfirm: { show: false, type: null as 'project'|'calculation'|null, id: '' }
   });
 
   // Sync URL state
@@ -243,43 +242,26 @@ export function useProjects() {
       }
     },
 
-    confirmDelete: (type: 'project' | 'calculation', id: string) => {
-      setUi(s => ({
-        ...s,
-        deleteConfirm: { show: true, type, id }
-      }));
-    },
-
-    cancelDelete: () => {
-      setUi(s => ({
-        ...s,
-        deleteConfirm: { show: false, type: null, id: '' }
-      }));
-    },
-
-    handleDeleteConfirm: async () => {
-      const { type, id } = ui.deleteConfirm;
-      if (!type || !id) return;
-
-      if (type === 'project') {
-        await deleteProject(id);
-        setUi(s => ({
-          ...s,
-          showDetails: false,
-          deleteConfirm: { show: false, type: null, id: '' }
-        }));
-        toast('Project deleted successfully', 'success');
-      } else {
-        if (currentProject) {
-          await deleteCalculation(currentProject.id, id);
-          toast('Calculation deleted successfully', 'success');
+    confirmDelete: async (type: 'project' | 'calculation', id: string) => {
+      if (!id) return;
+      try {
+        if (type === 'project') {
+          await deleteProject(id);
+          setCurrentProject(null);
+          setUi((s) => ({ ...s, showDetails: false, editing: false }));
+          toast('Project deleted successfully', 'success');
+          return;
         }
+
+        // calculation
+        if (!currentProject) return;
+        await deleteCalculation(currentProject.id, id);
+        toast('Calculation deleted successfully', 'success');
+      } catch (err) {
+        console.error('Delete failed', err);
+        toast('Delete failed', 'error');
       }
-      setUi(s => ({
-        ...s,
-        deleteConfirm: { show: false, type: null, id: '' }
-      }));
-    }
+    },
   };
 
   function toast(message: string, type: 'success' | 'error' | 'warning' = 'success') {
