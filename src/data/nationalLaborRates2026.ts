@@ -50,6 +50,13 @@ export const LABOR_RATES_2026 = {
       hourlyRateWithBurden: 72,
       overtimeMultiplier: 1.5,
       nationalAverage2026: true,
+      includes: [
+        'base wage',
+        'payroll burden',
+        'workers comp',
+        'small tools',
+        'general labor overhead',
+      ],
     },
   },
 } as const satisfies { laborRates: LaborRatesCatalog };

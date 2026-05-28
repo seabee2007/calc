@@ -23,7 +23,7 @@ function TradeRateRow({ rate }: { rate: LaborTradeRate }) {
         {rate.overtimeMultiplier}
       </p>
       {rate.includes && rate.includes.length > 0 && (
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-xs text-gray-500 dark:text-white">
           Burden includes: {rate.includes.join(', ')}
         </p>
       )}
