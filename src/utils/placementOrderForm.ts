@@ -74,6 +74,20 @@ function applyProductionSnapshotToForm(
   return patch;
 }
 
+/**
+ * Planner saves call sheet / plant contact only — dispatch status & notes are set on the project card.
+ */
+export function applyPlannerPlacementOrderDispatchFields(
+  order: PlacementOrder,
+  existing?: PlacementOrder,
+): PlacementOrder {
+  return {
+    ...order,
+    status: existing?.status ?? 'draft',
+    orderNotes: existing?.orderNotes ?? order.orderNotes,
+  };
+}
+
 export function placementOrderFromForm(
   form: PourPlannerFormState,
   options?: {

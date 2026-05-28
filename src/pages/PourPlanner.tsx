@@ -6,6 +6,7 @@ import {
   isWorkflowActive,
   getWorkflowProjectId,
   getWorkflowCalculation,
+  navigateToProjectDetail,
   type WorkflowLocationState,
 } from '../utils/workflow';
 import { hydratePourPlannerFromProject } from '../utils/workflowPourHydration';
@@ -44,7 +45,10 @@ import { formatCalculationSlabSize, getCalculationPsi } from '../utils/calculati
 import { applySelectedPourDayToForm } from '../utils/pourWeatherFields';
 import { findBestPourWindow } from '../utils/pourScoring';
 import { buildPourOrderCallSheet } from '../utils/pourOrderSummary';
-import { placementOrderFromForm } from '../utils/placementOrderForm';
+import {
+  placementOrderFromForm,
+  applyPlannerPlacementOrderDispatchFields,
+} from '../utils/placementOrderForm';
 
 const FORECAST_DAYS = 5;
 
@@ -65,8 +69,6 @@ const PourPlanner: React.FC = () => {
   const [showScoringModal, setShowScoringModal] = useState(false);
   const [savePourDateLoading, setSavePourDateLoading] = useState(false);
   const [savePourDateMessage, setSavePourDateMessage] = useState<string | null>(null);
-  const [saveOrderLoading, setSaveOrderLoading] = useState(false);
-  const [saveOrderMessage, setSaveOrderMessage] = useState<string | null>(null);
   const [placementType, setPlacementType] = useState<PlacementType | ''>('');
   const [mitigationsByDate, setMitigationsByDate] = useState<Record<string, string[]>>({});
   const [rawForecastDays, setRawForecastDays] = useState<
@@ -339,20 +341,25 @@ const PourPlanner: React.FC = () => {
     setMitigationsByDate((prev) => ({ ...prev, [date]: ids }));
   };
 
-  const canSavePlacementDate = Boolean(
-    user && planner.form.projectId && selectedDate,
+  const isLastStep = planner.activeStepId === 'risk';
+  const canFinish = Boolean(
+    user &&
+      planner.form.projectId &&
+      (inWorkflow && isLastStep ? true : Boolean(selectedDate)),
   );
 
-  const canSaveToProject = Boolean(user && planner.form.projectId);
-
-  const handleSavePlacementOrder = async () => {
+  const savePlacementOrderToProject = async () => {
     if (!planner.form.projectId) return;
-    setSaveOrderLoading(true);
-    setSaveOrderMessage(null);
-    setError(null);
 
+    const dispatchNotes =
+      planner.form.orderNotes.trim() ||
+      planner.project?.placementOrder?.orderNotes?.trim() ||
+      '';
     const summaryLines = buildPourOrderCallSheet({
-      form: planner.form,
+      form:
+        dispatchNotes !== planner.form.orderNotes.trim()
+          ? { ...planner.form, orderNotes: dispatchNotes }
+          : planner.form,
       volumeYd: planner.deliveryPlan.volumeYd,
       truckCount: planner.truckCount,
       truckCapacityYd: planner.truckCapacityYd,
@@ -366,44 +373,46 @@ const PourPlanner: React.FC = () => {
       hotWeatherRiskLevel: planner.hotWeather.riskLevel,
     });
 
-    const order = placementOrderFromForm(planner.form, {
-      productionEstimate: planner.placementRateEstimate,
-      volumeYd: planner.deliveryPlan.volumeYd,
-      preserveProduction: planner.project?.placementOrder?.production,
-    });
+    const order = applyPlannerPlacementOrderDispatchFields(
+      placementOrderFromForm(planner.form, {
+        productionEstimate: planner.placementRateEstimate,
+        volumeYd: planner.deliveryPlan.volumeYd,
+        preserveProduction: planner.project?.placementOrder?.production,
+      }),
+      planner.project?.placementOrder,
+    );
     order.summaryLines = summaryLines;
     order.jobsiteAddress = jobsiteDisplayAddress(planner.form);
     order.pourDateIso = selectedDate
       ? `${selectedDate}T12:00:00.000Z`
       : planner.project?.pourDate;
 
-    try {
-      await updateProject(planner.form.projectId, { placementOrder: order });
-      setSaveOrderMessage('Order saved to project.');
-    } catch {
-      setError('Failed to save order to project. Run DB migration if placement_order column is missing.');
-    } finally {
-      setSaveOrderLoading(false);
-    }
+    await updateProject(planner.form.projectId, { placementOrder: order });
   };
 
-  const handleSavePlacementDate = async () => {
-    if (!selectedDate || !planner.form.projectId) return;
+  const handleFinish = async () => {
+    if (!planner.form.projectId || !user) return;
     setSavePourDateLoading(true);
     setSavePourDateMessage(null);
     setError(null);
-    const isoDate = `${selectedDate}T12:00:00.000Z`;
     try {
-      if (inWorkflow && planner.activeStepId === 'risk') {
-        await handleSavePlacementOrder();
+      await savePlacementOrderToProject();
+      if (selectedDate) {
+        await updateProject(planner.form.projectId, {
+          pourDate: `${selectedDate}T12:00:00.000Z`,
+        });
       }
-      await updateProject(planner.form.projectId, { pourDate: isoDate });
-      setSavePourDateMessage('Placement date saved to project.');
       if (inWorkflow) {
-        navigate('/');
+        navigateToProjectDetail(navigate, planner.form.projectId);
+        return;
       }
+      setSavePourDateMessage(
+        selectedDate
+          ? 'Call sheet and placement date saved to project.'
+          : 'Call sheet saved to project.',
+      );
     } catch {
-      setError('Failed to save placement date to project.');
+      setError('Failed to save to project. Run DB migration if placement_order column is missing.');
     } finally {
       setSavePourDateLoading(false);
     }
@@ -437,16 +446,7 @@ const PourPlanner: React.FC = () => {
           />
         );
       case 'risk':
-        return (
-          <StepRiskAnalysis
-            planner={planner}
-            selectedDay={selectedDay}
-            canSaveToProject={canSaveToProject}
-            onSaveOrder={handleSavePlacementOrder}
-            saveOrderLoading={saveOrderLoading}
-            saveOrderMessage={saveOrderMessage}
-          />
-        );
+        return <StepRiskAnalysis planner={planner} selectedDay={selectedDay} />;
       default:
         return null;
     }
@@ -497,10 +497,10 @@ const PourPlanner: React.FC = () => {
           {planner.activeStep === 4 &&
             'Size crew and coordinate truck spacing with placement rate.'}
           {planner.activeStep === 5 &&
-            'Review risk, order ready-mix using the compiled call sheet, then save placement date and order status to your project.'}
+            'Review risk, build the call sheet, and save it to your project. Update order status on the project Next actions panel after you call the plant.'}
         </p>
 
-        {savePourDateMessage && planner.activeStep === POUR_PLANNER_STEPS.length - 1 && (
+        {savePourDateMessage && isLastStep && !inWorkflow && (
           <p className="text-sm text-green-600 dark:text-green-400 mb-4">
             {savePourDateMessage}
           </p>
@@ -513,13 +513,15 @@ const PourPlanner: React.FC = () => {
           totalSteps={POUR_PLANNER_STEPS.length}
           onBack={planner.goBack}
           onNext={planner.goNext}
-          onFinish={handleSavePlacementDate}
-          finishDisabled={!canSavePlacementDate}
+          onFinish={isLastStep ? handleFinish : undefined}
+          finishDisabled={!canFinish}
           finishLoading={savePourDateLoading}
           finishLabel={
-            inWorkflow
-              ? 'Save call sheet & return to dashboard'
-              : 'Save placement date'
+            inWorkflow && isLastStep
+              ? 'Save call sheet & return to project'
+              : isLastStep
+                ? 'Save call sheet to project'
+                : 'Save placement date'
           }
         />
       </Card>

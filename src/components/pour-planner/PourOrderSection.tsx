@@ -6,50 +6,29 @@ import {
   Loader2,
   MapPin,
   Phone,
-  Save,
   Search,
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import Select from '../ui/Select';
 import PlannerStepLocationsCard from './PlannerStepLocationsCard';
 import CallSheetDetailsForm from './CallSheetDetailsForm';
 import type { PourPlannerContext } from '../../hooks/usePourPlannerState';
 import type { ScoredPourDay } from '../../utils/pourScoring';
 import { lookupBatchPlantContact } from '../../services/batchPlantContactService';
 import { pourOrderCallSheetText } from '../../utils/pourOrderSummary';
-import {
-  PLACEMENT_ORDER_STATUS_LABELS,
-  type PlacementOrderStatus,
-} from '../../types/placementOrder';
 import { batchPlantDisplayLine, parsePlannerCoord } from '../../utils/addressForm';
 import { hasSavedBatchPlantContact } from '../../utils/projectLocation';
 
 interface PourOrderSectionProps {
   planner: PourPlannerContext;
   selectedDay?: ScoredPourDay;
-  canSaveToProject: boolean;
-  onSaveOrder: () => Promise<void>;
-  saveLoading?: boolean;
-  saveMessage?: string | null;
 }
-
-const ORDER_STATUS_OPTIONS = (
-  Object.entries(PLACEMENT_ORDER_STATUS_LABELS) as [PlacementOrderStatus, string][]
-).map(([value, label]) => ({ value, label }));
 
 /** Dark-surface card for call sheet step (readable on planner page background). */
 const DARK_CARD =
   'p-4 space-y-4 bg-slate-800/95 border border-slate-600 shadow-lg text-gray-100';
 
-const PourOrderSection: React.FC<PourOrderSectionProps> = ({
-  planner,
-  selectedDay,
-  canSaveToProject,
-  onSaveOrder,
-  saveLoading = false,
-  saveMessage = null,
-}) => {
+const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDay }) => {
   const {
     form,
     setField,
@@ -81,10 +60,15 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
   const showAiLookup =
     canLookup && !hasContactFields && !savedContactOnProject;
 
+  const dispatchNotes =
+    form.orderNotes.trim() || project?.placementOrder?.orderNotes?.trim() || '';
+
   const callSheetText = useMemo(
     () =>
       pourOrderCallSheetText({
-        form,
+        form: dispatchNotes !== form.orderNotes.trim()
+          ? { ...form, orderNotes: dispatchNotes }
+          : form,
         volumeYd: deliveryPlan.volumeYd,
         truckCount,
         truckCapacityYd: planner.truckCapacityYd,
@@ -108,6 +92,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
       preferences,
       selectedDay,
       project?.pourDate,
+      dispatchNotes,
     ],
   );
 
@@ -165,7 +150,6 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
     }
   };
 
-  const orderStatus = form.orderStatus || 'draft';
   const travelMi = parseFloat(form.travelDistance);
   const travelMin = parseFloat(form.travelTimeMinutes);
 
@@ -319,25 +303,6 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
       </div>
 
       <div className={DARK_CARD}>
-        <h4 className="text-sm font-semibold text-white">Order status & notes</h4>
-        <Select
-          label="Placement order status"
-          options={ORDER_STATUS_OPTIONS}
-          value={orderStatus}
-          onChange={(v) => setField('orderStatus', v as PlacementOrderStatus)}
-        />
-        <label className="block text-sm font-medium text-slate-200">
-          Additional notes (appears on call sheet)
-          <textarea
-            className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-900 text-white px-3 py-2 text-sm min-h-[100px] placeholder:text-slate-500"
-            value={form.orderNotes}
-            onChange={(e) => setField('orderNotes', e.target.value)}
-            placeholder={'No washout on pavement.\nCall superintendent before entering convoy gate.\nSlump test each truck.'}
-          />
-        </label>
-      </div>
-
-      <div className={DARK_CARD}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="text-sm font-semibold text-white">Order call sheet</h4>
           <Button
@@ -356,34 +321,10 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({
         </pre>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <Button
-          type="button"
-          onClick={onSaveOrder}
-          disabled={!canSaveToProject || saveLoading}
-          icon={
-            saveLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )
-          }
-        >
-          {saveLoading ? 'Saving…' : 'Save order to project'}
-        </Button>
-        {!canSaveToProject && (
-          <p className="text-xs text-slate-400">
-            Link a saved project in Step 1 to store order status (for a future orders dashboard).
-          </p>
-        )}
-        {saveMessage && (
-          <p className="text-sm text-emerald-400">{saveMessage}</p>
-        )}
-      </div>
-
       <p className="text-xs text-slate-400">
-        Saved orders store contact, status, and this call sheet on the project. A dashboard for
-        ordered vs scheduled placements can use this data later.
+        Use <span className="font-medium text-slate-300">Save call sheet &amp; return to project</span>{' '}
+        below to store batch plant contact and this call sheet. Update placement order status on
+        the project&apos;s Next actions panel after you call the plant.
       </p>
     </section>
   );

@@ -10,20 +10,9 @@ import PourOrderSection from '../PourOrderSection';
 interface StepProps {
   planner: PourPlannerContext;
   selectedDay?: ScoredPourDay;
-  canSaveToProject?: boolean;
-  onSaveOrder?: () => Promise<void>;
-  saveOrderLoading?: boolean;
-  saveOrderMessage?: string | null;
 }
 
-export const StepRiskAnalysis: React.FC<StepProps> = ({
-  planner,
-  selectedDay,
-  canSaveToProject = false,
-  onSaveOrder,
-  saveOrderLoading,
-  saveOrderMessage,
-}) => {
+export const StepRiskAnalysis: React.FC<StepProps> = ({ planner, selectedDay }) => {
   const { deliveryWindow, hotWeather, slumpRisk, production } = planner;
 
   return (
@@ -65,16 +54,7 @@ export const StepRiskAnalysis: React.FC<StepProps> = ({
         requirements.
       </Card>
 
-      {onSaveOrder && (
-        <PourOrderSection
-          planner={planner}
-          selectedDay={selectedDay}
-          canSaveToProject={canSaveToProject}
-          onSaveOrder={onSaveOrder}
-          saveLoading={saveOrderLoading}
-          saveMessage={saveOrderMessage}
-        />
-      )}
+      <PourOrderSection planner={planner} selectedDay={selectedDay} />
     </div>
   );
 };

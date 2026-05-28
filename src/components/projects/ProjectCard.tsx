@@ -8,6 +8,10 @@ import type { Project } from '../../types';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
 import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
+import {
+  PLACEMENT_ORDER_STATUS_LABELS,
+  type PlacementOrderStatus,
+} from '../../types/placementOrder';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
 
@@ -135,6 +139,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
   const plant = p.placementOrder?.batchPlantName?.trim()
     ? p.placementOrder.batchPlantName
     : 'Plant: —';
+  const orderStatusKey = (p.placementOrder?.status ?? 'draft') as PlacementOrderStatus;
+  const orderStatusLabel = PLACEMENT_ORDER_STATUS_LABELS[orderStatusKey];
 
   return (
     <motion.div
@@ -201,6 +207,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 flex items-center gap-2">
               <ArrowRight className="h-4 w-4 text-cyan-500" />
               <span className="truncate">{workflow.nextAction.label}</span>
+            </p>
+            <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">
+              Placement order
+            </p>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 truncate" title={orderStatusLabel}>
+              {orderStatusLabel}
             </p>
             {workflow.mixDesign && workflow.mixDesign.totalPlacements > 0 && (
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">

@@ -212,8 +212,7 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
   push(lines, ...sectionTitle('CONCRETE MIX INFORMATION'));
   push(
     lines,
-    labelValue('Mix Design Number', form.mixDesignNumber),
-    'PSI Requirement:',
+    labelValue('PSI Requirement:'),
     ...psiBlock(form),
     labelValue('Aggregate Size', form.aggregateSize ? `${form.aggregateSize}"` : undefined),
     labelValue('Slump Requirement', slump ? `${slump}"` : undefined),
@@ -303,18 +302,7 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
     labelValue('Special Inspection Required', yesNo(form.qcSpecialInspection)),
   );
 
-  push(lines, ...sectionTitle('SAFETY / SITE CONDITIONS'));
-  push(
-    lines,
-    labelValue('PPE Requirements', yesNo(form.safetyPpe)),
-    labelValue('Traffic Control Required', yesNo(form.safetyTrafficControl)),
-    labelValue('Spotter Required', yesNo(form.safetySpotter)),
-    labelValue('Powerline Hazards', yesNo(form.safetyPowerlines)),
-    labelValue('Limited Access', yesNo(form.safetyLimitedAccess)),
-    labelValue('Crane Nearby', yesNo(form.safetyCraneNearby)),
-    labelValue('Uneven Terrain', yesNo(form.safetyUnevenTerrain)),
-    labelValue('Crew Size On Site', form.crewSize),
-  );
+  
 
   push(lines, ...sectionTitle('STANDARD NOTES'));
   const standardNotes = [
@@ -343,7 +331,6 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
   push(
     lines,
     '',
-    '— Generated from Placement Risk Analyzer —',
     'Verify all details with batch plant dispatcher before confirming order.',
   );
 

@@ -21,6 +21,7 @@ import MixDesignSection from './MixDesignSection';
 import QCSection from './QCSection';
 import ReinforcementSection from './ReinforcementSection';
 import StrengthProgress from '../../components/projects/StrengthProgress';
+import PlacementOrderStatusPanel from '../../components/projects/PlacementOrderStatusPanel';
 import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { computeProposalFinancials } from '../../utils/proposalFinancials';
@@ -488,6 +489,7 @@ export default function ProjectDetails() {
             Configure Placement
           </Button>
         </div>
+        <PlacementOrderStatusPanel project={project} />
       </div>
 
       {/* SECTION 4 — PLACEMENT INFORMATION */}
