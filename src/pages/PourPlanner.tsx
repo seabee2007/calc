@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CloudSun } from 'lucide-react';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import {
   isWorkflowActive,
@@ -15,8 +14,6 @@ import Card from '../components/ui/Card';
 import Modal from '../components/ui/Modal';
 import PlacementScoringGuide from '../components/weather/PlacementScoringGuide';
 import PlacementScoringLink from '../components/weather/PlacementScoringLink';
-import PourPlannerStepper from '../components/pour-planner/PourPlannerStepper';
-import OverviewSummaryCard from '../components/pour-planner/OverviewSummaryCard';
 import StepNavigation from '../components/pour-planner/StepNavigation';
 import StepProjectOverview from '../components/pour-planner/steps/StepProjectOverview';
 import StepMixSpec from '../components/pour-planner/steps/StepMixSpec';
@@ -458,36 +455,6 @@ const PourPlanner: React.FC = () => {
   return (
     <div className={`mx-auto space-y-6 pb-12 ${inWorkflow ? 'max-w-6xl' : 'max-w-5xl'}`}>
       <WorkflowStepHeader />
-      {!inWorkflow && (
-        <>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <div className="flex justify-center mb-3">
-              <CloudSun className="h-12 w-12 text-cyan-400 drop-shadow" />
-            </div>
-            <h1 className="text-3xl font-bold text-white drop-shadow-md">
-              Ready-Mix Placement Risk Analyzer
-            </h1>
-            <p className="text-white/90 mt-2 max-w-2xl mx-auto drop-shadow">
-              Plan the placement, check delivery feasibility, evaluate placement risk, and produce a
-              field-ready plan — step by step.
-            </p>
-            <div className="mt-3">
-              <PlacementScoringLink onClick={() => setShowScoringModal(true)} />
-            </div>
-          </motion.div>
-
-          <OverviewSummaryCard planner={planner} />
-
-          <PourPlannerStepper
-            activeStep={planner.activeStep}
-            onStepClick={planner.goToStep}
-          />
-        </>
-      )}
 
       {inWorkflow && (
         <div className="mb-6">

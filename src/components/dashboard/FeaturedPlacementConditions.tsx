@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import { OPS_PANEL_INNER } from './opsTheme';
 import type { OpsRiskLevel, OperationsSnapshot } from '../../utils/operationsDashboard';
+import { workflowQuery } from '../../utils/workflow';
 
 function riskColor(level: OpsRiskLevel): string {
   switch (level) {
@@ -53,7 +54,7 @@ const FeaturedPlacementConditions: React.FC<FeaturedPlacementConditionsProps> = 
         </p>
       </div>
       <Link
-        to="/pour-planner"
+        to={`/pour-planner${workflowQuery()}`}
         className="text-sm text-cyan-400 hover:underline inline-flex items-center gap-1 shrink-0"
       >
         Full analysis <ArrowRight className="h-4 w-4" />

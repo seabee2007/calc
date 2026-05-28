@@ -21,7 +21,7 @@ const MarketingHome: React.FC = () => {
       title: 'Placement planner',
       description: 'ACI weather scoring, truck spacing, and ready-mix call sheets',
       icon: <CloudSun className="h-10 w-10 text-white" />,
-      action: () => navigate('/pour-planner'),
+      action: () => navigate(`/pour-planner${workflowQuery()}`),
       gradient: 'from-cyan-500 to-cyan-700',
     },
     {

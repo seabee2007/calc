@@ -44,7 +44,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
 
   const plannerPath = primaryProjectId
     ? `/pour-planner${workflowQuery(primaryProjectId)}`
-    : '/pour-planner';
+    : `/pour-planner${workflowQuery()}`;
 
   const upcomingPlannerPath = nextPlacement
     ? `/pour-planner${workflowQuery(nextPlacement.projectId)}`

@@ -23,7 +23,7 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
   const navigate = useNavigate();
 
   return (
-    <OpsCard>
+    <OpsCard className="rounded-2x1 overflow-hidden">
       <div className="flex items-center gap-2 mb-4">
         <FileStack className="h-5 w-5 text-violet-400" />
         <h3 className="font-semibold text-white">Proposal pipeline</h3>

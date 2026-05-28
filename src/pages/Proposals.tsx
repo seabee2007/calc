@@ -192,8 +192,8 @@ const Proposals: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="w-full">
+      <div className="bg-white/90 dark:bg-gray-900 backdrop-blur-sm rounded-lg shadow-lg p-6 sm:p-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

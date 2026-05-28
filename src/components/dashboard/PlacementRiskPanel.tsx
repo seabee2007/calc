@@ -4,6 +4,7 @@ import OpsCard from './OpsCard';
 import { OPS_PANEL_INNER } from './opsTheme';
 import type { OpsRiskLevel, OperationsSnapshot } from '../../utils/operationsDashboard';
 import { Link } from 'react-router-dom';
+import { workflowQuery } from '../../utils/workflow';
 
 function riskColor(level: OpsRiskLevel): string {
   switch (level) {
@@ -37,7 +38,7 @@ const PlacementRiskPanel: React.FC<PlacementRiskPanelProps> = ({ snapshot }) => 
         <CloudSun className="h-5 w-5 text-amber-400" />
         <h3 className="font-semibold text-white">Concrete placement risk</h3>
       </div>
-      <Link to="/pour-planner" className="text-xs text-cyan-400 hover:underline">
+      <Link to={`/pour-planner${workflowQuery()}`} className="text-xs text-cyan-400 hover:underline">
         Full analysis →
       </Link>
     </div>

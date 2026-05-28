@@ -3,6 +3,7 @@ import { Truck } from 'lucide-react';
 import OpsCard from './OpsCard';
 import type { DispatchTruckRow } from '../../utils/operationsDashboard';
 import { Link } from 'react-router-dom';
+import { workflowQuery } from '../../utils/workflow';
 
 const statusLabel: Record<DispatchTruckRow['status'], string> = {
   scheduled: 'Scheduled',
@@ -45,7 +46,7 @@ const DispatchTrackerPanel: React.FC<DispatchTrackerPanelProps> = ({
           <Truck className="h-5 w-5 text-blue-400" />
           <h3 className="font-semibold text-white">Ready-mix dispatch</h3>
         </div>
-        <Link to="/pour-planner" className="text-xs text-cyan-400 hover:underline">
+        <Link to={`/pour-planner${workflowQuery()}`} className="text-xs text-cyan-400 hover:underline">
           Order / plan →
         </Link>
       </div>
