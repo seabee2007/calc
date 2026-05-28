@@ -96,6 +96,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
   })();
 
   const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
+    const direct = proposals.find((proposal) => proposal.project_id === project.id);
+    if (direct) return direct;
     const name = project.name?.trim() ?? '';
     if (!name) return undefined;
     const lower = name.toLowerCase();
@@ -104,7 +106,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
         proposal.data?.projectTitle === name ||
         proposal.title?.toLowerCase().includes(lower),
     );
-  }, [proposals, project.name]);
+  }, [proposals, project.id, project.name]);
 
   const workflow = resolveProjectWorkflow(project as any, {
     hasProposalDraft: Boolean(matchedProposal),

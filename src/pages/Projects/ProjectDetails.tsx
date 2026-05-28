@@ -24,7 +24,6 @@ import StrengthProgress from '../../components/projects/StrengthProgress';
 import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { computeProposalFinancials } from '../../utils/proposalFinancials';
-import { workflowQuery } from '../../utils/workflow';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
 import type { ForecastDay } from '../../types';
 import {
@@ -42,6 +41,8 @@ export default function ProjectDetails() {
 
   const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
     if (!project) return undefined;
+    const direct = proposals.find((proposal) => proposal.project_id === project.id);
+    if (direct) return direct;
     const name = project.name ?? '';
     if (!name) return undefined;
     return proposals.find(
@@ -49,7 +50,7 @@ export default function ProjectDetails() {
         proposal.data?.projectTitle === name ||
         proposal.title.toLowerCase().includes(name.toLowerCase()),
     );
-  }, [proposals, project?.name]);
+  }, [proposals, project?.id, project?.name]);
 
   const proposalStatusLabel = useMemo(() => {
     const s = matchedProposal?.status ?? null;

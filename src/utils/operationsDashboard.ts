@@ -560,6 +560,7 @@ export function buildOperationsSnapshot(
     const { score, statusLabel } = computeReadinessScore(project, order);
     const matchedProposal = proposals.find(
       (p) =>
+        p.project_id === project.id ||
         p.data?.projectTitle === project.name ||
         p.title.toLowerCase().includes(project.name.toLowerCase()),
     );

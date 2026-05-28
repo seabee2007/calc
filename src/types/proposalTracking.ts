@@ -45,6 +45,7 @@ export interface ProposalFinancialFields {
 export interface TrackedProposalRow {
   id: string;
   user_id: string;
+  project_id: string | null;
   title: string;
   template_type: 'classic' | 'modern' | 'minimal';
   data: ProposalData;

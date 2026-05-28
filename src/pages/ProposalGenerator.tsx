@@ -774,6 +774,7 @@ const ProposalGenerator: React.FC = () => {
         title: proposalTitle,
         template_type: selectedTemplate,
         data: dataToSave,
+          project_id: workflowProjectId ?? undefined,
       });
     }
 
@@ -781,6 +782,7 @@ const ProposalGenerator: React.FC = () => {
       title: proposalTitle,
       template_type: selectedTemplate,
       data: dataToSave,
+        project_id: workflowProjectId ?? undefined,
     });
     setCurrentProposal(saved);
     if (!inWorkflow) {

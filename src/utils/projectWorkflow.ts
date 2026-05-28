@@ -131,13 +131,13 @@ function buildNextAction(
     case 'estimating':
       return {
         label: 'Generate Proposal',
-        path: '/proposals',
+        path: '/proposal-generator',
         search: q,
       };
     case 'proposal_sent':
       return {
         label: 'Follow Up Proposal',
-        path: '/proposals',
+        path: '/proposal-generator',
         search: q,
       };
     case 'accepted':

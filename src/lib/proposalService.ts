@@ -9,6 +9,7 @@ export type SavedProposal = TrackedProposalRow;
 function normalizeProposal(row: Record<string, unknown>): SavedProposal {
   return {
     ...(row as SavedProposal),
+    project_id: (row.project_id as string | null) ?? null,
     status: (row.status as SavedProposal['status']) ?? 'draft',
     total_amount: Number(row.total_amount ?? 0),
     labor_cost: Number(row.labor_cost ?? 0),
@@ -30,12 +31,14 @@ export interface CreateProposalData {
   title: string;
   template_type: 'classic' | 'modern' | 'minimal';
   data: ProposalData;
+  project_id?: string | null;
 }
 
 export interface UpdateProposalData {
   title?: string;
   template_type?: 'classic' | 'modern' | 'minimal';
   data?: ProposalData;
+  project_id?: string | null;
   status?: ProposalStatus;
   total_amount?: number;
   labor_cost?: number;
@@ -68,6 +71,7 @@ export class ProposalService {
       .insert([
         {
           user_id: user.id,
+          project_id: proposalData.project_id ?? null,
           title: proposalData.title,
           template_type: proposalData.template_type,
           data: proposalData.data,
