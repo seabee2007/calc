@@ -127,6 +127,8 @@ export default function ProposalActionButtons({
   onDuplicate,
   onPdf,
   onShareLink,
+  onRequestDeposit,
+  showRequestDeposit = false,
   overflowItems,
 }: {
   onOpen: () => void;
@@ -134,25 +136,32 @@ export default function ProposalActionButtons({
   onDuplicate: () => void;
   onPdf: () => void;
   onShareLink: () => void;
+  onRequestDeposit?: () => void;
+  showRequestDeposit?: boolean;
   overflowItems?: OverflowItem[];
 }) {
   const hasOverflow = (overflowItems?.length ?? 0) > 0;
 
   return (
-    <div className="space-y-3">
-      {/* Mobile: aligned 2×2 grid + full-width share */}
+    <div className="mt-4 space-y-3">
       <div className="grid grid-cols-2 gap-3 sm:hidden">
         <button type="button" className={MOBILE_PRIMARY} onClick={onOpen}>
-          Open
+          Open Proposal
         </button>
         <button type="button" className={MOBILE_OUTLINE} onClick={onSend}>
-          Send
+          Send to Client
         </button>
-        <button type="button" className={MOBILE_OUTLINE} onClick={onDuplicate}>
-          Duplicate
-        </button>
+        {showRequestDeposit && onRequestDeposit ? (
+          <button type="button" className={MOBILE_OUTLINE} onClick={onRequestDeposit}>
+            Request Deposit
+          </button>
+        ) : (
+          <button type="button" className={MOBILE_OUTLINE} onClick={onDuplicate}>
+            Duplicate
+          </button>
+        )}
         <button type="button" className={MOBILE_OUTLINE} onClick={onPdf}>
-          PDF
+          Generate PDF
         </button>
         <button
           type="button"
@@ -163,20 +172,21 @@ export default function ProposalActionButtons({
         </button>
       </div>
 
-      {/* Desktop: compact row */}
       <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" onClick={onOpen}>
-            Open
+            Open Proposal
           </Button>
           <Button variant="outline" size="sm" onClick={onSend}>
-            Send
+            Send to Client
           </Button>
-          <Button variant="outline" size="sm" onClick={onDuplicate}>
-            Duplicate
-          </Button>
+          {showRequestDeposit && onRequestDeposit && (
+            <Button variant="outline" size="sm" onClick={onRequestDeposit}>
+              Request Deposit
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={onPdf}>
-            PDF
+            Generate PDF
           </Button>
           <Button variant="outline" size="sm" onClick={onShareLink}>
             Share Link

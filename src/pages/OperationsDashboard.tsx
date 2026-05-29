@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { FolderKanban } from 'lucide-react';
 import { useProjectStore } from '../store';
@@ -52,9 +53,9 @@ function resolveDisplayName(
 }
 
 const OperationsDashboard: React.FC = () => {
-  const { projects, loading: projectsLoading } = useProjectStore();
+  const { projects } = useProjectStore();
   const { user } = useAuth();
-  const { proposals, loading: proposalsLoading } = useTrackedProposals();
+  const { proposals } = useTrackedProposals();
   const navigate = useNavigate();
   const openTools = useToolsModalStore((s) => s.open);
 
@@ -172,18 +173,14 @@ const OperationsDashboard: React.FC = () => {
     0,
   );
 
-  const loading = projectsLoading || proposalsLoading;
-
-  if (loading) {
-    return (
-      <div className={`${OPS_SHELL} text-center py-16`}>
-        <p className="text-lg text-slate-200">Loading operations…</p>
-      </div>
-    );
-  }
-
   return (
-    <div className={`${OPS_SHELL} space-y-4 sm:space-y-5 pb-24 md:pb-8`}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`${OPS_SHELL} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
+    >
       <DashboardHero
         displayName={resolveDisplayName(user)}
         activeProjects={snapshot.activeProjectCount}
@@ -279,7 +276,7 @@ const OperationsDashboard: React.FC = () => {
           </Button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

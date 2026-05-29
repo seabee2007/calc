@@ -30,6 +30,8 @@ import AuthGuard from './components/auth/AuthGuard';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
 import { useAuth } from './hooks/useAuth';
+import { ProposalService } from './lib/proposalService';
+import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import ConcreteChat from "./components/ConcreteChat";
 import { soundService } from './services/soundService';
 
@@ -99,11 +101,16 @@ function App() {
         await soundService.initialize();
         
         if (user && !authLoading) {
-          // Load all user data in parallel
+          // Load all user data in parallel (proposals warm cache for dashboard)
           await Promise.all([
             loadProjects().catch(e => console.error('Error loading projects:', e)),
             loadCompanySettings().catch(e => console.error('Error loading settings:', e)),
-            loadPreferences().catch(e => console.error('Error loading preferences:', e))
+            loadPreferences().catch(e => console.error('Error loading preferences:', e)),
+            ProposalService.getAll()
+              .then((data) => {
+                if (user.id) seedTrackedProposalsCache(user.id, data);
+              })
+              .catch((e) => console.error('Error prefetching proposals:', e)),
           ]);
           
           // Only attempt migrations in web environment

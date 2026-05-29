@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -124,12 +123,8 @@ const Layout: React.FC = () => {
       {/* Content container */}
       <div className="relative min-h-screen flex flex-col z-10">
         <Navbar />
-        <motion.main 
+        <main
           className="flex-grow py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full relative"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
           style={{
             paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
             paddingRight: 'max(env(safe-area-inset-right), 1rem)',
@@ -138,7 +133,7 @@ const Layout: React.FC = () => {
           }}
         >
           <Outlet />
-        </motion.main>
+        </main>
         <Footer />
         {showBottomNav && <BottomNav />}
         {user && (

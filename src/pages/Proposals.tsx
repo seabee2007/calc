@@ -7,11 +7,6 @@ import {
 } from 'lucide-react';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import {
-  PROPOSAL_STATUS_LABELS,
-  PROPOSAL_PIPELINE_STATUSES,
-  type ProposalStatus,
-} from '../types/proposalTracking';
-import {
   getPublicProposalUrl,
   markDepositPaid,
   markProposalSent,
@@ -26,9 +21,16 @@ import {
 import Button from '../components/ui/Button';
 import { soundService } from '../services/soundService';
 import KPIStatCard from '../components/proposals/KPIStatCard';
-import ProposalStatusBadge from '../components/proposals/ProposalStatusBadge';
-import ProposalActionButtons from '../components/proposals/ProposalActionButtons';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
+import ProposalPipelineBoard from '../components/proposals/ProposalPipelineBoard';
+import ProposalNextActionsPanel from '../components/proposals/ProposalNextActionsPanel';
+import ProposalPipelineCard from '../components/proposals/ProposalPipelineCard';
+import {
+  buildCrmNextActions,
+  buildCrmRevenueMetrics,
+  proposalMatchesPipelineFilter,
+  type CrmPipelineFilter,
+} from '../utils/proposalCrm';
 
 const Proposals: React.FC = () => {
   const navigate = useNavigate();
@@ -36,7 +38,8 @@ const Proposals: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<'all' | ProposalStatus>('all');
+  const [pipelineFilter, setPipelineFilter] = useState<CrmPipelineFilter>('all');
+  const [expandedProposalId, setExpandedProposalId] = useState<string | null>(null);
   const [linkModal, setLinkModal] = useState<{
     url: string;
     title: string;
@@ -221,53 +224,82 @@ const Proposals: React.FC = () => {
     }
   };
 
-  const filteredProposals = useMemo(() => {
-    if (selectedStatus === 'all') return proposals;
-    return proposals.filter((p) => (p.status ?? 'draft') === selectedStatus);
-  }, [proposals, selectedStatus]);
+  const filteredProposals = useMemo(
+    () => proposals.filter((p) => proposalMatchesPipelineFilter(p, pipelineFilter)),
+    [proposals, pipelineFilter],
+  );
 
   const metrics = useMemo(() => buildProposalDashboardMetrics(proposals), [proposals]);
-  const awaitingResponseCount = useMemo(() => {
-    const pipeline = metrics.pipeline;
-    return (pipeline.sent ?? 0) + (pipeline.viewed ?? 0) + (pipeline.opened ?? 0);
-  }, [metrics.pipeline]);
 
-  const tabs: Array<{ key: 'all' | ProposalStatus; label: string; count?: number }> =
-    useMemo(() => {
-      const pipeline = metrics.pipeline;
-      return [
-        { key: 'all', label: 'All', count: proposals.length },
-        ...PROPOSAL_PIPELINE_STATUSES.map((s) => ({
-          key: s,
-          label: PROPOSAL_STATUS_LABELS[s],
-          count: pipeline[s],
-        })),
-      ];
-    }, [metrics.pipeline, proposals.length]);
+  const crmRevenue = useMemo(
+    () =>
+      buildCrmRevenueMetrics(
+        proposals,
+        metrics.financial.winRate,
+        metrics.financial.monthlyRevenue,
+      ),
+    [proposals, metrics.financial.winRate, metrics.financial.monthlyRevenue],
+  );
 
-  const getNextAction = (p: SavedProposal): string => {
-    const status = p.status ?? 'draft';
-    switch (status) {
-      case 'draft':
-        return 'Send proposal';
-      case 'sent':
-      case 'viewed':
-      case 'opened':
-        return 'Follow up with client';
-      case 'accepted':
-        return 'Awaiting deposit';
-      case 'deposit_paid':
-        return 'Schedule placement';
-      case 'scheduled':
-        return 'Confirm schedule and mobilize crew';
-      case 'paid':
-        return 'Close out and archive job';
-      case 'declined':
-        return 'Review feedback and revise bid';
-      default:
-        return 'Review proposal';
-    }
+  const nextActions = useMemo(() => buildCrmNextActions(proposals), [proposals]);
+
+  const scrollToProposal = (proposalId: string) => {
+    setExpandedProposalId(proposalId);
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`proposal-card-${proposalId}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   };
+
+  const buildOverflowItems = (proposal: SavedProposal) => [
+    ...(proposal.status === 'accepted'
+      ? [
+          {
+            key: 'mark_deposit',
+            label: 'Mark deposit paid',
+            onClick: () => handleMarkDeposit(proposal.id),
+          },
+        ]
+      : []),
+    ...(proposal.status === 'accepted' || proposal.status === 'deposit_paid'
+      ? [
+          {
+            key: 'mark_scheduled',
+            label: 'Mark scheduled',
+            onClick: () => handleMarkScheduled(proposal.id),
+          },
+        ]
+      : []),
+    ...(proposal.status === 'scheduled' || proposal.status === 'deposit_paid'
+      ? [
+          {
+            key: 'mark_paid',
+            label: 'Mark paid',
+            onClick: () => handleMarkPaid(proposal.id),
+          },
+        ]
+      : []),
+    {
+      key: 'duplicate',
+      label: 'Duplicate',
+      onClick: () => handleDuplicate(proposal),
+    },
+    {
+      key: 'download_json',
+      label: 'Export JSON',
+      onClick: () => handleExport(proposal),
+    },
+    {
+      key: 'delete',
+      label: 'Delete',
+      variant: 'danger' as const,
+      onClick: () => {
+        soundService.play('modal');
+        setDeleteConfirm(proposal.id);
+      },
+    },
+  ];
 
   if (loading) {
     return (
@@ -296,7 +328,7 @@ const Proposals: React.FC = () => {
                 Proposal Pipeline
               </h1>
               <p className="mt-1 text-sm text-slate-600 dark:text-gray-300">
-                Track bids, client activity, revenue, and upcoming work.
+                CRM-style pipeline — see what&apos;s stuck, what&apos;s won, and what to do next.
               </p>
             </div>
 
@@ -330,60 +362,42 @@ const Proposals: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* KPI row */}
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KPIStatCard
-              label="Pending Revenue"
-              value={formatProposalMoney(metrics.financial.pendingRevenue)}
-              hint="Sent • Viewed • Opened"
+              label="Pipeline Value"
+              value={formatProposalMoney(crmRevenue.pipelineValue)}
+              hint="All active proposals"
             />
             <KPIStatCard
-              label="Accepted This Month"
-              value={formatProposalMoney(metrics.financial.monthlyRevenue)}
+              label="Weighted Forecast"
+              value={formatProposalMoney(crmRevenue.weightedForecast)}
+              hint="Draft 10% · Sent 25% · Viewed 50% · Won 100%"
             />
             <KPIStatCard
-              label="Win Rate"
-              value={formatWinRate(metrics.financial.winRate)}
-              hint={`${metrics.financial.acceptedCount} won • ${metrics.financial.declinedCount} lost`}
+              label="Won This Month"
+              value={formatProposalMoney(crmRevenue.wonThisMonth)}
             />
             <KPIStatCard
-              label="Awaiting Response"
-              value={String(awaitingResponseCount)}
-              hint="Needs follow-up"
+              label="Average Margin"
+              value={formatWinRate(crmRevenue.averageMargin)}
+              hint={`Win rate ${formatWinRate(crmRevenue.winRate)} · Need follow-up ${crmRevenue.needFollowUpCount}${
+                crmRevenue.oldestFollowUpDays != null
+                  ? ` · Oldest ${crmRevenue.oldestFollowUpDays}d`
+                  : ''
+              }`}
             />
           </div>
 
-          {/* Status filter tabs — horizontal scroll on mobile keeps pills aligned */}
-          <div className="mt-5 flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-            {tabs.map((t) => {
-              const selected = t.key === selectedStatus;
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setSelectedStatus(t.key)}
-                  className={[
-                    'shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition',
-                    selected
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
-                  ].join(' ')}
-                >
-                  <span className="whitespace-nowrap">{t.label}</span>
-                  <span
-                    className={[
-                      'rounded-full px-2 py-0.5 text-xs font-semibold',
-                      selected
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-200/80 text-slate-700 dark:bg-white/10 dark:text-slate-200',
-                    ].join(' ')}
-                  >
-                    {t.count ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <ProposalPipelineBoard
+            proposals={proposals}
+            selected={pipelineFilter}
+            onSelect={setPipelineFilter}
+          />
+
+          <ProposalNextActionsPanel
+            items={nextActions}
+            onSelectProposal={scrollToProposal}
+          />
 
           {importMessage && (
             <motion.div
@@ -448,7 +462,7 @@ const Proposals: React.FC = () => {
                 No proposals in this stage
               </h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-gray-300">
-                Try another status tab or create a new proposal.
+                Try another pipeline stage or create a new proposal.
               </p>
               <div className="mt-6">
                 <Button onClick={() => navigate('/proposal-generator')} icon={<Plus size={18} />}>
@@ -457,186 +471,31 @@ const Proposals: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProposals.map((proposal, index) => {
-                const projectName =
-                  proposal.data?.projectTitle?.trim() || proposal.title || 'Untitled project';
-                const clientName = proposal.data?.clientName?.trim() || 'Client';
-
-                const total = Number(proposal.total_amount ?? 0);
-                const profit = total - Number(proposal.labor_cost ?? 0) - Number(proposal.material_cost ?? 0);
-                const margin = total > 0 ? profit / total : 0;
-
-                const status = proposal.status ?? 'draft';
-                const nextAction = getNextAction(proposal);
-
-                const sentAt = proposal.sent_at;
-                const viewedAt = proposal.viewed_at ?? proposal.opened_at;
-                const acceptedAt = proposal.accepted_at;
-                const paidAt = proposal.paid_at;
-
-                return (
-                  <motion.div
-                    key={proposal.id}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(index * 0.05, 0.35) }}
-                    className="group rounded-2xl border border-slate-200/70 bg-white/70 p-5 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/60 dark:hover:border-blue-700/70"
-                  >
-                    {/* Top */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate text-lg font-bold text-slate-900 dark:text-white">
-                          {projectName}
-                        </div>
-                        <div className="truncate text-sm text-slate-600 dark:text-gray-300">
-                          {clientName}
-                        </div>
-                      </div>
-                      <ProposalStatusBadge status={status} className="shrink-0" />
-                    </div>
-
-                    {/* Middle */}
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <div className="col-span-2">
-                        <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-gray-400">
-                          Proposal Value
-                        </div>
-                        <div className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                          {formatProposalMoney(total)}
-                        </div>
-                      </div>
-                      <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
-                        <div className="text-xs font-semibold text-slate-600 dark:text-gray-400">
-                          Projected Profit
-                        </div>
-                        <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
-                          {formatProposalMoney(profit)}
-                        </div>
-                      </div>
-                      <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
-                        <div className="text-xs font-semibold text-slate-600 dark:text-gray-400">
-                          Margin
-                        </div>
-                        <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
-                          {formatWinRate(margin)}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Client activity */}
-                    <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
-                      <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-gray-400">
-                        Client Activity
-                      </div>
-                      <div className="mt-2 space-y-1 text-sm">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-slate-600 dark:text-gray-400">Sent</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {sentAt ? formatDateOnly(sentAt) : '—'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-slate-600 dark:text-gray-400">Viewed</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {viewedAt ? formatDateTime(viewedAt) : 'Pending'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-slate-600 dark:text-gray-400">Accepted</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {acceptedAt ? formatDateOnly(acceptedAt) : 'Pending'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-slate-600 dark:text-gray-400">Paid</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {paidAt ? formatDateOnly(paidAt) : 'Pending'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Next action */}
-                    <div className="mt-4 rounded-xl border border-blue-200/60 bg-blue-50/60 px-3 py-2 dark:border-blue-900/50 dark:bg-blue-950/30">
-                      <div className="text-xs font-semibold tracking-wide text-blue-800 dark:text-blue-200">
-                        Next Action
-                      </div>
-                      <div className="mt-0.5 text-sm font-bold text-blue-900 dark:text-blue-100">
-                        {nextAction}
-                      </div>
-                    </div>
-
-                    {/* Project link */}
-                    <button
-                      type="button"
-                      onClick={() => navigate('/projects')}
-                      className="mt-4 w-full rounded-xl border border-slate-200/70 bg-white/40 px-3 py-2 text-left transition-colors hover:bg-white/70 dark:border-gray-800 dark:bg-gray-950/30 dark:hover:bg-gray-900/70"
-                    >
-                      <div className="text-xs font-semibold tracking-wide text-slate-600 dark:text-gray-400">
-                        Project
-                      </div>
-                      <div className="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-white">
-                        {projectName}
-                      </div>
-                    </button>
-
-                    {/* Bottom actions */}
-                    <div className="mt-4">
-                      <ProposalActionButtons
-                        onOpen={() => handlePreview(proposal)}
-                        onSend={() => handleSend(proposal.id)}
-                        onDuplicate={() => handleDuplicate(proposal)}
-                        onPdf={() => handlePreview(proposal)}
-                        onShareLink={() => void handleShareClientLink(proposal)}
-                        overflowItems={[
-                          ...(proposal.status === 'accepted'
-                            ? [
-                                {
-                                  key: 'mark_deposit',
-                                  label: 'Mark deposit paid',
-                                  onClick: () => handleMarkDeposit(proposal.id),
-                                },
-                              ]
-                            : []),
-                          ...(proposal.status === 'accepted' || proposal.status === 'deposit_paid'
-                            ? [
-                                {
-                                  key: 'mark_scheduled',
-                                  label: 'Mark scheduled',
-                                  onClick: () => handleMarkScheduled(proposal.id),
-                                },
-                              ]
-                            : []),
-                          ...(proposal.status === 'scheduled' || proposal.status === 'deposit_paid'
-                            ? [
-                                {
-                                  key: 'mark_paid',
-                                  label: 'Mark paid',
-                                  onClick: () => handleMarkPaid(proposal.id),
-                                },
-                              ]
-                            : []),
-                          {
-                            key: 'download_json',
-                            label: 'Export JSON',
-                            onClick: () => handleExport(proposal),
-                          },
-                          {
-                            key: 'delete',
-                            label: 'Delete',
-                            variant: 'danger',
-                            onClick: () => {
-                              soundService.play('modal');
-                              setDeleteConfirm(proposal.id);
-                            },
-                          },
-                        ]}
-                      />
-                    </div>
-                  </motion.div>
-                );
-              })}
+            <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {filteredProposals.map((proposal) => (
+                <div key={proposal.id} id={`proposal-card-${proposal.id}`}>
+                  <ProposalPipelineCard
+                    proposal={proposal}
+                    expanded={expandedProposalId === proposal.id}
+                    onToggleExpand={() =>
+                      setExpandedProposalId((id) =>
+                        id === proposal.id ? null : proposal.id,
+                      )
+                    }
+                    formatDateOnly={formatDateOnly}
+                    formatDateTime={formatDateTime}
+                    handlers={{
+                      onOpen: () => handlePreview(proposal),
+                      onSend: () => void handleSend(proposal.id),
+                      onDuplicate: () => void handleDuplicate(proposal),
+                      onPdf: () => handlePreview(proposal),
+                      onShareLink: () => void handleShareClientLink(proposal),
+                      onRequestDeposit: () => void handleMarkDeposit(proposal.id),
+                      overflowItems: buildOverflowItems(proposal),
+                    }}
+                  />
+                </div>
+              ))}
             </div>
           )}
 
