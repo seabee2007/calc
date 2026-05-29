@@ -3,8 +3,15 @@ import { PROPOSAL_PIPELINE_STATUSES } from '../types/proposalTracking';
 
 export type ProposalPipelineCounts = Record<ProposalStatus, number>;
 
+export type ProposalPipelineRevenue = Record<ProposalStatus, number>;
+
 export interface ProposalFinancialKpis {
+  /** Sent / viewed / opened — awaiting client decision */
   pendingRevenue: number;
+  /** All open deals except declined & paid */
+  openPipelineRevenue: number;
+  /** Probability-weighted open pipeline (matches CRM) */
+  weightedForecast: number;
   acceptedRevenue: number;
   monthlyRevenue: number;
   averageJobSize: number;
@@ -18,11 +25,28 @@ export interface ProposalFinancialKpis {
 
 export interface ProposalDashboardMetrics {
   pipeline: ProposalPipelineCounts;
+  pipelineRevenue: ProposalPipelineRevenue;
   financial: ProposalFinancialKpis;
 }
 
 const PENDING_STATUSES: ProposalStatus[] = ['sent', 'viewed', 'opened'];
 const WON_STATUSES: ProposalStatus[] = ['accepted', 'deposit_paid', 'scheduled', 'paid'];
+
+const WEIGHT_BY_STATUS: Record<ProposalStatus, number> = {
+  draft: 0.1,
+  sent: 0.25,
+  viewed: 0.5,
+  opened: 0.5,
+  accepted: 1,
+  declined: 0,
+  deposit_paid: 1,
+  scheduled: 1,
+  paid: 1,
+};
+
+function isOpenPipeline(status: ProposalStatus): boolean {
+  return status !== 'declined' && status !== 'paid';
+}
 
 function num(v: number | string | null | undefined): number {
   if (v == null) return 0;
@@ -67,6 +91,23 @@ export function buildProposalPipelineCounts(
   return counts;
 }
 
+export function buildProposalPipelineRevenue(
+  proposals: TrackedProposalRow[],
+): ProposalPipelineRevenue {
+  const revenue = Object.fromEntries(
+    PROPOSAL_PIPELINE_STATUSES.map((s) => [s, 0]),
+  ) as ProposalPipelineRevenue;
+
+  for (const p of proposals) {
+    const status = (p.status ?? 'draft') as ProposalStatus;
+    const amount = num(p.total_amount);
+    if (status in revenue) revenue[status as ProposalStatus] += amount;
+    else revenue.draft += amount;
+  }
+
+  return revenue;
+}
+
 export function buildProposalFinancialKpis(
   proposals: TrackedProposalRow[],
   now = new Date(),
@@ -88,6 +129,16 @@ export function buildProposalFinancialKpis(
     (sum, p) => sum + num(p.total_amount),
     0,
   );
+
+  const openProposals = proposals.filter((p) => isOpenPipeline(p.status ?? 'draft'));
+  const openPipelineRevenue = openProposals.reduce(
+    (sum, p) => sum + num(p.total_amount),
+    0,
+  );
+  const weightedForecast = openProposals.reduce((sum, p) => {
+    const status = (p.status ?? 'draft') as ProposalStatus;
+    return sum + num(p.total_amount) * (WEIGHT_BY_STATUS[status] ?? 0);
+  }, 0);
 
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthlyRevenue = wonProposals
@@ -116,6 +167,8 @@ export function buildProposalFinancialKpis(
 
   return {
     pendingRevenue,
+    openPipelineRevenue,
+    weightedForecast,
     acceptedRevenue: totalRevenue,
     monthlyRevenue,
     averageJobSize,
@@ -134,6 +187,7 @@ export function buildProposalDashboardMetrics(
 ): ProposalDashboardMetrics {
   return {
     pipeline: buildProposalPipelineCounts(proposals),
+    pipelineRevenue: buildProposalPipelineRevenue(proposals),
     financial: buildProposalFinancialKpis(proposals, now),
   };
 }

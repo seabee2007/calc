@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -31,12 +31,12 @@ import {
   proposalMatchesPipelineFilter,
   type CrmPipelineFilter,
 } from '../utils/proposalCrm';
+import { useTrackedProposals } from '../hooks/useTrackedProposals';
 
 const Proposals: React.FC = () => {
   const navigate = useNavigate();
-  const [proposals, setProposals] = useState<SavedProposal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { proposals, loading, error, refresh: loadProposals } = useTrackedProposals();
+  const [localError, setLocalError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [pipelineFilter, setPipelineFilter] = useState<CrmPipelineFilter>('all');
   const [expandedProposalId, setExpandedProposalId] = useState<string | null>(null);
@@ -48,28 +48,13 @@ const Proposals: React.FC = () => {
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadProposals();
-  }, []);
-
-  const loadProposals = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await ProposalService.getAll();
-      setProposals(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load proposals');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const setError = (msg: string | null) => setLocalError(msg);
+  const displayError = localError ?? error;
 
   const handleDelete = async (id: string) => {
     try {
       soundService.play('trash');
       await ProposalService.delete(id);
-      setProposals(prev => prev.filter(p => p.id !== id));
       setDeleteConfirm(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete proposal');
@@ -417,13 +402,13 @@ const Proposals: React.FC = () => {
           )}
 
           {/* Error Message */}
-          {error && (
+          {displayError && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
             >
-              <p className="text-red-700 dark:text-red-300">{error}</p>
+              <p className="text-red-700 dark:text-red-300">{displayError}</p>
               <button
                 onClick={() => setError(null)}
                 className="mt-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"

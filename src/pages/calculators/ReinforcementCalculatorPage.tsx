@@ -23,7 +23,7 @@ const ReinforcementCalculatorPage: React.FC = () => {
   const workflowState = location.state as WorkflowLocationState | null;
   const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
-  const { currentProject, loadProjects } = useProjectStore();
+  const { currentProject, loadProjects, setCurrentProject } = useProjectStore();
 
   const regionalKey = regionalMultiplierKeyFromAddress(currentProject?.jobsiteAddress);
 
@@ -150,9 +150,11 @@ const ReinforcementCalculatorPage: React.FC = () => {
             projectName={currentProject?.name}
             isColumn={isColumn}
             onClose={() => setShowOptimizer(false)}
-            onSaved={() => {
+            onSaved={async () => {
               setShowOptimizer(false);
-              void loadProjects();
+              const projectId = currentProject?.id;
+              await loadProjects();
+              if (projectId) setCurrentProject(projectId);
             }}
           />
         )}

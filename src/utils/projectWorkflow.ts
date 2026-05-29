@@ -21,7 +21,23 @@ export type ProjectWorkflowStage =
   | 'placement_scheduled'
   | 'ordered'
   | 'placed'
+  | 'job_completed'
+  | 'paid'
   | 'closed';
+
+/** Progress bar & project-card stage dropdown (mix approved not shown). */
+export const PROJECT_LIFECYCLE_STAGE_ORDER: ProjectWorkflowStage[] = [
+  'created',
+  'estimating',
+  'proposal_sent',
+  'accepted',
+  'placement_scheduled',
+  'ordered',
+  'placed',
+  'job_completed',
+  'paid',
+  'closed',
+];
 
 export const PROJECT_WORKFLOW_LABELS: Record<ProjectWorkflowStage, string> = {
   created: 'Created',
@@ -30,16 +46,45 @@ export const PROJECT_WORKFLOW_LABELS: Record<ProjectWorkflowStage, string> = {
   accepted: 'Accepted',
   mix_approved: 'Mix Approved',
   placement_scheduled: 'Placement Scheduled',
-  ordered: 'Ordered',
-  placed: 'Placed',
+  ordered: 'Order Ready Mix',
+  placed: 'Concrete Placed',
+  job_completed: 'Job Completed',
+  paid: 'Paid',
   closed: 'Closed',
 };
+
+export function normalizeWorkflowStageForDisplay(
+  stage: ProjectWorkflowStage,
+): ProjectWorkflowStage {
+  if (stage === 'mix_approved') return 'accepted';
+  return stage;
+}
+
+export function workflowStageProgressIndex(stage: ProjectWorkflowStage): number {
+  const normalized = normalizeWorkflowStageForDisplay(stage);
+  const idx = PROJECT_LIFECYCLE_STAGE_ORDER.indexOf(normalized);
+  return idx >= 0 ? idx : 0;
+}
 
 export interface ProjectNextAction {
   label: string;
   description?: string;
   path: string;
   search?: string;
+  /** In-app handler instead of route navigation (e.g. mark project closed). */
+  kind?: 'navigate' | 'close_project' | 'back_to_list' | 'scroll_to_qc';
+}
+
+/** Stages where pour planner / placement configuration is still relevant. */
+export const PLACEMENT_PLANNER_STAGES: ProjectWorkflowStage[] = [
+  'mix_approved',
+  'placement_scheduled',
+  'ordered',
+  'placed',
+];
+
+export function shouldShowConfigurePlacement(stage: ProjectWorkflowStage): boolean {
+  return PLACEMENT_PLANNER_STAGES.includes(stage);
 }
 
 export interface ReadinessIssue {
@@ -91,15 +136,6 @@ function inferStage(
   const pourDate = parsePourDate(project.pourDate);
   const volume = projectVolumeYd(project);
   const status = order?.status ?? null;
-  const needsMix =
-    projectRequiresMixDesignApproval(project) &&
-    mixContext &&
-    mixContext.pendingCount > 0;
-  const allMixApproved =
-    projectRequiresMixDesignApproval(project) &&
-    mixContext &&
-    mixContext.allApproved;
-
   if (status === 'completed' || status === 'cancelled') return 'closed';
 
   if (pourDate && pourDate < now && !isSameDay(pourDate, now)) {
@@ -116,19 +152,15 @@ function inferStage(
   }
 
   if (status === 'ready_to_call') {
-    return pourDate ? 'placement_scheduled' : 'mix_approved';
+    return pourDate ? 'placement_scheduled' : 'accepted';
   }
 
-  if (proposalStatus === 'paid') return 'closed';
+  if (proposalStatus === 'paid') return 'paid';
   if (proposalStatus === 'scheduled') return 'placement_scheduled';
   if (proposalStatus === 'deposit_paid') {
-    if (needsMix) return 'accepted';
-    if (allMixApproved) return 'mix_approved';
     return 'accepted';
   }
   if (proposalStatus === 'accepted') {
-    if (needsMix) return 'accepted';
-    if (allMixApproved) return 'mix_approved';
     return 'accepted';
   }
   if (
@@ -230,15 +262,30 @@ function buildNextAction(
       };
     case 'placed':
       return {
-        label: 'Log QC Records',
+        label: 'Log QC records',
+        description: 'Scroll to quality control on this project',
         path: '/projects',
-        search: `?project=${projectId}`,
+        kind: 'scroll_to_qc',
+      };
+    case 'job_completed':
+      return {
+        label: 'Request Final Payment',
+        description: 'Wrap up punch list and billing',
+        path: '/proposals',
+      };
+    case 'paid':
+      return {
+        label: 'Close Out Project',
+        description: 'Mark this job as closed',
+        path: '/projects',
+        kind: 'close_project',
       };
     case 'closed':
       return {
-        label: 'View Project',
+        label: 'Back to projects',
+        description: 'Return to your project list',
         path: '/projects',
-        search: `?project=${projectId}`,
+        kind: 'back_to_list',
       };
     default:
       return { label: 'Open Project', path: '/projects' };
@@ -357,7 +404,7 @@ export function resolveProjectWorkflow(
   const readinessScore = options?.readinessScore ?? 0;
   const wind = options?.windRisk ?? 'low';
   const heat = options?.heatRisk ?? 'low';
-  const stage = inferStage(
+  const inferred = inferStage(
     project,
     order,
     options?.hasProposalDraft ?? false,
@@ -365,6 +412,11 @@ export function resolveProjectWorkflow(
     mixDesign,
     options?.now,
   );
+  const manual = order?.lifecycleStage as ProjectWorkflowStage | undefined;
+  const stage =
+    manual && manual in PROJECT_WORKFLOW_LABELS
+      ? normalizeWorkflowStageForDisplay(manual)
+      : normalizeWorkflowStageForDisplay(inferred);
   const readinessIssues = buildReadinessIssues(project, order, {
     wind,
     heat,

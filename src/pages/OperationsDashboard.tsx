@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FolderKanban } from 'lucide-react';
 import { useProjectStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
@@ -55,8 +55,19 @@ function resolveDisplayName(
 const OperationsDashboard: React.FC = () => {
   const { projects } = useProjectStore();
   const { user } = useAuth();
-  const { proposals } = useTrackedProposals();
+  const location = useLocation();
+  const { proposals, refresh: refreshProposals } = useTrackedProposals();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (
+      location.pathname === '/' ||
+      location.pathname === '/dispatch' ||
+      location.pathname === '/qc'
+    ) {
+      void refreshProposals();
+    }
+  }, [location.pathname, refreshProposals]);
   const openTools = useToolsModalStore((s) => s.open);
 
   const snapshot = useMemo(
@@ -64,7 +75,7 @@ const OperationsDashboard: React.FC = () => {
     [projects, proposals],
   );
 
-  const { pipeline, financial } = snapshot.proposalMetrics;
+  const { pipeline, pipelineRevenue, financial } = snapshot.proposalMetrics;
   const primaryPourToday = snapshot.todayPours[0];
   const nextUpcomingPlacement = resolveNextUpcomingPlacement(
     snapshot.upcomingPlacements,
@@ -186,7 +197,7 @@ const OperationsDashboard: React.FC = () => {
         activeProjects={snapshot.activeProjectCount}
         placementsToday={snapshot.todayPourCount}
         proposalsSent={snapshot.proposalsSentCount}
-        onStartProject={() => navigate(`/projects${workflowQuery()}`)}
+        onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
         onQuickQuote={() => navigate(`/proposals${workflowQuery()}`)}
         onTools={openTools}
       />
@@ -220,6 +231,8 @@ const OperationsDashboard: React.FC = () => {
         <ProposalPipelineCard
           pipeline={pipeline}
           pendingRevenue={financial.pendingRevenue}
+          weightedForecast={financial.weightedForecast}
+          pipelineRevenue={pipelineRevenue}
         />
       </section>
 
@@ -259,6 +272,8 @@ const OperationsDashboard: React.FC = () => {
           <ProposalPipelineCard
             pipeline={pipeline}
             pendingRevenue={financial.pendingRevenue}
+            weightedForecast={financial.weightedForecast}
+            pipelineRevenue={pipelineRevenue}
           />
         </section>
       </div>
@@ -271,7 +286,9 @@ const OperationsDashboard: React.FC = () => {
             Start a project to populate placement risk, delivery schedule, and proposal
             pipeline.
           </p>
-          <Button onClick={() => navigate(`/projects${workflowQuery()}`)}>
+          <Button
+            onClick={() => navigate('/projects', { state: { openCreate: true } })}
+          >
             Start Project
           </Button>
         </div>

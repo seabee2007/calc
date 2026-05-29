@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FolderOpen,
   Save,
@@ -18,11 +19,21 @@ import { useProjects } from './useProjects';
 import { format } from 'date-fns';
 import CalculationSection from './CalculationSection';
 import MixDesignSection from './MixDesignSection';
+import LaborSection from './LaborSection';
 import QCSection from './QCSection';
 import ReinforcementSection from './ReinforcementSection';
 import StrengthProgress from '../../components/projects/StrengthProgress';
 import PlacementOrderStatusPanel from '../../components/projects/PlacementOrderStatusPanel';
-import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
+import {
+  resolveProjectWorkflow,
+  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_STAGE_ORDER,
+  workflowStageProgressIndex,
+  normalizeWorkflowStageForDisplay,
+  shouldShowConfigurePlacement,
+  type ProjectWorkflowStage,
+} from '../../utils/projectWorkflow';
+import { workflowQuery } from '../../utils/workflow';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { computeProposalFinancials } from '../../utils/proposalFinancials';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
@@ -35,6 +46,7 @@ import {
 } from '../../utils/pourScoring';
 
 export default function ProjectDetails() {
+  const navigate = useNavigate();
   const { currentProject, ui, setUi, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
   const project = (currentProject as any) ?? null;
@@ -110,6 +122,7 @@ export default function ProjectDetails() {
   const nextActions = useMemo(() => {
     const issues: { msg: string; action: 'proposal' | 'placement' | 'project' }[] = [];
     if (!project) return issues;
+    if (workflow.stage === 'closed') return issues;
     if (!matchedProposal) {
       issues.push({ msg: 'Proposal not created / linked', action: 'proposal' });
     } else if (matchedProposal.status !== 'accepted' && matchedProposal.status !== 'deposit_paid' && matchedProposal.status !== 'scheduled') {
@@ -143,21 +156,15 @@ export default function ProjectDetails() {
     }
 
     return issues.slice(0, 6);
-  }, [project, matchedProposal, workflow.mixDesign]);
+  }, [project, matchedProposal, workflow.mixDesign, workflow.stage]);
 
-  const stageOrder: ProjectWorkflowStage[] = [
-    'created',
-    'estimating',
-    'proposal_sent',
-    'accepted',
-    'mix_approved',
-    'placement_scheduled',
-    'ordered',
-    'placed',
-    'closed',
-  ];
-  const stageIndex = stageOrder.indexOf(workflow.stage);
-  const progressPct = stageIndex >= 0 ? Math.round((stageIndex / (stageOrder.length - 1)) * 100) : 0;
+  const displayStage = normalizeWorkflowStageForDisplay(
+    workflow.stage as ProjectWorkflowStage,
+  );
+  const stageIndex = workflowStageProgressIndex(workflow.stage as ProjectWorkflowStage);
+  const progressPct = Math.round(
+    (stageIndex / (PROJECT_LIFECYCLE_STAGE_ORDER.length - 1)) * 100,
+  );
 
   const pourDetails = useMemo(() => {
     const order = p.placementOrder;
@@ -415,7 +422,7 @@ export default function ProjectDetails() {
               Project workflow
             </p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {PROJECT_WORKFLOW_LABELS[workflow.stage as ProjectWorkflowStage]}
+              {PROJECT_WORKFLOW_LABELS[displayStage]}
             </p>
           </div>
           <div className="text-right">
@@ -429,8 +436,8 @@ export default function ProjectDetails() {
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 text-[10px] uppercase tracking-wide">
-          {stageOrder.map((s, i) => {
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 text-[10px] uppercase tracking-wide">
+          {PROJECT_LIFECYCLE_STAGE_ORDER.map((s, i) => {
             const done = stageIndex >= i;
             return (
               <div
@@ -458,7 +465,11 @@ export default function ProjectDetails() {
         </div>
         {nextActions.length === 0 ? (
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            No blockers detected — proceed to placement planning and dispatch confirmation.
+            {workflow.stage === 'closed'
+              ? 'This project is closed. No further actions are required.'
+              : workflow.stage === 'paid'
+                ? 'Final payment recorded — use Close Out Project when you are ready to archive this job.'
+                : 'No blockers detected — proceed to placement planning and dispatch confirmation.'}
           </p>
         ) : (
           <ul className="space-y-1.5 mt-2">
@@ -474,20 +485,46 @@ export default function ProjectDetails() {
           <Button
             size="sm"
             className="whitespace-nowrap"
-            onClick={() => window.location.assign(`${workflow.nextAction.path}${workflow.nextAction.search ?? ''}`)}
+            onClick={() => {
+              const action = workflow.nextAction;
+              if (action.kind === 'close_project') {
+                void handlers.closeOutProject(project.id);
+                return;
+              }
+              if (action.kind === 'back_to_list') {
+                handlers.backToProjectList();
+                return;
+              }
+              if (action.kind === 'scroll_to_qc') {
+                document.getElementById('project-qc-section')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                });
+                return;
+              }
+              const search = action.search?.replace(/^\?/, '') ?? '';
+              navigate({ pathname: action.path, search });
+            }}
             icon={<ArrowRight size={16} />}
           >
             {workflow.nextAction.label}
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="whitespace-nowrap"
-            onClick={() => window.location.assign(`/pour-planner?flow=1&project=${project.id}`)}
-            icon={<ArrowRight size={16} />}
-          >
-            Configure Placement
-          </Button>
+          {shouldShowConfigurePlacement(workflow.stage) && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="whitespace-nowrap"
+              onClick={() =>
+                navigate({
+                  pathname: '/pour-planner',
+                  search: workflowQuery(project.id).replace(/^\?/, ''),
+                })
+              }
+              icon={<ArrowRight size={16} />}
+            >
+              Configure Placement
+            </Button>
+          )}
         </div>
         <PlacementOrderStatusPanel project={project} />
       </div>
@@ -524,18 +561,27 @@ export default function ProjectDetails() {
           {!placementConditions ? (
             <>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.
+                {workflow.stage === 'closed'
+                  ? 'No forecast was saved for this completed project.'
+                  : 'No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.'}
               </p>
-              <div className="mt-3">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.location.assign(`/pour-planner?flow=1&project=${project.id}`)}
-                  icon={<ArrowRight size={16} />}
-                >
-                  Open Placement Planner
-                </Button>
-              </div>
+              {shouldShowConfigurePlacement(workflow.stage) && (
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      navigate({
+                        pathname: '/pour-planner',
+                        search: workflowQuery(project.id).replace(/^\?/, ''),
+                      })
+                    }
+                    icon={<ArrowRight size={16} />}
+                  >
+                    Open Placement Planner
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -639,7 +685,10 @@ export default function ProjectDetails() {
         </div>
       </div>
 
-      <QCSection />
+      <LaborSection />
+      <div id="project-qc-section">
+        <QCSection />
+      </div>
       <ReinforcementSection />
     </Card>
   );

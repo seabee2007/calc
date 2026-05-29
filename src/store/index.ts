@@ -609,7 +609,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (error) throw error;
 
       const projects: Project[] = (rows || []).map(mapProjectFromRow);
-      set({ projects, loading: false });
+      set((s) => ({
+        projects,
+        loading: false,
+        currentProject: s.currentProject?.id
+          ? projects.find((p) => p.id === s.currentProject!.id) ?? s.currentProject
+          : s.currentProject,
+      }));
     } catch (err) {
       console.error('Error loading projects:', err);
       set({ loading: false });

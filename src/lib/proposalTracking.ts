@@ -1,9 +1,17 @@
 import { supabase } from './supabase';
+import { normalizeProposal } from './proposalService';
+import { useTrackedProposalsStore } from '../store/trackedProposalsStore';
 import type { ProposalStatus } from '../types/proposalTracking';
 import type { ProposalFinancialFields } from '../types/proposalTracking';
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import { computeProposalFinancials } from '../utils/proposalFinancials';
 import type { ProposalData } from '../types/proposal';
+
+function trackProposalRow(row: Record<string, unknown>): TrackedProposalRow {
+  const normalized = normalizeProposal(row);
+  useTrackedProposalsStore.getState().upsertProposal(normalized);
+  return normalized;
+}
 
 const TIMESTAMP_COLUMN: Record<ProposalStatus, string | null> = {
   draft: null,
@@ -39,7 +47,8 @@ export async function updateProposalStatus(
     .single();
 
   if (error) return { data: null, error: new Error(error.message) };
-  return { data: data as TrackedProposalRow, error: null };
+  const normalized = trackProposalRow(data as Record<string, unknown>);
+  return { data: normalized, error: null };
 }
 
 export async function syncProposalFinancials(
@@ -60,13 +69,17 @@ export async function markProposalSent(proposalId: string): Promise<TrackedPropo
   return data;
 }
 
+function trackRpcProposalRow(data: unknown): TrackedProposalRow {
+  return trackProposalRow(data as Record<string, unknown>);
+}
+
 export async function markProposalViewed(publicToken: string): Promise<TrackedProposalRow> {
   const { data, error } = await supabase.rpc('record_proposal_client_action', {
     p_token: publicToken,
     p_action: 'viewed',
   });
   if (error) throw new Error(error.message);
-  return data as TrackedProposalRow;
+  return trackRpcProposalRow(data);
 }
 
 export async function markProposalOpened(publicToken: string): Promise<TrackedProposalRow> {
@@ -75,7 +88,7 @@ export async function markProposalOpened(publicToken: string): Promise<TrackedPr
     p_action: 'opened',
   });
   if (error) throw new Error(error.message);
-  return data as TrackedProposalRow;
+  return trackRpcProposalRow(data);
 }
 
 export async function acceptProposal(publicToken: string): Promise<TrackedProposalRow> {
@@ -84,7 +97,7 @@ export async function acceptProposal(publicToken: string): Promise<TrackedPropos
     p_action: 'accepted',
   });
   if (error) throw new Error(error.message);
-  return data as TrackedProposalRow;
+  return trackRpcProposalRow(data);
 }
 
 export async function declineProposal(publicToken: string): Promise<TrackedProposalRow> {
@@ -93,7 +106,7 @@ export async function declineProposal(publicToken: string): Promise<TrackedPropo
     p_action: 'declined',
   });
   if (error) throw new Error(error.message);
-  return data as TrackedProposalRow;
+  return trackRpcProposalRow(data);
 }
 
 export async function markDepositPaid(proposalId: string): Promise<TrackedProposalRow> {

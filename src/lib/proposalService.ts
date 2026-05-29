@@ -3,10 +3,11 @@ import { ProposalData } from '../types/proposal';
 import type { ProposalStatus } from '../types/proposalTracking';
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import { computeProposalFinancials } from '../utils/proposalFinancials';
+import { useTrackedProposalsStore } from '../store/trackedProposalsStore';
 
 export type SavedProposal = TrackedProposalRow;
 
-function normalizeProposal(row: Record<string, unknown>): SavedProposal {
+export function normalizeProposal(row: Record<string, unknown>): SavedProposal {
   return {
     ...(row as SavedProposal),
     project_id: (row.project_id as string | null) ?? null,
@@ -134,7 +135,9 @@ export class ProposalService {
       throw new Error('Failed to save proposal');
     }
 
-    return normalizeProposal(data as Record<string, unknown>);
+    const saved = normalizeProposal(data as Record<string, unknown>);
+    useTrackedProposalsStore.getState().upsertProposal(saved);
+    return saved;
   }
 
   static async update(id: string, updates: UpdateProposalData): Promise<SavedProposal> {
@@ -164,7 +167,9 @@ export class ProposalService {
       throw new Error('Failed to update proposal');
     }
 
-    return normalizeProposal(data as Record<string, unknown>);
+    const saved = normalizeProposal(data as Record<string, unknown>);
+    useTrackedProposalsStore.getState().upsertProposal(saved);
+    return saved;
   }
 
   static async getAll(): Promise<SavedProposal[]> {
@@ -233,6 +238,8 @@ export class ProposalService {
       console.error('Error deleting proposal:', error);
       throw new Error('Failed to delete proposal');
     }
+
+    useTrackedProposalsStore.getState().removeProposal(id);
   }
 
   static async duplicate(id: string, newTitle: string): Promise<SavedProposal> {

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { ProfessionalConcreteLaborResult } from '../../types/concreteLaborEstimate';
 import type { ConcreteLaborEstimateInput } from '../../types/concreteLaborEstimate';
 
@@ -59,6 +61,9 @@ interface LaborTaskBreakdownProps {
   result: ProfessionalConcreteLaborResult;
   formatCurrency: (n: number) => string;
   areaReconciledFromVolume?: boolean;
+  /** Project card: task list + costs collapse behind the section header */
+  detailsCollapsible?: boolean;
+  defaultDetailsExpanded?: boolean;
 }
 
 const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
@@ -66,12 +71,14 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
   result,
   formatCurrency,
   areaReconciledFromVolume,
+  detailsCollapsible = false,
+  defaultDetailsExpanded = false,
 }) => {
   const { costs, taskHours } = result;
+  const [detailsExpanded, setDetailsExpanded] = useState(defaultDetailsExpanded);
 
-  return (
-    <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+  const summaryGrid = (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
         <p>
           Concrete quantity:{' '}
           <strong className="text-gray-900 dark:text-white">
@@ -141,32 +148,30 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
           </strong>
         </p>
       </div>
+  );
 
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
-          Task breakdown (clock hours per task)
-        </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          Placement-day duration uses parallel work — placement and finishing overlap; prior-day
-          prep lines are shown for scope but not added to on-site clock.
-        </p>
-        <ul className="space-y-1">
-          {TASK_LABELS.map(({ key, label }) => {
-            const hrs = taskHours[key];
-            if (hrs <= 0 && key !== 'mobilization') return null;
-            return (
-              <li key={key} className="flex justify-between gap-4">
-                <span>{label}</span>
-                <strong className="text-gray-900 dark:text-white tabular-nums">
-                  {hrs.toFixed(1)} hrs
-                </strong>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+  const detailsBody = (
+    <>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+        Placement-day duration uses parallel work — placement and finishing overlap; prior-day prep
+        lines are shown for scope but not added to on-site clock.
+      </p>
+      <ul className="space-y-1">
+        {TASK_LABELS.map(({ key, label }) => {
+          const hrs = taskHours[key];
+          if (hrs <= 0 && key !== 'mobilization') return null;
+          return (
+            <li key={key} className="flex justify-between gap-4">
+              <span>{label}</span>
+              <strong className="text-gray-900 dark:text-white tabular-nums">
+                {hrs.toFixed(1)} hrs
+              </strong>
+            </li>
+          );
+        })}
+      </ul>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-1">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-4 space-y-1">
         <p className="flex justify-between">
           <span>Estimated job duration (clock)</span>
           <strong className="text-gray-900 dark:text-white">
@@ -195,12 +200,12 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
         )}
         <p className="text-xs text-gray-500 dark:text-gray-400 pt-1">
           Placement duration: {taskHours.placement.toFixed(1)} hrs · Regular:{' '}
-          {result.regularManHours.toFixed(0)} man-hrs · OT:{' '}
-          {result.overtimeManHours.toFixed(0)} man-hrs
+          {result.regularManHours.toFixed(0)} man-hrs · OT: {result.overtimeManHours.toFixed(0)}{' '}
+          man-hrs
         </p>
       </div>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-1">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-4 space-y-1">
         <p className="flex justify-between">
           <span>Regular labor</span>
           <span>{formatCurrency(costs.regularCost)}</span>
@@ -247,6 +252,61 @@ const LaborTaskBreakdown: React.FC<LaborTaskBreakdownProps> = ({
           </p>
         )}
       </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+      {summaryGrid}
+
+      {detailsCollapsible ? (
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setDetailsExpanded((v) => !v)}
+            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left bg-gray-50/80 dark:bg-gray-800/50 hover:bg-gray-100/80 dark:hover:bg-gray-800 transition-colors"
+            aria-expanded={detailsExpanded}
+          >
+            <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+              Task breakdown (clock hours per task)
+            </span>
+            <span className="flex items-center gap-2 shrink-0">
+              {!detailsExpanded && (
+                <span className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
+                  {formatCurrency(costs.totalLaborCost)}
+                </span>
+              )}
+              <ChevronDown
+                className={`h-5 w-5 text-gray-400 transition-transform ${
+                  detailsExpanded ? 'rotate-180' : ''
+                }`}
+              />
+            </span>
+          </button>
+          <AnimatePresence initial={false}>
+            {detailsExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 pb-4 pt-1 border-t border-gray-200 dark:border-gray-700">
+                  {detailsBody}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ) : (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+            Task breakdown (clock hours per task)
+          </p>
+          {detailsBody}
+        </div>
+      )}
     </div>
   );
 };

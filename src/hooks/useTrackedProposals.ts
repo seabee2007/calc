@@ -1,67 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ProposalService, type SavedProposal } from '../lib/proposalService';
+import { useCallback, useEffect } from 'react';
+import type { SavedProposal } from '../lib/proposalService';
+import { useTrackedProposalsStore } from '../store/trackedProposalsStore';
 import { useAuth } from './useAuth';
 
-/** Avoid dashboard flash: keep last fetch across route remounts. */
-let cachedProposals: SavedProposal[] = [];
-let cachedUserId: string | null = null;
-let cacheReady = false;
-
-function hasWarmCache(userId: string | undefined): boolean {
-  return Boolean(userId && cachedUserId === userId && cacheReady);
-}
-
-export function seedTrackedProposalsCache(userId: string, proposals: SavedProposal[]) {
-  cachedUserId = userId;
-  cachedProposals = proposals;
-  cacheReady = true;
+export function seedTrackedProposalsCache(_userId: string, proposals: SavedProposal[]) {
+  useTrackedProposalsStore.getState().setProposals(proposals);
 }
 
 export function useTrackedProposals() {
   const { user } = useAuth();
   const userId = user?.id;
-
-  const [proposals, setProposals] = useState<SavedProposal[]>(() =>
-    hasWarmCache(userId) ? cachedProposals : [],
-  );
-  const [loading, setLoading] = useState(() => !hasWarmCache(userId));
-  const [error, setError] = useState<string | null>(null);
+  const proposals = useTrackedProposalsStore((s) => s.proposals);
+  const loading = useTrackedProposalsStore((s) => s.loading);
+  const error = useTrackedProposalsStore((s) => s.error);
+  const load = useTrackedProposalsStore((s) => s.load);
 
   const refresh = useCallback(async () => {
     if (!userId) {
-      setProposals([]);
-      cachedProposals = [];
-      cachedUserId = null;
-      cacheReady = false;
-      setLoading(false);
+      useTrackedProposalsStore.getState().setProposals([]);
       return;
     }
-
-    const showBlockingLoad = !hasWarmCache(userId);
-    try {
-      if (showBlockingLoad) setLoading(true);
-      setError(null);
-      const data = await ProposalService.getAll();
-      seedTrackedProposalsCache(userId, data);
-      setProposals(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load proposals');
-      if (showBlockingLoad) {
-        setProposals([]);
-        cachedProposals = [];
-        cacheReady = false;
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+    await load();
+  }, [userId, load]);
 
   useEffect(() => {
-    if (userId && hasWarmCache(userId)) {
-      setProposals(cachedProposals);
+    if (!userId) {
+      useTrackedProposalsStore.getState().setProposals([]);
+      return;
     }
     void refresh();
-  }, [refresh, userId]);
+  }, [userId, refresh]);
 
   return { proposals, loading, error, refresh };
 }

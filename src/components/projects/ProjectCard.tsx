@@ -7,7 +7,14 @@ import Button from '../ui/Button';
 import type { Project } from '../../types';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
-import { resolveProjectWorkflow, PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
+import {
+  resolveProjectWorkflow,
+  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_STAGE_ORDER,
+  workflowStageProgressIndex,
+  normalizeWorkflowStageForDisplay,
+  type ProjectWorkflowStage,
+} from '../../utils/projectWorkflow';
 import {
   PLACEMENT_ORDER_STATUS_LABELS,
   type PlacementOrderStatus,
@@ -21,17 +28,7 @@ interface ProjectCardProps {
   onDelete: () => void;
 }
 
-const STAGE_ORDER: ProjectWorkflowStage[] = [
-  'created',
-  'estimating',
-  'proposal_sent',
-  'accepted',
-  'mix_approved',
-  'placement_scheduled',
-  'ordered',
-  'placed',
-  'closed',
-];
+const STAGE_ORDER = PROJECT_LIFECYCLE_STAGE_ORDER;
 
 function parsePourDate(iso?: string): Date | null {
   if (!iso) return null;
@@ -121,11 +118,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
     now: new Date(),
   });
 
-  const stageIdx = Math.max(0, STAGE_ORDER.indexOf(workflow.stage));
+  const displayStage = normalizeWorkflowStageForDisplay(workflow.stage);
+  const stageIdx = workflowStageProgressIndex(workflow.stage);
   const progressPct = Math.round((stageIdx / (STAGE_ORDER.length - 1)) * 100);
   const pourDate = parsePourDate(p.pourDate);
   const pourLabel = pourDate ? format(pourDate, 'EEE HH:mm') : 'Placement date: —';
-  const tone = priorityTone(workflow.stage, Boolean(p.pourDate));
+  const tone = priorityTone(displayStage, Boolean(p.pourDate));
 
   const volumeYd = (p.calculations ?? []).reduce(
     (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
@@ -200,7 +198,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
           >
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
-              {PROJECT_WORKFLOW_LABELS[workflow.stage]}
+              {PROJECT_WORKFLOW_LABELS[displayStage]}
             </p>
 
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">Next action</p>

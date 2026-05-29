@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -39,9 +39,20 @@ const CALCULATORS = [
     title: 'Reinforcement',
     description: 'Rebar, mesh, or fiber design and material cost',
     icon: Grid3x3,
-    done: (p) =>
-      (p?.reinforcements ?? []).some((r) => (r.pricing?.estimatedCost ?? 0) > 0) ||
-      (p?.reinforcements?.length ?? 0) > 0,
+    done: (p: Project | null) => {
+      const sets = p?.reinforcements ?? [];
+      if (sets.length === 0) return false;
+      return sets.some((r) => {
+        if ((r.pricing?.estimatedCost ?? 0) > 0) return true;
+        if (r.reinforcement_type === 'fiber') {
+          return (r.fiber_total_lb ?? 0) > 0 || (r.fiber_bags ?? 0) > 0;
+        }
+        if (r.reinforcement_type === 'mesh') {
+          return (r.mesh_sheets ?? 0) > 0;
+        }
+        return (r.total_bars ?? 0) > 0 || (r.total_linear_ft ?? 0) > 0;
+      });
+    },
   },
   {
     id: 'labor',
@@ -49,7 +60,7 @@ const CALCULATORS = [
     title: 'Labor',
     description: 'Crew and production — placement labor cost',
     icon: Users,
-    done: (p) =>
+    done: (p: Project | null) =>
       (p?.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
       (p?.placementOrder?.production?.laborCost ?? 0) > 0,
   },
@@ -61,7 +72,14 @@ const CalculatorHub: React.FC = () => {
   const workflowState = location.state as WorkflowLocationState | null;
   const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
-  const { currentProject } = useProjectStore();
+  const { currentProject, projects } = useProjectStore();
+
+  /** Use workflow project from fresh `projects` list (currentProject can lag after save). */
+  const hubProject = useMemo(() => {
+    const id = workflowProjectId ?? currentProject?.id;
+    if (!id) return currentProject;
+    return projects.find((p) => p.id === id) ?? currentProject;
+  }, [workflowProjectId, currentProject, projects]);
 
   const go = (path: string) => {
     navigate(
@@ -77,8 +95,8 @@ const CalculatorHub: React.FC = () => {
 
   const canContinueProposal =
     inWorkflow &&
-    currentProject &&
-    projectHasImportablePricing(currentProject);
+    hubProject &&
+    projectHasImportablePricing(hubProject);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -88,22 +106,22 @@ const CalculatorHub: React.FC = () => {
           <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
             Estimating calculators
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
-            Run each calculator for your project. Saved costs import into your proposal.
-          </p>
-          {currentProject && (
-            <p className="text-cyan-200/90 text-sm mt-2">Project: {currentProject.name}</p>
-          )}
-          {!currentProject && (
-            <p className="text-amber-200 text-sm mt-2">
+          <div className="mt-2 space-y-2">
+            <p className="text-white text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+              Run each calculator for your project. Saved costs import into your proposal.
+            </p>
+            <p className="text-white text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
               Select a project inside each calculator before saving.
             </p>
+          </div>
+          {hubProject && (
+            <p className="text-cyan-200/90 text-sm mt-2">Project: {hubProject.name}</p>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {CALCULATORS.map(({ path, title, description, icon: Icon, done }) => {
-            const complete = currentProject ? done(currentProject) : false;
+            const complete = hubProject ? done(hubProject) : false;
             return (
               <button
                 key={path}
@@ -130,7 +148,7 @@ const CalculatorHub: React.FC = () => {
           })}
         </div>
 
-        {inWorkflow && currentProject && (
+        {inWorkflow && hubProject && (
           <div className="p-4 rounded-lg bg-cyan-950/40 border border-cyan-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <p className="text-sm text-cyan-100/90">
               {canContinueProposal
@@ -142,9 +160,9 @@ const CalculatorHub: React.FC = () => {
                 navigate(
                   {
                     pathname: '/proposal-generator',
-                    search: workflowQuery(currentProject.id),
+                    search: workflowQuery(hubProject.id),
                   },
-                  { state: workflowNavigateState(currentProject.id) },
+                  { state: workflowNavigateState(hubProject.id) },
                 )
               }
               disabled={!canContinueProposal}

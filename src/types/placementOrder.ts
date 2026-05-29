@@ -1,3 +1,5 @@
+import type { ProjectWorkflowStage } from '../utils/projectWorkflow';
+
 export type PlacementOrderStatus =
   | 'draft'
   | 'ready_to_call'
@@ -58,6 +60,8 @@ export interface PlacementProductionSnapshot {
 
 export interface PlacementOrder {
   status: PlacementOrderStatus;
+  /** Manual project lifecycle stage (project detail card dropdown). */
+  lifecycleStage?: ProjectWorkflowStage;
   contact: BatchPlantContact;
   orderNotes: string;
   callSheet?: Partial<CallSheetFields>;

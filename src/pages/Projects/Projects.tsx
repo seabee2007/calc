@@ -40,9 +40,7 @@ const Projects: React.FC = () => {
 
         {ui.showDetails && (
           <Button
-            onClick={() => {
-              setUi(s => ({ ...s, showDetails: false }));
-            }}
+            onClick={() => handlers.backToProjectList()}
             icon={<ArrowLeftCircle size={20} />}
             size="lg"
             variant="outline"
@@ -60,6 +58,10 @@ const Projects: React.FC = () => {
             onCancel={() => setUi(s => ({ ...s, showCreate: false }))} 
             hidePourDate
           />
+        )}
+
+        {ui.showDetails && !currentProject && (
+          <p className="text-white/90 text-sm py-8">Loading project…</p>
         )}
 
         {ui.showDetails && currentProject && !ui.editing && (

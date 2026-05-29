@@ -1,18 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import type { Project } from '../../types';
-import type { PlacementOrder, PlacementOrderStatus } from '../../types/placementOrder';
+import type { PlacementOrder } from '../../types/placementOrder';
 import {
-  PLACEMENT_ORDER_STATUS_LABELS,
-  defaultPlacementOrder,
-} from '../../types/placementOrder';
+  PROJECT_LIFECYCLE_STAGE_ORDER,
+  PROJECT_WORKFLOW_LABELS,
+  normalizeWorkflowStageForDisplay,
+  resolveProjectWorkflow,
+  type ProjectWorkflowStage,
+} from '../../utils/projectWorkflow';
+import { defaultPlacementOrder } from '../../types/placementOrder';
 import { useProjectStore } from '../../store';
 
-const ORDER_STATUS_OPTIONS = (
-  Object.entries(PLACEMENT_ORDER_STATUS_LABELS) as [PlacementOrderStatus, string][]
-).map(([value, label]) => ({ value, label }));
+const LIFECYCLE_OPTIONS = PROJECT_LIFECYCLE_STAGE_ORDER.map((value) => ({
+  value,
+  label: PROJECT_WORKFLOW_LABELS[value],
+}));
 
 interface PlacementOrderStatusPanelProps {
   project: Project;
@@ -21,24 +26,44 @@ interface PlacementOrderStatusPanelProps {
 export default function PlacementOrderStatusPanel({ project }: PlacementOrderStatusPanelProps) {
   const updateProject = useProjectStore((s) => s.updateProject);
   const order = project.placementOrder;
-  const initialStatus = (order?.status ?? 'draft') as PlacementOrderStatus;
-  const initialNotes = order?.orderNotes ?? '';
 
-  const [status, setStatus] = useState<PlacementOrderStatus>(initialStatus);
-  const [notes, setNotes] = useState(initialNotes);
+  const inferredStage = useMemo(
+    () => resolveProjectWorkflow(project).stage,
+    [project],
+  );
+
+  const savedLifecycle = useMemo(
+    () =>
+      normalizeWorkflowStageForDisplay(
+        (order?.lifecycleStage as ProjectWorkflowStage | undefined) ?? inferredStage,
+      ),
+    [order?.lifecycleStage, inferredStage],
+  );
+
+  const [lifecycleStage, setLifecycleStage] = useState<ProjectWorkflowStage>(savedLifecycle);
+  const [notes, setNotes] = useState(order?.orderNotes ?? '');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setStatus((project.placementOrder?.status ?? 'draft') as PlacementOrderStatus);
+    const next = normalizeWorkflowStageForDisplay(
+      (project.placementOrder?.lifecycleStage as ProjectWorkflowStage | undefined) ??
+        resolveProjectWorkflow(project).stage,
+    );
+    setLifecycleStage(next);
     setNotes(project.placementOrder?.orderNotes ?? '');
     setMessage(null);
     setError(null);
-  }, [project.id, project.placementOrder?.status, project.placementOrder?.orderNotes]);
+  }, [
+    project.id,
+    project.placementOrder?.lifecycleStage,
+    project.placementOrder?.orderNotes,
+    project.updatedAt,
+  ]);
 
   const dirty =
-    status !== initialStatus || notes.trim() !== initialNotes.trim();
+    lifecycleStage !== savedLifecycle || notes.trim() !== (order?.orderNotes ?? '').trim();
 
   const handleSave = async () => {
     setSaving(true);
@@ -46,15 +71,15 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
     setError(null);
     const nextOrder: PlacementOrder = {
       ...(project.placementOrder ?? defaultPlacementOrder()),
-      status,
+      lifecycleStage,
       orderNotes: notes.trim(),
       updatedAt: new Date().toISOString(),
     };
     try {
       await updateProject(project.id, { placementOrder: nextOrder });
-      setMessage('Order status saved.');
+      setMessage('Project stage saved.');
     } catch {
-      setError('Could not save order status. Try again.');
+      setError('Could not save project stage. Try again.');
     } finally {
       setSaving(false);
     }
@@ -66,14 +91,15 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
         Placement order
       </p>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-        Update after you call the batch plant. The call sheet is built in Placement Planner.
+        Set where this job sits in your pipeline. Dispatch details and call sheet stay in
+        Placement Planner.
       </p>
       <div className="space-y-3">
         <Select
-          label="Order status"
-          options={ORDER_STATUS_OPTIONS}
-          value={status}
-          onChange={(v) => setStatus(v as PlacementOrderStatus)}
+          label="Project stage"
+          options={LIFECYCLE_OPTIONS}
+          value={lifecycleStage}
+          onChange={(v) => setLifecycleStage(v as ProjectWorkflowStage)}
         />
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           Dispatch notes
@@ -100,7 +126,7 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
               )
             }
           >
-            {saving ? 'Saving…' : 'Save order status'}
+            {saving ? 'Saving…' : 'Save project stage'}
           </Button>
           {message && (
             <p className="text-sm text-emerald-600 dark:text-emerald-400">{message}</p>

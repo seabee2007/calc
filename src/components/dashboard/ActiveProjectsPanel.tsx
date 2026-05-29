@@ -4,31 +4,69 @@ import OpsCard from './OpsCard';
 import type { DashboardProjectCard } from '../../utils/operationsDashboard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
-import { PROJECT_WORKFLOW_LABELS, type ProjectWorkflowStage } from '../../utils/projectWorkflow';
+import { navigateToProjectDetail } from '../../utils/workflow';
+import { useProjectStore } from '../../store';
+import { defaultPlacementOrder } from '../../types/placementOrder';
+import {
+  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_STAGE_ORDER,
+  normalizeWorkflowStageForDisplay,
+  type ProjectWorkflowStage,
+} from '../../utils/projectWorkflow';
 
 interface ActiveProjectsPanelProps {
   projects: DashboardProjectCard[];
   compact?: boolean;
 }
 
-const WORKFLOW_STAGES: ProjectWorkflowStage[] = [
-  'created',
-  'estimating',
-  'proposal_sent',
-  'accepted',
-  'mix_approved',
-  'placement_scheduled',
-  'ordered',
-  'placed',
-  'closed',
-];
+const WORKFLOW_STAGES = PROJECT_LIFECYCLE_STAGE_ORDER;
 
 const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
   projects,
   compact = false,
 }) => {
   const navigate = useNavigate();
+  const { projects: storeProjects, updateProject, setCurrentProject } = useProjectStore();
   const list = compact ? projects.slice(0, 4) : projects.slice(0, 8);
+
+  const handleProjectNextAction = async (card: DashboardProjectCard) => {
+    const action = card.nextAction;
+    if (action.kind === 'close_project') {
+      const target = storeProjects.find((p) => p.id === card.id);
+      if (!target) {
+        navigateToProjectDetail(navigate, card.id);
+        return;
+      }
+      try {
+        await updateProject(card.id, {
+          placementOrder: {
+            ...(target.placementOrder ?? defaultPlacementOrder()),
+            lifecycleStage: 'closed',
+            updatedAt: new Date().toISOString(),
+          },
+        });
+        setCurrentProject(card.id);
+        navigateToProjectDetail(navigate, card.id);
+      } catch (e) {
+        console.error('Failed to close out project', e);
+      }
+      return;
+    }
+    if (action.kind === 'back_to_list') {
+      navigate({ pathname: '/projects', search: '' }, { state: { view: 'list' } });
+      return;
+    }
+    if (action.kind === 'scroll_to_qc') {
+      navigateToProjectDetail(navigate, card.id);
+      return;
+    }
+    if (action.path === '/projects') {
+      navigateToProjectDetail(navigate, card.id);
+      return;
+    }
+    const search = action.search?.replace(/^\?/, '') ?? '';
+    navigate({ pathname: action.path, search });
+  };
 
   return (
     <OpsCard>
@@ -39,7 +77,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
           <Button
             size="sm"
             className="!bg-cyan-600 hover:!bg-cyan-500 !text-white"
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate('/projects', { state: { openCreate: true } })}
           >
             Start Project
           </Button>
@@ -62,10 +100,11 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
 
                 <div className="flex flex-wrap gap-1 mt-2">
                   {WORKFLOW_STAGES.map((stage) => {
-                    const active = p.workflowStage === stage;
+                    const cardStage = normalizeWorkflowStageForDisplay(p.workflowStage);
+                    const active = cardStage === stage;
                     const past =
                       WORKFLOW_STAGES.indexOf(stage) <
-                      WORKFLOW_STAGES.indexOf(p.workflowStage);
+                      WORKFLOW_STAGES.indexOf(cardStage);
                     return (
                       <span
                         key={stage}
@@ -107,9 +146,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
                   size="sm"
                   variant="outline"
                   className="!border-slate-600 !text-white mt-3 w-full sm:w-auto"
-                  onClick={() =>
-                    navigate(`${p.nextAction.path}${p.nextAction.search ?? ''}`)
-                  }
+                  onClick={() => void handleProjectNextAction(p)}
                 >
                   {p.nextAction.label}
                 </Button>

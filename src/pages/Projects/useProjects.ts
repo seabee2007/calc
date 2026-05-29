@@ -8,6 +8,7 @@ import { generateProjectPDF } from '../../utils/pdf';
 import { CONCRETE_MIX_DESIGNS } from '../../types';
 import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
 import type { ProjectFormData } from '../../components/projects/ProjectForm';
+import { defaultPlacementOrder } from '../../types/placementOrder';
 
 export function useProjects() {
   const navigate = useNavigate();
@@ -34,30 +35,69 @@ export function useProjects() {
     toast: { show: false, msg: '', type: 'success' as 'success'|'error'|'warning' },
   });
 
+  const openProjectDetails = (projectId: string) => {
+    setCurrentProject(projectId);
+    setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
+  };
+
+  // Ensure projects are loaded (e.g. after full-page reload on ?project= deep link)
+  useEffect(() => {
+    if (projects.length === 0) {
+      void loadProjects();
+    }
+  }, [projects.length, loadProjects]);
+
+  const backToProjectList = () => {
+    setCurrentProject(null);
+    setUi((s) => ({ ...s, showDetails: false, showCreate: false, editing: false }));
+    navigate({ pathname: '/projects', search: '' }, { replace: true, state: { view: 'list' } });
+  };
+
   // Sync URL / navigation state (workflow return, deep links, Start Project)
   useEffect(() => {
     const state = location.state as {
       showProjectDetails?: boolean;
       projectId?: string;
       openCreate?: boolean;
+      view?: 'list';
     };
     const projectIdFromQuery = new URLSearchParams(location.search).get('project');
 
+    if (state?.view === 'list') {
+      setCurrentProject(null);
+      setUi((s) => ({ ...s, showDetails: false, showCreate: false, editing: false }));
+      return;
+    }
+
     if (state?.showProjectDetails && state?.projectId) {
-      setCurrentProject(state.projectId);
-      setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
+      openProjectDetails(state.projectId);
       return;
     }
     if (projectIdFromQuery) {
-      setCurrentProject(projectIdFromQuery);
-      setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
+      const exists = projects.some((p) => p.id === projectIdFromQuery);
+      if (exists) {
+        openProjectDetails(projectIdFromQuery);
+      } else if (projects.length === 0) {
+        void loadProjects().then(() => {
+          const loaded = useProjectStore
+            .getState()
+            .projects.some((p) => p.id === projectIdFromQuery);
+          if (loaded) {
+            openProjectDetails(projectIdFromQuery);
+          } else {
+            setUi((s) => ({ ...s, showDetails: false }));
+          }
+        });
+      } else {
+        setUi((s) => ({ ...s, showDetails: false }));
+      }
       return;
     }
     if (state?.openCreate) {
       setCurrentProject(null);
       setUi((s) => ({ ...s, showCreate: true, showDetails: false, editing: false }));
     }
-  }, [location.state, location.search, setCurrentProject]);
+  }, [location.state, location.search, projects, loadProjects, setCurrentProject]);
 
   // Sync current project state
   useEffect(() => {
@@ -108,7 +148,13 @@ export function useProjects() {
     selectProject: (id: string) => {
       setCurrentProject(id);
       setUi(s => ({ ...s, showDetails: true }));
+      navigate(
+        { pathname: '/projects', search: '' },
+        { state: { showProjectDetails: true, projectId: id } },
+      );
     },
+
+    backToProjectList,
 
     deleteProject: async () => {
       if (currentProject) {
@@ -131,6 +177,12 @@ export function useProjects() {
 
     navigateToReinforcementCalculator: (projectId: string) => {
       navigate(`/calculator/reinforcement${workflowQuery(projectId)}`, {
+        state: workflowNavigateState(projectId),
+      });
+    },
+
+    navigateToLaborCalculator: (projectId: string) => {
+      navigate(`/calculator/labor${workflowQuery(projectId)}`, {
         state: workflowNavigateState(projectId),
       });
     },
@@ -276,6 +328,27 @@ export function useProjects() {
       } catch (err) {
         console.error('Error deleting reinforcement design:', err);
         toast('Error deleting reinforcement design', 'error');
+      }
+    },
+
+    closeOutProject: async (projectId?: string) => {
+      const id = projectId ?? currentProject?.id;
+      if (!id) return;
+      const target =
+        useProjectStore.getState().projects.find((p) => p.id === id) ?? currentProject;
+      if (!target) return;
+      try {
+        const nextOrder = {
+          ...(target.placementOrder ?? defaultPlacementOrder()),
+          lifecycleStage: 'closed' as const,
+          updatedAt: new Date().toISOString(),
+        };
+        await updateProject(id, { placementOrder: nextOrder });
+        setCurrentProject(id);
+        toast('Project marked as closed', 'success');
+      } catch (err) {
+        console.error('Failed to close out project', err);
+        toast('Could not close out project', 'error');
       }
     },
 
