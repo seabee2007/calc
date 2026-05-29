@@ -28,6 +28,13 @@ import {
   mergeTruckTicketsForProject,
 } from '../utils/truckTicketDb';
 import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
+import {
+  buildQcInsertRow,
+  buildQcUpdateRow,
+  buildRecordDataPayload,
+  isQcRecordTypeColumnError,
+  mapQcRecordFieldsFromDb,
+} from '../utils/qcRecordDb';
 
 const PROJECT_SELECT = `
   id, name, description,
@@ -501,16 +508,10 @@ const mapQcChecklistFromDb = (chk: any): QCChecklist => ({
 const mapQcRecordFromDb = (r: any): QCRecord => ({
   id: r.id,
   projectId: r.project_id,
-  date: r.date,
-  temperature: r.temperature,
-  humidity: r.humidity,
-  slump: r.slump,
-  airContent: r.air_content,
-  cylindersMade: r.cylinders_made,
-  notes: r.notes,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
   checklist: r.qc_checklists?.[0] ? mapQcChecklistFromDb(r.qc_checklists[0]) : undefined,
+  ...mapQcRecordFieldsFromDb(r),
 });
 
 const mapCalculationFromDb = (c: any): Calculation => ({
@@ -975,23 +976,27 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   // --- QC Record CRUD ---
 
   addQCRecord: async (projectId, rec) => {
-    const { data, error } = await supabase
+    const fullRow = buildQcInsertRow(projectId, rec);
+    let result = await supabase
       .from('qc_records')
-      .insert({
-        project_id:     projectId,
-        date:           rec.date,
-        temperature:    rec.temperature,
-        humidity:       rec.humidity,
-        slump:          rec.slump,
-        air_content:    rec.airContent,
-        cylinders_made: rec.cylindersMade,
-        notes:          rec.notes
-      })
+      .insert(fullRow)
       .select(`*, qc_checklists(*)`)
       .single();
-    if (error) throw error;
 
-    const newRec = mapQcRecordFromDb(data);
+    if (result.error && isQcRecordTypeColumnError(result.error.message ?? '')) {
+      const { record_type: _rt, record_data: _rd, ...legacyRow } = fullRow;
+      console.warn(
+        'Saved QC record without record_type/record_data — run migration 20260530000000_qc_records_record_type.sql',
+      );
+      result = await supabase
+        .from('qc_records')
+        .insert(legacyRow)
+        .select(`*, qc_checklists(*)`)
+        .single();
+    }
+    if (result.error) throw result.error;
+
+    const newRec = mapQcRecordFromDb(result.data);
     set((s) => {
       const update = (p: Project) =>
         p.id === projectId
@@ -1009,24 +1014,38 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   updateQCRecord: async (projectId, recId, recData) => {
-    const { data, error } = await supabase
+    const existing = get()
+      .projects.find((p) => p.id === projectId)
+      ?.qcRecords?.find((r) => r.id === recId);
+    const mergedRec: Partial<QCRecord> = existing
+      ? { ...existing, ...recData }
+      : recData;
+    const updateRow = buildQcUpdateRow(mergedRec);
+    if (existing) {
+      updateRow.record_data = {
+        ...buildRecordDataPayload(existing),
+        ...buildRecordDataPayload(mergedRec),
+      };
+    }
+    let result = await supabase
       .from('qc_records')
-      .update({
-        date:           recData.date,
-        temperature:    recData.temperature,
-        humidity:       recData.humidity,
-        slump:          recData.slump,
-        air_content:    recData.airContent,
-        cylinders_made: recData.cylindersMade,
-        notes:          recData.notes,
-        updated_at:     new Date().toISOString()
-      })
+      .update(updateRow)
       .eq('id', recId)
       .select(`*, qc_checklists(*)`)
       .single();
-    if (error) throw error;
 
-    const updatedRec = mapQcRecordFromDb(data);
+    if (result.error && isQcRecordTypeColumnError(result.error.message ?? '')) {
+      const { record_type: _rt, record_data: _rd, ...legacyRow } = updateRow;
+      result = await supabase
+        .from('qc_records')
+        .update(legacyRow)
+        .eq('id', recId)
+        .select(`*, qc_checklists(*)`)
+        .single();
+    }
+    if (result.error) throw result.error;
+
+    const updatedRec = mapQcRecordFromDb(result.data);
     set((s) => {
       const update = (p: Project) =>
         p.id === projectId

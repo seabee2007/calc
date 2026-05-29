@@ -70,6 +70,7 @@ export function storedTruckTicketFromQcRecord(record: QCRecord): StoredTruckTick
 export function truckTicketToQcPayload(form: TruckTicketFormState) {
   const ticket = buildConcreteTruckTicket(form);
   return {
+    recordType: 'fresh_test' as const,
     date: form.recordDate,
     temperature: ticket.concreteTemp,
     humidity: 0,

@@ -269,15 +269,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     className={`font-semibold ${
                       qcStatus.sevenDayComplete
                         ? 'text-emerald-600 dark:text-emerald-400'
-                        : qcStatus.nextDueLabel === '7-day break' && qcStatus.isOverdue
+                        : qcStatus.sevenDayOverdue
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-amber-600 dark:text-amber-400'
                     }`}
                   >
-                    {breakStatusLabel(
-                      qcStatus.sevenDayComplete,
-                      qcStatus.nextDueLabel === '7-day break' && qcStatus.isOverdue,
-                    )}
+                    {breakStatusLabel(qcStatus.sevenDayComplete, qcStatus.sevenDayOverdue)}
                   </p>
                 </div>
                 <div>
@@ -286,14 +283,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     className={`font-semibold ${
                       qcStatus.fourteenDayComplete
                         ? 'text-emerald-600 dark:text-emerald-400'
-                        : qcStatus.nextDueLabel === '14-day break' && qcStatus.isOverdue
+                        : qcStatus.fourteenDayOverdue
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-amber-600 dark:text-amber-400'
                     }`}
                   >
                     {breakStatusLabel(
                       qcStatus.fourteenDayComplete,
-                      qcStatus.nextDueLabel === '14-day break' && qcStatus.isOverdue,
+                      qcStatus.fourteenDayOverdue,
                     )}
                   </p>
                 </div>
@@ -303,14 +300,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     className={`font-semibold ${
                       qcStatus.twentyEightDayComplete
                         ? 'text-emerald-600 dark:text-emerald-400'
-                        : qcStatus.nextDueLabel === '28-day break' && qcStatus.isOverdue
+                        : qcStatus.twentyEightDayOverdue
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-amber-600 dark:text-amber-400'
                     }`}
                   >
                     {breakStatusLabel(
                       qcStatus.twentyEightDayComplete,
-                      qcStatus.nextDueLabel === '28-day break' && qcStatus.isOverdue,
+                      qcStatus.twentyEightDayOverdue,
                     )}
                   </p>
                 </div>

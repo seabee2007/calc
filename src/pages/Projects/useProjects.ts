@@ -21,7 +21,10 @@ export function useProjects() {
     updateProject,
     deleteProject,
     deleteCalculation,
-    setCurrentProject
+    setCurrentProject,
+    addQCRecord,
+    updateQCRecord,
+    deleteQCRecord,
   } = useProjectStore();
 
   const [ui, setUi] = useState({
@@ -245,36 +248,19 @@ export function useProjects() {
       }
     },
 
-    saveQCRecord: async (record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>) => {
+    saveQCRecord: async (
+      record: Omit<QCRecord, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>,
+      recordId?: string,
+    ) => {
       if (!currentProject) return;
       try {
-        const { data, error } = await supabase
-          .from('qc_records')
-          .insert([{
-            project_id: currentProject.id,
-            date: record.date,
-            temperature: parseFloat(record.temperature.toString()) || 0,
-            humidity: parseFloat(record.humidity.toString()) || 0,
-            slump: parseFloat(record.slump.toString()) || 0,
-            air_content: parseFloat(record.airContent.toString()) || 0,
-            cylinders_made: parseInt(record.cylindersMade.toString()) || 0,
-            notes: record.notes || ''
-          }])
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        if (data) {
-          const updatedProject = {
-            ...currentProject,
-            qcRecords: [...(currentProject.qcRecords || []), data]
-          };
-          await updateProject(currentProject.id, updatedProject);
-          setCurrentProject(currentProject.id);
+        if (recordId) {
+          await updateQCRecord(currentProject.id, recordId, record);
+          toast('QC record updated successfully', 'success');
+        } else {
+          await addQCRecord(currentProject.id, record);
+          toast('QC record added successfully', 'success');
         }
-        
-        toast('QC record added successfully', 'success');
       } catch (err) {
         console.error('Error saving QC record:', err);
         toast('Error saving QC record', 'error');
@@ -284,21 +270,7 @@ export function useProjects() {
     deleteQCRecord: async (recordId: string) => {
       if (!currentProject) return;
       try {
-        const { error } = await supabase
-          .from('qc_records')
-          .delete()
-          .eq('id', recordId);
-
-        if (error) throw error;
-        
-        const updatedProject = {
-          ...currentProject,
-          qcRecords: currentProject.qcRecords?.filter(record => record.id !== recordId) || []
-        };
-        
-        await updateProject(currentProject.id, updatedProject);
-        setCurrentProject(currentProject.id);
-        
+        await deleteQCRecord(currentProject.id, recordId);
         toast('QC record deleted successfully', 'success');
       } catch (err) {
         console.error('Error deleting QC record:', err);

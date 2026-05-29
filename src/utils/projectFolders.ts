@@ -26,6 +26,9 @@ export interface QcBreakStatus {
   sevenDayComplete: boolean;
   fourteenDayComplete: boolean;
   twentyEightDayComplete: boolean;
+  sevenDayOverdue: boolean;
+  fourteenDayOverdue: boolean;
+  twentyEightDayOverdue: boolean;
   qcComplete: boolean;
   progressPercent: number;
   nextDueLabel: string;
@@ -109,8 +112,16 @@ export function getPlacedDate(
 }
 
 function recordMatchesBreakAge(record: QCRecord, age: 7 | 14 | 28): boolean {
+  if (record.recordType === 'break_test') {
+    if (record.testAgeDays === age && (record.breakStrengthPsi ?? 0) > 0) {
+      return true;
+    }
+  }
+
   const r = record as Record<string, unknown>;
-  if (r.testAgeDays === age || r.ageDays === age) return true;
+  if (r.testAgeDays === age || r.ageDays === age) {
+    if ((record.breakStrengthPsi ?? 0) > 0) return true;
+  }
 
   const hay = `${r.type ?? ''} ${r.status ?? ''} ${record.notes ?? ''}`.toLowerCase();
   if (!hay.trim()) return false;
@@ -131,6 +142,16 @@ function formatShortDate(d: Date): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function isBreakMilestoneOverdue(
+  placed: Date,
+  ageDays: 7 | 14 | 28,
+  complete: boolean,
+  now = new Date(),
+): boolean {
+  if (complete) return false;
+  return formatDaysUntilOrOverdue(addDays(placed, ageDays), now).isOverdue;
 }
 
 function formatDaysUntilOrOverdue(due: Date, now = new Date()): {
@@ -185,6 +206,9 @@ export function getQcBreakStatus(
       sevenDayComplete,
       fourteenDayComplete,
       twentyEightDayComplete,
+      sevenDayOverdue: false,
+      fourteenDayOverdue: false,
+      twentyEightDayOverdue: false,
       qcComplete,
       progressPercent,
       nextDueLabel: 'Set placement date',
@@ -194,6 +218,15 @@ export function getQcBreakStatus(
       placedDateLabel: '—',
     };
   }
+
+  const sevenDayOverdue = isBreakMilestoneOverdue(placed, 7, sevenDayComplete, now);
+  const fourteenDayOverdue = isBreakMilestoneOverdue(placed, 14, fourteenDayComplete, now);
+  const twentyEightDayOverdue = isBreakMilestoneOverdue(
+    placed,
+    28,
+    twentyEightDayComplete,
+    now,
+  );
 
   if (!sevenDayComplete) {
     nextDueLabel = '7-day break';
@@ -215,6 +248,9 @@ export function getQcBreakStatus(
     sevenDayComplete,
     fourteenDayComplete,
     twentyEightDayComplete,
+    sevenDayOverdue,
+    fourteenDayOverdue,
+    twentyEightDayOverdue,
     qcComplete,
     progressPercent,
     nextDueLabel,

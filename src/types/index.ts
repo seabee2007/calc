@@ -124,16 +124,39 @@ export interface QCChecklist {
   curingMaterialsAvailable: boolean;
 }
 
+export type QCRecordType = 'fresh_test' | 'break_test';
+
 export interface QCRecord {
   id: string;
   projectId: string;
+  recordType: QCRecordType;
   date: string;
-  temperature: number;
-  humidity: number;
-  slump: number;
-  airContent: number;
-  cylindersMade: number;
-  notes: string;
+
+  // Fresh concrete test fields
+  temperature?: number;
+  humidity?: number;
+  windSpeed?: number;
+  concreteTemperature?: number;
+  slump?: number;
+  airContent?: number;
+  unitWeight?: number;
+  cylindersMade?: number;
+  truckNumber?: string;
+  ticketNumber?: string;
+  batchTime?: string;
+  sampleTime?: string;
+
+  // Break test fields
+  testAgeDays?: 7 | 14 | 28 | 56;
+  cylinderId?: string;
+  breakDate?: string;
+  designStrengthPsi?: number;
+  breakStrengthPsi?: number;
+  loadLbs?: number;
+  averageStrengthPsi?: number;
+  breakResult?: 'pass' | 'fail' | 'informational';
+
+  notes?: string;
   createdAt: string;
   updatedAt: string;
   checklist?: QCChecklist;

@@ -45,6 +45,7 @@ import {
   scorePourDay,
   type ScoredPourDay,
 } from '../../utils/pourScoring';
+import { getQcBreakStatus } from '../../utils/projectFolders';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
@@ -121,7 +122,7 @@ export default function ProjectDetails() {
   }, [matchedProposal?.data, project, project?.laborEstimates]);
 
   const nextActions = useMemo(() => {
-    const issues: { msg: string; action: 'proposal' | 'placement' | 'project' }[] = [];
+    const issues: { msg: string; action: 'proposal' | 'placement' | 'project' | 'qc' }[] = [];
     if (!project) return issues;
     if (workflow.stage === 'closed') return issues;
     if (!matchedProposal) {
@@ -154,6 +155,16 @@ export default function ProjectDetails() {
         msg: `Mix design pending for ${label}`,
         action: 'placement',
       });
+    }
+
+    const folderCtx = {
+      hasProposalDraft: Boolean(matchedProposal),
+      proposalStatus: matchedProposal?.status,
+    };
+    const qcBreak = getQcBreakStatus(project, workflow.stage, folderCtx);
+    const needs28DayBreak = ['placed', 'job_completed', 'paid'].includes(workflow.stage);
+    if (needs28DayBreak && !qcBreak.twentyEightDayComplete) {
+      issues.push({ msg: 'Enter 28-day break result', action: 'qc' });
     }
 
     return issues.slice(0, 6);
@@ -480,7 +491,22 @@ export default function ProjectDetails() {
             {nextActions.map((x) => (
               <li key={x.msg} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-200">
                 <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                <span>{x.msg}</span>
+                {x.action === 'qc' ? (
+                  <button
+                    type="button"
+                    className="text-left underline-offset-2 hover:underline text-violet-700 dark:text-violet-300"
+                    onClick={() =>
+                      document.getElementById('project-qc-section')?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      })
+                    }
+                  >
+                    {x.msg}
+                  </button>
+                ) : (
+                  <span>{x.msg}</span>
+                )}
               </li>
             ))}
           </ul>
