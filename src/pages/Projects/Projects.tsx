@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeftCircle } from 'lucide-react';
 import { useProjects } from './useProjects';
@@ -7,9 +7,71 @@ import ProjectDetails from './ProjectDetails';
 import ProjectForm from '../../components/projects/ProjectForm';
 import ToastManager from './ToastManager';
 import Button from '../../components/ui/Button';
+import { useTrackedProposals } from '../../hooks/useTrackedProposals';
+import type { Project } from '../../types';
+import type { TrackedProposalRow } from '../../types/proposalTracking';
+import {
+  buildFolderCounts,
+  getProjectFolder,
+  PROJECT_FOLDER_LABELS,
+  type ProjectFolder,
+  type ProjectFolderContext,
+} from '../../utils/projectFolders';
+
+function matchProposal(
+  project: Project,
+  proposals: TrackedProposalRow[],
+): TrackedProposalRow | undefined {
+  const direct = proposals.find((p) => p.project_id === project.id);
+  if (direct) return direct;
+  const name = project.name?.trim() ?? '';
+  if (!name) return undefined;
+  const lower = name.toLowerCase();
+  return proposals.find(
+    (p) =>
+      p.data?.projectTitle === name ||
+      p.title?.toLowerCase().includes(lower),
+  );
+}
+
+function folderContext(
+  project: Project,
+  proposals: TrackedProposalRow[],
+): ProjectFolderContext {
+  const matched = matchProposal(project, proposals);
+  return {
+    hasProposalDraft: Boolean(matched),
+    proposalStatus: matched?.status,
+  };
+}
+
+const TAB_CLASS_ACTIVE =
+  'shrink-0 rounded-xl border border-cyan-500/50 bg-cyan-950/50 px-4 py-2 text-sm font-semibold text-cyan-100 shadow-sm';
+const TAB_CLASS_IDLE =
+  'shrink-0 rounded-xl border border-slate-600/80 bg-slate-800/60 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:bg-slate-800';
 
 const Projects: React.FC = () => {
   const { projects, currentProject, ui, setUi, handlers } = useProjects();
+  const { proposals } = useTrackedProposals();
+  const [projectFolder, setProjectFolder] = useState<ProjectFolder>('active');
+
+  const resolveCtx = useMemo(
+    () => (project: Project) => folderContext(project, proposals),
+    [proposals],
+  );
+
+  const folderCounts = useMemo(
+    () => buildFolderCounts(projects, resolveCtx),
+    [projects, resolveCtx],
+  );
+
+  const visibleProjects = useMemo(
+    () =>
+      projects.filter(
+        (p) => getProjectFolder(p, resolveCtx(p)) === projectFolder,
+      ),
+    [projects, projectFolder, resolveCtx],
+  );
 
   return (
     <motion.div
@@ -81,12 +143,34 @@ const Projects: React.FC = () => {
         )}
 
         {!ui.showCreate && !ui.showDetails && (
-          <ProjectList 
-            projects={projects}
-            onSelect={handlers.selectProject}
-            onDelete={(id) => handlers.confirmDelete('project', id)}
-            onCreate={() => setUi(s => ({ ...s, showCreate: true }))}
-          />
+          <>
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
+              {(['active', 'qc_closeout', 'archived'] as ProjectFolder[]).map(
+                (key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setProjectFolder(key)}
+                    className={
+                      projectFolder === key ? TAB_CLASS_ACTIVE : TAB_CLASS_IDLE
+                    }
+                  >
+                    {PROJECT_FOLDER_LABELS[key]}{' '}
+                    <span className="tabular-nums opacity-90">
+                      {folderCounts[key]}
+                    </span>
+                  </button>
+                ),
+              )}
+            </div>
+            <ProjectList
+              projects={visibleProjects}
+              folder={projectFolder}
+              onSelect={handlers.selectProject}
+              onDelete={(id) => handlers.confirmDelete('project', id)}
+              onCreate={() => setUi((s) => ({ ...s, showCreate: true }))}
+            />
+          </>
         )}
       </AnimatePresence>
 

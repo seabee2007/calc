@@ -14,6 +14,10 @@ import {
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
 import {
+  getQcBreakStatus,
+  type ProjectFolder,
+} from '../../utils/projectFolders';
+import {
   PLACEMENT_ORDER_STATUS_LABELS,
   type PlacementOrderStatus,
 } from '../../types/placementOrder';
@@ -22,8 +26,15 @@ import type { TrackedProposalRow } from '../../types/proposalTracking';
 
 interface ProjectCardProps {
   project: Project;
+  folder?: ProjectFolder;
   onClick: () => void;
   onDelete: () => void;
+}
+
+function breakStatusLabel(complete: boolean, overdue?: boolean): string {
+  if (complete) return 'Complete';
+  if (overdue) return 'Overdue';
+  return 'Pending';
 }
 
 function parsePourDate(iso?: string): Date | null {
@@ -32,7 +43,12 @@ function parsePourDate(iso?: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({
+  project,
+  folder = 'active',
+  onClick,
+  onDelete,
+}) => {
   const p = project as any;
   const { proposals } = useTrackedProposals();
   const stopCardOpen = (e: React.SyntheticEvent) => {
@@ -84,12 +100,50 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
   const displayStage = normalizeWorkflowStageForDisplay(workflow.stage);
   const pourDate = parsePourDate(p.pourDate);
   const hasPourDate = Boolean(p.pourDate);
+  const folderCtx = {
+    hasProposalDraft: Boolean(matchedProposal),
+    proposalStatus: matchedProposal?.status,
+  };
+
+  const qcStatus = getQcBreakStatus(project, workflow.stage, folderCtx);
+
   const presentation = getProjectCardPresentation(
     workflow.stage,
     workflow.nextAction.label,
     hasPourDate,
     pourDate,
   );
+
+  const badgeLabel =
+    folder === 'qc_closeout'
+      ? 'QC Closeout'
+      : folder === 'archived'
+        ? 'Archived'
+        : presentation.priorityLabel;
+
+  const badgeClass =
+    folder === 'qc_closeout'
+      ? 'bg-violet-500/15 text-violet-200 border-violet-500/40'
+      : folder === 'archived'
+        ? 'bg-slate-600/25 text-slate-200 border-slate-500/50'
+        : presentation.priorityBadgeClass;
+
+  const ringClass =
+    folder === 'qc_closeout'
+      ? 'ring-1 ring-violet-500/35'
+      : presentation.priorityRingClass;
+
+  const nextActionLabel =
+    folder === 'archived'
+      ? 'View project'
+      : folder === 'qc_closeout'
+        ? qcStatus.qcComplete
+          ? 'View project'
+          : `Enter ${qcStatus.nextDueLabel}`
+        : presentation.nextActionLabel;
+
+  const showPlacementOrder =
+    folder === 'active' && !presentation.hidePlacementOrder;
 
   const volumeYd = (p.calculations ?? []).reduce(
     (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
@@ -112,7 +166,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
       whileTap={{ scale: 0.98 }}
     >
       <Card 
-        className={`cursor-pointer h-full ${presentation.priorityRingClass}`}
+        className={`cursor-pointer h-full ${ringClass}`}
         shadow="md"
       >
         <div className="p-5">
@@ -151,9 +205,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
 
           <div className="flex items-center justify-between gap-2 mb-3" onClick={handleCardClick}>
             <span
-              className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${presentation.priorityBadgeClass}`}
+              className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeClass}`}
             >
-              {presentation.priorityLabel}
+              {badgeLabel}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400 text-right shrink-0 max-w-[50%] truncate">
               {presentation.cornerDateLabel}
@@ -172,9 +226,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">Next action</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 flex items-center gap-2">
               <ArrowRight className="h-4 w-4 text-cyan-500" />
-              <span className="truncate">{presentation.nextActionLabel}</span>
+              <span className="truncate">{nextActionLabel}</span>
             </p>
-            {!presentation.hidePlacementOrder && (
+            {showPlacementOrder && (
               <>
                 <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">
                   Placement order
@@ -184,41 +238,145 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
                 </p>
               </>
             )}
-            {workflow.mixDesign && workflow.mixDesign.totalPlacements > 0 && (
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
-                Mix designs: {workflow.mixDesign.approvedCount}/
-                {workflow.mixDesign.totalPlacements} approved
+            {folder === 'active' &&
+              workflow.mixDesign &&
+              workflow.mixDesign.totalPlacements > 0 && (
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                  Mix designs: {workflow.mixDesign.approvedCount}/
+                  {workflow.mixDesign.totalPlacements} approved
+                </p>
+              )}
+          </div>
+
+          {folder === 'qc_closeout' && (
+            <div
+              className="rounded-lg border border-violet-500/25 bg-violet-500/5 dark:bg-violet-950/20 p-3 mb-3 space-y-2"
+              onClick={handleCardClick}
+            >
+              <p className="text-[10px] uppercase tracking-wide text-violet-400/90">
+                QC closeout
               </p>
-            )}
-          </div>
-
-          <div className="mb-3" onClick={handleCardClick}>
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-              <span>Progress</span>
-              <span className="font-semibold text-gray-700 dark:text-gray-200">
-                {presentation.progressPct}%
-              </span>
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                Placed:{' '}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {qcStatus.placedDateLabel}
+                </span>
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">7-day</p>
+                  <p
+                    className={`font-semibold ${
+                      qcStatus.sevenDayComplete
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : qcStatus.nextDueLabel === '7-day break' && qcStatus.isOverdue
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                    }`}
+                  >
+                    {breakStatusLabel(
+                      qcStatus.sevenDayComplete,
+                      qcStatus.nextDueLabel === '7-day break' && qcStatus.isOverdue,
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">14-day</p>
+                  <p
+                    className={`font-semibold ${
+                      qcStatus.fourteenDayComplete
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : qcStatus.nextDueLabel === '14-day break' && qcStatus.isOverdue
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                    }`}
+                  >
+                    {breakStatusLabel(
+                      qcStatus.fourteenDayComplete,
+                      qcStatus.nextDueLabel === '14-day break' && qcStatus.isOverdue,
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">28-day</p>
+                  <p
+                    className={`font-semibold ${
+                      qcStatus.twentyEightDayComplete
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : qcStatus.nextDueLabel === '28-day break' && qcStatus.isOverdue
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                    }`}
+                  >
+                    {breakStatusLabel(
+                      qcStatus.twentyEightDayComplete,
+                      qcStatus.nextDueLabel === '28-day break' && qcStatus.isOverdue,
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-violet-500/15">
+                <span className="text-gray-500 dark:text-gray-400">
+                  Next: <span className="font-medium text-gray-800 dark:text-gray-200">{qcStatus.nextDueLabel}</span>
+                </span>
+                <span
+                  className={
+                    qcStatus.isOverdue
+                      ? 'font-semibold text-red-600 dark:text-red-400'
+                      : 'text-gray-600 dark:text-gray-300'
+                  }
+                >
+                  {qcStatus.daysUntilOrOverdueLabel}
+                </span>
+              </div>
+              <div>
+                <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
+                  <span>QC progress</span>
+                  <span>{qcStatus.progressPercent}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-1.5 bg-violet-500 rounded-full"
+                    style={{ width: `${qcStatus.progressPercent}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className={`h-2 rounded-full ${
-                  workflow.stage === 'closed'
-                    ? 'bg-slate-500'
-                    : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
-                }`}
-                style={{ width: `${presentation.progressPct}%` }}
-              />
-            </div>
-          </div>
+          )}
 
-          <div
-            className="grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300"
-            onClick={handleCardClick}
-          >
-            <div className="truncate">{volumeYd > 0 ? `${volumeYd.toFixed(0)} CY` : 'Vol: —'}</div>
-            <div className="truncate">{psi}</div>
-            <div className="truncate">{plant}</div>
-          </div>
+          {folder !== 'qc_closeout' && (
+            <div className="mb-3" onClick={handleCardClick}>
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <span>{folder === 'archived' ? 'Job progress' : 'Progress'}</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-200">
+                  {folder === 'archived' ? 100 : presentation.progressPct}%
+                </span>
+              </div>
+              <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-2 rounded-full ${
+                    folder === 'archived' || workflow.stage === 'closed'
+                      ? 'bg-slate-500'
+                      : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
+                  }`}
+                  style={{
+                    width: `${folder === 'archived' ? 100 : presentation.progressPct}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {folder === 'active' && (
+            <div
+              className="grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300"
+              onClick={handleCardClick}
+            >
+              <div className="truncate">{volumeYd > 0 ? `${volumeYd.toFixed(0)} CY` : 'Vol: —'}</div>
+              <div className="truncate">{psi}</div>
+              <div className="truncate">{plant}</div>
+            </div>
+          )}
 
           <div
             className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3"
@@ -228,7 +386,21 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
               <Clock className="h-4 w-4 mr-1" />
               <span>{formattedDate}</span>
             </div>
-            {presentation.scheduleFooterComplete ? (
+            {folder === 'archived' ? (
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-slate-400" />
+                <span>Archived</span>
+              </div>
+            ) : folder === 'qc_closeout' ? (
+              <div className="flex items-center gap-1.5">
+                {qcStatus.isOverdue ? (
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 text-violet-400" />
+                )}
+                <span>{qcStatus.daysUntilOrOverdueLabel}</span>
+              </div>
+            ) : presentation.scheduleFooterComplete ? (
               <div className="flex items-center gap-1.5">
                 <CheckCircle2
                   className={`h-4 w-4 ${
