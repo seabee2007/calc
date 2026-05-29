@@ -7,30 +7,60 @@ interface ProposalSentLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
   proposalUrl: string;
+  title?: string;
+}
+
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
 }
 
 const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
   isOpen,
   onClose,
   proposalUrl,
+  title = 'Proposal Sent',
 }) => {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   const canShare =
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   useEffect(() => {
-    if (!isOpen) setCopied(false);
+    if (!isOpen) {
+      setCopied(false);
+      setCopyError(false);
+    }
   }, [isOpen, proposalUrl]);
 
   const copyProposalLink = async () => {
-    try {
-      await navigator.clipboard.writeText(proposalUrl);
+    setCopyError(false);
+    const ok = await copyTextToClipboard(proposalUrl);
+    if (ok) {
       soundService.play('save');
       void hapticService.selection();
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2500);
-    } catch {
+    } else {
       setCopied(false);
+      setCopyError(true);
     }
   };
 
@@ -53,7 +83,7 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Proposal Sent" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="md">
       <div className="space-y-4">
         <p className="text-gray-600 dark:text-slate-300">
           Share this link with your client:
@@ -71,6 +101,11 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
         {copied && (
           <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
             Link copied!
+          </p>
+        )}
+        {copyError && (
+          <p className="text-sm text-amber-600 dark:text-amber-400">
+            Tap the link above to open it, or long-press to copy.
           </p>
         )}
 

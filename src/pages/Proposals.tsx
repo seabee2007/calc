@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -37,7 +37,13 @@ const Proposals: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<'all' | ProposalStatus>('all');
-  const [sentProposalUrl, setSentProposalUrl] = useState<string | null>(null);
+  const [linkModal, setLinkModal] = useState<{
+    url: string;
+    title: string;
+  } | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadProposals();
@@ -92,23 +98,31 @@ const Proposals: React.FC = () => {
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
 
+    setImporting(true);
+    setError(null);
+    setImportMessage(null);
+
     try {
-      const proposalData = await ProposalService.importFromJSON(file);
-      const title = `Imported Proposal - ${new Date().toLocaleDateString()}`;
+      const imported = await ProposalService.importFromJSON(file);
+      const title =
+        imported.title?.trim() ||
+        `Imported Proposal - ${new Date().toLocaleDateString()}`;
       await ProposalService.create({
         title,
-        template_type: 'classic',
-        data: proposalData,
+        template_type: imported.template_type,
+        data: imported.data,
       });
-      loadProposals();
+      soundService.play('save');
+      await loadProposals();
+      setImportMessage(`Imported “${title}”.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to import proposal');
+    } finally {
+      setImporting(false);
     }
-    
-    // Reset the file input
-    event.target.value = '';
   };
 
   const handlePreview = (proposal: SavedProposal) => {
@@ -131,16 +145,39 @@ const Proposals: React.FC = () => {
       day: 'numeric',
     });
 
-  const handleCopyClientLink = async (proposal: SavedProposal) => {
-    if (proposal.status === 'draft') {
-      setError('Send the proposal first to generate a client link.');
+  const openProposalLinkModal = (url: string, title: string) => {
+    if (!url || !url.includes('/proposal/')) {
+      setError('Could not build client link. Try Send first.');
       return;
     }
+    setError(null);
+    setLinkModal({ url, title });
+  };
+
+  const resolvePublicLink = async (
+    proposal: SavedProposal,
+  ): Promise<string | null> => {
+    let token = proposal.public_token?.trim();
+    if (proposal.status === 'draft' || !token) {
+      const sent = await markProposalSent(proposal.id);
+      token = sent.public_token?.trim();
+      await loadProposals();
+    }
+    if (!token) return null;
+    return getPublicProposalUrl(token);
+  };
+
+  const handleShareClientLink = async (proposal: SavedProposal) => {
     try {
-      await navigator.clipboard.writeText(getPublicProposalUrl(proposal.public_token));
-      soundService.play('save');
-    } catch {
-      setError('Could not copy link.');
+      setError(null);
+      const url = await resolvePublicLink(proposal);
+      if (!url) {
+        setError('Could not generate client link.');
+        return;
+      }
+      openProposalLinkModal(url, 'Share proposal link');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open share link.');
     }
   };
 
@@ -148,7 +185,10 @@ const Proposals: React.FC = () => {
     try {
       const sent = await markProposalSent(proposalId);
       await loadProposals();
-      setSentProposalUrl(getPublicProposalUrl(sent.public_token));
+      openProposalLinkModal(
+        getPublicProposalUrl(sent.public_token),
+        'Proposal Sent',
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send proposal');
     }
@@ -261,18 +301,24 @@ const Proposals: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Import Button */}
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-                <Button variant="outline" icon={<Upload size={18} />}>
-                  Import
-                </Button>
-              </label>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleImport}
+                className="sr-only"
+                aria-hidden
+                tabIndex={-1}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                icon={<Upload size={18} />}
+                disabled={importing}
+                onClick={() => importInputRef.current?.click()}
+              >
+                {importing ? 'Importing…' : 'Import'}
+              </Button>
 
               {/* New Proposal Button */}
               <Button
@@ -338,6 +384,23 @@ const Proposals: React.FC = () => {
               );
             })}
           </div>
+
+          {importMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/20"
+            >
+              <p className="text-emerald-800 dark:text-emerald-200">{importMessage}</p>
+              <button
+                type="button"
+                onClick={() => setImportMessage(null)}
+                className="mt-1 text-sm text-emerald-700 hover:text-emerald-900 dark:text-emerald-300"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -525,7 +588,7 @@ const Proposals: React.FC = () => {
                         onSend={() => handleSend(proposal.id)}
                         onDuplicate={() => handleDuplicate(proposal)}
                         onPdf={() => handlePreview(proposal)}
-                        onShareLink={() => handleCopyClientLink(proposal)}
+                        onShareLink={() => void handleShareClientLink(proposal)}
                         overflowItems={[
                           ...(proposal.status === 'accepted'
                             ? [
@@ -606,9 +669,10 @@ const Proposals: React.FC = () => {
         )}
 
         <ProposalSentLinkModal
-          isOpen={Boolean(sentProposalUrl)}
-          onClose={() => setSentProposalUrl(null)}
-          proposalUrl={sentProposalUrl ?? ''}
+          isOpen={Boolean(linkModal)}
+          onClose={() => setLinkModal(null)}
+          proposalUrl={linkModal?.url ?? ''}
+          title={linkModal?.title}
         />
         </div>
       </div>

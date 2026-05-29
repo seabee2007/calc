@@ -46,6 +46,53 @@ export interface UpdateProposalData {
   deposit_amount?: number;
 }
 
+export interface ImportedProposalFile {
+  data: ProposalData;
+  title?: string;
+  template_type: 'classic' | 'modern' | 'minimal';
+}
+
+function normalizeImportedProposalData(raw: Record<string, unknown>): ProposalData {
+  const pricing = Array.isArray(raw.pricing)
+    ? (raw.pricing as ProposalData['pricing'])
+    : [];
+  const timeline = Array.isArray(raw.timeline)
+    ? (raw.timeline as ProposalData['timeline'])
+    : [];
+
+  return {
+    businessName: String(raw.businessName ?? ''),
+    businessLogoUrl: raw.businessLogoUrl ? String(raw.businessLogoUrl) : undefined,
+    businessAddress: raw.businessAddress ? String(raw.businessAddress) : undefined,
+    businessAddressParts: raw.businessAddressParts as ProposalData['businessAddressParts'],
+    businessPhone: raw.businessPhone ? String(raw.businessPhone) : undefined,
+    businessEmail: raw.businessEmail ? String(raw.businessEmail) : undefined,
+    businessLicenseNumber: raw.businessLicenseNumber
+      ? String(raw.businessLicenseNumber)
+      : undefined,
+    businessSlogan: raw.businessSlogan ? String(raw.businessSlogan) : undefined,
+    clientName: String(raw.clientName ?? ''),
+    clientCompany: raw.clientCompany ? String(raw.clientCompany) : undefined,
+    clientAddress: raw.clientAddress ? String(raw.clientAddress) : undefined,
+    clientAddressParts: raw.clientAddressParts as ProposalData['clientAddressParts'],
+    projectTitle: String(raw.projectTitle ?? raw.title ?? 'Imported Project'),
+    date: String(raw.date ?? new Date().toLocaleDateString()),
+    introduction: String(raw.introduction ?? ''),
+    scope: String(raw.scope ?? ''),
+    timeline,
+    pricing,
+    terms: String(raw.terms ?? ''),
+    preparedBy: String(raw.preparedBy ?? ''),
+    preparedByTitle: raw.preparedByTitle ? String(raw.preparedByTitle) : undefined,
+  };
+}
+
+function parseTemplateType(value: unknown): 'classic' | 'modern' | 'minimal' {
+  const v = String(value ?? 'classic');
+  if (v === 'modern' || v === 'minimal') return v;
+  return 'classic';
+}
+
 function withFinancials(
   data: ProposalData,
   extra?: Partial<UpdateProposalData>,
@@ -221,23 +268,49 @@ export class ProposalService {
     }
   }
 
-  static async importFromJSON(file: File): Promise<ProposalData> {
+  static async importFromJSON(file: File): Promise<ImportedProposalFile> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const content = e.target?.result as string;
-          const proposal = JSON.parse(content);
+          const parsed = JSON.parse(content) as Record<string, unknown>;
 
-          if (proposal.data && typeof proposal.data === 'object') {
-            resolve(proposal.data);
-          } else if (proposal.businessName || proposal.projectTitle) {
-            resolve(proposal);
-          } else {
-            reject(new Error('Invalid proposal file format'));
+          if (parsed.data && typeof parsed.data === 'object') {
+            const data = normalizeImportedProposalData(
+              parsed.data as Record<string, unknown>,
+            );
+            const title =
+              typeof parsed.title === 'string' && parsed.title.trim()
+                ? parsed.title.trim()
+                : data.projectTitle || undefined;
+            resolve({
+              data,
+              title,
+              template_type: parseTemplateType(
+                parsed.template_type ?? parsed.templateType,
+              ),
+            });
+            return;
           }
+
+          if (parsed.businessName || parsed.projectTitle) {
+            const data = normalizeImportedProposalData(parsed);
+            resolve({
+              data,
+              title: data.projectTitle || undefined,
+              template_type: 'classic',
+            });
+            return;
+          }
+
+          reject(
+            new Error(
+              'Invalid proposal file. Use a JSON file exported from this app (⋮ → Export JSON).',
+            ),
+          );
         } catch {
-          reject(new Error('Failed to parse proposal file'));
+          reject(new Error('Failed to parse proposal file — is it valid JSON?'));
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
