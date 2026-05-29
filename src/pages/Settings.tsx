@@ -406,10 +406,10 @@ const Settings: React.FC = () => {
         <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
           Settings
         </h1>
-        <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+        <p className="text-white text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
           Customize your account and application preferences
           {preferences.autoSave && (
-            <span className="ml-2 text-sm bg-green-500/20 text-green-200 px-2 py-1 rounded">
+            <span className="ml-2 text-sm font-semibold bg-green-500/20 text-green-200 px-2 py-1 rounded drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
               Auto-save enabled
             </span>
           )}
