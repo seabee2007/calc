@@ -1,4 +1,4 @@
-import type { Project, Calculation, QCRecord } from '../types';
+import type { Project, Calculation } from '../types';
 import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrder';
 import { PLACEMENT_ORDER_STATUS_LABELS } from '../types/placementOrder';
 import { MITIGATION_OPTIONS } from './pourMitigations';
@@ -14,6 +14,7 @@ import {
   buildProposalDashboardMetrics,
   type ProposalDashboardMetrics,
 } from './proposalKpis';
+import { getProjectFolder, summarizeQcBreakAlerts } from './projectFolders';
 
 export type OpsRiskLevel = 'low' | 'moderate' | 'high' | 'unknown';
 export type TimelineStatus = 'on_schedule' | 'at_risk' | 'delayed' | 'pending';
@@ -87,6 +88,7 @@ export interface OperationsSnapshot {
   weatherRisk: OpsRiskLevel;
   weatherRiskLabel: string;
   qcTestsDue: number;
+  qcTestsOverdue: number;
   deliveryStatusLabel: string;
   pumpScheduledToday: boolean;
   nextTruckEtaLabel: string;
@@ -425,12 +427,74 @@ function orderStatusLabel(status: PlacementOrderStatus | null): string {
   return PLACEMENT_ORDER_STATUS_LABELS[status].split('—')[0].trim().toUpperCase();
 }
 
-function countQcDue(records: QCRecord[]): number {
-  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const recent = records.filter((r) => new Date(r.date).getTime() >= weekAgo);
-  const missingSlump = recent.filter((r) => !r.slump && r.slump !== 0).length;
-  const cylindersNoBreak = recent.filter((r) => r.cylindersMade > 0).length;
-  return missingSlump + Math.min(cylindersNoBreak, 2);
+function matchProposalForProject(
+  project: Project,
+  proposals: TrackedProposalRow[],
+): TrackedProposalRow | undefined {
+  return proposals.find(
+    (p) =>
+      p.project_id === project.id ||
+      p.data?.projectTitle === project.name ||
+      p.title.toLowerCase().includes(project.name.toLowerCase()),
+  );
+}
+
+function summarizeQcAlertsForProjects(
+  projects: Project[],
+  proposals: TrackedProposalRow[],
+  now: Date,
+): { qcTestsDue: number; qcTestsOverdue: number } {
+  let qcTestsDue = 0;
+  let qcTestsOverdue = 0;
+
+  for (const project of projects) {
+    const matchedProposal = matchProposalForProject(project, proposals);
+    const ctx = {
+      hasProposalDraft: Boolean(matchedProposal),
+      proposalStatus: matchedProposal?.status,
+    };
+
+    if (getProjectFolder(project, ctx) === 'archived') continue;
+
+    const workflow = resolveProjectWorkflow(project, {
+      hasProposalDraft: ctx.hasProposalDraft,
+      proposalStatus: ctx.proposalStatus,
+      windRisk: 'moderate',
+      heatRisk: 'moderate',
+      readinessScore: 0,
+      now,
+    });
+    const summary = summarizeQcBreakAlerts(project, workflow.stage, ctx, now);
+    qcTestsDue += summary.openThisWeek;
+    qcTestsOverdue += summary.overdue;
+  }
+
+  return { qcTestsDue, qcTestsOverdue };
+}
+
+export interface QcDashboardStats {
+  qcTestsDue: number;
+  qcTestsOverdue: number;
+  totalRecords: number;
+}
+
+/** QC widget stats — uses all projects (includes QC Closeout jobs excluded from ops queue). */
+export function buildQcDashboardStats(
+  projects: Project[],
+  proposals: TrackedProposalRow[] = [],
+  now = new Date(),
+): QcDashboardStats {
+  const { qcTestsDue, qcTestsOverdue } = summarizeQcAlertsForProjects(
+    projects,
+    proposals,
+    now,
+  );
+  const totalRecords = projects.reduce(
+    (sum, project) =>
+      sum + (project.qcRecords?.length ?? 0) + (project.truckTickets?.length ?? 0),
+    0,
+  );
+  return { qcTestsDue, qcTestsOverdue, totalRecords };
 }
 
 export function buildSmartPourTips(
@@ -544,12 +608,15 @@ export function buildOperationsSnapshot(
   options?: {
     now?: Date;
     proposals?: TrackedProposalRow[];
+    /** Full project list for QC widget (defaults to `projects`). Pass all store projects when `projects` is ops-filtered. */
+    allProjectsForQc?: Project[];
     proposalDrafts?: Record<string, { proposal?: { proposalData?: import('../types/proposal').ProposalData } }>;
   },
 ): OperationsSnapshot {
   const now = options?.now ?? new Date();
   const proposals = options?.proposals ?? [];
   const proposalDrafts = options?.proposalDrafts ?? {};
+  const qcProjectList = options?.allProjectsForQc ?? projects;
   const today = startOfDay(now);
 
   const heatRiskEarly: OpsRiskLevel = 'moderate';
@@ -632,9 +699,10 @@ export function buildOperationsSnapshot(
     : [];
 
   const totalCy = todayPours.reduce((s, p) => s + p.volumeYd, 0);
-  const qcTestsDue = projects.reduce(
-    (s, p) => s + countQcDue(p.qcRecords ?? []),
-    0,
+  const { qcTestsDue, qcTestsOverdue } = buildQcDashboardStats(
+    qcProjectList,
+    proposals,
+    now,
   );
 
   const scheduledOrders = cards.filter(
@@ -730,6 +798,7 @@ export function buildOperationsSnapshot(
     weatherRisk,
     weatherRiskLabel: weatherRisk.toUpperCase(),
     qcTestsDue,
+    qcTestsOverdue,
     deliveryStatusLabel: hasPlacementsToday
       ? scheduledOrders > 0
         ? `${scheduledOrders} ORDERED`

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeftCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useProjects } from './useProjects';
 import ProjectList from './ProjectList';
 import ProjectDetails from './ProjectDetails';
@@ -50,10 +51,35 @@ const TAB_CLASS_ACTIVE =
 const TAB_CLASS_IDLE =
   'shrink-0 rounded-xl border border-slate-600/80 bg-slate-800/60 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:bg-slate-800';
 
+const PROJECT_FOLDERS: ProjectFolder[] = ['active', 'qc_closeout', 'archived'];
+
+function parseProjectFolder(value: string | null): ProjectFolder {
+  if (value && PROJECT_FOLDERS.includes(value as ProjectFolder)) {
+    return value as ProjectFolder;
+  }
+  return 'active';
+}
+
 const Projects: React.FC = () => {
   const { projects, currentProject, ui, setUi, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
-  const [projectFolder, setProjectFolder] = useState<ProjectFolder>('active');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [projectFolder, setProjectFolder] = useState<ProjectFolder>(() =>
+    parseProjectFolder(searchParams.get('folder')),
+  );
+
+  useEffect(() => {
+    setProjectFolder(parseProjectFolder(searchParams.get('folder')));
+  }, [searchParams]);
+
+  const selectProjectFolder = (folder: ProjectFolder) => {
+    setProjectFolder(folder);
+    if (folder === 'active') {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ folder }, { replace: true });
+    }
+  };
 
   const resolveCtx = useMemo(
     () => (project: Project) => folderContext(project, proposals),
@@ -145,12 +171,11 @@ const Projects: React.FC = () => {
         {!ui.showCreate && !ui.showDetails && (
           <>
             <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-              {(['active', 'qc_closeout', 'archived'] as ProjectFolder[]).map(
-                (key) => (
+              {PROJECT_FOLDERS.map((key) => (
                   <button
                     key={key}
                     type="button"
-                    onClick={() => setProjectFolder(key)}
+                    onClick={() => selectProjectFolder(key)}
                     className={
                       projectFolder === key ? TAB_CLASS_ACTIVE : TAB_CLASS_IDLE
                     }
@@ -160,8 +185,7 @@ const Projects: React.FC = () => {
                       {folderCounts[key]}
                     </span>
                   </button>
-                ),
-              )}
+                ))}
             </div>
             <ProjectList
               projects={visibleProjects}

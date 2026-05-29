@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FolderKanban } from 'lucide-react';
 import { useProjectStore } from '../store';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
-import { buildOperationsSnapshot, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
+import { buildOperationsSnapshot, buildQcDashboardStats, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
 import {
   buildProjectRiskReview,
   resolveFeaturedRiskProject,
@@ -41,10 +41,16 @@ function formatPourDateLabel(d: Date): string {
 }
 
 const OperationsDashboard: React.FC = () => {
-  const { projects } = useProjectStore();
+  const { projects, loadProjects } = useProjectStore();
   const location = useLocation();
   const { proposals, refresh: refreshProposals } = useTrackedProposals();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (projects.length === 0) {
+      void loadProjects();
+    }
+  }, [projects.length, loadProjects]);
 
   useEffect(() => {
     if (
@@ -64,8 +70,17 @@ const OperationsDashboard: React.FC = () => {
     projects.length > 0 && operationalProjects.length === 0;
 
   const snapshot = useMemo(
-    () => buildOperationsSnapshot(operationalProjects, { proposals }),
-    [operationalProjects, proposals],
+    () =>
+      buildOperationsSnapshot(operationalProjects, {
+        proposals,
+        allProjectsForQc: projects,
+      }),
+    [operationalProjects, projects, proposals],
+  );
+
+  const qcStats = useMemo(
+    () => buildQcDashboardStats(projects, proposals),
+    [projects, proposals],
   );
 
   const { pipeline, pipelineRevenue, financial } = snapshot.proposalMetrics;
@@ -172,10 +187,7 @@ const OperationsDashboard: React.FC = () => {
     };
   }, [selectedPrePlacementProject, snapshot.weatherRisk]);
 
-  const totalQcRecords = projects.reduce(
-    (s, p) => s + (((p as any).qcRecords?.length as number | undefined) ?? 0),
-    0,
-  );
+  const totalQcRecords = qcStats.totalRecords;
 
   return (
     <motion.div
@@ -219,7 +231,8 @@ const OperationsDashboard: React.FC = () => {
           emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
         />
         <QcAlertsCard
-          testsDue={snapshot.qcTestsDue}
+          testsDue={qcStats.qcTestsDue}
+          testsOverdue={qcStats.qcTestsOverdue}
           totalRecords={totalQcRecords}
         />
         <FinancialSnapshotCard financial={financial} />
@@ -261,7 +274,8 @@ const OperationsDashboard: React.FC = () => {
             emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
           <QcAlertsCard
-            testsDue={snapshot.qcTestsDue}
+            testsDue={qcStats.qcTestsDue}
+            testsOverdue={qcStats.qcTestsOverdue}
             totalRecords={totalQcRecords}
           />
         </section>

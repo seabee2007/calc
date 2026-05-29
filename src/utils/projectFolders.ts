@@ -103,9 +103,24 @@ export function getPlacedDate(
     if (d) return d;
   }
 
+  const pourDate = parseIsoMaybe(project.pourDate);
+  if (!pourDate) return null;
+
   const s = stage ?? resolveStage(project, ctx);
-  if (PLACED_STAGES.includes(s) || isProjectClosedOut(project)) {
-    return parseIsoMaybe(project.pourDate);
+  if (
+    PLACED_STAGES.includes(s) ||
+    isProjectClosedOut(project) ||
+    hasConcretePlaced(project, s, ctx)
+  ) {
+    return pourDate;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const pourDay = new Date(pourDate);
+  pourDay.setHours(0, 0, 0, 0);
+  if (pourDay.getTime() <= today.getTime()) {
+    return pourDate;
   }
 
   return null;
@@ -142,6 +157,21 @@ function formatShortDate(d: Date): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function isBreakMilestoneDueThisWeek(
+  placed: Date,
+  ageDays: 7 | 14 | 28,
+  complete: boolean,
+  now = new Date(),
+): boolean {
+  if (complete) return false;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const due = addDays(placed, ageDays);
+  due.setHours(0, 0, 0, 0);
+  const daysUntil = Math.round((due.getTime() - start.getTime()) / 86400000);
+  return daysUntil <= 7;
 }
 
 function isBreakMilestoneOverdue(
@@ -259,6 +289,52 @@ export function getQcBreakStatus(
     daysUntilOrOverdueLabel: timing.label,
     placedDateLabel: formatShortDate(placed),
   };
+}
+
+export interface QcBreakAlertSummary {
+  /** Incomplete break tests due today, overdue, or due within 7 days */
+  openThisWeek: number;
+  /** Incomplete break tests past their due date */
+  overdue: number;
+}
+
+export function summarizeQcBreakAlerts(
+  project: Project,
+  stage?: ProjectWorkflowStage,
+  ctx?: ProjectFolderContext,
+  now = new Date(),
+): QcBreakAlertSummary {
+  const placed = getPlacedDate(project, stage, ctx);
+  if (!placed) {
+    return { openThisWeek: 0, overdue: 0 };
+  }
+
+  const status = getQcBreakStatus(project, stage, ctx, now);
+  const milestones: Array<{
+    age: 7 | 14 | 28;
+    complete: boolean;
+    overdue: boolean;
+  }> = [
+    { age: 7, complete: status.sevenDayComplete, overdue: status.sevenDayOverdue },
+    { age: 14, complete: status.fourteenDayComplete, overdue: status.fourteenDayOverdue },
+    {
+      age: 28,
+      complete: status.twentyEightDayComplete,
+      overdue: status.twentyEightDayOverdue,
+    },
+  ];
+
+  let openThisWeek = 0;
+  let overdue = 0;
+  for (const m of milestones) {
+    if (m.complete) continue;
+    if (m.overdue) overdue += 1;
+    if (isBreakMilestoneDueThisWeek(placed, m.age, false, now)) {
+      openThisWeek += 1;
+    }
+  }
+
+  return { openThisWeek, overdue };
 }
 
 export function getProjectFolder(
