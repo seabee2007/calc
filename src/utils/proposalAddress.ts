@@ -9,6 +9,7 @@ import {
   parseLegacyUSAddress,
   type USAddress,
 } from '../types/address';
+import { resolveClientAddressForProposal } from '../types/projectClient';
 
 function formattedLine(parts: USAddress | undefined, legacy?: string): string {
   if (parts && isUSAddressGeocodable(parts)) {
@@ -73,17 +74,41 @@ export function mergeProjectJobsiteIntoClientAddress(
 
 export function mergeProjectIntoProposalFields(
   data: ProposalData,
-  project: Pick<Project, 'name' | 'description' | 'jobsiteAddress'> | undefined,
+  project:
+    | Pick<Project, 'name' | 'description' | 'jobsiteAddress' | 'clientInfo'>
+    | undefined,
 ): ProposalData {
   if (!project) return data;
 
-  let next = { ...data };
-  if (project.name?.trim()) {
-    next.projectTitle = next.projectTitle?.trim()
-      ? next.projectTitle
-      : `${project.name} Concrete Work`;
+  let next = hydrateProposalAddresses(data);
+  const ci = project.clientInfo;
+
+  if (project.name?.trim() && !next.projectTitle?.trim()) {
+    next.projectTitle = `${project.name.trim()} Concrete Work`;
   }
-  return mergeProjectJobsiteIntoClientAddress(next, project.jobsiteAddress);
+
+  if (ci?.clientName?.trim() && !next.clientName?.trim()) {
+    next.clientName = ci.clientName.trim();
+  }
+  if (ci?.clientCompany?.trim() && !next.clientCompany?.trim()) {
+    next.clientCompany = ci.clientCompany.trim();
+  }
+
+  const clientAddr = resolveClientAddressForProposal(ci, project.jobsiteAddress);
+  next = mergeProjectJobsiteIntoClientAddress(next, clientAddr);
+
+  const scopeText = project.description?.trim();
+  if (scopeText) {
+    if (!next.scope?.trim()) {
+      next.scope = scopeText;
+    }
+    if (!next.introduction?.trim()) {
+      const title = project.name?.trim() || 'your project';
+      next.introduction = `We are pleased to submit this proposal for ${title}. ${scopeText}`;
+    }
+  }
+
+  return next;
 }
 
 export function displayBusinessAddress(data: ProposalData): string {

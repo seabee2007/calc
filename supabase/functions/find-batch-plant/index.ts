@@ -29,10 +29,12 @@ const SEARCH_TERMS = [
 const PLANT_KEYWORDS = [
   "ready mix",
   "ready-mix",
-  "ready mix",
   "readymix",
   "redi-mix",
   "redi mix",
+  "batch plant",
+  "concrete plant",
+  "concrete supplier",
   "concrete",
   "batch",
   "cement",
@@ -49,6 +51,83 @@ const PLANT_KEYWORDS = [
   "cemex",
   "lafarge",
   "vulcan",
+  "metro ready mix",
+  "razorback concrete",
+  "capital ready mix",
+];
+
+/** Reject POIs that are clearly not ready-mix / batch plants. */
+const EXCLUDED_KEYWORDS = [
+  "home security",
+  "security system",
+  "security service",
+  "safestreets",
+  "adt ",
+  " simplisafe",
+  "alarm",
+  "restaurant",
+  "hotel",
+  "motel",
+  "bank",
+  "insurance",
+  "law firm",
+  "attorney",
+  "church",
+  "school",
+  "hospital",
+  "clinic",
+  "gas station",
+  "grocery",
+  "walmart",
+  "target",
+  "auto repair",
+  "car wash",
+  "salon",
+  "barber",
+  "fitness",
+  "gym",
+  "self storage",
+  "storage unit",
+  "real estate",
+  "furniture store",
+  "roofing",
+  "plumbing",
+  "hvac",
+  "electrician",
+  "landscap",
+  "nursery",
+  "pet ",
+  "veterinar",
+  "dental",
+  "medical",
+  "pharmacy",
+  "coffee",
+  "pizza",
+  "taco",
+  "burger",
+];
+
+const STRONG_PLANT_SIGNALS = [
+  "ready mix",
+  "ready-mix",
+  "readymix",
+  "redi-mix",
+  "redi mix",
+  "batch plant",
+  "concrete plant",
+  "concrete supplier",
+  "mix concrete",
+];
+
+const WEAK_CONCRETE_EXCLUDES = [
+  "concrete contractor",
+  "concrete cutting",
+  "decorative concrete",
+  "concrete pumping",
+  "concrete finishing",
+  "stamped concrete",
+  "concrete repair",
+  "concrete restoration",
 ];
 
 /** Curated ready-mix plants by US state — geocoded when Mapbox POI search is sparse. */
@@ -68,6 +147,20 @@ const US_KNOWN_BATCH_PLANTS: Record<
     {
       name: "NexLevel Redi-Mix",
       address: "10819 S 257th E Ave, Broken Arrow, OK 74014, United States",
+    },
+  ],
+  AR: [
+    {
+      name: "Metro Ready Mix (Little Rock)",
+      address: "1200 East Roosevelt Road, Little Rock, AR 72206, United States",
+    },
+    {
+      name: "Capital Ready Mix",
+      address: "8000 Scott Hamilton Drive, Little Rock, AR 72209, United States",
+    },
+    {
+      name: "Razorback Concrete (North Little Rock)",
+      address: "3800 Lynch Drive, North Little Rock, AR 72117, United States",
     },
   ],
 };
@@ -96,6 +189,71 @@ interface BatchPlantResult {
   driveMinutes?: number;
   confidence: "high" | "medium" | "low";
   source: string;
+}
+
+function candidateHaystack(candidate: SearchCandidate): string {
+  return `${candidate.name} ${candidate.address} ${candidate.poiCategories.join(" ")}`
+    .toLowerCase();
+}
+
+function isExcludedPlantCandidate(candidate: SearchCandidate): boolean {
+  const hay = candidateHaystack(candidate);
+  return EXCLUDED_KEYWORDS.some((kw) => hay.includes(kw));
+}
+
+function isLikelyBatchPlant(candidate: SearchCandidate): boolean {
+  if (
+    candidate.searchTerm.startsWith("curated-") ||
+    candidate.searchTerm === "guam-curated"
+  ) {
+    return true;
+  }
+
+  if (isExcludedPlantCandidate(candidate)) return false;
+
+  const hay = candidateHaystack(candidate);
+
+  if (WEAK_CONCRETE_EXCLUDES.some((kw) => hay.includes(kw))) return false;
+
+  if (STRONG_PLANT_SIGNALS.some((kw) => hay.includes(kw))) return true;
+
+  const plantCategories = [
+    "ready-mix",
+    "ready mix",
+    "concrete",
+    "building materials",
+    "supplier",
+    "cement",
+  ];
+  if (
+    candidate.poiCategories.some((cat) =>
+      plantCategories.some((p) => cat.toLowerCase().includes(p))
+    )
+  ) {
+    return true;
+  }
+
+  // Brand / keyword match — require a concrete-industry term, not generic words alone
+  const brandHit = PLANT_KEYWORDS.some((kw) => hay.includes(kw));
+  if (!brandHit) return false;
+
+  // Single weak tokens like "mixer" or "batch" alone are not enough
+  const hasStrongAdjacent =
+    hay.includes("concrete") ||
+    hay.includes("cement") ||
+    hay.includes("ready") ||
+    hay.includes("redi") ||
+    hay.includes("mix") ||
+    hay.includes("plant") ||
+    hay.includes("aggregate");
+
+  return hasStrongAdjacent;
+}
+
+function filterLikelyBatchPlants(
+  candidates: SearchCandidate[],
+): SearchCandidate[] {
+  return candidates.filter(isLikelyBatchPlant);
 }
 
 function haversineMiles(
@@ -224,7 +382,7 @@ async function searchNearbyPlants(
   ]);
 
   const merged = [...poiFeatures, ...broadFeatures];
-  return mapSearchBoxFeatures(merged, origin, query);
+  return filterLikelyBatchPlants(mapSearchBoxFeatures(merged, origin, query));
 }
 
 /** Geocoding API — finds businesses Mapbox may omit from POI-only search. */
@@ -248,36 +406,35 @@ async function searchGeocodeBusinesses(
   const data = await res.json();
   const features = Array.isArray(data.features) ? data.features : [];
 
-  return features
-    .map((feature: Record<string, unknown>, index: number) => {
-      const geometry = feature.geometry as { coordinates?: [number, number] } | undefined;
-      const coords = geometry?.coordinates;
-      if (!coords) return null;
+  return filterLikelyBatchPlants(
+    features
+      .map((feature: Record<string, unknown>, index: number) => {
+        const geometry = feature.geometry as { coordinates?: [number, number] } | undefined;
+        const coords = geometry?.coordinates;
+        if (!coords) return null;
 
-      const props = (feature.properties ?? {}) as Record<string, unknown>;
-      const [lng, lat] = coords;
-      const name = String(props.name ?? props.full_address ?? "Unknown");
-      const address = formatAddress(props, name);
-      const haystack = `${name} ${address}`.toLowerCase();
-      const looksLikePlant = PLANT_KEYWORDS.some((kw) => haystack.includes(kw));
-      if (!looksLikePlant) return null;
+        const props = (feature.properties ?? {}) as Record<string, unknown>;
+        const [lng, lat] = coords;
+        const name = String(props.name ?? props.full_address ?? "Unknown");
+        const address = formatAddress(props, name);
 
-      return {
-        id: String(props.mapbox_id ?? `geocode-${query}-${index}`),
-        name,
-        address,
-        latitude: lat,
-        longitude: lng,
-        distanceMiles: Number(
-          haversineMiles(origin.lat, origin.lng, lat, lng).toFixed(2),
-        ),
-        poiCategories: ["geocode-business"],
-        searchTerm: `geocode:${query}`,
-      } satisfies SearchCandidate;
-    })
-    .filter((candidate: SearchCandidate | null): candidate is SearchCandidate =>
-      candidate !== null
-    );
+        return {
+          id: String(props.mapbox_id ?? `geocode-${query}-${index}`),
+          name,
+          address,
+          latitude: lat,
+          longitude: lng,
+          distanceMiles: Number(
+            haversineMiles(origin.lat, origin.lng, lat, lng).toFixed(2),
+          ),
+          poiCategories: ["geocode-business"],
+          searchTerm: `geocode:${query}`,
+        } satisfies SearchCandidate;
+      })
+      .filter((candidate: SearchCandidate | null): candidate is SearchCandidate =>
+        candidate !== null
+      ),
+  );
 }
 
 function buildRegionalSearchQueries(projectLocation: string): string[] {
@@ -431,10 +588,13 @@ function scoreCandidate(candidate: SearchCandidate): number {
 function pickBestCandidateFallback(
   candidates: SearchCandidate[],
 ): SearchCandidate | null {
-  if (candidates.length === 0) return null;
+  const eligible = filterLikelyBatchPlants(candidates);
+  if (eligible.length === 0) return null;
 
-  const scored = [...candidates].sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
-  return scored[0] ?? null;
+  const scored = [...eligible].sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
+  const best = scored[0];
+  if (!best || scoreCandidate(best) < 4) return null;
+  return best;
 }
 
 function confidenceFromScore(score: number): BatchPlantResult["confidence"] {
@@ -490,7 +650,7 @@ async function rankWithOpenAI(
             "You select the most likely actual ready-mix concrete batch plant from search results, " +
             "then format the best address for Mapbox routing. Only choose from the provided candidates — " +
             "never invent names or addresses. Prefer ready-mix plants, concrete suppliers, and batch plants. " +
-            "Reject unrelated POIs (restaurants, hardware stores, general contractors) unless no plant exists. " +
+            "Reject unrelated POIs (restaurants, hardware stores, home security, alarm companies, general contractors) unless no plant exists. " +
             "On Guam, ONLY pick plants physically located on Guam (Hawaiian Rock Products, Smithbridge Guam, Hanson Cement, Core Tech). " +
             "Never select California or mainland US plants for a Guam jobsite. " +
             "For US mainland jobsites, pick the nearest credible ready-mix supplier to the project. " +
@@ -524,7 +684,7 @@ async function rankWithOpenAI(
 
     const candidate = candidates.find((item) => item.id === parsed.candidateId) ??
       candidates[0];
-    if (!candidate) return null;
+    if (!candidate || !isLikelyBatchPlant(candidate)) return null;
 
     return {
       candidate,
@@ -693,7 +853,7 @@ serve(async (req) => {
 
     const candidates = filterCandidatesForOrigin(
       origin,
-      dedupeCandidates(searchResults.flat()),
+      dedupeCandidates(filterLikelyBatchPlants(searchResults.flat())),
     );
 
     if (candidates.length === 0) {

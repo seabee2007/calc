@@ -35,8 +35,24 @@ import {
   isQcRecordTypeColumnError,
   mapQcRecordFieldsFromDb,
 } from '../utils/qcRecordDb';
+import {
+  clientInfoToDbPayload,
+  parseClientInfoFromDb,
+} from '../types/projectClient';
 
 const PROJECT_SELECT = `
+  id, name, description, client_info,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  truck_tickets(*),
+  reinforcement_sets(*, cut_list_items(*)),
+  labor_estimates(*)
+`;
+
+const PROJECT_SELECT_NO_CLIENT_INFO = `
   id, name, description,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
@@ -49,6 +65,17 @@ const PROJECT_SELECT = `
 `;
 
 const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
+  id, name, description, client_info,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order,
+  calculations(*),
+  qc_records(*, qc_checklists(*)),
+  truck_tickets(*),
+  reinforcement_sets(*, cut_list_items(*))
+`;
+
+const PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT = `
   id, name, description,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
@@ -60,7 +87,7 @@ const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
 `;
 
 const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
-  id, name, description,
+  id, name, description, client_info,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile,
@@ -71,7 +98,7 @@ const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
 `;
 
 const PROJECT_SELECT_NO_JOBSITE = `
-  id, name, description,
+  id, name, description, client_info,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile,
   calculations(*),
@@ -81,7 +108,7 @@ const PROJECT_SELECT_NO_JOBSITE = `
 `;
 
 const PROJECT_SELECT_LEGACY = `
-  id, name, description,
+  id, name, description, client_info,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile,
   calculations(*),
@@ -91,6 +118,10 @@ const PROJECT_SELECT_LEGACY = `
 
 /** null = unknown, false = migration not applied yet */
 let projectJobsiteColumnsAvailable: boolean | null = null;
+
+function isClientInfoColumnError(message: string): boolean {
+  return message.includes('client_info');
+}
 
 function isJobsiteColumnError(message: string): boolean {
   return (
@@ -155,7 +186,9 @@ function parsePlacementOrder(raw: unknown): PlacementOrder | undefined {
 async function fetchProjectRows() {
   const selects = [
     PROJECT_SELECT,
+    PROJECT_SELECT_NO_CLIENT_INFO,
     PROJECT_SELECT_NO_LABOR_ESTIMATES,
+    PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT,
     PROJECT_SELECT_NO_PLACEMENT_ORDER,
     PROJECT_SELECT_NO_JOBSITE,
     PROJECT_SELECT_LEGACY,
@@ -179,6 +212,13 @@ async function fetchProjectRows() {
         console.warn(
           'Project placement_order column missing — run migration 20250525140000_project_placement_order.sql',
         );
+      } else if (
+        selects[i] === PROJECT_SELECT_NO_CLIENT_INFO ||
+        selects[i] === PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT
+      ) {
+        console.warn(
+          'Project client_info column missing — run migration 20260530120000_project_client_info.sql',
+        );
       }
       return result;
     }
@@ -186,6 +226,7 @@ async function fetchProjectRows() {
     const msg = result.error.message ?? '';
     if (
       isJobsiteColumnError(msg) ||
+      isClientInfoColumnError(msg) ||
       isTruckTicketsSchemaError(msg) ||
       isPlacementOrderColumnError(msg) ||
       isLaborEstimatesSchemaError(msg)
@@ -213,11 +254,72 @@ function selectAfterProjectWrite(): string {
   return PROJECT_SELECT;
 }
 
-async function insertProjectRow(payload: Record<string, unknown>) {
-  const select = selectAfterProjectWrite();
-  let result = await supabase.from('projects').insert(payload).select(select).single();
+async function fetchProjectById(projectId: string) {
+  const selects = [
+    PROJECT_SELECT,
+    PROJECT_SELECT_NO_CLIENT_INFO,
+    PROJECT_SELECT_NO_LABOR_ESTIMATES,
+    PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT,
+    PROJECT_SELECT_NO_PLACEMENT_ORDER,
+    PROJECT_SELECT_NO_JOBSITE,
+    PROJECT_SELECT_LEGACY,
+  ];
 
-  if (result.error && isJobsiteColumnError(result.error.message ?? '')) {
+  for (const select of selects) {
+    const result = await supabase
+      .from('projects')
+      .select(select)
+      .eq('id', projectId)
+      .single();
+
+    if (!result.error) {
+      if (select === PROJECT_SELECT_NO_JOBSITE) {
+        projectJobsiteColumnsAvailable = false;
+      } else if (select === PROJECT_SELECT || select === PROJECT_SELECT_NO_LABOR_ESTIMATES) {
+        projectJobsiteColumnsAvailable = true;
+      }
+      return result;
+    }
+
+    const msg = result.error.message ?? '';
+    if (
+      isJobsiteColumnError(msg) ||
+      isClientInfoColumnError(msg) ||
+      isTruckTicketsSchemaError(msg) ||
+      isPlacementOrderColumnError(msg) ||
+      isLaborEstimatesSchemaError(msg)
+    ) {
+      if (isClientInfoColumnError(msg)) {
+        console.warn(
+          'Project client_info column missing — run migration 20260530120000_project_client_info.sql',
+        );
+      }
+      continue;
+    }
+    return result;
+  }
+
+  return supabase
+    .from('projects')
+    .select(PROJECT_SELECT_LEGACY)
+    .eq('id', projectId)
+    .single();
+}
+
+async function insertProjectRow(payload: Record<string, unknown>) {
+  let body = payload;
+  let insertResult = await supabase.from('projects').insert(body).select('id').single();
+
+  if (insertResult.error && isClientInfoColumnError(insertResult.error.message ?? '')) {
+    const { client_info: _ci, ...withoutClient } = body;
+    console.warn(
+      'Saved project without client_info — run migration 20260530120000_project_client_info.sql',
+    );
+    body = withoutClient;
+    insertResult = await supabase.from('projects').insert(body).select('id').single();
+  }
+
+  if (insertResult.error && isJobsiteColumnError(insertResult.error.message ?? '')) {
     projectJobsiteColumnsAvailable = false;
     const {
       jobsite_street: _s,
@@ -226,18 +328,28 @@ async function insertProjectRow(payload: Record<string, unknown>) {
       jobsite_state: _st,
       jobsite_zip: _z,
       ...withoutJobsite
-    } = payload;
+    } = body;
     console.warn(
       'Saved project without jobsite columns — apply migration 20250525130000_project_jobsite_address.sql to persist addresses.',
     );
-    result = await supabase
+    insertResult = await supabase
       .from('projects')
       .insert(withoutJobsite)
-      .select(PROJECT_SELECT_NO_JOBSITE)
+      .select('id')
       .single();
   }
 
-  return result;
+  if (insertResult.error) return insertResult;
+
+  const projectId = insertResult.data?.id as string | undefined;
+  if (!projectId) {
+    return {
+      data: null,
+      error: { message: 'Project created but no id was returned' },
+    };
+  }
+
+  return fetchProjectById(projectId);
 }
 
 async function updateProjectRow(
@@ -283,6 +395,10 @@ async function updateProjectRow(
       .single();
   }
 
+  if (result.error && isClientInfoColumnError(result.error.message ?? '')) {
+    return fetchProjectById(projectId);
+  }
+
   return result;
 }
 
@@ -324,6 +440,7 @@ function mapProjectFromRow(row: any): Project {
     name: row.name,
     description: row.description,
     jobsiteAddress: mapJobsiteFromRow(row),
+    clientInfo: parseClientInfoFromDb(row.client_info),
     wasteFactor: row.waste_factor,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -634,7 +751,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       throw new Error('User not authenticated');
     }
   
-    const { data, error } = await insertProjectRow({
+    const insertPayload: Record<string, unknown> = {
       user_id: user.id,
       name: project.name,
       description: project.description || '',
@@ -642,8 +759,23 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       waste_factor: project.wasteFactor ?? 10,
       pour_date: project.pourDate ?? null,
       mix_profile: 'standard',
-    });
+    };
+    const clientPayload = clientInfoToDbPayload(project.clientInfo);
+    if (clientPayload) {
+      insertPayload.client_info = clientPayload;
+    }
 
+    let result = await insertProjectRow(insertPayload);
+
+    if (result.error && isClientInfoColumnError(result.error.message ?? '')) {
+      const { client_info: _ci, ...withoutClient } = insertPayload;
+      console.warn(
+        'Saved project without client_info — run migration 20260530120000_project_client_info.sql',
+      );
+      result = await insertProjectRow(withoutClient);
+    }
+
+    const { data, error } = result;
     if (error) throw error;
   
     const newProj = mapProjectFromRow(data);
@@ -667,8 +799,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (projectData.jobsiteAddress !== undefined) {
       Object.assign(payload, jobsitePayload(projectData.jobsiteAddress));
     }
+    if (projectData.clientInfo !== undefined) {
+      payload.client_info = clientInfoToDbPayload(projectData.clientInfo) ?? {};
+    }
 
-    const { data, error } = await updateProjectRow(projectId, payload);
+    let result = await updateProjectRow(projectId, payload);
+
+    if (result.error && isClientInfoColumnError(result.error.message ?? '')) {
+      const { client_info: _ci, ...withoutClient } = payload;
+      result = await updateProjectRow(projectId, withoutClient);
+    }
+
+    const { data, error } = result;
     if (error) throw error;
 
     const updated = mapProjectFromRow(data);
@@ -691,11 +833,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   setCurrentProject: (projectId) => {
-    set((s) => ({
-      currentProject: projectId
-        ? s.projects.find(p => p.id === projectId) || null
-        : null
-    }));
+    set((s) => {
+      if (!projectId) {
+        return { currentProject: null };
+      }
+      const found = s.projects.find((p) => p.id === projectId);
+      if (found) {
+        return { currentProject: found };
+      }
+      if (s.currentProject?.id === projectId) {
+        return {};
+      }
+      return { currentProject: null };
+    });
   },
 
   // --- Calculation CRUD (full, unmodified) ---

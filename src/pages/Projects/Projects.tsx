@@ -162,7 +162,10 @@ const Projects: React.FC = () => {
             onCancel={() => setUi(s => ({ ...s, editing: false }))}
             initialData={{
               name: currentProject.name,
-              description: currentProject.description
+              description: currentProject.description,
+              jobsiteAddress: currentProject.jobsiteAddress,
+              clientInfo: currentProject.clientInfo,
+              pourDate: currentProject.pourDate?.split('T')[0],
             }}
             isEditing
           />

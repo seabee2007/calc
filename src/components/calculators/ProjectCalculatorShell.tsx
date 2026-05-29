@@ -44,6 +44,7 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
       name: data.name,
       description: data.description,
       jobsiteAddress: data.jobsiteAddress,
+      clientInfo: data.clientInfo,
     });
     setShowCreateProjectModal(false);
   };

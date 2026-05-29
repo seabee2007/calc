@@ -237,6 +237,7 @@ const Projects: React.FC = () => {
         jobsiteAddress: data.jobsiteAddress
           ? sanitizeUSAddress(data.jobsiteAddress)
           : undefined,
+        clientInfo: data.clientInfo,
       });
       setShowCreateForm(false);
       showToastMessage('Project created successfully', 'success');
@@ -266,6 +267,7 @@ const Projects: React.FC = () => {
         description: data.description,
         pourDate: data.pourDate,
         jobsiteAddress: data.jobsiteAddress,
+        clientInfo: data.clientInfo,
       });
       setEditingProject(false);
       showToastMessage('Project updated successfully', 'success');

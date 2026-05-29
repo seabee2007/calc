@@ -73,7 +73,22 @@ export function useProjects() {
     }
 
     if (state?.showProjectDetails && state?.projectId) {
-      openProjectDetails(state.projectId);
+      const id = state.projectId;
+      const store = useProjectStore.getState();
+      const ready =
+        store.currentProject?.id === id || projects.some((p) => p.id === id);
+      if (ready) {
+        openProjectDetails(id);
+      } else {
+        void loadProjects().then(() => {
+          const next = useProjectStore.getState();
+          if (next.currentProject?.id === id || next.projects.some((p) => p.id === id)) {
+            openProjectDetails(id);
+          } else {
+            setUi((s) => ({ ...s, showDetails: false }));
+          }
+        });
+      }
       return;
     }
     if (projectIdFromQuery) {
@@ -115,34 +130,46 @@ export function useProjects() {
 
   const handlers = {
     create: async (data: ProjectFormData) => {
-      await addProject({
-        name: data.name,
-        description: data.description,
-        jobsiteAddress: data.jobsiteAddress,
-        pourDate: data.pourDate,
-      });
-      const newProjectId = useProjectStore.getState().currentProject?.id;
-      if (newProjectId) {
-        setCurrentProject(newProjectId);
+      try {
+        await addProject({
+          name: data.name,
+          description: data.description,
+          jobsiteAddress: data.jobsiteAddress,
+          clientInfo: data.clientInfo,
+          pourDate: data.pourDate,
+        });
+        const newProject = useProjectStore.getState().currentProject;
+        if (!newProject) {
+          toast('Project created but could not open details', 'error');
+          setUi((s) => ({ ...s, showCreate: false, showDetails: false }));
+          return;
+        }
+        setUi((s) => ({
+          ...s,
+          showCreate: false,
+          showDetails: true,
+          editing: false,
+        }));
+        navigate('/projects', {
+          replace: true,
+          state: { showProjectDetails: true, projectId: newProject.id },
+        });
+        toast('Project created successfully', 'success');
+      } catch (err) {
+        console.error('Error creating project:', err);
+        toast('Error creating project', 'error');
       }
-      setUi((s) => ({
-        ...s,
-        showCreate: false,
-        showDetails: true,
-        editing: false,
-      }));
-      navigate('/projects', {
-        replace: true,
-        state: newProjectId
-          ? { showProjectDetails: true, projectId: newProjectId }
-          : undefined,
-      });
-      toast('Project created successfully', 'success');
     },
 
-    update: async (data: { name: string; description: string }) => {
+    update: async (data: ProjectFormData) => {
       if (currentProject) {
-        await updateProject(currentProject.id, data);
+        await updateProject(currentProject.id, {
+          name: data.name,
+          description: data.description,
+          jobsiteAddress: data.jobsiteAddress,
+          clientInfo: data.clientInfo,
+          pourDate: data.pourDate,
+        });
         setUi(s => ({ ...s, editing: false }));
         toast('Project updated successfully', 'success');
       }

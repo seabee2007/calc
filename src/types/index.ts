@@ -5,10 +5,13 @@ import type { PlacementOrder } from './placementOrder';
 import type { LaborEstimate } from './laborEstimate';
 import type { ReinforcementPricing } from './laborEstimate';
 import type { MixDesignApproval } from './mixDesignApproval';
+import type { ProjectClientInfo } from './projectClient';
 
 export type { USAddress } from './address';
 
 export type { StoredTruckTicketRecord } from './concreteTruckTicket';
+
+export type { ProjectClientInfo } from './projectClient';
 
 // User preferences interface
 export interface UserPreferences {
@@ -219,6 +222,7 @@ export interface Project {
   name: string;
   description: string;
   jobsiteAddress?: USAddress;
+  clientInfo?: ProjectClientInfo;
   createdAt: string;
   updatedAt: string;
   calculations: Calculation[];

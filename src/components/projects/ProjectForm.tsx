@@ -5,24 +5,27 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
 import USAddressFields from '../address/USAddressFields';
-import { Project, USAddress } from '../../types';
+import type { USAddress } from '../../types/address';
+import type { ProjectClientInfo } from '../../types/projectClient';
 import {
   EMPTY_US_ADDRESS,
+  copyUSAddress,
   formatUSAddress,
   isUSAddressGeocodable,
-  copyUSAddress,
   mergeVerifiedJobsiteAddress,
   repairJobsiteAddress,
   sanitizeUSAddress,
   validateUSAddress,
 } from '../../types/address';
 import { verifyJobsiteAddress } from '../../services/geocodeService';
+import { EMPTY_PROJECT_CLIENT } from '../../types/projectClient';
 
 export interface ProjectFormData {
   name: string;
   description: string;
   pourDate?: string;
   jobsiteAddress: USAddress;
+  clientInfo: ProjectClientInfo;
 }
 
 interface ProjectFormProps {
@@ -63,6 +66,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     jobsiteAddress: initialData?.jobsiteAddress
       ? repairJobsiteAddress(initialData.jobsiteAddress)
       : defaultJobsite(),
+    clientInfo: {
+      ...EMPTY_PROJECT_CLIENT,
+      ...initialData?.clientInfo,
+      clientAddress: initialData?.clientInfo?.clientAddress
+        ? repairJobsiteAddress(initialData.clientInfo.clientAddress)
+        : { ...EMPTY_US_ADDRESS },
+    },
   });
 
   const {
@@ -71,10 +81,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     control,
     getValues,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ProjectFormData>({
     defaultValues: buildDefaults(),
   });
+
+  const clientSameAsJobsite = watch('clientInfo.clientAddressSameAsJobsite');
 
   useEffect(() => {
     reset(buildDefaults());
@@ -87,6 +100,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     initialData?.jobsiteAddress?.city,
     initialData?.jobsiteAddress?.state,
     initialData?.jobsiteAddress?.zip,
+    initialData?.clientInfo?.clientName,
+    initialData?.clientInfo?.clientCompany,
     hidePourDate,
     reset,
   ]);
@@ -143,6 +158,18 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     const payload: ProjectFormData = {
       ...data,
       jobsiteAddress: sanitizeUSAddress(jobsite),
+      clientInfo: {
+        ...data.clientInfo,
+        clientName: data.clientInfo.clientName.trim(),
+        clientCompany: data.clientInfo.clientCompany?.trim(),
+        clientPhone: data.clientInfo.clientPhone?.trim(),
+        clientEmail: data.clientInfo.clientEmail?.trim(),
+        clientAddressSameAsJobsite: data.clientInfo.clientAddressSameAsJobsite !== false,
+        clientAddress:
+          data.clientInfo.clientAddressSameAsJobsite === false
+            ? sanitizeUSAddress(data.clientInfo.clientAddress ?? EMPTY_US_ADDRESS)
+            : undefined,
+      },
     };
     if (hidePourDate) delete payload.pourDate;
     await onSubmit(payload);
@@ -157,16 +184,84 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         {...register('name', { required: 'Project name is required' })}
       />
 
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+            Client information
+          </h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Pre-fills the proposal client section when you generate a quote.
+          </p>
+        </div>
+        <Input
+          label="Client name"
+          fullWidth
+          error={errors.clientInfo?.clientName?.message?.toString()}
+          {...register('clientInfo.clientName', {
+            required: isEditing ? false : 'Client name is required',
+          })}
+        />
+        <Input
+          label="Client company"
+          fullWidth
+          {...register('clientInfo.clientCompany')}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Client phone"
+            type="tel"
+            fullWidth
+            {...register('clientInfo.clientPhone')}
+          />
+          <Input
+            label="Client email"
+            type="email"
+            fullWidth
+            {...register('clientInfo.clientEmail')}
+          />
+        </div>
+        <Controller
+          name="clientInfo.clientAddressSameAsJobsite"
+          control={control}
+          render={({ field }) => (
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 dark:border-gray-600"
+                checked={field.value !== false}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+              Client address same as jobsite
+            </label>
+          )}
+        />
+        {clientSameAsJobsite === false && (
+          <Controller
+            name="clientInfo.clientAddress"
+            control={control}
+            render={({ field }) => (
+              <USAddressFields
+                value={field.value ?? EMPTY_US_ADDRESS}
+                onChange={field.onChange}
+                showStreet2
+                idPrefix="project-client"
+              />
+            )}
+          />
+        )}
+      </div>
+
       <div>
         <label
           htmlFor="description"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
-          Description
+          Scope / description
         </label>
         <textarea
           id="description"
           rows={3}
+          placeholder="Brief scope of work — carries into the proposal scope section."
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
           {...register('description')}
         />
