@@ -3,10 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FolderKanban } from 'lucide-react';
 import { useProjectStore } from '../store';
-import { useAuth } from '../hooks/useAuth';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
-import { useToolsModalStore } from '../store/toolsModalStore';
-import { workflowQuery } from '../utils/workflow';
 import { buildOperationsSnapshot, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
 import {
   buildProjectRiskReview,
@@ -43,22 +40,8 @@ function formatPourDateLabel(d: Date): string {
   return `${weekday}, ${monthDay} • ${time}`;
 }
 
-function resolveDisplayName(
-  user: ReturnType<typeof useAuth>['user'],
-): string {
-  const meta = user?.user_metadata as { full_name?: string; name?: string } | undefined;
-  const full = meta?.full_name ?? meta?.name;
-  if (typeof full === 'string' && full.trim()) {
-    return full.trim().split(/\s+/)[0] ?? 'there';
-  }
-  const email = user?.email;
-  if (email) return email.split('@')[0] ?? 'there';
-  return 'there';
-}
-
 const OperationsDashboard: React.FC = () => {
   const { projects } = useProjectStore();
-  const { user } = useAuth();
   const location = useLocation();
   const { proposals, refresh: refreshProposals } = useTrackedProposals();
   const navigate = useNavigate();
@@ -72,8 +55,6 @@ const OperationsDashboard: React.FC = () => {
       void refreshProposals();
     }
   }, [location.pathname, refreshProposals]);
-  const openTools = useToolsModalStore((s) => s.open);
-
   const operationalProjects = useMemo(
     () => projects.filter((p) => !isProjectClosedOut(p)),
     [projects],
@@ -205,13 +186,11 @@ const OperationsDashboard: React.FC = () => {
       className={`${OPS_SHELL} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
     >
       <DashboardHero
-        displayName={resolveDisplayName(user)}
         activeProjects={snapshot.activeProjectCount}
         placementsToday={snapshot.todayPourCount}
         proposalsSent={snapshot.proposalsSentCount}
         onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
-        onQuickQuote={() => navigate(`/proposals${workflowQuery()}`)}
-        onTools={openTools}
+        onQuickQuote={() => navigate('/proposal-generator')}
       />
 
       <section className="space-y-4 lg:hidden">

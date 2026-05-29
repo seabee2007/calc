@@ -94,6 +94,216 @@ export function isProjectClosedOut(project: Project): boolean {
   return status === 'completed' || status === 'cancelled';
 }
 
+/** Finished lifecycle stages (job done or archived). */
+export function isProjectTerminalStage(stage: ProjectWorkflowStage): boolean {
+  return stage === 'closed' || stage === 'paid' || stage === 'job_completed';
+}
+
+export interface ProjectCardPresentation {
+  priorityLabel: string;
+  priorityBadgeClass: string;
+  priorityRingClass: string;
+  progressPct: number;
+  nextActionLabel: string;
+  scheduleFooterLabel: string;
+  scheduleFooterComplete: boolean;
+  hidePlacementOrder: boolean;
+  /** Top-right date on project cards — scheduled vs past/archived. */
+  cornerDateLabel: string;
+}
+
+function formatScheduledPourTime(d: Date): string {
+  return d.toLocaleString(undefined, {
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+function formatPastPourDate(d: Date): string {
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function getProjectCardCornerDateLabel(
+  stage: ProjectWorkflowStage,
+  pourDate: Date | null,
+): string {
+  if (stage === 'closed') {
+    return pourDate ? `Placed ${formatPastPourDate(pourDate)}` : 'Archived';
+  }
+  if (stage === 'paid' || stage === 'job_completed') {
+    return pourDate ? `Placed ${formatPastPourDate(pourDate)}` : 'No placement date';
+  }
+  if (stage === 'placed') {
+    return pourDate ? `Placed ${formatScheduledPourTime(pourDate)}` : 'Placement date: —';
+  }
+  return pourDate ? formatScheduledPourTime(pourDate) : 'Placement date: —';
+}
+
+type ProjectCardPresentationCore = Omit<ProjectCardPresentation, 'cornerDateLabel'>;
+
+function finalizeProjectCardPresentation(
+  core: ProjectCardPresentationCore,
+  stage: ProjectWorkflowStage,
+  pourDate: Date | null,
+): ProjectCardPresentation {
+  return {
+    ...core,
+    cornerDateLabel: getProjectCardCornerDateLabel(stage, pourDate),
+  };
+}
+
+export function getProjectCardPresentation(
+  stage: ProjectWorkflowStage,
+  nextActionLabel: string,
+  hasPourDate: boolean,
+  pourDate?: Date | null,
+): ProjectCardPresentation {
+  const pour = pourDate ?? null;
+  const stageIdx = workflowStageProgressIndex(stage);
+  const maxIdx = PROJECT_LIFECYCLE_STAGE_ORDER.length - 1;
+  const baseProgress = Math.round((stageIdx / maxIdx) * 100);
+
+  if (stage === 'closed') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Closed',
+        priorityBadgeClass: 'bg-slate-600/25 text-slate-200 border-slate-500/50',
+        priorityRingClass: 'ring-1 ring-slate-500/40',
+        progressPct: 100,
+        nextActionLabel: 'No further action',
+        scheduleFooterLabel: 'Project closed',
+        scheduleFooterComplete: true,
+        hidePlacementOrder: true,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (stage === 'paid') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Paid',
+        priorityBadgeClass: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
+        priorityRingClass: 'ring-1 ring-emerald-500/35',
+        progressPct: 100,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: hasPourDate ? 'Placement complete' : 'Awaiting close-out',
+        scheduleFooterComplete: true,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (stage === 'job_completed') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Complete',
+        priorityBadgeClass: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
+        priorityRingClass: 'ring-1 ring-emerald-500/35',
+        progressPct: 100,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: hasPourDate ? 'Job complete' : 'Wrap up billing',
+        scheduleFooterComplete: true,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (stage === 'placed') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Placed',
+        priorityBadgeClass: 'bg-cyan-500/15 text-cyan-200 border-cyan-500/40',
+        priorityRingClass: 'ring-1 ring-cyan-500/35',
+        progressPct: baseProgress,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: hasPourDate ? 'Placed' : 'Needs schedule',
+        scheduleFooterComplete: hasPourDate,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (stage === 'created' || stage === 'estimating') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Waiting',
+        priorityBadgeClass: 'bg-amber-500/15 text-amber-200 border-amber-500/40',
+        priorityRingClass: 'ring-1 ring-amber-500/40',
+        progressPct: baseProgress,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: hasPourDate ? 'Scheduled' : 'Needs schedule',
+        scheduleFooterComplete: hasPourDate,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if ((stage === 'proposal_sent' || stage === 'accepted') && !hasPourDate) {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Needs attention',
+        priorityBadgeClass: 'bg-red-500/15 text-red-200 border-red-500/40',
+        priorityRingClass: 'ring-1 ring-red-500/35',
+        progressPct: baseProgress,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: 'Needs schedule',
+        scheduleFooterComplete: false,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (stage === 'ordered' || stage === 'placement_scheduled' || stage === 'mix_approved') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'Ready',
+        priorityBadgeClass: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
+        priorityRingClass: 'ring-1 ring-emerald-500/35',
+        progressPct: baseProgress,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: hasPourDate ? 'Scheduled' : 'Needs schedule',
+        scheduleFooterComplete: hasPourDate,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  return finalizeProjectCardPresentation(
+    {
+      priorityLabel: 'On track',
+      priorityBadgeClass: 'bg-slate-500/15 text-slate-200 border-slate-500/40',
+      priorityRingClass: 'ring-1 ring-slate-500/30',
+      progressPct: baseProgress,
+      nextActionLabel: nextActionLabel,
+      scheduleFooterLabel: hasPourDate ? 'Scheduled' : 'Needs schedule',
+      scheduleFooterComplete: hasPourDate,
+      hidePlacementOrder: false,
+    },
+    stage,
+    pour,
+  );
+}
+
 export interface ReadinessIssue {
   id: string;
   message: string;
@@ -380,7 +590,11 @@ export function computeProjectHealthScore(
   order: PlacementOrder | undefined,
   readinessScore: number,
   issueCount: number,
+  stage?: ProjectWorkflowStage,
 ): number {
+  if (stage === 'closed' || isProjectClosedOut(project)) return 100;
+  if (stage === 'paid' || stage === 'job_completed') return 100;
+
   let score = readinessScore * 0.45;
   if (project.pourDate) score += 15;
   if (order?.batchPlantName) score += 12;
@@ -424,15 +638,19 @@ export function resolveProjectWorkflow(
     manual && manual in PROJECT_WORKFLOW_LABELS
       ? normalizeWorkflowStageForDisplay(manual)
       : normalizeWorkflowStageForDisplay(inferred);
-  const readinessIssues = buildReadinessIssues(project, order, {
-    wind,
-    heat,
-  }, mixDesign);
+  const readinessIssues =
+    stage === 'closed' || isProjectClosedOut(project)
+      ? []
+      : buildReadinessIssues(project, order, {
+          wind,
+          heat,
+        }, mixDesign);
   const healthScore = computeProjectHealthScore(
     project,
     order,
     readinessScore,
     readinessIssues.length,
+    stage,
   );
 
   return {

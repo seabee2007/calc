@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import ResourceCard from '../components/resources/ResourceCard';
 import ConcreteChat from '../components/ConcreteChat';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import finishConcreteImage from '../assets/images/finishconcrete.jpg';
 import rebarImage from '../assets/images/rebar.jpg';
@@ -187,18 +186,10 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
         </div>
 
         {showChat && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-2xl h-[600px] relative">
-              <button 
-                onClick={() => setShowChat(false)}
-                className="absolute top-4 right-4 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 z-10"
-              >
-                <span className="text-xl font-bold">✕</span>
-              </button>
-              <div className="h-full">
-                <ConcreteChat isModal onClose={() => setShowChat(false)} />
-              </div>
-            </Card>
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="w-full max-w-md h-[min(600px,90vh)]">
+              <ConcreteChat isModal onClose={() => setShowChat(false)} />
+            </div>
           </div>
         )}
       </div>

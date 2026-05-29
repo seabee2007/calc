@@ -31,6 +31,7 @@ import {
   workflowStageProgressIndex,
   normalizeWorkflowStageForDisplay,
   shouldShowConfigurePlacement,
+  getProjectCardPresentation,
   type ProjectWorkflowStage,
 } from '../../utils/projectWorkflow';
 import { workflowQuery } from '../../utils/workflow';
@@ -162,9 +163,12 @@ export default function ProjectDetails() {
     workflow.stage as ProjectWorkflowStage,
   );
   const stageIndex = workflowStageProgressIndex(workflow.stage as ProjectWorkflowStage);
-  const progressPct = Math.round(
-    (stageIndex / (PROJECT_LIFECYCLE_STAGE_ORDER.length - 1)) * 100,
-  );
+  const progressPct = getProjectCardPresentation(
+    workflow.stage as ProjectWorkflowStage,
+    workflow.nextAction.label,
+    Boolean(project?.pourDate),
+    project?.pourDate ? new Date(project.pourDate) : null,
+  ).progressPct;
 
   const pourDetails = useMemo(() => {
     const order = p.placementOrder;

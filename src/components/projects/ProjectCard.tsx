@@ -10,10 +10,8 @@ import { hapticService } from '../../services/hapticService';
 import {
   resolveProjectWorkflow,
   PROJECT_WORKFLOW_LABELS,
-  PROJECT_LIFECYCLE_STAGE_ORDER,
-  workflowStageProgressIndex,
   normalizeWorkflowStageForDisplay,
-  type ProjectWorkflowStage,
+  getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
 import {
   PLACEMENT_ORDER_STATUS_LABELS,
@@ -28,45 +26,10 @@ interface ProjectCardProps {
   onDelete: () => void;
 }
 
-const STAGE_ORDER = PROJECT_LIFECYCLE_STAGE_ORDER;
-
 function parsePourDate(iso?: string): Date | null {
   if (!iso) return null;
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function priorityTone(stage: ProjectWorkflowStage, hasPourDate: boolean): {
-  ring: string;
-  badge: string;
-  label: string;
-} {
-  if (stage === 'created' || stage === 'estimating') {
-    return {
-      ring: 'ring-1 ring-amber-500/40',
-      badge: 'bg-amber-500/15 text-amber-200 border-amber-500/40',
-      label: 'Waiting',
-    };
-  }
-  if ((stage === 'proposal_sent' || stage === 'accepted') && !hasPourDate) {
-    return {
-      ring: 'ring-1 ring-red-500/35',
-      badge: 'bg-red-500/15 text-red-200 border-red-500/40',
-      label: 'Needs attention',
-    };
-  }
-  if (stage === 'ordered' || stage === 'placement_scheduled' || stage === 'mix_approved') {
-    return {
-      ring: 'ring-1 ring-emerald-500/35',
-      badge: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
-      label: 'Ready',
-    };
-  }
-  return {
-    ring: 'ring-1 ring-slate-500/30',
-    badge: 'bg-slate-500/15 text-slate-200 border-slate-500/40',
-    label: 'On track',
-  };
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete }) => {
@@ -119,11 +82,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
   });
 
   const displayStage = normalizeWorkflowStageForDisplay(workflow.stage);
-  const stageIdx = workflowStageProgressIndex(workflow.stage);
-  const progressPct = Math.round((stageIdx / (STAGE_ORDER.length - 1)) * 100);
   const pourDate = parsePourDate(p.pourDate);
-  const pourLabel = pourDate ? format(pourDate, 'EEE HH:mm') : 'Placement date: —';
-  const tone = priorityTone(displayStage, Boolean(p.pourDate));
+  const hasPourDate = Boolean(p.pourDate);
+  const presentation = getProjectCardPresentation(
+    workflow.stage,
+    workflow.nextAction.label,
+    hasPourDate,
+    pourDate,
+  );
 
   const volumeYd = (p.calculations ?? []).reduce(
     (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
@@ -146,7 +112,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
       whileTap={{ scale: 0.98 }}
     >
       <Card 
-        className={`cursor-pointer h-full ${tone.ring}`}
+        className={`cursor-pointer h-full ${presentation.priorityRingClass}`}
         shadow="md"
       >
         <div className="p-5">
@@ -185,11 +151,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
 
           <div className="flex items-center justify-between gap-2 mb-3" onClick={handleCardClick}>
             <span
-              className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${tone.badge}`}
+              className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${presentation.priorityBadgeClass}`}
             >
-              {tone.label}
+              {presentation.priorityLabel}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{pourLabel}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 text-right shrink-0 max-w-[50%] truncate">
+              {presentation.cornerDateLabel}
+            </span>
           </div>
 
           <div
@@ -204,14 +172,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">Next action</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 flex items-center gap-2">
               <ArrowRight className="h-4 w-4 text-cyan-500" />
-              <span className="truncate">{workflow.nextAction.label}</span>
+              <span className="truncate">{presentation.nextActionLabel}</span>
             </p>
-            <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">
-              Placement order
-            </p>
-            <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 truncate" title={orderStatusLabel}>
-              {orderStatusLabel}
-            </p>
+            {!presentation.hidePlacementOrder && (
+              <>
+                <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">
+                  Placement order
+                </p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 truncate" title={orderStatusLabel}>
+                  {orderStatusLabel}
+                </p>
+              </>
+            )}
             {workflow.mixDesign && workflow.mixDesign.totalPlacements > 0 && (
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
                 Mix designs: {workflow.mixDesign.approvedCount}/
@@ -223,12 +195,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
           <div className="mb-3" onClick={handleCardClick}>
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
               <span>Progress</span>
-              <span className="font-semibold text-gray-700 dark:text-gray-200">{progressPct}%</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-200">
+                {presentation.progressPct}%
+              </span>
             </div>
             <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
-                className="h-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full"
-                style={{ width: `${progressPct}%` }}
+                className={`h-2 rounded-full ${
+                  workflow.stage === 'closed'
+                    ? 'bg-slate-500'
+                    : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
+                }`}
+                style={{ width: `${presentation.progressPct}%` }}
               />
             </div>
           </div>
@@ -250,15 +228,21 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onDelete })
               <Clock className="h-4 w-4 mr-1" />
               <span>{formattedDate}</span>
             </div>
-            {p.pourDate ? (
+            {presentation.scheduleFooterComplete ? (
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                <span>Scheduled</span>
+                <CheckCircle2
+                  className={`h-4 w-4 ${
+                    workflow.stage === 'closed'
+                      ? 'text-slate-400'
+                      : 'text-emerald-500'
+                  }`}
+                />
+                <span>{presentation.scheduleFooterLabel}</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span>Needs schedule</span>
+                <span>{presentation.scheduleFooterLabel}</span>
               </div>
             )}
           </div>
