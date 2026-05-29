@@ -307,8 +307,8 @@ const Proposals: React.FC = () => {
             />
           </div>
 
-          {/* Status filter tabs */}
-          <div className="mt-5 flex flex-wrap gap-2">
+          {/* Status filter tabs — horizontal scroll on mobile keeps pills aligned */}
+          <div className="mt-5 flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
             {tabs.map((t) => {
               const selected = t.key === selectedStatus;
               return (
@@ -317,19 +317,19 @@ const Proposals: React.FC = () => {
                   type="button"
                   onClick={() => setSelectedStatus(t.key)}
                   className={[
-                    'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
+                    'shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition',
                     selected
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
+                      : 'border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
                   ].join(' ')}
                 >
-                  <span>{t.label}</span>
+                  <span className="whitespace-nowrap">{t.label}</span>
                   <span
                     className={[
-                      'rounded-full px-2 py-0.5 text-xs',
+                      'rounded-full px-2 py-0.5 text-xs font-semibold',
                       selected
                         ? 'bg-white/20 text-white'
-                        : 'bg-white text-slate-700 ring-1 ring-slate-200 dark:bg-gray-900 dark:text-gray-200 dark:ring-gray-700',
+                        : 'bg-slate-200/80 text-slate-700 dark:bg-white/10 dark:text-slate-200',
                     ].join(' ')}
                   >
                     {t.count ?? 0}

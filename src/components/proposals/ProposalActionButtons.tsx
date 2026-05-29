@@ -9,11 +9,12 @@ type OverflowItem = {
   onClick: () => void;
 };
 
-function OverflowMenu({
-  items,
-}: {
-  items: OverflowItem[];
-}) {
+const MOBILE_PRIMARY =
+  'h-12 w-full rounded-xl bg-slate-700 font-semibold text-white transition hover:bg-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600';
+const MOBILE_OUTLINE =
+  'h-12 w-full rounded-xl border border-slate-300 font-semibold text-slate-900 transition hover:bg-slate-50 dark:border-slate-600 dark:text-white dark:hover:bg-slate-800';
+
+function OverflowMenu({ items }: { items: OverflowItem[] }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -48,7 +49,7 @@ function OverflowMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+          className="absolute right-0 z-10 mt-2 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
         >
           {safeItems.map((item) => (
             <button
@@ -90,29 +91,60 @@ export default function ProposalActionButtons({
   onShareLink: () => void;
   overflowItems?: OverflowItem[];
 }) {
+  const hasOverflow = (overflowItems?.length ?? 0) > 0;
+
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
-        <Button variant="secondary" size="sm" onClick={onOpen} className="justify-center">
+    <div className="space-y-3">
+      {/* Mobile: aligned 2×2 grid + full-width share */}
+      <div className="grid grid-cols-2 gap-3 sm:hidden">
+        <button type="button" className={MOBILE_PRIMARY} onClick={onOpen}>
           Open
-        </Button>
-        <Button variant="outline" size="sm" onClick={onSend} className="justify-center">
+        </button>
+        <button type="button" className={MOBILE_OUTLINE} onClick={onSend}>
           Send
-        </Button>
-        <Button variant="outline" size="sm" onClick={onDuplicate} className="justify-center">
+        </button>
+        <button type="button" className={MOBILE_OUTLINE} onClick={onDuplicate}>
           Duplicate
-        </Button>
-        <Button variant="outline" size="sm" onClick={onPdf} className="justify-center">
+        </button>
+        <button type="button" className={MOBILE_OUTLINE} onClick={onPdf}>
           PDF
-        </Button>
-        <Button variant="outline" size="sm" onClick={onShareLink} className="justify-center sm:w-auto">
+        </button>
+        <button
+          type="button"
+          className={`col-span-2 ${MOBILE_OUTLINE}`}
+          onClick={onShareLink}
+        >
           Share Link
-        </Button>
+        </button>
       </div>
-      <div className="flex justify-end">
-        <OverflowMenu items={overflowItems ?? []} />
+
+      {/* Desktop: compact row */}
+      <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={onOpen}>
+            Open
+          </Button>
+          <Button variant="outline" size="sm" onClick={onSend}>
+            Send
+          </Button>
+          <Button variant="outline" size="sm" onClick={onDuplicate}>
+            Duplicate
+          </Button>
+          <Button variant="outline" size="sm" onClick={onPdf}>
+            PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={onShareLink}>
+            Share Link
+          </Button>
+        </div>
+        {hasOverflow ? <OverflowMenu items={overflowItems ?? []} /> : null}
       </div>
+
+      {hasOverflow ? (
+        <div className="flex justify-end sm:hidden">
+          <OverflowMenu items={overflowItems ?? []} />
+        </div>
+      ) : null}
     </div>
   );
 }
-
