@@ -28,6 +28,7 @@ import { soundService } from '../services/soundService';
 import KPIStatCard from '../components/proposals/KPIStatCard';
 import ProposalStatusBadge from '../components/proposals/ProposalStatusBadge';
 import ProposalActionButtons from '../components/proposals/ProposalActionButtons';
+import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
 
 const Proposals: React.FC = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const Proposals: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<'all' | ProposalStatus>('all');
+  const [sentProposalUrl, setSentProposalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadProposals();
@@ -144,8 +146,9 @@ const Proposals: React.FC = () => {
 
   const handleSend = async (proposalId: string) => {
     try {
-      await markProposalSent(proposalId);
+      const sent = await markProposalSent(proposalId);
       await loadProposals();
+      setSentProposalUrl(getPublicProposalUrl(sent.public_token));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send proposal');
     }
@@ -601,6 +604,12 @@ const Proposals: React.FC = () => {
             </div>
           </div>
         )}
+
+        <ProposalSentLinkModal
+          isOpen={Boolean(sentProposalUrl)}
+          onClose={() => setSentProposalUrl(null)}
+          proposalUrl={sentProposalUrl ?? ''}
+        />
         </div>
       </div>
     </div>

@@ -21,6 +21,7 @@ import {
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
 import ProposalTemplateModern from '../components/proposals/ProposalTemplateModern';
 import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMinimal';
+import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
 import Button from '../components/ui/Button';
 import { generateProposalPDF } from '../utils/pdf';
 import { useSettingsStore } from '../store';
@@ -71,6 +72,7 @@ const ProposalGenerator: React.FC = () => {
   const getProposalDraft = useWorkflowDraftStore((s) => s.getProposalDraft);
   const saveProposalDraft = useWorkflowDraftStore((s) => s.saveProposalDraft);
   const [workflowStepReady, setWorkflowStepReady] = useState(false);
+  const [sentProposalUrl, setSentProposalUrl] = useState<string | null>(null);
 
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
   const [showPreview, setShowPreview] = useState(isPreviewMode);
@@ -822,14 +824,7 @@ const ProposalGenerator: React.FC = () => {
       const saved = await persistProposal();
       const sent = await markProposalSent(saved.id);
       const url = getPublicProposalUrl(sent.public_token);
-      try {
-        await navigator.clipboard.writeText(url);
-        alert(
-          `Proposal marked as sent.\n\nClient link copied to clipboard:\n${url}`,
-        );
-      } catch {
-        alert(`Proposal sent. Share this link with your client:\n${url}`);
-      }
+      setSentProposalUrl(url);
     } catch (error) {
       console.error('Send proposal failed:', error);
       alert(
@@ -1793,6 +1788,12 @@ const ProposalGenerator: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ProposalSentLinkModal
+        isOpen={Boolean(sentProposalUrl)}
+        onClose={() => setSentProposalUrl(null)}
+        proposalUrl={sentProposalUrl ?? ''}
+      />
     </div>
   );
 };
