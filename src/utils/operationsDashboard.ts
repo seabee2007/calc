@@ -4,6 +4,7 @@ import { PLACEMENT_ORDER_STATUS_LABELS } from '../types/placementOrder';
 import { MITIGATION_OPTIONS } from './pourMitigations';
 import {
   buildReadinessIssues,
+  isProjectClosedOut,
   resolveProjectWorkflow,
   type ProjectNextAction,
   type ProjectWorkflowStage,
@@ -513,6 +514,7 @@ export function buildUpcomingPlacements(
   const rows: UpcomingPlacementRow[] = [];
 
   for (const project of projects) {
+    if (isProjectClosedOut(project)) continue;
     const pourDate = parsePourDate(project.pourDate);
     if (!pourDate || pourDate < today) continue;
 

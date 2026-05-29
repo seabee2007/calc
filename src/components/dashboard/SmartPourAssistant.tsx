@@ -20,6 +20,7 @@ interface SmartPourAssistantProps {
     callSheetReady: boolean;
   };
   attention: string[];
+  emptyMessage?: string;
 }
 
 const CHECK_ITEMS: { key: keyof SmartPourAssistantProps['checks']; label: string }[] = [
@@ -40,6 +41,7 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
   pourDateLabel,
   checks,
   attention,
+  emptyMessage,
 }) => {
   const navigate = useNavigate();
 
@@ -52,17 +54,22 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
 
       {!projectId ? (
         <>
-          <p className="text-base font-semibold text-white">No placement scheduled</p>
-          <p className="text-sm text-slate-400 mt-1">
-            Schedule a placement date to run the pre-placement review.
+          <p className="text-base font-semibold text-white">
+            {emptyMessage ? 'Nothing in the queue' : 'No placement scheduled'}
           </p>
-          <Button
-            size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
-            onClick={() => navigate('/projects')}
-          >
-            Schedule Placement
-          </Button>
+          <p className="text-sm text-slate-400 mt-1">
+            {emptyMessage ??
+              'Schedule a placement date to run the pre-placement review.'}
+          </p>
+          {!emptyMessage && (
+            <Button
+              size="sm"
+              className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+              onClick={() => navigate('/projects')}
+            >
+              Schedule Placement
+            </Button>
+          )}
         </>
       ) : (
         <>

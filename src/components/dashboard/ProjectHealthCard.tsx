@@ -8,6 +8,7 @@ import type { ProjectRiskLevel, ProjectRiskReview } from '../../utils/projectRis
 interface ProjectHealthCardProps {
   review: ProjectRiskReview;
   className?: string;
+  emptyMessage?: string;
 }
 
 function riskTone(level: ProjectRiskLevel): { badge: string; text: string } {
@@ -27,7 +28,11 @@ function riskTone(level: ProjectRiskLevel): { badge: string; text: string } {
   }
 }
 
-const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({ review, className }) => {
+const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
+  review,
+  className,
+  emptyMessage,
+}) => {
   const navigate = useNavigate();
   const tone = riskTone(review.riskLevel);
 
@@ -42,15 +47,21 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({ review, className
 
       {!review.projectId ? (
         <>
-          <p className={`text-lg font-bold ${tone.text}`}>{review.riskLabel}</p>
-          <p className="text-sm text-slate-400 mt-2">{review.attention[0]}</p>
-          <Button
-            size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
-            onClick={() => navigate('/projects')}
-          >
-            Schedule Placement
-          </Button>
+          <p className={`text-lg font-bold ${tone.text}`}>
+            {emptyMessage ? 'NOTHING IN QUEUE' : review.riskLabel}
+          </p>
+          <p className="text-sm text-slate-400 mt-2">
+            {emptyMessage ?? review.attention[0]}
+          </p>
+          {!emptyMessage && (
+            <Button
+              size="sm"
+              className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+              onClick={() => navigate('/projects')}
+            >
+              Schedule Placement
+            </Button>
+          )}
         </>
       ) : (
         <>

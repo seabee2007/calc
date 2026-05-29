@@ -87,6 +87,13 @@ export function shouldShowConfigurePlacement(stage: ProjectWorkflowStage): boole
   return PLACEMENT_PLANNER_STAGES.includes(stage);
 }
 
+/** Archived jobs — exclude from dashboard placement queues and schedules. */
+export function isProjectClosedOut(project: Project): boolean {
+  if (project.placementOrder?.lifecycleStage === 'closed') return true;
+  const status = project.placementOrder?.status;
+  return status === 'completed' || status === 'cancelled';
+}
+
 export interface ReadinessIssue {
   id: string;
   message: string;

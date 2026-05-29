@@ -30,6 +30,8 @@ interface ConcreteDeliveryScheduleCardProps {
   hasPlacementsToday: boolean;
   nextPlacement?: UpcomingPlacementRow | null;
   primaryProjectId?: string;
+  /** Shown when the operational queue is empty (e.g. all projects closed). */
+  emptyMessage?: string;
 }
 
 const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> = ({
@@ -38,6 +40,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
   hasPlacementsToday,
   nextPlacement,
   primaryProjectId,
+  emptyMessage,
 }) => {
   const navigate = useNavigate();
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -63,16 +66,20 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
 
       {!hasPlacementsToday && !nextPlacement ? (
         <div className="text-center py-4">
-          <p className="text-sm text-slate-400 mb-3">No placements scheduled</p>
-          <Button
-            size="sm"
-            variant="outline"
-            className="!border-slate-600 !text-white"
-            onClick={() => navigate(`/projects${workflowQuery()}`)}
-            icon={<Calendar className="h-4 w-4" />}
-          >
-            Schedule Placement
-          </Button>
+          <p className="text-sm text-slate-400 mb-3">
+            {emptyMessage ?? 'No placements scheduled'}
+          </p>
+          {!emptyMessage && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="!border-slate-600 !text-white"
+              onClick={() => navigate(`/projects${workflowQuery()}`)}
+              icon={<Calendar className="h-4 w-4" />}
+            >
+              Schedule Placement
+            </Button>
+          )}
         </div>
       ) : !hasPlacementsToday && nextPlacement && upcomingPourDate && daysUntil != null ? (
         <div className="py-1">

@@ -12,6 +12,10 @@ import {
   buildProjectRiskReview,
   resolveFeaturedRiskProject,
 } from '../utils/projectRiskReview';
+import { isProjectClosedOut } from '../utils/projectWorkflow';
+
+const QUEUE_EMPTY_MESSAGE =
+  'No projects scheduled — closed jobs are out of the queue.';
 import DashboardHero from '../components/dashboard/DashboardHero';
 import FeaturedPlacementConditions from '../components/dashboard/FeaturedPlacementConditions';
 import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDeliveryScheduleCard';
@@ -70,9 +74,17 @@ const OperationsDashboard: React.FC = () => {
   }, [location.pathname, refreshProposals]);
   const openTools = useToolsModalStore((s) => s.open);
 
+  const operationalProjects = useMemo(
+    () => projects.filter((p) => !isProjectClosedOut(p)),
+    [projects],
+  );
+
+  const allProjectsClosedOut =
+    projects.length > 0 && operationalProjects.length === 0;
+
   const snapshot = useMemo(
-    () => buildOperationsSnapshot(projects, { proposals }),
-    [projects, proposals],
+    () => buildOperationsSnapshot(operationalProjects, { proposals }),
+    [operationalProjects, proposals],
   );
 
   const { pipeline, pipelineRevenue, financial } = snapshot.proposalMetrics;
@@ -82,8 +94,8 @@ const OperationsDashboard: React.FC = () => {
     snapshot.hasPlacementsToday,
   );
   const featuredRiskProject = useMemo(
-    () => resolveFeaturedRiskProject(projects),
-    [projects],
+    () => resolveFeaturedRiskProject(operationalProjects),
+    [operationalProjects],
   );
 
   const projectRiskReview = useMemo(
@@ -213,6 +225,7 @@ const OperationsDashboard: React.FC = () => {
           hasPlacementsToday={snapshot.hasPlacementsToday}
           nextPlacement={nextUpcomingPlacement}
           primaryProjectId={primaryPourToday?.id}
+          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
         />
         <SmartPourAssistant
           projectId={prePlacement.projectId}
@@ -220,8 +233,12 @@ const OperationsDashboard: React.FC = () => {
           pourDateLabel={prePlacement.pourDateLabel}
           checks={prePlacement.checks}
           attention={prePlacement.attention}
+          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
         />
-        <ProjectHealthCard review={projectRiskReview} />
+        <ProjectHealthCard
+          review={projectRiskReview}
+          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+        />
         <QcAlertsCard
           testsDue={snapshot.qcTestsDue}
           totalRecords={totalQcRecords}
@@ -248,6 +265,7 @@ const OperationsDashboard: React.FC = () => {
             hasPlacementsToday={snapshot.hasPlacementsToday}
             nextPlacement={nextUpcomingPlacement}
             primaryProjectId={primaryPourToday?.id}
+            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
         </section>
         <section className="grid grid-cols-3 gap-5">
@@ -257,8 +275,12 @@ const OperationsDashboard: React.FC = () => {
             pourDateLabel={prePlacement.pourDateLabel}
             checks={prePlacement.checks}
             attention={prePlacement.attention}
+            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
-          <ProjectHealthCard review={projectRiskReview} />
+          <ProjectHealthCard
+            review={projectRiskReview}
+            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+          />
           <QcAlertsCard
             testsDue={snapshot.qcTestsDue}
             totalRecords={totalQcRecords}

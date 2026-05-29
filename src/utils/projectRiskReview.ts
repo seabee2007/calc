@@ -2,6 +2,7 @@ import type { Project } from '../types';
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import type { OpsRiskLevel } from './operationsDashboard';
 import { computeProposalFinancials } from './proposalFinancials';
+import { isProjectClosedOut } from './projectWorkflow';
 
 export type ProjectRiskLevel = 'low' | 'moderate' | 'high';
 
@@ -127,14 +128,15 @@ export function resolveFeaturedRiskProject(
   projects: Project[],
   now = new Date(),
 ): Project | null {
+  const open = projects.filter((p) => !isProjectClosedOut(p));
   const today = startOfDay(now);
-  const todayPour = projects.find((p) => {
+  const todayPour = open.find((p) => {
     const d = parsePourDate(p.pourDate);
     return d && isSameDay(d, now);
   });
   if (todayPour) return todayPour;
 
-  const upcoming = projects
+  const upcoming = open
     .map((p) => ({ p, d: parsePourDate(p.pourDate) }))
     .filter((x) => x.d && x.d.getTime() >= today.getTime())
     .sort((a, b) => a.d!.getTime() - b.d!.getTime());
@@ -150,7 +152,9 @@ export function buildProjectRiskReview(
     return {
       riskLevel: 'low',
       riskLabel: 'NO ACTIVE PLACEMENT',
-      attention: ['Schedule a placement date on a project to run risk review.'],
+      attention: [
+        'No projects scheduled — closed jobs are out of the queue.',
+      ],
       good: [],
     };
   }
