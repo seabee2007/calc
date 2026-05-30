@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface BucketColumnMenuProps {
   bucketTitle: string;
@@ -17,17 +18,23 @@ export default function BucketColumnMenu({
   onDelete,
 }: BucketColumnMenuProps) {
   const [open, setOpen] = useState(false);
+  const confirm = useConfirm();
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setOpen(false);
     const taskWarning =
       taskCount > 0
         ? ` All ${taskCount} task${taskCount === 1 ? '' : 's'} in this column will be permanently deleted.`
         : '';
-    const confirmed = window.confirm(
-      `Delete bucket "${bucketTitle}"?${taskWarning} This cannot be undone.`,
-    );
-    if (confirmed) onDelete();
+    const ok = await confirm({
+      title: 'Delete bucket',
+      message: `Delete bucket "${bucketTitle}"?${taskWarning}\n\nThis cannot be undone.`,
+      cancelLabel: 'Cancel',
+      confirmLabel: 'Delete',
+      confirmVariant: 'danger',
+      showWarningIcon: true,
+    });
+    if (ok) onDelete();
   };
 
   return (
@@ -79,7 +86,7 @@ export default function BucketColumnMenu({
               className="w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/40 dark:disabled:text-red-400/50"
               onClick={() => {
                 if (!canDelete) return;
-                handleDelete();
+                void handleDelete();
               }}
             >
               Delete bucket

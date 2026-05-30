@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './hooks/useAuth';
+import { ConfirmProvider } from './contexts/ConfirmContext';
 import './index.css';
 
 // Initialize any required polyfills or global handlers
@@ -43,7 +44,9 @@ root.render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <ConfirmProvider>
+          <App />
+        </ConfirmProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>

@@ -35,6 +35,7 @@ import {
 } from '../utils/proposalPricingImport';
 import { parseProposalAmount } from '../utils/proposalFinancials';
 import { soundService } from '../services/soundService';
+import { useConfirm } from '../contexts/ConfirmContext';
 import USAddressFields from '../components/address/USAddressFields';
 import {
   EMPTY_US_ADDRESS,
@@ -62,6 +63,7 @@ const SECTION_CARD =
 const SECTION_TITLE = 'text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4';
 
 const ProposalGenerator: React.FC = () => {
+  const confirm = useConfirm();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const editId = searchParams.get('edit');
@@ -1168,19 +1170,30 @@ const ProposalGenerator: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => {
-                  // Check if user has made any changes
-                  const hasChanges = proposalData.businessName || proposalData.clientName || 
-                                   proposalData.projectTitle || proposalData.introduction || 
-                                   proposalData.scope || proposalTitle;
-                  
-                  if (hasChanges) {
-                    const confirmed = window.confirm(
-                      'Are you sure you want to cancel? Any unsaved changes will be lost.'
-                    );
-                    if (!confirmed) return;
-                  }
-                  
-                  navigate('/proposals');
+                  void (async () => {
+                    const hasChanges =
+                      proposalData.businessName ||
+                      proposalData.clientName ||
+                      proposalData.projectTitle ||
+                      proposalData.introduction ||
+                      proposalData.scope ||
+                      proposalTitle;
+
+                    if (hasChanges) {
+                      const ok = await confirm({
+                        title: 'Confirm Cancel',
+                        message:
+                          'You have unsaved changes.\n\nIf you leave this page now, your changes will be lost.',
+                        cancelLabel: 'Stay Here',
+                        confirmLabel: 'Discard Changes',
+                        confirmVariant: 'danger',
+                        showWarningIcon: true,
+                      });
+                      if (!ok) return;
+                    }
+
+                    navigate('/proposals');
+                  })();
                 }}
                 icon={<ArrowLeft size={18} />}
                 size="sm"

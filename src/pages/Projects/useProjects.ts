@@ -10,6 +10,7 @@ import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
 import type { ProjectFormData } from '../../components/projects/ProjectForm';
 import { defaultPlacementOrder } from '../../types/placementOrder';
 import { createClientPortal } from '../../services/clientPortalService';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 const ProjectsContext = createContext<ReturnType<typeof useProjectsState> | null>(null);
 
@@ -29,6 +30,7 @@ export function useProjects() {
 function useProjectsState() {
   const navigate = useNavigate();
   const location = useLocation();
+  const confirm = useConfirm();
   const {
     projects,
     currentProject,
@@ -416,6 +418,18 @@ function useProjectsState() {
 
     confirmDelete: async (type: 'project' | 'calculation', id: string) => {
       if (!id) return;
+      const isProject = type === 'project';
+      const ok = await confirm({
+        title: isProject ? 'Delete project' : 'Delete calculation',
+        message: isProject
+          ? 'Delete this project? This cannot be undone.'
+          : 'Delete this calculation? This cannot be undone.',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Delete',
+        confirmVariant: 'danger',
+        showWarningIcon: true,
+      });
+      if (!ok) return;
       try {
         if (type === 'project') {
           await deleteProject(id);
