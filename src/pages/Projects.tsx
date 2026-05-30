@@ -507,7 +507,7 @@ const Projects: React.FC = () => {
                     setShowCreateForm(false);
                   }
                 }}
-                submitLabel={inWorkflow ? 'Save & continue to calculator' : undefined}
+                submitLabel={inWorkflow ? 'Save & continue to estimates' : undefined}
                 hidePourDate
                 requireVerifiedAddress={inWorkflow}
               />
@@ -585,7 +585,7 @@ const Projects: React.FC = () => {
                       onClick={() => goToCalculator(currentProject.id)}
                       icon={<Calculator size={18} />}
                     >
-                      Continue to calculator
+                      Continue to estimates
                     </Button>
                   </div>
                 )}
@@ -930,7 +930,7 @@ const Projects: React.FC = () => {
                 }}
                 isEditing
                 submitLabel={
-                  inWorkflow ? 'Save & continue to calculator' : undefined
+                  inWorkflow ? 'Save & continue to estimates' : undefined
                 }
                 hidePourDate={inWorkflow}
                 requireVerifiedAddress={inWorkflow}

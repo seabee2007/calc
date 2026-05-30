@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Modal from '../ui/Modal';
+import Button from '../ui/Button';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
 
@@ -117,34 +118,34 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
           </p>
         )}
 
-        <div className={`flex gap-3 ${canShare ? '' : ''}`}>
-          <button
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button
             type="button"
+            variant="primary"
+            fullWidth
+            className="sm:flex-1"
             onClick={() => void copyProposalLink()}
-            className="flex-1 rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700"
           >
             Copy Link
-          </button>
+          </Button>
 
           {canShare && (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              fullWidth
+              className="sm:flex-1"
               onClick={() => void shareProposalLink()}
-              className="flex-1 rounded-xl bg-slate-700 px-4 py-3 font-semibold text-white hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500"
             >
               Share
-            </button>
+            </Button>
           )}
         </div>
 
         {onEmailClient && (
-          <button
-            type="button"
-            onClick={onEmailClient}
-            className="w-full rounded-xl border border-blue-500/50 px-4 py-3 font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-800"
-          >
+          <Button type="button" variant="outline" fullWidth onClick={onEmailClient}>
             Email client
-          </button>
+          </Button>
         )}
       </div>
     </Modal>

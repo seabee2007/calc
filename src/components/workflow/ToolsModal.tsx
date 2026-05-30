@@ -9,6 +9,7 @@ import {
   BookOpen,
   Grid3x3,
   Users,
+  PenLine,
   type LucideIcon,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
@@ -78,6 +79,12 @@ const ToolsModal: React.FC = () => {
       description: 'Crew and production labor cost',
       path: '/calculator/labor',
       icon: Users,
+    },
+    {
+      title: 'Custom estimate',
+      description: 'Manual labor, material, and equipment lines',
+      path: '/calculator/custom',
+      icon: PenLine,
     },
     {
       title: 'Mix Design Advisor',

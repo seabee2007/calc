@@ -234,6 +234,8 @@ export interface Project {
   mixProfile?: MixProfileType;
   qcRecords?: QCRecord[];
   truckTickets?: StoredTruckTicketRecord[];
+  /** Manual labor / material / equipment lines (workflow custom estimate). */
+  customEstimates?: import('./projectEstimate').ProjectCustomEstimates;
   /** Sum of accepted change orders (DB column when synced). */
   approvedChangeOrderTotal?: number;
   baseContractValue?: number;

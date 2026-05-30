@@ -282,6 +282,12 @@ function useProjectsState() {
       });
     },
 
+    navigateToCustomEstimate: (projectId: string) => {
+      navigate(`/calculator/custom${workflowQuery(projectId)}`, {
+        state: workflowNavigateState(projectId),
+      });
+    },
+
     mixProfileChange: async (newProfile: MixProfileType) => {
       if (!currentProject) return;
       setUi(s => ({ ...s, isSaving: true }));

@@ -10,11 +10,6 @@ type OverflowItem = {
   onClick: () => void;
 };
 
-const MOBILE_PRIMARY =
-  'h-12 w-full rounded-xl bg-slate-700 font-semibold text-white transition hover:bg-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600';
-const MOBILE_OUTLINE =
-  'h-12 w-full rounded-xl border border-slate-300 font-semibold text-slate-900 transition hover:bg-slate-50 dark:border-slate-600 dark:text-white dark:hover:bg-slate-800';
-
 const MENU_WIDTH_PX = 192;
 
 function OverflowMenu({ items }: { items: OverflowItem[] }) {
@@ -142,56 +137,38 @@ export default function ProposalActionButtons({
 }) {
   const hasOverflow = (overflowItems?.length ?? 0) > 0;
 
+  const actionButtons = (
+    <>
+      <Button variant="secondary" size="sm" fullWidth className="sm:w-auto" onClick={onOpen}>
+        Open Proposal
+      </Button>
+      <Button variant="primary" size="sm" fullWidth className="sm:w-auto" onClick={onSend}>
+        Send to Client
+      </Button>
+      {showRequestDeposit && onRequestDeposit ? (
+        <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onRequestDeposit}>
+          Request Deposit
+        </Button>
+      ) : (
+        <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onDuplicate}>
+          Duplicate
+        </Button>
+      )}
+      <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onPdf}>
+        Generate PDF
+      </Button>
+      <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onShareLink}>
+        Share Link
+      </Button>
+    </>
+  );
+
   return (
     <div className="mt-4 space-y-3">
-      <div className="grid grid-cols-2 gap-3 sm:hidden">
-        <button type="button" className={MOBILE_PRIMARY} onClick={onOpen}>
-          Open Proposal
-        </button>
-        <button type="button" className={MOBILE_OUTLINE} onClick={onSend}>
-          Send to Client
-        </button>
-        {showRequestDeposit && onRequestDeposit ? (
-          <button type="button" className={MOBILE_OUTLINE} onClick={onRequestDeposit}>
-            Request Deposit
-          </button>
-        ) : (
-          <button type="button" className={MOBILE_OUTLINE} onClick={onDuplicate}>
-            Duplicate
-          </button>
-        )}
-        <button type="button" className={MOBILE_OUTLINE} onClick={onPdf}>
-          Generate PDF
-        </button>
-        <button
-          type="button"
-          className={`col-span-2 ${MOBILE_OUTLINE}`}
-          onClick={onShareLink}
-        >
-          Share Link
-        </button>
-      </div>
+      <div className="grid grid-cols-1 gap-2 sm:hidden">{actionButtons}</div>
 
       <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" onClick={onOpen}>
-            Open Proposal
-          </Button>
-          <Button variant="outline" size="sm" onClick={onSend}>
-            Send to Client
-          </Button>
-          {showRequestDeposit && onRequestDeposit && (
-            <Button variant="outline" size="sm" onClick={onRequestDeposit}>
-              Request Deposit
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={onPdf}>
-            Generate PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={onShareLink}>
-            Share Link
-          </Button>
-        </div>
+        <div className="flex flex-wrap gap-2">{actionButtons}</div>
         {hasOverflow ? <OverflowMenu items={overflowItems ?? []} /> : null}
       </div>
 

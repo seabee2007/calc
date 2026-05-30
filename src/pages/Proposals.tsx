@@ -19,6 +19,7 @@ import {
   formatWinRate,
 } from '../utils/proposalKpis';
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 import Card from '../components/ui/Card';
 import { soundService } from '../services/soundService';
 import KPIStatCard from '../components/proposals/KPIStatCard';
@@ -327,16 +328,18 @@ const Proposals: React.FC = () => {
             />
             <Button
               type="button"
-              variant="outline dark:text-black"
+              variant="outline"
+              size="sm"
               icon={<Upload size={18} />}
               disabled={importing}
+              isLoading={importing}
               onClick={() => importInputRef.current?.click()}
-              className="shadow-sm dark:bg-white/90 dark:text-black dark:border-gray-300 dark:hover:bg-gray-700
-  dark:hover:!text-white dark:hover:border-gray-600"
             >
-              {importing ? 'Importing…' : 'Import'}
+              Import
             </Button>
             <Button
+              variant="primary"
+              size="sm"
               onClick={() => navigate('/proposal-generator')}
               icon={<Plus size={18} />}
             >
@@ -390,13 +393,15 @@ const Proposals: React.FC = () => {
               className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/20"
             >
               <p className="text-emerald-800 dark:text-emerald-200">{importMessage}</p>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-2"
                 onClick={() => setImportMessage(null)}
-                className="mt-1 text-sm text-emerald-700 hover:text-emerald-900 dark:text-emerald-300"
               >
                 Dismiss
-              </button>
+              </Button>
             </motion.div>
           )}
 
@@ -408,12 +413,15 @@ const Proposals: React.FC = () => {
               className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
             >
               <p className="text-red-700 dark:text-red-300">{displayError}</p>
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-2"
                 onClick={() => setError(null)}
-                className="mt-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
               >
                 Dismiss
-              </button>
+              </Button>
             </motion.div>
           )}
 
@@ -431,7 +439,11 @@ const Proposals: React.FC = () => {
                 Create your first proposal to start tracking bids and revenue.
               </p>
               <div className="mt-6">
-                <Button onClick={() => navigate('/proposal-generator')} icon={<Plus size={18} />}>
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/proposal-generator')}
+                  icon={<Plus size={18} />}
+                >
                   New Proposal
                 </Button>
               </div>
@@ -449,7 +461,11 @@ const Proposals: React.FC = () => {
                 Try another pipeline stage or create a new proposal.
               </p>
               <div className="mt-6">
-                <Button onClick={() => navigate('/proposal-generator')} icon={<Plus size={18} />}>
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/proposal-generator')}
+                  icon={<Plus size={18} />}
+                >
                   New Proposal
                 </Button>
               </div>
@@ -485,32 +501,28 @@ const Proposals: React.FC = () => {
 
         </Card>
 
-        {deleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete Proposal</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Are you sure you want to delete this proposal? This action cannot be undone.
-              </p>
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteConfirm(null)}
-                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleDelete(deleteConfirm)}
-                  className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
+        <Modal
+          isOpen={Boolean(deleteConfirm)}
+          onClose={() => setDeleteConfirm(null)}
+          title="Delete proposal"
+          size="sm"
+        >
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Are you sure you want to delete this proposal? This action cannot be undone.
+          </p>
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => deleteConfirm && void handleDelete(deleteConfirm)}
+            >
+              Delete
+            </Button>
           </div>
-        )}
+        </Modal>
 
         <ProposalSentLinkModal
           isOpen={Boolean(linkModal)}

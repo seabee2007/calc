@@ -28,6 +28,11 @@ import {
   mergeTruckTicketsForProject,
 } from '../utils/truckTicketDb';
 import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
+import type { ProjectCustomEstimates } from '../types/projectEstimate';
+import {
+  customEstimatesToDbPayload,
+  parseCustomEstimatesFromDb,
+} from '../utils/customEstimateUtils';
 import {
   buildQcInsertRow,
   buildQcUpdateRow,
@@ -41,7 +46,7 @@ import {
 } from '../types/projectClient';
 
 const PROJECT_SELECT = `
-  id, name, description, client_info,
+  id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile, placement_order,
@@ -53,7 +58,7 @@ const PROJECT_SELECT = `
 `;
 
 const PROJECT_SELECT_NO_CLIENT_INFO = `
-  id, name, description,
+  id, name, description, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile, placement_order,
@@ -65,7 +70,7 @@ const PROJECT_SELECT_NO_CLIENT_INFO = `
 `;
 
 const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
-  id, name, description, client_info,
+  id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile, placement_order,
@@ -76,7 +81,7 @@ const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
 `;
 
 const PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT = `
-  id, name, description,
+  id, name, description, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile, placement_order,
@@ -87,7 +92,7 @@ const PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT = `
 `;
 
 const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
-  id, name, description, client_info,
+  id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile,
@@ -98,7 +103,7 @@ const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
 `;
 
 const PROJECT_SELECT_NO_JOBSITE = `
-  id, name, description, client_info,
+  id, name, description, client_info, custom_estimates,
   waste_factor, created_at, updated_at,
   pour_date, mix_profile,
   calculations(*),
@@ -138,6 +143,10 @@ function isTruckTicketsSchemaError(message: string): boolean {
 
 function isPlacementOrderColumnError(message: string): boolean {
   return message.includes('placement_order');
+}
+
+function isCustomEstimatesColumnError(message: string): boolean {
+  return message.includes('custom_estimates');
 }
 
 function isLaborEstimatesSchemaError(message: string): boolean {
@@ -229,11 +238,17 @@ async function fetchProjectRows() {
       isClientInfoColumnError(msg) ||
       isTruckTicketsSchemaError(msg) ||
       isPlacementOrderColumnError(msg) ||
-      isLaborEstimatesSchemaError(msg)
+      isLaborEstimatesSchemaError(msg) ||
+      isCustomEstimatesColumnError(msg)
     ) {
       if (isLaborEstimatesSchemaError(msg)) {
         console.warn(
           'labor_estimates table missing — run migration 20250526120000_labor_estimates_reinforcement_pricing.sql',
+        );
+      }
+      if (isCustomEstimatesColumnError(msg)) {
+        console.warn(
+          'projects.custom_estimates column missing — run migration 20260606000000_project_custom_estimates.sql',
         );
       }
       continue;
@@ -287,11 +302,17 @@ async function fetchProjectById(projectId: string) {
       isClientInfoColumnError(msg) ||
       isTruckTicketsSchemaError(msg) ||
       isPlacementOrderColumnError(msg) ||
-      isLaborEstimatesSchemaError(msg)
+      isLaborEstimatesSchemaError(msg) ||
+      isCustomEstimatesColumnError(msg)
     ) {
       if (isClientInfoColumnError(msg)) {
         console.warn(
           'Project client_info column missing — run migration 20260530120000_project_client_info.sql',
+        );
+      }
+      if (isCustomEstimatesColumnError(msg)) {
+        console.warn(
+          'projects.custom_estimates column missing — run migration 20260606000000_project_custom_estimates.sql',
         );
       }
       continue;
@@ -460,6 +481,7 @@ function mapProjectFromRow(row: any): Project {
       row.base_contract_value != null ? Number(row.base_contract_value) : undefined,
     currentContractValue:
       row.current_contract_value != null ? Number(row.current_contract_value) : undefined,
+    customEstimates: parseCustomEstimatesFromDb(row.custom_estimates),
   };
 }
 
@@ -501,6 +523,11 @@ interface ProjectState {
       professionalLabor?: import('../types/concreteLaborEstimate').ProfessionalConcreteLaborResult;
     },
   ) => Promise<LaborEstimate>;
+
+  saveCustomEstimates: (
+    projectId: string,
+    estimates: ProjectCustomEstimates,
+  ) => Promise<void>;
 
   addQCRecord: (
     projectId: string,
@@ -1129,6 +1156,35 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       };
     });
     return mapped;
+  },
+
+  saveCustomEstimates: async (projectId, estimates) => {
+    const payload = customEstimatesToDbPayload(estimates);
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        custom_estimates: payload,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', projectId);
+    if (error) throw error;
+
+    const updatedAt = (payload.updatedAt as string) ?? new Date().toISOString();
+    const nextEstimates: ProjectCustomEstimates = {
+      ...estimates,
+      updatedAt,
+    };
+
+    set((s) => {
+      const patch = (p: Project) =>
+        p.id === projectId
+          ? { ...p, customEstimates: nextEstimates, updatedAt }
+          : p;
+      return {
+        projects: s.projects.map(patch),
+        currentProject: s.currentProject ? patch(s.currentProject) : null,
+      };
+    });
   },
 
   // --- QC Record CRUD ---

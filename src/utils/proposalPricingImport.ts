@@ -1,4 +1,5 @@
 import type { Project } from '../types';
+import { customEstimateCategoryTotals, projectHasCustomEstimate } from './customEstimateUtils';
 import { formatPrice } from './pricing';
 
 export interface ProposalPricingLine {
@@ -132,7 +133,46 @@ export function buildProposalPricingFromProject(project: Project): ProposalPrici
     });
   }
 
+  const custom = customEstimateCategoryTotals(project);
+  if (custom.labor > 0) {
+    pricingItems.push({
+      description: 'Custom estimate — Labor',
+      amount: formatPrice(custom.labor),
+    });
+  }
+  if (custom.material > 0) {
+    pricingItems.push({
+      description: 'Custom estimate — Material',
+      amount: formatPrice(custom.material),
+    });
+  }
+  if (custom.equipment > 0) {
+    pricingItems.push({
+      description: 'Custom estimate — Equipment',
+      amount: formatPrice(custom.equipment),
+    });
+  }
+
   return pricingItems;
+}
+
+/** Labels for saved estimate sources (workflow step 2) shown in proposal import UI. */
+export function getProjectEstimateSourceLabels(project: Project): string[] {
+  const labels: string[] = [];
+  const hasConcrete = (project.calculations ?? []).some(
+    (c) => (c.result?.pricing?.concreteCost ?? 0) > 0,
+  );
+  if (hasConcrete) labels.push('Concrete');
+  const hasRebar = (project.reinforcements ?? []).some(
+    (r) => (r.pricing?.estimatedCost ?? 0) > 0,
+  );
+  if (hasRebar) labels.push('Reinforcement');
+  const hasLabor =
+    (project.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
+    (project.placementOrder?.production?.laborCost ?? 0) > 0;
+  if (hasLabor) labels.push('Labor');
+  if (projectHasCustomEstimate(project)) labels.push('Custom');
+  return labels;
 }
 
 export function projectHasImportablePricing(project: Project): boolean {
@@ -145,5 +185,5 @@ export function projectHasImportablePricing(project: Project): boolean {
   const hasLabor =
     (project.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
     (project.placementOrder?.production?.laborCost ?? 0) > 0;
-  return hasConcrete || hasRebar || hasLabor;
+  return hasConcrete || hasRebar || hasLabor || projectHasCustomEstimate(project);
 }

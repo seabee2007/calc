@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, X, Upload, Beaker, CloudSun, SkipForward, Send, Link2 } from 'lucide-react';
+import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, Upload, Beaker, CloudSun, SkipForward, Send, Link2 } from 'lucide-react';
 import { useWorkflowProgressStore } from '../store/workflowProgressStore';
 import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
@@ -31,8 +31,11 @@ import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import {
   buildProposalPricingFromProject,
+  getProjectEstimateSourceLabels,
   projectHasImportablePricing,
 } from '../utils/proposalPricingImport';
+import Modal from '../components/ui/Modal';
+import Toast, { type ToastType } from '../components/ui/Toast';
 import { parseProposalAmount } from '../utils/proposalFinancials';
 import { soundService } from '../services/soundService';
 import { useConfirm } from '../contexts/ConfirmContext';
@@ -71,7 +74,7 @@ const ProposalGenerator: React.FC = () => {
   const isEditing = !!editId;
   const isPreviewMode = !!previewId;
   const { companySettings } = useSettingsStore();
-  const { projects } = useProjectStore();
+  const { projects, loadProjects } = useProjectStore();
   const location = useLocation();
   const workflowState = location.state as WorkflowLocationState | null;
   const inWorkflow = isWorkflowActive(location.search, workflowState);
@@ -92,6 +95,11 @@ const ProposalGenerator: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [importToast, setImportToast] = useState<{
+    title: string;
+    message?: string;
+    type: ToastType;
+  } | null>(null);
 
   const [proposalData, setProposalData] = useState<ProposalData>(() =>
     hydrateProposalAddresses({
@@ -254,28 +262,44 @@ const ProposalGenerator: React.FC = () => {
     isPreviewMode,
   ]);
 
+  const showImportFeedback = (
+    title: string,
+    type: ToastType,
+    message?: string,
+    options?: { silent?: boolean },
+  ) => {
+    if (options?.silent) return;
+    setImportToast({ title, message, type });
+  };
+
   const importPricingFromProject = (
     projectId: string,
     options?: { silent?: boolean },
   ) => {
     const project = projects.find((p) => p.id === projectId);
     if (!project) {
-      if (!options?.silent) alert('Project not found.');
+      showImportFeedback('Import failed', 'error', 'Project not found.', options);
       return;
     }
 
     if (!projectHasImportablePricing(project)) {
-      if (!options?.silent) {
-        alert(
-          'No pricing found. Run the concrete, reinforcement, and/or labor calculators on step 2 and save each estimate to this project.',
-        );
-      }
+      showImportFeedback(
+        'No estimates to import',
+        'warning',
+        'Save at least one estimate on step 2 (concrete, reinforcement, labor, or custom) to this project.',
+        options,
+      );
       return;
     }
 
     const pricingItems = buildProposalPricingFromProject(project);
     if (pricingItems.length === 0) {
-      if (!options?.silent) alert('No pricing data could be extracted from this project.');
+      showImportFeedback(
+        'Import failed',
+        'error',
+        'No pricing data could be extracted from this project.',
+        options,
+      );
       return;
     }
 
@@ -291,11 +315,21 @@ const ProposalGenerator: React.FC = () => {
     );
 
     setShowProjectPicker(false);
-    if (!options?.silent) {
-      alert(
-        `Imported ${pricingItems.length} pricing line(s) from "${project.name}" (concrete, reinforcement, and labor).`,
-      );
-    }
+    const sources = getProjectEstimateSourceLabels(project);
+    const sourcesLabel = sources.length > 0 ? sources.join(', ') : 'saved estimates';
+    showImportFeedback(
+      'Pricing imported',
+      'success',
+      `Added ${pricingItems.length} line(s) from "${project.name}" (${sourcesLabel}).`,
+      options,
+    );
+  };
+
+  const openProjectPicker = () => {
+    setShowProjectPicker(true);
+    void loadProjects().catch((err) => {
+      console.error('Failed to refresh projects for import:', err);
+    });
   };
 
   const goToMixDesign = () => {
@@ -1023,9 +1057,9 @@ const ProposalGenerator: React.FC = () => {
               {isPreviewMode && (
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => navigate('/proposals')}
                   icon={<ArrowLeft size={18} />}
-                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <span className="hidden md:inline">Back to Proposals</span>
                 </Button>
@@ -1033,9 +1067,9 @@ const ProposalGenerator: React.FC = () => {
               {isPreviewMode && (
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => navigate(`/proposal-generator?edit=${previewId}`)}
                   icon={<Edit size={18} />}
-                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <span className="hidden md:inline">Edit</span>
                 </Button>
@@ -1043,34 +1077,37 @@ const ProposalGenerator: React.FC = () => {
               {!isPreviewMode && (
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => setShowPreview(false)}
                   icon={<ArrowLeft size={18} />}
-                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <span className="hidden md:inline">Back to Editor</span>
                 </Button>
               )}
               <Button
+                variant="primary"
+                size="sm"
                 onClick={handleSendProposal}
                 disabled={saving}
+                isLoading={saving}
                 icon={<Send size={18} />}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 <span className="hidden md:inline">Send to Client</span>
               </Button>
               <Button
+                variant="outline"
+                size="sm"
                 onClick={handleEmailProposal}
                 disabled={saving}
                 icon={<Mail size={18} />}
-                variant="outline"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <span className="hidden md:inline">Email</span>
               </Button>
               <Button
+                variant="primary"
+                size="sm"
                 onClick={handleDownloadPDF}
                 icon={<Download size={18} />}
-                className="bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white"
               >
                 <span className="hidden md:inline">Download PDF</span>
               </Button>
@@ -1115,7 +1152,7 @@ const ProposalGenerator: React.FC = () => {
               size="sm"
               onClick={skipProposal}
               icon={<SkipForward size={16} />}
-              className="border-slate-500 text-white hover:bg-slate-800 shrink-0"
+              className="shrink-0"
             >
               Skip proposal
             </Button>
@@ -1136,11 +1173,15 @@ const ProposalGenerator: React.FC = () => {
                 size="sm"
                 onClick={goToMixDesign}
                 icon={<Beaker size={16} />}
-                className="border-slate-600 text-white hover:bg-slate-800"
               >
                 Mix design (optional)
               </Button>
-              <Button size="sm" onClick={goToPlacementPlanner} icon={<CloudSun size={16} />}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={goToPlacementPlanner}
+                icon={<CloudSun size={16} />}
+              >
                 Continue to placement planner
               </Button>
             </div>
@@ -1159,16 +1200,16 @@ const ProposalGenerator: React.FC = () => {
             {isEditing ? (
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => navigate('/proposals')}
                 icon={<ArrowLeft size={18} />}
-                size="sm"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 Back to Proposals
               </Button>
             ) : (
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => {
                   void (async () => {
                     const hasChanges =
@@ -1196,8 +1237,6 @@ const ProposalGenerator: React.FC = () => {
                   })();
                 }}
                 icon={<ArrowLeft size={18} />}
-                size="sm"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 Cancel
               </Button>
@@ -1226,29 +1265,33 @@ const ProposalGenerator: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
-                <div className="md:col-span-1 flex items-end space-x-2">
+                <div className="md:col-span-1 flex flex-wrap items-end gap-2">
                   <Button
                     variant="outline"
-                    onClick={generateTitle}
                     size="sm"
-                    className="whitespace-nowrap border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    onClick={generateTitle}
+                    className="whitespace-nowrap"
                   >
                     Auto Generate
                   </Button>
                   <Button
+                    variant="primary"
+                    size="sm"
                     onClick={handleSave}
                     disabled={saving || !proposalTitle.trim()}
+                    isLoading={saving}
                     icon={<Save size={18} />}
-                    className="whitespace-nowrap bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="whitespace-nowrap"
                   >
-                    {saving ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
+                    {isEditing ? 'Update' : 'Save'}
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleSendProposal}
                     disabled={saving || !proposalTitle.trim()}
                     icon={<Link2 size={18} />}
-                    variant="outline"
-                    className="whitespace-nowrap border-emerald-600 text-emerald-700 dark:text-emerald-400"
+                    className="whitespace-nowrap"
                   >
                     Send
                   </Button>
@@ -1486,12 +1529,15 @@ const ProposalGenerator: React.FC = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className={SECTION_TITLE}>Project Timeline</h2>
-                <button
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={addTimelineItem}
-                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  icon={<Plus size={16} />}
                 >
-                  + Add Phase
-                </button>
+                  Add Phase
+                </Button>
               </div>
               <div className="space-y-3">
                 {proposalData.timeline.map((item, index) => (
@@ -1526,12 +1572,15 @@ const ProposalGenerator: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                     </div>
-                    <button
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
                       onClick={() => removeTimelineItem(index)}
-                      className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                      className="w-full md:w-auto"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -1546,22 +1595,27 @@ const ProposalGenerator: React.FC = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className={SECTION_TITLE}>Pricing</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowProjectPicker(true)}
-                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={openProjectPicker}
+                    icon={<Upload size={14} />}
                   >
-                    <Upload size={14} />
                     <span className="hidden sm:inline">Import from Project</span>
                     <span className="sm:hidden">Import</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={addPricingItem}
-                    className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                    icon={<Plus size={14} />}
                   >
-                    <span className="hidden sm:inline">+ Add Item</span>
-                    <span className="sm:hidden">+ Add</span>
-                  </button>
+                    <span className="hidden sm:inline">Add Item</span>
+                    <span className="sm:hidden">Add</span>
+                  </Button>
                 </div>
               </div>
 
@@ -1584,13 +1638,15 @@ const ProposalGenerator: React.FC = () => {
                       Adds/updates a “Profit (Markup)” line item so totals reflect margin.
                     </p>
                   </div>
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
+                    size="sm"
                     onClick={applyProfitMargin}
-                    className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
+                    className="whitespace-nowrap shrink-0"
                   >
                     Apply Profit
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1621,12 +1677,15 @@ const ProposalGenerator: React.FC = () => {
                         pattern="[0-9]*"
                       />
                     </div>
-                    <button
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
                       onClick={() => removePricingItem(index)}
-                      className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                      className="w-full md:w-auto"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -1703,12 +1762,15 @@ const ProposalGenerator: React.FC = () => {
                   </div>
                 </div>
                 
-                <button
+                <Button
+                  type="button"
+                  variant="primary"
+                  fullWidth
                   onClick={() => setShowPreview(true)}
-                  className="w-full px-4 py-3 bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white rounded-lg font-medium"
+                  icon={<FileText size={18} />}
                 >
-                  📄 Preview Proposal
-                </button>
+                  Preview Proposal
+                </Button>
                 
                 <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                   <p>• Fill out the form to customize your proposal</p>
@@ -1721,80 +1783,109 @@ const ProposalGenerator: React.FC = () => {
           </div>
         </div>
 
-      {/* Project Picker Modal */}
-      {showProjectPicker && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Import Pricing from Project
-              </h3>
-              <button
-                onClick={() => setShowProjectPicker(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Select a project to import its calculation pricing data into this proposal.
-              </p>
-              
-              {projects.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">No projects found</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">
-                    Create projects with calculations to import pricing data.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {projects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-500 cursor-pointer"
-                      onClick={() => importPricingFromProject(project.id)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            {project.name}
-                          </h4>
-                          {project.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {project.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span>{project.calculations?.length || 0} calculations</span>
-                            <span>
-                              {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'No date'}
+      <Modal
+        isOpen={showProjectPicker}
+        onClose={() => setShowProjectPicker(false)}
+        title="Import pricing from project"
+        size="md"
+      >
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Select a project to import saved estimates (concrete, reinforcement, labor, and/or custom)
+          into this proposal.
+        </p>
+
+        {projects.length === 0 ? (
+          <div className="text-center py-8">
+            <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">No projects found</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              Create a project and save at least one estimate on step 2 to import pricing.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-72 overflow-y-auto">
+            {projects.map((project) => {
+              const sources = getProjectEstimateSourceLabels(project);
+              const canImport = projectHasImportablePricing(project);
+              const lineCount = canImport
+                ? buildProposalPricingFromProject(project).length
+                : 0;
+              return (
+                <button
+                  key={project.id}
+                  type="button"
+                  disabled={!canImport}
+                  className={`w-full text-left border rounded-lg p-3 transition-colors ${
+                    canImport
+                      ? 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 cursor-pointer'
+                      : 'border-gray-200/80 dark:border-gray-700 opacity-60 cursor-not-allowed'
+                  }`}
+                  onClick={() => importPricingFromProject(project.id)}
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                        {project.name}
+                      </h4>
+                      {project.description && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                          {project.description}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        {canImport ? (
+                          <>
+                            <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                              {sources.join(' · ')}
                             </span>
-                          </div>
-                        </div>
-                        <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                          <Upload size={16} />
-                        </button>
+                            <span>
+                              {lineCount} pricing line{lineCount === 1 ? '' : 's'}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-amber-700 dark:text-amber-400">
+                            No saved estimates — complete step 2 first
+                          </span>
+                        )}
+                        <span>
+                          {project.createdAt
+                            ? new Date(project.createdAt).toLocaleDateString()
+                            : 'No date'}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4 border-t border-gray-200 dark:border-gray-600">
-              <button
-                onClick={() => setShowProjectPicker(false)}
-                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+                    {canImport && (
+                      <span className="shrink-0 text-blue-600 dark:text-blue-400" aria-hidden>
+                        <Upload size={16} />
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            onClick={() => setShowProjectPicker(false)}
+          >
+            Cancel
+          </Button>
         </div>
+      </Modal>
+
+      {importToast && (
+        <Toast
+          id="proposal-import-toast"
+          title={importToast.title}
+          message={importToast.message}
+          type={importToast.type}
+          onClose={() => setImportToast(null)}
+        />
       )}
 
       <ProposalSentLinkModal

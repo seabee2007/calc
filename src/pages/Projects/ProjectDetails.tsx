@@ -35,6 +35,11 @@ import {
   type ProjectWorkflowStage,
 } from '../../utils/projectWorkflow';
 import { workflowQuery } from '../../utils/workflow';
+import {
+  customEstimateCategoryTotals,
+  projectHasCustomEstimate,
+} from '../../utils/customEstimateUtils';
+import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { computeProposalFinancials } from '../../utils/proposalFinancials';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
@@ -736,6 +741,36 @@ export default function ProjectDetails() {
           <CalculationSection />
         </div>
       </div>
+
+      {projectHasCustomEstimate(project) && (
+        <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6 mt-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Custom estimate</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                navigate(`/calculator/custom${workflowQuery(project.id)}`, {
+                  state: { projectId: project.id },
+                })
+              }
+            >
+              Edit
+            </Button>
+          </div>
+          {(() => {
+            const t = customEstimateCategoryTotals(project);
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <InfoRow label="Labor" value={formatChangeOrderMoney(t.labor)} />
+                <InfoRow label="Material" value={formatChangeOrderMoney(t.material)} />
+                <InfoRow label="Equipment" value={formatChangeOrderMoney(t.equipment)} />
+                <InfoRow label="Total" value={formatChangeOrderMoney(t.total)} />
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       <LaborSection />
       <div id="project-qc-section">

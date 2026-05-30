@@ -4,7 +4,7 @@ import type { NavigateFunction } from 'react-router-dom';
 
 export const WORKFLOW_STEPS = [
   { id: 'project', label: 'Project Info', path: '/projects' },
-  { id: 'calculator', label: 'Calculator', path: '/calculator' },
+  { id: 'calculator', label: 'Estimates', path: '/calculator' },
   { id: 'proposal', label: 'Proposal', path: '/proposal-generator' },
   { id: 'mix', label: 'Mix Design', path: '/mix-design-advisor' },
   { id: 'placement', label: 'Placement', path: '/pour-planner' },

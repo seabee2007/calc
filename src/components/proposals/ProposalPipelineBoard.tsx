@@ -29,10 +29,10 @@ export default function ProposalPipelineBoard({
             type="button"
             onClick={() => onSelect(col.id)}
             className={[
-              'shrink-0 min-w-[7.5rem] rounded-xl border px-4 py-3 text-left transition',
+              'shrink-0 min-w-[7.5rem] rounded-md border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-400 dark:focus-visible:ring-offset-gray-800',
               isActive
-                ? 'border-blue-500 bg-blue-600 text-white shadow-md'
-                : 'border-slate-200 bg-slate-50 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900/80 dark:hover:border-slate-600',
+                ? 'border-blue-600 bg-blue-600 text-white shadow-md dark:border-blue-600 dark:bg-blue-600'
+                : 'border-slate-300 bg-transparent text-slate-900 hover:bg-slate-100 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700',
             ].join(' ')}
           >
             <p

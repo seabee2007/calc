@@ -22,7 +22,7 @@ import ThemeToggle from './ThemeToggle';
 import Button from '../ui/Button';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
 
-function sectionLabelForPath(pathname: string): string {
+function sectionLabelForPath(pathname: string, search = ''): string {
   if (pathname === '/') return 'Operations';
   if (pathname.startsWith('/projects')) return 'Projects';
   if (pathname.startsWith('/planner')) return 'Field Planner';
@@ -33,7 +33,10 @@ function sectionLabelForPath(pathname: string): string {
   if (pathname.startsWith('/proposal')) return 'Proposals';
   if (pathname.startsWith('/pour-planner')) return 'Pour Planner';
   if (pathname.startsWith('/mix-design')) return 'Mix Design';
-  if (pathname.startsWith('/calculator')) return 'Calculators';
+  if (pathname.startsWith('/calculator')) {
+    const inWorkflow = new URLSearchParams(search).get('flow') === '1';
+    return inWorkflow ? 'Estimates' : 'Calculators';
+  }
   if (pathname.startsWith('/employee')) return 'Employee Portal';
   return 'Concrete Calc';
 }
@@ -48,7 +51,7 @@ const Navbar: React.FC = () => {
 
   const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
   const sectionLabel = useMemo(
-    () => sectionLabelForPath(location.pathname),
+    () => sectionLabelForPath(location.pathname, location.search),
     [location.pathname],
   );
 

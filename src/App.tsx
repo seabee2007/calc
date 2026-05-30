@@ -7,6 +7,7 @@ import Calculator from './pages/Calculator';
 import ConcreteCalculatorPage from './pages/calculators/ConcreteCalculatorPage';
 import ReinforcementCalculatorPage from './pages/calculators/ReinforcementCalculatorPage';
 import LaborCalculatorPage from './pages/calculators/LaborCalculatorPage';
+import CustomEstimatePage from './pages/calculators/CustomEstimatePage';
 import Projects from './pages/Projects/Projects';
 import Settings from './pages/Settings';
 import Resources from './pages/Resources';
@@ -290,6 +291,14 @@ function App() {
               element={
                 <AuthGuard>
                   <LaborCalculatorPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="calculator/custom"
+              element={
+                <AuthGuard>
+                  <CustomEstimatePage />
                 </AuthGuard>
               }
             />
