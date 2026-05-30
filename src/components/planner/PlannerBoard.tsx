@@ -5,9 +5,10 @@ import type { Profile } from '../../types/fieldPlanner';
 import PlannerBucketColumn from './PlannerBucket';
 import AddBucketModal from './AddBucketModal';
 import AddTaskModal from './AddTaskModal';
+import CreateRfiModal from '../field/CreateRfiModal';
+import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
 import { createBucket, createTask } from '../../services/plannerService';
-import Button from '../ui/Button';
-import { PLANNER_BOARD_SURFACE, PLANNER_BTN_OUTLINE_DASHED } from './plannerTheme';
+import { PLANNER_BOARD_BG } from './plannerTheme';
 
 interface PlannerBoardProps {
   bundle: PlannerBoardBundle;
@@ -30,6 +31,10 @@ export default function PlannerBoard({
 }: PlannerBoardProps) {
   const [addBucketOpen, setAddBucketOpen] = useState(false);
   const [addTaskBucketId, setAddTaskBucketId] = useState<string | null>(null);
+  const [rfiTask, setRfiTask] = useState<PlannerTask | null>(null);
+  const [adjTask, setAdjTask] = useState<PlannerTask | null>(null);
+
+  const bucketMeta = bundle.buckets.map((b) => ({ id: b.id, title: b.title }));
 
   const handleAddBucket = async (title: string) => {
     await createBucket(bundle.board.id, title, bundle.buckets.length);
@@ -60,28 +65,32 @@ export default function PlannerBoard({
 
   return (
     <>
-      <div className={`flex gap-4 overflow-x-auto pb-4 ${PLANNER_BOARD_SURFACE}`}>
+      <div className={`flex min-h-0 flex-1 overflow-x-auto px-4 py-4 ${PLANNER_BOARD_BG}`}>
         {bundle.buckets.map((bucket) => (
           <PlannerBucketColumn
             key={bucket.id}
             bucket={bucket}
             tasks={bundle.tasks}
+            buckets={bucketMeta}
             isOwner={isOwner}
             onTaskClick={onTaskClick}
             onAddTask={(id) => setAddTaskBucketId(id)}
+            onRefresh={onRefresh}
+            onCreateRfi={setRfiTask}
+            onCreateAdjustment={setAdjTask}
           />
         ))}
 
         {isOwner && (
-          <div className="flex w-[200px] shrink-0 items-start pt-2">
-            <Button
-              variant="outline"
-              className={PLANNER_BTN_OUTLINE_DASHED}
-              icon={<Plus className="h-4 w-4" />}
+          <div className="flex w-[300px] shrink-0 items-start pt-8">
+            <button
+              type="button"
               onClick={() => setAddBucketOpen(true)}
+              className="flex h-9 w-full items-center justify-center gap-1 rounded border border-dashed border-slate-300 text-sm text-gray-600 hover:bg-white/80 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-900/50"
             >
+              <Plus className="h-4 w-4" />
               Add bucket
-            </Button>
+            </button>
           </div>
         )}
       </div>
@@ -98,6 +107,34 @@ export default function PlannerBoard({
         team={team}
         onSubmit={handleAddTask}
       />
+
+      {rfiTask && (
+        <CreateRfiModal
+          isOpen
+          onClose={() => setRfiTask(null)}
+          projectId={projectId}
+          taskId={rfiTask.id}
+          userId={userId}
+          onCreated={() => {
+            setRfiTask(null);
+            onRefresh();
+          }}
+        />
+      )}
+
+      {adjTask && (
+        <CreateFieldAdjustmentModal
+          isOpen
+          onClose={() => setAdjTask(null)}
+          projectId={projectId}
+          taskId={adjTask.id}
+          userId={userId}
+          onCreated={() => {
+            setAdjTask(null);
+            onRefresh();
+          }}
+        />
+      )}
     </>
   );
 }

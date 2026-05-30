@@ -98,10 +98,20 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
   const taskIds = tasks.map((t) => t.id);
   const assigneeIds = tasks.map((t) => t.assignedTo).filter(Boolean) as string[];
 
-  const [commentsRes, attachmentsRes, checklistRes, profiles] = await Promise.all([
+  const [commentsRes, attachmentsRes, checklistRes, rfiRes, adjRes, profiles] = await Promise.all([
     supabase.from('task_comments').select('task_id').in('task_id', taskIds),
-    supabase.from('task_attachments').select('task_id').in('task_id', taskIds),
-    supabase.from('task_checklist_items').select('task_id, is_completed').in('task_id', taskIds),
+    supabase
+      .from('task_attachments')
+      .select('task_id, file_url, file_type, attachment_type, created_at')
+      .in('task_id', taskIds)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('task_checklist_items')
+      .select('task_id, title, is_completed, position')
+      .in('task_id', taskIds)
+      .order('position'),
+    supabase.from('rfi_requests').select('task_id').in('task_id', taskIds),
+    supabase.from('field_adjustment_requests').select('task_id').in('task_id', taskIds),
     fetchProfilesByIds(assigneeIds),
   ]);
 
@@ -112,19 +122,51 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
   }
 
   const attachmentCounts = new Map<string, number>();
+  const previewByTask = new Map<string, string>();
   for (const row of attachmentsRes.data ?? []) {
     const id = row.task_id as string;
     attachmentCounts.set(id, (attachmentCounts.get(id) ?? 0) + 1);
+    if (previewByTask.has(id)) continue;
+    const url = row.file_url as string;
+    const type = ((row.file_type as string) ?? '').toLowerCase();
+    const attType = (row.attachment_type as string) ?? '';
+    const isImage =
+      attType === 'photo' ||
+      type.startsWith('image/') ||
+      /\.(jpe?g|png|gif|webp)$/i.test(url);
+    if (isImage && url) previewByTask.set(id, url);
   }
 
   const checklistTotal = new Map<string, number>();
   const checklistDone = new Map<string, number>();
+  const checklistPreviewMap = new Map<string, { title: string; isCompleted: boolean }[]>();
   for (const row of checklistRes.data ?? []) {
     const id = row.task_id as string;
     checklistTotal.set(id, (checklistTotal.get(id) ?? 0) + 1);
     if (row.is_completed) {
       checklistDone.set(id, (checklistDone.get(id) ?? 0) + 1);
     }
+    if (!row.is_completed) {
+      const list = checklistPreviewMap.get(id) ?? [];
+      if (list.length < 2) {
+        list.push({ title: row.title as string, isCompleted: false });
+        checklistPreviewMap.set(id, list);
+      }
+    }
+  }
+
+  const rfiCounts = new Map<string, number>();
+  for (const row of rfiRes.data ?? []) {
+    const tid = row.task_id as string | null;
+    if (!tid) continue;
+    rfiCounts.set(tid, (rfiCounts.get(tid) ?? 0) + 1);
+  }
+
+  const adjustmentCounts = new Map<string, number>();
+  for (const row of adjRes.data ?? []) {
+    const tid = row.task_id as string | null;
+    if (!tid) continue;
+    adjustmentCounts.set(tid, (adjustmentCounts.get(tid) ?? 0) + 1);
   }
 
   return tasks.map((t) => ({
@@ -133,6 +175,10 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
     attachmentCount: attachmentCounts.get(t.id) ?? 0,
     checklistTotal: checklistTotal.get(t.id) ?? 0,
     checklistDone: checklistDone.get(t.id) ?? 0,
+    previewImageUrl: previewByTask.get(t.id) ?? null,
+    checklistPreview: checklistPreviewMap.get(t.id) ?? [],
+    rfiCount: rfiCounts.get(t.id) ?? 0,
+    adjustmentCount: adjustmentCounts.get(t.id) ?? 0,
     assigneeName: t.assignedTo
       ? displayNameFor(profiles.get(t.assignedTo))
       : null,

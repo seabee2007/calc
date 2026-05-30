@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PlannerTask } from '../../types/fieldPlanner';
+import { plannerBoardHref } from '../../utils/plannerRoutes';
 import { TaskPriorityBadge, TaskStatusBadge } from '../planner/TaskStatusBadge';
 
 interface EmployeeTaskListProps {
@@ -43,10 +44,10 @@ export default function EmployeeTaskList({ tasks, filter = 'all' }: EmployeeTask
         <li key={task.id}>
           <button
             type="button"
-            onClick={() => navigate(`/employee/tasks/${task.id}`)}
-            className="w-full rounded-xl border border-slate-700 bg-slate-800/80 p-4 text-left hover:border-cyan-500/40"
+            onClick={() => navigate(plannerBoardHref(task.projectId, task.id))}
+            className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-cyan-500/50 dark:border-slate-700 dark:bg-slate-900"
           >
-            <p className="font-medium text-white">{task.title}</p>
+            <p className="font-medium text-gray-900 dark:text-white">{task.title}</p>
             <div className="mt-2 flex flex-wrap gap-1">
               <TaskStatusBadge status={task.status} />
               <TaskPriorityBadge priority={task.priority} />

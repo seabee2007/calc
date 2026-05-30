@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FolderKanban } from 'lucide-react';
+import { FolderKanban, LayoutGrid } from 'lucide-react';
 import { useProjectStore } from '../store';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
 import { buildOperationsSnapshot, buildQcDashboardStats, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
@@ -211,6 +211,24 @@ const OperationsDashboard: React.FC = () => {
 
       {isOwner && (
         <section className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-cyan-500/30 bg-slate-900/95 px-4 py-4 shadow-lg">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
+                Field Planner
+              </p>
+              <p className="mt-1 text-sm text-slate-400">
+                Manage tasks, RFIs, and field updates across all active projects.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="!bg-cyan-600 !text-white hover:!bg-cyan-500 shrink-0"
+              icon={<LayoutGrid className="h-4 w-4" />}
+              onClick={() => navigate('/planner/hub')}
+            >
+              Open Planner Hub
+            </Button>
+          </div>
           <OwnerFieldSummaryCards />
           <OwnerActivityFeed limit={8} />
         </section>

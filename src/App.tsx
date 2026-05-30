@@ -30,12 +30,23 @@ import ResetPassword from './pages/auth/ResetPassword';
 import AuthGuard from './components/auth/AuthGuard';
 import { OwnerGuard, EmployeeGuard } from './components/auth/RoleGuard';
 import EmployeeLayout from './components/layout/EmployeeLayout';
-import ProjectPlannerPage from './pages/planner/ProjectPlannerPage';
+import PlannerWorkspaceLayout from './components/layout/PlannerWorkspaceLayout';
+import PlannerProjectShell from './pages/planner/PlannerProjectShell';
+import PlannerBoardPage from './pages/planner/PlannerBoardPage';
+import PlannerChartsPage from './pages/planner/PlannerChartsPage';
+import PlannerSchedulePage from './pages/planner/PlannerSchedulePage';
+import PlannerDocumentsPage from './pages/planner/PlannerDocumentsPage';
+import PlannerRFIsPage from './pages/planner/PlannerRFIsPage';
+import PlannerAdjustmentsPage from './pages/planner/PlannerAdjustmentsPage';
+import PlannerTeamPage from './pages/planner/PlannerTeamPage';
+import PlannerHubPage from './pages/planner/PlannerHubPage';
+import EmployeeTaskPlannerRedirect from './pages/employee/EmployeeTaskPlannerRedirect';
+import { LegacyTaskDetailRedirect } from './components/routing/LegacyPlannerRedirects';
+import PlannerIndexRedirect from './components/routing/PlannerIndexRedirect';
 import OwnerReviewPage from './pages/owner/OwnerReviewPage';
 import EmployeeManagementPage from './pages/owner/EmployeeManagementPage';
 import EmployeeDashboardPage from './pages/employee/EmployeeDashboardPage';
 import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
-import EmployeeTaskDetailPage from './pages/employee/EmployeeTaskDetailPage';
 import EmployeeProjectsPage from './pages/employee/EmployeeProjectsPage';
 import EmployeeMessagesPage from './pages/employee/EmployeeMessagesPage';
 import EmployeeUploadsPage from './pages/employee/EmployeeUploadsPage';
@@ -285,18 +296,10 @@ function App() {
               }
             />
             <Route
-              path="projects/:projectId/planner"
-              element={
-                <AuthGuard>
-                  <ProjectPlannerPage />
-                </AuthGuard>
-              }
-            />
-            <Route
               path="projects/:projectId/tasks/:taskId"
               element={
                 <AuthGuard>
-                  <ProjectPlannerPage />
+                  <LegacyTaskDetailRedirect />
                 </AuthGuard>
               }
             />
@@ -374,6 +377,41 @@ function App() {
           <Route
             element={
               <AuthGuard>
+                <PlannerWorkspaceLayout />
+              </AuthGuard>
+            }
+          >
+            <Route path="planner/hub" element={<PlannerHubPage />} />
+            <Route path="projects/:projectId/planner" element={<PlannerProjectShell />}>
+              <Route index element={<PlannerIndexRedirect />} />
+              <Route path="board" element={<PlannerBoardPage />} />
+              <Route path="charts" element={<PlannerChartsPage />} />
+              <Route path="schedule" element={<PlannerSchedulePage />} />
+              <Route path="documents" element={<PlannerDocumentsPage />} />
+              <Route path="rfis" element={<PlannerRFIsPage />} />
+              <Route path="adjustments" element={<PlannerAdjustmentsPage />} />
+              <Route path="team" element={<PlannerTeamPage />} />
+            </Route>
+            <Route
+              path="employee/tasks"
+              element={
+                <EmployeeGuard>
+                  <EmployeeTasksPage />
+                </EmployeeGuard>
+              }
+            />
+            <Route
+              path="employee/tasks/:taskId"
+              element={
+                <EmployeeGuard>
+                  <EmployeeTaskPlannerRedirect />
+                </EmployeeGuard>
+              }
+            />
+          </Route>
+          <Route
+            element={
+              <AuthGuard>
                 <EmployeeGuard>
                   <EmployeeLayout />
                 </EmployeeGuard>
@@ -382,8 +420,6 @@ function App() {
           >
             <Route path="/employee/dashboard" element={<EmployeeDashboardPage />} />
             <Route path="/employee/projects" element={<EmployeeProjectsPage />} />
-            <Route path="/employee/tasks" element={<EmployeeTasksPage />} />
-            <Route path="/employee/tasks/:taskId" element={<EmployeeTaskDetailPage />} />
             <Route path="/employee/messages" element={<EmployeeMessagesPage />} />
             <Route path="/employee/uploads" element={<EmployeeUploadsPage />} />
           </Route>

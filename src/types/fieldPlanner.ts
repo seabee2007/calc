@@ -109,6 +109,10 @@ export interface PlannerTask {
   checklistTotal?: number;
   checklistDone?: number;
   assigneeName?: string | null;
+  previewImageUrl?: string | null;
+  checklistPreview?: { title: string; isCompleted: boolean }[];
+  rfiCount?: number;
+  adjustmentCount?: number;
 }
 
 export interface TaskComment {
@@ -198,11 +202,15 @@ export interface FieldAdjustmentRequest {
 
 export type FieldActivityType =
   | 'comment'
+  | 'task_created'
   | 'task_submitted'
+  | 'task_approved'
+  | 'task_completed'
   | 'attachment'
   | 'message'
   | 'rfi'
-  | 'field_adjustment';
+  | 'field_adjustment'
+  | 'owner_response';
 
 export interface FieldActivityItem {
   id: string;

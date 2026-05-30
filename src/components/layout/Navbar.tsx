@@ -1,323 +1,372 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  LayoutDashboard,
+  BookOpen,
   FolderPlus,
-  Wrench,
-  Menu,
-  X,
+  LayoutDashboard,
+  LayoutGrid,
   LogIn,
-  UserPlus,
-  LogOut,
+  Menu,
   Settings,
-  Calculator,
+  User,
+  UserPlus,
+  Users,
+  Wrench,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import Button from '../ui/Button';
-import ThemeToggle from './ThemeToggle';
-import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import { useToolsModalStore } from '../../store/toolsModalStore';
-import { workflowQuery } from '../../utils/workflow';
+import FieldNotificationsBell from '../field/FieldNotificationsBell';
+import ThemeToggle from './ThemeToggle';
+import Button from '../ui/Button';
+import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
+
+function sectionLabelForPath(pathname: string): string {
+  if (pathname === '/') return 'Operations';
+  if (pathname.startsWith('/projects')) return 'Projects';
+  if (pathname.startsWith('/planner')) return 'Field Planner';
+  if (pathname.startsWith('/settings')) return 'Settings';
+  if (pathname.startsWith('/resources')) return 'Resources';
+  if (pathname.startsWith('/employees')) return 'Team';
+  if (pathname.startsWith('/owner/review')) return 'Review Queue';
+  if (pathname.startsWith('/proposal')) return 'Proposals';
+  if (pathname.startsWith('/pour-planner')) return 'Pour Planner';
+  if (pathname.startsWith('/mix-design')) return 'Mix Design';
+  if (pathname.startsWith('/calculator')) return 'Calculators';
+  if (pathname.startsWith('/employee')) return 'Employee Portal';
+  return 'Concrete Calc';
+}
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, isOwner, isEmployee } = useAuth();
+  const { user, profile, signOut, isOwner, isEmployee } = useAuth();
   const openTools = useToolsModalStore((s) => s.open);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+  const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
+  const sectionLabel = useMemo(
+    () => sectionLabelForPath(location.pathname),
+    [location.pathname],
+  );
 
-      if (currentScrollY < lastScrollY || currentScrollY < 50) {
-        setIsVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsVisible(false);
-        setIsMobileMenuOpen(false);
-      }
+  const startProject = () => {
+    setMobileOpen(false);
+    navigate('/projects', { state: { openCreate: true } });
+  };
 
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  const handleTools = () => {
+    setMobileOpen(false);
+    openTools();
+  };
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
-  const handleSignOut = async () => {
-    if (isSigningOut) return;
-    setIsSigningOut(true);
-    try {
-      await signOut();
-      setIsMobileMenuOpen(false);
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error('Error signing out:', error);
-    } finally {
-      setIsSigningOut(false);
-    }
-  };
-
-  const handleTools = () => {
-    setIsMobileMenuOpen(false);
-    openTools();
-  };
-
-  const authenticatedDesktopLinks = user
-    ? isEmployee
-      ? [
-          {
-            name: 'Field Portal',
-            path: '/employee/dashboard',
-            icon: <LayoutDashboard size={20} />,
-            shortName: 'Portal',
-            onClick: undefined,
-          },
-          {
-            name: 'Tasks',
-            path: '/employee/tasks',
-            icon: <Calculator size={20} />,
-            shortName: 'Tasks',
-            onClick: undefined,
-          },
-        ]
-      : [
-        {
-          name: 'Dashboard',
-          path: '/',
-          icon: <LayoutDashboard size={20} />,
-          shortName: 'Dash',
-          onClick: undefined as (() => void) | undefined,
-        },
-        ...(isOwner
-          ? [
-              {
-                name: 'Team',
-                path: '/employees',
-                icon: <UserPlus size={20} />,
-                shortName: 'Team',
-                onClick: undefined,
-              },
-            ]
-          : []),
-        {
-          name: 'Start Project',
-          path: '/projects',
-          icon: <FolderPlus size={20} />,
-          shortName: 'Start',
-          onClick: () => {
-            setIsMobileMenuOpen(false);
-            navigate('/projects', { state: { openCreate: true } });
-          },
-        },
-        {
-          name: 'Tools',
-          path: '',
-          icon: <Wrench size={20} />,
-          shortName: 'Tools',
-          onClick: handleTools,
-        },
-        {
-          name: 'Settings',
-          path: '/settings',
-          icon: <Settings size={20} />,
-          shortName: 'Settings',
-          onClick: undefined,
-        },
-      ]
-    : [
-        {
-          name: 'Home',
-          path: '/',
-          icon: <LayoutDashboard size={20} />,
-          shortName: 'Home',
-          onClick: undefined,
-        },
-      ];
+  const mobileLinkClass = (active: boolean) =>
+    [
+      'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium',
+      active
+        ? 'bg-white/10 text-white'
+        : 'text-slate-300 hover:bg-white/10 hover:text-white',
+    ].join(' ');
 
   return (
-    <motion.nav
-      className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-md fixed w-full top-0 left-0 right-0 z-50"
-      initial={{ y: 0 }}
-      animate={{ y: isVisible ? 0 : -100 }}
-      transition={{ duration: 0.2 }}
-      style={{
-        paddingTop: 'env(safe-area-inset-top)',
-      }}
+    <>
+    <nav
+      className={`${APP_NAV_HEADER} fixed left-0 right-0 top-0 z-50 w-full`}
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-        style={{
-          paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
-          paddingRight: 'max(env(safe-area-inset-right), 1rem)',
-        }}
-      >
-        <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0 min-w-0">
-            <Link to="/" className="flex items-center">
-              <Calculator className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-              <span className="ml-2 text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-                ConcreteCalc
-              </span>
-            </Link>
-          </div>
+      <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
+        {user && (
+          <button
+            type="button"
+            onClick={() => setMobileOpen((o) => !o)}
+            className="rounded p-1.5 hover:bg-white/10 md:hidden"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        )}
 
-          <div className="hidden md:flex items-center flex-1 justify-end">
-            <div className="flex items-center space-x-1 lg:space-x-2 mr-2 lg:mr-4">
-              {authenticatedDesktopLinks.map((link) =>
-                link.onClick ? (
-                  <button
-                    key={link.name}
-                    type="button"
-                    onClick={link.onClick}
-                    className="px-2 lg:px-3 py-2 rounded-md text-sm font-medium flex items-center transition-colors whitespace-nowrap text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50"
-                  >
-                    <span className="mr-1 lg:mr-2">{link.icon}</span>
-                    <span className="hidden lg:inline">{link.name}</span>
-                    <span className="lg:hidden">{link.shortName}</span>
-                  </button>
-                ) : (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`px-2 lg:px-3 py-2 rounded-md text-sm font-medium flex items-center transition-colors whitespace-nowrap ${
-                      isActive(link.path)
-                        ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/50'
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50'
-                    }`}
-                  >
-                    <span className="mr-1 lg:mr-2">{link.icon}</span>
-                    <span className="hidden lg:inline">{link.name}</span>
-                    <span className="lg:hidden">{link.shortName}</span>
-                  </Link>
-                ),
-              )}
-            </div>
+        {user ? (
+          <Link
+            to={dashboardHref}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
+            onClick={() => setMobileOpen(false)}
+          >
+            <LayoutDashboard className="h-4 w-4 text-cyan-400" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </Link>
+        ) : (
+          <Link
+            to="/"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            <span className="text-cyan-400">Concrete</span>
+            <span className="hidden sm:inline">Calc</span>
+          </Link>
+        )}
 
-            <div className="flex items-center space-x-1 lg:space-x-2 flex-shrink-0">
-              <ThemeToggle />
-              {isOwner && <FieldNotificationsBell />}
-
-              {user ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                  disabled={isSigningOut}
-                  icon={<LogOut size={16} />}
-                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-300 whitespace-nowrap text-xs lg:text-sm px-2 lg:px-3"
-                >
-                  <span className="hidden lg:inline">
-                    {isSigningOut ? 'Signing Out...' : 'Sign Out'}
-                  </span>
-                  <span className="lg:hidden">Out</span>
-                </Button>
-              ) : (
-                <div className="flex items-center space-x-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/login')}
-                    icon={<LogIn size={16} />}
-                    className="whitespace-nowrap text-xs lg:text-sm px-2 lg:px-3"
-                  >
-                    <span className="hidden lg:inline">Sign In</span>
-                    <span className="lg:hidden">In</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => navigate('/signup')}
-                    icon={<UserPlus size={16} />}
-                    className="whitespace-nowrap text-xs lg:text-sm px-2 lg:px-3"
-                  >
-                    <span className="hidden lg:inline">Sign Up</span>
-                    <span className="lg:hidden">Up</span>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center md:hidden space-x-1">
-            <ThemeToggle />
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50"
-            >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
+        {user && (
+          <>
+            <span className="hidden text-slate-600 sm:inline">|</span>
+            <span className="truncate text-sm text-slate-300">{sectionLabel}</span>
+          </>
+        )}
       </div>
 
+      <div className="flex shrink-0 items-center gap-0.5">
+        {user && isOwner && (
+          <>
+            <button
+              type="button"
+              onClick={handleTools}
+              className={`hidden md:inline-flex ${appNavIconButtonClass()}`}
+              aria-label="Tools"
+              title="Tools"
+            >
+              <Wrench className="h-5 w-5" />
+            </button>
+            <Link
+              to="/resources"
+              className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/resources'))}`}
+              aria-label="Resources"
+              title="Resources"
+            >
+              <BookOpen className="h-5 w-5" />
+            </Link>
+            <Link
+              to="/planner/hub"
+              className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/planner'))}`}
+              aria-label="Planner Hub"
+              title="Planner Hub"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              onClick={startProject}
+              className={`hidden md:inline-flex ${appNavIconButtonClass()}`}
+              aria-label="Start project"
+              title="Start project"
+            >
+              <FolderPlus className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {user && isEmployee && !isOwner && (
+          <Link
+            to="/employee/tasks"
+            className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/employee/tasks'))}`}
+            aria-label="My tasks"
+            title="My tasks"
+          >
+            <LayoutGrid className="h-5 w-5" />
+          </Link>
+        )}
+
+        {user && (
+          <Link
+            to="/settings"
+            className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/settings'))}`}
+            aria-label="Settings"
+            title="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
+        )}
+
+        <div className="hidden sm:block [&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
+          <ThemeToggle />
+        </div>
+
+        {user && isOwner && <FieldNotificationsBell />}
+
+        {user ? (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setProfileOpen((o) => !o)}
+              className={appNavIconButtonClass(profileOpen)}
+              aria-label="Profile"
+              title="Profile"
+            >
+              <User className="h-5 w-5" />
+            </button>
+            {profileOpen && (
+              <>
+                <button
+                  type="button"
+                  className="fixed inset-0 z-40"
+                  aria-label="Close profile menu"
+                  onClick={() => setProfileOpen(false)}
+                />
+                <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-xl">
+                  <p className="truncate px-3 py-2 text-xs text-slate-400">
+                    {profile?.displayName ?? user.email}
+                  </p>
+                  {isOwner && (
+                    <Link
+                      to="/employees"
+                      className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      Team & employees
+                    </Link>
+                  )}
+                  <Link
+                    to="/projects"
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    Projects
+                  </Link>
+                  <div className="border-t border-slate-700 px-3 py-2 sm:hidden">
+                    <ThemeToggle />
+                  </div>
+                  <button
+                    type="button"
+                    className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      void signOut().then(() => navigate('/login'));
+                    }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1">
+            <Link
+              to="/login"
+              className={appNavIconButtonClass()}
+              aria-label="Sign in"
+              title="Sign in"
+            >
+              <LogIn className="h-5 w-5" />
+            </Link>
+            <Button
+              size="sm"
+              className="!h-8 !px-2 !py-1 !text-xs !bg-cyan-600 hover:!bg-cyan-500"
+              onClick={() => navigate('/signup')}
+              icon={<UserPlus className="h-3.5 w-3.5" />}
+            >
+              <span className="hidden sm:inline">Sign up</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    </nav>
+
       <AnimatePresence>
-        {isMobileMenuOpen && user && (
+        {mobileOpen && user && (
           <motion.div
-            className="md:hidden fixed left-0 right-0 top-[calc(4rem+env(safe-area-inset-top))] bg-white dark:bg-gray-800 shadow-xl border-t border-gray-200 dark:border-gray-700 z-[100] backdrop-blur-sm"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            className={APP_NAV_MOBILE_MENU}
             style={{
-              maxHeight: 'calc(100vh - 4rem - env(safe-area-inset-top))',
+              top: 'calc(3rem + env(safe-area-inset-top))',
+              maxHeight: 'calc(100vh - 3rem - env(safe-area-inset-top))',
               overflow: 'auto',
             }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {authenticatedDesktopLinks.map((link) =>
-                link.onClick ? (
-                  <button
-                    key={link.name}
-                    type="button"
-                    onClick={() => {
-                      link.onClick?.();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full block px-3 py-2 rounded-md text-base font-medium flex items-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50"
-                  >
-                    <span className="mr-3">{link.icon}</span>
-                    {link.name}
-                  </button>
-                ) : (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`block px-3 py-2 rounded-md text-base font-medium flex items-center transition-colors ${
-                      isActive(link.path)
-                        ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/50'
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-900/50'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <span className="mr-3">{link.icon}</span>
-                    {link.name}
-                  </Link>
-                ),
-              )}
-              <Button
-                variant="outline"
-                fullWidth
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                icon={<LogOut size={18} />}
-                className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-300 mt-2"
+            <div className="space-y-1 p-2">
+              <Link
+                to={dashboardHref}
+                className={mobileLinkClass(isActive(dashboardHref))}
+                onClick={() => setMobileOpen(false)}
               >
-                {isSigningOut ? 'Signing Out...' : 'Sign Out'}
-              </Button>
+                <LayoutDashboard className="h-5 w-5 text-cyan-400" />
+                Dashboard
+              </Link>
+
+              {isOwner && (
+                <>
+                  <button type="button" onClick={handleTools} className={mobileLinkClass(false)}>
+                    <Wrench className="h-5 w-5" />
+                    Tools
+                  </button>
+                  <Link
+                    to="/resources"
+                    className={mobileLinkClass(isActive('/resources'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <BookOpen className="h-5 w-5" />
+                    Resources
+                  </Link>
+                  <Link
+                    to="/planner/hub"
+                    className={mobileLinkClass(isActive('/planner'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <LayoutGrid className="h-5 w-5" />
+                    Planner Hub
+                  </Link>
+                  <button type="button" onClick={startProject} className={mobileLinkClass(false)}>
+                    <FolderPlus className="h-5 w-5" />
+                    Start project
+                  </button>
+                  <Link
+                    to="/employees"
+                    className={mobileLinkClass(isActive('/employees'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Users className="h-5 w-5" />
+                    Team
+                  </Link>
+                </>
+              )}
+
+              {isEmployee && !isOwner && (
+                <Link
+                  to="/employee/tasks"
+                  className={mobileLinkClass(isActive('/employee/tasks'))}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <LayoutGrid className="h-5 w-5" />
+                  My tasks
+                </Link>
+              )}
+
+              <Link
+                to="/settings"
+                className={mobileLinkClass(isActive('/settings'))}
+                onClick={() => setMobileOpen(false)}
+              >
+                <Settings className="h-5 w-5" />
+                Settings
+              </Link>
+
+              <div className="px-3 py-2">
+                <ThemeToggle />
+              </div>
+
+              <button
+                type="button"
+                className={`${mobileLinkClass(false)} text-red-300`}
+                onClick={() => {
+                  setMobileOpen(false);
+                  void signOut().then(() => navigate('/login'));
+                }}
+              >
+                Sign out
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </>
   );
 };
 

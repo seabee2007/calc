@@ -19,13 +19,13 @@ export default function EmployeeProjectCard({
 
   return (
     <Link
-      to={`/projects/${id}/planner`}
-      className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/80 p-4 hover:border-cyan-500/40"
+      to={`/projects/${id}/planner/board`}
+      className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-cyan-500/50 dark:border-slate-700 dark:bg-slate-900"
     >
       <div className="flex items-center gap-3 min-w-0">
         <FolderKanban className="h-8 w-8 shrink-0 text-cyan-400" />
         <div className="min-w-0">
-          <p className="font-semibold text-white truncate">{name}</p>
+          <p className="font-semibold text-gray-900 truncate dark:text-white">{name}</p>
           {location && <p className="text-xs text-slate-400">{location}</p>}
         </div>
       </div>

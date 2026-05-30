@@ -16,25 +16,29 @@ export const PLANNER_LINK =
 
 export const PLANNER_ICON_ACCENT = 'text-cyan-600 dark:text-cyan-400';
 
-/** Wraps the board horizontal scroll area */
-export const PLANNER_BOARD_SURFACE =
-  'rounded-xl border border-slate-200/80 bg-white/60 p-3 shadow-inner backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-900/40';
+/** Full board canvas (MS Planner) */
+export const PLANNER_BOARD_BG = 'bg-slate-100 dark:bg-slate-950';
 
-export const PLANNER_BUCKET =
-  'flex w-[280px] shrink-0 flex-col rounded-xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/75 dark:shadow-lg';
+export const PLANNER_PAGE_BG = `${PLANNER_BOARD_BG} flex min-h-0 flex-1 flex-col`;
 
-export const PLANNER_BUCKET_HEADER =
-  'border-b border-slate-200/90 px-3 py-3 dark:border-slate-700/80';
+/** Transparent bucket column */
+export const PLANNER_BUCKET_COLUMN = 'flex w-[300px] shrink-0 flex-col bg-transparent mr-6';
 
-export const PLANNER_BUCKET_TITLE = 'font-semibold text-gray-900 dark:text-slate-100';
+export const PLANNER_BUCKET_TITLE = 'text-sm font-semibold text-gray-800 dark:text-slate-200';
 
 export const PLANNER_BUCKET_META = 'text-xs text-gray-500 dark:text-slate-500';
 
-export const PLANNER_BUCKET_FOOTER =
-  'border-t border-slate-200/90 p-2 dark:border-slate-700/80';
+export const PLANNER_ADD_TASK_BAR =
+  'mb-2 flex h-9 w-full items-center justify-center rounded border border-slate-200 bg-white text-slate-400 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:hover:bg-slate-750';
 
 export const PLANNER_TASK_CARD =
-  'w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:border-cyan-500/60 hover:shadow-md dark:border-slate-600/80 dark:bg-slate-800/90 dark:shadow-sm dark:hover:border-cyan-500/40 dark:hover:shadow-md';
+  'group relative w-full overflow-hidden rounded-md border border-slate-200 bg-white p-2.5 text-left shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800';
+
+export const PLANNER_TASK_CARD_COMPLETED =
+  'opacity-60 grayscale';
+
+export const PLANNER_PLAN_HEADER =
+  'shrink-0 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900';
 
 export const PLANNER_TASK_TITLE =
   'font-medium text-gray-900 line-clamp-2 dark:text-slate-100';
@@ -45,13 +49,13 @@ export const PLANNER_TASK_META_MUTED = 'text-xs text-gray-400 dark:text-slate-50
 
 export const PLANNER_TASK_ACCENT = 'text-cyan-700 dark:text-cyan-400/90';
 
-export const PLANNER_DRAWER_BACKDROP = 'fixed inset-0 z-[9990] flex justify-end bg-black/40 dark:bg-black/50';
+export const PLANNER_DRAWER_BACKDROP = 'fixed inset-0 z-[10050] flex justify-end bg-black/40 dark:bg-black/50';
 
 export const PLANNER_DRAWER_PANEL =
-  'flex h-full w-full max-w-lg flex-col border-l border-slate-200 bg-white/98 shadow-2xl backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/98 md:max-w-xl';
+  'flex h-full w-full flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900';
 
 export const PLANNER_DRAWER_FULL_PAGE =
-  'fixed inset-0 z-[9990] flex flex-col bg-white dark:bg-slate-950';
+  'fixed inset-0 z-[10050] flex flex-col bg-white dark:bg-slate-950';
 
 export const PLANNER_DRAWER_HEADER =
   'flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700';

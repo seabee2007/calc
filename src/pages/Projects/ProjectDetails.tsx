@@ -442,7 +442,7 @@ export default function ProjectDetails() {
             <Button
               className={`w-full sm:w-auto ${PLANNER_BTN_PRIMARY}`}
               icon={<ClipboardList className="h-4 w-4" />}
-              onClick={() => navigate(`/projects/${project.id}/planner`)}
+              onClick={() => navigate(`/projects/${project.id}/planner/board`)}
             >
               Open Field Planner
             </Button>

@@ -34,7 +34,7 @@ export default function OwnerFieldSummaryCards() {
       label: 'Open Tasks',
       value: summary.openTasks,
       icon: ClipboardList,
-      onClick: () => navigate('/projects'),
+      onClick: () => navigate('/planner/hub'),
     },
     {
       label: 'Needs Review',

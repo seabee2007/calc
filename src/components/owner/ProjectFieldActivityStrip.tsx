@@ -23,7 +23,7 @@ export default function ProjectFieldActivityStrip({ projectId }: { projectId: st
     <div className={PLANNER_ACTIVITY_STRIP}>
       <div className="flex items-center justify-between mb-2">
         <h3 className={PLANNER_ACTIVITY_TITLE}>Recent field updates</h3>
-        <Link to={`/projects/${projectId}/planner`} className={PLANNER_LINK}>
+        <Link to={`/projects/${projectId}/planner/board`} className={PLANNER_LINK}>
           Open planner →
         </Link>
       </div>

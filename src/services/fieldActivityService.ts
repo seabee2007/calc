@@ -1,6 +1,12 @@
 import { supabase } from '../lib/supabase';
 import type { FieldActivityItem } from '../types/fieldPlanner';
 import { fetchProfilesByIds, displayNameFor } from './profileService';
+import {
+  plannerAdjustmentHref,
+  plannerBoardHref,
+  plannerDocumentsHref,
+  plannerRfiHref,
+} from '../utils/plannerRoutes';
 
 async function projectNameMap(projectIds: string[]): Promise<Map<string, string>> {
   if (projectIds.length === 0) return new Map();
@@ -92,7 +98,7 @@ export async function getOwnerFieldActivity(
       summary: `${nameFor(row.user_id as string)} posted a field update`,
       timestamp: row.created_at as string,
       status: 'New',
-      href: `/projects/${pid}/planner?task=${tid}`,
+      href: plannerBoardHref(pid, tid),
     });
   }
 
@@ -124,7 +130,7 @@ export async function getOwnerFieldActivity(
       summary: `${nameFor(row.uploaded_by as string)} uploaded ${row.file_name as string}`,
       timestamp: row.created_at as string,
       status: 'Uploaded',
-      href: `/projects/${pid}/planner?task=${tid}`,
+      href: plannerBoardHref(pid, tid),
     });
   }
 
@@ -154,7 +160,7 @@ export async function getOwnerFieldActivity(
       summary: `${nameFor(row.submitted_by as string)} created RFI: ${row.title as string}`,
       timestamp: row.created_at as string,
       status: row.status as string,
-      href: `/owner/review?rfi=${row.id}`,
+      href: plannerRfiHref(pid, row.id as string),
     });
   }
 
@@ -169,7 +175,7 @@ export async function getOwnerFieldActivity(
       summary: `${nameFor(row.submitted_by as string)} requested field adjustment: ${row.title as string}`,
       timestamp: row.created_at as string,
       status: row.status as string,
-      href: `/owner/review?adjustment=${row.id}`,
+      href: plannerAdjustmentHref(pid, row.id as string),
     });
   }
 
@@ -181,16 +187,220 @@ export async function getFieldActivityForProject(
   projectId: string,
   limit = 3,
 ): Promise<FieldActivityItem[]> {
+  return buildProjectActivityFeed(projectId, limit);
+}
+
+/** Single-project activity feed for planner sidebar. */
+export async function buildProjectActivityFeed(
+  projectId: string,
+  limit = 30,
+): Promise<FieldActivityItem[]> {
   const { data: project } = await supabase
     .from('projects')
-    .select('user_id, name')
+    .select('name')
     .eq('id', projectId)
     .maybeSingle();
 
-  if (!project) return [];
-  return getOwnerFieldActivity(project.user_id as string, limit).then((items) =>
-    items.filter((i) => i.projectId === projectId).slice(0, limit),
-  );
+  const projectName = (project?.name as string) ?? 'Project';
+
+  const [comments, tasks, attachments, rfis, adjustments] = await Promise.all([
+    supabase
+      .from('task_comments')
+      .select('id, user_id, comment, created_at, task_id')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('planner_tasks')
+      .select(
+        'id, title, status, assigned_to, created_by, created_at, submitted_at, approved_at, completed_at',
+      )
+      .eq('project_id', projectId)
+      .order('updated_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('task_attachments')
+      .select('id, uploaded_by, file_name, created_at, task_id')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('rfi_requests')
+      .select('id, submitted_by, title, status, owner_response, responded_at, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('field_adjustment_requests')
+      .select('id, submitted_by, title, status, owner_response, approved_at, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+  ]);
+
+  const userIds = new Set<string>();
+  for (const row of comments.data ?? []) userIds.add(row.user_id as string);
+  for (const row of tasks.data ?? []) {
+    if (row.assigned_to) userIds.add(row.assigned_to as string);
+    if (row.created_by) userIds.add(row.created_by as string);
+  }
+  for (const row of attachments.data ?? []) userIds.add(row.uploaded_by as string);
+  for (const row of rfis.data ?? []) userIds.add(row.submitted_by as string);
+  for (const row of adjustments.data ?? []) userIds.add(row.submitted_by as string);
+
+  const profiles = await fetchProfilesByIds([...userIds]);
+  const nameFor = (id: string) => displayNameFor(profiles.get(id), 'Team member');
+
+  const items: FieldActivityItem[] = [];
+
+  for (const row of comments.data ?? []) {
+    const tid = row.task_id as string;
+    items.push({
+      id: `comment-${row.id}`,
+      type: 'comment',
+      projectId,
+      projectName,
+      employeeName: nameFor(row.user_id as string),
+      summary: `${nameFor(row.user_id as string)} commented on a task`,
+      timestamp: row.created_at as string,
+      status: 'Update',
+      href: plannerBoardHref(projectId, tid),
+    });
+  }
+
+  for (const row of tasks.data ?? []) {
+    const tid = row.id as string;
+    const title = row.title as string;
+    const status = row.status as string;
+    const assignee = row.assigned_to as string | null;
+
+    if (status === 'Submitted' && row.submitted_at) {
+      items.push({
+        id: `submitted-${tid}`,
+        type: 'task_submitted',
+        projectId,
+        projectName,
+        employeeName: assignee ? nameFor(assignee) : 'Team member',
+        summary: `Task submitted for review: ${title}`,
+        timestamp: row.submitted_at as string,
+        status,
+        href: plannerBoardHref(projectId, tid),
+      });
+    }
+    if (status === 'Approved' && row.approved_at) {
+      items.push({
+        id: `approved-${tid}`,
+        type: 'task_approved',
+        projectId,
+        projectName,
+        employeeName: 'Owner',
+        summary: `Task approved: ${title}`,
+        timestamp: row.approved_at as string,
+        status,
+        href: plannerBoardHref(projectId, tid),
+      });
+    }
+    if (status === 'Completed' && row.completed_at) {
+      items.push({
+        id: `completed-${tid}`,
+        type: 'task_completed',
+        projectId,
+        projectName,
+        employeeName: assignee ? nameFor(assignee) : 'Team member',
+        summary: `Task completed: ${title}`,
+        timestamp: row.completed_at as string,
+        status,
+        href: plannerBoardHref(projectId, tid),
+      });
+    }
+    if (row.created_at) {
+      items.push({
+        id: `created-${tid}-${row.created_at}`,
+        type: 'task_created',
+        projectId,
+        projectName,
+        employeeName: row.created_by ? nameFor(row.created_by as string) : 'Owner',
+        summary: `Task created: ${title}`,
+        timestamp: row.created_at as string,
+        status: 'New',
+        href: plannerBoardHref(projectId, tid),
+      });
+    }
+  }
+
+  for (const row of attachments.data ?? []) {
+    const tid = row.task_id as string;
+    items.push({
+      id: `attachment-${row.id}`,
+      type: 'attachment',
+      projectId,
+      projectName,
+      employeeName: nameFor(row.uploaded_by as string),
+      summary: `${nameFor(row.uploaded_by as string)} uploaded ${row.file_name as string}`,
+      timestamp: row.created_at as string,
+      status: 'Uploaded',
+      href: plannerDocumentsHref(projectId, row.id as string),
+    });
+  }
+
+  for (const row of rfis.data ?? []) {
+    const rid = row.id as string;
+    items.push({
+      id: `rfi-${rid}`,
+      type: 'rfi',
+      projectId,
+      projectName,
+      employeeName: nameFor(row.submitted_by as string),
+      summary: `RFI: ${row.title as string}`,
+      timestamp: row.created_at as string,
+      status: row.status as string,
+      href: plannerRfiHref(projectId, rid),
+    });
+    if (row.owner_response && row.responded_at) {
+      items.push({
+        id: `rfi-response-${rid}`,
+        type: 'owner_response',
+        projectId,
+        projectName,
+        employeeName: 'Owner',
+        summary: `Owner responded to RFI: ${row.title as string}`,
+        timestamp: row.responded_at as string,
+        status: 'Answered',
+        href: plannerRfiHref(projectId, rid),
+      });
+    }
+  }
+
+  for (const row of adjustments.data ?? []) {
+    const aid = row.id as string;
+    items.push({
+      id: `adjustment-${aid}`,
+      type: 'field_adjustment',
+      projectId,
+      projectName,
+      employeeName: nameFor(row.submitted_by as string),
+      summary: `Field adjustment: ${row.title as string}`,
+      timestamp: row.created_at as string,
+      status: row.status as string,
+      href: plannerAdjustmentHref(projectId, aid),
+    });
+    if (row.owner_response && row.approved_at) {
+      items.push({
+        id: `adjustment-response-${aid}`,
+        type: 'owner_response',
+        projectId,
+        projectName,
+        employeeName: 'Owner',
+        summary: `Owner reviewed adjustment: ${row.title as string}`,
+        timestamp: row.approved_at as string,
+        status: row.status as string,
+        href: plannerAdjustmentHref(projectId, aid),
+      });
+    }
+  }
+
+  items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return items.slice(0, limit);
 }
 
 export async function getOwnerFieldSummary(ownerId: string) {

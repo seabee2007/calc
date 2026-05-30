@@ -23,9 +23,9 @@ export default function EmployeeTasksPage() {
   ];
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-white mb-4">My tasks</h1>
-      <div className="flex gap-2 mb-4">
+    <div className="mx-auto max-w-3xl flex-1 p-4 sm:p-6">
+      <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">My tasks</h1>
+      <div className="mb-4 flex gap-2">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -34,7 +34,7 @@ export default function EmployeeTasksPage() {
             className={`rounded-lg px-3 py-2 text-sm font-medium ${
               filter === t.id
                 ? 'bg-cyan-600 text-white'
-                : 'bg-slate-800 text-slate-400'
+                : 'bg-slate-200 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
             }`}
           >
             {t.label}

@@ -6,73 +6,76 @@ import BottomNav from './BottomNav';
 import ToolsModal from '../workflow/ToolsModal';
 import MoreMenuModal from '../workflow/MoreMenuModal';
 import { useAuth } from '../../hooks/useAuth';
+import { isPlannerWorkspacePath } from '../../utils/plannerRoutes';
 import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
 const Layout: React.FC = () => {
   const location = useLocation();
   const { user, isEmployee } = useAuth();
-  const isEmployeeRoute = location.pathname.startsWith('/employee');
+
+  const isPlannerWorkspace = isPlannerWorkspacePath(location.pathname);
+  const isEmployeeRoute =
+    location.pathname.startsWith('/employee') &&
+    !location.pathname.startsWith('/employee/tasks');
+
   const isPublicProposal = location.pathname.startsWith('/proposal/');
   const isPublicClientPortal = location.pathname.startsWith('/client/project/');
+
   const isAuthPage =
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
     isPublicProposal ||
     isPublicClientPortal;
-  const showBottomNav = Boolean(user) && !isAuthPage && !isEmployeeRoute && !isEmployee;
+
+  const showBottomNav =
+    Boolean(user) &&
+    !isAuthPage &&
+    !isEmployeeRoute &&
+    !isEmployee &&
+    !isPlannerWorkspace;
 
   useEffect(() => {
-    // Scroll to top on route change
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
   useEffect(() => {
-    // Prevent unwanted zooming
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 1) {
         e.preventDefault();
       }
     };
 
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    
-    // Fix iOS height issues
     const resizeHeight = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    
-    window.addEventListener('resize', resizeHeight);
-    window.addEventListener('orientationchange', resizeHeight);
-    resizeHeight();
 
-    // Set theme colors and status bar background based on theme
     const setThemeColors = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      const bgColor = isDark ? '#111827' : '#ffffff';
+      const bgColor = isDark ? '#020617' : '#f8fafc';
       const metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
-      
-      // Update document background
+
       document.documentElement.style.backgroundColor = bgColor;
       document.body.style.backgroundColor = bgColor;
-      
-      // Update body class for CSS targeting
+
       if (isDark) {
         document.body.classList.add('dark');
       } else {
         document.body.classList.remove('dark');
       }
-      
-      // Update theme-color meta tag
+
       if (metaThemeColor) {
         metaThemeColor.setAttribute('content', bgColor);
       }
     };
-    
-    // Initial setup
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('resize', resizeHeight);
+    window.addEventListener('orientationchange', resizeHeight);
+
+    resizeHeight();
     setThemeColors();
-    
-    // Create observer for theme changes
+
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class') {
@@ -80,10 +83,10 @@ const Layout: React.FC = () => {
         }
       });
     });
-    
+
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ['class'],
     });
 
     return () => {
@@ -94,51 +97,58 @@ const Layout: React.FC = () => {
     };
   }, []);
 
-  if (isAuthPage) {
+  if (isAuthPage || isPlannerWorkspace) {
     return <Outlet />;
   }
 
   return (
-    <div className="min-h-screen w-screen overflow-x-hidden bg-white dark:bg-gray-900" 
-         style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      {/* Fixed background container */}
-      <div 
-        className="fixed w-full h-full"
+    <div
+      className="min-h-screen w-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
+      {/* Frosted concrete site background */}
+      <div
+        className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
         style={{
           top: 'env(safe-area-inset-top)',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          willChange: 'transform',
-          transform: 'translateZ(0)',
-          zIndex: 0
         }}
       >
-        {/* Quieter background — stronger card contrast on dashboard */}
-        <div className="absolute inset-0 bg-white/55 dark:bg-slate-950/72" />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            transform: 'scale(1.06)',
+            filter: 'grayscale(30%) brightness(1.02) blur(2px)',
+            willChange: 'transform',
+          }}
+        />
+
+        <div className="absolute inset-0 bg-slate-50/75 dark:bg-slate-950/82" />
       </div>
-      
-      {/* Content container */}
-      <div className="relative min-h-screen flex flex-col z-10">
+
+      {/* App content */}
+      <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
+
         <main
-          className="flex-grow py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full relative"
+          className="relative mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
           style={{
             paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
             paddingRight: 'max(env(safe-area-inset-right), 1rem)',
-            marginTop: 'calc(4rem)',
-            minHeight: 'auto'
+            marginTop: 'calc(3rem + env(safe-area-inset-top))',
+            minHeight: 'auto',
           }}
         >
           <Outlet />
         </main>
+
         <Footer />
+
         {showBottomNav && <BottomNav />}
+
         {user && !isEmployee && !isEmployeeRoute && (
           <>
             <ToolsModal />

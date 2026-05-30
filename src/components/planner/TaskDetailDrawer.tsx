@@ -145,6 +145,7 @@ export default function TaskDetailDrawer({
             exit={fullPage ? { opacity: 0, y: 12 } : { x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             className={fullPage ? 'flex h-full flex-col' : PLANNER_DRAWER_PANEL}
+            style={fullPage ? undefined : { maxWidth: 'min(100vw, 640px)' }}
           >
             <header className={PLANNER_DRAWER_HEADER}>
               <div>
@@ -235,22 +236,40 @@ export default function TaskDetailDrawer({
                     userId={userId}
                     comments={comments}
                     canComment={canComment}
+                    isOwner={isOwner}
                     onChange={() => void reload()}
+                    onCreateRfi={() => setRfiOpen(true)}
+                    onCreateAdjustment={() => setAdjustmentOpen(true)}
                   />
                 </>
               )}
             </div>
 
             <footer className={PLANNER_DRAWER_FOOTER}>
-              {isEmployee && canEditTask && task?.status !== 'Submitted' && (
-                <Button
-                  className={`w-full min-h-[48px] ${PLANNER_BTN_PRIMARY}`}
-                  icon={<Send className="h-4 w-4" />}
-                  onClick={() => void handleSubmitForReview()}
-                  disabled={busy}
-                >
-                  Submit for review
-                </Button>
+              {isEmployee && canEditTask && (
+                <>
+                  {task?.status !== 'Submitted' && task?.status !== 'Completed' && (
+                    <Button
+                      className={`w-full min-h-[48px] ${PLANNER_BTN_PRIMARY}`}
+                      icon={<Send className="h-4 w-4" />}
+                      onClick={() => void handleSubmitForReview()}
+                      disabled={busy}
+                    >
+                      Submit for review
+                    </Button>
+                  )}
+                  {(task?.status === 'In Progress' || task?.status === 'Approved') && (
+                    <Button
+                      variant="outline"
+                      className="w-full min-h-[48px]"
+                      icon={<CheckCircle className="h-4 w-4" />}
+                      onClick={() => void handlePatch({ status: 'Completed' })}
+                      disabled={busy}
+                    >
+                      Mark complete
+                    </Button>
+                  )}
+                </>
               )}
               {isOwner && task?.status === 'Submitted' && (
                 <div className="grid grid-cols-2 gap-2">
