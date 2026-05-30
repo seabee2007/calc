@@ -26,22 +26,21 @@ export default function FieldFilePicker({
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
-          size="lg"
-          className="min-h-12 flex-1 sm:flex-none"
-          icon={<Camera className="h-5 w-5" />}
+          variant="outline"
+          className="min-h-11"
+          icon={<Camera className="h-4 w-4" />}
           onClick={() => inputRef.current?.click()}
         >
-          Add photo
+          Add Photo
         </Button>
         <Button
           type="button"
-          size="lg"
           variant="outline"
-          className="min-h-12"
-          icon={<Paperclip className="h-5 w-5" />}
+          className="min-h-11"
+          icon={<Paperclip className="h-4 w-4" />}
           onClick={() => inputRef.current?.click()}
         >
-          PDF / file
+          PDF / File
         </Button>
       </div>
       <input

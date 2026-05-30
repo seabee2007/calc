@@ -81,7 +81,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
         </label>
       )}
       
-      <div className="relative">
+      <div className={`relative ${fullWidth ? 'w-full' : ''}`}>
         {icon && (
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             {icon}

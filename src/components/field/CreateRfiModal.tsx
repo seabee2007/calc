@@ -103,23 +103,28 @@ export default function CreateRfiModal({
       stackAboveDrawer={stackAboveDrawer}
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-        <Select
-          label="Priority"
-          value={urgency}
-          onChange={(v) => setUrgency(v)}
-          options={RFI_PRIORITIES.map((p) => ({ value: p, label: p }))}
-        />
+        <div className="w-full max-w-[10.5rem]">
+          <Select
+            label="Priority"
+            value={urgency}
+            onChange={(v) => setUrgency(v)}
+            options={RFI_PRIORITIES.map((p) => ({ value: p, label: p }))}
+            className="w-full"
+          />
+        </div>
         <Input
           label="Subject"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          fullWidth
           placeholder="Brief subject"
         />
         <Input
           label="Location"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
+          fullWidth
           placeholder="Grid, area, or station"
         />
         <div className="grid gap-3 sm:grid-cols-2">
@@ -141,6 +146,7 @@ export default function CreateRfiModal({
             className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800"
           />
         </div>
+        <FieldFilePicker files={files} onChange={setFiles} />
         <fieldset>
           <legend className="mb-2 text-sm font-medium">Impact</legend>
           <div className="flex flex-wrap gap-3">
@@ -173,8 +179,7 @@ export default function CreateRfiModal({
             className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800"
           />
         </div>
-        <FieldFilePicker files={files} onChange={setFiles} />
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
             Cancel
           </Button>

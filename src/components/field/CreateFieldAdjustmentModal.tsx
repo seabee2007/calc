@@ -111,12 +111,14 @@ export default function CreateFieldAdjustmentModal({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          fullWidth
           placeholder="Short summary"
         />
         <Input
           label="Location"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
+          fullWidth
           placeholder="Where on site"
         />
         <Select
@@ -149,6 +151,7 @@ export default function CreateFieldAdjustmentModal({
             className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800"
           />
         </div>
+        <FieldFilePicker files={files} onChange={setFiles} />
         <div className="grid gap-3 sm:grid-cols-3">
           <Input
             label="Labor ($)"
@@ -183,8 +186,7 @@ export default function CreateFieldAdjustmentModal({
             Estimated cost impact: ${estimatedCost.toLocaleString()}
           </p>
         )}
-        <FieldFilePicker files={files} onChange={setFiles} />
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
             Cancel
           </Button>
