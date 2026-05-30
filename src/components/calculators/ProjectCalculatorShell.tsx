@@ -12,6 +12,7 @@ import Button from '../ui/Button';
 import Select from '../ui/Select';
 import ProjectForm, { type ProjectFormData } from '../projects/ProjectForm';
 import { formatUSAddress, hasProjectJobsite } from '../../types/address';
+import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../../theme/pageTypography';
 
 interface ProjectCalculatorShellProps {
   title: string;
@@ -53,12 +54,8 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
     <div className="max-w-6xl mx-auto">
       <WorkflowStepHeader />
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-black dark:text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-          {title}
-        </h1>
-        <p className="text-black dark:text-black text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
-          {description}
-        </p>
+        <h1 className={CC_PAGE_TITLE}>{title}</h1>
+        <p className={`${CC_PAGE_SUBTITLE} mt-2`}>{description}</p>
       </div>
 
       <div className="mb-6 bg-white/90 dark:bg-gray-800 backdrop-blur-sm p-4 rounded-lg shadow-lg">

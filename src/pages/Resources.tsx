@@ -11,6 +11,7 @@ import mixingImage from '../assets/images/mixing.jpg';
 import crackImage from '../assets/images/crack.jpg';
 import admixImage from '../assets/images/admix.jpg';
 import libraryImage from '../assets/images/library.webp';
+import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
 
 interface ResourcesProps {
   chatStore: {
@@ -96,10 +97,8 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
     >
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-            Concrete Resources
-          </h1>
-          <p className="text-black text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
+          <h1 className={CC_PAGE_TITLE}>Concrete Resources</h1>
+          <p className={`${CC_PAGE_SUBTITLE} mt-2`}>
             Helpful guides, tips, and reference materials for concrete work
           </p>
         </div>

@@ -17,14 +17,16 @@ export const PLANNER_LINK =
 export const PLANNER_ICON_ACCENT = 'text-cyan-600 dark:text-cyan-400';
 
 /** Full board canvas (MS Planner) */
-export const PLANNER_BOARD_BG = 'bg-slate-100 dark:bg-slate-950';
+/** Transparent so site concrete background shows through the workspace. */
+export const PLANNER_BOARD_BG = 'bg-transparent';
 
 export const PLANNER_PAGE_BG = `${PLANNER_BOARD_BG} flex min-h-0 flex-1 flex-col`;
 
 /** Transparent bucket column */
 export const PLANNER_BUCKET_COLUMN = 'flex w-[300px] shrink-0 flex-col bg-transparent mr-6';
 
-export const PLANNER_BUCKET_TITLE = 'text-sm font-semibold text-gray-800 dark:text-slate-200';
+export const PLANNER_BUCKET_TITLE =
+  'text-center text-sm font-semibold text-slate-900 drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)] dark:text-slate-500 dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]';
 
 export const PLANNER_BUCKET_META = 'text-xs text-gray-500 dark:text-slate-500';
 

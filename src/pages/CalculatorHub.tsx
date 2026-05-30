@@ -22,6 +22,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { projectHasImportablePricing } from '../utils/proposalPricingImport';
 import type { Project } from '../types';
+import { CC_PAGE_META, CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
 
 const CALCULATORS = [
   {
@@ -103,19 +104,17 @@ const CalculatorHub: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <WorkflowStepHeader />
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-            Estimating calculators
-          </h1>
+          <h1 className={CC_PAGE_TITLE}>Estimating calculators</h1>
           <div className="mt-2 space-y-2">
-            <p className="text-black text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            <p className={CC_PAGE_SUBTITLE}>
               Run each calculator for your project. Saved costs import into your proposal.
             </p>
-            <p className="text-black text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            <p className={CC_PAGE_SUBTITLE}>
               Select a project inside each calculator before saving.
             </p>
           </div>
           {hubProject && (
-            <p className="text-black text-sm mt-2">Project: {hubProject.name}</p>
+            <p className={CC_PAGE_META}>Project: {hubProject.name}</p>
           )}
         </div>
 

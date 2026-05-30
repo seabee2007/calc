@@ -7,7 +7,7 @@ import ToolsModal from '../workflow/ToolsModal';
 import MoreMenuModal from '../workflow/MoreMenuModal';
 import { useAuth } from '../../hooks/useAuth';
 import { isPlannerWorkspacePath } from '../../utils/plannerRoutes';
-import backgroundImage from '../../assets/images/bkgrnd.jpg';
+import SiteBackground from './SiteBackground';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -106,28 +106,7 @@ const Layout: React.FC = () => {
       className="min-h-screen w-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      {/* Frosted concrete site background */}
-      <div
-        className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
-        style={{
-          top: 'env(safe-area-inset-top)',
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url(${backgroundImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            transform: 'scale(1.06)',
-            filter: 'grayscale(30%) brightness(1.02) blur(2px)',
-            willChange: 'transform',
-          }}
-        />
-
-        <div className="absolute inset-0 bg-slate-50/75 dark:bg-slate-950/82" />
-      </div>
+      <SiteBackground />
 
       {/* App content */}
       <div className="relative z-10 flex min-h-screen flex-col">

@@ -22,6 +22,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { soundService } from '../services/soundService';
 import KPIStatCard from '../components/proposals/KPIStatCard';
+import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
 import ProposalPipelineBoard from '../components/proposals/ProposalPipelineBoard';
 import ProposalNextActionsPanel from '../components/proposals/ProposalNextActionsPanel';
@@ -308,10 +309,8 @@ const Proposals: React.FC = () => {
           className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] dark:text-black dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-              Proposal Pipeline
-            </h1>
-            <p className="mt-2 text-lg font-semibold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] dark:text-black dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            <h1 className={CC_PAGE_TITLE}>Proposal Pipeline</h1>
+            <p className={`${CC_PAGE_SUBTITLE} mt-2`}>
               CRM-style pipeline — see what&apos;s stuck, what&apos;s won, and what to do next.
             </p>
           </div>

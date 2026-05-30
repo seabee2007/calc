@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
+import ThemeToggle from '../layout/ThemeToggle';
 import { APP_NAV_HEADER, appNavIconButtonClass } from '../layout/appNavStyles';
 
 interface PlannerAppBarProps {
@@ -103,6 +104,10 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
         >
           <Settings className="h-5 w-5" />
         </Link>
+
+        <div className="[&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
+          <ThemeToggle />
+        </div>
 
         {isOwner && <FieldNotificationsBell />}
 

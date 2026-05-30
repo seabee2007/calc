@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import PlannerAppBar from '../planner/PlannerAppBar';
 import PlannerSidebar from '../planner/PlannerSidebar';
 import ToolsModal from '../workflow/ToolsModal';
+import SiteBackground from './SiteBackground';
 
 function PlannerWorkspaceMain() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -57,19 +58,41 @@ const PlannerWorkspaceLayout: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    const bg = isDark ? '#020617' : '#f1f5f9';
-    document.documentElement.style.backgroundColor = bg;
-    document.body.style.backgroundColor = bg;
+    const setThemeColors = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      const bg = isDark ? '#020617' : '#f8fafc';
+      document.documentElement.style.backgroundColor = bg;
+      document.body.style.backgroundColor = bg;
+    };
+
+    setThemeColors();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          setThemeColors();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   return (
     <div
-      className="flex min-h-screen min-h-[100dvh] flex-col bg-slate-100 text-gray-900 dark:bg-slate-950 dark:text-slate-100"
+      className="relative flex min-h-screen min-h-[100dvh] flex-col bg-slate-50 text-gray-900 dark:bg-slate-950 dark:text-slate-100"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <PlannerWorkspaceMain />
-      {user && isOwner && !isEmployee && <ToolsModal />}
+      <SiteBackground />
+      <div className="relative z-10 flex min-h-0 min-h-[100dvh] flex-1 flex-col">
+        <PlannerWorkspaceMain />
+        {user && isOwner && !isEmployee && <ToolsModal />}
+      </div>
     </div>
   );
 };

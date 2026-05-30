@@ -50,8 +50,16 @@ import {
   mergeProjectJobsiteIntoClientAddress,
   syncProposalAddressesForSave,
 } from '../utils/proposalAddress';
+import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
+
+/** Matches site pages: header on concrete, content in rounded cards. */
+const PAGE_TITLE = CC_PAGE_TITLE;
+const PAGE_SUBTITLE = `${CC_PAGE_SUBTITLE} mt-2`;
+const SECTION_CARD =
+  'bg-white/90 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200/80 dark:border-slate-700/80 p-6';
+const SECTION_TITLE = 'text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4';
 
 const ProposalGenerator: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -991,33 +999,25 @@ const ProposalGenerator: React.FC = () => {
 
   if (showPreview) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
-        <div className="max-w-5xl mx-auto px-4">
-          {/* Preview Header */}
-          <div className="mb-6">
-            {/* Title - Full Width */}
-            <div className="mb-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white w-full">
-                Proposal Preview
-              </h1>
-            </div>
-            
-            {/* Proposal Details */}
-            <div className="mb-4">
-              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mb-2">
-                Proposal - {new Date().toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                })}
-              </p>
-              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-                {templatePreviews[selectedTemplate].name} Professional
-              </p>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-5xl mx-auto"
+      >
+        <div className="mb-8">
+          <h1 className={PAGE_TITLE}>Proposal Preview</h1>
+          <p className={PAGE_SUBTITLE}>
+            Proposal —{' '}
+            {new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {templatePreviews[selectedTemplate].name} template
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
               {isPreviewMode && (
                 <Button
                   variant="outline"
@@ -1073,32 +1073,34 @@ const ProposalGenerator: React.FC = () => {
                 <span className="hidden md:inline">Download PDF</span>
               </Button>
             </div>
-          </div>
-
-          {/* Template Preview */}
-          <div ref={printRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden print:shadow-none print:rounded-none print:bg-white">
-            {renderTemplate()}
-          </div>
         </div>
-      </div>
+
+        <div
+          ref={printRef}
+          className={`${SECTION_CARD} overflow-hidden print:shadow-none print:rounded-none print:border-0 print:bg-white`}
+        >
+          {renderTemplate()}
+        </div>
+      </motion.div>
     );
   }
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading proposal...</p>
-        </div>
+      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center py-24">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-cyan-600 dark:border-cyan-400" />
+        <p className="mt-4 text-slate-600 dark:text-slate-300">Loading proposal...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="max-w-7xl mx-auto"
+    >
         <WorkflowStepHeader />
         {inWorkflow && !workflowStepReady && (
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
@@ -1142,22 +1144,16 @@ const ProposalGenerator: React.FC = () => {
             </div>
           </motion.div>
         )}
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-8">
+          <h1 className={PAGE_TITLE}>
             {isEditing ? 'Edit Proposal' : 'Proposal Generator'}
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            {isEditing 
+          <p className={PAGE_SUBTITLE}>
+            {isEditing
               ? `Editing: ${currentProposal?.title || 'Untitled Proposal'}`
-              : 'Create professional concrete project proposals with customizable templates'
-            }
+              : 'Create professional concrete project proposals with customizable templates'}
           </p>
-          <div className="mt-4 flex justify-center gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             {isEditing ? (
               <Button
                 variant="outline"
@@ -1194,7 +1190,7 @@ const ProposalGenerator: React.FC = () => {
               </Button>
             )}
           </div>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form Section */}
@@ -1203,9 +1199,9 @@ const ProposalGenerator: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Proposal Settings</h2>
+              <h2 className={SECTION_TITLE}>Proposal Settings</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Proposal Title</label>
@@ -1252,9 +1248,9 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Choose Template</h2>
+              <h2 className={SECTION_TITLE}>Choose Template</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {Object.entries(templatePreviews).map(([key, template]) => (
                   <button
@@ -1278,9 +1274,9 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Business Information</h2>
+              <h2 className={SECTION_TITLE}>Business Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Name</label>
@@ -1369,9 +1365,9 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Client Information</h2>
+              <h2 className={SECTION_TITLE}>Client Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Name</label>
@@ -1421,9 +1417,9 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Project Details</h2>
+              <h2 className={SECTION_TITLE}>Project Details</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Title</label>
@@ -1473,10 +1469,10 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Project Timeline</h2>
+                <h2 className={SECTION_TITLE}>Project Timeline</h2>
                 <button
                   onClick={addTimelineItem}
                   className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
@@ -1533,10 +1529,10 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Pricing</h2>
+                <h2 className={SECTION_TITLE}>Pricing</h2>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowProjectPicker(true)}
@@ -1638,9 +1634,9 @@ const ProposalGenerator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.7 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              className={SECTION_CARD}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Terms & Footer</h2>
+              <h2 className={SECTION_TITLE}>Terms & Footer</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Terms & Conditions</label>
@@ -1683,9 +1679,9 @@ const ProposalGenerator: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-8"
+              className={`${SECTION_CARD} sticky top-8`}
             >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Preview</h2>
+              <h2 className={SECTION_TITLE}>Preview</h2>
               <div className="space-y-4">
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
                   <div className="text-center text-gray-500 dark:text-gray-400">
@@ -1711,12 +1707,11 @@ const ProposalGenerator: React.FC = () => {
             </motion.div>
           </div>
         </div>
-      </div>
 
       {/* Project Picker Modal */}
       {showProjectPicker && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full mx-4">
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Import Pricing from Project
@@ -1794,7 +1789,7 @@ const ProposalGenerator: React.FC = () => {
         onClose={() => setSentProposalUrl(null)}
         proposalUrl={sentProposalUrl ?? ''}
       />
-    </div>
+    </motion.div>
   );
 };
 

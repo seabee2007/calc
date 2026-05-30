@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import OwnerReviewQueue from '../../components/owner/OwnerReviewQueue';
+import { CC_PAGE_TITLE_MD } from '../../theme/pageTypography';
 
 export default function OwnerReviewPage() {
   return (
@@ -14,7 +15,7 @@ export default function OwnerReviewPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
-        className="mb-6 text-2xl font-bold text-black drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] dark:text-black"
+        className={`mb-6 ${CC_PAGE_TITLE_MD}`}
       >
         Review queue
       </motion.h1>
