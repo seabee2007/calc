@@ -187,7 +187,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
 
         {showChat && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-md h-[min(600px,90vh)]">
+            <div className="w-full max-w-[520px] h-[min(36rem,90vh)]">
               <ConcreteChat isModal onClose={() => setShowChat(false)} />
             </div>
           </div>

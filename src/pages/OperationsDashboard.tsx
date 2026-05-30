@@ -206,6 +206,14 @@ const OperationsDashboard: React.FC = () => {
       />
 
       <section className="space-y-4 lg:hidden">
+        <FinancialSnapshotCard financial={financial} />
+        <ActiveProjectsPanel projects={snapshot.projects} compact />
+        <ProposalPipelineCard
+          pipeline={pipeline}
+          pendingRevenue={financial.pendingRevenue}
+          weightedForecast={financial.weightedForecast}
+          pipelineRevenue={pipelineRevenue}
+        />
         <FeaturedPlacementConditions
           snapshot={snapshot}
           hasPlacementsToday={snapshot.hasPlacementsToday}
@@ -235,17 +243,21 @@ const OperationsDashboard: React.FC = () => {
           testsOverdue={qcStats.qcTestsOverdue}
           totalRecords={totalQcRecords}
         />
-        <FinancialSnapshotCard financial={financial} />
-        <ActiveProjectsPanel projects={snapshot.projects} compact />
-        <ProposalPipelineCard
-          pipeline={pipeline}
-          pendingRevenue={financial.pendingRevenue}
-          weightedForecast={financial.weightedForecast}
-          pipelineRevenue={pipelineRevenue}
-        />
       </section>
 
       <div className="hidden lg:block space-y-5">
+        <section>
+          <FinancialSnapshotCard financial={financial} />
+        </section>
+        <section className="grid grid-cols-2 gap-5">
+          <ActiveProjectsPanel projects={snapshot.projects} />
+          <ProposalPipelineCard
+            pipeline={pipeline}
+            pendingRevenue={financial.pendingRevenue}
+            weightedForecast={financial.weightedForecast}
+            pipelineRevenue={pipelineRevenue}
+          />
+        </section>
         <section className="grid grid-cols-2 gap-5">
           <FeaturedPlacementConditions
             snapshot={snapshot}
@@ -277,18 +289,6 @@ const OperationsDashboard: React.FC = () => {
             testsDue={qcStats.qcTestsDue}
             testsOverdue={qcStats.qcTestsOverdue}
             totalRecords={totalQcRecords}
-          />
-        </section>
-        <section>
-          <FinancialSnapshotCard financial={financial} />
-        </section>
-        <section className="grid grid-cols-2 gap-5">
-          <ActiveProjectsPanel projects={snapshot.projects} />
-          <ProposalPipelineCard
-            pipeline={pipeline}
-            pendingRevenue={financial.pendingRevenue}
-            weightedForecast={financial.weightedForecast}
-            pipelineRevenue={pipelineRevenue}
           />
         </section>
       </div>

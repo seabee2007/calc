@@ -335,11 +335,7 @@ function App() {
 
         {chatStore.isVisible &&
           !location.pathname.startsWith('/proposal/') &&
-          !location.pathname.startsWith('/client/project/') && (
-          <div className="fixed bottom-20 md:bottom-4 right-4 z-40">
-            <ConcreteChat />
-          </div>
-        )}
+          !location.pathname.startsWith('/client/project/') && <ConcreteChat />}
       </Suspense>
     </AppErrorBoundary>
   );

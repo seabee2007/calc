@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useProjectStore } from '../store';
 import Button from './ui/Button';
 import { buildChatProjectContext } from '../utils/chatProjectContext';
+import ChatMarkdownMessage from './chat/ChatMarkdownMessage';
+import AssistantMessageActions from './chat/AssistantMessageActions';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
@@ -245,7 +247,7 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
         )}
 
         {messages.length > 0 && (
-          <div className="space-y-3 p-4">
+          <div className="space-y-4 p-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -253,21 +255,27 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-slate-700 bg-slate-800 text-slate-100'
-                  }`}
-                >
-                  {message.content}
-                </div>
+                {message.role === 'user' ? (
+                  <div className="max-w-[85%] rounded-2xl bg-blue-600 px-4 py-3 text-sm text-white whitespace-pre-wrap">
+                    {message.content}
+                  </div>
+                ) : (
+                  <div className="w-full max-w-full rounded-2xl border border-slate-700 bg-slate-800/95 px-4 py-3 shadow-sm">
+                    <ChatMarkdownMessage content={message.content} />
+                    {!message.content.startsWith('Error:') && (
+                      <AssistantMessageActions
+                        content={message.content}
+                        projectId={selectedProjectId || undefined}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-400 italic">
-                  Thinking…
+                <div className="w-full rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-400 italic">
+                  Analyzing placement factors…
                 </div>
               </div>
             )}
@@ -338,22 +346,24 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
 
     if (!open) {
       return (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 px-4 py-3 shadow-lg border border-blue-500/40 text-white hover:border-blue-400 transition-colors"
-          aria-label="Open ConcreteCalc AI"
-        >
-          <span className="text-lg" aria-hidden>
-            🧱
-          </span>
-          <span className="text-sm font-semibold hidden sm:inline">Ask AI</span>
-        </button>
+        <div className="fixed bottom-20 right-4 z-50 md:bottom-6 md:right-6">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 px-4 py-3 shadow-lg border border-blue-500/40 text-white hover:border-blue-400 transition-colors"
+            aria-label="Open ConcreteCalc AI"
+          >
+            <span className="text-lg" aria-hidden>
+              🧱
+            </span>
+            <span className="text-sm font-semibold hidden sm:inline">Ask AI</span>
+          </button>
+        </div>
       );
     }
 
     return (
-      <div className="w-[min(100vw-2rem,400px)] h-[min(32rem,85vh)]">
+      <div className="fixed inset-x-3 bottom-3 z-50 flex h-[min(36rem,85vh)] max-h-[85vh] flex-col sm:inset-x-auto sm:bottom-6 sm:right-6 sm:left-auto sm:w-[520px] sm:max-w-[calc(100vw-2rem)]">
         <ChatPanel onClose={handleClose} />
       </div>
     );
