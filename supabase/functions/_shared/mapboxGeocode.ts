@@ -295,12 +295,21 @@ async function fetchGeocodeCandidates(
   return Array.isArray(data.features) ? data.features : [];
 }
 
+export interface GeocodeOptions {
+  /** Bias geocode results toward this lng,lat (e.g. jobsite). */
+  proximity?: [number, number];
+}
+
 export async function geocodeAddressSmart(
   address: string,
   token: string,
+  options?: GeocodeOptions,
 ): Promise<GeocodedPoint> {
   const trimmed = address.trim();
   const hint = detectRegionHint(trimmed);
+  if (options?.proximity) {
+    hint.proximity = options.proximity;
+  }
   const queries = [...new Set([hint.normalizedQuery, trimmed].filter(Boolean))];
 
   let bestFeature: MapboxFeature | null = null;

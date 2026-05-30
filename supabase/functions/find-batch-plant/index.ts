@@ -14,7 +14,8 @@ import {
 import { getDrivingRouteMiles } from "../_shared/mapboxDirections.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+
+const TOP_CANDIDATE_COUNT = 5;
 
 const SEARCH_TERMS = [
   "ready mix concrete",
@@ -105,6 +106,17 @@ const EXCLUDED_KEYWORDS = [
   "pizza",
   "taco",
   "burger",
+  "hardware store",
+  "hardware",
+  "home depot",
+  "lowes",
+  "menards",
+  "general contractor",
+  "contractors",
+  "concrete finisher",
+  "concrete finishers",
+  "pumping company",
+  "pump service",
 ];
 
 const STRONG_PLANT_SIGNALS = [
@@ -190,6 +202,12 @@ interface BatchPlantResult {
   confidence: "high" | "medium" | "low";
   source: string;
 }
+
+const CONFIDENCE_RANK: Record<BatchPlantResult["confidence"], number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+};
 
 function candidateHaystack(candidate: SearchCandidate): string {
   return `${candidate.name} ${candidate.address} ${candidate.poiCategories.join(" ")}`
@@ -469,7 +487,9 @@ async function resolveCuratedRegionalPlants(
 
   for (const plant of plants) {
     try {
-      const point = await geocodeAddressSmart(plant.address, MAPBOX_TOKEN!);
+      const point = await geocodeAddressSmart(plant.address, MAPBOX_TOKEN!, {
+        proximity: [origin.lng, origin.lat],
+      });
       candidates.push({
         id: `curated-${state}-${plant.name}`,
         name: plant.name,
@@ -509,7 +529,9 @@ async function resolveCuratedGuamPlants(
   for (const plant of GUAM_KNOWN_BATCH_PLANTS) {
     if (plant.address === "Guam") continue;
     try {
-      const point = await geocodeAddressSmart(plant.address, MAPBOX_TOKEN);
+      const point = await geocodeAddressSmart(plant.address, MAPBOX_TOKEN, {
+        proximity: [origin.lng, origin.lat],
+      });
       if (!isWithinBbox(point.lng, point.lat, GUAM_BBOX)) continue;
 
       candidates.push({
@@ -581,20 +603,7 @@ function scoreCandidate(candidate: SearchCandidate): number {
   if (candidate.searchTerm.startsWith("curated-")) score += 10;
   if (candidate.searchTerm.startsWith("geocode:")) score += 3;
 
-  score -= candidate.distanceMiles * 0.15;
   return score;
-}
-
-function pickBestCandidateFallback(
-  candidates: SearchCandidate[],
-): SearchCandidate | null {
-  const eligible = filterLikelyBatchPlants(candidates);
-  if (eligible.length === 0) return null;
-
-  const scored = [...eligible].sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
-  const best = scored[0];
-  if (!best || scoreCandidate(best) < 4) return null;
-  return best;
 }
 
 function confidenceFromScore(score: number): BatchPlantResult["confidence"] {
@@ -603,99 +612,40 @@ function confidenceFromScore(score: number): BatchPlantResult["confidence"] {
   return "low";
 }
 
-async function rankWithOpenAI(
-  projectLocation: string,
-  candidates: SearchCandidate[],
-): Promise<{
-  candidate: SearchCandidate;
-  confidence: BatchPlantResult["confidence"];
-  plantName?: string;
-  formattedAddress?: string;
-} | null> {
-  if (!OPENAI_API_KEY || candidates.length === 0) return null;
+/** Deterministic ranking: drive time → drive distance → plant confidence score. */
+function compareBatchPlantsByRanking(
+  a: BatchPlantResult,
+  b: BatchPlantResult,
+): number {
+  const aTime = a.driveMinutes ?? Number.MAX_SAFE_INTEGER;
+  const bTime = b.driveMinutes ?? Number.MAX_SAFE_INTEGER;
+  if (aTime !== bTime) return aTime - bTime;
 
-  const payload = {
-    projectLocation,
-    regionNote: projectLocation.toLowerCase().includes("guam") ||
-        projectLocation.includes(", GU")
-      ? "Jobsite is on Guam — reject any candidate outside Guam."
-      : undefined,
-    candidates: candidates.slice(0, 10).map((candidate) => ({
-      id: candidate.id,
-      name: candidate.name,
-      address: candidate.address,
-      latitude: candidate.latitude,
-      longitude: candidate.longitude,
-      distanceMiles: candidate.distanceMiles,
-      poiCategories: candidate.poiCategories,
-      searchTerm: candidate.searchTerm,
-    })),
-  };
-
-  const openAiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0.1,
-      max_tokens: 400,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You select the most likely actual ready-mix concrete batch plant from search results, " +
-            "then format the best address for Mapbox routing. Only choose from the provided candidates — " +
-            "never invent names or addresses. Prefer ready-mix plants, concrete suppliers, and batch plants. " +
-            "Reject unrelated POIs (restaurants, hardware stores, home security, alarm companies, general contractors) unless no plant exists. " +
-            "On Guam, ONLY pick plants physically located on Guam (Hawaiian Rock Products, Smithbridge Guam, Hanson Cement, Core Tech). " +
-            "Never select California or mainland US plants for a Guam jobsite. " +
-            "For US mainland jobsites, pick the nearest credible ready-mix supplier to the project. " +
-            'Respond with JSON only: {"candidateId": string, "plantName": string, "formattedAddress": string, "confidence": "high"|"medium"|"low", "reason": string}.',
-        },
-        {
-          role: "user",
-          content: JSON.stringify(payload),
-        },
-      ],
-    }),
-  });
-
-  if (!openAiRes.ok) {
-    const errText = await openAiRes.text();
-    console.error("OpenAI rank error:", openAiRes.status, errText);
-    return null;
+  if (a.distanceMiles !== b.distanceMiles) {
+    return a.distanceMiles - b.distanceMiles;
   }
 
-  const data = await openAiRes.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) return null;
+  return CONFIDENCE_RANK[b.confidence] - CONFIDENCE_RANK[a.confidence];
+}
 
-  try {
-    const parsed = JSON.parse(content) as {
-      candidateId?: string;
-      plantName?: string;
-      formattedAddress?: string;
-      confidence?: BatchPlantResult["confidence"];
-    };
+function rankBatchPlantsByDriveTime(
+  results: BatchPlantResult[],
+): BatchPlantResult[] {
+  const withRoute = results.filter(
+    (r) => r.driveMinutes != null && r.driveMinutes > 0,
+  );
+  const pool = withRoute.length > 0 ? withRoute : results;
 
-    const candidate = candidates.find((item) => item.id === parsed.candidateId) ??
-      candidates[0];
-    if (!candidate || !isLikelyBatchPlant(candidate)) return null;
-
-    return {
-      candidate,
-      confidence: parsed.confidence ?? "medium",
-      plantName: parsed.plantName,
-      formattedAddress: parsed.formattedAddress,
-    };
-  } catch (err) {
-    console.error("OpenAI JSON parse error:", err);
-    return null;
+  if (withRoute.length > 0 && withRoute.length < results.length) {
+    console.warn(
+      `[find-batch-plant] ${results.length - withRoute.length} candidate(s) excluded from ranking — no driving route`,
+      results
+        .filter((r) => !r.driveMinutes || r.driveMinutes <= 0)
+        .map((r) => r.plantName),
+    );
   }
+
+  return [...pool].sort(compareBatchPlantsByRanking);
 }
 
 function toBatchPlantResult(
@@ -709,7 +659,7 @@ function toBatchPlantResult(
     formattedAddress: formattedAddress?.trim() || candidate.address,
     latitude: candidate.latitude,
     longitude: candidate.longitude,
-    distanceMiles: candidate.distanceMiles,
+    distanceMiles: 0,
     straightLineMiles: candidate.distanceMiles,
     confidence,
     source: "Mapbox",
@@ -719,9 +669,32 @@ function toBatchPlantResult(
 /** Re-geocode plant address so distance uses street-level coords, not coarse POI pins. */
 async function refinePlantCoordinates(
   result: BatchPlantResult,
+  origin: GeocodedPoint,
+  originalCoords: { lat: number; lng: number },
 ): Promise<BatchPlantResult> {
+  const geocodeQuery = result.formattedAddress
+    .toLowerCase()
+    .includes(result.plantName.toLowerCase())
+    ? result.formattedAddress
+    : `${result.plantName}, ${result.formattedAddress}`;
+
   try {
-    const point = await geocodeAddressSmart(result.formattedAddress, MAPBOX_TOKEN!);
+    const point = await geocodeAddressSmart(geocodeQuery, MAPBOX_TOKEN!, {
+      proximity: [origin.lng, origin.lat],
+    });
+    const shiftMiles = haversineMiles(
+      originalCoords.lat,
+      originalCoords.lng,
+      point.lat,
+      point.lng,
+    );
+    if (shiftMiles > 5) {
+      console.warn(
+        `[find-batch-plant] re-geocode moved "${result.plantName}" ${shiftMiles.toFixed(1)} mi; keeping search coordinates`,
+        { from: originalCoords, to: { lat: point.lat, lng: point.lng } },
+      );
+      return result;
+    }
     return {
       ...result,
       latitude: point.lat,
@@ -731,6 +704,47 @@ async function refinePlantCoordinates(
   } catch {
     return result;
   }
+}
+
+const DIRECTIONS_CONCURRENCY = 3;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await fn(items[index], index);
+    }
+  }
+
+  const workers = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workers }, () => worker()));
+  return results;
+}
+
+async function enrichAllCandidatesWithDriving(
+  origin: GeocodedPoint,
+  candidates: SearchCandidate[],
+): Promise<BatchPlantResult[]> {
+  return mapWithConcurrency(candidates, DIRECTIONS_CONCURRENCY, async (candidate) => {
+    const originalCoords = {
+      lat: candidate.latitude,
+      lng: candidate.longitude,
+    };
+    let result = toBatchPlantResult(
+      candidate,
+      confidenceFromScore(scoreCandidate(candidate)),
+    );
+    result = await refinePlantCoordinates(result, origin, originalCoords);
+    result = await enrichWithDrivingDistance(origin, result);
+    return result;
+  });
 }
 
 async function enrichWithDrivingDistance(
@@ -744,11 +758,20 @@ async function enrichWithDrivingDistance(
     result.longitude,
   );
 
-  const driving = await getDrivingRouteMiles(
+  let driving = await getDrivingRouteMiles(
     { lat: result.latitude, lng: result.longitude },
     origin,
     MAPBOX_TOKEN!,
   );
+
+  if (!driving) {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    driving = await getDrivingRouteMiles(
+      { lat: result.latitude, lng: result.longitude },
+      origin,
+      MAPBOX_TOKEN!,
+    );
+  }
 
   if (driving) {
     return {
@@ -759,9 +782,16 @@ async function enrichWithDrivingDistance(
     };
   }
 
+  console.warn(
+    `[find-batch-plant] driving route failed for "${result.plantName}" — straight-line ${straightLineMiles.toFixed(1)} mi (not used for ranking when other routes exist)`,
+    {
+      plant: { lat: result.latitude, lng: result.longitude },
+      jobsite: { lat: origin.lat, lng: origin.lng },
+    },
+  );
+
   return {
     ...result,
-    distanceMiles: Number(straightLineMiles.toFixed(2)),
     straightLineMiles: Number(straightLineMiles.toFixed(2)),
   };
 }
@@ -856,6 +886,18 @@ serve(async (req) => {
       dedupeCandidates(filterLikelyBatchPlants(searchResults.flat())),
     );
 
+    console.log("[find-batch-plant] jobsite:", {
+      address: origin.placeName,
+      latitude: origin.lat,
+      longitude: origin.lng,
+      onGuam,
+    });
+    console.log("[find-batch-plant] filtered candidate count:", candidates.length);
+    console.log(
+      "[find-batch-plant] candidate names:",
+      candidates.map((c) => c.name),
+    );
+
     if (candidates.length === 0) {
       return new Response(
         JSON.stringify({
@@ -866,45 +908,49 @@ serve(async (req) => {
       );
     }
 
-    const ranked = await rankWithOpenAI(projectLocation.trim(), candidates);
-    let result: BatchPlantResult;
+    const enriched = await enrichAllCandidatesWithDriving(origin, candidates);
+    const ranked = rankBatchPlantsByDriveTime(enriched);
+    const topCandidates = ranked.slice(0, TOP_CANDIDATE_COUNT);
+    const selectedPlant = ranked[0];
 
-    if (ranked) {
-      result = toBatchPlantResult(
-        ranked.candidate,
-        ranked.confidence,
-        ranked.formattedAddress,
-        ranked.plantName,
-      );
-    } else {
-      const best = pickBestCandidateFallback(candidates);
-      if (!best) {
-        return new Response(
-          JSON.stringify({
-            error: "No nearby batch plant found. Please enter the batch plant address manually.",
-            code: "NOT_FOUND",
-          }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-
-      result = toBatchPlantResult(
-        best,
-        confidenceFromScore(scoreCandidate(best)),
+    if (!selectedPlant) {
+      return new Response(
+        JSON.stringify({
+          error: "No nearby batch plant found. Please enter the batch plant address manually.",
+          code: "NOT_FOUND",
+        }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    result = await refinePlantCoordinates(result);
-    result = await enrichWithDrivingDistance(origin, result);
+    console.log(
+      "[find-batch-plant] drive times:",
+      ranked.map((c) => ({
+        name: c.plantName,
+        driveMinutes: c.driveMinutes ?? null,
+        distanceMiles: c.distanceMiles,
+        confidence: c.confidence,
+      })),
+    );
+    console.log("[find-batch-plant] selected winner:", {
+      name: selectedPlant.plantName,
+      driveMinutes: selectedPlant.driveMinutes ?? null,
+      distanceMiles: selectedPlant.distanceMiles,
+      confidence: selectedPlant.confidence,
+    });
+
+    const jobsite = {
+      formattedAddress: origin.placeName,
+      latitude: origin.lat,
+      longitude: origin.lng,
+    };
 
     return new Response(
       JSON.stringify({
-        ...result,
-        jobsite: {
-          formattedAddress: origin.placeName,
-          latitude: origin.lat,
-          longitude: origin.lng,
-        },
+        ...selectedPlant,
+        selectedPlant,
+        candidates: topCandidates,
+        jobsite,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

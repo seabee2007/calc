@@ -17,6 +17,10 @@ export interface BatchPlantResult {
     latitude: number;
     longitude: number;
   };
+  /** Nearest plant by drive time (same fields as top-level when present). */
+  selectedPlant?: BatchPlantResult;
+  /** Top candidates ranked by drive time (up to 5). */
+  candidates?: BatchPlantResult[];
 }
 
 export interface FindBatchPlantOptions {

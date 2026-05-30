@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { geocodeAddressSmart } from "../_shared/mapboxGeocode.ts";
+import { getDrivingRouteMiles } from "../_shared/mapboxDirections.ts";
 
 const MAPBOX_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
@@ -14,37 +15,38 @@ async function geocode(address: string): Promise<GeocodedPoint> {
   return geocodeAddressSmart(address, MAPBOX_TOKEN!);
 }
 
-async function getRoute(
+async function getRouteWithGeometry(
   origin: GeocodedPoint,
   destination: GeocodedPoint,
 ) {
-  const coords = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
+  const profiles = ["mapbox/driving-traffic", "mapbox/driving"] as const;
 
-  const url =
-    `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coords}` +
-    `?alternatives=false&geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`;
+  for (const profile of profiles) {
+    const coords = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
+    const url =
+      `https://api.mapbox.com/directions/v5/${profile}/${coords}` +
+      `?alternatives=false&geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`;
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error("Mapbox directions error:", res.status, errText);
-    throw new Error("Could not calculate route.");
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn("Mapbox directions error:", profile, res.status, await res.text());
+      continue;
+    }
+
+    const data = await res.json();
+    const route = data.routes?.[0];
+    if (!route) continue;
+
+    return {
+      distanceMeters: route.distance as number,
+      distanceMiles: (route.distance as number) / 1609.344,
+      durationSeconds: route.duration as number,
+      travelMinutes: Math.round((route.duration as number) / 60),
+      geometry: route.geometry,
+    };
   }
 
-  const data = await res.json();
-  const route = data.routes?.[0];
-
-  if (!route) {
-    throw new Error("Could not calculate route.");
-  }
-
-  return {
-    distanceMeters: route.distance as number,
-    distanceMiles: (route.distance as number) / 1609.344,
-    durationSeconds: route.duration as number,
-    travelMinutes: Math.round((route.duration as number) / 60),
-    geometry: route.geometry,
-  };
+  throw new Error("Could not calculate route.");
 }
 
 serve(async (req) => {
@@ -104,21 +106,35 @@ serve(async (req) => {
       body.jobsiteLatitude,
       body.jobsiteLongitude,
     );
-    const route = await getRoute(plant, jobsite);
+
+    const routeSummary = await getDrivingRouteMiles(plant, jobsite, MAPBOX_TOKEN!);
+    if (!routeSummary) {
+      throw new Error("Could not calculate route.");
+    }
+
+    let routeGeometry: unknown;
+    try {
+      const detailed = await getRouteWithGeometry(plant, jobsite);
+      routeGeometry = detailed.geometry;
+    } catch {
+      routeGeometry = undefined;
+    }
 
     const avgSpeedMph =
-      route.travelMinutes > 0
-        ? Number((route.distanceMiles / (route.travelMinutes / 60)).toFixed(1))
+      routeSummary.travelMinutes > 0
+        ? Number(
+          (routeSummary.distanceMiles / (routeSummary.travelMinutes / 60)).toFixed(1),
+        )
         : 0;
 
     return new Response(
       JSON.stringify({
         plant,
         jobsite,
-        distanceMiles: Number(route.distanceMiles.toFixed(2)),
-        travelMinutes: route.travelMinutes,
+        distanceMiles: routeSummary.distanceMiles,
+        travelMinutes: routeSummary.travelMinutes,
         avgSpeedMph,
-        routeGeometry: route.geometry,
+        routeGeometry,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

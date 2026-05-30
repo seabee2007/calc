@@ -153,7 +153,9 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
           longitude: coords.longitude,
         });
         setBatchPlant(plant);
-        setDistance(Math.max(1, Math.round(plant.distanceMiles * 10) / 10));
+        if (plant.distanceMiles > 0) {
+          setDistance(Math.max(1, Math.round(plant.distanceMiles * 10) / 10));
+        }
 
         let travelMiles = plant.distanceMiles ?? 10;
         let routeTravel: { travelTimeMinutes: number; travelDistanceMi: number } | undefined;

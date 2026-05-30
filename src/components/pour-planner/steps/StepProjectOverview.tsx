@@ -241,7 +241,9 @@ export const StepProjectOverview: React.FC<StepProps> = ({ planner }) => {
       setField('batchPlantAddress', plant.formattedAddress);
       setField('batchPlantLatitude', String(plant.latitude));
       setField('batchPlantLongitude', String(plant.longitude));
-      setField('travelDistance', String(plant.distanceMiles));
+      if (plant.distanceMiles > 0) {
+        setField('travelDistance', String(plant.distanceMiles));
+      }
       if (plant.driveMinutes != null && plant.driveMinutes > 0) {
         setField('travelTimeMinutes', String(plant.driveMinutes));
       }
