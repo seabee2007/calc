@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, MapPin, Factory } from 'lucide-react';
 import OpsCard from './OpsCard';
+import { OPS_LIST_ROW, OPS_MUTED, OPS_OUTLINE_BTN, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import type { DashboardProjectCard } from '../../utils/operationsDashboard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
@@ -70,10 +71,10 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
 
   return (
     <OpsCard>
-      <h3 className="font-semibold text-white mb-4">Active projects</h3>
+      <h3 className={`font-semibold mb-4 ${OPS_TITLE}`}>Active projects</h3>
       {projects.length === 0 ? (
         <div className="text-center py-4">
-          <p className="text-sm text-slate-400 mb-3">No active projects</p>
+          <p className={`text-sm mb-3 ${OPS_MUTED}`}>No active projects</p>
           <Button
             size="sm"
             className="!bg-cyan-600 hover:!bg-cyan-500 !text-white"
@@ -86,15 +87,15 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
         <ul className="space-y-3 max-h-[28rem] overflow-y-auto pr-1">
           {list.map((p) => (
             <li key={p.id}>
-              <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-3">
+              <div className={`rounded-lg p-3 ${OPS_LIST_ROW}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold truncate text-white">{p.name}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{p.remainingCyLabel}</p>
+                    <p className={`font-semibold truncate ${OPS_TITLE}`}>{p.name}</p>
+                    <p className={`text-xs mt-0.5 ${OPS_MUTED}`}>{p.remainingCyLabel}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-lg font-bold text-cyan-400">{p.healthScore}%</p>
-                    <p className="text-[10px] uppercase text-slate-500">health</p>
+                    <p className={`text-[10px] uppercase ${OPS_SUBTLE}`}>health</p>
                   </div>
                 </div>
 
@@ -114,20 +115,22 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
                             ? 'bg-cyan-400'
                             : past
                               ? 'bg-emerald-600/80'
-                              : 'bg-slate-700'
+                              : 'bg-slate-300 dark:bg-slate-700'
                         }`}
                       />
                     );
                   })}
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">{p.workflowLabel}</p>
+                <p className={`text-[10px] mt-1 ${OPS_SUBTLE}`}>{p.workflowLabel}</p>
 
-                <div className="mt-2 pt-2 border-t border-slate-700/80">
-                  <p className="text-[10px] uppercase text-slate-500">Next action</p>
-                  <p className="text-sm font-medium text-cyan-300">{p.nextAction.label}</p>
+                <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/80">
+                  <p className={`text-[10px] uppercase ${OPS_SUBTLE}`}>Next action</p>
+                  <p className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
+                    {p.nextAction.label}
+                  </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
+                <div className={`flex flex-wrap gap-3 mt-2 text-xs ${OPS_SUBTLE}`}>
                   {p.batchPlantName && (
                     <span className="flex items-center gap-1">
                       <Factory className="h-3 w-3" />
@@ -145,7 +148,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="!border-slate-600 !text-white mt-3 w-full sm:w-auto"
+                  className={`${OPS_OUTLINE_BTN} mt-3 w-full sm:w-auto`}
                   onClick={() => void handleProjectNextAction(p)}
                 >
                   {p.nextAction.label}
@@ -159,7 +162,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
         <button
           type="button"
           onClick={() => navigate('/projects')}
-          className="mt-3 text-sm text-cyan-400 flex items-center gap-1 hover:underline"
+          className="mt-3 text-sm text-cyan-700 dark:text-cyan-400 flex items-center gap-1 hover:underline"
         >
           All projects <ChevronRight className="h-4 w-4" />
         </button>

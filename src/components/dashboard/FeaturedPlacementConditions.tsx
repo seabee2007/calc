@@ -2,7 +2,7 @@ import React from 'react';
 import { CloudSun, Thermometer, Wind, Droplets, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OpsCard from './OpsCard';
-import { OPS_PANEL_INNER } from './opsTheme';
+import { OPS_BODY, OPS_MUTED, OPS_PANEL_INNER, OPS_SUBTLE } from './opsTheme';
 import type { OpsRiskLevel, OperationsSnapshot } from '../../utils/operationsDashboard';
 import { workflowQuery } from '../../utils/workflow';
 
@@ -64,21 +64,21 @@ const FeaturedPlacementConditions: React.FC<FeaturedPlacementConditionsProps> = 
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
       <div className={`${OPS_PANEL_INNER} p-3`}>
         <Thermometer className="h-4 w-4 text-red-400 mb-1" />
-        <p className="text-xs text-slate-400">Heat</p>
+        <p className={`text-xs ${OPS_MUTED}`}>Heat</p>
         <p className={`font-bold uppercase text-sm ${riskColor(snapshot.heatRisk)}`}>
           {snapshot.heatRisk}
         </p>
       </div>
       <div className={`${OPS_PANEL_INNER} p-3`}>
         <Wind className="h-4 w-4 text-cyan-400 mb-1" />
-        <p className="text-xs text-slate-400">Wind</p>
+        <p className={`text-xs ${OPS_MUTED}`}>Wind</p>
         <p className={`font-bold uppercase text-sm ${riskColor(snapshot.windRisk)}`}>
           {snapshot.windRisk}
         </p>
       </div>
       <div className={`${OPS_PANEL_INNER} p-3`}>
         <Droplets className="h-4 w-4 text-blue-400 mb-1" />
-        <p className="text-xs text-slate-400">Evaporation</p>
+        <p className={`text-xs ${OPS_MUTED}`}>Evaporation</p>
         <p
           className={`font-bold uppercase text-sm ${riskColor(snapshot.evaporationRisk)}`}
         >
@@ -87,7 +87,7 @@ const FeaturedPlacementConditions: React.FC<FeaturedPlacementConditionsProps> = 
       </div>
       <div className={`${OPS_PANEL_INNER} p-3`}>
         <CloudSun className="h-4 w-4 text-amber-400 mb-1" />
-        <p className="text-xs text-slate-400">Rain</p>
+        <p className={`text-xs ${OPS_MUTED}`}>Rain</p>
         <p className={`font-bold uppercase text-sm ${riskColor(snapshot.rainRisk)}`}>
           {snapshot.rainRisk}
         </p>
@@ -96,7 +96,7 @@ const FeaturedPlacementConditions: React.FC<FeaturedPlacementConditionsProps> = 
 
     <div className="grid sm:grid-cols-2 gap-4">
       <div>
-        <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+        <p className={`text-xs uppercase tracking-wide mb-1 ${OPS_SUBTLE}`}>
           Recommended placement
         </p>
         <p className="font-mono text-lg text-cyan-300">
@@ -106,10 +106,10 @@ const FeaturedPlacementConditions: React.FC<FeaturedPlacementConditionsProps> = 
         </p>
       </div>
       <div>
-        <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">
+        <p className={`text-xs uppercase tracking-wide mb-2 ${OPS_SUBTLE}`}>
           Mitigations
         </p>
-        <ul className="text-sm text-slate-300 space-y-1">
+        <ul className={`text-sm space-y-1 ${OPS_BODY}`}>
           {snapshot.mitigations.slice(0, 4).map((m) => (
             <li key={m}>• {m}</li>
           ))}

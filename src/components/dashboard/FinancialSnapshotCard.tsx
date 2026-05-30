@@ -1,7 +1,7 @@
 import React from 'react';
 import { DollarSign, TrendingUp, Percent, Hammer, Package } from 'lucide-react';
 import OpsCard from './OpsCard';
-import { OPS_PANEL_INNER } from './opsTheme';
+import { OPS_MUTED, OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import type { ProposalFinancialKpis } from '../../utils/proposalKpis';
 import { formatProposalMoney, formatWinRate } from '../../utils/proposalKpis';
 
@@ -15,7 +15,7 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
   <OpsCard>
     <div className="flex items-center gap-2 mb-4">
       <DollarSign className="h-5 w-5 text-emerald-400" />
-      <h3 className="font-semibold text-white">Financial snapshot</h3>
+      <h3 className={`font-semibold ${OPS_TITLE}`}>Financial snapshot</h3>
     </div>
 
     <div className="grid grid-cols-2 gap-2 mb-3">
@@ -49,20 +49,20 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
       />
     </div>
 
-    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700">
+    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
       <div className={`${OPS_PANEL_INNER} p-2`}>
-        <p className="text-[10px] text-slate-500 uppercase flex items-center gap-1">
+        <p className={`text-[10px] uppercase flex items-center gap-1 ${OPS_SUBTLE}`}>
           <Hammer className="h-3 w-3" /> Labor cost
         </p>
-        <p className="text-sm font-semibold text-slate-200">
+        <p className={`text-sm font-semibold ${OPS_TITLE}`}>
           {formatProposalMoney(financial.laborCostTotal)}
         </p>
       </div>
       <div className={`${OPS_PANEL_INNER} p-2`}>
-        <p className="text-[10px] text-slate-500 uppercase flex items-center gap-1">
+        <p className={`text-[10px] uppercase flex items-center gap-1 ${OPS_SUBTLE}`}>
           <Package className="h-3 w-3" /> Material cost
         </p>
-        <p className="text-sm font-semibold text-slate-200">
+        <p className={`text-sm font-semibold ${OPS_TITLE}`}>
           {formatProposalMoney(financial.materialCostTotal)}
         </p>
       </div>
@@ -83,13 +83,13 @@ function Metric({
 }) {
   return (
     <div className={`${OPS_PANEL_INNER} p-2`}>
-      <p className="text-[10px] text-slate-500 uppercase flex items-center gap-1">
+      <p className={`text-[10px] uppercase flex items-center gap-1 ${OPS_SUBTLE}`}>
         {icon}
         {label}
       </p>
       <p
         className={`text-sm font-bold ${
-          highlight ? 'text-emerald-400' : 'text-white'
+          highlight ? 'text-emerald-600 dark:text-emerald-400' : OPS_TITLE
         }`}
       >
         {value}

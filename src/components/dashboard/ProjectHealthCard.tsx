@@ -3,6 +3,7 @@ import { ShieldAlert, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import Button from '../ui/Button';
+import { OPS_ATTENTION_CHIP, OPS_BODY, OPS_MUTED, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import type { ProjectRiskLevel, ProjectRiskReview } from '../../utils/projectRiskReview';
 
 interface ProjectHealthCardProps {
@@ -40,7 +41,7 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
     <OpsCard className={className}>
       <div className="flex items-center gap-2 mb-2">
         <ShieldAlert className="h-5 w-5 text-cyan-400 shrink-0" />
-        <h3 className="font-semibold text-white text-sm uppercase tracking-wide">
+        <h3 className={`font-semibold text-sm uppercase tracking-wide ${OPS_TITLE}`}>
           Project risk review
         </h3>
       </div>
@@ -50,7 +51,7 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           <p className={`text-lg font-bold ${tone.text}`}>
             {emptyMessage ? 'NOTHING IN QUEUE' : review.riskLabel}
           </p>
-          <p className="text-sm text-slate-400 mt-2">
+          <p className={`text-sm mt-2 ${OPS_MUTED}`}>
             {emptyMessage ?? review.attention[0]}
           </p>
           {!emptyMessage && (
@@ -65,7 +66,7 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
         </>
       ) : (
         <>
-          <p className="text-base font-bold text-white leading-snug truncate">
+          <p className={`text-base font-bold leading-snug truncate ${OPS_TITLE}`}>
             {review.projectName}
           </p>
 
@@ -78,14 +79,14 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
 
           {review.attention.length > 0 && (
             <>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-3 mb-1.5">
+              <p className={`text-[10px] uppercase tracking-wide mt-3 mb-1.5 ${OPS_SUBTLE}`}>
                 Attention required
               </p>
               <ul className="space-y-1">
                 {review.attention.map((msg) => (
                   <li
                     key={msg}
-                    className="flex gap-1.5 text-xs text-slate-300"
+                    className={`flex gap-1.5 text-xs ${OPS_BODY} ${OPS_ATTENTION_CHIP}`}
                   >
                     <span className="text-amber-400 shrink-0">•</span>
                     <span>{msg}</span>
@@ -97,12 +98,12 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
 
           {review.good.length > 0 && (
             <>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-3 mb-1.5">
+              <p className={`text-[10px] uppercase tracking-wide mt-3 mb-1.5 ${OPS_SUBTLE}`}>
                 Good
               </p>
               <ul className="space-y-0.5">
                 {review.good.map((msg) => (
-                  <li key={msg} className="flex items-center gap-1.5 text-xs text-slate-300">
+                  <li key={msg} className={`flex items-center gap-1.5 text-xs ${OPS_BODY}`}>
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                     <span>{msg}</span>
                   </li>
@@ -112,7 +113,7 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           )}
 
           {review.attention.length === 0 && review.good.length === 0 && (
-            <p className="text-xs text-slate-400 mt-2 flex gap-1.5 items-start">
+            <p className={`text-xs mt-2 flex gap-1.5 items-start ${OPS_MUTED}`}>
               <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-px" />
               Confirm plant, crew, and weather before first load.
             </p>

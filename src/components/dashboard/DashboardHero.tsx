@@ -1,6 +1,13 @@
 import React from 'react';
 import { FolderPlus, FileText } from 'lucide-react';
 import Button from '../ui/Button';
+import {
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_PANEL,
+  OPS_PANEL_INNER,
+  OPS_TITLE,
+} from './opsTheme';
 
 interface DashboardHeroProps {
   activeProjects: number;
@@ -17,14 +24,14 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({
   onStartProject,
   onQuickQuote,
 }) => (
-  <section className="rounded-xl border border-slate-700/80 bg-slate-900/95 px-4 py-4 shadow-lg dark:bg-slate-950/95 sm:px-5">
+  <section className={`rounded-xl px-4 py-4 shadow-lg sm:px-5 ${OPS_PANEL}`}>
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-400">
           Today&apos;s Operations
         </p>
 
-        <p className="mt-2 text-sm text-slate-400">
+        <p className={`mt-2 text-sm ${OPS_MUTED}`}>
           What needs attention, what is scheduled, and what is ready to move.
         </p>
       </div>
@@ -42,7 +49,7 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="!border-slate-600 !text-white hover:!bg-slate-700"
+          className={OPS_OUTLINE_BTN}
           onClick={onQuickQuote}
           icon={<FileText className="h-4 w-4" />}
         >
@@ -52,19 +59,19 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({
     </div>
 
     <div className="mt-4 grid grid-cols-3 gap-3">
-      <div className="rounded-lg bg-slate-800/80 p-3">
-        <p className="text-xs text-slate-400">Active Projects</p>
-        <p className="mt-1 text-2xl font-bold text-white">{activeProjects}</p>
+      <div className={`${OPS_PANEL_INNER} p-3`}>
+        <p className={`text-xs ${OPS_MUTED}`}>Active Projects</p>
+        <p className={`mt-1 text-2xl font-bold ${OPS_TITLE}`}>{activeProjects}</p>
       </div>
 
-      <div className="rounded-lg bg-slate-800/80 p-3">
-        <p className="text-xs text-slate-400">Placements Today</p>
-        <p className="mt-1 text-2xl font-bold text-white">{placementsToday}</p>
+      <div className={`${OPS_PANEL_INNER} p-3`}>
+        <p className={`text-xs ${OPS_MUTED}`}>Placements Today</p>
+        <p className={`mt-1 text-2xl font-bold ${OPS_TITLE}`}>{placementsToday}</p>
       </div>
 
-      <div className="rounded-lg bg-slate-800/80 p-3">
-        <p className="text-xs text-slate-400">Proposals Sent</p>
-        <p className="mt-1 text-2xl font-bold text-white">{proposalsSent}</p>
+      <div className={`${OPS_PANEL_INNER} p-3`}>
+        <p className={`text-xs ${OPS_MUTED}`}>Proposals Sent</p>
+        <p className={`mt-1 text-2xl font-bold ${OPS_TITLE}`}>{proposalsSent}</p>
       </div>
     </div>
   </section>

@@ -3,6 +3,14 @@ import { Truck, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import Button from '../ui/Button';
+import {
+  OPS_BODY,
+  OPS_HOVER_ROW,
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_SUBTLE,
+  OPS_TITLE,
+} from './opsTheme';
 import type {
   DeliveryScheduleSnapshot,
   TimelineEvent,
@@ -61,19 +69,19 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
     <OpsCard>
       <div className="flex items-center gap-2 mb-4">
         <Truck className="h-5 w-5 text-blue-400" />
-        <h3 className="font-semibold text-white">Concrete delivery schedule</h3>
+        <h3 className={`font-semibold ${OPS_TITLE}`}>Concrete delivery schedule</h3>
       </div>
 
       {!hasPlacementsToday && !nextPlacement ? (
         <div className="text-center py-4">
-          <p className="text-sm text-slate-400 mb-3">
+          <p className={`text-sm mb-3 ${OPS_MUTED}`}>
             {emptyMessage ?? 'No placements scheduled'}
           </p>
           {!emptyMessage && (
             <Button
               size="sm"
               variant="outline"
-              className="!border-slate-600 !text-white"
+              className={OPS_OUTLINE_BTN}
               onClick={() => navigate(`/projects${workflowQuery()}`)}
               icon={<Calendar className="h-4 w-4" />}
             >
@@ -83,39 +91,39 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
         </div>
       ) : !hasPlacementsToday && nextPlacement && upcomingPourDate && daysUntil != null ? (
         <div className="py-1">
-          <p className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-2">
+          <p className={`text-xs uppercase tracking-[0.15em] mb-2 ${OPS_SUBTLE}`}>
             {formatNextPlacementLeadLabel(daysUntil)}
           </p>
-          <p className="text-2xl font-bold text-white leading-tight">
+          <p className={`text-2xl font-bold leading-tight ${OPS_TITLE}`}>
             {formatProfessionalCalendarDate(upcomingPourDate)}
           </p>
-          <p className="text-sm text-cyan-300 font-mono mt-1">
+          <p className="text-sm text-cyan-700 dark:text-cyan-300 font-mono mt-1">
             {formatPourTimeLabel(upcomingPourDate)}
           </p>
 
-          <dl className="grid grid-cols-1 gap-2 text-sm mt-4 pt-4 border-t border-slate-700/80">
+          <dl className="grid grid-cols-1 gap-2 text-sm mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/80">
             <div>
-              <dt className="text-slate-500 text-xs uppercase">Project</dt>
-              <dd className="text-slate-200 font-medium truncate">{nextPlacement.projectName}</dd>
+              <dt className={`text-xs uppercase ${OPS_SUBTLE}`}>Project</dt>
+              <dd className={`font-medium truncate ${OPS_BODY}`}>{nextPlacement.projectName}</dd>
             </div>
             {nextPlacement.volumeYd > 0 && (
               <div>
-                <dt className="text-slate-500 text-xs uppercase">Volume</dt>
-                <dd className="text-slate-200">{nextPlacement.volumeYd.toFixed(0)} CY</dd>
+                <dt className={`text-xs uppercase ${OPS_SUBTLE}`}>Volume</dt>
+                <dd className={OPS_BODY}>{nextPlacement.volumeYd.toFixed(0)} CY</dd>
               </div>
             )}
             <div>
-              <dt className="text-slate-500 text-xs uppercase">Batch plant</dt>
-              <dd className="text-slate-200">{nextPlacement.batchPlantName}</dd>
+              <dt className={`text-xs uppercase ${OPS_SUBTLE}`}>Batch plant</dt>
+              <dd className={OPS_BODY}>{nextPlacement.batchPlantName}</dd>
             </div>
           </dl>
 
           {nextPlacement.timeline.length > 0 ? (
-            <div className="mt-4 border-t border-slate-700 pt-3">
+            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3">
               <button
                 type="button"
                 onClick={() => setScheduleOpen((v) => !v)}
-                className="flex items-center justify-between w-full text-sm text-slate-300 hover:text-white transition-colors"
+                className={`flex items-center justify-between w-full ${OPS_HOVER_ROW}`}
               >
                 <span>Planned truck schedule</span>
                 {scheduleOpen ? (
@@ -133,17 +141,17 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
                         className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusStyles[ev.status]}`}
                         title={ev.status.replace('_', ' ')}
                       />
-                      <span className="font-mono text-sm text-cyan-300 w-20 shrink-0">
+                      <span className="font-mono text-sm text-cyan-700 dark:text-cyan-300 w-20 shrink-0">
                         {ev.timeLabel}
                       </span>
-                      <span className="text-sm text-slate-200">{ev.label}</span>
+                      <span className={`text-sm ${OPS_BODY}`}>{ev.label}</span>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
           ) : (
-            <p className="text-xs text-slate-500 mt-4">
+            <p className={`text-xs mt-4 ${OPS_SUBTLE}`}>
               Call sheet pending — build truck spacing in Placement Planner before placement day.
             </p>
           )}
@@ -151,7 +159,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
           <Button
             size="sm"
             variant="outline"
-            className="!border-slate-600 !text-white mt-4 w-full"
+            className={`${OPS_OUTLINE_BTN} mt-4 w-full`}
             onClick={() => navigate(upcomingPlannerPath)}
           >
             Open Placement Planner
@@ -159,7 +167,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
         </div>
       ) : !schedule ? (
         <div className="text-center py-4">
-          <p className="text-sm text-slate-400 mb-3">
+          <p className={`text-sm mb-3 ${OPS_MUTED}`}>
             Save call sheet in Placement Planner to build truck spacing and ETAs.
           </p>
           <Button
@@ -172,32 +180,34 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
         </div>
       ) : (
         <>
-          <p className="text-xs text-slate-500 mb-1">{schedule.projectName}</p>
-          <p className="text-2xl font-bold text-white mb-1">
+          <p className={`text-xs mb-1 ${OPS_SUBTLE}`}>{schedule.projectName}</p>
+          <p className={`text-2xl font-bold mb-1 ${OPS_TITLE}`}>
             Truck {schedule.truckIndex} of {schedule.truckTotal}
           </p>
 
           <dl className="grid grid-cols-2 gap-3 text-sm mt-3">
             <div>
-              <dt className="text-slate-500 text-xs uppercase">ETA</dt>
-              <dd className="font-mono text-cyan-300 text-lg">{schedule.etaLabel}</dd>
+              <dt className={`text-xs uppercase ${OPS_SUBTLE}`}>ETA</dt>
+              <dd className="font-mono text-cyan-700 dark:text-cyan-300 text-lg">
+                {schedule.etaLabel}
+              </dd>
             </div>
             <div>
-              <dt className="text-slate-500 text-xs uppercase">Spacing</dt>
-              <dd className="text-slate-200">{schedule.spacingMin} min</dd>
+              <dt className={`text-xs uppercase ${OPS_SUBTLE}`}>Spacing</dt>
+              <dd className={OPS_BODY}>{schedule.spacingMin} min</dd>
             </div>
             <div className="col-span-2">
-              <dt className="text-slate-500 text-xs uppercase">Plant</dt>
-              <dd className="text-slate-200">{schedule.plantName}</dd>
+              <dt className={`text-xs uppercase ${OPS_SUBTLE}`}>Plant</dt>
+              <dd className={OPS_BODY}>{schedule.plantName}</dd>
             </div>
           </dl>
 
           {timeline.length > 0 && (
-            <div className="mt-4 border-t border-slate-700 pt-3">
+            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3">
               <button
                 type="button"
                 onClick={() => setScheduleOpen((v) => !v)}
-                className="flex items-center justify-between w-full text-sm text-slate-300 hover:text-white transition-colors"
+                className={`flex items-center justify-between w-full ${OPS_HOVER_ROW}`}
               >
                 <span>Full truck schedule</span>
                 {scheduleOpen ? (
@@ -216,14 +226,14 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
                           className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusStyles[ev.status]}`}
                           title={ev.status.replace('_', ' ')}
                         />
-                        <span className="font-mono text-sm text-cyan-300 w-20 shrink-0">
+                        <span className="font-mono text-sm text-cyan-700 dark:text-cyan-300 w-20 shrink-0">
                           {ev.timeLabel}
                         </span>
-                        <span className="text-sm text-slate-200">{ev.label}</span>
+                        <span className={`text-sm ${OPS_BODY}`}>{ev.label}</span>
                       </li>
                     ))}
                   </ul>
-                  <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500">
+                  <div className={`flex flex-wrap gap-3 mt-3 text-xs ${OPS_SUBTLE}`}>
                     <span className="flex items-center gap-1">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" /> On schedule
                     </span>
@@ -239,7 +249,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
           <Button
             size="sm"
             variant="outline"
-            className="!border-slate-600 !text-white mt-4 w-full"
+            className={`${OPS_OUTLINE_BTN} mt-4 w-full`}
             onClick={() => navigate(plannerPath)}
           >
             Adjust Schedule

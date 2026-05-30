@@ -3,6 +3,13 @@ import { ClipboardCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import Button from '../ui/Button';
+import {
+  OPS_ATTENTION_CHIP,
+  OPS_BODY,
+  OPS_MUTED,
+  OPS_SUBTLE,
+  OPS_TITLE,
+} from './opsTheme';
 
 interface SmartPourAssistantProps {
   className?: string;
@@ -49,15 +56,15 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
     <OpsCard className={className}>
       <div className="flex items-center gap-2 mb-2">
         <ClipboardCheck className="h-5 w-5 text-cyan-400 shrink-0" />
-        <h3 className="font-semibold text-white text-sm">Pre-placement review</h3>
+        <h3 className={`font-semibold text-sm ${OPS_TITLE}`}>Pre-placement review</h3>
       </div>
 
       {!projectId ? (
         <>
-          <p className="text-base font-semibold text-white">
+          <p className={`text-base font-semibold ${OPS_TITLE}`}>
             {emptyMessage ? 'Nothing in the queue' : 'No placement scheduled'}
           </p>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className={`text-sm mt-1 ${OPS_MUTED}`}>
             {emptyMessage ??
               'Schedule a placement date to run the pre-placement review.'}
           </p>
@@ -73,12 +80,12 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
         </>
       ) : (
         <>
-          <p className="text-base font-bold text-white leading-snug">{projectName}</p>
+          <p className={`text-base font-bold leading-snug ${OPS_TITLE}`}>{projectName}</p>
           {pourDateLabel && (
-            <p className="text-xs text-slate-400 mt-0.5 leading-snug">{pourDateLabel}</p>
+            <p className={`text-xs mt-0.5 leading-snug ${OPS_MUTED}`}>{pourDateLabel}</p>
           )}
 
-          <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-3 mb-1.5">
+          <p className={`text-[10px] uppercase tracking-wide mt-3 mb-1.5 ${OPS_SUBTLE}`}>
             Ready
           </p>
           <ul className="grid grid-cols-1 gap-y-0.5 text-xs">
@@ -87,17 +94,17 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
             ))}
           </ul>
 
-          <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-3 mb-1.5">
+          <p className={`text-[10px] uppercase tracking-wide mt-3 mb-1.5 ${OPS_SUBTLE}`}>
             Attention required
           </p>
           {attention.length === 0 ? (
-            <p className="text-xs text-slate-300">No blockers — confirm with plant and crew.</p>
+            <p className={`text-xs ${OPS_BODY}`}>No blockers — confirm with plant and crew.</p>
           ) : (
             <ul className="space-y-1">
               {attention.map((msg) => (
                 <li
                   key={msg}
-                  className="flex gap-1.5 text-xs text-slate-300 bg-slate-800/50 rounded-md px-2 py-1 border border-slate-700/80"
+                  className={`flex gap-1.5 text-xs ${OPS_BODY} ${OPS_ATTENTION_CHIP}`}
                 >
                   <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-px" />
                   <span>{msg}</span>
@@ -123,9 +130,9 @@ function CheckRow({ ok, label }: { ok: boolean; label: string }) {
   return (
     <li className="flex items-center gap-1.5">
       <CheckCircle2
-        className={`h-3.5 w-3.5 shrink-0 ${ok ? 'text-emerald-400' : 'text-slate-600'}`}
+        className={`h-3.5 w-3.5 shrink-0 ${ok ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-600'}`}
       />
-      <span className={ok ? 'text-slate-200' : 'text-slate-500'}>✓ {label}</span>
+      <span className={ok ? OPS_BODY : OPS_SUBTLE}>✓ {label}</span>
     </li>
   );
 }

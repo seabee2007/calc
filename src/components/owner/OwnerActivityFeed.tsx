@@ -8,7 +8,12 @@ import { useFieldActivityDismissStore } from '../../store/fieldActivityDismissSt
 import type { FieldActivityItem } from '../../types/fieldPlanner';
 import OpsCard from '../dashboard/OpsCard';
 import Button from '../ui/Button';
-import { OPS_MUTED } from '../dashboard/opsTheme';
+import {
+  OPS_LIST_ROW,
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_TITLE,
+} from '../dashboard/opsTheme';
 
 const linkClass = 'text-sm font-medium text-cyan-400 hover:text-cyan-300';
 
@@ -121,10 +126,10 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={itemExit(isClearingAll ? index : 0)}
-                className="flex flex-col gap-2 overflow-hidden rounded-lg border border-slate-700/80 bg-slate-800/50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                className={`flex flex-col gap-2 overflow-hidden rounded-lg px-3 py-2 sm:flex-row sm:items-center sm:justify-between ${OPS_LIST_ROW}`}
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-100 truncate">{item.summary}</p>
+                  <p className={`text-sm font-medium truncate ${OPS_TITLE}`}>{item.summary}</p>
                   <p className={`text-xs ${OPS_MUTED}`}>
                     {item.projectName} · {item.employeeName} ·{' '}
                     {new Date(item.timestamp).toLocaleString()}
@@ -133,7 +138,7 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="shrink-0 !border-slate-600 !text-white"
+                  className={`shrink-0 ${OPS_OUTLINE_BTN}`}
                   onClick={() => handleOpen(item)}
                   disabled={isClearingAll}
                 >

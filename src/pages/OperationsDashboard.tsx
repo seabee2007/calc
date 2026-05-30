@@ -26,9 +26,12 @@ import OwnerFieldSummaryCards from '../components/owner/OwnerFieldSummaryCards';
 import OwnerActivityFeed from '../components/owner/OwnerActivityFeed';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
-
-const OPS_SHELL =
-  'dark text-white isolation-auto rounded-xl min-h-[200px]';
+import {
+  OPS_EMPTY_STATE,
+  OPS_MUTED,
+  OPS_SHELL,
+  OPS_STRIP,
+} from '../components/dashboard/opsTheme';
 
 function parseIsoMaybe(iso?: string): Date | null {
   if (!iso) return null;
@@ -211,12 +214,12 @@ const OperationsDashboard: React.FC = () => {
 
       {isOwner && (
         <section className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-cyan-500/30 bg-slate-900/95 px-4 py-4 shadow-lg">
+          <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${OPS_STRIP}`}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
                 Field Planner
               </p>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className={`mt-1 text-sm ${OPS_MUTED}`}>
                 Manage tasks, RFIs, and field updates across all active projects.
               </p>
             </div>
@@ -323,10 +326,10 @@ const OperationsDashboard: React.FC = () => {
       </div>
 
       {projects.length === 0 && (
-        <div className="rounded-xl border border-dashed border-slate-600 bg-slate-800/90 p-8 text-center">
+        <div className={OPS_EMPTY_STATE}>
           <FolderKanban className="h-10 w-10 mx-auto text-slate-500 mb-3" />
-          <p className="font-medium text-slate-200">No active projects</p>
-          <p className="text-sm text-slate-500 mt-1 mb-4">
+          <p className="font-medium text-gray-900 dark:text-slate-200">No active projects</p>
+          <p className="text-sm text-slate-600 dark:text-slate-500 mt-1 mb-4">
             Start a project to populate placement risk, delivery schedule, and proposal
             pipeline.
           </p>
