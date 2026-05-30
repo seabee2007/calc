@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { PlannerBucket as Bucket, PlannerTask } from '../../types/fieldPlanner';
 import PlannerTaskCard from './PlannerTaskCard';
+import BucketColumnMenu from './BucketColumnMenu';
 import {
   PLANNER_ADD_TASK_BAR,
   PLANNER_BUCKET_COLUMN,
@@ -17,11 +18,14 @@ interface PlannerBucketProps {
   tasks: PlannerTask[];
   buckets: { id: string; title: string }[];
   isOwner: boolean;
+  canDeleteBucket: boolean;
   onTaskClick: (task: PlannerTask) => void;
   onAddTask: (bucketId: string) => void;
   onRefresh: () => void;
   onCreateRfi: (task: PlannerTask) => void;
   onCreateAdjustment: (task: PlannerTask) => void;
+  onRenameBucket: (bucketId: string) => void;
+  onDeleteBucket: (bucketId: string) => void;
 }
 
 export default function PlannerBucketColumn({
@@ -29,11 +33,14 @@ export default function PlannerBucketColumn({
   tasks,
   buckets,
   isOwner,
+  canDeleteBucket,
   onTaskClick,
   onAddTask,
   onRefresh,
   onCreateRfi,
   onCreateAdjustment,
+  onRenameBucket,
+  onDeleteBucket,
 }: PlannerBucketProps) {
   const [showCompleted, setShowCompleted] = useState(false);
 
@@ -46,7 +53,18 @@ export default function PlannerBucketColumn({
 
   return (
     <div className={PLANNER_BUCKET_COLUMN}>
-      <h3 className={`mb-2 ${PLANNER_BUCKET_TITLE}`}>{bucket.title}</h3>
+      <div className="mb-2 flex items-center justify-center gap-1 px-1">
+        <h3 className={`min-w-0 flex-1 text-center ${PLANNER_BUCKET_TITLE}`}>{bucket.title}</h3>
+        {isOwner && (
+          <BucketColumnMenu
+            bucketTitle={bucket.title}
+            taskCount={bucketTasks.length}
+            canDelete={canDeleteBucket}
+            onRename={() => onRenameBucket(bucket.id)}
+            onDelete={() => onDeleteBucket(bucket.id)}
+          />
+        )}
+      </div>
 
       {isOwner && (
         <button

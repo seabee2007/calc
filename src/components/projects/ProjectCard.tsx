@@ -123,9 +123,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   const badgeClass =
     folder === 'qc_closeout'
-      ? 'bg-violet-500/15 text-violet-200 border-violet-500/40'
+      ? 'bg-violet-500/15 text-violet-800 border-violet-500/40 dark:text-violet-200'
       : folder === 'archived'
-        ? 'bg-slate-600/25 text-slate-200 border-slate-500/50'
+        ? 'bg-slate-600/20 text-slate-700 border-slate-500/50 dark:text-slate-200'
         : presentation.priorityBadgeClass;
 
   const ringClass =

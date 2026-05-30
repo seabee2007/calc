@@ -32,6 +32,7 @@ import { MixProfileType, MIX_PROFILE_LABELS } from '../types/curing';
 import { repairJobsiteAddress, sanitizeUSAddress } from '../types/address';
 import { soundService } from '../services/soundService';
 import { hapticService } from '../services/hapticService';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
@@ -439,8 +440,8 @@ const Projects: React.FC = () => {
         {!isBrowseMode && <WorkflowStepHeader />}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">Projects</h1>
-            <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+            <h1 className={CC_PAGE_HERO_TITLE}>Projects</h1>
+            <p className={CC_PAGE_HERO_SUBTITLE}>
               Manage and organize your concrete calculation projects
             </p>
           </div>

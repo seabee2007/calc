@@ -1,14 +1,11 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { PlannerProjectProvider } from '../../contexts/PlannerProjectContext';
 import PlannerPlanHeader from '../../components/planner/PlannerPlanHeader';
-import PlannerBoardToolbar from '../../components/planner/PlannerBoardToolbar';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 
 function PlannerShellContent() {
   const { loading, accessDenied } = usePlannerProject();
-  const location = useLocation();
-  const isBoard = location.pathname.includes('/planner/board');
 
   if (loading) {
     return (
@@ -23,7 +20,6 @@ function PlannerShellContent() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PlannerPlanHeader />
-      {isBoard && <PlannerBoardToolbar />}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Outlet />
       </div>

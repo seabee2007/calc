@@ -14,8 +14,8 @@ export default function PlannerSchedulePage() {
         <Calendar className="mx-auto h-12 w-12 text-cyan-600 dark:text-cyan-400" />
         <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Schedule view</h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-          Timeline and pour-day scheduling will live here. Use Pour Planner for placement dates,
-          weather, and delivery logistics.
+          Timeline and pour-day scheduling will live here. Use Placement Planner for placement
+          dates, weather, and delivery logistics.
         </p>
         {project?.pourDate && (
           <p className="mt-3 text-sm font-medium text-gray-800 dark:text-slate-200">
@@ -23,7 +23,7 @@ export default function PlannerSchedulePage() {
           </p>
         )}
         <Link to="/pour-planner" className="mt-6 inline-block">
-          <Button icon={<ArrowRight className="h-4 w-4" />}>Open Pour Planner</Button>
+          <Button icon={<ArrowRight className="h-4 w-4" />}>Placement Planner</Button>
         </Link>
       </div>
     </div>

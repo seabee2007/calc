@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
-interface AddBucketModalProps {
+interface BucketModalProps {
   isOpen: boolean;
+  mode: 'add' | 'edit';
+  initialTitle?: string;
   onClose: () => void;
   onSubmit: (title: string) => Promise<void>;
 }
 
-export default function AddBucketModal({ isOpen, onClose, onSubmit }: AddBucketModalProps) {
-  const [title, setTitle] = useState('');
+export default function BucketModal({
+  isOpen,
+  mode,
+  initialTitle = '',
+  onClose,
+  onSubmit,
+}: BucketModalProps) {
+  const [title, setTitle] = useState(initialTitle);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setTitle(initialTitle);
+  }, [isOpen, initialTitle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,15 +31,22 @@ export default function AddBucketModal({ isOpen, onClose, onSubmit }: AddBucketM
     setBusy(true);
     try {
       await onSubmit(title.trim());
-      setTitle('');
+      if (mode === 'add') setTitle('');
       onClose();
     } finally {
       setBusy(false);
     }
   };
 
+  const isEdit = mode === 'edit';
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add bucket" size="sm">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEdit ? 'Rename bucket' : 'Add bucket'}
+      size="sm"
+    >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <Input
           label="Bucket name"
@@ -41,7 +60,7 @@ export default function AddBucketModal({ isOpen, onClose, onSubmit }: AddBucketM
             Cancel
           </Button>
           <Button type="submit" disabled={busy}>
-            Add bucket
+            {isEdit ? 'Save' : 'Add bucket'}
           </Button>
         </div>
       </form>

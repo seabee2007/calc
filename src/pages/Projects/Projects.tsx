@@ -19,6 +19,7 @@ import {
   type ProjectFolder,
   type ProjectFolderContext,
 } from '../../utils/projectFolders';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
 
 function matchProposal(
   project: Project,
@@ -117,11 +118,9 @@ const ProjectsContent: React.FC = () => {
     >
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-            Projects
-          </h1>
-          <p className="text-white text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
-  Track active jobs, next actions, readiness, and financials
+          <h1 className={CC_PAGE_HERO_TITLE}>Projects</h1>
+          <p className={CC_PAGE_HERO_SUBTITLE}>
+            Track active jobs, next actions, readiness, and financials
           </p>
         </div>
 

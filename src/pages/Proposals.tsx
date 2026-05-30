@@ -22,7 +22,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { soundService } from '../services/soundService';
 import KPIStatCard from '../components/proposals/KPIStatCard';
-import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
 import ProposalPipelineBoard from '../components/proposals/ProposalPipelineBoard';
 import ProposalNextActionsPanel from '../components/proposals/ProposalNextActionsPanel';
@@ -309,8 +309,8 @@ const Proposals: React.FC = () => {
           className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
         >
           <div>
-            <h1 className={CC_PAGE_TITLE}>Proposal Pipeline</h1>
-            <p className={`${CC_PAGE_SUBTITLE} mt-2`}>
+            <h1 className={CC_PAGE_HERO_TITLE}>Proposal Pipeline</h1>
+            <p className={CC_PAGE_HERO_SUBTITLE}>
               CRM-style pipeline — see what&apos;s stuck, what&apos;s won, and what to do next.
             </p>
           </div>

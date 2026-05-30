@@ -53,7 +53,7 @@ import {
 } from '../utils/mixDesignHaulTime';
 import { projectJobsiteLine } from '../utils/projectLocation';
 import { getMapboxTravelTime } from '../services/mapboxTravelService';
-import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
 
 const MIX_DISCLAIMER =
   'Planning-level recommendation only. Final mix design must comply with project specifications, approved submittals, local code, and supplier trial batch data. This is not an engineered stamped mix design.';
@@ -714,11 +714,11 @@ const MixDesignAdvisor: React.FC = () => {
         )}
 
         <div className="mb-6">
-          <h1 className={`${CC_PAGE_TITLE} flex items-center gap-2`}>
+          <h1 className={`${CC_PAGE_HERO_TITLE} flex items-center gap-2`}>
             <Beaker className="h-8 w-8" />
             Mix Design Advisor
           </h1>
-          <p className={`${CC_PAGE_SUBTITLE} mt-2`}>
+          <p className={CC_PAGE_HERO_SUBTITLE}>
             Field placement and submittal planning — strength, durability, and weather
           </p>
         </div>

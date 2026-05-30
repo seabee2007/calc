@@ -3,11 +3,16 @@ import { Plus } from 'lucide-react';
 import type { PlannerBoardBundle, PlannerTask } from '../../types/fieldPlanner';
 import type { Profile } from '../../types/fieldPlanner';
 import PlannerBucketColumn from './PlannerBucket';
-import AddBucketModal from './AddBucketModal';
+import BucketModal from './BucketModal';
 import AddTaskModal from './AddTaskModal';
 import CreateRfiModal from '../field/CreateRfiModal';
 import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
-import { createBucket, createTask } from '../../services/plannerService';
+import {
+  createBucket,
+  createTask,
+  deleteBucket,
+  updateBucket,
+} from '../../services/plannerService';
 import { PLANNER_BOARD_BG } from './plannerTheme';
 
 interface PlannerBoardProps {
@@ -30,14 +35,30 @@ export default function PlannerBoard({
   onTaskClick,
 }: PlannerBoardProps) {
   const [addBucketOpen, setAddBucketOpen] = useState(false);
+  const [editBucketId, setEditBucketId] = useState<string | null>(null);
   const [addTaskBucketId, setAddTaskBucketId] = useState<string | null>(null);
   const [rfiTask, setRfiTask] = useState<PlannerTask | null>(null);
   const [adjTask, setAdjTask] = useState<PlannerTask | null>(null);
 
   const bucketMeta = bundle.buckets.map((b) => ({ id: b.id, title: b.title }));
+  const canDeleteBucket = bundle.buckets.length > 1;
+  const editBucket = editBucketId
+    ? bundle.buckets.find((b) => b.id === editBucketId)
+    : null;
 
   const handleAddBucket = async (title: string) => {
     await createBucket(bundle.board.id, title, bundle.buckets.length);
+    onRefresh();
+  };
+
+  const handleRenameBucket = async (title: string) => {
+    if (!editBucketId) return;
+    await updateBucket(editBucketId, { title });
+    onRefresh();
+  };
+
+  const handleDeleteBucket = async (bucketId: string) => {
+    await deleteBucket(bucketId);
     onRefresh();
   };
 
@@ -73,11 +94,14 @@ export default function PlannerBoard({
             tasks={bundle.tasks}
             buckets={bucketMeta}
             isOwner={isOwner}
+            canDeleteBucket={canDeleteBucket}
             onTaskClick={onTaskClick}
             onAddTask={(id) => setAddTaskBucketId(id)}
             onRefresh={onRefresh}
             onCreateRfi={setRfiTask}
             onCreateAdjustment={setAdjTask}
+            onRenameBucket={setEditBucketId}
+            onDeleteBucket={(id) => void handleDeleteBucket(id)}
           />
         ))}
 
@@ -95,10 +119,19 @@ export default function PlannerBoard({
         )}
       </div>
 
-      <AddBucketModal
+      <BucketModal
         isOpen={addBucketOpen}
+        mode="add"
         onClose={() => setAddBucketOpen(false)}
         onSubmit={handleAddBucket}
+      />
+
+      <BucketModal
+        isOpen={Boolean(editBucketId && editBucket)}
+        mode="edit"
+        initialTitle={editBucket?.title ?? ''}
+        onClose={() => setEditBucketId(null)}
+        onSubmit={handleRenameBucket}
       />
 
       <AddTaskModal

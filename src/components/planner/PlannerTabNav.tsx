@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink, useParams } from 'react-router-dom';
+import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
 
 const TABS = [
   { to: 'board', label: 'Board' },
   { to: 'schedule', label: 'Schedule' },
   { to: 'documents', label: 'Documents' },
   { to: 'rfis', label: 'RFIs' },
-  { to: 'adjustments', label: 'Field Adjustments' },
+  { to: 'adjustments', label: 'FARs' },
   { to: 'team', label: 'Team' },
 ] as const;
 
@@ -26,10 +27,10 @@ export default function PlannerTabNav() {
           end={to === 'board'}
           className={({ isActive }) =>
             [
-              'shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+              'shrink-0 border-b-2 px-4 py-3 transition-colors',
               isActive
-                ? 'border-cyan-600 text-cyan-700 dark:border-cyan-400 dark:text-cyan-300'
-                : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200',
+                ? `border-cyan-600 dark:border-cyan-400 ${PLANNER_NAV_TAB_LABEL_ACTIVE}`
+                : `border-transparent hover:text-gray-900 dark:hover:text-slate-200 ${PLANNER_NAV_TAB_LABEL}`,
             ].join(' ')
           }
         >

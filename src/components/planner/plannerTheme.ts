@@ -25,8 +25,14 @@ export const PLANNER_PAGE_BG = `${PLANNER_BOARD_BG} flex min-h-0 flex-1 flex-col
 /** Transparent bucket column */
 export const PLANNER_BUCKET_COLUMN = 'flex w-[300px] shrink-0 flex-col bg-transparent mr-6';
 
-export const PLANNER_BUCKET_TITLE =
-  'text-center text-sm font-semibold text-slate-900 drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)] dark:text-slate-500 dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]';
+/** Matches inactive planner tabs (Board, Charts, FARs, …) */
+export const PLANNER_NAV_TAB_LABEL =
+  'text-sm font-medium text-gray-600 dark:text-slate-400';
+
+export const PLANNER_NAV_TAB_LABEL_ACTIVE =
+  'text-sm font-medium text-cyan-700 dark:text-cyan-300';
+
+export const PLANNER_BUCKET_TITLE = `text-center ${PLANNER_NAV_TAB_LABEL}`;
 
 export const PLANNER_BUCKET_META = 'text-xs text-gray-500 dark:text-slate-500';
 

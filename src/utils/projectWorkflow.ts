@@ -173,7 +173,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Closed',
-        priorityBadgeClass: 'bg-slate-600/25 text-slate-200 border-slate-500/50',
+        priorityBadgeClass:
+          'bg-slate-600/20 text-slate-700 border-slate-500/50 dark:text-slate-200',
         priorityRingClass: 'ring-1 ring-slate-500/40',
         progressPct: 100,
         nextActionLabel: 'No further action',
@@ -190,7 +191,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Paid',
-        priorityBadgeClass: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
+        priorityBadgeClass:
+          'bg-emerald-500/15 text-emerald-800 border-emerald-500/40 dark:text-emerald-200',
         priorityRingClass: 'ring-1 ring-emerald-500/35',
         progressPct: 100,
         nextActionLabel: nextActionLabel,
@@ -207,7 +209,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Complete',
-        priorityBadgeClass: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
+        priorityBadgeClass:
+          'bg-emerald-500/15 text-emerald-800 border-emerald-500/40 dark:text-emerald-200',
         priorityRingClass: 'ring-1 ring-emerald-500/35',
         progressPct: 100,
         nextActionLabel: nextActionLabel,
@@ -224,7 +227,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Placed',
-        priorityBadgeClass: 'bg-cyan-500/15 text-cyan-200 border-cyan-500/40',
+        priorityBadgeClass:
+          'bg-cyan-500/15 text-cyan-800 border-cyan-500/40 dark:text-cyan-200',
         priorityRingClass: 'ring-1 ring-cyan-500/35',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
@@ -241,7 +245,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Waiting',
-        priorityBadgeClass: 'bg-amber-500/15 text-amber-200 border-amber-500/40',
+        priorityBadgeClass:
+          'bg-amber-500/15 text-amber-800 border-amber-500/40 dark:text-amber-200',
         priorityRingClass: 'ring-1 ring-amber-500/40',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
@@ -258,7 +263,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Needs attention',
-        priorityBadgeClass: 'bg-red-500/15 text-red-200 border-red-500/40',
+        priorityBadgeClass:
+          'bg-red-500/15 text-red-800 border-red-500/40 dark:text-red-200',
         priorityRingClass: 'ring-1 ring-red-500/35',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
@@ -275,7 +281,8 @@ export function getProjectCardPresentation(
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Ready',
-        priorityBadgeClass: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
+        priorityBadgeClass:
+          'bg-emerald-500/15 text-emerald-800 border-emerald-500/40 dark:text-emerald-200',
         priorityRingClass: 'ring-1 ring-emerald-500/35',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
@@ -291,7 +298,8 @@ export function getProjectCardPresentation(
   return finalizeProjectCardPresentation(
     {
       priorityLabel: 'On track',
-      priorityBadgeClass: 'bg-slate-500/15 text-slate-200 border-slate-500/40',
+      priorityBadgeClass:
+        'bg-slate-500/15 text-slate-700 border-slate-500/40 dark:text-slate-200',
       priorityRingClass: 'ring-1 ring-slate-500/30',
       progressPct: baseProgress,
       nextActionLabel: nextActionLabel,

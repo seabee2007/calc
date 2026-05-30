@@ -5,6 +5,13 @@ export const CC_PAGE_TITLE =
 export const CC_PAGE_SUBTITLE =
   'text-lg font-semibold text-slate-700 dark:text-slate-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]';
 
+/** Hero title + subtitle (calculators, proposals, resources, projects). */
+export const CC_PAGE_HERO_TITLE =
+  'text-3xl font-semibold text-gray-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)] dark:text-slate-400';
+
+export const CC_PAGE_HERO_SUBTITLE =
+  'mt-2 text-lg font-medium text-gray-600 dark:text-slate-400';
+
 export const CC_PAGE_META = 'text-sm text-slate-600 dark:text-slate-400 mt-2';
 
 export const CC_PAGE_TITLE_MD =

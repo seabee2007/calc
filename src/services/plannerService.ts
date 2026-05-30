@@ -234,13 +234,44 @@ export async function fetchTaskById(taskId: string): Promise<PlannerTask | null>
 }
 
 export async function createBucket(boardId: string, title: string, position: number) {
+  const trimmed = title.trim();
+  if (!trimmed) throw new Error('Bucket name is required');
+
   const { data, error } = await supabase
     .from('planner_buckets')
-    .insert({ board_id: boardId, title, position })
+    .insert({ board_id: boardId, title: trimmed, position })
     .select('*')
     .single();
   if (error) throw error;
   return mapBucket(data);
+}
+
+export async function updateBucket(
+  bucketId: string,
+  patch: Partial<{ title: string; position: number }>,
+) {
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (patch.title !== undefined) {
+    const trimmed = patch.title.trim();
+    if (!trimmed) throw new Error('Bucket name is required');
+    payload.title = trimmed;
+  }
+  if (patch.position !== undefined) payload.position = patch.position;
+
+  const { data, error } = await supabase
+    .from('planner_buckets')
+    .update(payload)
+    .eq('id', bucketId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return mapBucket(data);
+}
+
+export async function deleteBucket(bucketId: string) {
+  const { error } = await supabase.from('planner_buckets').delete().eq('id', bucketId);
+  if (error) throw error;
 }
 
 export async function createTask(input: {
