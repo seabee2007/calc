@@ -123,6 +123,20 @@ export async function fetchChangeOrdersForProject(projectId: string): Promise<Ch
   return (data ?? []).map(mapChangeOrder);
 }
 
+export async function fetchChangeOrdersForProjectIds(
+  projectIds: string[],
+): Promise<ChangeOrder[]> {
+  if (projectIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('change_orders')
+    .select('*')
+    .in('project_id', projectIds)
+    .neq('status', 'void')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapChangeOrder);
+}
+
 const OWNER_REVIEW_CO_STATUSES = ['draft', 'sent', 'viewed', 'declined'] as const;
 
 /** Change orders needing owner action or follow-up (draft, out for client, declined). */

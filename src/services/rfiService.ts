@@ -38,6 +38,17 @@ export async function fetchRfisForProject(projectId: string): Promise<RfiRequest
   return (data ?? []).map(mapRfi);
 }
 
+export async function fetchRfisForProjectIds(projectIds: string[]): Promise<RfiRequest[]> {
+  if (projectIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('rfi_requests')
+    .select('*')
+    .in('project_id', projectIds)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapRfi);
+}
+
 export async function fetchRfiById(rfiId: string): Promise<RfiRequest | null> {
   const { data, error } = await supabase
     .from('rfi_requests')

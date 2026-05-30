@@ -40,6 +40,9 @@ import PlannerRFIsPage from './pages/planner/PlannerRFIsPage';
 import PlannerAdjustmentsPage from './pages/planner/PlannerAdjustmentsPage';
 import PlannerTeamPage from './pages/planner/PlannerTeamPage';
 import PlannerHubPage from './pages/planner/PlannerHubPage';
+import PlannerAllRfisPage from './pages/planner/PlannerAllRfisPage';
+import PlannerAllFarsPage from './pages/planner/PlannerAllFarsPage';
+import PlannerAllChangeOrdersPage from './pages/planner/PlannerAllChangeOrdersPage';
 import PlannerChangeOrdersPage from './pages/planner/PlannerChangeOrdersPage';
 import ChangeOrderBuilderPage from './pages/planner/ChangeOrderBuilderPage';
 import PublicChangeOrder from './pages/PublicChangeOrder';
@@ -385,6 +388,9 @@ function App() {
             }
           >
             <Route path="planner/hub" element={<PlannerHubPage />} />
+            <Route path="planner/rfis" element={<PlannerAllRfisPage />} />
+            <Route path="planner/fars" element={<PlannerAllFarsPage />} />
+            <Route path="planner/change-orders" element={<PlannerAllChangeOrdersPage />} />
             <Route path="projects/:projectId/planner" element={<PlannerProjectShell />}>
               <Route index element={<PlannerIndexRedirect />} />
               <Route path="board" element={<PlannerBoardPage />} />

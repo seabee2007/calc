@@ -7,6 +7,9 @@ import { fetchAssignedProjects } from '../../services/employeeService';
 import { resolveProjectWorkflow } from '../../utils/projectWorkflow';
 import { plannerBoardHref } from '../../utils/plannerRoutes';
 import { PLANNER_BOARD_BG } from '../../components/planner/plannerTheme';
+import PlannerRecordsQuickNav from '../../components/planner/PlannerRecordsQuickNav';
+
+const LAST_PROJECT_KEY = 'plannerHubLastProjectId';
 
 interface HubProject {
   id: string;
@@ -18,6 +21,10 @@ export default function PlannerHubPage() {
   const { user, isOwner, isEmployee } = useAuth();
   const [projects, setProjects] = useState<HubProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastProjectId, setLastProjectId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return sessionStorage.getItem(LAST_PROJECT_KEY);
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -68,9 +75,12 @@ export default function PlannerHubPage() {
     <div className={`flex min-h-0 flex-1 flex-col ${PLANNER_BOARD_BG}`}>
       <div className="border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6">
         <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Planner Hub</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-          Open a project plan board to manage field tasks.
-        </p>
+        <div className="mt-1 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+          <p className="text-sm text-gray-600 dark:text-slate-400">
+            Open a project plan board to manage field tasks.
+          </p>
+          <PlannerRecordsQuickNav />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -89,6 +99,10 @@ export default function PlannerHubPage() {
             <Link
               key={p.id}
               to={plannerBoardHref(p.id)}
+              onClick={() => {
+                sessionStorage.setItem(LAST_PROJECT_KEY, p.id);
+                setLastProjectId(p.id);
+              }}
               className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-cyan-500/50 dark:border-slate-700 dark:bg-slate-800"
             >
               <FolderKanban className="h-8 w-8 shrink-0 text-cyan-600 dark:text-cyan-400" />

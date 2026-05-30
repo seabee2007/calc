@@ -33,6 +33,9 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
   const sectionLabel = useMemo(() => {
     if (projectName) return projectName;
     if (location.pathname === '/planner/hub') return 'Planner Hub';
+    if (location.pathname === '/planner/rfis') return 'All RFIs';
+    if (location.pathname === '/planner/fars') return 'All FARs';
+    if (location.pathname === '/planner/change-orders') return 'All change orders';
     if (location.pathname.startsWith('/employee/tasks')) return 'My Tasks';
     return 'Field Planner';
   }, [location.pathname, projectName]);

@@ -52,6 +52,19 @@ export async function fetchAdjustmentsForProject(
   return (data ?? []).map(mapAdjustment);
 }
 
+export async function fetchAdjustmentsForProjectIds(
+  projectIds: string[],
+): Promise<FieldAdjustmentRequest[]> {
+  if (projectIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('field_adjustment_requests')
+    .select('*')
+    .in('project_id', projectIds)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapAdjustment);
+}
+
 export async function fetchAdjustmentById(id: string): Promise<FieldAdjustmentRequest | null> {
   const { data, error } = await supabase
     .from('field_adjustment_requests')

@@ -53,6 +53,18 @@ export function plannerChangeOrdersHref(projectId: string): string {
   return `/projects/${projectId}/planner/change-orders`;
 }
 
+export function plannerAllRfisHref(): string {
+  return '/planner/rfis';
+}
+
+export function plannerAllFarsHref(): string {
+  return '/planner/fars';
+}
+
+export function plannerAllChangeOrdersHref(): string {
+  return '/planner/change-orders';
+}
+
 /** Close overlays first, then open the change-order builder (avoids search-param races on board/RFI/FAR pages). */
 export function openNewChangeOrder(
   navigate: NavigateFunction,
