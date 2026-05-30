@@ -19,6 +19,13 @@ import {
 } from '../../types/address';
 import { verifyJobsiteAddress } from '../../services/geocodeService';
 import { EMPTY_PROJECT_CLIENT } from '../../types/projectClient';
+import type { ClientPortalAccessInput } from '../../types/clientPortal';
+import { formatUSPhoneInput, formatUSPhoneNumber } from '../../utils/phoneFormat';
+import {
+  fetchClientPortalByProjectId,
+  getClientPortalUrl,
+} from '../../services/clientPortalService';
+import type { ClientPortalRecord } from '../../types/clientPortal';
 
 export interface ProjectFormData {
   name: string;
@@ -26,6 +33,7 @@ export interface ProjectFormData {
   pourDate?: string;
   jobsiteAddress: USAddress;
   clientInfo: ProjectClientInfo;
+  clientPortalAccess?: ClientPortalAccessInput;
 }
 
 interface ProjectFormProps {
@@ -38,6 +46,8 @@ interface ProjectFormProps {
   hidePourDate?: boolean;
   /** Require Mapbox-verified jobsite before create/update (workflow step 1). */
   requireVerifiedAddress?: boolean;
+  /** When editing, used to detect an existing client portal. */
+  projectId?: string;
 }
 
 const defaultJobsite = (): USAddress => ({ ...EMPTY_US_ADDRESS });
@@ -51,11 +61,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   submitLabel,
   hidePourDate = false,
   requireVerifiedAddress = false,
+  projectId,
 }) => {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifiedLine, setVerifiedLine] = useState<string | null>(null);
   const [verifiedAddress, setVerifiedAddress] = useState<USAddress | null>(null);
+  const [existingPortal, setExistingPortal] = useState<ClientPortalRecord | null>(null);
+  const [portalLoading, setPortalLoading] = useState(Boolean(projectId));
 
   const buildDefaults = (): ProjectFormData => ({
     name: initialData?.name ?? '',
@@ -69,9 +82,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     clientInfo: {
       ...EMPTY_PROJECT_CLIENT,
       ...initialData?.clientInfo,
+      clientPhone: formatUSPhoneNumber(initialData?.clientInfo?.clientPhone),
       clientAddress: initialData?.clientInfo?.clientAddress
         ? repairJobsiteAddress(initialData.clientInfo.clientAddress)
         : { ...EMPTY_US_ADDRESS },
+    },
+    clientPortalAccess: {
+      enabled: false,
+      clientName: initialData?.clientInfo?.clientName ?? '',
+      clientEmail: initialData?.clientInfo?.clientEmail ?? '',
+      clientPhone: formatUSPhoneNumber(initialData?.clientInfo?.clientPhone),
+      ...initialData?.clientPortalAccess,
     },
   });
 
@@ -82,12 +103,54 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     getValues,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ProjectFormData>({
     defaultValues: buildDefaults(),
   });
 
   const clientSameAsJobsite = watch('clientInfo.clientAddressSameAsJobsite');
+  const inviteClientPortal = watch('clientPortalAccess.enabled');
+  const clientInfoName = watch('clientInfo.clientName');
+  const clientInfoEmail = watch('clientInfo.clientEmail');
+  const clientInfoPhone = watch('clientInfo.clientPhone');
+
+  const syncPortalAccessFromClientInfo = () => {
+    const values = getValues();
+    setValue('clientPortalAccess.clientName', values.clientInfo.clientName ?? '');
+    setValue('clientPortalAccess.clientEmail', values.clientInfo.clientEmail ?? '');
+    setValue(
+      'clientPortalAccess.clientPhone',
+      formatUSPhoneNumber(values.clientInfo.clientPhone ?? ''),
+    );
+  };
+
+  useEffect(() => {
+    if (!inviteClientPortal) return;
+    syncPortalAccessFromClientInfo();
+  }, [inviteClientPortal, clientInfoName, clientInfoEmail, clientInfoPhone]);
+
+  useEffect(() => {
+    if (!projectId) {
+      setExistingPortal(null);
+      setPortalLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setPortalLoading(true);
+    void fetchClientPortalByProjectId(projectId)
+      .then((row) => {
+        if (!cancelled) setExistingPortal(row);
+      })
+      .finally(() => {
+        if (!cancelled) setPortalLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
 
   useEffect(() => {
     reset(buildDefaults());
@@ -162,7 +225,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         ...data.clientInfo,
         clientName: data.clientInfo.clientName.trim(),
         clientCompany: data.clientInfo.clientCompany?.trim(),
-        clientPhone: data.clientInfo.clientPhone?.trim(),
+        clientPhone: formatUSPhoneNumber(data.clientInfo.clientPhone?.trim()) || undefined,
         clientEmail: data.clientInfo.clientEmail?.trim(),
         clientAddressSameAsJobsite: data.clientInfo.clientAddressSameAsJobsite !== false,
         clientAddress:
@@ -172,6 +235,30 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       },
     };
     if (hidePourDate) delete payload.pourDate;
+
+    if (payload.clientPortalAccess?.enabled) {
+      const portalName =
+        payload.clientPortalAccess.clientName.trim() || payload.clientInfo.clientName.trim();
+      const portalEmail =
+        payload.clientPortalAccess.clientEmail.trim() ||
+        payload.clientInfo.clientEmail?.trim() ||
+        '';
+      if (!portalName || !portalEmail) {
+        return;
+      }
+      payload.clientPortalAccess = {
+        enabled: true,
+        clientName: portalName,
+        clientEmail: portalEmail,
+        clientPhone:
+          formatUSPhoneNumber(payload.clientPortalAccess.clientPhone?.trim()) ||
+          formatUSPhoneNumber(payload.clientInfo.clientPhone?.trim()) ||
+          undefined,
+      };
+    } else if (payload.clientPortalAccess) {
+      payload.clientPortalAccess.enabled = false;
+    }
+
     await onSubmit(payload);
   };
 
@@ -207,11 +294,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           {...register('clientInfo.clientCompany')}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input
-            label="Client phone"
-            type="tel"
-            fullWidth
-            {...register('clientInfo.clientPhone')}
+          <Controller
+            name="clientInfo.clientPhone"
+            control={control}
+            render={({ field }) => (
+              <Input
+                label="Client phone"
+                type="tel"
+                fullWidth
+                placeholder="(555) 555-5555"
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(formatUSPhoneInput(e.target.value))}
+                onBlur={field.onBlur}
+                ref={field.ref}
+              />
+            )}
           />
           <Input
             label="Client email"
@@ -248,6 +345,102 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
               />
             )}
           />
+        )}
+      </div>
+
+      <div className="rounded-lg border border-cyan-200/60 dark:border-cyan-800/50 bg-cyan-50/40 dark:bg-cyan-950/20 p-4 space-y-4">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+            Client access
+          </h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Invite your client to a read-only project dashboard — no account required.
+          </p>
+        </div>
+
+        {portalLoading ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">Checking client portal…</p>
+        ) : existingPortal ? (
+          <div className="rounded-md bg-white/70 dark:bg-slate-900/50 p-3 text-sm space-y-2">
+            <p className="font-medium text-emerald-700 dark:text-emerald-300">
+              Client portal is active
+            </p>
+            <p className="text-gray-600 dark:text-gray-300">
+              Client: {existingPortal.clientName}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
+              {getClientPortalUrl(existingPortal.token)}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Copy the link from project details after saving.
+            </p>
+          </div>
+        ) : (
+          <>
+            <Controller
+              name="clientPortalAccess.enabled"
+              control={control}
+              render={({ field }) => (
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 dark:border-gray-600"
+                    checked={Boolean(field.value)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      field.onChange(checked);
+                      if (checked) {
+                        syncPortalAccessFromClientInfo();
+                      }
+                    }}
+                  />
+                  Invite client to view project dashboard
+                </label>
+              )}
+            />
+            {inviteClientPortal && (
+              <>
+                <p className="text-xs text-cyan-700 dark:text-cyan-300">
+                  Pulled from client information above — updates as you edit those fields.
+                </p>
+                <Input
+                  label="Client name"
+                  fullWidth
+                  readOnly
+                  className="bg-slate-50 dark:bg-slate-800/50"
+                  error={errors.clientPortalAccess?.clientName?.message?.toString()}
+                  {...register('clientPortalAccess.clientName', {
+                    required: inviteClientPortal
+                      ? 'Client name is required for portal invite'
+                      : false,
+                  })}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Client email"
+                    type="email"
+                    fullWidth
+                    readOnly
+                    className="bg-slate-50 dark:bg-slate-800/50"
+                    error={errors.clientPortalAccess?.clientEmail?.message?.toString()}
+                    {...register('clientPortalAccess.clientEmail', {
+                      required: inviteClientPortal
+                        ? 'Client email is required for portal invite'
+                        : false,
+                    })}
+                  />
+                  <Input
+                    label="Client phone (optional)"
+                    type="tel"
+                    fullWidth
+                    readOnly
+                    className="bg-slate-50 dark:bg-slate-800/50"
+                    {...register('clientPortalAccess.clientPhone')}
+                  />
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 

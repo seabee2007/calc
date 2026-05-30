@@ -23,6 +23,7 @@ import OperationsDashboard from './pages/OperationsDashboard';
 import ProposalGenerator from './pages/ProposalGenerator';
 import Proposals from './pages/Proposals';
 import PublicProposal from './pages/PublicProposal';
+import ClientPortal from './pages/ClientPortal';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -324,6 +325,7 @@ function App() {
             <Route path="resources/external-resources" element={<ExternalResources />} />
           </Route>
           <Route path="/proposal/:token" element={<PublicProposal />} />
+          <Route path="/client/project/:token" element={<ClientPortal />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -331,7 +333,9 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
-        {chatStore.isVisible && (
+        {chatStore.isVisible &&
+          !location.pathname.startsWith('/proposal/') &&
+          !location.pathname.startsWith('/client/project/') && (
           <div className="fixed bottom-20 md:bottom-4 right-4 z-40">
             <ConcreteChat />
           </div>

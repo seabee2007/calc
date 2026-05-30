@@ -12,10 +12,12 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   const isPublicProposal = location.pathname.startsWith('/proposal/');
+  const isPublicClientPortal = location.pathname.startsWith('/client/project/');
   const isAuthPage =
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
-    isPublicProposal;
+    isPublicProposal ||
+    isPublicClientPortal;
   const showBottomNav = Boolean(user) && !isAuthPage;
 
   useEffect(() => {

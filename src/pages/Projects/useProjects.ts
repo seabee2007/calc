@@ -9,6 +9,7 @@ import { CONCRETE_MIX_DESIGNS } from '../../types';
 import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
 import type { ProjectFormData } from '../../components/projects/ProjectForm';
 import { defaultPlacementOrder } from '../../types/placementOrder';
+import { createClientPortal } from '../../services/clientPortalService';
 
 const ProjectsContext = createContext<ReturnType<typeof useProjectsState> | null>(null);
 
@@ -51,6 +52,7 @@ function useProjectsState() {
     mixProfile: (currentProject?.mixProfile || 'standard') as MixProfileType,
     isSaving: false,
     toast: { show: false, msg: '', type: 'success' as 'success'|'error'|'warning' },
+    createdPortal: null as { clientName: string; token: string } | null,
   });
 
   const openProjectDetails = (projectId: string) => {
@@ -170,6 +172,27 @@ function useProjectsState() {
           state: { showProjectDetails: true, projectId: newProject.id },
         });
         toast('Project created successfully', 'success');
+
+        if (data.clientPortalAccess?.enabled) {
+          const portalName = data.clientPortalAccess.clientName.trim();
+          const portalEmail = data.clientPortalAccess.clientEmail.trim();
+          if (portalName && portalEmail) {
+            try {
+              const portal = await createClientPortal({
+                projectId: newProject.id,
+                clientName: portalName,
+                clientEmail: portalEmail,
+              });
+              setUi((s) => ({
+                ...s,
+                createdPortal: { clientName: portal.clientName, token: portal.token },
+              }));
+            } catch (portalErr) {
+              console.error('Error creating client portal:', portalErr);
+              toast('Project created but client portal could not be created', 'warning');
+            }
+          }
+        }
       } catch (err) {
         console.error('Error creating project:', err);
         toast('Error creating project', 'error');
@@ -177,7 +200,8 @@ function useProjectsState() {
     },
 
     update: async (data: ProjectFormData) => {
-      if (currentProject) {
+      if (!currentProject) return;
+      try {
         await updateProject(currentProject.id, {
           name: data.name,
           description: data.description,
@@ -185,8 +209,32 @@ function useProjectsState() {
           clientInfo: data.clientInfo,
           pourDate: data.pourDate,
         });
-        setUi(s => ({ ...s, editing: false }));
+        setUi((s) => ({ ...s, editing: false }));
         toast('Project updated successfully', 'success');
+
+        if (data.clientPortalAccess?.enabled) {
+          const portalName = data.clientPortalAccess.clientName.trim();
+          const portalEmail = data.clientPortalAccess.clientEmail.trim();
+          if (portalName && portalEmail) {
+            try {
+              const portal = await createClientPortal({
+                projectId: currentProject.id,
+                clientName: portalName,
+                clientEmail: portalEmail,
+              });
+              setUi((s) => ({
+                ...s,
+                createdPortal: { clientName: portal.clientName, token: portal.token },
+              }));
+            } catch (portalErr) {
+              console.error('Error creating client portal:', portalErr);
+              toast('Project saved but client portal could not be created', 'warning');
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error updating project:', err);
+        toast('Error updating project', 'error');
       }
     },
 
@@ -389,6 +437,10 @@ function useProjectsState() {
 
     startEditing: () => {
       setUi((s) => ({ ...s, editing: true }));
+    },
+
+    dismissCreatedPortal: () => {
+      setUi((s) => ({ ...s, createdPortal: null }));
     },
   };
 

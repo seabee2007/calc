@@ -46,6 +46,7 @@ import {
   type ScoredPourDay,
 } from '../../utils/pourScoring';
 import { getQcBreakStatus } from '../../utils/projectFolders';
+import ClientPortalActions from '../../components/projects/ClientPortalActions';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
@@ -424,6 +425,12 @@ export default function ProjectDetails() {
             </div>
           </div>
         </div>
+
+        <ClientPortalActions
+          projectId={project.id}
+          clientName={project.clientInfo?.clientName}
+          clientEmail={project.clientInfo?.clientEmail}
+        />
       </div>
 
       {/* SECTION 2 — PROJECT WORKFLOW STATUS */}

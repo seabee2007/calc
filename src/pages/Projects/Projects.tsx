@@ -7,6 +7,7 @@ import ProjectList from './ProjectList';
 import ProjectDetails from './ProjectDetails';
 import ProjectForm from '../../components/projects/ProjectForm';
 import ToastManager from './ToastManager';
+import ClientPortalCreatedModal from '../../components/projects/ClientPortalCreatedModal';
 import Button from '../../components/ui/Button';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import type { Project } from '../../types';
@@ -175,6 +176,7 @@ const ProjectsContent: React.FC = () => {
               clientInfo: currentProject.clientInfo,
               pourDate: currentProject.pourDate?.split('T')[0],
             }}
+            projectId={currentProject.id}
             isEditing
           />
         )}
@@ -210,6 +212,14 @@ const ProjectsContent: React.FC = () => {
       </AnimatePresence>
 
       <ToastManager {...ui.toast} />
+
+      {ui.createdPortal && (
+        <ClientPortalCreatedModal
+          clientName={ui.createdPortal.clientName}
+          token={ui.createdPortal.token}
+          onClose={() => handlers.dismissCreatedPortal()}
+        />
+      )}
     </motion.div>
   );
 };
