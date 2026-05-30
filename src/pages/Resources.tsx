@@ -96,10 +96,10 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
     >
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className="text-3xl font-bold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
             Concrete Resources
           </h1>
-          <p className="text-white text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
+          <p className="text-black text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
             Helpful guides, tips, and reference materials for concrete work
           </p>
         </div>

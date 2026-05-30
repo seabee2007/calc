@@ -713,11 +713,11 @@ const MixDesignAdvisor: React.FC = () => {
         )}
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-BLACK drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] flex items-center gap-2">
             <Beaker className="h-8 w-8" />
             Mix Design Advisor
           </h1>
-          <p className="text-white text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
+          <p className="text-BLACK text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
             Field placement and submittal planning — strength, durability, and weather
           </p>
         </div>

@@ -16,13 +16,31 @@ serve(async (req) => {
 
   try {
     // 2) Read and validate the body
-    const { question } = await req.json();
+    const { question, pageLabel, projectContext } = await req.json();
     if (!question || typeof question !== "string") {
       return new Response(
         JSON.stringify({ error: "Valid 'question' field is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const contextParts: string[] = [
+      "You are a friendly, expert assistant on everything about concrete—mix design, volume, curing, placement planning, labor, weather risk, rebar, and ready-mix ordering.",
+      "Give practical, field-ready guidance. Cite ACI guidance when relevant. Keep answers concise unless the user asks for detail.",
+    ];
+
+    if (typeof pageLabel === "string" && pageLabel.trim()) {
+      contextParts.push(`The user is currently in the ConcreteCalc app on the "${pageLabel.trim()}" page.`);
+    }
+
+    if (typeof projectContext === "string" && projectContext.trim()) {
+      contextParts.push(
+        "Tailor answers to this active project when relevant. Do not invent project facts not listed below.",
+        "Active project context:\n" + projectContext.trim(),
+      );
+    }
+
+    const systemContent = contextParts.join("\n\n");
 
     // 3) Call OpenAI
     const openAiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -38,8 +56,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a friendly, expert assistant on everything about concrete—mix design, volume, curing, best practices.",
+            content: systemContent,
           },
           { role: "user", content: question },
         ],

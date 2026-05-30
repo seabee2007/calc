@@ -1,9 +1,10 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Send, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useProjectStore } from '../store';
 import Button from './ui/Button';
+import { buildChatProjectContext } from '../utils/chatProjectContext';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
@@ -28,7 +29,11 @@ function nextMessageId(): string {
   return `msg-${messageSeq}-${Date.now()}`;
 }
 
-async function askConcrete(question: string): Promise<{ answer: string }> {
+async function askConcrete(input: {
+  question: string;
+  pageLabel?: string;
+  projectContext?: string | null;
+}): Promise<{ answer: string }> {
   const res = await fetch(`${FN_BASE}/askConcrete`, {
     method: 'POST',
     headers: {
@@ -36,7 +41,7 @@ async function askConcrete(question: string): Promise<{ answer: string }> {
       apikey: import.meta.env.VITE_SUPABASE_ANON_KEY!,
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY!}`,
     },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify(input),
   });
 
   if (!res.ok) {
@@ -72,16 +77,39 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentProject } = useProjectStore();
+  const { projects, currentProject, loadProjects } = useProjectStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+
+  useEffect(() => {
+    if (projects.length === 0) {
+      void loadProjects();
+    }
+  }, [projects.length, loadProjects]);
+
+  useEffect(() => {
+    if (currentProject?.id) {
+      setSelectedProjectId(currentProject.id);
+    }
+  }, [currentProject?.id]);
+
+  const selectedProject = useMemo(
+    () => projects.find((p) => p.id === selectedProjectId) ?? null,
+    [projects, selectedProjectId],
+  );
+
+  const projectContextText = useMemo(
+    () => buildChatProjectContext(selectedProject),
+    [selectedProject],
+  );
 
   const context = useMemo(() => {
     const pageLabel = resolvePageLabel(location.pathname);
-    const projectName = currentProject?.name?.trim();
+    const projectName = selectedProject?.name?.trim();
     return {
       pageLabel,
       projectName: projectName || null,
@@ -89,7 +117,7 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
         ? `${pageLabel} · ${projectName}`
         : `${pageLabel} · No project selected`,
     };
-  }, [location.pathname, currentProject?.name]);
+  }, [location.pathname, selectedProject?.name]);
 
   const sendMessage = async (text?: string) => {
     const q = (text ?? input).trim();
@@ -99,7 +127,11 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
     setLoading(true);
 
     try {
-      const { answer } = await askConcrete(q);
+      const { answer } = await askConcrete({
+        question: q,
+        pageLabel: context.pageLabel,
+        projectContext: projectContextText,
+      });
       setMessages((m) => [
         ...m,
         { id: nextMessageId(), role: 'assistant', content: answer },
@@ -155,12 +187,25 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
     <div className="flex h-full flex-col bg-slate-950 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
       <ChatHeader onClose={onClose} />
 
-      <div className="border-b border-slate-700 bg-slate-900/80 px-4 py-3">
+      <div className="border-b border-slate-700 bg-slate-900/80 px-4 py-3 space-y-2">
         <p className="text-xs uppercase tracking-widest text-slate-500">Project context</p>
+        <select
+          value={selectedProjectId}
+          onChange={(e) => setSelectedProjectId(e.target.value)}
+          className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
+          aria-label="Select project for AI context"
+        >
+          <option value="">No project — general guidance</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
         <p className="text-sm font-semibold text-white truncate">{context.contextLine}</p>
         {!context.projectName && (
-          <p className="text-xs text-slate-500 mt-0.5">
-            Select a project in Calculators or Projects for job-specific answers.
+          <p className="text-xs text-slate-500">
+            Choose a project above for job-specific placement, mix, and order answers.
           </p>
         )}
       </div>

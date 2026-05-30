@@ -19,6 +19,7 @@ import {
   formatWinRate,
 } from '../utils/proposalKpis';
 import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
 import { soundService } from '../services/soundService';
 import KPIStatCard from '../components/proposals/KPIStatCard';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
@@ -301,53 +302,52 @@ const Proposals: React.FC = () => {
   return (
     <div className="w-full">
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-800/70 sm:p-6">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-          >
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                Proposal Pipeline
-              </h1>
-              <p className="mt-1 text-sm text-slate-600 dark:text-gray-300">
-                CRM-style pipeline — see what&apos;s stuck, what&apos;s won, and what to do next.
-              </p>
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] dark:text-black dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+              Proposal Pipeline
+            </h1>
+            <p className="mt-2 text-lg font-semibold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] dark:text-black dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+              CRM-style pipeline — see what&apos;s stuck, what&apos;s won, and what to do next.
+            </p>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <input
-                ref={importInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={handleImport}
-                className="sr-only"
-                aria-hidden
-                tabIndex={-1}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                icon={<Upload size={18} />}
-                disabled={importing}
-                onClick={() => importInputRef.current?.click()}
-              >
-                {importing ? 'Importing…' : 'Import'}
-              </Button>
+          <div className="flex items-center gap-3 shrink-0">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleImport}
+              className="sr-only"
+              aria-hidden
+              tabIndex={-1}
+            />
+            <Button
+              type="button"
+              variant="outline dark:text-black"
+              icon={<Upload size={18} />}
+              disabled={importing}
+              onClick={() => importInputRef.current?.click()}
+              className="shadow-sm dark:bg-white/90 dark:text-black dark:border-gray-300 dark:hover:bg-gray-700
+  dark:hover:!text-white dark:hover:border-gray-600"
+            >
+              {importing ? 'Importing…' : 'Import'}
+            </Button>
+            <Button
+              onClick={() => navigate('/proposal-generator')}
+              icon={<Plus size={18} />}
+            >
+              New Proposal
+            </Button>
+          </div>
+        </motion.div>
 
-              {/* New Proposal Button */}
-              <Button
-                onClick={() => navigate('/proposal-generator')}
-                icon={<Plus size={18} />}
-              >
-                New Proposal
-              </Button>
-            </div>
-          </motion.div>
-
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-5 sm:p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-slate-200/80 dark:border-gray-700">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KPIStatCard
               label="Pipeline Value"
               value={formatProposalMoney(crmRevenue.pipelineValue)}
@@ -425,7 +425,7 @@ const Proposals: React.FC = () => {
               animate={{ opacity: 1 }}
               className="py-12 text-center"
             >
-              <h3 className="text-xl font-semibold text-slate-200 dark:text-white">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                 No proposals yet
               </h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-gray-300">
@@ -484,7 +484,8 @@ const Proposals: React.FC = () => {
             </div>
           )}
 
-        {/* Delete Confirmation Modal */}
+        </Card>
+
         {deleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
@@ -518,7 +519,6 @@ const Proposals: React.FC = () => {
           proposalUrl={linkModal?.url ?? ''}
           title={linkModal?.title}
         />
-        </div>
       </div>
     </div>
   );
