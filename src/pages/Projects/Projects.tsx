@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ArrowLeftCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { useProjects } from './useProjects';
+import { useProjects, ProjectsProvider } from './useProjects';
 import ProjectList from './ProjectList';
 import ProjectDetails from './ProjectDetails';
 import ProjectForm from '../../components/projects/ProjectForm';
@@ -61,6 +61,14 @@ function parseProjectFolder(value: string | null): ProjectFolder {
 }
 
 const Projects: React.FC = () => {
+  return (
+    <ProjectsProvider>
+      <ProjectsContent />
+    </ProjectsProvider>
+  );
+};
+
+const ProjectsContent: React.FC = () => {
   const { projects, currentProject, ui, setUi, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
   const [searchParams, setSearchParams] = useSearchParams();

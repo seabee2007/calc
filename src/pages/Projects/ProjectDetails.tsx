@@ -49,7 +49,7 @@ import { getQcBreakStatus } from '../../utils/projectFolders';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
-  const { currentProject, ui, setUi, handlers } = useProjects();
+  const { currentProject, ui, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
   const project = (currentProject as any) ?? null;
   const p = (project ?? {}) as any;
@@ -343,7 +343,6 @@ export default function ProjectDetails() {
 
           <div className="flex items-center justify-center gap-2 shrink-0">
             <Button
-            variant="outline"
             size="sm"
             onClick={handlers.saveWasteFactor}
             disabled={ui.isSaving}
@@ -352,15 +351,13 @@ export default function ProjectDetails() {
             <span className="hidden sm:inline">Save</span>
             </Button>
             <Button
-            variant="outline"
             size="sm"
             onClick={handlers.printPDF}
             icon={<Printer size={16} />}
           />
             <Button
-            variant="outline"
             size="sm"
-            onClick={() => setUi(s => ({ ...s, editing: true }))}
+            onClick={handlers.startEditing}
             icon={<Edit size={16} />}
           />
             <Button

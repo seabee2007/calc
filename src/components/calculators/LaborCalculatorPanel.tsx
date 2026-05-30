@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { AlertTriangle, DollarSign, Info, Save, Users } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, DollarSign, Info, Save, Sparkles, Users } from 'lucide-react';
 import type { Calculation } from '../../types';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
@@ -10,6 +10,11 @@ import type { LaborEstimate } from '../../types/laborEstimate';
 import LaborRatesItemized from '../labor/LaborRatesItemized';
 import LaborTaskBreakdown, { LABOR_ESTIMATE_DISCLAIMER } from '../labor/LaborTaskBreakdown';
 import { resolveConsistentAreaSqFt } from '../../utils/concreteLaborInputMapper';
+import { optimizeLaborCrew, type CrewScenario } from '../../utils/laborCrewOptimizer';
+import {
+  reviewLaborCrewWithAi,
+  type LaborCrewReviewResult,
+} from '../../services/laborCrewReviewService';
 
 interface LaborCalculatorPanelProps {
   calculation?: Calculation;
@@ -58,9 +63,6 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
     }
   }, [savedEstimate?.id, setInputs]);
 
-  const formatCurrency = (n: number) =>
-    n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-
   const crew = parseInt(inputs.crewSize, 10) || 0;
   const finishers = parseInt(inputs.finishers, 10) || 0;
   const foremen = parseInt(inputs.foremen, 10) || 0;
@@ -72,6 +74,69 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
     volumeYd,
     inputs.slabThicknessIn,
   );
+
+  const [aiReviewLoading, setAiReviewLoading] = useState(false);
+  const [aiReviewError, setAiReviewError] = useState<string | null>(null);
+  const [aiReview, setAiReview] = useState<LaborCrewReviewResult | null>(null);
+  const [suggestedScenario, setSuggestedScenario] = useState<CrewScenario | null>(null);
+
+  const optimization = useMemo(() => {
+    if (volumeYd <= 0) return null;
+    return optimizeLaborCrew(laborInput);
+  }, [laborInput, volumeYd]);
+
+  const handleAiCrewReview = async () => {
+    if (!optimization || volumeYd <= 0) return;
+
+    setAiReviewLoading(true);
+    setAiReviewError(null);
+
+    try {
+      const review = await reviewLaborCrewWithAi({
+        jobContext: {
+          concreteYards: laborInput.concreteYards,
+          areaSqFt: laborInput.areaSqFt,
+          projectType: laborInput.projectType,
+          placementMethod: laborInput.placementMethod,
+          finishType: laborInput.finishType,
+          accessDifficulty: laborInput.accessDifficulty,
+          weatherCondition: laborInput.weatherCondition,
+          reinforcementType: laborInput.reinforcementType,
+          burdenMultiplier: laborInput.rates.burdenMultiplier,
+          options: laborInput.options,
+        },
+        current: optimization.current,
+        scenarios: optimization.scenarios,
+      });
+
+      const index = Math.min(
+        Math.max(0, review.recommendedScenarioIndex),
+        optimization.scenarios.length - 1,
+      );
+      const scenario = optimization.scenarios[index] ?? optimization.recommended;
+
+      setAiReview(review);
+      setSuggestedScenario(scenario);
+    } catch (err) {
+      setAiReview(null);
+      setSuggestedScenario(null);
+      setAiReviewError(
+        err instanceof Error ? err.message : 'AI crew review failed.',
+      );
+    } finally {
+      setAiReviewLoading(false);
+    }
+  };
+
+  const applySuggestedCrew = () => {
+    if (!suggestedScenario) return;
+    setField('crewSize', String(suggestedScenario.crewSize));
+    setField('finishers', String(suggestedScenario.finishers));
+    setField('foremen', String(suggestedScenario.foremen));
+  };
+
+  const formatCurrency = (n: number) =>
+    n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
   return (
     <div className="space-y-6">
@@ -282,6 +347,82 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
             </label>
           ))}
         </div>
+      </Card>
+
+      <Card className="p-6 border border-cyan-200/60 dark:border-cyan-800/50">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-cyan-600" />
+              AI crew review (optional)
+            </h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 max-w-xl">
+              Set placement, finishing, and burden options above first — then run AI review for an
+              economical crew mix that balances labor cost and pour-day duration. You can still
+              enter crew size manually anytime.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            icon={<Sparkles size={16} />}
+            disabled={aiReviewLoading || volumeYd <= 0}
+            onClick={() => void handleAiCrewReview()}
+          >
+            {aiReviewLoading ? 'Reviewing…' : 'Review crew with AI'}
+          </Button>
+        </div>
+
+        {aiReviewError && (
+          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{aiReviewError}</p>
+        )}
+
+        {aiReview && suggestedScenario && optimization && (
+          <div className="mt-4 rounded-lg bg-cyan-50/80 dark:bg-cyan-950/30 border border-cyan-200/70 dark:border-cyan-800/50 p-4 space-y-3">
+            <p className="text-sm text-gray-800 dark:text-gray-200">{aiReview.summary}</p>
+            {aiReview.tradeoffs && (
+              <p className="text-xs text-gray-600 dark:text-gray-400">{aiReview.tradeoffs}</p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <div>
+                <p className="text-gray-500 dark:text-gray-400">Suggested crew</p>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {suggestedScenario.laborers} laborers · {suggestedScenario.finishers} finishers
+                  {suggestedScenario.foremen > 0 ? ` · ${suggestedScenario.foremen} foreman` : ''}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 dark:text-gray-400">Est. pour day</p>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {suggestedScenario.billableJobDurationHours.toFixed(1)} hr
+                  {suggestedScenario.overtimeJobHours > 0
+                    ? ` (${suggestedScenario.overtimeJobHours.toFixed(1)} hr OT)`
+                    : ''}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  Est. labor cost
+                </p>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {formatCurrency(suggestedScenario.totalLaborCost)}
+                  {optimization.current.totalLaborCost > suggestedScenario.totalLaborCost && (
+                    <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
+                      saves{' '}
+                      {formatCurrency(
+                        optimization.current.totalLaborCost - suggestedScenario.totalLaborCost,
+                      )}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <Button type="button" className="w-full sm:w-auto" onClick={applySuggestedCrew}>
+              Apply suggested crew
+            </Button>
+          </div>
+        )}
       </Card>
 
       <Card className="p-6">

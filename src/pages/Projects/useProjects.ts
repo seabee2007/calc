@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, createElement, type ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useProjectStore } from '../../store';
@@ -10,7 +10,22 @@ import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
 import type { ProjectFormData } from '../../components/projects/ProjectForm';
 import { defaultPlacementOrder } from '../../types/placementOrder';
 
+const ProjectsContext = createContext<ReturnType<typeof useProjectsState> | null>(null);
+
+export function ProjectsProvider({ children }: { children: ReactNode }) {
+  const value = useProjectsState();
+  return createElement(ProjectsContext.Provider, { value }, children);
+}
+
 export function useProjects() {
+  const ctx = useContext(ProjectsContext);
+  if (!ctx) {
+    throw new Error('useProjects must be used within ProjectsProvider');
+  }
+  return ctx;
+}
+
+function useProjectsState() {
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -370,6 +385,10 @@ export function useProjects() {
         console.error('Delete failed', err);
         toast('Delete failed', 'error');
       }
+    },
+
+    startEditing: () => {
+      setUi((s) => ({ ...s, editing: true }));
     },
   };
 

@@ -283,18 +283,15 @@ const QCRecords: React.FC<QCRecordsProps> = ({
             Concrete QC Records
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Use Fresh Concrete Test for placement-day field tests. Use Break Test Result for 7, 14,
+            Use Concrete Slump Test for placement-day field tests. Use Break Test Result for 7, 14,
             and 28-day cylinder results.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">
           <Button onClick={() => openNewForm('fresh_test')} icon={<Plus size={16} />}>
-            Fresh Test
+            Slump Test
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => openNewForm('break_test')}
-            icon={<Plus size={16} />}
+          <Button onClick={() => openNewForm('break_test')}  icon={<Plus size={16} />}
           >
             Break Result
           </Button>
@@ -325,30 +322,27 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       {showForm && (
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setRecordType('fresh_test')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  recordType === 'fresh_test'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                Fresh Concrete Test
-              </button>
-              <button
-                type="button"
-                onClick={() => setRecordType('break_test')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  recordType === 'break_test'
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                Break Test Result
-              </button>
-            </div>
+            {recordType === 'fresh_test' ? (
+              <div className="rounded-lg bg-slate-800/50 border border-slate-700 p-4 mb-4">
+                <div className="text-xs uppercase tracking-widest text-cyan-400 font-semibold">
+                  Concrete QC Record
+                </div>
+                <h3 className="mt-1 text-lg font-bold text-white">Concrete Slump Test</h3>
+                <p className="text-sm text-slate-400">
+                  ASTM C143 Slump • ASTM C231 Air Content • ASTM C1064 Temperature
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-slate-800/50 border border-slate-700 p-4 mb-4">
+                <div className="text-xs uppercase tracking-widest text-cyan-400 font-semibold">
+                  Concrete QC Record
+                </div>
+                <h3 className="mt-1 text-lg font-bold text-white">Break Test Result</h3>
+                <p className="text-sm text-slate-400">
+                  ASTM C39 Compressive Strength • Cylinder break at 7, 14, 28, or 56 days
+                </p>
+              </div>
+            )}
 
             {recordType === 'fresh_test' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

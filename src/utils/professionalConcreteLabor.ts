@@ -107,16 +107,31 @@ function estimateJointLinearFeet(areaSqFt: number): number {
 /**
  * Pour-day clock duration: prep/mobilize, then max(placement, finishing stack), then cure/cleanup.
  * Finishing tasks overlap placement — not additive with placement clock.
+ * More laborers/finishers shorten bottleneck tasks.
  */
-function estimatePourDayJobHours(taskHours: ProfessionalConcreteLaborTaskHours): number {
-  const finishingCore = Math.max(
-    taskHours.screeding,
-    taskHours.bullFloating,
-    taskHours.finishing,
+function estimatePourDayJobHours(
+  taskHours: ProfessionalConcreteLaborTaskHours,
+  crew?: { laborers: number; finishers: number; foremen: number },
+): number {
+  const laborerPool = Math.max(
+    1,
+    (crew?.laborers ?? 1) + (crew?.foremen ?? 0) * 0.35,
   );
-  const finishingStack = finishingCore + taskHours.edgingJointing * 0.5;
+  const finisherPool = Math.max(
+    1,
+    (crew?.finishers ?? 1) + (crew?.foremen ?? 0) * 0.2,
+  );
 
-  const placementAndFinish = Math.max(taskHours.placement, finishingStack);
+  const scaledPlacement = taskHours.placement / laborerPool;
+  const finishingCore = Math.max(
+    taskHours.screeding / finisherPool,
+    taskHours.bullFloating / finisherPool,
+    taskHours.finishing / finisherPool,
+  );
+  const finishingStack =
+    finishingCore + (taskHours.edgingJointing * 0.5) / finisherPool;
+
+  const placementAndFinish = Math.max(scaledPlacement, finishingStack);
 
   return (
     taskHours.mobilization +
@@ -239,7 +254,9 @@ export function estimateProfessionalConcreteLabor(
     cleanup: round2(cleanup),
   };
 
-  const estimatedJobDurationHours = round2(estimatePourDayJobHours(taskHours));
+  const estimatedJobDurationHours = round2(
+    estimatePourDayJobHours(taskHours, input.crew),
+  );
 
   const minimumJobHours = input.options.smallJobMinimum ? 4 : 2;
   const billableJobDurationHours = round2(

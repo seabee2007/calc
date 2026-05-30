@@ -112,7 +112,6 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
         {onOpenCalculator && (
           <Button
             size="sm"
-            variant="outline"
             onClick={onOpenCalculator}
             icon={<Plus size={16} />}
           >
