@@ -103,19 +103,19 @@ const CalculatorHub: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <WorkflowStepHeader />
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className="text-3xl font-bold text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
             Estimating calculators
           </h1>
           <div className="mt-2 space-y-2">
-            <p className="text-white text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            <p className="text-black text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
               Run each calculator for your project. Saved costs import into your proposal.
             </p>
-            <p className="text-white text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            <p className="text-black text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
               Select a project inside each calculator before saving.
             </p>
           </div>
           {hubProject && (
-            <p className="text-cyan-200/90 text-sm mt-2">Project: {hubProject.name}</p>
+            <p className="text-black text-sm mt-2">Project: {hubProject.name}</p>
           )}
         </div>
 

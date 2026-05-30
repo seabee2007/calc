@@ -44,8 +44,8 @@ const LaborRatesItemized: React.FC<LaborRatesItemizedProps> = ({ className = '',
       <h3
         className={
           compact
-            ? 'text-sm font-semibold text-gray-900 dark:text-white mb-2'
-            : 'text-base font-semibold text-gray-900 dark:text-white mb-3'
+            ? 'text-sm font-semibold text-gray-900 dark:text-black mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]'
+            : 'text-base font-semibold text-gray-900 dark:text-black mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]'
         }
       >
         Labor rates (itemized)

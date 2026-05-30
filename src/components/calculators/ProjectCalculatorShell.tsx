@@ -53,10 +53,10 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
     <div className="max-w-6xl mx-auto">
       <WorkflowStepHeader />
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+        <h1 className="text-3xl font-bold text-black dark:text-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
           {title}
         </h1>
-        <p className="text-white text-lg font-semibold drop-shadow-[0_3px_8px_rgba(0,0,0,0.9)] mt-2">
+        <p className="text-black dark:text-black text-lg font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
           {description}
         </p>
       </div>
@@ -79,7 +79,7 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
             variant="outline"
             onClick={() => setShowCreateProjectModal(true)}
             icon={<Plus size={18} />}
-            className="whitespace-nowrap dark:text-white"
+            className="whitespace-nowrap dark:text-white hover:bg-slate-600/80 hover:text-white"
           >
             New Project
           </Button>

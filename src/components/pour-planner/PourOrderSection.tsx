@@ -24,9 +24,9 @@ interface PourOrderSectionProps {
   selectedDay?: ScoredPourDay;
 }
 
-/** Dark-surface card for call sheet step (readable on planner page background). */
-const DARK_CARD =
-  'p-4 space-y-4 bg-slate-800/95 border border-slate-600 shadow-lg text-gray-100';
+/** Card styling aligned with CallSheetDetailsForm (light + dark). */
+const STEP_CARD =
+  'p-4 space-y-4 rounded-lg bg-white/95 dark:bg-slate-800/95 border border-gray-200 dark:border-slate-600 shadow-lg';
 
 const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDay }) => {
   const {
@@ -154,13 +154,13 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
   const travelMin = parseFloat(form.travelTimeMinutes);
 
   return (
-    <section className="space-y-4 pt-4 border-t border-slate-600">
+    <section className="space-y-4 pt-4 border-t border-gray-200 dark:border-slate-600">
       <div>
-        <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-cyan-400" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
           Order ready-mix
         </h3>
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-gray-600 dark:text-slate-300">
           Industry-style dispatch call sheet — project info, placement, mix, quantity, weather, QC,
           and safety. Batch plant details carry forward from earlier planner steps.
         </p>
@@ -170,9 +170,9 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
 
       <CallSheetDetailsForm planner={planner} />
 
-      <div className={DARK_CARD}>
+      <div className={STEP_CARD}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold text-white">Batch plant contact</h4>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Batch plant contact</h4>
           {showAiLookup && (
             <Button
               type="button"
@@ -187,7 +187,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
                   <Search className="h-4 w-4" />
                 )
               }
-              className="border-slate-500 text-slate-100 hover:bg-slate-700"
+              className="border-gray-300 dark:border-slate-500 text-gray-700 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700"
             >
               {lookupLoading ? 'Looking up…' : 'Refresh contact (AI)'}
             </Button>
@@ -195,25 +195,25 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
         </div>
 
         {hasPlantFromEarlierSteps && (
-          <div className="rounded-lg bg-slate-900/90 border border-slate-600 p-3 space-y-2 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-400/90">
+          <div className="rounded-lg bg-gray-50 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-600 p-3 space-y-2 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700 dark:text-cyan-400/90">
               From planner steps
             </p>
             {plantName && (
-              <p className="font-medium text-white flex items-start gap-2">
-                <Building2 className="h-4 w-4 shrink-0 text-cyan-400 mt-0.5" />
+              <p className="font-medium text-gray-900 dark:text-white flex items-start gap-2">
+                <Building2 className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400 mt-0.5" />
                 {plantName}
               </p>
             )}
             {plantLine && (
-              <p className="text-slate-300 flex items-start gap-2">
-                <MapPin className="h-4 w-4 shrink-0 text-slate-400 mt-0.5" />
+              <p className="text-gray-600 dark:text-slate-300 flex items-start gap-2">
+                <MapPin className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-400 mt-0.5" />
                 {plantLine}
               </p>
             )}
             {(Number.isFinite(travelMi) && travelMi > 0) ||
             (Number.isFinite(travelMin) && travelMin > 0) ? (
-              <p className="text-slate-400 text-xs">
+              <p className="text-gray-500 dark:text-slate-400 text-xs">
                 Route:{' '}
                 {Number.isFinite(travelMi) && travelMi > 0 ? `${travelMi.toFixed(1)} mi` : '—'}
                 {Number.isFinite(travelMin) && travelMin > 0
@@ -225,13 +225,13 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
         )}
 
         {hasContactFields && (
-          <p className="text-xs text-emerald-200/90 bg-emerald-950/50 border border-emerald-800/60 rounded-md p-2">
+          <p className="text-xs text-emerald-800 dark:text-emerald-200/90 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 rounded-md p-2">
             Contact details are filled from your batch plant search. Edit below if anything changed.
           </p>
         )}
 
         {showAiLookup && !lookupLoading && (
-          <p className="text-xs text-amber-200/90 bg-amber-950/40 border border-amber-800/50 rounded-md p-2 flex gap-2">
+          <p className="text-xs text-amber-800 dark:text-amber-200/90 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-md p-2 flex gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>
               Looking up dispatch contact from your selected plant. Confirm phone and email with
@@ -241,10 +241,10 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
         )}
 
         {lookupError && (
-          <p className="text-sm text-red-400">{lookupError}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{lookupError}</p>
         )}
         {lookupNotes && (
-          <p className="text-xs text-slate-400">{lookupNotes}</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400">{lookupNotes}</p>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -292,7 +292,7 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
             {form.batchPlantPhone && (
               <a
                 href={`tel:${form.batchPlantPhone.replace(/\s/g, '')}`}
-                className="inline-flex items-center gap-1 text-sm text-cyan-400 hover:underline"
+                className="inline-flex items-center gap-1 text-sm text-cyan-600 dark:text-cyan-400 hover:underline"
               >
                 <Phone className="h-4 w-4" />
                 Call plant
@@ -302,27 +302,27 @@ const PourOrderSection: React.FC<PourOrderSectionProps> = ({ planner, selectedDa
         )}
       </div>
 
-      <div className={DARK_CARD}>
+      <div className={STEP_CARD}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold text-white">Order call sheet</h4>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Order call sheet</h4>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleCopyCallSheet}
             icon={<ClipboardCopy className="h-4 w-4" />}
-            className="border-slate-500 text-slate-100 hover:bg-slate-700"
+            className="border-gray-300 dark:border-slate-500 text-gray-700 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700"
           >
             {copyDone ? 'Copied!' : 'Copy call sheet'}
           </Button>
         </div>
-        <pre className="text-xs whitespace-pre-wrap font-mono bg-slate-950 rounded-lg p-3 max-h-[32rem] overflow-y-auto text-slate-200 border border-slate-600">
+        <pre className="text-xs whitespace-pre-wrap font-mono bg-gray-50 dark:bg-slate-950 rounded-lg p-3 max-h-[32rem] overflow-y-auto text-gray-800 dark:text-slate-200 border border-gray-200 dark:border-slate-600">
           {callSheetText}
         </pre>
       </div>
 
-      <p className="text-xs text-slate-400">
-        Use <span className="font-medium text-slate-300">Save call sheet &amp; return to project</span>{' '}
+      <p className="text-xs text-gray-500 dark:text-slate-400">
+        Use <span className="font-medium text-gray-700 dark:text-slate-300">Save call sheet &amp; return to project</span>{' '}
         below to store batch plant contact and this call sheet. Update placement order status on
         the project&apos;s Next actions panel after you call the plant.
       </p>

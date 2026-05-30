@@ -58,12 +58,12 @@ const WorkflowStepHeader: React.FC<WorkflowStepHeaderProps> = ({
   return (
     <nav
       aria-label="Workflow progress"
-      className={`rounded-xl border border-slate-700/80 bg-slate-900/95 p-3 sm:p-4 mb-6 ${className}`}
+      className={`rounded-xl border border-slate-700/80 bg-white dark:bg-slate-900/95 p-3 sm:p-4 mb-6 ${className}`}
     >
       <WorkflowProjectNav />
       {inWorkflow && (
         <>
-          <p className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-400/90 mb-3 font-medium">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider text-black dark:text-cyan-400/90 mb-3 font-semibold">
             Contractor workflow
           </p>
           <ol className="flex flex-wrap items-center gap-1 sm:gap-0">
@@ -86,23 +86,23 @@ const WorkflowStepHeader: React.FC<WorkflowStepHeaderProps> = ({
                 type="button"
                 disabled={!reachable}
                 onClick={() => reachable && goToStep(step.id, step.path)}
-                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-colors min-w-0 ${
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left font-semibold transition-colors min-w-0 ${
                   active
-                    ? 'bg-cyan-600/25 text-cyan-300 ring-1 ring-cyan-500/50'
+                    ? 'bg-cyan-600/25 text-black ring-1 ring-cyan-500/50 dark:bg-cyan-600/25 text-cyan-300 ring-1 ring-cyan-500/50'
                     : done
-                      ? 'text-slate-300 hover:bg-slate-800'
+                      ? 'text-black hover:bg-slate-600/80 hover:text-white dark:text-slate-300 hover:bg-slate-800'
                       : reachable
-                        ? 'text-slate-300 hover:bg-slate-800'
-                        : 'text-slate-600 cursor-not-allowed'
+                        ? 'text-black hover:bg-slate-700/80 hover:text-white dark:text-slate-300 hover:bg-slate-800'
+                        : 'text-black dark:text-slate-600 cursor-not-allowed'
                 }`}
               >
                 <span
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                     active
-                      ? 'bg-cyan-500 text-slate-950'
+                      ? 'text-black dark:bg-cyan-500 text-slate-950'
                       : done || (reachable && !active)
-                        ? 'bg-cyan-600/40 text-cyan-200'
-                        : 'bg-slate-700 text-slate-400'
+                        ? 'text-black dark:bg-cyan-600/40 text-cyan-200'
+                        : 'text-black dark:bg-slate-700 text-slate-400'
                   }`}
                 >
                   {done && !active ? (
