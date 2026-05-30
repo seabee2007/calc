@@ -234,4 +234,8 @@ export interface Project {
   mixProfile?: MixProfileType;
   qcRecords?: QCRecord[];
   truckTickets?: StoredTruckTicketRecord[];
+  /** Sum of accepted change orders (DB column when synced). */
+  approvedChangeOrderTotal?: number;
+  baseContractValue?: number;
+  currentContractValue?: number;
 }

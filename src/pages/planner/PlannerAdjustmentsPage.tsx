@@ -17,14 +17,19 @@ import {
   PLANNER_BTN_PRIMARY,
 } from '../../components/planner/plannerTheme';
 
-type SectionKey = 'Pending' | 'Approved' | 'Rejected' | 'Needs More Information' | 'Requires Change Order';
+type SectionKey =
+  | 'Pending'
+  | 'Approved'
+  | 'Rejected'
+  | 'Needs More Information'
+  | 'Convert to Change Order';
 
 const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'Pending', label: 'Pending' },
   { key: 'Needs More Information', label: 'Needs more info' },
   { key: 'Approved', label: 'Approved' },
   { key: 'Rejected', label: 'Rejected' },
-  { key: 'Requires Change Order', label: 'Requires change order' },
+  { key: 'Convert to Change Order', label: 'Convert to change order' },
 ];
 
 export default function PlannerAdjustmentsPage() {
@@ -79,8 +84,14 @@ export default function PlannerAdjustmentsPage() {
     setSearchParams({}, { replace: true });
   };
 
-  const formatCost = (n: number | null) =>
-    n != null ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '—';
+  const impactSummary = (adj: FieldAdjustmentRequest) => {
+    const parts: string[] = [];
+    if (adj.potentialCostImpact) parts.push('Cost');
+    if (adj.potentialScheduleImpact) parts.push('Schedule');
+    if (adj.impactSafety) parts.push('Safety');
+    if (adj.impactQuality) parts.push('Quality');
+    return parts.length ? parts.join(', ') : '—';
+  };
 
   const renderTable = (rows: FieldAdjustmentRequest[], empty: string) => {
     if (rows.length === 0) {
@@ -94,7 +105,7 @@ export default function PlannerAdjustmentsPage() {
               <th className="px-3 py-2">Request #</th>
               <th className="px-3 py-2">Title</th>
               <th className="px-3 py-2">Submitted by</th>
-              <th className="px-3 py-2">Est. cost</th>
+              <th className="px-3 py-2">Impacts</th>
               <th className="px-3 py-2">Schedule</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2" />
@@ -111,7 +122,7 @@ export default function PlannerAdjustmentsPage() {
                 <td className="px-3 py-2 font-mono text-xs">{adj.displayNumber ?? '—'}</td>
                 <td className="max-w-[200px] truncate px-3 py-2 font-medium">{adj.title}</td>
                 <td className="px-3 py-2">{nameMap.get(adj.submittedBy) ?? '—'}</td>
-                <td className="px-3 py-2">{formatCost(adj.estimatedCost)}</td>
+                <td className="px-3 py-2 text-gray-600 dark:text-slate-400">{impactSummary(adj)}</td>
                 <td className="px-3 py-2 text-gray-600 dark:text-slate-400">
                   {adj.scheduleImpact ?? '—'}
                 </td>

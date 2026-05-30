@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { RfiRequest, RfiStatus } from '../../types/fieldPlanner';
@@ -28,6 +29,7 @@ import {
   PLANNER_DRAWER_TITLE,
   PLANNER_BTN_PRIMARY,
 } from '../planner/plannerTheme';
+import { openNewChangeOrder } from '../../utils/plannerRoutes';
 
 interface RfiDetailDrawerProps {
   rfiId: string | null;
@@ -54,6 +56,7 @@ export default function RfiDetailDrawer({
   onClose,
   onUpdated,
 }: RfiDetailDrawerProps) {
+  const navigate = useNavigate();
   const [rfi, setRfi] = useState<RfiRequest | null>(null);
   const [attachments, setAttachments] = useState<FieldRecordAttachment[]>([]);
   const [submitterName, setSubmitterName] = useState('');
@@ -235,6 +238,17 @@ export default function RfiDetailDrawer({
                     Submit response
                   </Button>
                 </div>
+              )}
+              {isOwner && rfi && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    openNewChangeOrder(navigate, rfi.projectId, { rfi: rfi.id }, onClose);
+                  }}
+                >
+                  Create Change Order
+                </Button>
               )}
             </footer>
           </motion.aside>

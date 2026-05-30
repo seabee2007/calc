@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -33,20 +33,14 @@ export default function CreateFieldAdjustmentModal({
   const [condition, setCondition] = useState('');
   const [proposed, setProposed] = useState('');
   const [reason, setReason] = useState('');
-  const [labor, setLabor] = useState('');
-  const [material, setMaterial] = useState('');
-  const [equipment, setEquipment] = useState('');
+  const [recommendedAction, setRecommendedAction] = useState('');
+  const [potentialCostImpact, setPotentialCostImpact] = useState(false);
+  const [potentialScheduleImpact, setPotentialScheduleImpact] = useState(false);
+  const [impactSafety, setImpactSafety] = useState(false);
+  const [impactQuality, setImpactQuality] = useState(false);
   const [scheduleImpact, setScheduleImpact] = useState('None');
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
-
-  const estimatedCost = useMemo(() => {
-    const l = labor ? Number(labor) : 0;
-    const m = material ? Number(material) : 0;
-    const e = equipment ? Number(equipment) : 0;
-    const sum = l + m + e;
-    return sum > 0 ? sum : undefined;
-  }, [labor, material, equipment]);
 
   const reset = () => {
     setTitle('');
@@ -54,9 +48,11 @@ export default function CreateFieldAdjustmentModal({
     setCondition('');
     setProposed('');
     setReason('');
-    setLabor('');
-    setMaterial('');
-    setEquipment('');
+    setRecommendedAction('');
+    setPotentialCostImpact(false);
+    setPotentialScheduleImpact(false);
+    setImpactSafety(false);
+    setImpactQuality(false);
     setScheduleImpact('None');
     setFiles([]);
   };
@@ -75,11 +71,13 @@ export default function CreateFieldAdjustmentModal({
         proposedAdjustment: proposed.trim() || undefined,
         reason: reason || undefined,
         location: location.trim() || undefined,
-        laborImpact: labor ? Number(labor) : undefined,
-        materialImpact: material ? Number(material) : undefined,
-        equipmentCost: equipment ? Number(equipment) : undefined,
-        scheduleImpact: scheduleImpact || undefined,
-        estimatedCost,
+        scheduleImpact: potentialScheduleImpact ? scheduleImpact : undefined,
+        potentialCostImpact,
+        potentialScheduleImpact,
+        recommendedAction: recommendedAction.trim() || undefined,
+        requiresChangeOrder: potentialCostImpact,
+        impactSafety,
+        impactQuality,
       });
       if (files.length > 0) {
         await uploadAdjustmentAttachments(files, {
@@ -96,6 +94,9 @@ export default function CreateFieldAdjustmentModal({
       setBusy(false);
     }
   };
+
+  const checkboxClass =
+    'flex items-center gap-2 text-sm text-gray-800 dark:text-slate-200';
 
   return (
     <Modal
@@ -131,7 +132,7 @@ export default function CreateFieldAdjustmentModal({
           ]}
         />
         <div>
-          <label className="mb-1 block text-sm font-medium">Condition description</label>
+          <label className="mb-1 block text-sm font-medium">Condition found</label>
           <textarea
             value={condition}
             onChange={(e) => setCondition(e.target.value)}
@@ -142,7 +143,7 @@ export default function CreateFieldAdjustmentModal({
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Proposed adjustment</label>
+          <label className="mb-1 block text-sm font-medium">Recommended adjustment</label>
           <textarea
             value={proposed}
             onChange={(e) => setProposed(e.target.value)}
@@ -152,40 +153,60 @@ export default function CreateFieldAdjustmentModal({
           />
         </div>
         <FieldFilePicker files={files} onChange={setFiles} />
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Input
-            label="Labor ($)"
-            type="number"
-            min={0}
-            value={labor}
-            onChange={(e) => setLabor(e.target.value)}
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">Impacts</legend>
+          <label className={checkboxClass}>
+            <input
+              type="checkbox"
+              checked={potentialCostImpact}
+              onChange={(e) => setPotentialCostImpact(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            Potential cost impact?
+          </label>
+          <label className={checkboxClass}>
+            <input
+              type="checkbox"
+              checked={potentialScheduleImpact}
+              onChange={(e) => setPotentialScheduleImpact(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            Potential schedule impact?
+          </label>
+          <label className={checkboxClass}>
+            <input
+              type="checkbox"
+              checked={impactSafety}
+              onChange={(e) => setImpactSafety(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            Safety concern
+          </label>
+          <label className={checkboxClass}>
+            <input
+              type="checkbox"
+              checked={impactQuality}
+              onChange={(e) => setImpactQuality(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            Quality concern
+          </label>
+        </fieldset>
+        {potentialScheduleImpact && (
+          <Select
+            label="Schedule impact"
+            value={scheduleImpact}
+            onChange={(v) => setScheduleImpact(v)}
+            options={FAR_SCHEDULE_IMPACTS.map((s) => ({ value: s, label: s }))}
           />
-          <Input
-            label="Material ($)"
-            type="number"
-            min={0}
-            value={material}
-            onChange={(e) => setMaterial(e.target.value)}
-          />
-          <Input
-            label="Equipment ($)"
-            type="number"
-            min={0}
-            value={equipment}
-            onChange={(e) => setEquipment(e.target.value)}
-          />
-        </div>
-        <Select
-          label="Schedule impact"
-          value={scheduleImpact}
-          onChange={(v) => setScheduleImpact(v)}
-          options={FAR_SCHEDULE_IMPACTS.map((s) => ({ value: s, label: s }))}
-        />
-        {estimatedCost != null && (
-          <p className="text-sm font-medium text-cyan-700 dark:text-cyan-400">
-            Estimated cost impact: ${estimatedCost.toLocaleString()}
-          </p>
         )}
+        <Input
+          label="Recommended action (optional)"
+          value={recommendedAction}
+          onChange={(e) => setRecommendedAction(e.target.value)}
+          fullWidth
+          placeholder="Next step for the owner"
+        />
         <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
             Cancel

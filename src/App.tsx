@@ -40,6 +40,9 @@ import PlannerRFIsPage from './pages/planner/PlannerRFIsPage';
 import PlannerAdjustmentsPage from './pages/planner/PlannerAdjustmentsPage';
 import PlannerTeamPage from './pages/planner/PlannerTeamPage';
 import PlannerHubPage from './pages/planner/PlannerHubPage';
+import PlannerChangeOrdersPage from './pages/planner/PlannerChangeOrdersPage';
+import ChangeOrderBuilderPage from './pages/planner/ChangeOrderBuilderPage';
+import PublicChangeOrder from './pages/PublicChangeOrder';
 import EmployeeTaskPlannerRedirect from './pages/employee/EmployeeTaskPlannerRedirect';
 import { LegacyTaskDetailRedirect } from './components/routing/LegacyPlannerRedirects';
 import PlannerIndexRedirect from './components/routing/PlannerIndexRedirect';
@@ -390,6 +393,8 @@ function App() {
               <Route path="documents" element={<PlannerDocumentsPage />} />
               <Route path="rfis" element={<PlannerRFIsPage />} />
               <Route path="adjustments" element={<PlannerAdjustmentsPage />} />
+              <Route path="change-orders" element={<PlannerChangeOrdersPage />} />
+              <Route path="change-orders/:changeOrderId" element={<ChangeOrderBuilderPage />} />
               <Route path="team" element={<PlannerTeamPage />} />
             </Route>
             <Route
@@ -424,6 +429,7 @@ function App() {
             <Route path="/employee/uploads" element={<EmployeeUploadsPage />} />
           </Route>
           <Route path="/proposal/:token" element={<PublicProposal />} />
+          <Route path="/change-order/:token" element={<PublicChangeOrder />} />
           <Route path="/client/project/:token" element={<ClientPortal />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />

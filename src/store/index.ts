@@ -452,6 +452,14 @@ function mapProjectFromRow(row: any): Project {
     laborEstimates: (row.labor_estimates || []).map(mapLaborEstimateFromDb),
     qcRecords: qcRecords.filter((r) => !isTruckTicketRecord(r)),
     truckTickets: mergeTruckTicketsForProject(qcRecords, truckTicketsFromDb),
+    approvedChangeOrderTotal:
+      row.approved_change_order_total != null
+        ? Number(row.approved_change_order_total)
+        : undefined,
+    baseContractValue:
+      row.base_contract_value != null ? Number(row.base_contract_value) : undefined,
+    currentContractValue:
+      row.current_contract_value != null ? Number(row.current_contract_value) : undefined,
   };
 }
 

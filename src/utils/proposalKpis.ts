@@ -21,6 +21,10 @@ export interface ProposalFinancialKpis {
   grossProfit: number;
   acceptedCount: number;
   declinedCount: number;
+  /** Rolled up from projects.current_contract_value */
+  currentContractValue: number;
+  /** Rolled up from projects.approved_change_order_total */
+  approvedChangeOrderTotal: number;
 }
 
 export interface ProposalDashboardMetrics {
@@ -178,7 +182,22 @@ export function buildProposalFinancialKpis(
     grossProfit,
     acceptedCount: wonCount,
     declinedCount,
+    currentContractValue: 0,
+    approvedChangeOrderTotal: 0,
   };
+}
+
+export function mergeProjectContractRollup(
+  financial: ProposalFinancialKpis,
+  projects: { currentContractValue?: number; approvedChangeOrderTotal?: number }[],
+): ProposalFinancialKpis {
+  let currentContractValue = 0;
+  let approvedChangeOrderTotal = 0;
+  for (const p of projects) {
+    currentContractValue += num(p.currentContractValue);
+    approvedChangeOrderTotal += num(p.approvedChangeOrderTotal);
+  }
+  return { ...financial, currentContractValue, approvedChangeOrderTotal };
 }
 
 export function buildProposalDashboardMetrics(

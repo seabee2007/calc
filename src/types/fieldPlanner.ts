@@ -211,7 +211,7 @@ export const FAR_STATUSES = [
   'Needs More Information',
   'Approved',
   'Rejected',
-  'Requires Change Order',
+  'Convert to Change Order',
 ] as const;
 
 export type FarStatus = (typeof FAR_STATUSES)[number];
@@ -220,7 +220,6 @@ export const FAR_REVIEW_STATUSES: FarStatus[] = [
   'Approved',
   'Rejected',
   'Needs More Information',
-  'Requires Change Order',
 ];
 
 export interface RfiRequest {
@@ -266,6 +265,13 @@ export interface FieldAdjustmentRequest {
   equipmentCost: number | null;
   scheduleImpact: string | null;
   estimatedCost: number | null;
+  potentialCostImpact: boolean;
+  potentialScheduleImpact: boolean;
+  recommendedAction: string | null;
+  requiresChangeOrder: boolean;
+  impactSafety: boolean;
+  impactQuality: boolean;
+  changeOrderId: string | null;
   convertedToChangeOrder: boolean;
   status: string;
   ownerResponse: string | null;

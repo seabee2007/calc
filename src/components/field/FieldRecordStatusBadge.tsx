@@ -18,6 +18,8 @@ const STATUS_STYLES: Record<string, string> = {
     'bg-amber-100/90 text-amber-900 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:ring-amber-800/60',
   'Requires Change Order':
     'bg-purple-100/90 text-purple-900 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:ring-purple-800/60',
+  'Convert to Change Order':
+    'bg-purple-100/90 text-purple-900 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:ring-purple-800/60',
   Closed:
     'bg-slate-100/90 text-slate-700 ring-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:ring-slate-600',
 };

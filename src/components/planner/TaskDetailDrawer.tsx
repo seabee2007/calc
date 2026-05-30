@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Send, CheckCircle, RotateCcw } from 'lucide-react';
 import type { PlannerTask, Profile, TaskStatus } from '../../types/fieldPlanner';
@@ -37,6 +38,7 @@ import {
   PLANNER_DRAWER_PANEL_TRANSITION,
   PLANNER_OVERLAY_TRANSITION,
 } from './plannerTheme';
+import { openNewChangeOrder } from '../../utils/plannerRoutes';
 
 interface TaskDetailDrawerProps {
   taskId: string | null;
@@ -72,6 +74,7 @@ export default function TaskDetailDrawer({
   onRequestCreateFar,
   onExitComplete,
 }: TaskDetailDrawerProps) {
+  const navigate = useNavigate();
   const [task, setTask] = useState<PlannerTask | null>(null);
   const [comments, setComments] = useState<Awaited<ReturnType<typeof fetchTaskComments>>>([]);
   const [checklist, setChecklist] = useState<Awaited<ReturnType<typeof fetchChecklistItems>>>([]);
@@ -325,6 +328,17 @@ export default function TaskDetailDrawer({
                     Return
                   </Button>
                 </div>
+              )}
+              {isOwner && task && (
+                <Button
+                  variant="outline"
+                  className="w-full min-h-11"
+                  onClick={() => {
+                    openNewChangeOrder(navigate, task.projectId, { task: task.id }, onClose);
+                  }}
+                >
+                  Create Change Order
+                </Button>
               )}
             </footer>
           </motion.div>

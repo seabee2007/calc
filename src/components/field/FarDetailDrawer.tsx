@@ -1,17 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { FarStatus, FieldAdjustmentRequest } from '../../types/fieldPlanner';
 import {
   canEmployeeEditAdjustment,
   fetchAdjustmentById,
+  hasLegacyPricing,
   reviewFieldAdjustment,
   updateFieldAdjustment,
 } from '../../services/fieldAdjustmentService';
 import { fetchAdjustmentAttachments } from '../../services/fieldRecordAttachmentService';
 import type { FieldRecordAttachment } from '../../types/fieldPlanner';
 import { fetchProfilesByIds, displayNameFor } from '../../services/profileService';
+import { changeOrderEditHref, openNewChangeOrder } from '../../utils/plannerRoutes';
 import FieldRecordStatusBadge from './FieldRecordStatusBadge';
 import FieldRecordAttachmentsList from './FieldRecordAttachmentsList';
 import Button from '../ui/Button';
@@ -35,12 +38,34 @@ interface FarDetailDrawerProps {
 }
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  if (value == null || value === '') return null;
+  if (value == null || value === '' || value === false) return null;
   return (
     <div>
       <dt className="text-xs font-medium text-gray-500 dark:text-slate-500">{label}</dt>
       <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-200">{value}</dd>
     </div>
+  );
+}
+
+function ImpactFlags({ adj }: { adj: FieldAdjustmentRequest }) {
+  const flags: string[] = [];
+  if (adj.potentialCostImpact) flags.push('Potential cost impact');
+  if (adj.potentialScheduleImpact) flags.push('Potential schedule impact');
+  if (adj.impactSafety) flags.push('Safety');
+  if (adj.impactQuality) flags.push('Quality');
+  if (adj.requiresChangeOrder) flags.push('Change order required');
+  if (flags.length === 0) return null;
+  return (
+    <DetailRow
+      label="Impacts"
+      value={
+        <ul className="list-disc pl-4">
+          {flags.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
+      }
+    />
   );
 }
 
@@ -51,6 +76,7 @@ export default function FarDetailDrawer({
   onClose,
   onUpdated,
 }: FarDetailDrawerProps) {
+  const navigate = useNavigate();
   const [adj, setAdj] = useState<FieldAdjustmentRequest | null>(null);
   const [attachments, setAttachments] = useState<FieldRecordAttachment[]>([]);
   const [submitterName, setSubmitterName] = useState('');
@@ -78,11 +104,13 @@ export default function FarDetailDrawer({
   const canEdit =
     adj && !isOwner && adj.submittedBy === userId && canEmployeeEditAdjustment(adj);
 
-  const handleReview = async (status: FarStatus) => {
+  const handleReview = async (status: FarStatus, flagCo?: boolean) => {
     if (!adj) return;
     setBusy(true);
     try {
-      await reviewFieldAdjustment(adj.id, userId, status, comment.trim() || undefined);
+      await reviewFieldAdjustment(adj.id, userId, status, comment.trim() || undefined, {
+        flagRequiresChangeOrder: flagCo,
+      });
       onUpdated();
       onClose();
     } finally {
@@ -91,7 +119,12 @@ export default function FarDetailDrawer({
   };
 
   const formatCost = (n: number | null) =>
-    n != null ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '—';
+    n != null ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : null;
+
+  const canCreateCo =
+    isOwner && adj && adj.status === 'Approved' && !adj.changeOrderId;
+
+  const showLegacyCosts = adj && hasLegacyPricing(adj);
 
   if (!adjustmentId) return null;
 
@@ -136,19 +169,44 @@ export default function FarDetailDrawer({
                     <DetailRow label="Location" value={adj.location} />
                     <DetailRow label="Reason" value={adj.reason} />
                     <DetailRow
-                      label="Condition"
+                      label="Condition found"
                       value={
                         <p className={PLANNER_DRAWER_BODY}>
                           {adj.conditionDescription ?? adj.description}
                         </p>
                       }
                     />
-                    <DetailRow label="Proposed adjustment" value={adj.proposedAdjustment} />
-                    <DetailRow label="Schedule impact" value={adj.scheduleImpact} />
-                    <DetailRow label="Estimated cost" value={formatCost(adj.estimatedCost)} />
-                    <DetailRow label="Labor" value={formatCost(adj.laborImpact)} />
-                    <DetailRow label="Material" value={formatCost(adj.materialImpact)} />
-                    <DetailRow label="Equipment" value={formatCost(adj.equipmentCost)} />
+                    <DetailRow label="Recommended adjustment" value={adj.proposedAdjustment} />
+                    <DetailRow label="Recommended action" value={adj.recommendedAction} />
+                    <ImpactFlags adj={adj} />
+                    {adj.potentialScheduleImpact && (
+                      <DetailRow label="Schedule impact" value={adj.scheduleImpact} />
+                    )}
+                    {showLegacyCosts && (
+                      <>
+                        <DetailRow label="Legacy est. cost" value={formatCost(adj.estimatedCost)} />
+                        <DetailRow label="Legacy labor" value={formatCost(adj.laborImpact)} />
+                        <DetailRow label="Legacy material" value={formatCost(adj.materialImpact)} />
+                        <DetailRow label="Legacy equipment" value={formatCost(adj.equipmentCost)} />
+                      </>
+                    )}
+                    {adj.changeOrderId && (
+                      <DetailRow
+                        label="Change order"
+                        value={
+                          <button
+                            type="button"
+                            className="text-cyan-600 hover:underline dark:text-cyan-400"
+                            onClick={() => {
+                              navigate(changeOrderEditHref(adj.projectId, adj.changeOrderId!));
+                              onClose();
+                            }}
+                          >
+                            View change order
+                          </button>
+                        }
+                      />
+                    )}
                   </dl>
                   {adj.ownerResponse && (
                     <div className="mt-4 rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
@@ -199,33 +257,59 @@ export default function FarDetailDrawer({
                     <Button
                       className={PLANNER_BTN_PRIMARY}
                       disabled={busy}
-                      onClick={() => void handleReview('Approved')}
+                      onClick={() =>
+                        void handleReview(
+                          'Approved',
+                          adj.requiresChangeOrder || adj.potentialCostImpact,
+                        )
+                      }
                     >
-                      Approve
+                      Approve FAR
                     </Button>
                     <Button
                       variant="outline"
                       disabled={busy}
                       onClick={() => void handleReview('Rejected')}
                     >
-                      Reject
+                      Reject FAR
                     </Button>
                     <Button
                       variant="outline"
+                      className="col-span-2"
                       disabled={busy}
                       onClick={() => void handleReview('Needs More Information')}
                     >
-                      Need info
-                    </Button>
-                    <Button
-                      variant="outline"
-                      disabled={busy}
-                      onClick={() => void handleReview('Requires Change Order')}
-                    >
-                      Change order
+                      Request More Information
                     </Button>
                   </div>
                 </div>
+              )}
+              {canCreateCo && (
+                <>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                    Create a priced change order for the client when scope has cost impact.
+                  </p>
+                  <Button
+                    className={`w-full ${PLANNER_BTN_PRIMARY}`}
+                    onClick={() => {
+                      openNewChangeOrder(navigate, adj.projectId, { far: adj.id }, onClose);
+                    }}
+                  >
+                    Create Change Order
+                  </Button>
+                </>
+              )}
+              {isOwner && adj?.changeOrderId && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    navigate(changeOrderEditHref(adj.projectId, adj.changeOrderId!));
+                    onClose();
+                  }}
+                >
+                  Open Change Order
+                </Button>
               )}
             </footer>
           </motion.aside>

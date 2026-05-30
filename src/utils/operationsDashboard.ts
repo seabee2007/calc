@@ -12,6 +12,7 @@ import {
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import {
   buildProposalDashboardMetrics,
+  mergeProjectContractRollup,
   type ProposalDashboardMetrics,
 } from './proposalKpis';
 import { getProjectFolder, summarizeQcBreakAlerts } from './projectFolders';
@@ -758,7 +759,11 @@ export function buildOperationsSnapshot(
       )
     : null;
 
-  const proposalMetrics = buildProposalDashboardMetrics(proposals, now);
+  const baseProposalMetrics = buildProposalDashboardMetrics(proposals, now);
+  const proposalMetrics: ProposalDashboardMetrics = {
+    ...baseProposalMetrics,
+    financial: mergeProjectContractRollup(baseProposalMetrics.financial, projects),
+  };
   const upcomingPlacements = buildUpcomingPlacements(projects, now);
 
   const sentStatuses = new Set([

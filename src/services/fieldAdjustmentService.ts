@@ -23,6 +23,13 @@ function mapAdjustment(row: Record<string, unknown>): FieldAdjustmentRequest {
     equipmentCost: row.equipment_cost != null ? Number(row.equipment_cost) : null,
     scheduleImpact: (row.schedule_impact as string) ?? null,
     estimatedCost: row.estimated_cost != null ? Number(row.estimated_cost) : null,
+    potentialCostImpact: Boolean(row.potential_cost_impact),
+    potentialScheduleImpact: Boolean(row.potential_schedule_impact),
+    recommendedAction: (row.recommended_action as string) ?? null,
+    requiresChangeOrder: Boolean(row.requires_change_order),
+    impactSafety: Boolean(row.impact_safety),
+    impactQuality: Boolean(row.impact_quality),
+    changeOrderId: (row.change_order_id as string) ?? null,
     convertedToChangeOrder: Boolean(row.converted_to_change_order),
     status: row.status as string,
     ownerResponse: (row.owner_response as string) ?? null,
@@ -64,12 +71,17 @@ export async function createFieldAdjustment(input: {
   proposedAdjustment?: string;
   reason?: string;
   location?: string;
-  laborImpact?: number;
-  materialImpact?: number;
-  equipmentCost?: number;
   scheduleImpact?: string;
-  estimatedCost?: number;
+  potentialCostImpact?: boolean;
+  potentialScheduleImpact?: boolean;
+  recommendedAction?: string;
+  requiresChangeOrder?: boolean;
+  impactSafety?: boolean;
+  impactQuality?: boolean;
 }) {
+  const requiresCo =
+    input.requiresChangeOrder ?? Boolean(input.potentialCostImpact);
+
   const { data, error } = await supabase
     .from('field_adjustment_requests')
     .insert({
@@ -82,11 +94,13 @@ export async function createFieldAdjustment(input: {
       proposed_adjustment: input.proposedAdjustment ?? '',
       reason: input.reason ?? null,
       location: input.location ?? null,
-      labor_impact: input.laborImpact ?? null,
-      material_impact: input.materialImpact ?? null,
-      equipment_cost: input.equipmentCost ?? null,
       schedule_impact: input.scheduleImpact ?? null,
-      estimated_cost: input.estimatedCost ?? null,
+      potential_cost_impact: input.potentialCostImpact ?? false,
+      potential_schedule_impact: input.potentialScheduleImpact ?? false,
+      recommended_action: input.recommendedAction ?? null,
+      requires_change_order: requiresCo,
+      impact_safety: input.impactSafety ?? false,
+      impact_quality: input.impactQuality ?? false,
     })
     .select('*')
     .single();
@@ -102,11 +116,13 @@ export async function updateFieldAdjustment(
     proposedAdjustment: string;
     reason: string;
     location: string;
-    laborImpact: number;
-    materialImpact: number;
-    equipmentCost: number;
     scheduleImpact: string;
-    estimatedCost: number;
+    recommendedAction: string;
+    potentialCostImpact: boolean;
+    potentialScheduleImpact: boolean;
+    requiresChangeOrder: boolean;
+    impactSafety: boolean;
+    impactQuality: boolean;
   }>,
 ) {
   const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -119,16 +135,38 @@ export async function updateFieldAdjustment(
     payload.proposed_adjustment = updates.proposedAdjustment;
   if (updates.reason !== undefined) payload.reason = updates.reason;
   if (updates.location !== undefined) payload.location = updates.location;
-  if (updates.laborImpact !== undefined) payload.labor_impact = updates.laborImpact;
-  if (updates.materialImpact !== undefined) payload.material_impact = updates.materialImpact;
-  if (updates.equipmentCost !== undefined) payload.equipment_cost = updates.equipmentCost;
   if (updates.scheduleImpact !== undefined) payload.schedule_impact = updates.scheduleImpact;
-  if (updates.estimatedCost !== undefined) payload.estimated_cost = updates.estimatedCost;
+  if (updates.recommendedAction !== undefined)
+    payload.recommended_action = updates.recommendedAction;
+  if (updates.potentialCostImpact !== undefined)
+    payload.potential_cost_impact = updates.potentialCostImpact;
+  if (updates.potentialScheduleImpact !== undefined)
+    payload.potential_schedule_impact = updates.potentialScheduleImpact;
+  if (updates.requiresChangeOrder !== undefined)
+    payload.requires_change_order = updates.requiresChangeOrder;
+  if (updates.impactSafety !== undefined) payload.impact_safety = updates.impactSafety;
+  if (updates.impactQuality !== undefined) payload.impact_quality = updates.impactQuality;
 
   const { data, error } = await supabase
     .from('field_adjustment_requests')
     .update(payload)
     .eq('id', id)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return mapAdjustment(data);
+}
+
+export async function linkFarToChangeOrder(farId: string, changeOrderId: string) {
+  const { data, error } = await supabase
+    .from('field_adjustment_requests')
+    .update({
+      change_order_id: changeOrderId,
+      converted_to_change_order: true,
+      status: 'Convert to Change Order',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', farId)
     .select('*')
     .single();
   if (error) throw error;
@@ -144,18 +182,23 @@ export async function reviewFieldAdjustment(
   ownerId: string,
   status: FarStatus,
   ownerResponse?: string,
+  options?: { flagRequiresChangeOrder?: boolean },
 ) {
   const isApproved = status === 'Approved';
+  const payload: Record<string, unknown> = {
+    status,
+    approved_by: isApproved ? ownerId : null,
+    approved_at: isApproved ? new Date().toISOString() : null,
+    owner_response: ownerResponse ?? null,
+    updated_at: new Date().toISOString(),
+  };
+  if (isApproved && options?.flagRequiresChangeOrder) {
+    payload.requires_change_order = true;
+  }
+
   const { data, error } = await supabase
     .from('field_adjustment_requests')
-    .update({
-      status,
-      approved_by: isApproved ? ownerId : null,
-      approved_at: isApproved ? new Date().toISOString() : null,
-      owner_response: ownerResponse ?? null,
-      converted_to_change_order: status === 'Requires Change Order',
-      updated_at: new Date().toISOString(),
-    })
+    .update(payload)
     .eq('id', id)
     .select('*')
     .single();
@@ -200,4 +243,13 @@ export async function fetchAdjustmentsForEmployee(
 
   if (error) throw error;
   return (data ?? []).map(mapAdjustment);
+}
+
+export function hasLegacyPricing(adj: FieldAdjustmentRequest): boolean {
+  return (
+    adj.estimatedCost != null ||
+    adj.laborImpact != null ||
+    adj.materialImpact != null ||
+    adj.equipmentCost != null
+  );
 }

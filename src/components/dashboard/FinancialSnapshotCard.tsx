@@ -47,6 +47,18 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
         value={formatProposalMoney(financial.grossProfit)}
         highlight={financial.grossProfit >= 0}
       />
+      {financial.currentContractValue > 0 && (
+        <Metric
+          label="Contract value"
+          value={formatProposalMoney(financial.currentContractValue)}
+        />
+      )}
+      {financial.approvedChangeOrderTotal > 0 && (
+        <Metric
+          label="Approved COs"
+          value={formatProposalMoney(financial.approvedChangeOrderTotal)}
+        />
+      )}
     </div>
 
     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
