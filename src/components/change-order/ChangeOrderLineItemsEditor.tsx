@@ -1,20 +1,47 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import type { ChangeOrderLineItem } from '../../types/changeOrder';
-import { emptyLineItem } from '../../utils/changeOrderFinancials';
+import type { ChangeOrderLineItem, ChangeOrderLineItemCategory } from '../../types/changeOrder';
+import {
+  computeLineItemTotal,
+  emptyLineItem,
+  formatChangeOrderMoney,
+} from '../../utils/changeOrderFinancials';
 import Button from '../ui/Button';
 
 interface Props {
   label: string;
+  category: ChangeOrderLineItemCategory;
   items: ChangeOrderLineItem[];
   onChange: (items: ChangeOrderLineItem[]) => void;
 }
 
-export default function ChangeOrderLineItemsEditor({ label, items, onChange }: Props) {
+function applyPatch(
+  row: ChangeOrderLineItem,
+  patch: Partial<ChangeOrderLineItem>,
+  category: ChangeOrderLineItemCategory,
+): ChangeOrderLineItem {
+  const next = { ...row, ...patch };
+  return { ...next, amount: computeLineItemTotal(next, category) };
+}
+
+export default function ChangeOrderLineItemsEditor({
+  label,
+  category,
+  items,
+  onChange,
+}: Props) {
+  const isEquipment = category === 'equipment';
+
   const update = (index: number, patch: Partial<ChangeOrderLineItem>) => {
-    const next = items.map((row, i) => (i === index ? { ...row, ...patch } : row));
+    const next = items.map((row, i) =>
+      i === index ? applyPatch(row, patch, category) : row,
+    );
     onChange(next);
   };
+
+  const gridClass = isEquipment
+    ? 'sm:grid-cols-[1fr_72px_72px_96px_100px_auto]'
+    : 'sm:grid-cols-[1fr_72px_96px_100px_auto]';
 
   return (
     <div className="space-y-2">
@@ -25,7 +52,7 @@ export default function ChangeOrderLineItemsEditor({ label, items, onChange }: P
           size="sm"
           variant="outline"
           icon={<Plus className="h-4 w-4" />}
-          onClick={() => onChange([...items, emptyLineItem()])}
+          onClick={() => onChange([...items, emptyLineItem(category)])}
         >
           Add line
         </Button>
@@ -33,47 +60,97 @@ export default function ChangeOrderLineItemsEditor({ label, items, onChange }: P
       {items.length === 0 && (
         <p className="text-xs text-gray-500 dark:text-slate-400">No line items yet.</p>
       )}
-      {items.map((row, index) => (
+      {items.length > 0 && (
         <div
-          key={index}
-          className="grid grid-cols-1 gap-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700 sm:grid-cols-[1fr_80px_100px_auto]"
+          className={`hidden gap-2 px-3 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 sm:grid ${gridClass}`}
         >
-          <input
-            type="text"
-            value={row.description}
-            onChange={(e) => update(index, { description: e.target.value })}
-            placeholder="Description"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-          />
-          <input
-            type="number"
-            min={0}
-            value={row.qty ?? ''}
-            onChange={(e) =>
-              update(index, { qty: e.target.value ? Number(e.target.value) : undefined })
-            }
-            placeholder="Qty"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-          />
-          <input
-            type="number"
-            min={0}
-            step={0.01}
-            value={row.amount || ''}
-            onChange={(e) => update(index, { amount: Number(e.target.value) || 0 })}
-            placeholder="Amount $"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-          />
-          <button
-            type="button"
-            onClick={() => onChange(items.filter((_, i) => i !== index))}
-            className="flex h-10 w-10 items-center justify-center rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-            aria-label="Remove line"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <span>Description</span>
+          <span>Qty</span>
+          {isEquipment ? <span>Hrs</span> : null}
+          <span>{isEquipment ? '$/hr' : 'Unit price'}</span>
+          <span>Total</span>
+          <span className="sr-only">Remove</span>
         </div>
-      ))}
+      )}
+      {items.map((row, index) => {
+        const lineTotal = computeLineItemTotal(row, category);
+        return (
+          <div
+            key={index}
+            className={`grid grid-cols-1 gap-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700 sm:grid ${gridClass}`}
+          >
+            <input
+              type="text"
+              value={row.description}
+              onChange={(e) => update(index, { description: e.target.value })}
+              placeholder="Description"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+            />
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={row.qty ?? ''}
+              onChange={(e) =>
+                update(index, { qty: e.target.value ? Number(e.target.value) : undefined })
+              }
+              placeholder="Qty"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+            />
+            {isEquipment && (
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={row.hours ?? ''}
+                onChange={(e) =>
+                  update(index, { hours: e.target.value ? Number(e.target.value) : undefined })
+                }
+                placeholder="Hrs"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              />
+            )}
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={row.unitPrice ?? ''}
+              onChange={(e) =>
+                update(index, {
+                  unitPrice: e.target.value ? Number(e.target.value) : undefined,
+                })
+              }
+              placeholder={isEquipment ? '$/hr' : 'Unit $'}
+              title="Use arrows for whole numbers; you can type decimals (e.g. 45.60)"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+            />
+            <div
+              className="flex min-h-[42px] items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium tabular-nums text-gray-900 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100"
+              aria-label="Line total"
+            >
+              {formatChangeOrderMoney(lineTotal)}
+            </div>
+            <button
+              type="button"
+              onClick={() => onChange(items.filter((_, i) => i !== index))}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+              aria-label="Remove line"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        );
+      })}
+      {isEquipment && items.length > 0 && (
+        <p className="text-xs text-gray-500 dark:text-slate-400">
+          Equipment total = Qty × Hrs × $/hr per line.
+        </p>
+      )}
+      {!isEquipment && items.length > 0 && (
+        <p className="text-xs text-gray-500 dark:text-slate-400">
+          Line total = Qty × unit price.
+        </p>
+      )}
     </div>
   );
 }

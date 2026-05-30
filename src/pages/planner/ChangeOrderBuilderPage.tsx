@@ -12,11 +12,17 @@ import {
   saveChangeOrder,
 } from '../../services/changeOrderService';
 import type { ChangeOrder, ChangeOrderLineItem } from '../../types/changeOrder';
-import { computeChangeOrderTotals } from '../../utils/changeOrderFinancials';
+import {
+  computeChangeOrderBreakdown,
+  DEFAULT_OVERHEAD_PERCENT,
+  DEFAULT_PROFIT_PERCENT,
+  normalizeLineItems,
+} from '../../utils/changeOrderFinancials';
 import { getPublicChangeOrderUrl } from '../../lib/changeOrderTracking';
 import { changeOrderEditHref, plannerChangeOrdersHref } from '../../utils/plannerRoutes';
 import ChangeOrderLineItemsEditor from '../../components/change-order/ChangeOrderLineItemsEditor';
 import ChangeOrderDocument from '../../components/change-order/ChangeOrderDocument';
+import ChangeOrderInternalPricingSummary from '../../components/change-order/ChangeOrderInternalPricingSummary';
 import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkModal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -46,6 +52,10 @@ export default function ChangeOrderBuilderPage() {
   const [terms, setTerms] = useState('');
   const [scheduleImpact, setScheduleImpact] = useState('');
   const [markupPercent, setMarkupPercent] = useState('0');
+  const [feesAmount, setFeesAmount] = useState('0');
+  const [permitsAmount, setPermitsAmount] = useState('0');
+  const [overheadPercent, setOverheadPercent] = useState(String(DEFAULT_OVERHEAD_PERCENT));
+  const [profitPercent, setProfitPercent] = useState(String(DEFAULT_PROFIT_PERCENT));
   const [laborItems, setLaborItems] = useState<ChangeOrderLineItem[]>([]);
   const [materialItems, setMaterialItems] = useState<ChangeOrderLineItem[]>([]);
   const [equipmentItems, setEquipmentItems] = useState<ChangeOrderLineItem[]>([]);
@@ -74,6 +84,10 @@ export default function ChangeOrderBuilderPage() {
       setTerms(co.terms);
       setScheduleImpact(co.scheduleImpact ?? '');
       setMarkupPercent(String(co.markupPercent));
+      setFeesAmount(String(co.feesAmount));
+      setPermitsAmount(String(co.permitsAmount));
+      setOverheadPercent(String(co.overheadPercent));
+      setProfitPercent(String(co.profitPercent));
       setLaborItems(co.laborItems);
       setMaterialItems(co.materialItems);
       setEquipmentItems(co.equipmentItems);
@@ -162,8 +176,17 @@ export default function ChangeOrderBuilderPage() {
 
   const preview = useMemo((): ChangeOrder | null => {
     if (!coId || !user) return null;
+    const labor = normalizeLineItems(laborItems, 'labor');
+    const material = normalizeLineItems(materialItems, 'material');
+    const equipment = normalizeLineItems(equipmentItems, 'equipment');
     const markup = Number(markupPercent) || 0;
-    const totals = computeChangeOrderTotals(laborItems, materialItems, equipmentItems, markup);
+    const breakdown = computeChangeOrderBreakdown(labor, material, equipment, {
+      feesAmount: Number(feesAmount) || 0,
+      permitsAmount: Number(permitsAmount) || 0,
+      overheadPercent: Number(overheadPercent) || 0,
+      profitPercent: Number(profitPercent) || 0,
+      markupPercent: markup,
+    });
     return {
       id: coId,
       projectId,
@@ -176,12 +199,18 @@ export default function ChangeOrderBuilderPage() {
       scopeDescription: scope,
       reasonForChange: reason,
       terms,
-      laborItems,
-      materialItems,
-      equipmentItems,
+      laborItems: labor,
+      materialItems: material,
+      equipmentItems: equipment,
       markupPercent: markup,
-      subtotal: totals.subtotal,
-      total: totals.total,
+      feesAmount: breakdown.feesAmount,
+      permitsAmount: breakdown.permitsAmount,
+      overheadPercent: breakdown.overheadPercent,
+      profitPercent: breakdown.profitPercent,
+      overheadAmount: breakdown.overheadAmount,
+      profitAmount: breakdown.profitAmount,
+      subtotal: breakdown.directCost,
+      total: breakdown.totalPrice,
       scheduleImpact: scheduleImpact || null,
       status,
       publicToken,
@@ -208,6 +237,10 @@ export default function ChangeOrderBuilderPage() {
     materialItems,
     equipmentItems,
     markupPercent,
+    feesAmount,
+    permitsAmount,
+    overheadPercent,
+    profitPercent,
     scheduleImpact,
     status,
     publicToken,
@@ -226,6 +259,10 @@ export default function ChangeOrderBuilderPage() {
         terms,
         scheduleImpact: scheduleImpact || null,
         markupPercent: Number(markupPercent) || 0,
+        feesAmount: Number(feesAmount) || 0,
+        permitsAmount: Number(permitsAmount) || 0,
+        overheadPercent: Number(overheadPercent) || 0,
+        profitPercent: Number(profitPercent) || 0,
         laborItems,
         materialItems,
         equipmentItems,
@@ -328,7 +365,7 @@ export default function ChangeOrderBuilderPage() {
       )}
 
       {initDone && !initError && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
           <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
             <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth />
             <div>
@@ -354,27 +391,69 @@ export default function ChangeOrderBuilderPage() {
             />
             <ChangeOrderLineItemsEditor
               label="Labor"
+              category="labor"
               items={laborItems}
               onChange={setLaborItems}
             />
             <ChangeOrderLineItemsEditor
               label="Material"
+              category="material"
               items={materialItems}
               onChange={setMaterialItems}
             />
             <ChangeOrderLineItemsEditor
               label="Equipment"
+              category="equipment"
               items={equipmentItems}
               onChange={setEquipmentItems}
             />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Input
+                label="Fees ($)"
+                type="number"
+                min={0}
+                step={0.01}
+                value={feesAmount}
+                onChange={(e) => setFeesAmount(e.target.value)}
+                fullWidth
+              />
+              <Input
+                label="Permits ($)"
+                type="number"
+                min={0}
+                step={0.01}
+                value={permitsAmount}
+                onChange={(e) => setPermitsAmount(e.target.value)}
+                fullWidth
+              />
+              <Input
+                label="Overhead % (of direct cost)"
+                type="number"
+                min={0}
+                step={1}
+                value={overheadPercent}
+                onChange={(e) => setOverheadPercent(e.target.value)}
+                fullWidth
+              />
+              <Input
+                label="Profit % (of direct cost)"
+                type="number"
+                min={0}
+                step={1}
+                value={profitPercent}
+                onChange={(e) => setProfitPercent(e.target.value)}
+                fullWidth
+              />
+            </div>
             <Input
-              label="Markup %"
+              label="Markup % (applied to material cost only)"
               type="number"
               min={0}
               value={markupPercent}
               onChange={(e) => setMarkupPercent(e.target.value)}
               fullWidth
             />
+            {preview && <ChangeOrderInternalPricingSummary order={preview} />}
             <div>
               <label className="mb-1 block text-sm font-medium">Terms</label>
               <textarea
@@ -410,11 +489,13 @@ export default function ChangeOrderBuilderPage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
+          <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
             <p className="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase text-gray-500 dark:border-slate-700">
-              Preview
+              Client preview
             </p>
-            <div ref={printRef}>{preview && <ChangeOrderDocument order={preview} />}</div>
+            <div ref={printRef} className="min-w-0 max-w-full overflow-x-hidden">
+              {preview && <ChangeOrderDocument order={preview} audience="client" />}
+            </div>
           </div>
         </div>
       )}

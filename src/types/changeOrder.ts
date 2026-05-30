@@ -9,10 +9,19 @@ export const CHANGE_ORDER_STATUSES = [
 
 export type ChangeOrderStatus = (typeof CHANGE_ORDER_STATUSES)[number];
 
+export type ChangeOrderLineItemCategory = 'labor' | 'material' | 'equipment';
+
 export interface ChangeOrderLineItem {
   description: string;
+  /** Labor / material quantity, or equipment count. */
   qty?: number;
+  /** Optional unit label (e.g. ea, lf). */
   unit?: string;
+  /** Equipment only — hours per unit or total hours. */
+  hours?: number;
+  /** Labor & material: unit price. Equipment: price per hour. */
+  unitPrice?: number;
+  /** Line total (computed from qty × unit price or qty × hrs × rate). */
   amount: number;
 }
 
@@ -32,6 +41,16 @@ export interface ChangeOrder {
   materialItems: ChangeOrderLineItem[];
   equipmentItems: ChangeOrderLineItem[];
   markupPercent: number;
+  feesAmount: number;
+  permitsAmount: number;
+  /** % of direct cost (default 8). */
+  overheadPercent: number;
+  /** % of direct cost (default 8). */
+  profitPercent: number;
+  /** Computed $ from overheadPercent × direct cost. */
+  overheadAmount: number;
+  /** Computed $ from profitPercent × direct cost. */
+  profitAmount: number;
   subtotal: number;
   total: number;
   scheduleImpact: string | null;
@@ -57,6 +76,10 @@ export interface ChangeOrderInput {
   materialItems?: ChangeOrderLineItem[];
   equipmentItems?: ChangeOrderLineItem[];
   markupPercent?: number;
+  feesAmount?: number;
+  permitsAmount?: number;
+  overheadPercent?: number;
+  profitPercent?: number;
   scheduleImpact?: string | null;
   linkedFarId?: string | null;
   linkedRfiId?: string | null;

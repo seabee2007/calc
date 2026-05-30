@@ -206,6 +206,27 @@ export async function reviewFieldAdjustment(
   return mapAdjustment(data);
 }
 
+/** Approved FARs that still need a priced change order created. */
+export async function fetchApprovedFarsNeedingChangeOrder(
+  ownerId: string,
+): Promise<FieldAdjustmentRequest[]> {
+  const { data: projects } = await supabase.from('projects').select('id').eq('user_id', ownerId);
+  const ids = (projects ?? []).map((p) => p.id as string);
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('field_adjustment_requests')
+    .select('*')
+    .in('project_id', ids)
+    .eq('status', 'Approved')
+    .is('change_order_id', null)
+    .or('requires_change_order.eq.true,potential_cost_impact.eq.true')
+    .order('updated_at', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(mapAdjustment);
+}
+
 export async function fetchPendingAdjustmentsForOwner(
   ownerId: string,
 ): Promise<FieldAdjustmentRequest[]> {

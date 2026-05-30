@@ -1,89 +1,111 @@
 import React from 'react';
 import type { ChangeOrder } from '../../types/changeOrder';
+import {
+  computeChangeOrderBreakdown,
+  formatChangeOrderMoney,
+} from '../../utils/changeOrderFinancials';
 
-function LineTable({
-  title,
-  items,
-}: {
-  title: string;
-  items: ChangeOrder['laborItems'];
-}) {
-  if (!items.length) return null;
+function DocumentTextBlock({ label, text }: { label: string; text: string }) {
   return (
-    <div className="mb-4">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-      <table className="w-full text-sm border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-500">
-            <th className="py-1 pr-2">Description</th>
-            <th className="py-1 pr-2 text-right">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((row, i) => (
-            <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
-              <td className="py-1.5 pr-2">{row.description || '—'}</td>
-              <td className="py-1.5 text-right">
-                ${row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="mt-4 min-w-0 max-w-full">
+      <p className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-gray-900 dark:text-slate-100">
+        {text}
+      </p>
     </div>
   );
 }
 
-export default function ChangeOrderDocument({ order }: { order: ChangeOrder }) {
+function ClientTotalRow({ label, value, grand }: { label: string; value: string; grand?: boolean }) {
   return (
-    <div className="p-6 text-gray-900 dark:text-gray-100">
+    <div
+      className={[
+        'flex justify-between gap-4 border-b border-gray-100 py-3 dark:border-gray-800',
+        grand ? 'border-t-2 border-gray-300 dark:border-gray-600 pt-4 mt-2 font-bold text-lg' : 'text-sm',
+      ].join(' ')}
+    >
+      <span className={grand ? 'text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-slate-300'}>
+        {label}
+      </span>
+      <span className="tabular-nums text-gray-900 dark:text-white">{value}</span>
+    </div>
+  );
+}
+
+export default function ChangeOrderDocument({
+  order,
+  audience = 'client',
+}: {
+  order: ChangeOrder;
+  audience?: 'client' | 'internal';
+}) {
+  const breakdown = computeChangeOrderBreakdown(
+    order.laborItems,
+    order.materialItems,
+    order.equipmentItems,
+    {
+      feesAmount: order.feesAmount,
+      permitsAmount: order.permitsAmount,
+      overheadPercent: order.overheadPercent,
+      profitPercent: order.profitPercent,
+      markupPercent: order.markupPercent,
+    },
+  );
+
+  return (
+    <div className="min-w-0 max-w-full overflow-x-hidden p-6 text-gray-900 dark:text-gray-100">
       <p className="text-xs uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
         {order.displayNumber ?? 'Change Order'}
       </p>
-      <h1 className="text-2xl font-bold mt-1">{order.title}</h1>
-      <p className="mt-4 text-sm whitespace-pre-wrap">{order.scopeDescription}</p>
-      <div className="mt-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase">Reason for change</p>
-        <p className="text-sm mt-1">{order.reasonForChange}</p>
-      </div>
-      {order.scheduleImpact && (
-        <div className="mt-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase">Schedule impact</p>
-          <p className="text-sm mt-1">{order.scheduleImpact}</p>
-        </div>
-      )}
-      <div className="mt-6">
-        <LineTable title="Labor" items={order.laborItems} />
-        <LineTable title="Material" items={order.materialItems} />
-        <LineTable title="Equipment" items={order.equipmentItems} />
-      </div>
-      <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4 space-y-1 text-sm">
-        <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>${order.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-        </div>
-        {order.markupPercent > 0 && (
-          <div className="flex justify-between text-gray-600 dark:text-gray-400">
-            <span>Markup ({order.markupPercent}%)</span>
-            <span>
-              $
-              {(
-                order.total - order.subtotal
-              ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </span>
+      <h1 className="mt-1 break-words text-2xl font-bold [overflow-wrap:anywhere]">{order.title}</h1>
+      {order.scopeDescription.trim() ? (
+        <DocumentTextBlock label="Scope of change" text={order.scopeDescription} />
+      ) : null}
+      {order.reasonForChange.trim() ? (
+        <DocumentTextBlock label="Reason for change" text={order.reasonForChange} />
+      ) : null}
+      {order.scheduleImpact?.trim() ? (
+        <DocumentTextBlock label="Schedule impact" text={order.scheduleImpact} />
+      ) : null}
+
+      <div className="mt-8">
+        {audience === 'client' ? (
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden px-4">
+            <ClientTotalRow
+              label="Total Direct Costs"
+              value={formatChangeOrderMoney(breakdown.directCost)}
+            />
+            <ClientTotalRow
+              label="Total Indirect costs"
+              value={formatChangeOrderMoney(breakdown.indirectCost)}
+            />
+            <ClientTotalRow
+              label="Total Change Order"
+              value={formatChangeOrderMoney(breakdown.totalPrice)}
+              grand
+            />
+          </div>
+        ) : (
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Direct costs</span>
+              <span>{formatChangeOrderMoney(breakdown.directCost)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Indirect costs</span>
+              <span>{formatChangeOrderMoney(breakdown.indirectCost)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg">
+              <span>Total</span>
+              <span>{formatChangeOrderMoney(breakdown.totalPrice)}</span>
+            </div>
           </div>
         )}
-        <div className="flex justify-between font-bold text-lg">
-          <span>Total</span>
-          <span>${order.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-        </div>
       </div>
-      {order.terms && (
-        <div className="mt-6">
-          <p className="text-xs font-semibold text-gray-500 uppercase">Terms</p>
-          <p className="text-sm mt-1 whitespace-pre-wrap">{order.terms}</p>
-        </div>
-      )}
+
+      {order.terms?.trim() ? (
+        <DocumentTextBlock label="Terms" text={order.terms} />
+      ) : null}
     </div>
   );
 }

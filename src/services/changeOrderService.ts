@@ -5,7 +5,12 @@ import type {
   ChangeOrderLineItem,
   ChangeOrderStatus,
 } from '../types/changeOrder';
-import { computeChangeOrderTotals } from '../utils/changeOrderFinancials';
+import {
+  computeChangeOrderBreakdown,
+  DEFAULT_OVERHEAD_PERCENT,
+  DEFAULT_PROFIT_PERCENT,
+  normalizeLineItems,
+} from '../utils/changeOrderFinancials';
 import { linkFarToChangeOrder } from './fieldAdjustmentService';
 import { fetchAdjustmentById } from './fieldAdjustmentService';
 import { fetchRfiById } from './rfiService';
@@ -14,10 +19,20 @@ function parseItems(raw: unknown): ChangeOrderLineItem[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((row) => {
     const r = row as Record<string, unknown>;
+    const qty = r.qty != null ? Number(r.qty) : undefined;
+    const hours = r.hours != null ? Number(r.hours) : undefined;
+    const unitPrice =
+      r.unitPrice != null
+        ? Number(r.unitPrice)
+        : r.unit_price != null
+          ? Number(r.unit_price)
+          : undefined;
     return {
       description: String(r.description ?? ''),
-      qty: r.qty != null ? Number(r.qty) : undefined,
+      qty,
       unit: r.unit != null ? String(r.unit) : undefined,
+      hours,
+      unitPrice,
       amount: Number(r.amount) || 0,
     };
   });
@@ -40,6 +55,12 @@ export function mapChangeOrder(row: Record<string, unknown>): ChangeOrder {
     materialItems: parseItems(row.material_items),
     equipmentItems: parseItems(row.equipment_items),
     markupPercent: Number(row.markup_percent ?? 0),
+    feesAmount: Number(row.fees_amount ?? 0),
+    permitsAmount: Number(row.permits_amount ?? 0),
+    overheadPercent: Number(row.overhead_percent ?? DEFAULT_OVERHEAD_PERCENT),
+    profitPercent: Number(row.profit_percent ?? DEFAULT_PROFIT_PERCENT),
+    overheadAmount: Number(row.overhead_amount ?? 0),
+    profitAmount: Number(row.profit_amount ?? 0),
     subtotal: Number(row.subtotal ?? 0),
     total: Number(row.total ?? 0),
     scheduleImpact: (row.schedule_impact as string) ?? null,
@@ -55,7 +76,15 @@ export function mapChangeOrder(row: Record<string, unknown>): ChangeOrder {
   };
 }
 
-function buildPayload(input: ChangeOrderInput, totals: { subtotal: number; total: number }) {
+function buildPayload(
+  input: ChangeOrderInput,
+  totals: {
+    subtotal: number;
+    total: number;
+    overheadAmount: number;
+    profitAmount: number;
+  },
+) {
   return {
     project_id: input.projectId,
     user_id: input.userId,
@@ -70,6 +99,12 @@ function buildPayload(input: ChangeOrderInput, totals: { subtotal: number; total
     material_items: input.materialItems ?? [],
     equipment_items: input.equipmentItems ?? [],
     markup_percent: input.markupPercent ?? 0,
+    fees_amount: input.feesAmount ?? 0,
+    permits_amount: input.permitsAmount ?? 0,
+    overhead_percent: input.overheadPercent ?? DEFAULT_OVERHEAD_PERCENT,
+    profit_percent: input.profitPercent ?? DEFAULT_PROFIT_PERCENT,
+    overhead_amount: totals.overheadAmount ?? 0,
+    profit_amount: totals.profitAmount ?? 0,
     subtotal: totals.subtotal,
     total: totals.total,
     schedule_impact: input.scheduleImpact ?? null,
@@ -88,6 +123,38 @@ export async function fetchChangeOrdersForProject(projectId: string): Promise<Ch
   return (data ?? []).map(mapChangeOrder);
 }
 
+const OWNER_REVIEW_CO_STATUSES = ['draft', 'sent', 'viewed', 'declined'] as const;
+
+/** Change orders needing owner action or follow-up (draft, out for client, declined). */
+export async function fetchChangeOrdersForOwnerReview(ownerId: string): Promise<ChangeOrder[]> {
+  const { data: projects } = await supabase.from('projects').select('id').eq('user_id', ownerId);
+  const projectIds = (projects ?? []).map((p) => p.id as string);
+  if (projectIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('change_orders')
+    .select('*')
+    .in('project_id', projectIds)
+    .in('status', [...OWNER_REVIEW_CO_STATUSES])
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapChangeOrder);
+}
+
+export async function countChangeOrdersForOwnerReview(ownerId: string): Promise<number> {
+  const { data: projects } = await supabase.from('projects').select('id').eq('user_id', ownerId);
+  const projectIds = (projects ?? []).map((p) => p.id as string);
+  if (projectIds.length === 0) return 0;
+
+  const { count, error } = await supabase
+    .from('change_orders')
+    .select('id', { count: 'exact', head: true })
+    .in('project_id', projectIds)
+    .in('status', [...OWNER_REVIEW_CO_STATUSES]);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function fetchChangeOrderById(id: string): Promise<ChangeOrder | null> {
   const { data, error } = await supabase
     .from('change_orders')
@@ -98,20 +165,42 @@ export async function fetchChangeOrderById(id: string): Promise<ChangeOrder | nu
   return data ? mapChangeOrder(data) : null;
 }
 
+function normalizeInputItems(input: ChangeOrderInput): {
+  labor: ChangeOrderLineItem[];
+  material: ChangeOrderLineItem[];
+  equipment: ChangeOrderLineItem[];
+} {
+  return {
+    labor: normalizeLineItems(input.laborItems ?? [], 'labor'),
+    material: normalizeLineItems(input.materialItems ?? [], 'material'),
+    equipment: normalizeLineItems(input.equipmentItems ?? [], 'equipment'),
+  };
+}
+
 export async function saveChangeOrder(
   id: string | null,
   input: ChangeOrderInput,
 ): Promise<ChangeOrder> {
-  const labor = input.laborItems ?? [];
-  const material = input.materialItems ?? [];
-  const equipment = input.equipmentItems ?? [];
-  const totals = computeChangeOrderTotals(
-    labor,
-    material,
-    equipment,
-    input.markupPercent ?? 0,
-  );
-  const payload = buildPayload(input, totals);
+  const { labor, material, equipment } = normalizeInputItems(input);
+  const payloadInput: ChangeOrderInput = {
+    ...input,
+    laborItems: labor,
+    materialItems: material,
+    equipmentItems: equipment,
+  };
+  const breakdown = computeChangeOrderBreakdown(labor, material, equipment, {
+    feesAmount: input.feesAmount ?? 0,
+    permitsAmount: input.permitsAmount ?? 0,
+    overheadPercent: input.overheadPercent ?? DEFAULT_OVERHEAD_PERCENT,
+    profitPercent: input.profitPercent ?? DEFAULT_PROFIT_PERCENT,
+    markupPercent: input.markupPercent ?? 0,
+  });
+  const payload = buildPayload(payloadInput, {
+    subtotal: breakdown.directCost,
+    total: breakdown.totalPrice,
+    overheadAmount: breakdown.overheadAmount,
+    profitAmount: breakdown.profitAmount,
+  });
 
   if (id) {
     const { data, error } = await supabase
@@ -171,6 +260,8 @@ export async function createChangeOrderFromFar(
     materialItems: [],
     equipmentItems: [],
     markupPercent: 0,
+    overheadPercent: DEFAULT_OVERHEAD_PERCENT,
+    profitPercent: DEFAULT_PROFIT_PERCENT,
   });
 }
 
@@ -194,6 +285,8 @@ export async function createChangeOrderFromRfi(
     materialItems: [],
     equipmentItems: [],
     markupPercent: 0,
+    overheadPercent: DEFAULT_OVERHEAD_PERCENT,
+    profitPercent: DEFAULT_PROFIT_PERCENT,
   });
 }
 
@@ -213,6 +306,8 @@ export async function createChangeOrderManual(
     materialItems: [],
     equipmentItems: [],
     markupPercent: 0,
+    overheadPercent: DEFAULT_OVERHEAD_PERCENT,
+    profitPercent: DEFAULT_PROFIT_PERCENT,
   });
 }
 
