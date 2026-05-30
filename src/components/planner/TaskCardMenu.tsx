@@ -116,7 +116,7 @@ export default function TaskCardMenu({
                 onCreateAdjustment();
               }}
             >
-              Field adjustment
+              Create FAR
             </button>
           </div>
         </>

@@ -126,7 +126,7 @@ export default function TaskComments({
         </div>
       )}
 
-      {isOwner && (
+      {(onCreateRfi || onCreateAdjustment) && (
         <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
           {onCreateRfi && (
             <Button size="sm" variant="outline" onClick={onCreateRfi}>
@@ -135,7 +135,7 @@ export default function TaskComments({
           )}
           {onCreateAdjustment && (
             <Button size="sm" variant="outline" onClick={onCreateAdjustment}>
-              Create Field Adjustment
+              Create FAR
             </Button>
           )}
         </div>

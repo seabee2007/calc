@@ -141,33 +141,29 @@ export default function PlannerBoard({
         onSubmit={handleAddTask}
       />
 
-      {rfiTask && (
-        <CreateRfiModal
-          isOpen
-          onClose={() => setRfiTask(null)}
-          projectId={projectId}
-          taskId={rfiTask.id}
-          userId={userId}
-          onCreated={() => {
-            setRfiTask(null);
-            onRefresh();
-          }}
-        />
-      )}
+      <CreateRfiModal
+        isOpen={rfiTask !== null}
+        onClose={() => setRfiTask(null)}
+        projectId={projectId}
+        taskId={rfiTask?.id}
+        userId={userId}
+        onCreated={() => {
+          setRfiTask(null);
+          onRefresh();
+        }}
+      />
 
-      {adjTask && (
-        <CreateFieldAdjustmentModal
-          isOpen
-          onClose={() => setAdjTask(null)}
-          projectId={projectId}
-          taskId={adjTask.id}
-          userId={userId}
-          onCreated={() => {
-            setAdjTask(null);
-            onRefresh();
-          }}
-        />
-      )}
+      <CreateFieldAdjustmentModal
+        isOpen={adjTask !== null}
+        onClose={() => setAdjTask(null)}
+        projectId={projectId}
+        taskId={adjTask?.id}
+        userId={userId}
+        onCreated={() => {
+          setAdjTask(null);
+          onRefresh();
+        }}
+      />
     </>
   );
 }

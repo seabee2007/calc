@@ -11,6 +11,8 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Stack above planner task drawer (z 10050). */
+  stackAboveDrawer?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -19,6 +21,7 @@ const Modal: React.FC<ModalProps> = ({
   title,
   children,
   size = 'md',
+  stackAboveDrawer = false,
 }) => {
   const prevIsOpen = useRef(isOpen);
   const onCloseRef = useRef(onClose);
@@ -68,35 +71,49 @@ const Modal: React.FC<ModalProps> = ({
     xl: 'max-w-4xl',
   };
 
+  const overlayTransition = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const };
+  const panelTransition = { type: 'spring' as const, damping: 28, stiffness: 300 };
+
   const modalContent = (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <>
+        <motion.div
+          key="modal-layer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={overlayTransition}
+          className={
+            stackAboveDrawer
+              ? 'fixed inset-0 z-[10101] flex items-center justify-center overflow-hidden p-4'
+              : 'fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden p-4'
+          }
+          style={{
+            paddingTop: 'max(env(safe-area-inset-top), 1rem)',
+            paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)',
+            paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
+            paddingRight: 'max(env(safe-area-inset-right), 1rem)',
+          }}
+        >
           <motion.div
+            role="presentation"
+            aria-hidden
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] bg-black/50"
+            transition={overlayTransition}
+            className="absolute inset-0 bg-black/50"
             onClick={handleClose}
           />
 
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden p-4 pointer-events-none"
-            style={{
-              paddingTop: 'max(env(safe-area-inset-top), 1rem)',
-              paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)',
-              paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
-              paddingRight: 'max(env(safe-area-inset-right), 1rem)',
-            }}
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            transition={panelTransition}
+            className={`pointer-events-auto relative z-10 flex w-full max-h-[min(90dvh,100%)] flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800 ${sizeClasses[size]}`}
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ type: 'spring', damping: 20 }}
-              className={`pointer-events-auto relative flex w-full max-h-[min(90dvh,100%)] flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800 ${sizeClasses[size]}`}
-              onClick={(e) => e.stopPropagation()}
-            >
               <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {title}
@@ -127,9 +144,8 @@ const Modal: React.FC<ModalProps> = ({
               >
                 {children}
               </div>
-            </motion.div>
-          </div>
-        </>
+          </motion.div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

@@ -57,6 +57,16 @@ export const PLANNER_TASK_META_MUTED = 'text-xs text-gray-400 dark:text-slate-50
 
 export const PLANNER_TASK_ACCENT = 'text-cyan-700 dark:text-cyan-400/90';
 
+/** Backdrop fade for planner drawers and modals. */
+export const PLANNER_OVERLAY_TRANSITION = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const };
+
+/** Right-side panel slide (task / RFI / FAR drawers). */
+export const PLANNER_DRAWER_PANEL_TRANSITION = {
+  type: 'spring' as const,
+  damping: 32,
+  stiffness: 280,
+};
+
 export const PLANNER_DRAWER_BACKDROP = 'fixed inset-0 z-[10050] flex justify-end bg-black/40 dark:bg-black/50';
 
 export const PLANNER_DRAWER_PANEL =

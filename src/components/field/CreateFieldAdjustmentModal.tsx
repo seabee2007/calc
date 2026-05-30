@@ -16,6 +16,7 @@ interface CreateFieldAdjustmentModalProps {
   taskId?: string | null;
   userId: string;
   onCreated?: () => void;
+  stackAboveDrawer?: boolean;
 }
 
 export default function CreateFieldAdjustmentModal({
@@ -25,6 +26,7 @@ export default function CreateFieldAdjustmentModal({
   taskId,
   userId,
   onCreated,
+  stackAboveDrawer = false,
 }: CreateFieldAdjustmentModalProps) {
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
@@ -96,7 +98,13 @@ export default function CreateFieldAdjustmentModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Field adjustment request" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Field adjustment request"
+      size="md"
+      stackAboveDrawer={stackAboveDrawer}
+    >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <Input
           label="Title"

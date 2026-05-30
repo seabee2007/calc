@@ -16,6 +16,7 @@ interface CreateRfiModalProps {
   taskId?: string | null;
   userId: string;
   onCreated?: () => void;
+  stackAboveDrawer?: boolean;
 }
 
 export default function CreateRfiModal({
@@ -25,6 +26,7 @@ export default function CreateRfiModal({
   taskId,
   userId,
   onCreated,
+  stackAboveDrawer = false,
 }: CreateRfiModalProps) {
   const [title, setTitle] = useState('');
   const [question, setQuestion] = useState('');
@@ -93,7 +95,13 @@ export default function CreateRfiModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Create RFI" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create RFI"
+      size="md"
+      stackAboveDrawer={stackAboveDrawer}
+    >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <Select
           label="Priority"

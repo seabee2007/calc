@@ -34,6 +34,8 @@ import {
   PLANNER_DRAWER_TITLE,
   PLANNER_EYEBROW,
   PLANNER_CLOSE_BTN,
+  PLANNER_DRAWER_PANEL_TRANSITION,
+  PLANNER_OVERLAY_TRANSITION,
 } from './plannerTheme';
 
 interface TaskDetailDrawerProps {
@@ -47,6 +49,12 @@ interface TaskDetailDrawerProps {
   onClose: () => void;
   onUpdated: () => void;
   fullPage?: boolean;
+  /** Close drawer and open create RFI at parent (board page). */
+  onRequestCreateRfi?: (taskId: string, projectId: string) => void;
+  /** Close drawer and open create FAR at parent (board page). */
+  onRequestCreateFar?: (taskId: string, projectId: string) => void;
+  /** Fires after close exit animation (e.g. open RFI/FAR modal). */
+  onExitComplete?: () => void;
 }
 
 export default function TaskDetailDrawer({
@@ -60,6 +68,9 @@ export default function TaskDetailDrawer({
   onClose,
   onUpdated,
   fullPage = false,
+  onRequestCreateRfi,
+  onRequestCreateFar,
+  onExitComplete,
 }: TaskDetailDrawerProps) {
   const [task, setTask] = useState<PlannerTask | null>(null);
   const [comments, setComments] = useState<Awaited<ReturnType<typeof fetchTaskComments>>>([]);
@@ -127,25 +138,48 @@ export default function TaskDetailDrawer({
 
   const canEditTask = isOwner || (isEmployee && task?.assignedTo === userId);
   const canComment = canEditTask;
+  const useParentFieldModals = Boolean(onRequestCreateRfi ?? onRequestCreateFar);
+  const showFieldActions = isOwner || isEmployee;
 
-  if (!taskId) return null;
+  const handleCreateRfi = () => {
+    if (!task) return;
+    if (onRequestCreateRfi) {
+      onRequestCreateRfi(task.id, task.projectId);
+      return;
+    }
+    setRfiOpen(true);
+  };
+
+  const handleCreateFar = () => {
+    if (!task) return;
+    if (onRequestCreateFar) {
+      onRequestCreateFar(task.id, task.projectId);
+      return;
+    }
+    setAdjustmentOpen(true);
+  };
 
   const panel = (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={onExitComplete}>
       {taskId && (
         <motion.div
+          key="task-detail-drawer"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={PLANNER_OVERLAY_TRANSITION}
           className={fullPage ? PLANNER_DRAWER_FULL_PAGE : PLANNER_DRAWER_BACKDROP}
+          onClick={fullPage ? undefined : onClose}
         >
           <motion.div
-            initial={fullPage ? { opacity: 0, y: 12 } : { x: '100%' }}
+            key={taskId}
+            initial={fullPage ? { opacity: 0, y: 16 } : { x: '100%' }}
             animate={fullPage ? { opacity: 1, y: 0 } : { x: 0 }}
-            exit={fullPage ? { opacity: 0, y: 12 } : { x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            exit={fullPage ? { opacity: 0, y: 16 } : { x: '100%' }}
+            transition={PLANNER_DRAWER_PANEL_TRANSITION}
             className={fullPage ? 'flex h-full flex-col' : PLANNER_DRAWER_PANEL}
             style={fullPage ? undefined : { maxWidth: 'min(100vw, 640px)' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <header className={PLANNER_DRAWER_HEADER}>
               <div>
@@ -238,8 +272,8 @@ export default function TaskDetailDrawer({
                     canComment={canComment}
                     isOwner={isOwner}
                     onChange={() => void reload()}
-                    onCreateRfi={() => setRfiOpen(true)}
-                    onCreateAdjustment={() => setAdjustmentOpen(true)}
+                    onCreateRfi={showFieldActions ? handleCreateRfi : undefined}
+                    onCreateAdjustment={showFieldActions ? handleCreateFar : undefined}
                   />
                 </>
               )}
@@ -292,24 +326,6 @@ export default function TaskDetailDrawer({
                   </Button>
                 </div>
               )}
-              {(isOwner || isEmployee) && (
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    className="min-h-12"
-                    onClick={() => setRfiOpen(true)}
-                  >
-                    Create RFI
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="min-h-12"
-                    onClick={() => setAdjustmentOpen(true)}
-                  >
-                    Field adjustment
-                  </Button>
-                </div>
-              )}
             </footer>
           </motion.div>
         </motion.div>
@@ -320,7 +336,7 @@ export default function TaskDetailDrawer({
   return (
     <>
       {createPortal(panel, document.body)}
-      {task && (
+      {task && !useParentFieldModals && (
         <>
           <CreateRfiModal
             isOpen={rfiOpen}
@@ -329,6 +345,7 @@ export default function TaskDetailDrawer({
             taskId={task.id}
             userId={userId}
             onCreated={() => void reload()}
+            stackAboveDrawer
           />
           <CreateFieldAdjustmentModal
             isOpen={adjustmentOpen}
@@ -337,6 +354,7 @@ export default function TaskDetailDrawer({
             taskId={task.id}
             userId={userId}
             onCreated={() => void reload()}
+            stackAboveDrawer
           />
         </>
       )}
