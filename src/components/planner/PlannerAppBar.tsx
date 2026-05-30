@@ -4,6 +4,7 @@ import {
   BookOpen,
   FolderPlus,
   LayoutDashboard,
+  LayoutGrid,
   Menu,
   Settings,
   User,
@@ -67,6 +68,23 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
       <div className="flex shrink-0 items-center gap-0.5">
         {isOwner && (
           <>
+            <Link
+              to="/planner/hub"
+              className={appNavIconButtonClass(location.pathname === '/planner/hub')}
+              aria-label="Planner Hub"
+              title="Planner Hub"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              onClick={startProject}
+              className={appNavIconButtonClass()}
+              aria-label="Start new project"
+              title="Start new project"
+            >
+              <FolderPlus className="h-5 w-5" />
+            </button>
             <button
               type="button"
               onClick={openTools}
@@ -84,16 +102,18 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
             >
               <BookOpen className="h-5 w-5" />
             </Link>
-            <button
-              type="button"
-              onClick={startProject}
-              className={appNavIconButtonClass()}
-              aria-label="Start project"
-              title="Start project"
-            >
-              <FolderPlus className="h-5 w-5" />
-            </button>
           </>
+        )}
+
+        {isEmployee && !isOwner && (
+          <Link
+            to="/employee/tasks"
+            className={appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}
+            aria-label="My tasks"
+            title="My tasks"
+          >
+            <LayoutGrid className="h-5 w-5" />
+          </Link>
         )}
 
         <Link

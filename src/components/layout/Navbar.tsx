@@ -123,6 +123,23 @@ const Navbar: React.FC = () => {
       <div className="flex shrink-0 items-center gap-0.5">
         {user && isOwner && (
           <>
+            <Link
+              to="/planner/hub"
+              className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/planner'))}`}
+              aria-label="Planner Hub"
+              title="Planner Hub"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              onClick={startProject}
+              className={`hidden md:inline-flex ${appNavIconButtonClass()}`}
+              aria-label="Start new project"
+              title="Start new project"
+            >
+              <FolderPlus className="h-5 w-5" />
+            </button>
             <button
               type="button"
               onClick={handleTools}
@@ -140,23 +157,6 @@ const Navbar: React.FC = () => {
             >
               <BookOpen className="h-5 w-5" />
             </Link>
-            <Link
-              to="/planner/hub"
-              className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/planner'))}`}
-              aria-label="Planner Hub"
-              title="Planner Hub"
-            >
-              <LayoutGrid className="h-5 w-5" />
-            </Link>
-            <button
-              type="button"
-              onClick={startProject}
-              className={`hidden md:inline-flex ${appNavIconButtonClass()}`}
-              aria-label="Start project"
-              title="Start project"
-            >
-              <FolderPlus className="h-5 w-5" />
-            </button>
           </>
         )}
 
@@ -293,6 +293,18 @@ const Navbar: React.FC = () => {
 
               {isOwner && (
                 <>
+                  <Link
+                    to="/planner/hub"
+                    className={mobileLinkClass(isActive('/planner'))}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <LayoutGrid className="h-5 w-5" />
+                    Planner Hub
+                  </Link>
+                  <button type="button" onClick={startProject} className={mobileLinkClass(false)}>
+                    <FolderPlus className="h-5 w-5" />
+                    Start new project
+                  </button>
                   <button type="button" onClick={handleTools} className={mobileLinkClass(false)}>
                     <Wrench className="h-5 w-5" />
                     Tools
@@ -305,18 +317,6 @@ const Navbar: React.FC = () => {
                     <BookOpen className="h-5 w-5" />
                     Resources
                   </Link>
-                  <Link
-                    to="/planner/hub"
-                    className={mobileLinkClass(isActive('/planner'))}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <LayoutGrid className="h-5 w-5" />
-                    Planner Hub
-                  </Link>
-                  <button type="button" onClick={startProject} className={mobileLinkClass(false)}>
-                    <FolderPlus className="h-5 w-5" />
-                    Start project
-                  </button>
                   <Link
                     to="/employees"
                     className={mobileLinkClass(isActive('/employees'))}

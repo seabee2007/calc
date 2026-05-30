@@ -116,7 +116,7 @@ export async function getOwnerFieldActivity(
       summary: `${aid ? nameFor(aid) : 'Someone'} submitted ${row.title as string}`,
       timestamp: (row.submitted_at as string) ?? new Date().toISOString(),
       status: row.status as string,
-      href: `/owner/review?task=${row.id}`,
+      href: plannerBoardHref(pid, row.id as string),
     });
   }
 

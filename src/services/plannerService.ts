@@ -9,6 +9,7 @@ import {
   type TaskStatus,
 } from '../types/fieldPlanner';
 import { fetchProfilesByIds, displayNameFor } from './profileService';
+import { plannerBoardHref } from '../utils/plannerRoutes';
 
 function mapBoard(row: Record<string, unknown>): PlannerBoard {
   return {
@@ -392,7 +393,7 @@ export async function submitTaskForReview(taskId: string) {
       type: 'task_submitted',
       title: 'Task submitted for review',
       body: task.title,
-      href: `/owner/review?task=${task.id}`,
+      href: plannerBoardHref(task.projectId, task.id),
       projectId: task.projectId,
       taskId: task.id,
     });

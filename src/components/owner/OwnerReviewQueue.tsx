@@ -3,12 +3,15 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchTasksForOwner, reviewTask } from '../../services/plannerService';
-import { fetchOpenRfisForOwner, respondToRfi } from '../../services/rfiService';
-import {
-  fetchPendingAdjustmentsForOwner,
-  reviewFieldAdjustment,
-} from '../../services/fieldAdjustmentService';
+import { fetchOpenRfisForOwner } from '../../services/rfiService';
+import { fetchPendingAdjustmentsForOwner } from '../../services/fieldAdjustmentService';
 import type { PlannerTask, RfiRequest, FieldAdjustmentRequest } from '../../types/fieldPlanner';
+import {
+  plannerAdjustmentHref,
+  plannerBoardHref,
+  plannerRfiHref,
+} from '../../utils/plannerRoutes';
+import FieldRecordStatusBadge from '../field/FieldRecordStatusBadge';
 import { TaskStatusBadge } from '../planner/TaskStatusBadge';
 import Button from '../ui/Button';
 import OpsCard from '../dashboard/OpsCard';
@@ -97,9 +100,7 @@ export default function OwnerReviewQueue() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={() =>
-                      navigate(`/projects/${task.projectId}/planner/board?task=${task.id}`)
-                    }
+                    onClick={() => navigate(plannerBoardHref(task.projectId, task.id))}
                   >
                     Review
                   </Button>
@@ -128,22 +129,27 @@ export default function OwnerReviewQueue() {
           <h2 className="mb-4 text-lg font-semibold text-white">Open RFIs</h2>
           <ul className="space-y-3">
             {rfis.map((rfi) => (
-              <li key={rfi.id} className="rounded-lg border border-slate-700 bg-slate-800/60 p-3">
-                <p className="font-medium text-slate-100">{rfi.title}</p>
-                <p className="mt-1 text-sm text-slate-400">{rfi.question}</p>
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      const response = window.prompt('Owner response:');
-                      if (!response) return;
-                      await respondToRfi(rfi.id, user.id, response);
-                      await reload();
-                    }}
-                  >
-                    Respond
-                  </Button>
+              <li
+                key={rfi.id}
+                className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-800/60 p-3 sm:flex-row sm:items-start sm:justify-between"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {rfi.displayNumber && (
+                      <span className="font-mono text-xs text-cyan-400">{rfi.displayNumber}</span>
+                    )}
+                    <FieldRecordStatusBadge status={rfi.status} />
+                  </div>
+                  <p className="mt-1 font-medium text-slate-100">{rfi.title}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-400">{rfi.question}</p>
                 </div>
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => navigate(plannerRfiHref(rfi.projectId, rfi.id))}
+                >
+                  Open
+                </Button>
               </li>
             ))}
             {rfis.length === 0 && <p className="text-sm text-slate-400">No open RFIs.</p>}
@@ -156,30 +162,29 @@ export default function OwnerReviewQueue() {
           <h2 className="mb-4 text-lg font-semibold text-white">Pending field adjustments</h2>
           <ul className="space-y-3">
             {adjustments.map((adj) => (
-              <li key={adj.id} className="rounded-lg border border-slate-700 bg-slate-800/60 p-3">
-                <p className="font-medium text-slate-100">{adj.title}</p>
-                <p className="mt-1 text-sm text-slate-400">{adj.description}</p>
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      await reviewFieldAdjustment(adj.id, user.id, 'Approved');
-                      await reload();
-                    }}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={async () => {
-                      await reviewFieldAdjustment(adj.id, user.id, 'Rejected');
-                      await reload();
-                    }}
-                  >
-                    Reject
-                  </Button>
+              <li
+                key={adj.id}
+                className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-800/60 p-3 sm:flex-row sm:items-start sm:justify-between"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {adj.displayNumber && (
+                      <span className="font-mono text-xs text-cyan-400">{adj.displayNumber}</span>
+                    )}
+                    <FieldRecordStatusBadge status={adj.status} />
+                  </div>
+                  <p className="mt-1 font-medium text-slate-100">{adj.title}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-400">
+                    {adj.conditionDescription ?? adj.description}
+                  </p>
                 </div>
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => navigate(plannerAdjustmentHref(adj.projectId, adj.id))}
+                >
+                  Review
+                </Button>
               </li>
             ))}
             {adjustments.length === 0 && (

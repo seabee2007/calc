@@ -89,6 +89,7 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
       {isOwner && (
         <Link
           to="/projects"
+          state={{ openCreate: true }}
           onClick={onMobileClose}
           className={navClass(location.pathname === '/projects')}
         >
