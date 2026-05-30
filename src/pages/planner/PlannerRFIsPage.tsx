@@ -1,115 +1,186 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
-import { supabase } from '../../lib/supabase';
 import type { RfiRequest } from '../../types/fieldPlanner';
-import { respondToRfi } from '../../services/rfiService';
+import { RFI_PRIORITIES } from '../../types/fieldPlanner';
+import { fetchRfisForProject, isRfiClosed } from '../../services/rfiService';
+import { fetchProfilesByIds, displayNameFor } from '../../services/profileService';
 import Button from '../../components/ui/Button';
 import CreateRfiModal from '../../components/field/CreateRfiModal';
-import { PLANNER_MUTED, PLANNER_PAGE_BG, PLANNER_SECTION_TITLE } from '../../components/planner/plannerTheme';
+import RfiDetailDrawer from '../../components/field/RfiDetailDrawer';
+import FieldRecordStatusBadge from '../../components/field/FieldRecordStatusBadge';
+import { TaskPriorityBadge } from '../../components/planner/TaskStatusBadge';
+import {
+  PLANNER_MUTED,
+  PLANNER_PAGE_BG,
+  PLANNER_SECTION_TITLE,
+  PLANNER_BTN_PRIMARY,
+} from '../../components/planner/plannerTheme';
 
 export default function PlannerRFIsPage() {
   const { user } = useAuth();
   const { projectId, isOwner, reload } = usePlannerProject();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const highlightId = searchParams.get('rfi');
   const [rfis, setRfis] = useState<RfiRequest[]>([]);
+  const [nameMap, setNameMap] = useState<Map<string, string>>(new Map());
   const [createOpen, setCreateOpen] = useState(false);
-  const [responseText, setResponseText] = useState<Record<string, string>>({});
+  const [selectedId, setSelectedId] = useState<string | null>(highlightId);
+  const [search, setSearch] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  const load = async () => {
-    const { data } = await supabase
-      .from('rfi_requests')
-      .select('*')
-      .eq('project_id', projectId)
-      .order('created_at', { ascending: false });
-    setRfis(
-      (data ?? []).map((row) => ({
-        id: row.id as string,
-        projectId: row.project_id as string,
-        taskId: (row.task_id as string) ?? null,
-        submittedBy: row.submitted_by as string,
-        title: row.title as string,
-        question: row.question as string,
-        suggestedSolution: (row.suggested_solution as string) ?? null,
-        urgency: row.urgency as string,
-        status: row.status as string,
-        ownerResponse: (row.owner_response as string) ?? null,
-        respondedBy: (row.responded_by as string) ?? null,
-        respondedAt: (row.responded_at as string) ?? null,
-        createdAt: row.created_at as string,
-        updatedAt: row.updated_at as string,
-      })),
-    );
-  };
+  const load = useCallback(async () => {
+    const list = await fetchRfisForProject(projectId);
+    setRfis(list);
+    const ids = [...new Set(list.map((r) => r.submittedBy))];
+    const profiles = await fetchProfilesByIds(ids);
+    const map = new Map<string, string>();
+    for (const id of ids) {
+      map.set(id, displayNameFor(profiles.get(id), 'Team member'));
+    }
+    setNameMap(map);
+  }, [projectId]);
 
   useEffect(() => {
     void load();
-  }, [projectId]);
+  }, [load]);
 
-  const handleRespond = async (rfiId: string) => {
-    if (!user || !responseText[rfiId]?.trim()) return;
-    await respondToRfi(rfiId, user.id, responseText[rfiId].trim());
-    await load();
-    void reload();
+  useEffect(() => {
+    if (highlightId) setSelectedId(highlightId);
+  }, [highlightId]);
+
+  const filtered = useMemo(() => {
+    return rfis.filter((r) => {
+      if (search && !r.title.toLowerCase().includes(search.toLowerCase())) return false;
+      if (priorityFilter && r.urgency !== priorityFilter) return false;
+      if (statusFilter && r.status !== statusFilter) return false;
+      return true;
+    });
+  }, [rfis, search, priorityFilter, statusFilter]);
+
+  const openRfis = filtered.filter((r) => !isRfiClosed(r.status));
+  const closedRfis = filtered.filter((r) => isRfiClosed(r.status));
+
+  const openDrawer = (id: string) => {
+    setSelectedId(id);
+    setSearchParams({ rfi: id }, { replace: true });
+  };
+
+  const closeDrawer = () => {
+    setSelectedId(null);
+    setSearchParams({}, { replace: true });
+  };
+
+  const renderTable = (rows: RfiRequest[], empty: string) => {
+    if (rows.length === 0) {
+      return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
+    }
+    return (
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+        <table className="min-w-full text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+            <tr>
+              <th className="px-3 py-2">RFI #</th>
+              <th className="px-3 py-2">Subject</th>
+              <th className="px-3 py-2">Priority</th>
+              <th className="px-3 py-2">Submitted by</th>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((rfi) => (
+              <tr
+                key={rfi.id}
+                className={`border-b border-slate-100 last:border-0 dark:border-slate-800 ${
+                  highlightId === rfi.id ? 'bg-cyan-50/50 dark:bg-cyan-950/20' : ''
+                }`}
+              >
+                <td className="px-3 py-2 font-mono text-xs">{rfi.displayNumber ?? '—'}</td>
+                <td className="max-w-[200px] truncate px-3 py-2 font-medium">{rfi.title}</td>
+                <td className="px-3 py-2">
+                  <TaskPriorityBadge priority={rfi.urgency as 'Low' | 'Normal' | 'High' | 'Urgent'} />
+                </td>
+                <td className="px-3 py-2">{nameMap.get(rfi.submittedBy) ?? '—'}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-gray-500">
+                  {new Date(rfi.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-3 py-2">
+                  <FieldRecordStatusBadge status={rfi.status} />
+                </td>
+                <td className="px-3 py-2">
+                  <Button size="sm" variant="outline" onClick={() => openDrawer(rfi.id)}>
+                    View
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   };
 
   return (
     <div className={`${PLANNER_PAGE_BG} flex-1 overflow-y-auto p-4 sm:p-6`}>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className={PLANNER_SECTION_TITLE}>RFIs</h2>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
+        <Button size="sm" className={PLANNER_BTN_PRIMARY} onClick={() => setCreateOpen(true)}>
           New RFI
         </Button>
       </div>
 
-      {rfis.length === 0 && <p className={PLANNER_MUTED}>No RFIs for this project.</p>}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <input
+          type="search"
+          placeholder="Search subject…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="min-w-[160px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+        />
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+        >
+          <option value="">All priorities</option>
+          {RFI_PRIORITIES.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+        >
+          <option value="">All statuses</option>
+          <option value="Open">Open</option>
+          <option value="Pending Response">Pending Response</option>
+          <option value="Need More Information">Need More Information</option>
+          <option value="Answered">Answered</option>
+          <option value="Closed">Closed</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
 
-      <ul className="space-y-3">
-        {rfis.map((rfi) => (
-          <li
-            key={rfi.id}
-            id={`rfi-${rfi.id}`}
-            className={`rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 ${
-              highlightId === rfi.id ? 'ring-2 ring-cyan-500' : ''
-            }`}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <h3 className="font-semibold text-gray-900 dark:text-white">{rfi.title}</h3>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
-                {rfi.status}
-              </span>
-            </div>
-            <p className="mt-2 text-sm text-gray-700 dark:text-slate-300">{rfi.question}</p>
-            {rfi.ownerResponse && (
-              <p className="mt-2 rounded-lg bg-slate-50 p-2 text-sm dark:bg-slate-800">
-                <span className="font-medium">Owner: </span>
-                {rfi.ownerResponse}
-              </p>
-            )}
-            {isOwner && rfi.status === 'Open' && (
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <input
-                  type="text"
-                  value={responseText[rfi.id] ?? ''}
-                  onChange={(e) =>
-                    setResponseText((prev) => ({ ...prev, [rfi.id]: e.target.value }))
-                  }
-                  placeholder="Owner response…"
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                />
-                <Button size="sm" onClick={() => void handleRespond(rfi.id)}>
-                  Respond
-                </Button>
-              </div>
-            )}
-            <p className="mt-2 text-xs text-gray-500 dark:text-slate-500">
-              {new Date(rfi.createdAt).toLocaleString()}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <section className="mb-6">
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Open RFIs ({openRfis.length})
+        </h3>
+        {renderTable(openRfis, 'No open RFIs.')}
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Closed RFIs ({closedRfis.length})
+        </h3>
+        {renderTable(closedRfis, 'No closed RFIs.')}
+      </section>
 
       {user && (
         <CreateRfiModal
@@ -117,7 +188,23 @@ export default function PlannerRFIsPage() {
           onClose={() => setCreateOpen(false)}
           projectId={projectId}
           userId={user.id}
-          onCreated={() => void load()}
+          onCreated={() => {
+            void load();
+            void reload();
+          }}
+        />
+      )}
+
+      {user && (
+        <RfiDetailDrawer
+          rfiId={selectedId}
+          userId={user.id}
+          isOwner={isOwner}
+          onClose={closeDrawer}
+          onUpdated={() => {
+            void load();
+            void reload();
+          }}
         />
       )}
     </div>

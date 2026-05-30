@@ -57,18 +57,20 @@ export async function getOwnerFieldActivity(
       .limit(limit),
     supabase
       .from('rfi_requests')
-      .select('id, project_id, submitted_by, title, status, created_at')
+      .select(
+        'id, project_id, submitted_by, title, status, created_at, owner_response, responded_at',
+      )
       .in('project_id', projectIds)
-      .eq('status', 'Open')
       .order('created_at', { ascending: false })
-      .limit(limit),
+      .limit(limit * 2),
     supabase
       .from('field_adjustment_requests')
-      .select('id, project_id, submitted_by, title, status, created_at')
+      .select(
+        'id, project_id, submitted_by, title, status, created_at, updated_at, owner_response, approved_at, approved_by',
+      )
       .in('project_id', projectIds)
-      .eq('status', 'Pending')
       .order('created_at', { ascending: false })
-      .limit(limit),
+      .limit(limit * 2),
   ]);
 
   const userIds = new Set<string>();
@@ -151,32 +153,66 @@ export async function getOwnerFieldActivity(
 
   for (const row of rfis.data ?? []) {
     const pid = row.project_id as string;
+    const rid = row.id as string;
+    const submitter = nameFor(row.submitted_by as string);
     items.push({
-      id: `rfi-${row.id}`,
+      id: `rfi-${rid}`,
       type: 'rfi',
       projectId: pid,
       projectName: names.get(pid) ?? 'Project',
-      employeeName: nameFor(row.submitted_by as string),
-      summary: `${nameFor(row.submitted_by as string)} created RFI: ${row.title as string}`,
+      employeeName: submitter,
+      summary: `RFI submitted — ${row.title as string}`,
       timestamp: row.created_at as string,
       status: row.status as string,
-      href: plannerRfiHref(pid, row.id as string),
+      href: plannerRfiHref(pid, rid),
     });
+    if (row.owner_response && row.responded_at) {
+      items.push({
+        id: `rfi-response-${rid}`,
+        type: 'owner_response',
+        projectId: pid,
+        projectName: names.get(pid) ?? 'Project',
+        employeeName: 'Owner',
+        summary: `Owner responded to RFI — ${row.title as string}`,
+        timestamp: row.responded_at as string,
+        status: row.status as string,
+        href: plannerRfiHref(pid, rid),
+      });
+    }
   }
 
   for (const row of adjustments.data ?? []) {
     const pid = row.project_id as string;
+    const aid = row.id as string;
+    const submitter = nameFor(row.submitted_by as string);
     items.push({
-      id: `adjustment-${row.id}`,
+      id: `adjustment-${aid}`,
       type: 'field_adjustment',
       projectId: pid,
       projectName: names.get(pid) ?? 'Project',
-      employeeName: nameFor(row.submitted_by as string),
-      summary: `${nameFor(row.submitted_by as string)} requested field adjustment: ${row.title as string}`,
+      employeeName: submitter,
+      summary: `Field adjustment submitted — ${row.title as string}`,
       timestamp: row.created_at as string,
       status: row.status as string,
-      href: plannerAdjustmentHref(pid, row.id as string),
+      href: plannerAdjustmentHref(pid, aid),
     });
+    if (row.status !== 'Pending') {
+      const reviewTs =
+        (row.approved_at as string) ??
+        (row.updated_at as string) ??
+        (row.created_at as string);
+      items.push({
+        id: `adjustment-review-${aid}`,
+        type: 'owner_response',
+        projectId: pid,
+        projectName: names.get(pid) ?? 'Project',
+        employeeName: 'Owner',
+        summary: `Owner ${(row.status as string).toLowerCase()} field adjustment — ${row.title as string}`,
+        timestamp: reviewTs,
+        status: row.status as string,
+        href: plannerAdjustmentHref(pid, aid),
+      });
+    }
   }
 
   items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -424,7 +460,7 @@ export async function getOwnerFieldSummary(ownerId: string) {
       .from('rfi_requests')
       .select('id', { count: 'exact', head: true })
       .in('project_id', projectIds)
-      .eq('status', 'Open'),
+      .in('status', ['Open', 'Pending Response', 'Need More Information']),
     supabase
       .from('field_adjustment_requests')
       .select('id', { count: 'exact', head: true })

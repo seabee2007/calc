@@ -292,12 +292,20 @@ export default function TaskDetailDrawer({
                   </Button>
                 </div>
               )}
-              {canEditTask && (
+              {(isOwner || isEmployee) && (
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => setRfiOpen(true)}>
+                  <Button
+                    variant="outline"
+                    className="min-h-12"
+                    onClick={() => setRfiOpen(true)}
+                  >
                     Create RFI
                   </Button>
-                  <Button variant="outline" onClick={() => setAdjustmentOpen(true)}>
+                  <Button
+                    variant="outline"
+                    className="min-h-12"
+                    onClick={() => setAdjustmentOpen(true)}
+                  >
                     Field adjustment
                   </Button>
                 </div>
@@ -320,6 +328,7 @@ export default function TaskDetailDrawer({
             projectId={task.projectId}
             taskId={task.id}
             userId={userId}
+            onCreated={() => void reload()}
           />
           <CreateFieldAdjustmentModal
             isOpen={adjustmentOpen}
@@ -327,6 +336,7 @@ export default function TaskDetailDrawer({
             projectId={task.projectId}
             taskId={task.id}
             userId={userId}
+            onCreated={() => void reload()}
           />
         </>
       )}

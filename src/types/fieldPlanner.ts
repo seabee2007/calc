@@ -163,21 +163,90 @@ export interface FieldMessage {
   projectName?: string | null;
 }
 
+export type RfiPriority = TaskPriority;
+
+export const RFI_PRIORITIES: RfiPriority[] = ['Low', 'Normal', 'High', 'Urgent'];
+
+export const RFI_STATUSES = [
+  'Open',
+  'Pending Response',
+  'Answered',
+  'Closed',
+  'Rejected',
+  'Need More Information',
+] as const;
+
+export type RfiStatus = (typeof RFI_STATUSES)[number];
+
+export const RFI_RESPONSE_STATUSES: RfiStatus[] = [
+  'Answered',
+  'Closed',
+  'Need More Information',
+  'Rejected',
+];
+
+export const FAR_REASONS = [
+  'Existing Conditions',
+  'Utility Conflict',
+  'Safety Concern',
+  'Constructability Issue',
+  'Material Availability',
+  'Owner Request',
+  'Other',
+] as const;
+
+export type FarReason = (typeof FAR_REASONS)[number];
+
+export const FAR_SCHEDULE_IMPACTS = [
+  'None',
+  'Less Than 1 Day',
+  '1-3 Days',
+  'More Than 3 Days',
+] as const;
+
+export type FarScheduleImpact = (typeof FAR_SCHEDULE_IMPACTS)[number];
+
+export const FAR_STATUSES = [
+  'Pending',
+  'Needs More Information',
+  'Approved',
+  'Rejected',
+  'Requires Change Order',
+] as const;
+
+export type FarStatus = (typeof FAR_STATUSES)[number];
+
+export const FAR_REVIEW_STATUSES: FarStatus[] = [
+  'Approved',
+  'Rejected',
+  'Needs More Information',
+  'Requires Change Order',
+];
+
 export interface RfiRequest {
   id: string;
   projectId: string;
   taskId: string | null;
   submittedBy: string;
+  displayNumber: string | null;
   title: string;
   question: string;
   suggestedSolution: string | null;
+  location: string | null;
+  drawingReference: string | null;
+  specReference: string | null;
   urgency: string;
+  impactSchedule: boolean;
+  impactCost: boolean;
+  impactQuality: boolean;
+  impactSafety: boolean;
   status: string;
   ownerResponse: string | null;
   respondedBy: string | null;
   respondedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  submitterName?: string | null;
 }
 
 export interface FieldAdjustmentRequest {
@@ -185,19 +254,40 @@ export interface FieldAdjustmentRequest {
   projectId: string;
   taskId: string | null;
   submittedBy: string;
+  displayNumber: string | null;
   title: string;
   description: string;
+  location: string | null;
+  conditionDescription: string | null;
+  proposedAdjustment: string | null;
   reason: string | null;
   laborImpact: number | null;
   materialImpact: number | null;
+  equipmentCost: number | null;
   scheduleImpact: string | null;
   estimatedCost: number | null;
+  convertedToChangeOrder: boolean;
   status: string;
   ownerResponse: string | null;
   approvedBy: string | null;
   approvedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  submitterName?: string | null;
+}
+
+export interface FieldRecordAttachment {
+  id: string;
+  projectId: string;
+  taskId: string | null;
+  rfiId: string | null;
+  adjustmentId: string | null;
+  uploadedBy: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: string | null;
+  attachmentType: string;
+  createdAt: string;
 }
 
 export type FieldActivityType =
