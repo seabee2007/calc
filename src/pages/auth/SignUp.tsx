@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserPlus, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
@@ -21,6 +21,8 @@ interface SignUpForm {
 const SignUp: React.FC = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('invite');
 
   const {
     register,
@@ -106,8 +108,9 @@ const SignUp: React.FC = () => {
 
       navigate('/login', {
         state: {
-          message: 'Account created successfully! Please sign in.'
-        }
+          message: 'Account created successfully! Please sign in.',
+          inviteToken: inviteToken ?? undefined,
+        },
       });
     } catch {
       setError('root', {

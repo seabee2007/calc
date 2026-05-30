@@ -28,6 +28,17 @@ import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
 import AuthGuard from './components/auth/AuthGuard';
+import { OwnerGuard, EmployeeGuard } from './components/auth/RoleGuard';
+import EmployeeLayout from './components/layout/EmployeeLayout';
+import ProjectPlannerPage from './pages/planner/ProjectPlannerPage';
+import OwnerReviewPage from './pages/owner/OwnerReviewPage';
+import EmployeeManagementPage from './pages/owner/EmployeeManagementPage';
+import EmployeeDashboardPage from './pages/employee/EmployeeDashboardPage';
+import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
+import EmployeeTaskDetailPage from './pages/employee/EmployeeTaskDetailPage';
+import EmployeeProjectsPage from './pages/employee/EmployeeProjectsPage';
+import EmployeeMessagesPage from './pages/employee/EmployeeMessagesPage';
+import EmployeeUploadsPage from './pages/employee/EmployeeUploadsPage';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
 import { useAuth } from './hooks/useAuth';
@@ -273,6 +284,42 @@ function App() {
                 </AuthGuard>
               }
             />
+            <Route
+              path="projects/:projectId/planner"
+              element={
+                <AuthGuard>
+                  <ProjectPlannerPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="projects/:projectId/tasks/:taskId"
+              element={
+                <AuthGuard>
+                  <ProjectPlannerPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="employees"
+              element={
+                <AuthGuard>
+                  <OwnerGuard>
+                    <EmployeeManagementPage />
+                  </OwnerGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="owner/review"
+              element={
+                <AuthGuard>
+                  <OwnerGuard>
+                    <OwnerReviewPage />
+                  </OwnerGuard>
+                </AuthGuard>
+              }
+            />
             <Route path="dispatch" element={<Navigate to="/" replace />} />
             <Route path="qc" element={<Navigate to="/" replace />} />
             <Route
@@ -323,6 +370,22 @@ function App() {
             <Route path="resources/common-problems" element={<CommonProblems />} />
             <Route path="resources/admixtures" element={<Admixtures />} />
             <Route path="resources/external-resources" element={<ExternalResources />} />
+          </Route>
+          <Route
+            element={
+              <AuthGuard>
+                <EmployeeGuard>
+                  <EmployeeLayout />
+                </EmployeeGuard>
+              </AuthGuard>
+            }
+          >
+            <Route path="/employee/dashboard" element={<EmployeeDashboardPage />} />
+            <Route path="/employee/projects" element={<EmployeeProjectsPage />} />
+            <Route path="/employee/tasks" element={<EmployeeTasksPage />} />
+            <Route path="/employee/tasks/:taskId" element={<EmployeeTaskDetailPage />} />
+            <Route path="/employee/messages" element={<EmployeeMessagesPage />} />
+            <Route path="/employee/uploads" element={<EmployeeUploadsPage />} />
           </Route>
           <Route path="/proposal/:token" element={<PublicProposal />} />
           <Route path="/client/project/:token" element={<ClientPortal />} />

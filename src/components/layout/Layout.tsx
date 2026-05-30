@@ -10,7 +10,8 @@ import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
 const Layout: React.FC = () => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isEmployee } = useAuth();
+  const isEmployeeRoute = location.pathname.startsWith('/employee');
   const isPublicProposal = location.pathname.startsWith('/proposal/');
   const isPublicClientPortal = location.pathname.startsWith('/client/project/');
   const isAuthPage =
@@ -18,7 +19,7 @@ const Layout: React.FC = () => {
     location.pathname === '/signup' ||
     isPublicProposal ||
     isPublicClientPortal;
-  const showBottomNav = Boolean(user) && !isAuthPage;
+  const showBottomNav = Boolean(user) && !isAuthPage && !isEmployeeRoute && !isEmployee;
 
   useEffect(() => {
     // Scroll to top on route change
@@ -138,7 +139,7 @@ const Layout: React.FC = () => {
         </main>
         <Footer />
         {showBottomNav && <BottomNav />}
-        {user && (
+        {user && !isEmployee && !isEmployeeRoute && (
           <>
             <ToolsModal />
             <MoreMenuModal />

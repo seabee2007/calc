@@ -22,7 +22,10 @@ import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
 import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
+import OwnerFieldSummaryCards from '../components/owner/OwnerFieldSummaryCards';
+import OwnerActivityFeed from '../components/owner/OwnerActivityFeed';
 import Button from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
 
 const OPS_SHELL =
   'dark text-white isolation-auto rounded-xl min-h-[200px]';
@@ -41,6 +44,7 @@ function formatPourDateLabel(d: Date): string {
 }
 
 const OperationsDashboard: React.FC = () => {
+  const { isOwner } = useAuth();
   const { projects, loadProjects } = useProjectStore();
   const location = useLocation();
   const { proposals, refresh: refreshProposals } = useTrackedProposals();
@@ -204,6 +208,13 @@ const OperationsDashboard: React.FC = () => {
         onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
         onQuickQuote={() => navigate('/proposal-generator')}
       />
+
+      {isOwner && (
+        <section className="space-y-4">
+          <OwnerFieldSummaryCards />
+          <OwnerActivityFeed limit={8} />
+        </section>
+      )}
 
       <section className="space-y-4 lg:hidden">
         <FinancialSnapshotCard financial={financial} />

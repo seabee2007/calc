@@ -102,4 +102,40 @@ export function getLogoPublicUrl(path: string): string {
     .getPublicUrl(path);
   
   return publicUrl;
-} 
+}
+
+export interface FieldAttachmentUploadResult {
+  publicUrl: string;
+  path: string;
+  fileName: string;
+}
+
+/**
+ * Upload a field photo/document to the field-attachments bucket.
+ */
+export async function uploadFieldAttachment(
+  file: File,
+  userId: string,
+  projectId: string,
+  taskId: string,
+): Promise<FieldAttachmentUploadResult> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const filePath = `${userId}/${projectId}/${taskId}/${Date.now()}-${safeName}`;
+
+  const { error } = await supabase.storage.from('field-attachments').upload(filePath, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type || `image/${ext}`,
+  });
+
+  if (error) {
+    throw new Error(`Failed to upload attachment: ${error.message}`);
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('field-attachments').getPublicUrl(filePath);
+
+  return { publicUrl, path: filePath, fileName: file.name };
+}

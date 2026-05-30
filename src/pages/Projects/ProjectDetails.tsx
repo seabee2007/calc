@@ -47,9 +47,14 @@ import {
 } from '../../utils/pourScoring';
 import { getQcBreakStatus } from '../../utils/projectFolders';
 import ClientPortalActions from '../../components/projects/ClientPortalActions';
+import ProjectFieldActivityStrip from '../../components/owner/ProjectFieldActivityStrip';
+import { PLANNER_BTN_PRIMARY } from '../../components/planner/plannerTheme';
+import { useAuth } from '../../hooks/useAuth';
+import { ClipboardList } from 'lucide-react';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
+  const { isOwner } = useAuth();
   const { currentProject, ui, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
   const project = (currentProject as any) ?? null;
@@ -431,6 +436,19 @@ export default function ProjectDetails() {
           clientName={project.clientInfo?.clientName}
           clientEmail={project.clientInfo?.clientEmail}
         />
+
+        {isOwner && (
+          <div className="mt-4 space-y-3">
+            <Button
+              className={`w-full sm:w-auto ${PLANNER_BTN_PRIMARY}`}
+              icon={<ClipboardList className="h-4 w-4" />}
+              onClick={() => navigate(`/projects/${project.id}/planner`)}
+            >
+              Open Field Planner
+            </Button>
+            <ProjectFieldActivityStrip projectId={project.id} />
+          </div>
+        )}
       </div>
 
       {/* SECTION 2 — PROJECT WORKFLOW STATUS */}

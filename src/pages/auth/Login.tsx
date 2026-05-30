@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { LogIn, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
@@ -15,8 +15,13 @@ interface LoginForm {
 }
 
 const Login: React.FC = () => {
-  const { signIn } = useAuth();
+  const { signIn, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const inviteToken =
+    (location.state as { inviteToken?: string } | null)?.inviteToken ??
+    new URLSearchParams(location.search).get('invite') ??
+    undefined;
   const { register, handleSubmit, formState: { errors }, setError, watch } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = React.useState(false);
   const [resetEmailSent, setResetEmailSent] = React.useState(false);
@@ -28,7 +33,19 @@ const Login: React.FC = () => {
     try {
       setIsLoading(true);
       await signIn(data.email, data.password);
-      navigate('/'); // Changed from '/projects' to '/'
+      const { data: session } = await supabase.auth.getUser();
+      if (inviteToken && session.user) {
+        const { acceptInviteForCurrentUser } = await import('../../services/employeeService');
+        try {
+          await acceptInviteForCurrentUser(inviteToken, session.user.id);
+          await refreshProfile();
+          navigate('/employee/dashboard', { replace: true });
+          return;
+        } catch {
+          // fall through to default home
+        }
+      }
+      navigate('/', { replace: true });
     } catch (error) {
       setError('root', {
         message: 'Invalid email or password'

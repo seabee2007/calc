@@ -16,13 +16,14 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../ui/Button';
 import ThemeToggle from './ThemeToggle';
+import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import { workflowQuery } from '../../utils/workflow';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isOwner, isEmployee } = useAuth();
   const openTools = useToolsModalStore((s) => s.open);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -72,7 +73,24 @@ const Navbar: React.FC = () => {
   };
 
   const authenticatedDesktopLinks = user
-    ? [
+    ? isEmployee
+      ? [
+          {
+            name: 'Field Portal',
+            path: '/employee/dashboard',
+            icon: <LayoutDashboard size={20} />,
+            shortName: 'Portal',
+            onClick: undefined,
+          },
+          {
+            name: 'Tasks',
+            path: '/employee/tasks',
+            icon: <Calculator size={20} />,
+            shortName: 'Tasks',
+            onClick: undefined,
+          },
+        ]
+      : [
         {
           name: 'Dashboard',
           path: '/',
@@ -80,6 +98,17 @@ const Navbar: React.FC = () => {
           shortName: 'Dash',
           onClick: undefined as (() => void) | undefined,
         },
+        ...(isOwner
+          ? [
+              {
+                name: 'Team',
+                path: '/employees',
+                icon: <UserPlus size={20} />,
+                shortName: 'Team',
+                onClick: undefined,
+              },
+            ]
+          : []),
         {
           name: 'Start Project',
           path: '/projects',
@@ -176,6 +205,7 @@ const Navbar: React.FC = () => {
 
             <div className="flex items-center space-x-1 lg:space-x-2 flex-shrink-0">
               <ThemeToggle />
+              {isOwner && <FieldNotificationsBell />}
 
               {user ? (
                 <Button
