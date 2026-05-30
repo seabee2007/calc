@@ -28,7 +28,7 @@ const formatDateSafely = (dateString: string | undefined | null): string => {
 };
 
 // Helper function to save PDF with platform detection
-async function savePDFWithPlatformSupport(
+export async function savePDFWithPlatformSupport(
   doc: jsPDF, 
   filename: string, 
   title: string = 'PDF Document'

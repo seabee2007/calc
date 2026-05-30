@@ -7,6 +7,7 @@ import {
   formatChangeOrderMoney,
 } from '../../utils/changeOrderFinancials';
 import Button from '../ui/Button';
+import { PLANNER_INPUT } from '../planner/plannerTheme';
 
 interface Props {
   label: string;
@@ -77,14 +78,14 @@ export default function ChangeOrderLineItemsEditor({
         return (
           <div
             key={index}
-            className={`grid grid-cols-1 gap-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700 sm:grid ${gridClass}`}
+            className={`grid grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/60 sm:grid ${gridClass}`}
           >
             <input
               type="text"
               value={row.description}
               onChange={(e) => update(index, { description: e.target.value })}
               placeholder="Description"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className={PLANNER_INPUT}
             />
             <input
               type="number"
@@ -95,7 +96,7 @@ export default function ChangeOrderLineItemsEditor({
                 update(index, { qty: e.target.value ? Number(e.target.value) : undefined })
               }
               placeholder="Qty"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className={PLANNER_INPUT}
             />
             {isEquipment && (
               <input
@@ -107,7 +108,7 @@ export default function ChangeOrderLineItemsEditor({
                   update(index, { hours: e.target.value ? Number(e.target.value) : undefined })
                 }
                 placeholder="Hrs"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                className={PLANNER_INPUT}
               />
             )}
             <input
@@ -122,7 +123,7 @@ export default function ChangeOrderLineItemsEditor({
               }
               placeholder={isEquipment ? '$/hr' : 'Unit $'}
               title="Use arrows for whole numbers; you can type decimals (e.g. 45.60)"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className={PLANNER_INPUT}
             />
             <div
               className="flex min-h-[42px] items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium tabular-nums text-gray-900 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100"

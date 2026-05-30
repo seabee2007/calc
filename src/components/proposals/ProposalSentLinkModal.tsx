@@ -6,8 +6,12 @@ import { hapticService } from '../../services/hapticService';
 interface ProposalSentLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
-  proposalUrl: string;
+  /** @deprecated Use shareUrl */
+  proposalUrl?: string;
+  shareUrl?: string;
   title?: string;
+  shareTitle?: string;
+  onEmailClient?: () => void;
 }
 
 async function copyTextToClipboard(text: string): Promise<boolean> {
@@ -36,8 +40,12 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
   isOpen,
   onClose,
   proposalUrl,
+  shareUrl,
   title = 'Proposal Sent',
+  shareTitle = 'Concrete Proposal',
+  onEmailClient,
 }) => {
+  const linkUrl = shareUrl ?? proposalUrl ?? '';
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
   const canShare =
@@ -48,11 +56,11 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
       setCopied(false);
       setCopyError(false);
     }
-  }, [isOpen, proposalUrl]);
+  }, [isOpen, linkUrl]);
 
   const copyProposalLink = async () => {
     setCopyError(false);
-    const ok = await copyTextToClipboard(proposalUrl);
+    const ok = await copyTextToClipboard(linkUrl);
     if (ok) {
       soundService.play('save');
       void hapticService.selection();
@@ -68,9 +76,9 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Concrete Proposal',
-          text: 'Here is your concrete proposal:',
-          url: proposalUrl,
+          title: shareTitle,
+          text: 'Please review this document:',
+          url: linkUrl,
         });
       } catch (err) {
         if ((err as Error)?.name !== 'AbortError') {
@@ -90,12 +98,12 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
         </p>
 
         <a
-          href={proposalUrl}
+          href={linkUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="block break-all rounded-xl border border-blue-500/40 bg-slate-100 p-3 text-blue-700 underline dark:bg-slate-900 dark:text-blue-300"
         >
-          {proposalUrl}
+          {linkUrl}
         </a>
 
         {copied && (
@@ -128,6 +136,16 @@ const ProposalSentLinkModal: React.FC<ProposalSentLinkModalProps> = ({
             </button>
           )}
         </div>
+
+        {onEmailClient && (
+          <button
+            type="button"
+            onClick={onEmailClient}
+            className="w-full rounded-xl border border-blue-500/50 px-4 py-3 font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-800"
+          >
+            Email client
+          </button>
+        )}
       </div>
     </Modal>
   );

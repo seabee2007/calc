@@ -25,6 +25,12 @@ export interface ProposalFinancialKpis {
   currentContractValue: number;
   /** Rolled up from projects.approved_change_order_total */
   approvedChangeOrderTotal: number;
+  /** Change orders sent / viewed (client has not accepted yet) */
+  changeOrderPendingRevenue: number;
+  /** Sum of accepted change order totals (from CO records) */
+  changeOrderAcceptedRevenue: number;
+  /** Probability-weighted open change orders */
+  changeOrderWeightedForecast: number;
 }
 
 export interface ProposalDashboardMetrics {
@@ -184,6 +190,9 @@ export function buildProposalFinancialKpis(
     declinedCount,
     currentContractValue: 0,
     approvedChangeOrderTotal: 0,
+    changeOrderPendingRevenue: 0,
+    changeOrderAcceptedRevenue: 0,
+    changeOrderWeightedForecast: 0,
   };
 }
 

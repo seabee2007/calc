@@ -10,6 +10,12 @@ import {
   type ProjectWorkflowStage,
 } from './projectWorkflow';
 import type { TrackedProposalRow } from '../types/proposalTracking';
+import type { ChangeOrder } from '../types/changeOrder';
+import {
+  buildChangeOrderDashboardMetrics,
+  mergeChangeOrderIntoProposalFinancial,
+  type ChangeOrderDashboardMetrics,
+} from './changeOrderKpis';
 import {
   buildProposalDashboardMetrics,
   mergeProjectContractRollup,
@@ -109,6 +115,7 @@ export interface OperationsSnapshot {
   smartTips: SmartPourTip[];
   deliverySchedule: DeliveryScheduleSnapshot | null;
   proposalMetrics: ProposalDashboardMetrics;
+  changeOrderMetrics: ChangeOrderDashboardMetrics;
   upcomingPlacements: UpcomingPlacementRow[];
   proposalsSentCount: number;
   globalHealthScore: number;
@@ -609,6 +616,7 @@ export function buildOperationsSnapshot(
   options?: {
     now?: Date;
     proposals?: TrackedProposalRow[];
+    changeOrders?: ChangeOrder[];
     /** Full project list for QC widget (defaults to `projects`). Pass all store projects when `projects` is ops-filtered. */
     allProjectsForQc?: Project[];
     proposalDrafts?: Record<string, { proposal?: { proposalData?: import('../types/proposal').ProposalData } }>;
@@ -616,6 +624,7 @@ export function buildOperationsSnapshot(
 ): OperationsSnapshot {
   const now = options?.now ?? new Date();
   const proposals = options?.proposals ?? [];
+  const changeOrders = options?.changeOrders ?? [];
   const proposalDrafts = options?.proposalDrafts ?? {};
   const qcProjectList = options?.allProjectsForQc ?? projects;
   const today = startOfDay(now);
@@ -760,9 +769,15 @@ export function buildOperationsSnapshot(
     : null;
 
   const baseProposalMetrics = buildProposalDashboardMetrics(proposals, now);
+  const changeOrderMetrics = buildChangeOrderDashboardMetrics(changeOrders, now);
+  let financial = mergeProjectContractRollup(baseProposalMetrics.financial, projects);
+  financial = mergeChangeOrderIntoProposalFinancial(
+    financial,
+    changeOrderMetrics.financial,
+  );
   const proposalMetrics: ProposalDashboardMetrics = {
     ...baseProposalMetrics,
-    financial: mergeProjectContractRollup(baseProposalMetrics.financial, projects),
+    financial,
   };
   const upcomingPlacements = buildUpcomingPlacements(projects, now);
 
@@ -826,6 +841,7 @@ export function buildOperationsSnapshot(
     smartTips: buildSmartPourTips(cards, { weatherRisk, heatRisk, windRisk, rainRisk }),
     deliverySchedule,
     proposalMetrics,
+    changeOrderMetrics,
     upcomingPlacements,
     proposalsSentCount,
     globalHealthScore,

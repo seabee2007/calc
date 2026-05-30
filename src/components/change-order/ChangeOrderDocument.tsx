@@ -16,6 +16,40 @@ function DocumentTextBlock({ label, text }: { label: string; text: string }) {
   );
 }
 
+function SignatureDisplay({
+  role,
+  name,
+  signature,
+  signedAt,
+}: {
+  role: string;
+  name: string | null;
+  signature: string | null;
+  signedAt: string | null;
+}) {
+  const ts = signedAt
+    ? new Date(signedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+    : null;
+  return (
+    <div className="mt-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <p className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">{role}</p>
+      {name?.trim() ? (
+        <p className="mt-1 text-sm text-gray-900 dark:text-slate-100">
+          <span className="font-medium">Name:</span> {name}
+        </p>
+      ) : (
+        <p className="mt-1 text-sm italic text-gray-400 dark:text-slate-500">Not signed</p>
+      )}
+      {signature?.startsWith('data:image') ? (
+        <img src={signature} alt={`${role} signature`} className="mt-2 max-h-16 object-contain" />
+      ) : signature?.trim() ? (
+        <p className="mt-2 font-serif text-lg italic text-gray-900 dark:text-white">{signature}</p>
+      ) : null}
+      {ts && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Signed {ts}</p>}
+    </div>
+  );
+}
+
 function ClientTotalRow({ label, value, grand }: { label: string; value: string; grand?: boolean }) {
   return (
     <div
@@ -106,6 +140,21 @@ export default function ChangeOrderDocument({
       {order.terms?.trim() ? (
         <DocumentTextBlock label="Terms" text={order.terms} />
       ) : null}
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <SignatureDisplay
+          role="Contractor"
+          name={order.contractorName}
+          signature={order.contractorSignature}
+          signedAt={order.contractorSignedAt}
+        />
+        <SignatureDisplay
+          role="Client"
+          name={order.clientName}
+          signature={order.clientSignature}
+          signedAt={order.clientSignedAt}
+        />
+      </div>
     </div>
   );
 }

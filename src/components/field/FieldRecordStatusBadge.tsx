@@ -22,6 +22,16 @@ const STATUS_STYLES: Record<string, string> = {
     'bg-purple-100/90 text-purple-900 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-200 dark:ring-purple-800/60',
   Closed:
     'bg-slate-100/90 text-slate-700 ring-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:ring-slate-600',
+  Draft:
+    'bg-slate-100/90 text-slate-700 ring-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:ring-slate-600',
+  Sent:
+    'bg-blue-100/90 text-blue-800 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-200 dark:ring-blue-800/60',
+  Viewed:
+    'bg-cyan-100/90 text-cyan-900 ring-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-200 dark:ring-cyan-800/60',
+  Accepted:
+    'bg-emerald-100/90 text-emerald-900 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800/60',
+  Declined:
+    'bg-red-100/90 text-red-900 ring-red-200 dark:bg-red-900/30 dark:text-red-200 dark:ring-red-800/60',
 };
 
 const DEFAULT_STYLE =

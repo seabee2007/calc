@@ -71,6 +71,12 @@ export function mapChangeOrder(row: Record<string, unknown>): ChangeOrder {
     openedAt: (row.opened_at as string) ?? null,
     acceptedAt: (row.accepted_at as string) ?? null,
     declinedAt: (row.declined_at as string) ?? null,
+    contractorName: (row.contractor_name as string) ?? null,
+    contractorSignature: (row.contractor_signature as string) ?? null,
+    contractorSignedAt: (row.contractor_signed_at as string) ?? null,
+    clientName: (row.client_name as string) ?? null,
+    clientSignature: (row.client_signature as string) ?? null,
+    clientSignedAt: (row.client_signed_at as string) ?? null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -108,6 +114,8 @@ function buildPayload(
     subtotal: totals.subtotal,
     total: totals.total,
     schedule_impact: input.scheduleImpact ?? null,
+    contractor_name: input.contractorName ?? null,
+    contractor_signature: input.contractorSignature ?? null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -325,19 +333,43 @@ export async function createChangeOrderManual(
   });
 }
 
-export async function markChangeOrderSent(id: string): Promise<ChangeOrder> {
+export async function markChangeOrderSent(
+  id: string,
+  contractor?: { name: string; signature: string },
+): Promise<ChangeOrder> {
+  const now = new Date().toISOString();
+  const payload: Record<string, unknown> = {
+    status: 'sent',
+    sent_at: now,
+    updated_at: now,
+  };
+  if (contractor?.name?.trim()) {
+    payload.contractor_name = contractor.name.trim();
+    payload.contractor_signature = contractor.signature?.trim() || contractor.name.trim();
+    payload.contractor_signed_at = now;
+  }
   const { data, error } = await supabase
     .from('change_orders')
-    .update({
-      status: 'sent',
-      sent_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
+    .update(payload)
     .eq('id', id)
     .select('*')
     .single();
   if (error) throw error;
   return mapChangeOrder(data);
+}
+
+/** Client email from project record for mailto prefill. */
+export async function fetchProjectClientEmail(projectId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('client_info, client_portal_access')
+    .eq('id', projectId)
+    .maybeSingle();
+  if (error || !data) return null;
+  const portal = data.client_portal_access as { clientEmail?: string } | null;
+  const info = data.client_info as { clientEmail?: string } | null;
+  const email = portal?.clientEmail?.trim() || info?.clientEmail?.trim();
+  return email || null;
 }
 
 export async function voidChangeOrder(id: string): Promise<void> {

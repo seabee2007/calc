@@ -47,7 +47,7 @@ export default function ChangeOrderInternalPricingSummary({ order }: { order: Ch
   );
 
   return (
-    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/80 p-4 font-mono text-sm dark:border-slate-600 dark:bg-slate-800/50">
+    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 font-mono text-sm shadow-sm dark:border-slate-600 dark:bg-slate-800/50">
       <p className="mb-3 text-xs font-sans font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
         Cost breakdown (internal)
       </p>

@@ -114,8 +114,14 @@ export default function PlannerChangeOrdersPage() {
                   <td className="px-3 py-2 font-mono text-xs">{co.displayNumber ?? '—'}</td>
                   <td className="max-w-[200px] truncate px-3 py-2 font-medium">{co.title}</td>
                   <td className="px-3 py-2">{formatMoney(co.total)}</td>
-                  <td className="px-3 py-2 capitalize">
-                    {STATUS_LABEL[co.status] ?? co.status}
+                  <td className="px-3 py-2">
+                    <span className="capitalize">{STATUS_LABEL[co.status] ?? co.status}</span>
+                    {co.sentAt && co.status !== 'draft' && (
+                      <span className="mt-0.5 block text-xs text-gray-500 dark:text-slate-500">
+                        Sent {new Date(co.sentAt).toLocaleDateString()}
+                        {co.openedAt && ` · Opened ${new Date(co.openedAt).toLocaleDateString()}`}
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2">
                     {isOwner && (

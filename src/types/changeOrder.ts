@@ -61,6 +61,12 @@ export interface ChangeOrder {
   openedAt: string | null;
   acceptedAt: string | null;
   declinedAt: string | null;
+  contractorName: string | null;
+  contractorSignature: string | null;
+  contractorSignedAt: string | null;
+  clientName: string | null;
+  clientSignature: string | null;
+  clientSignedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,4 +90,6 @@ export interface ChangeOrderInput {
   linkedFarId?: string | null;
   linkedRfiId?: string | null;
   linkedTaskId?: string | null;
+  contractorName?: string | null;
+  contractorSignature?: string | null;
 }

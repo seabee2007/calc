@@ -93,6 +93,14 @@ export const PLANNER_MUTED = 'text-sm text-gray-500 dark:text-slate-500';
 export const PLANNER_INPUT =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-cyan-500';
 
+/** Label for planner form fields (light + dark). */
+export const PLANNER_FORM_LABEL =
+  'mb-1 block text-sm font-medium text-gray-900 dark:text-slate-200';
+
+/** Opaque form panel over site background. */
+export const PLANNER_FORM_PANEL =
+  'space-y-4 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95';
+
 export const PLANNER_COMMENT_BOX =
   'rounded-lg border border-slate-200 bg-slate-50/90 px-3 py-2 shadow-sm dark:border-slate-700/80 dark:bg-slate-800/60';
 

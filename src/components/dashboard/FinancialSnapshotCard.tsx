@@ -53,10 +53,30 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
           value={formatProposalMoney(financial.currentContractValue)}
         />
       )}
+      {financial.changeOrderPendingRevenue > 0 && (
+        <Metric
+          label="COs awaiting client"
+          value={formatProposalMoney(financial.changeOrderPendingRevenue)}
+          highlight
+        />
+      )}
+      {financial.changeOrderAcceptedRevenue > 0 && (
+        <Metric
+          label="Accepted CO revenue"
+          value={formatProposalMoney(financial.changeOrderAcceptedRevenue)}
+        />
+      )}
       {financial.approvedChangeOrderTotal > 0 && (
         <Metric
-          label="Approved COs"
+          label="Contract CO total"
           value={formatProposalMoney(financial.approvedChangeOrderTotal)}
+        />
+      )}
+      {financial.changeOrderWeightedForecast > 0 && (
+        <Metric
+          label="CO forecast"
+          value={formatProposalMoney(financial.changeOrderWeightedForecast)}
+          icon={<TrendingUp className="h-3 w-3 text-amber-400" />}
         />
       )}
     </div>

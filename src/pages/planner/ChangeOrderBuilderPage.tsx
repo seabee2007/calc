@@ -8,6 +8,7 @@ import {
   createChangeOrderFromRfi,
   createChangeOrderManual,
   fetchChangeOrderById,
+  fetchProjectClientEmail,
   markChangeOrderSent,
   saveChangeOrder,
 } from '../../services/changeOrderService';
@@ -23,12 +24,17 @@ import { changeOrderEditHref, plannerChangeOrdersHref } from '../../utils/planne
 import ChangeOrderLineItemsEditor from '../../components/change-order/ChangeOrderLineItemsEditor';
 import ChangeOrderDocument from '../../components/change-order/ChangeOrderDocument';
 import ChangeOrderInternalPricingSummary from '../../components/change-order/ChangeOrderInternalPricingSummary';
+import ChangeOrderTrackingStrip from '../../components/change-order/ChangeOrderTrackingStrip';
+import SignatureBlock from '../../components/change-order/SignatureBlock';
 import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkModal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { generateProposalPDF } from '../../utils/pdf';
+import { generateChangeOrderPDF } from '../../utils/changeOrderPdf';
 import {
   PLANNER_BTN_PRIMARY,
+  PLANNER_FORM_LABEL,
+  PLANNER_FORM_PANEL,
+  PLANNER_INPUT,
   PLANNER_PAGE_BG,
   PLANNER_SECTION_TITLE,
 } from '../../components/planner/plannerTheme';
@@ -68,37 +74,72 @@ export default function ChangeOrderBuilderPage() {
   const [initDone, setInitDone] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [sentUrl, setSentUrl] = useState<string | null>(null);
+  const [displayNumber, setDisplayNumber] = useState<string | null>(null);
+  const [sentAt, setSentAt] = useState<string | null>(null);
+  const [viewedAt, setViewedAt] = useState<string | null>(null);
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const [acceptedAt, setAcceptedAt] = useState<string | null>(null);
+  const [declinedAt, setDeclinedAt] = useState<string | null>(null);
+  const [contractorName, setContractorName] = useState('');
+  const [contractorSignature, setContractorSignature] = useState('');
+  const [contractorSignedAt, setContractorSignedAt] = useState<string | null>(null);
+  const [clientName, setClientName] = useState<string | null>(null);
+  const [clientSignature, setClientSignature] = useState<string | null>(null);
+  const [clientSignedAt, setClientSignedAt] = useState<string | null>(null);
+  const [clientEmail, setClientEmail] = useState<string | null>(null);
+  const [refreshingTracking, setRefreshingTracking] = useState(false);
 
   const farId = searchParams.get('far');
   const rfiId = searchParams.get('rfi');
   const taskId = searchParams.get('task');
 
+  const applyCoToState = useCallback((co: ChangeOrder) => {
+    setCoId(co.id);
+    setTitle(co.title);
+    setScope(co.scopeDescription);
+    setReason(co.reasonForChange);
+    setTerms(co.terms);
+    setScheduleImpact(co.scheduleImpact ?? '');
+    setMarkupPercent(String(co.markupPercent));
+    setFeesAmount(String(co.feesAmount));
+    setPermitsAmount(String(co.permitsAmount));
+    setOverheadPercent(String(co.overheadPercent));
+    setProfitPercent(String(co.profitPercent));
+    setLaborItems(co.laborItems);
+    setMaterialItems(co.materialItems);
+    setEquipmentItems(co.equipmentItems);
+    setLinkedFarId(co.linkedFarId);
+    setLinkedRfiId(co.linkedRfiId);
+    setLinkedTaskId(co.linkedTaskId);
+    setStatus(co.status);
+    setPublicToken(co.publicToken);
+    setDisplayNumber(co.displayNumber);
+    setSentAt(co.sentAt);
+    setViewedAt(co.viewedAt);
+    setOpenedAt(co.openedAt);
+    setAcceptedAt(co.acceptedAt);
+    setDeclinedAt(co.declinedAt);
+    setContractorName(co.contractorName ?? '');
+    setContractorSignature(co.contractorSignature ?? '');
+    setContractorSignedAt(co.contractorSignedAt);
+    setClientName(co.clientName);
+    setClientSignature(co.clientSignature);
+    setClientSignedAt(co.clientSignedAt);
+  }, []);
+
   const loadOrder = useCallback(
     async (id: string) => {
       const co = await fetchChangeOrderById(id);
       if (!co) return;
-      setCoId(co.id);
-      setTitle(co.title);
-      setScope(co.scopeDescription);
-      setReason(co.reasonForChange);
-      setTerms(co.terms);
-      setScheduleImpact(co.scheduleImpact ?? '');
-      setMarkupPercent(String(co.markupPercent));
-      setFeesAmount(String(co.feesAmount));
-      setPermitsAmount(String(co.permitsAmount));
-      setOverheadPercent(String(co.overheadPercent));
-      setProfitPercent(String(co.profitPercent));
-      setLaborItems(co.laborItems);
-      setMaterialItems(co.materialItems);
-      setEquipmentItems(co.equipmentItems);
-      setLinkedFarId(co.linkedFarId);
-      setLinkedRfiId(co.linkedRfiId);
-      setLinkedTaskId(co.linkedTaskId);
-      setStatus(co.status);
-      setPublicToken(co.publicToken);
+      applyCoToState(co);
     },
-    [],
+    [applyCoToState],
   );
+
+  useEffect(() => {
+    if (!projectId) return;
+    void fetchProjectClientEmail(projectId).then(setClientEmail);
+  }, [projectId]);
 
   const canManage = Boolean(user && (isOwner || projectOwner));
 
@@ -174,6 +215,63 @@ export default function ChangeOrderBuilderPage() {
     };
   }, [canManage, projectId, isNew, user, farId, rfiId, taskId, navigate]);
 
+  useEffect(() => {
+    if (!coId || (status !== 'sent' && status !== 'viewed')) return;
+    const interval = window.setInterval(() => {
+      void fetchChangeOrderById(coId).then((co) => {
+        if (co) applyCoToState(co);
+      });
+    }, 30000);
+    return () => window.clearInterval(interval);
+  }, [coId, status, applyCoToState]);
+
+  const buildSaveInput = useCallback(() => {
+    if (!user) throw new Error('Not signed in');
+    return {
+      projectId,
+      userId: user.id,
+      title: title.trim() || 'Change order',
+      scopeDescription: scope,
+      reasonForChange: reason,
+      terms,
+      scheduleImpact: scheduleImpact || null,
+      markupPercent: Number(markupPercent) || 0,
+      feesAmount: Number(feesAmount) || 0,
+      permitsAmount: Number(permitsAmount) || 0,
+      overheadPercent: Number(overheadPercent) || 0,
+      profitPercent: Number(profitPercent) || 0,
+      laborItems,
+      materialItems,
+      equipmentItems,
+      linkedFarId,
+      linkedRfiId,
+      linkedTaskId,
+      contractorName: contractorName.trim() || null,
+      contractorSignature: contractorSignature.trim() || null,
+    };
+  }, [
+    user,
+    projectId,
+    title,
+    scope,
+    reason,
+    terms,
+    scheduleImpact,
+    markupPercent,
+    feesAmount,
+    permitsAmount,
+    overheadPercent,
+    profitPercent,
+    laborItems,
+    materialItems,
+    equipmentItems,
+    linkedFarId,
+    linkedRfiId,
+    linkedTaskId,
+    contractorName,
+    contractorSignature,
+  ]);
+
   const preview = useMemo((): ChangeOrder | null => {
     if (!coId || !user) return null;
     const labor = normalizeLineItems(laborItems, 'labor');
@@ -194,7 +292,7 @@ export default function ChangeOrderBuilderPage() {
       linkedFarId,
       linkedRfiId,
       linkedTaskId,
-      displayNumber: null,
+      displayNumber,
       title,
       scopeDescription: scope,
       reasonForChange: reason,
@@ -214,11 +312,17 @@ export default function ChangeOrderBuilderPage() {
       scheduleImpact: scheduleImpact || null,
       status,
       publicToken,
-      sentAt: null,
-      viewedAt: null,
-      openedAt: null,
-      acceptedAt: null,
-      declinedAt: null,
+      sentAt,
+      viewedAt,
+      openedAt,
+      acceptedAt,
+      declinedAt,
+      contractorName: contractorName.trim() || null,
+      contractorSignature: contractorSignature.trim() || null,
+      contractorSignedAt,
+      clientName,
+      clientSignature,
+      clientSignedAt,
       createdAt: '',
       updatedAt: '',
     };
@@ -229,6 +333,7 @@ export default function ChangeOrderBuilderPage() {
     linkedFarId,
     linkedRfiId,
     linkedTaskId,
+    displayNumber,
     title,
     scope,
     reason,
@@ -244,34 +349,65 @@ export default function ChangeOrderBuilderPage() {
     scheduleImpact,
     status,
     publicToken,
+    sentAt,
+    viewedAt,
+    openedAt,
+    acceptedAt,
+    declinedAt,
+    contractorName,
+    contractorSignature,
+    contractorSignedAt,
+    clientName,
+    clientSignature,
+    clientSignedAt,
   ]);
 
-  const handleSave = async () => {
-    if (!user || !coId) return;
+  const openMailto = useCallback(
+    (url: string) => {
+      const subject = encodeURIComponent(
+        `Change Order — ${title || project?.name || 'Project'}`,
+      );
+      const body = encodeURIComponent(
+        `Please review this change order online:\n\n${url}\n\nProject: ${project?.name ?? 'Project'}\n\nThank you.`,
+      );
+      const to = clientEmail?.trim() ? encodeURIComponent(clientEmail.trim()) : '';
+      window.location.href = to
+        ? `mailto:${to}?subject=${subject}&body=${body}`
+        : `mailto:?subject=${subject}&body=${body}`;
+    },
+    [title, project?.name, clientEmail],
+  );
+
+  const ensureSent = async (): Promise<ChangeOrder> => {
+    if (!coId || !user) throw new Error('Change order not ready');
+    if (!contractorName.trim()) {
+      throw new Error('Enter contractor printed name before sending.');
+    }
+    const sig = contractorSignature.trim() || contractorName.trim();
+    const saved = await saveChangeOrder(coId, buildSaveInput());
+    applyCoToState(saved);
+    if (saved.status === 'draft') {
+      const sent = await markChangeOrderSent(coId, {
+        name: contractorName.trim(),
+        signature: sig,
+      });
+      applyCoToState(sent);
+      return sent;
+    }
+    return saved;
+  };
+
+  const handleSave = async (): Promise<ChangeOrder | null> => {
+    if (!user || !coId) return null;
     setBusy(true);
     try {
-      const co = await saveChangeOrder(coId, {
-        projectId,
-        userId: user.id,
-        title: title.trim() || 'Change order',
-        scopeDescription: scope,
-        reasonForChange: reason,
-        terms,
-        scheduleImpact: scheduleImpact || null,
-        markupPercent: Number(markupPercent) || 0,
-        feesAmount: Number(feesAmount) || 0,
-        permitsAmount: Number(permitsAmount) || 0,
-        overheadPercent: Number(overheadPercent) || 0,
-        profitPercent: Number(profitPercent) || 0,
-        laborItems,
-        materialItems,
-        equipmentItems,
-        linkedFarId,
-        linkedRfiId,
-        linkedTaskId,
-      });
-      setStatus(co.status);
+      const co = await saveChangeOrder(coId, buildSaveInput());
+      applyCoToState(co);
       void reload();
+      return co;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to save change order.');
+      return null;
     } finally {
       setBusy(false);
     }
@@ -279,41 +415,61 @@ export default function ChangeOrderBuilderPage() {
 
   const handleSend = async () => {
     if (!coId) return;
-    await handleSave();
     setBusy(true);
     try {
-      const co = await markChangeOrderSent(coId);
-      setStatus(co.status);
-      setPublicToken(co.publicToken);
-      setSentUrl(getPublicChangeOrderUrl(co.publicToken));
+      const co = await ensureSent();
+      const url = getPublicChangeOrderUrl(co.publicToken);
+      setSentUrl(url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to send change order.');
     } finally {
       setBusy(false);
     }
   };
 
   const handleEmail = async () => {
-    if (!coId || !publicToken) {
-      await handleSend();
+    setBusy(true);
+    try {
+      const co = await ensureSent();
+      openMailto(getPublicChangeOrderUrl(co.publicToken));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to prepare email.');
+    } finally {
+      setBusy(false);
     }
-    const url = publicToken ? getPublicChangeOrderUrl(publicToken) : sentUrl;
-    if (!url) return;
-    const subject = encodeURIComponent(`Change Order — ${title || project?.name || 'Project'}`);
-    const body = encodeURIComponent(`Please review this change order:\n${url}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const handleRefreshTracking = async () => {
+    if (!coId) return;
+    setRefreshingTracking(true);
+    try {
+      const co = await fetchChangeOrderById(coId);
+      if (co) applyCoToState(co);
+    } finally {
+      setRefreshingTracking(false);
+    }
   };
 
   const handlePdf = async () => {
-    if (!printRef.current || !preview) return;
-    await generateProposalPDF(
-      printRef.current.innerHTML,
-      `Change Order — ${title}`,
-      undefined,
-      'classic',
-      {
-        projectTitle: title,
-        businessName: project?.name ?? 'Contractor',
-      } as import('../../types/proposal').ProposalData,
-    );
+    if (!preview) {
+      alert('Save the change order first.');
+      return;
+    }
+    setBusy(true);
+    try {
+      if (coId) {
+        const saved = await saveChangeOrder(coId, buildSaveInput());
+        applyCoToState(saved);
+        await generateChangeOrderPDF(saved);
+      } else {
+        await generateChangeOrderPDF(preview);
+      }
+    } catch (err) {
+      console.error('Change order PDF failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to generate PDF.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (!isOwner && !projectOwner) {
@@ -366,15 +522,15 @@ export default function ChangeOrderBuilderPage() {
 
       {initDone && !initError && (
         <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-          <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+          <div className={PLANNER_FORM_PANEL}>
             <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth />
             <div>
-              <label className="mb-1 block text-sm font-medium">Scope of change</label>
+              <label className={PLANNER_FORM_LABEL}>Scope of change</label>
               <textarea
                 value={scope}
                 onChange={(e) => setScope(e.target.value)}
                 rows={4}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+                className={PLANNER_INPUT}
               />
             </div>
             <Input
@@ -455,16 +611,40 @@ export default function ChangeOrderBuilderPage() {
             />
             {preview && <ChangeOrderInternalPricingSummary order={preview} />}
             <div>
-              <label className="mb-1 block text-sm font-medium">Terms</label>
+              <label className={PLANNER_FORM_LABEL}>Terms</label>
               <textarea
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+                className={PLANNER_INPUT}
               />
             </div>
+            <SignatureBlock
+              title="Contractor signature"
+              name={contractorName}
+              signature={contractorSignature}
+              signedAt={contractorSignedAt}
+              onNameChange={setContractorName}
+              onSignatureChange={setContractorSignature}
+              helperText="Required before sending to client. Sign in the box or use typed name."
+            />
+            <SignatureBlock
+              title="Client signature"
+              name={clientName ?? ''}
+              signature={clientSignature ?? ''}
+              signedAt={clientSignedAt}
+              onNameChange={() => {}}
+              onSignatureChange={() => {}}
+              readOnly
+              helperText="Client signs via the public link when accepting."
+            />
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => void handleSave()} disabled={busy}>
+              <Button
+                variant="outline"
+                className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
+                onClick={() => void handleSave()}
+                disabled={busy}
+              >
                 Save draft
               </Button>
               <Button
@@ -475,22 +655,34 @@ export default function ChangeOrderBuilderPage() {
               >
                 Send to client
               </Button>
-              <Button variant="outline" icon={<Mail className="h-4 w-4" />} onClick={() => void handleEmail()}>
+              <Button
+                variant="outline"
+                className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
+                icon={<Mail className="h-4 w-4" />}
+                onClick={() => void handleEmail()}
+              >
                 Email link
               </Button>
-              <Button variant="outline" onClick={() => void handlePdf()}>
+              <Button
+                variant="outline"
+                className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
+                onClick={() => void handlePdf()}
+                disabled={busy}
+              >
                 Export PDF
               </Button>
             </div>
-            {status !== 'draft' && publicToken && (
-              <p className="text-xs text-gray-500">
-                Status: <span className="font-medium">{status}</span>
-              </p>
+            {preview && status !== 'draft' && (
+              <ChangeOrderTrackingStrip
+                order={preview}
+                onRefresh={() => void handleRefreshTracking()}
+                refreshing={refreshingTracking}
+              />
             )}
           </div>
 
-          <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
-            <p className="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase text-gray-500 dark:border-slate-700">
+          <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+            <p className="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase text-gray-600 dark:border-slate-700 dark:text-slate-400">
               Client preview
             </p>
             <div ref={printRef} className="min-w-0 max-w-full overflow-x-hidden">
@@ -503,8 +695,12 @@ export default function ChangeOrderBuilderPage() {
       <ProposalSentLinkModal
         isOpen={Boolean(sentUrl)}
         onClose={() => setSentUrl(null)}
-        proposalUrl={sentUrl ?? ''}
+        shareUrl={sentUrl ?? ''}
         title="Change order sent"
+        shareTitle="Change Order"
+        onEmailClient={() => {
+          if (sentUrl) openMailto(sentUrl);
+        }}
       />
     </div>
   );

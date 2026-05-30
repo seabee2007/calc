@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FolderKanban, LayoutGrid } from 'lucide-react';
@@ -19,7 +19,10 @@ import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDelive
 import SmartPourAssistant from '../components/dashboard/SmartPourAssistant';
 import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
 import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
+import ChangeOrderPipelineCard from '../components/dashboard/ChangeOrderPipelineCard';
 import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
+import { fetchChangeOrdersForProjectIds } from '../services/changeOrderService';
+import type { ChangeOrder } from '../types/changeOrder';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
 import OwnerFieldSummaryCards from '../components/owner/OwnerFieldSummaryCards';
@@ -47,8 +50,9 @@ function formatPourDateLabel(d: Date): string {
 }
 
 const OperationsDashboard: React.FC = () => {
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
   const { projects, loadProjects } = useProjectStore();
+  const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>([]);
   const location = useLocation();
   const { proposals, refresh: refreshProposals } = useTrackedProposals();
   const navigate = useNavigate();
@@ -73,6 +77,15 @@ const OperationsDashboard: React.FC = () => {
     [projects],
   );
 
+  useEffect(() => {
+    if (!isOwner || !user || operationalProjects.length === 0) {
+      setChangeOrders([]);
+      return;
+    }
+    const ids = operationalProjects.map((p) => p.id);
+    void fetchChangeOrdersForProjectIds(ids).then(setChangeOrders).catch(() => setChangeOrders([]));
+  }, [isOwner, user, operationalProjects]);
+
   const allProjectsClosedOut =
     projects.length > 0 && operationalProjects.length === 0;
 
@@ -80,9 +93,10 @@ const OperationsDashboard: React.FC = () => {
     () =>
       buildOperationsSnapshot(operationalProjects, {
         proposals,
+        changeOrders,
         allProjectsForQc: projects,
       }),
-    [operationalProjects, projects, proposals],
+    [operationalProjects, projects, proposals, changeOrders],
   );
 
   const qcStats = useMemo(
@@ -91,6 +105,8 @@ const OperationsDashboard: React.FC = () => {
   );
 
   const { pipeline, pipelineRevenue, financial } = snapshot.proposalMetrics;
+  const { pipeline: coPipeline, pipelineRevenue: coPipelineRevenue, financial: coFinancial } =
+    snapshot.changeOrderMetrics;
   const primaryPourToday = snapshot.todayPours[0];
   const nextUpcomingPlacement = resolveNextUpcomingPlacement(
     snapshot.upcomingPlacements,
@@ -242,9 +258,15 @@ const OperationsDashboard: React.FC = () => {
         <ActiveProjectsPanel projects={snapshot.projects} compact />
         <ProposalPipelineCard
           pipeline={pipeline}
-          pendingRevenue={financial.pendingRevenue}
-          weightedForecast={financial.weightedForecast}
+          pendingRevenue={financial.pendingRevenue - coFinancial.pendingRevenue}
+          weightedForecast={financial.weightedForecast - coFinancial.weightedForecast}
           pipelineRevenue={pipelineRevenue}
+        />
+        <ChangeOrderPipelineCard
+          pipeline={coPipeline}
+          pendingRevenue={coFinancial.pendingRevenue}
+          weightedForecast={coFinancial.weightedForecast}
+          pipelineRevenue={coPipelineRevenue}
         />
         <FeaturedPlacementConditions
           snapshot={snapshot}
@@ -285,9 +307,15 @@ const OperationsDashboard: React.FC = () => {
           <ActiveProjectsPanel projects={snapshot.projects} />
           <ProposalPipelineCard
             pipeline={pipeline}
-            pendingRevenue={financial.pendingRevenue}
-            weightedForecast={financial.weightedForecast}
+            pendingRevenue={financial.pendingRevenue - coFinancial.pendingRevenue}
+            weightedForecast={financial.weightedForecast - coFinancial.weightedForecast}
             pipelineRevenue={pipelineRevenue}
+          />
+          <ChangeOrderPipelineCard
+            pipeline={coPipeline}
+            pendingRevenue={coFinancial.pendingRevenue}
+            weightedForecast={coFinancial.weightedForecast}
+            pipelineRevenue={coPipelineRevenue}
           />
         </section>
         <section className="grid grid-cols-2 gap-5">
