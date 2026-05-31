@@ -55,10 +55,30 @@ export function plannerAdjustmentHref(projectId: string, adjustmentId?: string):
   return `${base}?adjustment=${adjustmentId}`;
 }
 
-export function plannerDocumentsHref(projectId: string, fileId?: string): string {
+export function plannerDocumentsHref(
+  projectId: string,
+  highlight?: { safetyMeetingId?: string; inspectionId?: string; fileId?: string },
+): string {
   const base = `/projects/${projectId}/planner/documents`;
-  if (!fileId) return base;
-  return `${base}?file=${fileId}`;
+  if (!highlight) return base;
+  const q = new URLSearchParams();
+  if (highlight.safetyMeetingId) q.set('safety', highlight.safetyMeetingId);
+  if (highlight.inspectionId) q.set('inspection', highlight.inspectionId);
+  if (highlight.fileId) q.set('file', highlight.fileId);
+  const s = q.toString();
+  return s ? `${base}?${s}` : base;
+}
+
+export function safetyMeetingToolHref(projectId: string, recordId?: string): string {
+  const q = new URLSearchParams({ project: projectId });
+  if (recordId) q.set('id', recordId);
+  return `/tools/safety-meeting?${q.toString()}`;
+}
+
+export function concreteInspectionToolHref(projectId: string, recordId?: string): string {
+  const q = new URLSearchParams({ project: projectId });
+  if (recordId) q.set('id', recordId);
+  return `/tools/concrete-inspection?${q.toString()}`;
 }
 
 export function changeOrderEditHref(projectId: string, changeOrderId: string): string {

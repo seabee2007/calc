@@ -10,6 +10,8 @@ import ReinforcementCalculatorPage from './pages/calculators/ReinforcementCalcul
 import LaborCalculatorPage from './pages/calculators/LaborCalculatorPage';
 import GeneralTradeLaborCalculatorPage from './pages/calculators/GeneralTradeLaborCalculatorPage';
 import CustomEstimatePage from './pages/calculators/CustomEstimatePage';
+import SafetyMeetingToolPage from './pages/tools/SafetyMeetingToolPage';
+import ConcreteInspectionChecklistPage from './pages/tools/ConcreteInspectionChecklistPage';
 import Projects from './pages/Projects/Projects';
 import Settings from './pages/Settings';
 import Resources from './pages/Resources';
@@ -382,6 +384,22 @@ function App() {
               element={
                 <AuthGuard>
                   <Settings />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="tools/safety-meeting"
+              element={
+                <AuthGuard>
+                  <SafetyMeetingToolPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="tools/concrete-inspection"
+              element={
+                <AuthGuard>
+                  <ConcreteInspectionChecklistPage />
                 </AuthGuard>
               }
             />

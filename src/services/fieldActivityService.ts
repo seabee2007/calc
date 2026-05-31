@@ -375,7 +375,7 @@ export async function buildProjectActivityFeed(
       summary: `${nameFor(row.uploaded_by as string)} uploaded ${row.file_name as string}`,
       timestamp: row.created_at as string,
       status: 'Uploaded',
-      href: plannerDocumentsHref(projectId, row.id as string),
+      href: plannerDocumentsHref(projectId, { fileId: row.id as string }),
     });
   }
 

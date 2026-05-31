@@ -11,6 +11,8 @@ import {
   Users,
   PenLine,
   HardHat,
+  ShieldCheck,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
@@ -134,9 +136,26 @@ const ToolsModal: React.FC = () => {
         },
       ],
     },
+    {
+      heading: 'Field & safety',
+      cards: [
+        {
+          title: 'Safety Meeting Tool',
+          description: 'Daily JHA, toolbox talks, and attendance sheet',
+          path: '/tools/safety-meeting',
+          icon: ShieldCheck,
+        },
+        {
+          title: 'Concrete Inspection Checklist',
+          description: 'Pre-Placement, Placing, Post Placement',
+          path: '/tools/concrete-inspection',
+          icon: ClipboardList,
+        },
+      ],
+    },
   ];
 
-  const estimatingPathsWithProject = new Set([
+  const pathsWithProject = new Set([
     '/calculator/concrete',
     '/calculator/reinforcement',
     '/calculator/labor',
@@ -144,6 +163,8 @@ const ToolsModal: React.FC = () => {
     '/calculator/custom',
     '/mix-design-advisor',
     '/pour-planner',
+    '/tools/safety-meeting',
+    '/tools/concrete-inspection',
   ]);
 
   return (
@@ -174,7 +195,7 @@ const ToolsModal: React.FC = () => {
                   onClick={() =>
                     onNavigate
                       ? onNavigate()
-                      : handleNavigate(path, estimatingPathsWithProject.has(path))
+                      : handleNavigate(path, pathsWithProject.has(path))
                   }
                   className="flex w-full items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left transition-colors hover:border-cyan-500/50 hover:bg-cyan-50/50 dark:border-slate-600 dark:bg-slate-800/80 dark:hover:border-cyan-500/40 dark:hover:bg-slate-700/80"
                 >
