@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { fetchTasksForEmployee } from '../../services/plannerService';
 import type { PlannerTask } from '../../types/fieldPlanner';
 import EmployeeTaskList from '../../components/employee/EmployeeTaskList';
+import Button from '../../components/ui/Button';
 
 type Filter = 'today' | 'overdue' | 'all';
 
@@ -27,18 +28,15 @@ export default function EmployeeTasksPage() {
       <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">My tasks</h1>
       <div className="mb-4 flex gap-2">
         {tabs.map((t) => (
-          <button
+          <Button
             key={t.id}
             type="button"
+            size="sm"
+            variant={filter === t.id ? 'accent' : 'outline'}
             onClick={() => setFilter(t.id)}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${
-              filter === t.id
-                ? 'bg-cyan-600 text-white'
-                : 'bg-slate-200 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
-            }`}
           >
             {t.label}
-          </button>
+          </Button>
         ))}
       </div>
       <EmployeeTaskList tasks={tasks} filter={filter} />

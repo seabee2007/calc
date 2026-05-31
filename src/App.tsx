@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
+import Button from './components/ui/Button';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './store/themeStore';
 import Layout from './components/layout/Layout';
@@ -86,12 +87,9 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
         <div className="min-h-screen bg-white flex items-center justify-center p-4">
           <div className="text-center">
             <h1 className="text-xl font-bold mb-4">Something went wrong</h1>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
+            <Button variant="primary" onClick={() => window.location.reload()}>
               Reload App
-            </button>
+            </Button>
           </div>
         </div>
       );
@@ -227,12 +225,9 @@ function App() {
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-xl font-bold mb-4">{initError}</h1>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
+          <Button variant="primary" onClick={() => window.location.reload()}>
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     );

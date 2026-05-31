@@ -704,9 +704,9 @@ const MixDesignAdvisor: React.FC = () => {
           <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
             <Button
               variant="outline"
+              size="sm"
               onClick={goToPlacementPlanner}
               icon={<SkipForward size={18} />}
-              className="dark:text-white dark:border-slate-600"
             >
               Skip to placement planner
             </Button>

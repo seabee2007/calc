@@ -181,9 +181,11 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
 
                   <Button
                     type="submit"
+                    variant="primary"
                     disabled={isLoading || !formData.companyName || !formData.email}
-                    icon={isLoading ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> : <Save size={18} />}
-                    className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                    isLoading={isLoading}
+                    icon={!isLoading ? <Save size={18} /> : undefined}
+                    className="flex-1"
                   >
                     {isLoading ? 'Saving...' : 'Save & Continue'}
                   </Button>

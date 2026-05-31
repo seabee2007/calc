@@ -59,8 +59,8 @@ const PourTimelinePanel: React.FC<PourTimelinePanelProps> = ({
             Complete the call sheet in Placement Planner to build truck times.
           </p>
           <Button
+            variant="accent"
             size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white"
             onClick={() =>
               navigate(
                 `/pour-planner${primaryProjectId ? workflowQuery(primaryProjectId) : workflowQuery()}`,

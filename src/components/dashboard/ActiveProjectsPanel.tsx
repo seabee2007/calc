@@ -76,8 +76,8 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
         <div className="text-center py-4">
           <p className={`text-sm mb-3 ${OPS_MUTED}`}>No active projects</p>
           <Button
+            variant="accent"
             size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white"
             onClick={() => navigate('/projects', { state: { openCreate: true } })}
           >
             Start Project

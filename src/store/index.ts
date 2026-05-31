@@ -29,10 +29,12 @@ import {
 } from '../utils/truckTicketDb';
 import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
 import type { ProjectCustomEstimates } from '../types/projectEstimate';
+import { EMPTY_PROJECT_CUSTOM_ESTIMATES } from '../types/projectEstimate';
 import {
   customEstimatesToDbPayload,
   parseCustomEstimatesFromDb,
 } from '../utils/customEstimateUtils';
+import type { ProjectClientInfo } from '../types/projectClient';
 import {
   buildQcInsertRow,
   buildQcUpdateRow,
@@ -121,6 +123,47 @@ const PROJECT_SELECT_LEGACY = `
   reinforcement_sets(*, cut_list_items(*))
 `;
 
+/** Scalar columns only — used after insert to avoid nested-embed failures on new projects */
+const PROJECT_SELECT_MINIMAL = `
+  id, name, description, client_info, custom_estimates,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order
+`;
+
+const PROJECT_SELECT_MINIMAL_NO_CLIENT_INFO = `
+  id, name, description, custom_estimates,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order
+`;
+
+const PROJECT_SELECT_MINIMAL_NO_CUSTOM_ESTIMATES = `
+  id, name, description, client_info,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order
+`;
+
+const PROJECT_SELECT_MINIMAL_NO_CLIENT_NO_CUSTOM = `
+  id, name, description,
+  jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order
+`;
+
+const PROJECT_SELECT_MINIMAL_NO_JOBSITE = `
+  id, name, description, client_info, custom_estimates,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile, placement_order
+`;
+
+const PROJECT_SELECT_MINIMAL_LEGACY = `
+  id, name, description,
+  waste_factor, created_at, updated_at,
+  pour_date, mix_profile
+`;
+
 /** null = unknown, false = migration not applied yet */
 let projectJobsiteColumnsAvailable: boolean | null = null;
 
@@ -149,6 +192,38 @@ function isCustomEstimatesColumnError(message: string): boolean {
   return message.includes('custom_estimates');
 }
 
+function isWasteFactorColumnError(message: string): boolean {
+  return message.includes('waste_factor');
+}
+
+function isMixProfileColumnError(message: string): boolean {
+  return message.includes('mix_profile');
+}
+
+function isPourDateColumnError(message: string): boolean {
+  return message.includes('pour_date');
+}
+
+function isProjectsUserFkError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('projects_user_id_fkey') ||
+    (lower.includes('foreign key') && lower.includes('user_id'))
+  );
+}
+
+function stripJobsiteFromPayload(body: Record<string, unknown>): Record<string, unknown> {
+  const {
+    jobsite_street: _s,
+    jobsite_street2: _s2,
+    jobsite_city: _c,
+    jobsite_state: _st,
+    jobsite_zip: _z,
+    ...rest
+  } = body;
+  return rest;
+}
+
 function isLaborEstimatesSchemaError(message: string): boolean {
   return message.includes('labor_estimates');
 }
@@ -166,6 +241,43 @@ function shouldFallbackLaborToPlacementOrder(error: {
     return true;
   }
   return false;
+}
+
+function isRecoverableProjectSelectError(message: string): boolean {
+  return (
+    isJobsiteColumnError(message) ||
+    isClientInfoColumnError(message) ||
+    isTruckTicketsSchemaError(message) ||
+    isPlacementOrderColumnError(message) ||
+    isLaborEstimatesSchemaError(message) ||
+    isCustomEstimatesColumnError(message)
+  );
+}
+
+function supabaseErrorMessage(err: unknown): string {
+  if (err && typeof err === 'object' && 'message' in err) {
+    return String((err as { message: string }).message);
+  }
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+/** User-facing message when project create/update load fails. */
+export function projectSaveErrorMessage(err: unknown): string {
+  const msg = supabaseErrorMessage(err);
+  if (isProjectsUserFkError(msg)) {
+    return 'Database fix required — in Supabase SQL Editor run migration 20260607000000_fix_projects_user_reference.sql (links projects to your login account).';
+  }
+  if (isCustomEstimatesColumnError(msg)) {
+    return 'Database update required — run migration 20260606000000_project_custom_estimates.sql in Supabase';
+  }
+  if (isClientInfoColumnError(msg)) {
+    return 'Database update required — run migration 20260530120000_project_client_info.sql in Supabase';
+  }
+  if (msg.toLowerCase().includes('row-level security') || msg.toLowerCase().includes('permission denied')) {
+    return 'You do not have permission to create projects. Sign in as the account owner.';
+  }
+  return msg || 'Could not save project';
 }
 
 /** User-facing message when labor save fails (after any fallback attempt). */
@@ -297,14 +409,7 @@ async function fetchProjectById(projectId: string) {
     }
 
     const msg = result.error.message ?? '';
-    if (
-      isJobsiteColumnError(msg) ||
-      isClientInfoColumnError(msg) ||
-      isTruckTicketsSchemaError(msg) ||
-      isPlacementOrderColumnError(msg) ||
-      isLaborEstimatesSchemaError(msg) ||
-      isCustomEstimatesColumnError(msg)
-    ) {
+    if (isRecoverableProjectSelectError(msg)) {
       if (isClientInfoColumnError(msg)) {
         console.warn(
           'Project client_info column missing — run migration 20260530120000_project_client_info.sql',
@@ -327,50 +432,162 @@ async function fetchProjectById(projectId: string) {
     .single();
 }
 
-async function insertProjectRow(payload: Record<string, unknown>) {
-  let body = payload;
-  let insertResult = await supabase.from('projects').insert(body).select('id').single();
+async function fetchProjectByIdAfterInsert(projectId: string) {
+  const selects = [
+    PROJECT_SELECT_MINIMAL,
+    PROJECT_SELECT_MINIMAL_NO_CLIENT_INFO,
+    PROJECT_SELECT_MINIMAL_NO_CUSTOM_ESTIMATES,
+    PROJECT_SELECT_MINIMAL_NO_CLIENT_NO_CUSTOM,
+    PROJECT_SELECT_MINIMAL_NO_JOBSITE,
+    PROJECT_SELECT_MINIMAL_LEGACY,
+  ];
 
-  if (insertResult.error && isClientInfoColumnError(insertResult.error.message ?? '')) {
-    const { client_info: _ci, ...withoutClient } = body;
-    console.warn(
-      'Saved project without client_info — run migration 20260530120000_project_client_info.sql',
-    );
-    body = withoutClient;
-    insertResult = await supabase.from('projects').insert(body).select('id').single();
-  }
-
-  if (insertResult.error && isJobsiteColumnError(insertResult.error.message ?? '')) {
-    projectJobsiteColumnsAvailable = false;
-    const {
-      jobsite_street: _s,
-      jobsite_street2: _s2,
-      jobsite_city: _c,
-      jobsite_state: _st,
-      jobsite_zip: _z,
-      ...withoutJobsite
-    } = body;
-    console.warn(
-      'Saved project without jobsite columns — apply migration 20250525130000_project_jobsite_address.sql to persist addresses.',
-    );
-    insertResult = await supabase
+  for (const select of selects) {
+    const result = await supabase
       .from('projects')
-      .insert(withoutJobsite)
-      .select('id')
+      .select(select)
+      .eq('id', projectId)
       .single();
+
+    if (!result.error) {
+      if (select === PROJECT_SELECT_MINIMAL_NO_JOBSITE) {
+        projectJobsiteColumnsAvailable = false;
+      } else if (
+        select === PROJECT_SELECT_MINIMAL ||
+        select === PROJECT_SELECT_MINIMAL_NO_CLIENT_INFO
+      ) {
+        projectJobsiteColumnsAvailable = true;
+      }
+      return result;
+    }
+
+    const msg = result.error.message ?? '';
+    if (isRecoverableProjectSelectError(msg)) {
+      if (isClientInfoColumnError(msg)) {
+        console.warn(
+          'Project client_info column missing — run migration 20260530120000_project_client_info.sql',
+        );
+      }
+      if (isCustomEstimatesColumnError(msg)) {
+        console.warn(
+          'projects.custom_estimates column missing — run migration 20260606000000_project_custom_estimates.sql',
+        );
+      }
+      continue;
+    }
+    return result;
   }
 
-  if (insertResult.error) return insertResult;
+  return supabase
+    .from('projects')
+    .select(PROJECT_SELECT_MINIMAL_LEGACY)
+    .eq('id', projectId)
+    .single();
+}
 
-  const projectId = insertResult.data?.id as string | undefined;
-  if (!projectId) {
-    return {
-      data: null,
-      error: { message: 'Project created but no id was returned' },
-    };
+type ProjectInsertSource = {
+  name: string;
+  description?: string;
+  jobsiteAddress?: USAddress;
+  clientInfo?: ProjectClientInfo;
+  wasteFactor?: number;
+  pourDate?: string | null;
+};
+
+function buildInsertFallbackRow(
+  projectId: string,
+  source: ProjectInsertSource,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const now = new Date().toISOString();
+  const jobsite = jobsitePayload(source.jobsiteAddress);
+  return {
+    id: projectId,
+    name: source.name,
+    description: source.description ?? '',
+    ...jobsite,
+    client_info: payload.client_info ?? null,
+    waste_factor: payload.waste_factor ?? source.wasteFactor ?? 10,
+    pour_date: payload.pour_date ?? source.pourDate ?? null,
+    mix_profile: payload.mix_profile ?? 'standard',
+    created_at: now,
+    updated_at: now,
+    custom_estimates: null,
+  };
+}
+
+async function insertProjectRow(
+  payload: Record<string, unknown>,
+  source: ProjectInsertSource,
+) {
+  let body = { ...payload };
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const insertResult = await supabase.from('projects').insert(body).select('id').single();
+    if (!insertResult.error) {
+      const projectId = insertResult.data?.id as string | undefined;
+      if (!projectId) {
+        return {
+          data: null,
+          error: { message: 'Project created but no id was returned' },
+        };
+      }
+
+      const fetchResult = await fetchProjectByIdAfterInsert(projectId);
+      if (!fetchResult.error && fetchResult.data) {
+        return fetchResult;
+      }
+
+      const fetchMsg = fetchResult.error?.message ?? '';
+      if (fetchMsg) {
+        console.warn('Project saved; reload after create failed:', fetchMsg);
+      }
+      return {
+        data: buildInsertFallbackRow(projectId, source, body),
+        error: null,
+      };
+    }
+
+    const msg = insertResult.error.message ?? '';
+    if (isClientInfoColumnError(msg)) {
+      const { client_info: _ci, ...withoutClient } = body;
+      body = withoutClient;
+      console.warn(
+        'Saved project without client_info — run migration 20260530120000_project_client_info.sql',
+      );
+      continue;
+    }
+    if (isJobsiteColumnError(msg)) {
+      projectJobsiteColumnsAvailable = false;
+      body = stripJobsiteFromPayload(body);
+      console.warn(
+        'Saved project without jobsite columns — apply migration 20250525130000_project_jobsite_address.sql',
+      );
+      continue;
+    }
+    if (isWasteFactorColumnError(msg)) {
+      const { waste_factor: _wf, ...rest } = body;
+      body = rest;
+      continue;
+    }
+    if (isMixProfileColumnError(msg)) {
+      const { mix_profile: _mp, ...rest } = body;
+      body = rest;
+      continue;
+    }
+    if (isPourDateColumnError(msg)) {
+      const { pour_date: _pd, ...rest } = body;
+      body = rest;
+      continue;
+    }
+
+    return insertResult;
   }
 
-  return fetchProjectById(projectId);
+  return {
+    data: null,
+    error: { message: 'Could not create project after multiple attempts' },
+  };
 }
 
 async function updateProjectRow(
@@ -492,7 +709,7 @@ interface ProjectState {
   loadProjects: () => Promise<void>;
   addProject: (
     project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'calculations' | 'mixProfile' | 'qcRecords'>
-  ) => Promise<void>;
+  ) => Promise<Project>;
   updateProject: (
     projectId: string,
     projectData: Partial<Project>
@@ -800,25 +1017,36 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       insertPayload.client_info = clientPayload;
     }
 
-    let result = await insertProjectRow(insertPayload);
-
-    if (result.error && isClientInfoColumnError(result.error.message ?? '')) {
-      const { client_info: _ci, ...withoutClient } = insertPayload;
-      console.warn(
-        'Saved project without client_info — run migration 20260530120000_project_client_info.sql',
-      );
-      result = await insertProjectRow(withoutClient);
-    }
+    const result = await insertProjectRow(insertPayload, {
+      name: project.name,
+      description: project.description,
+      jobsiteAddress: project.jobsiteAddress,
+      clientInfo: project.clientInfo,
+      wasteFactor: project.wasteFactor,
+      pourDate: project.pourDate,
+    });
 
     const { data, error } = result;
     if (error) throw error;
-  
-    const newProj = mapProjectFromRow(data);
+    if (!data) throw new Error('Project created but no data was returned');
+
+    const newProj = mapProjectFromRow({
+      ...data,
+      calculations: data.calculations ?? [],
+      qc_records: data.qc_records ?? [],
+      reinforcement_sets: data.reinforcement_sets ?? [],
+      labor_estimates: data.labor_estimates ?? [],
+      truck_tickets: data.truck_tickets ?? [],
+      custom_estimates:
+        data.custom_estimates ?? EMPTY_PROJECT_CUSTOM_ESTIMATES,
+    });
   
     set((s) => ({
       projects: [newProj, ...s.projects],
       currentProject: newProj,
     }));
+
+    return newProj;
   },
 
   updateProject: async (projectId, projectData) => {

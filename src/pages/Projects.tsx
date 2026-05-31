@@ -22,7 +22,7 @@ import ReinforcementDetails from '../components/projects/ReinforcementDetails';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import CalculationForm from '../components/calculations/CalculationForm';
-import { useProjectStore } from '../store';
+import { projectSaveErrorMessage, useProjectStore } from '../store';
 import { Project, Calculation, CONCRETE_MIX_DESIGNS } from '../types';
 import { calculateMixMaterials } from '../utils/calculations';
 import { generateProjectPDF } from '../utils/pdf';
@@ -232,7 +232,7 @@ const Projects: React.FC = () => {
 
   const handleCreateProject = async (data: ProjectFormData) => {
     try {
-      await addProject({
+      const newProject = await addProject({
         name: data.name,
         description: data.description,
         jobsiteAddress: data.jobsiteAddress
@@ -242,12 +242,12 @@ const Projects: React.FC = () => {
       });
       setShowCreateForm(false);
       showToastMessage('Project created successfully', 'success');
-      const projectId = useProjectStore.getState().currentProject?.id;
-      if (inWorkflow && projectId) {
-        goToCalculator(projectId);
+      if (inWorkflow) {
+        goToCalculator(newProject.id);
       }
-    } catch {
-      showToastMessage('Error creating project', 'error');
+    } catch (err) {
+      console.error('Error creating project:', err);
+      showToastMessage(projectSaveErrorMessage(err), 'error');
     }
   };
 

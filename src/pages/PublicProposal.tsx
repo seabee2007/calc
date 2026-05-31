@@ -165,8 +165,9 @@ const PublicProposal: React.FC = () => {
         {!isFinal && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center sticky bottom-4 pb-safe">
             <Button
+              variant="primary"
               size="lg"
-              className="!bg-emerald-600 hover:!bg-emerald-500 !text-white flex-1 sm:flex-none"
+              className="flex-1 sm:flex-none"
               onClick={handleAccept}
               disabled={actionLoading !== null}
               icon={

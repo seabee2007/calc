@@ -25,7 +25,6 @@ import Button from '../ui/Button';
 import CreateRfiModal from '../field/CreateRfiModal';
 import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
 import {
-  PLANNER_BTN_PRIMARY,
   PLANNER_DRAWER_BACKDROP,
   PLANNER_DRAWER_BODY,
   PLANNER_DRAWER_FOOTER,
@@ -287,7 +286,9 @@ export default function TaskDetailDrawer({
                 <>
                   {task?.status !== 'Submitted' && task?.status !== 'Completed' && (
                     <Button
-                      className={`w-full min-h-[48px] ${PLANNER_BTN_PRIMARY}`}
+                      variant="accent"
+                      fullWidth
+                      className="min-h-[48px]"
                       icon={<Send className="h-4 w-4" />}
                       onClick={() => void handleSubmitForReview()}
                       disabled={busy}

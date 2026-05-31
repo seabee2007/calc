@@ -19,7 +19,6 @@ import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDelive
 import SmartPourAssistant from '../components/dashboard/SmartPourAssistant';
 import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
 import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
-import ChangeOrderPipelineCard from '../components/dashboard/ChangeOrderPipelineCard';
 import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
 import { fetchChangeOrdersForProjectIds } from '../services/changeOrderService';
 import type { ChangeOrder } from '../types/changeOrder';
@@ -105,8 +104,9 @@ const OperationsDashboard: React.FC = () => {
   );
 
   const { pipeline, pipelineRevenue, financial } = snapshot.proposalMetrics;
-  const { pipeline: coPipeline, pipelineRevenue: coPipelineRevenue, financial: coFinancial } =
-    snapshot.changeOrderMetrics;
+  const { financial: coFinancial } = snapshot.changeOrderMetrics;
+  const proposalPendingRevenue = financial.pendingRevenue - coFinancial.pendingRevenue;
+  const proposalWeightedForecast = financial.weightedForecast - coFinancial.weightedForecast;
   const primaryPourToday = snapshot.todayPours[0];
   const nextUpcomingPlacement = resolveNextUpcomingPlacement(
     snapshot.upcomingPlacements,
@@ -240,8 +240,9 @@ const OperationsDashboard: React.FC = () => {
               </p>
             </div>
             <Button
+              variant="accent"
               size="sm"
-              className="!bg-cyan-600 !text-white hover:!bg-cyan-500 shrink-0"
+              className="shrink-0"
               icon={<LayoutGrid className="h-4 w-4" />}
               onClick={() => navigate('/planner/hub')}
             >
@@ -258,15 +259,9 @@ const OperationsDashboard: React.FC = () => {
         <ActiveProjectsPanel projects={snapshot.projects} compact />
         <ProposalPipelineCard
           pipeline={pipeline}
-          pendingRevenue={financial.pendingRevenue - coFinancial.pendingRevenue}
-          weightedForecast={financial.weightedForecast - coFinancial.weightedForecast}
+          pendingRevenue={proposalPendingRevenue}
+          weightedForecast={proposalWeightedForecast}
           pipelineRevenue={pipelineRevenue}
-        />
-        <ChangeOrderPipelineCard
-          pipeline={coPipeline}
-          pendingRevenue={coFinancial.pendingRevenue}
-          weightedForecast={coFinancial.weightedForecast}
-          pipelineRevenue={coPipelineRevenue}
         />
         <FeaturedPlacementConditions
           snapshot={snapshot}
@@ -307,15 +302,9 @@ const OperationsDashboard: React.FC = () => {
           <ActiveProjectsPanel projects={snapshot.projects} />
           <ProposalPipelineCard
             pipeline={pipeline}
-            pendingRevenue={financial.pendingRevenue - coFinancial.pendingRevenue}
-            weightedForecast={financial.weightedForecast - coFinancial.weightedForecast}
+            pendingRevenue={proposalPendingRevenue}
+            weightedForecast={proposalWeightedForecast}
             pipelineRevenue={pipelineRevenue}
-          />
-          <ChangeOrderPipelineCard
-            pipeline={coPipeline}
-            pendingRevenue={coFinancial.pendingRevenue}
-            weightedForecast={coFinancial.weightedForecast}
-            pipelineRevenue={coPipelineRevenue}
           />
         </section>
         <section className="grid grid-cols-2 gap-5">

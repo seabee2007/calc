@@ -199,10 +199,11 @@ const LocationPermissionAlert: React.FC<LocationPermissionAlertProps> = ({
 
             {hasOpenedSettings && (isSystemDisabled || isAppPermissionDenied) && (
               <Button
+                variant="primary"
+                size="sm"
                 onClick={handleRetryAfterSettings}
                 disabled={isLoading}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
+                isLoading={isLoading}
               >
                 {isLoading ? (
                   <>

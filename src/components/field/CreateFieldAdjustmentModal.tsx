@@ -7,7 +7,6 @@ import { createFieldAdjustment } from '../../services/fieldAdjustmentService';
 import { uploadAdjustmentAttachments } from '../../services/fieldRecordAttachmentService';
 import { FAR_REASONS, FAR_SCHEDULE_IMPACTS } from '../../types/fieldPlanner';
 import FieldFilePicker from './FieldFilePicker';
-import { PLANNER_BTN_PRIMARY } from '../planner/plannerTheme';
 
 interface CreateFieldAdjustmentModalProps {
   isOpen: boolean;
@@ -211,7 +210,7 @@ export default function CreateFieldAdjustmentModal({
           <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
             Cancel
           </Button>
-          <Button type="submit" disabled={busy} className={`min-h-11 ${PLANNER_BTN_PRIMARY}`}>
+          <Button type="submit" variant="accent" disabled={busy} className="min-h-11">
             Submit request
           </Button>
         </div>

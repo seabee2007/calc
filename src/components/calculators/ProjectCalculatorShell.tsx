@@ -7,8 +7,9 @@ import {
   isWorkflowActive,
   type WorkflowLocationState,
 } from '../../utils/workflow';
-import { useProjectStore } from '../../store';
+import { projectSaveErrorMessage, useProjectStore } from '../../store';
 import Button from '../ui/Button';
+import Toast from '../ui/Toast';
 import Select from '../ui/Select';
 import ProjectForm, { type ProjectFormData } from '../projects/ProjectForm';
 import { formatUSAddress, hasProjectJobsite } from '../../types/address';
@@ -34,20 +35,28 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
 
   const { projects, currentProject, setCurrentProject, addProject } = useProjectStore();
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     const projectId = workflowState?.projectId ?? workflowProjectId;
     if (projectId) setCurrentProject(projectId);
   }, [workflowState, workflowProjectId, setCurrentProject]);
 
-  const handleCreateProject = (data: ProjectFormData) => {
-    addProject({
-      name: data.name,
-      description: data.description,
-      jobsiteAddress: data.jobsiteAddress,
-      clientInfo: data.clientInfo,
-    });
-    setShowCreateProjectModal(false);
+  const handleCreateProject = async (data: ProjectFormData) => {
+    setCreateError(null);
+    try {
+      const newProject = await addProject({
+        name: data.name,
+        description: data.description,
+        jobsiteAddress: data.jobsiteAddress,
+        clientInfo: data.clientInfo,
+      });
+      setCurrentProject(newProject.id);
+      setShowCreateProjectModal(false);
+    } catch (err) {
+      console.error('Error creating project:', err);
+      setCreateError(projectSaveErrorMessage(err));
+    }
   };
 
   return (
@@ -98,10 +107,23 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
 
       {footer}
 
+      {createError && (
+        <Toast
+          id="calculator-create-project"
+          title="Could not create project"
+          message={createError}
+          type="error"
+          onClose={() => setCreateError(null)}
+        />
+      )}
+
       {showCreateProjectModal && (
         <ProjectForm
           onSubmit={handleCreateProject}
-          onCancel={() => setShowCreateProjectModal(false)}
+          onCancel={() => {
+            setShowCreateProjectModal(false);
+            setCreateError(null);
+          }}
           isModal
           hidePourDate
         />

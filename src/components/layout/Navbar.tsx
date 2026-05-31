@@ -258,8 +258,9 @@ const Navbar: React.FC = () => {
               <LogIn className="h-5 w-5" />
             </Link>
             <Button
+              variant="accent"
               size="sm"
-              className="!h-8 !px-2 !py-1 !text-xs !bg-cyan-600 hover:!bg-cyan-500"
+              className="!h-8 !px-2 !py-1 !text-xs"
               onClick={() => navigate('/signup')}
               icon={<UserPlus className="h-3.5 w-3.5" />}
             >

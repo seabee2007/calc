@@ -38,8 +38,8 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button
+          variant="accent"
           size="sm"
-          className="!bg-cyan-600 !text-white hover:!bg-cyan-500"
           onClick={onStartProject}
           icon={<FolderPlus className="h-4 w-4" />}
         >

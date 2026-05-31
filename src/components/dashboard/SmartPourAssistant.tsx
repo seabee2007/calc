@@ -70,8 +70,10 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
           </p>
           {!emptyMessage && (
             <Button
+              variant="accent"
               size="sm"
-              className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+              fullWidth
+              className="mt-3"
               onClick={() => navigate('/projects')}
             >
               Schedule Placement
@@ -114,8 +116,10 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
           )}
 
           <Button
+            variant="accent"
             size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+            fullWidth
+            className="mt-3"
             onClick={() => navigate(`/pour-planner?flow=1&project=${projectId}`)}
           >
             Open Placement Planner

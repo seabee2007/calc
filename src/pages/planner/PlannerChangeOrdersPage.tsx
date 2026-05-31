@@ -11,7 +11,6 @@ import type { ChangeOrder } from '../../types/changeOrder';
 import { changeOrderEditHref, openNewChangeOrder } from '../../utils/plannerRoutes';
 import Button from '../../components/ui/Button';
 import {
-  PLANNER_BTN_PRIMARY,
   PLANNER_MUTED,
   PLANNER_PAGE_BG,
   PLANNER_SECTION_TITLE,
@@ -74,7 +73,7 @@ export default function PlannerChangeOrdersPage() {
         {isOwner && user && (
           <Button
             size="sm"
-            className={PLANNER_BTN_PRIMARY}
+            variant="accent"
             icon={<Plus className="h-4 w-4" />}
             onClick={() => openNewChangeOrder(navigate, projectId)}
           >

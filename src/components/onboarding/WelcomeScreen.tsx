@@ -102,9 +102,11 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
                 className="space-y-4"
               >
                 <Button
+                  variant="primary"
                   onClick={onNext}
                   size="lg"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xl py-6 px-8 shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg"
+                  fullWidth
+                  className="text-xl py-6 shadow-lg"
                   icon={<ArrowRight size={24} />}
                 >
                   Set Up Profile

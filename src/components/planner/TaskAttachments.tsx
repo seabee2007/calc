@@ -8,7 +8,6 @@ import {
   PLANNER_ATTACHMENT_ICON,
   PLANNER_ATTACHMENT_NAME,
   PLANNER_ATTACHMENT_TILE,
-  PLANNER_BTN_PRIMARY,
   PLANNER_MUTED,
   PLANNER_SECTION_TITLE,
   PLANNER_UPLOAD_ZONE,
@@ -72,8 +71,9 @@ export default function TaskAttachments({
               onChange={(e) => void handleFiles(e.target.files)}
             />
             <Button
+              variant="accent"
               size="sm"
-              className={`min-h-[44px] md:min-h-0 ${PLANNER_BTN_PRIMARY}`}
+              className="min-h-[44px] md:min-h-0"
               icon={<Camera className="h-4 w-4" />}
               onClick={() => inputRef.current?.click()}
               disabled={busy}

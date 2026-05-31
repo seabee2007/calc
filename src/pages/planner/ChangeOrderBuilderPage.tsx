@@ -31,7 +31,6 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { generateChangeOrderPDF } from '../../utils/changeOrderPdf';
 import {
-  PLANNER_BTN_PRIMARY,
   PLANNER_FORM_LABEL,
   PLANNER_FORM_PANEL,
   PLANNER_INPUT,
@@ -641,14 +640,15 @@ export default function ChangeOrderBuilderPage() {
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
+                size="sm"
                 onClick={() => void handleSave()}
                 disabled={busy}
               >
                 Save draft
               </Button>
               <Button
-                className={PLANNER_BTN_PRIMARY}
+                variant="accent"
+                size="sm"
                 icon={<Send className="h-4 w-4" />}
                 onClick={() => void handleSend()}
                 disabled={busy}
@@ -657,7 +657,7 @@ export default function ChangeOrderBuilderPage() {
               </Button>
               <Button
                 variant="outline"
-                className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
+                size="sm"
                 icon={<Mail className="h-4 w-4" />}
                 onClick={() => void handleEmail()}
               >
@@ -665,7 +665,7 @@ export default function ChangeOrderBuilderPage() {
               </Button>
               <Button
                 variant="outline"
-                className="border-slate-300 bg-white text-gray-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-transparent dark:text-gray-100 dark:hover:bg-slate-800"
+                size="sm"
                 onClick={() => void handlePdf()}
                 disabled={busy}
               >

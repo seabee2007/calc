@@ -7,7 +7,6 @@ import { createRfi } from '../../services/rfiService';
 import { uploadRfiAttachments } from '../../services/fieldRecordAttachmentService';
 import { RFI_PRIORITIES } from '../../types/fieldPlanner';
 import FieldFilePicker from './FieldFilePicker';
-import { PLANNER_BTN_PRIMARY } from '../planner/plannerTheme';
 
 interface CreateRfiModalProps {
   isOpen: boolean;
@@ -183,7 +182,7 @@ export default function CreateRfiModal({
           <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
             Cancel
           </Button>
-          <Button type="submit" disabled={busy} className={`min-h-11 ${PLANNER_BTN_PRIMARY}`}>
+          <Button type="submit" variant="accent" disabled={busy} className="min-h-11">
             Submit RFI
           </Button>
         </div>

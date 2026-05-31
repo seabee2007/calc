@@ -98,7 +98,9 @@ export default function EmployeeMessagesPage() {
             className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-white"
           />
           <Button
-            className="w-full min-h-[48px] !bg-cyan-600"
+            variant="accent"
+            fullWidth
+            className="min-h-[48px]"
             onClick={() => void handleSend()}
             disabled={busy}
           >

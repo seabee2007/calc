@@ -53,7 +53,6 @@ import {
 import { getQcBreakStatus } from '../../utils/projectFolders';
 import ClientPortalActions from '../../components/projects/ClientPortalActions';
 import ProjectFieldActivityStrip from '../../components/owner/ProjectFieldActivityStrip';
-import { PLANNER_BTN_PRIMARY } from '../../components/planner/plannerTheme';
 import { useAuth } from '../../hooks/useAuth';
 import { ClipboardList } from 'lucide-react';
 
@@ -445,7 +444,8 @@ export default function ProjectDetails() {
         {isOwner && (
           <div className="mt-4 space-y-3">
             <Button
-              className={`w-full sm:w-auto ${PLANNER_BTN_PRIMARY}`}
+              variant="accent"
+              className="w-full sm:w-auto"
               icon={<ClipboardList className="h-4 w-4" />}
               onClick={() => navigate(`/projects/${project.id}/planner/board`)}
             >

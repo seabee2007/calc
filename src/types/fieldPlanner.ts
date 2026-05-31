@@ -27,13 +27,7 @@ export const TASK_STATUSES: TaskStatus[] = [
 
 export const TASK_PRIORITIES: TaskPriority[] = ['Low', 'Normal', 'High', 'Urgent'];
 
-export const DEFAULT_BUCKET_TITLES = [
-  'Estimating',
-  'Pre-Pour',
-  'Pour Day',
-  'QC / Inspection',
-  'Closeout',
-] as const;
+export const DEFAULT_BUCKET_TITLES = ['Estimates', 'Planning'] as const;
 
 export interface Profile {
   id: string;

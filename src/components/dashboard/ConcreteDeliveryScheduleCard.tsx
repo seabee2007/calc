@@ -171,8 +171,8 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
             Save call sheet in Placement Planner to build truck spacing and ETAs.
           </p>
           <Button
+            variant="accent"
             size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white"
             onClick={() => navigate(plannerPath)}
           >
             Open Placement Planner

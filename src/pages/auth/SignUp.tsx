@@ -165,13 +165,14 @@ const SignUp: React.FC = () => {
 
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                 Or{' '}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => navigate('/login')}
-                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   sign in to existing account
-                </button>
+                </Button>
               </p>
             </div>
 
@@ -238,13 +239,14 @@ const SignUp: React.FC = () => {
                 <div className="ml-3">
                   <label htmlFor="agreeToTerms" className="text-sm text-gray-600 dark:text-gray-300">
                     I agree to the{' '}
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setShowAgreement(true)}
-                      className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       User Agreement
-                    </button>
+                    </Button>
                   </label>
 
                   {errors.agreeToTerms && (

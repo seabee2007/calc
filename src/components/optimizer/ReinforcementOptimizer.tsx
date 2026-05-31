@@ -628,10 +628,11 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   <Button
+                    variant="primary"
                     onClick={handleSave}
                     disabled={isSaving}
-                    icon={isSaving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Save size={16} />}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    isLoading={isSaving}
+                    icon={!isSaving ? <Save size={16} /> : undefined}
                   >
                     <span className="md:hidden">Save</span>
                     <span className="hidden md:inline">{isSaving ? 'Saving...' : 'Save Design'}</span>

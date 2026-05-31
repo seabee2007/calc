@@ -117,9 +117,6 @@ export const PLANNER_ATTACHMENT_NAME =
 export const PLANNER_UPLOAD_ZONE =
   'flex w-full min-h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-dashed border-cyan-500/50 bg-cyan-50/90 text-cyan-800 transition hover:bg-cyan-100/90 dark:border-cyan-500/40 dark:bg-cyan-950/20 dark:text-cyan-300 dark:hover:bg-cyan-950/40';
 
-export const PLANNER_BTN_PRIMARY =
-  '!bg-cyan-600 !text-white hover:!bg-cyan-500 dark:!bg-cyan-600 dark:hover:!bg-cyan-500';
-
 export const PLANNER_BTN_GHOST =
   'w-full !text-gray-700 hover:!bg-slate-100 dark:!text-slate-300 dark:hover:!bg-slate-800';
 

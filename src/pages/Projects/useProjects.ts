@@ -1,7 +1,15 @@
-import { createContext, useContext, useState, useEffect, createElement, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  createElement,
+  type ReactNode,
+} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { useProjectStore } from '../../store';
+import { projectSaveErrorMessage, useProjectStore } from '../../store';
 import { MixProfileType } from '../../types/curing';
 import { Project, QCRecord } from '../../types';
 import { generateProjectPDF } from '../../utils/pdf';
@@ -57,10 +65,13 @@ function useProjectsState() {
     createdPortal: null as { clientName: string; token: string } | null,
   });
 
-  const openProjectDetails = (projectId: string) => {
-    setCurrentProject(projectId);
-    setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
-  };
+  const openProjectDetails = useCallback(
+    (projectId: string) => {
+      setCurrentProject(projectId);
+      setUi((s) => ({ ...s, showDetails: true, showCreate: false, editing: false }));
+    },
+    [setCurrentProject],
+  );
 
   // Ensure projects are loaded (e.g. after full-page reload on ?project= deep link)
   useEffect(() => {
@@ -95,7 +106,7 @@ function useProjectsState() {
       const id = state.projectId;
       const store = useProjectStore.getState();
       const ready =
-        store.currentProject?.id === id || projects.some((p) => p.id === id);
+        store.currentProject?.id === id || store.projects.some((p) => p.id === id);
       if (ready) {
         openProjectDetails(id);
       } else {
@@ -111,10 +122,11 @@ function useProjectsState() {
       return;
     }
     if (projectIdFromQuery) {
-      const exists = projects.some((p) => p.id === projectIdFromQuery);
+      const store = useProjectStore.getState();
+      const exists = store.projects.some((p) => p.id === projectIdFromQuery);
       if (exists) {
         openProjectDetails(projectIdFromQuery);
-      } else if (projects.length === 0) {
+      } else if (store.projects.length === 0) {
         void loadProjects().then(() => {
           const loaded = useProjectStore
             .getState()
@@ -130,11 +142,11 @@ function useProjectsState() {
       }
       return;
     }
-    if (state?.openCreate) {
+    if (state?.openCreate && !state?.showProjectDetails) {
       setCurrentProject(null);
       setUi((s) => ({ ...s, showCreate: true, showDetails: false, editing: false }));
     }
-  }, [location.state, location.search, projects, loadProjects, setCurrentProject]);
+  }, [location.state, location.search, loadProjects, setCurrentProject, openProjectDetails]);
 
   // Sync current project state
   useEffect(() => {
@@ -150,29 +162,18 @@ function useProjectsState() {
   const handlers = {
     create: async (data: ProjectFormData) => {
       try {
-        await addProject({
+        const newProject = await addProject({
           name: data.name,
           description: data.description,
           jobsiteAddress: data.jobsiteAddress,
           clientInfo: data.clientInfo,
           pourDate: data.pourDate,
         });
-        const newProject = useProjectStore.getState().currentProject;
-        if (!newProject) {
-          toast('Project created but could not open details', 'error');
-          setUi((s) => ({ ...s, showCreate: false, showDetails: false }));
-          return;
-        }
-        setUi((s) => ({
-          ...s,
-          showCreate: false,
-          showDetails: true,
-          editing: false,
-        }));
         navigate('/projects', {
           replace: true,
           state: { showProjectDetails: true, projectId: newProject.id },
         });
+        openProjectDetails(newProject.id);
         toast('Project created successfully', 'success');
 
         if (data.clientPortalAccess?.enabled) {
@@ -197,7 +198,7 @@ function useProjectsState() {
         }
       } catch (err) {
         console.error('Error creating project:', err);
-        toast('Error creating project', 'error');
+        toast(projectSaveErrorMessage(err), 'error');
       }
     },
 

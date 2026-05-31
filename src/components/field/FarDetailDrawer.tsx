@@ -26,7 +26,6 @@ import {
   PLANNER_DRAWER_HEADER,
   PLANNER_DRAWER_PANEL,
   PLANNER_DRAWER_TITLE,
-  PLANNER_BTN_PRIMARY,
 } from '../planner/plannerTheme';
 
 interface FarDetailDrawerProps {
@@ -255,7 +254,7 @@ export default function FarDetailDrawer({
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <Button
-                      className={PLANNER_BTN_PRIMARY}
+                      variant="accent"
                       disabled={busy}
                       onClick={() =>
                         void handleReview(
@@ -290,7 +289,8 @@ export default function FarDetailDrawer({
                     Create a priced change order for the client when scope has cost impact.
                   </p>
                   <Button
-                    className={`w-full ${PLANNER_BTN_PRIMARY}`}
+                    variant="accent"
+                    fullWidth
                     onClick={() => {
                       openNewChangeOrder(navigate, adj.projectId, { far: adj.id }, onClose);
                     }}

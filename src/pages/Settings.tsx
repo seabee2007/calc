@@ -472,13 +472,17 @@ const Settings: React.FC = () => {
                     alt="Company Logo" 
                     className="w-20 h-20 object-contain border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                   />
-                  <button
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
                     onClick={handleRemoveLogo}
                     disabled={settingsLoading}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors disabled:opacity-50"
+                    className="absolute -top-2 -right-2 !h-7 !w-7 !min-h-0 !p-0 rounded-full"
+                    aria-label="Remove logo"
                   >
                     <Trash2 size={12} />
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="w-20 h-20 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-800">
@@ -806,10 +810,11 @@ const Settings: React.FC = () => {
           )}
         </div>
         <Button
+          variant="primary"
           onClick={handleSave}
           disabled={isSaving || settingsLoading || preferencesLoading}
+          isLoading={isSaving}
           icon={<Save size={18} />}
-          className="bg-green-600 hover:bg-green-700 text-white"
         >
           {isSaving ? 'Saving...' : 'Save All Settings'}
         </Button>

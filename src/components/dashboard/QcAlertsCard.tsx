@@ -60,8 +60,9 @@ const QcAlertsCard: React.FC<QcAlertsCardProps> = ({
         <div className="space-y-2">
           <p className={`text-sm ${OPS_BODY}`}>{alertSummary(testsDue, testsOverdue)}</p>
           <Button
+            variant="primary"
             size="sm"
-            className="!bg-emerald-700 hover:!bg-emerald-600 !text-white w-full"
+            fullWidth
             onClick={() => navigate(`/projects?folder=${QC_CLOSEOUT_FOLDER}`)}
           >
             Review QC

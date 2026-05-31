@@ -23,8 +23,7 @@ export interface ConfirmModalProps {
 const confirmButtonClass: Record<ConfirmVariant, string> = {
   danger: '',
   primary: '',
-  success:
-    '!bg-emerald-600 hover:!bg-emerald-500 active:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-500',
+  success: '',
 };
 
 export default function ConfirmModal({
@@ -89,7 +88,11 @@ export default function ConfirmModal({
   }, [isOpen]);
 
   const buttonVariant =
-    confirmVariant === 'danger' ? 'danger' : 'primary';
+    confirmVariant === 'danger'
+      ? 'danger'
+      : confirmVariant === 'success'
+        ? 'primary'
+        : 'primary';
 
   const modal = (
     <AnimatePresence>

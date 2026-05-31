@@ -120,12 +120,14 @@ const Login: React.FC = () => {
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Sign in to your account</h2>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
               Or{' '}
-              <button
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={() => navigate('/signup')}
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 create a new account
-              </button>
+              </Button>
             </p>
           </div>
 
@@ -169,13 +171,15 @@ const Login: React.FC = () => {
                   fullWidth
                 />
                 <div className="mt-2 flex flex-col space-y-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={handleForgotPassword}
-                    className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                    className="!h-auto !p-0 text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Forgot your password?
-                  </button>
+                  </Button>
                   {resetError && (
                     <p className="text-sm text-red-600 dark:text-red-400">
                       {resetError}

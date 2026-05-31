@@ -294,15 +294,16 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
             disabled={loading}
             className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none disabled:opacity-60"
           />
-          <button
+          <Button
             type="button"
+            variant="accent"
             onClick={() => void sendMessage()}
             disabled={loading || !input.trim()}
             aria-label="Send message"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="!h-11 !w-11 !min-h-0 shrink-0 !px-0"
           >
             <Send className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

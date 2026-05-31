@@ -5,7 +5,6 @@ import { addTaskComment } from '../../services/taskActivityService';
 import Button from '../ui/Button';
 import UserAvatar from './UserAvatar';
 import {
-  PLANNER_BTN_PRIMARY,
   PLANNER_COMMENT_BOX,
   PLANNER_COMMENT_TEXT,
   PLANNER_ICON_ACCENT,
@@ -116,7 +115,8 @@ export default function TaskComments({
               }}
             />
             <Button
-              className={`min-h-[44px] ${PLANNER_BTN_PRIMARY}`}
+              variant="accent"
+              className="min-h-[44px]"
               onClick={() => void handlePost()}
               disabled={busy || !text.trim()}
             >

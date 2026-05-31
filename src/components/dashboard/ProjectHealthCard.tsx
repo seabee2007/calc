@@ -56,8 +56,10 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           </p>
           {!emptyMessage && (
             <Button
+              variant="accent"
               size="sm"
-              className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+              fullWidth
+              className="mt-3"
               onClick={() => navigate('/projects')}
             >
               Schedule Placement
@@ -120,8 +122,10 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           )}
 
           <Button
+            variant="accent"
             size="sm"
-            className="!bg-cyan-600 hover:!bg-cyan-500 !text-white mt-3 w-full"
+            fullWidth
+            className="mt-3"
             onClick={() => navigate(`/projects?project=${review.projectId}`)}
           >
             Open Project

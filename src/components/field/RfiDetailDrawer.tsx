@@ -27,7 +27,6 @@ import {
   PLANNER_DRAWER_HEADER,
   PLANNER_DRAWER_PANEL,
   PLANNER_DRAWER_TITLE,
-  PLANNER_BTN_PRIMARY,
 } from '../planner/plannerTheme';
 import { openNewChangeOrder } from '../../utils/plannerRoutes';
 
@@ -231,7 +230,8 @@ export default function RfiDetailDrawer({
                     options={RFI_RESPONSE_STATUSES.map((s) => ({ value: s, label: s }))}
                   />
                   <Button
-                    className={`w-full ${PLANNER_BTN_PRIMARY}`}
+                    variant="accent"
+                    fullWidth
                     disabled={busy || !response.trim()}
                     onClick={() => void handleRespond()}
                   >
