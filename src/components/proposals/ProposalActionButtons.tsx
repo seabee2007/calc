@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MoreVertical } from 'lucide-react';
 import Button from '../ui/Button';
 
 type OverflowItem = {
@@ -91,12 +90,12 @@ function OverflowMenu({ items }: { items: OverflowItem[] }) {
   ) : null;
 
   return (
-    <div className="relative" ref={wrapRef}>
+    <div className="relative shrink-0" ref={wrapRef}>
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="h-9 px-2.5"
+        className="h-9 min-w-9 px-2.5 font-semibold tracking-wider"
         onClick={() => {
           setOpen((v) => {
             const next = !v;
@@ -108,8 +107,9 @@ function OverflowMenu({ items }: { items: OverflowItem[] }) {
         }}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="More actions"
       >
-        <MoreVertical size={16} />
+        •••
       </Button>
       {menu ? createPortal(menu, document.body) : null}
     </div>
@@ -122,8 +122,6 @@ export default function ProposalActionButtons({
   onDuplicate,
   onPdf,
   onShareLink,
-  onRequestDeposit,
-  showRequestDeposit = false,
   overflowItems,
 }: {
   onOpen: () => void;
@@ -131,52 +129,32 @@ export default function ProposalActionButtons({
   onDuplicate: () => void;
   onPdf: () => void;
   onShareLink: () => void;
-  onRequestDeposit?: () => void;
-  showRequestDeposit?: boolean;
   overflowItems?: OverflowItem[];
 }) {
   const hasOverflow = (overflowItems?.length ?? 0) > 0;
 
-  const actionButtons = (
-    <>
-      <Button variant="secondary" size="sm" fullWidth className="sm:w-auto" onClick={onOpen}>
-        Open Proposal
-      </Button>
-      <Button variant="primary" size="sm" fullWidth className="sm:w-auto" onClick={onSend}>
-        Send to Client
-      </Button>
-      {showRequestDeposit && onRequestDeposit ? (
-        <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onRequestDeposit}>
-          Request Deposit
-        </Button>
-      ) : (
-        <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onDuplicate}>
-          Duplicate
-        </Button>
-      )}
-      <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onPdf}>
-        Generate PDF
-      </Button>
-      <Button variant="outline" size="sm" fullWidth className="sm:w-auto" onClick={onShareLink}>
-        Share Link
-      </Button>
-    </>
-  );
-
   return (
-    <div className="mt-4 space-y-3">
-      <div className="grid grid-cols-1 gap-2 sm:hidden">{actionButtons}</div>
-
-      <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
-        <div className="flex flex-wrap gap-2">{actionButtons}</div>
-        {hasOverflow ? <OverflowMenu items={overflowItems ?? []} /> : null}
-      </div>
-
-      {hasOverflow ? (
-        <div className="flex justify-end sm:hidden">
-          <OverflowMenu items={overflowItems ?? []} />
-        </div>
-      ) : null}
+    <div
+      role="toolbar"
+      aria-label="Proposal actions"
+      className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/70 pt-3 dark:border-gray-800"
+    >
+      <Button variant="secondary" size="sm" onClick={onOpen}>
+        Open
+      </Button>
+      <Button variant="primary" size="sm" onClick={onSend}>
+        Send
+      </Button>
+      <Button variant="outline" size="sm" onClick={onPdf}>
+        PDF
+      </Button>
+      <Button variant="outline" size="sm" onClick={onShareLink}>
+        Share
+      </Button>
+      <Button variant="outline" size="sm" onClick={onDuplicate}>
+        Duplicate
+      </Button>
+      {hasOverflow ? <OverflowMenu items={overflowItems ?? []} /> : null}
     </div>
   );
 }

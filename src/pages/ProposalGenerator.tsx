@@ -10,6 +10,9 @@ import {
   getWorkflowProjectId,
   workflowQuery,
   workflowNavigateState,
+  workflowConcreteToolQuery,
+  navigateToProjectDetail,
+  projectHasConcreteWork,
   type WorkflowLocationState,
 } from '../utils/workflow';
 import { ProposalData } from '../types/proposal';
@@ -332,10 +335,25 @@ const ProposalGenerator: React.FC = () => {
     });
   };
 
+  const workflowProject = workflowProjectId
+    ? projects.find((p) => p.id === workflowProjectId)
+    : undefined;
+
+  const showConcreteToolActions = projectHasConcreteWork(workflowProject);
+
+  const finishWorkflowToProject = () => {
+    if (!workflowProjectId) return;
+    recordVisit(workflowProjectId, 'proposal');
+    navigateToProjectDetail(navigate, workflowProjectId);
+  };
+
   const goToMixDesign = () => {
     if (!workflowProjectId) return;
     navigate(
-      { pathname: '/mix-design-advisor', search: workflowQuery(workflowProjectId) },
+      {
+        pathname: '/mix-design-advisor',
+        search: workflowConcreteToolQuery(workflowProjectId, workflowState?.calculationId),
+      },
       {
         state: workflowNavigateState(workflowProjectId, {
           calculationId: workflowState?.calculationId,
@@ -346,9 +364,11 @@ const ProposalGenerator: React.FC = () => {
 
   const goToPlacementPlanner = () => {
     if (!workflowProjectId) return;
-    recordVisit(workflowProjectId, 'placement');
     navigate(
-      { pathname: '/pour-planner', search: workflowQuery(workflowProjectId) },
+      {
+        pathname: '/pour-planner',
+        search: workflowConcreteToolQuery(workflowProjectId, workflowState?.calculationId),
+      },
       {
         state: workflowNavigateState(workflowProjectId, {
           calculationId: workflowState?.calculationId,
@@ -358,9 +378,7 @@ const ProposalGenerator: React.FC = () => {
   };
 
   const skipProposal = () => {
-    if (!workflowProjectId) return;
-    recordVisit(workflowProjectId, 'proposal');
-    goToMixDesign();
+    finishWorkflowToProject();
   };
 
   // Update proposal data when company settings change (for new proposals)
@@ -1144,8 +1162,8 @@ const ProposalGenerator: React.FC = () => {
         {inWorkflow && !workflowStepReady && (
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
             <p className="text-sm text-slate-300">
-              Skip this step if you do not need a formal proposal — you will continue to mix design,
-              then placement planning.
+              Skip this step if you do not need a formal proposal — you can return to the project
+              and use concrete tools from Tools when needed.
             </p>
             <Button
               variant="outline"
@@ -1154,7 +1172,7 @@ const ProposalGenerator: React.FC = () => {
               icon={<SkipForward size={16} />}
               className="shrink-0"
             >
-              Skip proposal
+              Skip to project
             </Button>
           </div>
         )}
@@ -1165,24 +1183,38 @@ const ProposalGenerator: React.FC = () => {
             className="mb-6 rounded-xl border border-cyan-700/40 bg-slate-900/90 p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center sm:justify-between"
           >
             <p className="text-sm text-cyan-100/90">
-              Proposal saved. Mix design is optional — placement planning is the next required step.
+              {showConcreteToolActions
+                ? 'Proposal saved. Open the project to continue, or use optional concrete tools first.'
+                : 'Proposal saved. Open the project to continue managing this job.'}
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToMixDesign}
-                icon={<Beaker size={16} />}
-              >
-                Mix design (optional)
-              </Button>
+              {showConcreteToolActions && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToMixDesign}
+                    icon={<Beaker size={16} />}
+                  >
+                    Mix design
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPlacementPlanner}
+                    icon={<CloudSun size={16} />}
+                  >
+                    Placement planner
+                  </Button>
+                </>
+              )}
               <Button
                 variant="primary"
                 size="sm"
-                onClick={goToPlacementPlanner}
-                icon={<CloudSun size={16} />}
+                onClick={finishWorkflowToProject}
+                icon={<FileText size={16} />}
               >
-                Continue to placement planner
+                Open project
               </Button>
             </div>
           </motion.div>

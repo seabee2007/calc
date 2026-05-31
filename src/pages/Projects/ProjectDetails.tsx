@@ -26,13 +26,11 @@ import StrengthProgress from '../../components/projects/StrengthProgress';
 import PlacementOrderStatusPanel from '../../components/projects/PlacementOrderStatusPanel';
 import {
   resolveProjectWorkflow,
-  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_LABELS,
   PROJECT_LIFECYCLE_STAGE_ORDER,
   workflowStageProgressIndex,
-  normalizeWorkflowStageForDisplay,
   shouldShowConfigurePlacement,
   getProjectCardPresentation,
-  type ProjectWorkflowStage,
 } from '../../utils/projectWorkflow';
 import { workflowQuery } from '../../utils/workflow';
 import {
@@ -141,30 +139,41 @@ export default function ProjectDetails() {
       issues.push({ msg: 'Proposal not accepted', action: 'proposal' });
     }
 
-    const order = project.placementOrder;
-    const plantAssigned = Boolean(order?.batchPlantName?.trim() || order?.batchPlantAddress?.trim());
-    if (!plantAssigned) issues.push({ msg: 'No batch plant assigned', action: 'placement' });
-
-    const truckSpacing = Boolean(
-      order?.summaryLines?.some((l: string) => /Truck Spacing/i.test(l)),
-    );
-    if (!truckSpacing) issues.push({ msg: 'Truck spacing not configured', action: 'placement' });
-
-    if (!project.pourDate) issues.push({ msg: 'Placement date not scheduled', action: 'project' });
-
     const volumeYd = (project.calculations ?? []).reduce(
       (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
       0,
     );
-    if (volumeYd <= 0) issues.push({ msg: 'Volume not calculated', action: 'project' });
+    if (
+      (workflow.stage === 'created' || workflow.stage === 'estimating') &&
+      volumeYd <= 0
+    ) {
+      issues.push({ msg: 'No estimates saved yet', action: 'project' });
+    }
 
-    const mixCtx = workflow.mixDesign;
-    if (mixCtx?.nextPendingCalculation) {
-      const label = mixCtx.nextPendingCalculation.type?.replace(/_/g, ' ') ?? 'placement';
-      issues.push({
-        msg: `Mix design pending for ${label}`,
-        action: 'placement',
-      });
+    if (workflow.stage === 'accepted') {
+      const order = project.placementOrder;
+      const plantAssigned = Boolean(
+        order?.batchPlantName?.trim() || order?.batchPlantAddress?.trim(),
+      );
+      if (!plantAssigned) {
+        issues.push({ msg: 'No batch plant assigned (optional)', action: 'placement' });
+      }
+
+      const truckSpacing = Boolean(
+        order?.summaryLines?.some((l: string) => /Truck Spacing/i.test(l)),
+      );
+      if (!truckSpacing) {
+        issues.push({ msg: 'Truck spacing not configured (optional)', action: 'placement' });
+      }
+
+      const mixCtx = workflow.mixDesign;
+      if (mixCtx?.nextPendingCalculation) {
+        const label = mixCtx.nextPendingCalculation.type?.replace(/_/g, ' ') ?? 'placement';
+        issues.push({
+          msg: `Mix design pending for ${label} (optional)`,
+          action: 'placement',
+        });
+      }
     }
 
     const folderCtx = {
@@ -172,7 +181,7 @@ export default function ProjectDetails() {
       proposalStatus: matchedProposal?.status,
     };
     const qcBreak = getQcBreakStatus(project, workflow.stage, folderCtx);
-    const needs28DayBreak = ['placed', 'job_completed', 'paid'].includes(workflow.stage);
+    const needs28DayBreak = ['job_completed', 'paid'].includes(workflow.stage);
     if (needs28DayBreak && !qcBreak.twentyEightDayComplete) {
       issues.push({ msg: 'Enter 28-day break result', action: 'qc' });
     }
@@ -180,12 +189,10 @@ export default function ProjectDetails() {
     return issues.slice(0, 6);
   }, [project, matchedProposal, workflow.mixDesign, workflow.stage]);
 
-  const displayStage = normalizeWorkflowStageForDisplay(
-    workflow.stage as ProjectWorkflowStage,
-  );
-  const stageIndex = workflowStageProgressIndex(workflow.stage as ProjectWorkflowStage);
+  const displayStage = workflow.stage;
+  const stageIndex = workflowStageProgressIndex(displayStage);
   const progressPct = getProjectCardPresentation(
-    workflow.stage as ProjectWorkflowStage,
+    displayStage,
     workflow.nextAction.label,
     Boolean(project?.pourDate),
     project?.pourDate ? new Date(project.pourDate) : null,
@@ -464,7 +471,7 @@ export default function ProjectDetails() {
               Project workflow
             </p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {PROJECT_WORKFLOW_LABELS[displayStage]}
+              {workflow.stageLabel}
             </p>
           </div>
           <div className="text-right">
@@ -478,7 +485,7 @@ export default function ProjectDetails() {
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 text-[10px] uppercase tracking-wide">
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-[10px] uppercase tracking-wide">
           {PROJECT_LIFECYCLE_STAGE_ORDER.map((s, i) => {
             const done = stageIndex >= i;
             return (
@@ -490,7 +497,7 @@ export default function ProjectDetails() {
                     : 'bg-gray-100 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
                 }`}
               >
-                {PROJECT_WORKFLOW_LABELS[s]}
+                {PROJECT_LIFECYCLE_LABELS[s]}
               </div>
             );
           })}
@@ -511,7 +518,7 @@ export default function ProjectDetails() {
               ? 'This project is closed. No further actions are required.'
               : workflow.stage === 'paid'
                 ? 'Final payment recorded — use Close Out Project when you are ready to archive this job.'
-                : 'No blockers detected — proceed to placement planning and dispatch confirmation.'}
+                : 'No blockers detected — update project stage when work is complete or use Tools for field planning.'}
           </p>
         ) : (
           <ul className="space-y-1.5 mt-2">

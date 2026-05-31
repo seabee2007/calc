@@ -9,7 +9,7 @@ import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
 import {
   resolveProjectWorkflow,
-  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_LABELS,
   normalizeWorkflowStageForDisplay,
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
@@ -220,7 +220,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           >
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
-              {PROJECT_WORKFLOW_LABELS[displayStage]}
+              {PROJECT_LIFECYCLE_LABELS[displayStage]}
             </p>
 
             <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-2">Next action</p>

@@ -15,7 +15,6 @@ import {
 import Modal from '../ui/Modal';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import { useProjectStore } from '../../store';
-
 interface ToolCard {
   title: string;
   description: string;
@@ -24,14 +23,28 @@ interface ToolCard {
   onNavigate?: () => void;
 }
 
+interface ToolSection {
+  heading: string;
+  cards: ToolCard[];
+}
+
 const ToolsModal: React.FC = () => {
   const navigate = useNavigate();
   const { isOpen, close } = useToolsModalStore();
   const projects = useProjectStore((s) => s.projects);
+  const currentProject = useProjectStore((s) => s.currentProject);
 
-  const handleNavigate = (path: string) => {
+  const projectId = currentProject?.id;
+
+  const pathWithProject = (path: string) => {
+    if (!projectId) return path;
+    const sep = path.includes('?') ? '&' : '?';
+    return `${path}${sep}project=${encodeURIComponent(projectId)}`;
+  };
+
+  const handleNavigate = (path: string, attachProject = false) => {
     close();
-    navigate(path);
+    navigate(attachProject ? pathWithProject(path) : path);
   };
 
   const handleProjects = () => {
@@ -48,87 +61,130 @@ const ToolsModal: React.FC = () => {
     });
   };
 
-  const toolCards: ToolCard[] = [
+  const sections: ToolSection[] = [
     {
-      title: 'Projects',
-      description: 'Manage jobs, QC, and truck tickets',
-      path: '/projects',
-      icon: FolderKanban,
-      onNavigate: handleProjects,
+      heading: 'Project management',
+      cards: [
+        {
+          title: 'Projects',
+          description: 'Manage jobs, QC, planner, and closeout',
+          path: '/projects',
+          icon: FolderKanban,
+          onNavigate: handleProjects,
+        },
+        {
+          title: 'Proposals',
+          description: 'Estimates and client bids',
+          path: '/proposals',
+          icon: FileText,
+        },
+        {
+          title: 'Resources',
+          description: 'Field guides and references',
+          path: '/resources',
+          icon: BookOpen,
+        },
+      ],
     },
     {
-      title: 'Proposals',
-      description: 'Estimates and client bids',
-      path: '/proposals',
-      icon: FileText,
-    },
-    {
-      title: 'Concrete calculator',
-      description: 'Volume and ready-mix pricing',
-      path: '/calculator/concrete',
-      icon: Calculator,
-    },
-    {
-      title: 'Reinforcement calculator',
-      description: 'Rebar, mesh, and fiber design',
-      path: '/calculator/reinforcement',
-      icon: Grid3x3,
-    },
-    {
-      title: 'Labor calculator',
-      description: 'Crew and production labor cost',
-      path: '/calculator/labor',
-      icon: Users,
-    },
-    {
-      title: 'Custom estimate',
-      description: 'Manual labor, material, and equipment lines',
-      path: '/calculator/custom',
-      icon: PenLine,
-    },
-    {
-      title: 'Mix Design Advisor',
-      description: 'Admixtures and spec guidance',
-      path: '/mix-design-advisor',
-      icon: Beaker,
-    },
-    {
-      title: 'Placement Planner',
-      description: 'Weather, dispatch, and call sheets',
-      path: '/pour-planner',
-      icon: CloudSun,
-    },
-    {
-      title: 'Resources',
-      description: 'Field guides and references',
-      path: '/resources',
-      icon: BookOpen,
+      heading: 'Concrete tools',
+      cards: [
+        {
+          title: 'Concrete calculator',
+          description: 'Volume and ready-mix pricing',
+          path: '/calculator/concrete',
+          icon: Calculator,
+        },
+        {
+          title: 'Reinforcement calculator',
+          description: 'Rebar, mesh, and fiber design',
+          path: '/calculator/reinforcement',
+          icon: Grid3x3,
+        },
+        {
+          title: 'Labor calculator',
+          description: 'Crew and production labor cost',
+          path: '/calculator/labor',
+          icon: Users,
+        },
+        {
+          title: 'Custom estimate',
+          description: 'Manual labor, material, and equipment lines',
+          path: '/calculator/custom',
+          icon: PenLine,
+        },
+        {
+          title: 'Mix Design Advisor',
+          description: 'Admixtures and spec guidance for placements',
+          path: '/mix-design-advisor',
+          icon: Beaker,
+        },
+        {
+          title: 'Placement Planner',
+          description: 'Weather, dispatch, and placement call sheets',
+          path: '/pour-planner',
+          icon: CloudSun,
+        },
+      ],
     },
   ];
+
+  const concretePaths = new Set([
+    '/calculator/concrete',
+    '/calculator/reinforcement',
+    '/calculator/labor',
+    '/calculator/custom',
+    '/mix-design-advisor',
+    '/pour-planner',
+  ]);
 
   return (
     <Modal isOpen={isOpen} onClose={close} title="Tools" size="lg">
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 -mt-2">
-        Jump to any area of ConcreteCalc. Your guided workflow starts from the dashboard.
+        Jump to any area of your project workspace. The guided workflow is Project → Estimates →
+        Proposal; use concrete tools below when a job includes ready-mix work.
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {toolCards.map(({ title, description, path, icon: Icon, onNavigate }) => (
-          <button
-            key={path + title}
-            type="button"
-            onClick={() => (onNavigate ? onNavigate() : handleNavigate(path))}
-            className="flex w-full items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left transition-colors hover:border-cyan-500/50 hover:bg-cyan-50/50 dark:border-slate-600 dark:bg-slate-800/80 dark:hover:border-cyan-500/40 dark:hover:bg-slate-700/80"
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-cyan-600/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400">
-              <Icon className="h-6 w-6" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-semibold text-gray-900 dark:text-white">{title}</span>
-              <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                {description}
-              </span>
-            </span>
-          </button>
+      {projectId && currentProject && (
+        <p className="text-sm text-cyan-700 dark:text-cyan-300/90 mb-4 font-medium">
+          Active project: {currentProject.name}
+          <span className="block text-xs font-normal text-gray-500 dark:text-gray-400 mt-0.5">
+            Calculator and concrete tools open with this project selected.
+          </span>
+        </p>
+      )}
+      <div className="space-y-6">
+        {sections.map((section) => (
+          <div key={section.heading}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-3">
+              {section.heading}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {section.cards.map(({ title, description, path, icon: Icon, onNavigate }) => (
+                <button
+                  key={path + title}
+                  type="button"
+                  onClick={() =>
+                    onNavigate
+                      ? onNavigate()
+                      : handleNavigate(path, concretePaths.has(path))
+                  }
+                  className="flex w-full items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left transition-colors hover:border-cyan-500/50 hover:bg-cyan-50/50 dark:border-slate-600 dark:bg-slate-800/80 dark:hover:border-cyan-500/40 dark:hover:bg-slate-700/80"
+                >
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-cyan-600/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400">
+                    <Icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-gray-900 dark:text-white">
+                      {title}
+                    </span>
+                    <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                      {description}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </Modal>

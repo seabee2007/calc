@@ -1,17 +1,25 @@
-/** Guided contractor workflow: project → calc → proposal → mix → placement → dashboard */
+/** Guided contractor workflow: project → estimates → proposal (concrete tools optional via Tools modal) */
 
 import type { NavigateFunction } from 'react-router-dom';
+import type { Project } from '../types';
+import type { PlacementOrderStatus } from '../types/placementOrder';
 
 export const WORKFLOW_STEPS = [
   { id: 'project', label: 'Project Info', path: '/projects' },
   { id: 'calculator', label: 'Estimates', path: '/calculator' },
   { id: 'proposal', label: 'Proposal', path: '/proposal-generator' },
-  { id: 'mix', label: 'Mix Design', path: '/mix-design-advisor' },
-  { id: 'placement', label: 'Placement', path: '/pour-planner' },
-  { id: 'dashboard', label: 'Dashboard', path: '/' },
 ] as const;
 
 export type WorkflowStepId = (typeof WORKFLOW_STEPS)[number]['id'];
+
+export const WORKFLOW_CONCRETE_TOOLS = [
+  { id: 'mix', label: 'Mix Design', path: '/mix-design-advisor' },
+  { id: 'placement', label: 'Placement Planner', path: '/pour-planner' },
+] as const;
+
+export type WorkflowConcreteToolId = (typeof WORKFLOW_CONCRETE_TOOLS)[number]['id'];
+
+const CORE_STEP_COUNT = WORKFLOW_STEPS.length;
 
 export interface WorkflowLocationState {
   workflow?: boolean;
@@ -72,6 +80,14 @@ export function workflowQuery(projectId?: string, calculationId?: string): strin
   return `?${params.toString()}`;
 }
 
+/** Workflow URL for optional concrete tools (mix / placement). */
+export function workflowConcreteToolQuery(
+  projectId: string,
+  calculationId?: string,
+): string {
+  return workflowQuery(projectId, calculationId);
+}
+
 export function getWorkflowCalculationId(
   search: string,
   state?: WorkflowLocationState | null,
@@ -86,6 +102,23 @@ export function workflowNavigateState(
   extra?: Omit<WorkflowLocationState, 'workflow' | 'projectId'>,
 ): WorkflowLocationState {
   return { workflow: true, ...(projectId ? { projectId } : {}), ...extra };
+}
+
+function projectVolumeYd(project: Project): number {
+  return (project.calculations ?? []).reduce(
+    (sum, c) => sum + (c.result?.volume > 0 ? c.result.volume : 0),
+    0,
+  );
+}
+
+/** True when the job likely involves ready-mix / placement work. */
+export function projectHasConcreteWork(project: Project | undefined | null): boolean {
+  if (!project) return false;
+  if (projectVolumeYd(project) > 0) return true;
+  if (project.pourDate) return true;
+  const status = project.placementOrder?.status as PlacementOrderStatus | undefined;
+  if (status && status !== 'draft') return true;
+  return false;
 }
 
 /** Prefer navigation state calc id, else latest calculation with volume. */
@@ -111,19 +144,30 @@ export function getWorkflowCalculation<
   return calcs[calcs.length - 1];
 }
 
+export function isConcreteToolPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/mix-design-advisor') || pathname.startsWith('/pour-planner')
+  );
+}
+
+/** Core workflow step for progress UI (optional concrete tool routes map to proposal). */
 export function getWorkflowStepFromPath(pathname: string): WorkflowStepId {
-  if (pathname === '/' || pathname === '/dispatch' || pathname === '/qc') {
-    return 'dashboard';
-  }
   if (pathname.startsWith('/projects')) return 'project';
   if (pathname.startsWith('/calculator')) return 'calculator';
-  // sub-routes (concrete, reinforcement, labor) still count as calculator step
   if (pathname.startsWith('/proposal')) return 'proposal';
-  if (pathname.startsWith('/mix-design-advisor')) return 'mix';
-  if (pathname.startsWith('/pour-planner')) return 'placement';
-  return 'dashboard';
+  if (isConcreteToolPath(pathname)) return 'proposal';
+  return 'proposal';
 }
 
 export function stepIndex(stepId: WorkflowStepId): number {
   return WORKFLOW_STEPS.findIndex((s) => s.id === stepId);
 }
+
+/** Remap legacy 6-step session progress to 3-step indices. */
+export function remapLegacyMaxStepIndex(legacyIndex: number): number {
+  if (legacyIndex <= 0) return 0;
+  if (legacyIndex <= 2) return legacyIndex;
+  return CORE_STEP_COUNT - 1;
+}
+
+export const WORKFLOW_PROGRESS_STORAGE_KEY = 'workflow_max_step_v2';

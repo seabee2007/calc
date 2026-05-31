@@ -9,7 +9,7 @@ import { navigateToProjectDetail } from '../../utils/workflow';
 import { useProjectStore } from '../../store';
 import { defaultPlacementOrder } from '../../types/placementOrder';
 import {
-  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_LABELS,
   PROJECT_LIFECYCLE_STAGE_ORDER,
   normalizeWorkflowStageForDisplay,
   type ProjectWorkflowStage,
@@ -109,7 +109,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
                     return (
                       <span
                         key={stage}
-                        title={PROJECT_WORKFLOW_LABELS[stage]}
+                        title={PROJECT_LIFECYCLE_LABELS[normalizeWorkflowStageForDisplay(stage)]}
                         className={`h-1.5 w-3 rounded-full ${
                           active
                             ? 'bg-cyan-400'

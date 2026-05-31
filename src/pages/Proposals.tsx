@@ -269,11 +269,6 @@ const Proposals: React.FC = () => {
         ]
       : []),
     {
-      key: 'duplicate',
-      label: 'Duplicate',
-      onClick: () => handleDuplicate(proposal),
-    },
-    {
       key: 'download_json',
       label: 'Export JSON',
       onClick: () => handleExport(proposal),
@@ -490,7 +485,6 @@ const Proposals: React.FC = () => {
                       onDuplicate: () => void handleDuplicate(proposal),
                       onPdf: () => handlePreview(proposal),
                       onShareLink: () => void handleShareClientLink(proposal),
-                      onRequestDeposit: () => void handleMarkDeposit(proposal.id),
                       overflowItems: buildOverflowItems(proposal),
                     }}
                   />

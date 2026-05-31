@@ -17,7 +17,7 @@ import { fetchTeamProfiles } from '../services/profileService';
 import { fetchAssignmentsForProject } from '../services/employeeService';
 import {
   resolveProjectWorkflow,
-  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_LABELS,
 } from '../utils/projectWorkflow';
 import { formatUSAddress, usAddressFromFields } from '../types/address';
 import type { PlannerBoardBundle, Profile } from '../types/fieldPlanner';
@@ -103,7 +103,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       setProject({
         id: row.id as string,
         name: row.name as string,
-        statusLabel: PROJECT_WORKFLOW_LABELS[workflow.stage],
+        statusLabel: PROJECT_LIFECYCLE_LABELS[workflow.stage],
         statusStage: workflow.stage,
         locationLabel,
         ownerId: row.user_id as string,

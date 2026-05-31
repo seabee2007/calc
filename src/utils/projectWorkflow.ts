@@ -25,45 +25,74 @@ export type ProjectWorkflowStage =
   | 'paid'
   | 'closed';
 
-/** Progress bar & project-card stage dropdown (mix approved not shown). */
-export const PROJECT_LIFECYCLE_STAGE_ORDER: ProjectWorkflowStage[] = [
+/** Progress bar, project detail lifecycle chips, and manual stage dropdown. */
+export const PROJECT_LIFECYCLE_STAGE_ORDER = [
   'created',
   'estimating',
   'proposal_sent',
   'accepted',
-  'placement_scheduled',
-  'ordered',
-  'placed',
   'job_completed',
   'paid',
   'closed',
-];
+] as const satisfies readonly ProjectWorkflowStage[];
+
+export type ProjectLifecycleStage = (typeof PROJECT_LIFECYCLE_STAGE_ORDER)[number];
+
+export const PROJECT_LIFECYCLE_LABELS: Record<ProjectLifecycleStage, string> = {
+  created: 'Created',
+  estimating: 'Estimating',
+  proposal_sent: 'Proposal Sent',
+  accepted: 'Accepted',
+  job_completed: 'Job Completed',
+  paid: 'Paid',
+  closed: 'Closed',
+};
 
 export const PROJECT_WORKFLOW_LABELS: Record<ProjectWorkflowStage, string> = {
   created: 'Created',
   estimating: 'Estimating',
   proposal_sent: 'Proposal Sent',
   accepted: 'Accepted',
-  mix_approved: 'Mix Approved',
-  placement_scheduled: 'Placement Scheduled',
-  ordered: 'Order Ready Mix',
-  placed: 'Concrete Placed',
+  mix_approved: 'Accepted',
+  placement_scheduled: 'Accepted',
+  ordered: 'Accepted',
+  placed: 'Job Completed',
   job_completed: 'Job Completed',
   paid: 'Paid',
   closed: 'Closed',
 };
 
+const LEGACY_CONCRETE_DISPATCH_STAGES: ProjectWorkflowStage[] = [
+  'mix_approved',
+  'placement_scheduled',
+  'ordered',
+];
+
+/** Map legacy placement/dispatch stages to the simplified PM lifecycle. */
 export function normalizeWorkflowStageForDisplay(
   stage: ProjectWorkflowStage,
-): ProjectWorkflowStage {
-  if (stage === 'mix_approved') return 'accepted';
-  return stage;
+): ProjectLifecycleStage {
+  if (LEGACY_CONCRETE_DISPATCH_STAGES.includes(stage)) return 'accepted';
+  if (stage === 'placed') return 'job_completed';
+  if (PROJECT_LIFECYCLE_STAGE_ORDER.includes(stage as ProjectLifecycleStage)) {
+    return stage as ProjectLifecycleStage;
+  }
+  return 'created';
 }
 
 export function workflowStageProgressIndex(stage: ProjectWorkflowStage): number {
   const normalized = normalizeWorkflowStageForDisplay(stage);
   const idx = PROJECT_LIFECYCLE_STAGE_ORDER.indexOf(normalized);
   return idx >= 0 ? idx : 0;
+}
+
+export function isProjectLifecycleStage(
+  value: string | undefined,
+): value is ProjectLifecycleStage {
+  return (
+    value != null &&
+    (PROJECT_LIFECYCLE_STAGE_ORDER as readonly string[]).includes(value)
+  );
 }
 
 export interface ProjectNextAction {
@@ -75,16 +104,16 @@ export interface ProjectNextAction {
   kind?: 'navigate' | 'close_project' | 'back_to_list' | 'scroll_to_qc';
 }
 
-/** Stages where pour planner / placement configuration is still relevant. */
+/** Stages where pour planner / placement configuration is still relevant (incl. legacy inferred). */
 export const PLACEMENT_PLANNER_STAGES: ProjectWorkflowStage[] = [
-  'mix_approved',
-  'placement_scheduled',
-  'ordered',
+  'accepted',
+  ...LEGACY_CONCRETE_DISPATCH_STAGES,
   'placed',
 ];
 
 export function shouldShowConfigurePlacement(stage: ProjectWorkflowStage): boolean {
-  return PLACEMENT_PLANNER_STAGES.includes(stage);
+  const normalized = normalizeWorkflowStageForDisplay(stage);
+  return normalized === 'accepted';
 }
 
 /** Archived jobs — exclude from dashboard placement queues and schedules. */
@@ -165,6 +194,7 @@ export function getProjectCardPresentation(
   pourDate?: Date | null,
 ): ProjectCardPresentation {
   const pour = pourDate ?? null;
+  const displayStage = normalizeWorkflowStageForDisplay(stage);
   const stageIdx = workflowStageProgressIndex(stage);
   const maxIdx = PROJECT_LIFECYCLE_STAGE_ORDER.length - 1;
   const baseProgress = Math.round((stageIdx / maxIdx) * 100);
@@ -223,25 +253,7 @@ export function getProjectCardPresentation(
     );
   }
 
-  if (stage === 'placed') {
-    return finalizeProjectCardPresentation(
-      {
-        priorityLabel: 'Placed',
-        priorityBadgeClass:
-          'bg-cyan-500/15 text-cyan-800 border-cyan-500/40 dark:text-cyan-200',
-        priorityRingClass: 'ring-1 ring-cyan-500/35',
-        progressPct: baseProgress,
-        nextActionLabel: nextActionLabel,
-        scheduleFooterLabel: hasPourDate ? 'Placed' : 'Needs schedule',
-        scheduleFooterComplete: hasPourDate,
-        hidePlacementOrder: false,
-      },
-      stage,
-      pour,
-    );
-  }
-
-  if (stage === 'created' || stage === 'estimating') {
+  if (displayStage === 'created' || displayStage === 'estimating') {
     return finalizeProjectCardPresentation(
       {
         priorityLabel: 'Waiting',
@@ -250,25 +262,7 @@ export function getProjectCardPresentation(
         priorityRingClass: 'ring-1 ring-amber-500/40',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
-        scheduleFooterLabel: hasPourDate ? 'Scheduled' : 'Needs schedule',
-        scheduleFooterComplete: hasPourDate,
-        hidePlacementOrder: false,
-      },
-      stage,
-      pour,
-    );
-  }
-
-  if ((stage === 'proposal_sent' || stage === 'accepted') && !hasPourDate) {
-    return finalizeProjectCardPresentation(
-      {
-        priorityLabel: 'Needs attention',
-        priorityBadgeClass:
-          'bg-red-500/15 text-red-800 border-red-500/40 dark:text-red-200',
-        priorityRingClass: 'ring-1 ring-red-500/35',
-        progressPct: baseProgress,
-        nextActionLabel: nextActionLabel,
-        scheduleFooterLabel: 'Needs schedule',
+        scheduleFooterLabel: 'Setup in progress',
         scheduleFooterComplete: false,
         hidePlacementOrder: false,
       },
@@ -277,16 +271,34 @@ export function getProjectCardPresentation(
     );
   }
 
-  if (stage === 'ordered' || stage === 'placement_scheduled' || stage === 'mix_approved') {
+  if (displayStage === 'proposal_sent') {
     return finalizeProjectCardPresentation(
       {
-        priorityLabel: 'Ready',
+        priorityLabel: 'Follow up',
+        priorityBadgeClass:
+          'bg-amber-500/15 text-amber-800 border-amber-500/40 dark:text-amber-200',
+        priorityRingClass: 'ring-1 ring-amber-500/40',
+        progressPct: baseProgress,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: 'Awaiting client response',
+        scheduleFooterComplete: false,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (displayStage === 'accepted') {
+    return finalizeProjectCardPresentation(
+      {
+        priorityLabel: 'In progress',
         priorityBadgeClass:
           'bg-emerald-500/15 text-emerald-800 border-emerald-500/40 dark:text-emerald-200',
         priorityRingClass: 'ring-1 ring-emerald-500/35',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
-        scheduleFooterLabel: hasPourDate ? 'Scheduled' : 'Needs schedule',
+        scheduleFooterLabel: hasPourDate ? 'Field work scheduled' : 'Execute job',
         scheduleFooterComplete: hasPourDate,
         hidePlacementOrder: false,
       },
@@ -320,7 +332,7 @@ export interface ReadinessIssue {
 }
 
 export interface ProjectWorkflowMeta {
-  stage: ProjectWorkflowStage;
+  stage: ProjectLifecycleStage;
   stageLabel: string;
   nextAction: ProjectNextAction;
   healthScore: number;
@@ -364,24 +376,20 @@ function inferStage(
   if (status === 'completed' || status === 'cancelled') return 'closed';
 
   if (pourDate && pourDate < now && !isSameDay(pourDate, now)) {
-    if (status === 'scheduled' || status === 'ordered') return 'placed';
+    if (status === 'scheduled' || status === 'ordered') return 'job_completed';
   }
 
-  /** Dispatch stage — only from order-status dropdown on the project card. */
-  if (status === 'ordered') return 'ordered';
-  if (status === 'scheduled') return 'placement_scheduled';
-
-  /** Pour date + call sheet saved; plant not called yet (status still draft). */
-  if (pourDate && (!status || status === 'draft')) {
-    return 'placement_scheduled';
-  }
-
-  if (status === 'ready_to_call') {
-    return pourDate ? 'placement_scheduled' : 'accepted';
+  if (
+    status === 'ordered' ||
+    status === 'scheduled' ||
+    status === 'ready_to_call' ||
+    (pourDate && (!status || status === 'draft'))
+  ) {
+    return 'accepted';
   }
 
   if (proposalStatus === 'paid') return 'paid';
-  if (proposalStatus === 'scheduled') return 'placement_scheduled';
+  if (proposalStatus === 'scheduled') return 'accepted';
   if (proposalStatus === 'deposit_paid') {
     return 'accepted';
   }
@@ -437,11 +445,13 @@ function buildNextAction(
   mixContext?: MixDesignWorkflowContext,
 ): ProjectNextAction {
   const q = workflowQuery(projectId);
-  switch (stage) {
+  const lifecycle = normalizeWorkflowStageForDisplay(stage);
+
+  switch (lifecycle) {
     case 'created':
       return {
-        label: 'Add Takeoff',
-        description: 'Run concrete volume and scope',
+        label: 'Add estimates',
+        description: 'Run calculators or custom line items',
         path: '/calculator',
         search: q,
       };
@@ -459,36 +469,15 @@ function buildNextAction(
       };
     case 'accepted':
       if (mixContext?.nextPendingCalculationId) {
-        return buildMixDesignNextAction(projectId, mixContext);
+        const mixAction = buildMixDesignNextAction(projectId, mixContext);
+        return {
+          ...mixAction,
+          label: `${mixAction.label} (optional)`,
+        };
       }
       return {
-        label: 'Generate Proposal',
-        path: '/proposal-generator',
-        search: q,
-      };
-    case 'mix_approved':
-      return {
-        label: 'Order Concrete',
-        description: 'Configure placement and call the batch plant',
-        path: '/pour-planner',
-        search: q,
-      };
-    case 'placement_scheduled':
-      return {
-        label: 'Order Concrete',
-        path: '/pour-planner',
-        search: q,
-      };
-    case 'ordered':
-      return {
-        label: 'Open Dispatch Sheet',
-        path: '/pour-planner',
-        search: q,
-      };
-    case 'placed':
-      return {
-        label: 'Log QC records',
-        description: 'Scroll to quality control on this project',
+        label: 'Log QC & field notes',
+        description: 'Use Tools for placement and mix when needed; update stage when done',
         path: '/projects',
         kind: 'scroll_to_qc',
       };
@@ -522,6 +511,7 @@ export function buildReadinessIssues(
   order: PlacementOrder | undefined,
   risks: { wind: OpsRiskLevel; heat: OpsRiskLevel },
   mixContext?: MixDesignWorkflowContext,
+  lifecycleStage?: ProjectLifecycleStage,
 ): ReadinessIssue[] {
   const issues: ReadinessIssue[] = [];
   const q = workflowQuery(project.id);
@@ -542,10 +532,10 @@ export function buildReadinessIssues(
       fixSearch: q,
     });
   }
-  if (!project.pourDate) {
+  if (!project.pourDate && lifecycleStage === 'accepted') {
     issues.push({
       id: 'pour-time',
-      message: 'No placement start time scheduled',
+      message: 'No placement date set (optional)',
       fixPath: '/projects',
       fixSearch: `?project=${project.id}`,
     });
@@ -642,17 +632,19 @@ export function resolveProjectWorkflow(
     options?.now,
   );
   const manual = order?.lifecycleStage as ProjectWorkflowStage | undefined;
-  const stage =
-    manual && manual in PROJECT_WORKFLOW_LABELS
-      ? normalizeWorkflowStageForDisplay(manual)
-      : normalizeWorkflowStageForDisplay(inferred);
+  const stage = normalizeWorkflowStageForDisplay(
+    manual && manual in PROJECT_WORKFLOW_LABELS ? manual : inferred,
+  );
   const readinessIssues =
     stage === 'closed' || isProjectClosedOut(project)
       ? []
-      : buildReadinessIssues(project, order, {
-          wind,
-          heat,
-        }, mixDesign);
+      : buildReadinessIssues(
+          project,
+          order,
+          { wind, heat },
+          mixDesign,
+          stage,
+        );
   const healthScore = computeProjectHealthScore(
     project,
     order,
@@ -663,7 +655,7 @@ export function resolveProjectWorkflow(
 
   return {
     stage,
-    stageLabel: PROJECT_WORKFLOW_LABELS[stage],
+    stageLabel: PROJECT_LIFECYCLE_LABELS[stage],
     nextAction: buildNextAction(stage, project.id, mixDesign),
     healthScore,
     readinessIssues,

@@ -1,7 +1,13 @@
 import { create } from 'zustand';
-import { stepIndex, type WorkflowStepId } from '../utils/workflow';
+import {
+  remapLegacyMaxStepIndex,
+  stepIndex,
+  WORKFLOW_PROGRESS_STORAGE_KEY,
+  type WorkflowStepId,
+} from '../utils/workflow';
 
 const GLOBAL_KEY = '__global__';
+const LEGACY_STORAGE_KEY = 'workflow_max_step';
 
 interface WorkflowProgressState {
   /** Highest step index reached per project (or global when no project id). */
@@ -15,11 +21,28 @@ function storageKey(projectId: string | undefined): string {
   return projectId?.trim() || GLOBAL_KEY;
 }
 
+function migrateStoredMap(raw: Record<string, number>): Record<string, number> {
+  const next: Record<string, number> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) continue;
+    next[key] = remapLegacyMaxStepIndex(n);
+  }
+  return next;
+}
+
 function readStored(): Record<string, number> {
   try {
-    const raw = sessionStorage.getItem('workflow_max_step');
-    if (!raw) return {};
-    return JSON.parse(raw) as Record<string, number>;
+    const v2 = sessionStorage.getItem(WORKFLOW_PROGRESS_STORAGE_KEY);
+    if (v2) {
+      return migrateStoredMap(JSON.parse(v2) as Record<string, number>);
+    }
+    const legacy = sessionStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!legacy) return {};
+    const migrated = migrateStoredMap(JSON.parse(legacy) as Record<string, number>);
+    sessionStorage.setItem(WORKFLOW_PROGRESS_STORAGE_KEY, JSON.stringify(migrated));
+    sessionStorage.removeItem(LEGACY_STORAGE_KEY);
+    return migrated;
   } catch {
     return {};
   }
@@ -27,7 +50,7 @@ function readStored(): Record<string, number> {
 
 function writeStored(map: Record<string, number>) {
   try {
-    sessionStorage.setItem('workflow_max_step', JSON.stringify(map));
+    sessionStorage.setItem(WORKFLOW_PROGRESS_STORAGE_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
   }
@@ -39,6 +62,7 @@ export const useWorkflowProgressStore = create<WorkflowProgressState>((set, get)
   recordVisit: (projectId, stepId) => {
     const key = storageKey(projectId);
     const idx = stepIndex(stepId);
+    if (idx < 0) return;
     set((s) => {
       const prev = s.maxStepIndex[key] ?? 0;
       if (idx <= prev) return s;

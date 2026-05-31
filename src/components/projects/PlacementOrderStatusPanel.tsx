@@ -6,9 +6,10 @@ import type { Project } from '../../types';
 import type { PlacementOrder } from '../../types/placementOrder';
 import {
   PROJECT_LIFECYCLE_STAGE_ORDER,
-  PROJECT_WORKFLOW_LABELS,
+  PROJECT_LIFECYCLE_LABELS,
   normalizeWorkflowStageForDisplay,
   resolveProjectWorkflow,
+  type ProjectLifecycleStage,
   type ProjectWorkflowStage,
 } from '../../utils/projectWorkflow';
 import { defaultPlacementOrder } from '../../types/placementOrder';
@@ -16,7 +17,7 @@ import { useProjectStore } from '../../store';
 
 const LIFECYCLE_OPTIONS = PROJECT_LIFECYCLE_STAGE_ORDER.map((value) => ({
   value,
-  label: PROJECT_WORKFLOW_LABELS[value],
+  label: PROJECT_LIFECYCLE_LABELS[value],
 }));
 
 interface PlacementOrderStatusPanelProps {
@@ -40,7 +41,7 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
     [order?.lifecycleStage, inferredStage],
   );
 
-  const [lifecycleStage, setLifecycleStage] = useState<ProjectWorkflowStage>(savedLifecycle);
+  const [lifecycleStage, setLifecycleStage] = useState<ProjectLifecycleStage>(savedLifecycle);
   const [notes, setNotes] = useState(order?.orderNotes ?? '');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -99,7 +100,7 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
           label="Project stage"
           options={LIFECYCLE_OPTIONS}
           value={lifecycleStage}
-          onChange={(v) => setLifecycleStage(v as ProjectWorkflowStage)}
+          onChange={(v) => setLifecycleStage(v as ProjectLifecycleStage)}
         />
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           Dispatch notes

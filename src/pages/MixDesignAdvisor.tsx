@@ -14,6 +14,9 @@ import {
   getWorkflowCalculationId,
   workflowQuery,
   workflowNavigateState,
+  workflowConcreteToolQuery,
+  navigateToProjectDetail,
+  projectHasConcreteWork,
   type WorkflowLocationState,
 } from '../utils/workflow';
 import {
@@ -265,17 +268,23 @@ const MixDesignAdvisor: React.FC = () => {
 
   const goToPlacementPlanner = () => {
     if (!workflowProjectId) return;
+    const calcId = activeCalculationId ?? workflowCalc?.id;
     navigate(
       {
         pathname: '/pour-planner',
-        search: workflowQuery(workflowProjectId, activeCalculationId),
+        search: workflowConcreteToolQuery(workflowProjectId, calcId),
       },
       {
         state: workflowNavigateState(workflowProjectId, {
-          calculationId: activeCalculationId ?? workflowCalc?.id,
+          calculationId: calcId,
         }),
       },
     );
+  };
+
+  const returnToProject = () => {
+    if (!workflowProjectId) return;
+    navigateToProjectDetail(navigate, workflowProjectId);
   };
 
   const switchPlacement = (calculationId: string) => {
@@ -700,7 +709,7 @@ const MixDesignAdvisor: React.FC = () => {
           </div>
         )}
 
-        {inWorkflow && (
+        {inWorkflow && projectHasConcreteWork(workflowProject) && (
           <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
             <Button
               variant="outline"
@@ -708,7 +717,7 @@ const MixDesignAdvisor: React.FC = () => {
               onClick={goToPlacementPlanner}
               icon={<SkipForward size={18} />}
             >
-              Skip to placement planner
+              Open placement planner
             </Button>
           </div>
         )}
@@ -783,14 +792,14 @@ const MixDesignAdvisor: React.FC = () => {
                       switchPlacement(ctx.nextPendingCalculationId);
                       return;
                     }
-                    goToPlacementPlanner();
+                    returnToProject();
                   }
                 : undefined
             }
             finishLabel={
               mixContext && mixContext.pendingCount > 1 && recommendation
                 ? 'Approve & next placement'
-                : 'Continue to placement planner'
+                : 'Save & return to project'
             }
             finishDisabled={!recommendation}
           />

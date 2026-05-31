@@ -19,7 +19,6 @@ export interface ProposalPipelineCardHandlers {
   onDuplicate: () => void;
   onPdf: () => void;
   onShareLink: () => void;
-  onRequestDeposit?: () => void;
   overflowItems: Parameters<typeof ProposalActionButtons>[0]['overflowItems'];
 }
 
@@ -154,6 +153,15 @@ export default function ProposalPipelineCard({
                 </div>
               </div>
 
+              <ProposalActionButtons
+                onOpen={handlers.onOpen}
+                onSend={handlers.onSend}
+                onDuplicate={handlers.onDuplicate}
+                onPdf={handlers.onPdf}
+                onShareLink={handlers.onShareLink}
+                overflowItems={handlers.overflowItems}
+              />
+
               <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-gray-400">
                   Activity timeline
@@ -174,17 +182,6 @@ export default function ProposalPipelineCard({
                   ))}
                 </ul>
               </div>
-
-              <ProposalActionButtons
-                onOpen={handlers.onOpen}
-                onSend={handlers.onSend}
-                onDuplicate={handlers.onDuplicate}
-                onPdf={handlers.onPdf}
-                onShareLink={handlers.onShareLink}
-                onRequestDeposit={handlers.onRequestDeposit}
-                showRequestDeposit={status === 'accepted'}
-                overflowItems={handlers.overflowItems}
-              />
             </div>
           </motion.div>
         )}
