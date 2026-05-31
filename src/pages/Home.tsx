@@ -1,23 +1,25 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import OperationsDashboard from './OperationsDashboard';
 import MarketingHome from './MarketingHome';
+import RouteFallback from '../routes/RouteFallback';
+
+const OperationsDashboard = lazy(() => import('./OperationsDashboard'));
 
 const Home: React.FC = () => {
   const { user, loading, profileLoading, isEmployee } = useAuth();
 
   if (loading || (user && profileLoading)) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
-      </div>
-    );
+    return <RouteFallback />;
   }
 
   if (!user) return <MarketingHome />;
   if (isEmployee) return <Navigate to="/employee/dashboard" replace />;
-  return <OperationsDashboard />;
+  return (
+    <Suspense fallback={<RouteFallback />}>
+      <OperationsDashboard />
+    </Suspense>
+  );
 };
 
 export default Home;

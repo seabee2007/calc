@@ -1,74 +1,77 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import Button from './components/ui/Button';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './store/themeStore';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Calculator from './pages/Calculator';
-import ConcreteCalculatorPage from './pages/calculators/ConcreteCalculatorPage';
-import ReinforcementCalculatorPage from './pages/calculators/ReinforcementCalculatorPage';
-import LaborCalculatorPage from './pages/calculators/LaborCalculatorPage';
-import GeneralTradeLaborCalculatorPage from './pages/calculators/GeneralTradeLaborCalculatorPage';
-import CustomEstimatePage from './pages/calculators/CustomEstimatePage';
-import SafetyMeetingToolPage from './pages/tools/SafetyMeetingToolPage';
-import ConcreteInspectionChecklistPage from './pages/tools/ConcreteInspectionChecklistPage';
-import Projects from './pages/Projects/Projects';
-import Settings from './pages/Settings';
-import Resources from './pages/Resources';
-import MixDesigns from './pages/resources/MixDesigns';
-import WeatherEffects from './pages/resources/WeatherEffects';
-import Reinforcement from './pages/resources/Reinforcement';
-import ProperFinishing from './pages/resources/ProperFinishing';
-import CommonProblems from './pages/resources/CommonProblems';
-import Admixtures from './pages/resources/Admixtures';
-import ExternalResources from './pages/resources/ExternalResources';
-import MixDesignAdvisor from './pages/MixDesignAdvisor';
-import PourPlanner from './pages/PourPlanner';
-import OperationsDashboard from './pages/OperationsDashboard';
-import ProposalGenerator from './pages/ProposalGenerator';
-import Proposals from './pages/Proposals';
-import PublicProposal from './pages/PublicProposal';
-import ClientPortal from './pages/ClientPortal';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
 import AuthGuard from './components/auth/AuthGuard';
 import { OwnerGuard, EmployeeGuard } from './components/auth/RoleGuard';
-import EmployeeLayout from './components/layout/EmployeeLayout';
-import PlannerWorkspaceLayout from './components/layout/PlannerWorkspaceLayout';
-import PlannerProjectShell from './pages/planner/PlannerProjectShell';
-import PlannerBoardPage from './pages/planner/PlannerBoardPage';
-import PlannerChartsPage from './pages/planner/PlannerChartsPage';
-import PlannerSchedulePage from './pages/planner/PlannerSchedulePage';
-import PlannerDocumentsPage from './pages/planner/PlannerDocumentsPage';
-import PlannerRFIsPage from './pages/planner/PlannerRFIsPage';
-import PlannerAdjustmentsPage from './pages/planner/PlannerAdjustmentsPage';
-import PlannerTeamPage from './pages/planner/PlannerTeamPage';
-import PlannerHubPage from './pages/planner/PlannerHubPage';
-import ScheduleWorkspacePage from './pages/planner/ScheduleWorkspacePage';
-import PlannerAllRfisPage from './pages/planner/PlannerAllRfisPage';
-import PlannerAllFarsPage from './pages/planner/PlannerAllFarsPage';
-import PlannerAllChangeOrdersPage from './pages/planner/PlannerAllChangeOrdersPage';
-import PlannerChangeOrdersPage from './pages/planner/PlannerChangeOrdersPage';
-import ChangeOrderBuilderPage from './pages/planner/ChangeOrderBuilderPage';
-import PublicChangeOrder from './pages/PublicChangeOrder';
-import EmployeeTaskPlannerRedirect from './pages/employee/EmployeeTaskPlannerRedirect';
 import { LegacyTaskDetailRedirect } from './components/routing/LegacyPlannerRedirects';
 import PlannerIndexRedirect from './components/routing/PlannerIndexRedirect';
-import OwnerReviewPage from './pages/owner/OwnerReviewPage';
-import EmployeeManagementPage from './pages/owner/EmployeeManagementPage';
-import EmployeeDashboardPage from './pages/employee/EmployeeDashboardPage';
-import EmployeeTasksPage from './pages/employee/EmployeeTasksPage';
-import EmployeeProjectsPage from './pages/employee/EmployeeProjectsPage';
-import EmployeeMessagesPage from './pages/employee/EmployeeMessagesPage';
-import EmployeeUploadsPage from './pages/employee/EmployeeUploadsPage';
-import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
 import { useAuth } from './hooks/useAuth';
 import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
-import ConcreteChat from "./components/ConcreteChat";
 import { soundService } from './services/soundService';
+import RouteFallback from './routes/RouteFallback';
+import {
+  LazyRoute,
+  LazyConcreteCalculatorPage,
+  LazyReinforcementCalculatorPage,
+  LazyLaborCalculatorPage,
+  LazyGeneralTradeLaborCalculatorPage,
+  LazyCustomEstimatePage,
+  LazySafetyMeetingToolPage,
+  LazyConcreteInspectionChecklistPage,
+  LazyProjects,
+  LazySettings,
+  LazyPourPlanner,
+  LazyMixDesignAdvisor,
+  LazyProposalGenerator,
+  LazyProposals,
+  LazyPublicProposal,
+  LazyPublicChangeOrder,
+  LazyClientPortal,
+  LazyResources,
+  LazyMixDesigns,
+  LazyWeatherEffects,
+  LazyReinforcement,
+  LazyProperFinishing,
+  LazyCommonProblems,
+  LazyAdmixtures,
+  LazyExternalResources,
+  LazyOwnerReviewPage,
+  LazyEmployeeManagementPage,
+  LazyPlannerWorkspaceLayout,
+  LazyPlannerProjectShell,
+  LazyPlannerHubPage,
+  LazyScheduleWorkspacePage,
+  LazyPlannerAllRfisPage,
+  LazyPlannerAllFarsPage,
+  LazyPlannerAllChangeOrdersPage,
+  LazyPlannerBoardPage,
+  LazyPlannerChartsPage,
+  LazyPlannerSchedulePage,
+  LazyPlannerDocumentsPage,
+  LazyPlannerRFIsPage,
+  LazyPlannerAdjustmentsPage,
+  LazyPlannerChangeOrdersPage,
+  LazyChangeOrderBuilderPage,
+  LazyPlannerTeamPage,
+  LazyEmployeeTaskPlannerRedirect,
+  LazyEmployeeLayout,
+  LazyEmployeeDashboardPage,
+  LazyEmployeeTasksPage,
+  LazyEmployeeProjectsPage,
+  LazyEmployeeMessagesPage,
+  LazyEmployeeUploadsPage,
+  LazyOnboardingFlow,
+  LazyConcreteChat,
+} from './routes/lazyPages';
 
 // Error boundary component
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
@@ -116,40 +119,37 @@ function App() {
   const chatStore = useChatStore();
   const { isDark } = useThemeStore();
   const location = useLocation();
-  
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if we're in a Capacitor WebView
   const isCapacitorWebView = 'Capacitor' in window;
 
-  // Initialize app state
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize sound service first
         await soundService.initialize();
-        
+
         if (user && !authLoading) {
-          // Load all user data in parallel (proposals warm cache for dashboard)
           await Promise.all([
-            loadProjects().catch(e => console.error('Error loading projects:', e)),
-            loadCompanySettings().catch(e => console.error('Error loading settings:', e)),
-            loadPreferences().catch(e => console.error('Error loading preferences:', e)),
+            loadProjects().catch((e) => console.error('Error loading projects:', e)),
+            loadCompanySettings().catch((e) => console.error('Error loading settings:', e)),
+            loadPreferences().catch((e) => console.error('Error loading preferences:', e)),
             ProposalService.getAll()
               .then((data) => {
                 if (user.id) seedTrackedProposalsCache(user.id, data);
               })
               .catch((e) => console.error('Error prefetching proposals:', e)),
           ]);
-          
-          // Only attempt migrations in web environment
+
           if (!isCapacitorWebView) {
             await Promise.all([
-              migrateSettings().catch(e => console.error('Error migrating settings:', e)),
-              migratePreferences().catch(e => console.error('Error migrating preferences:', e))
+              migrateSettings().catch((e) => console.error('Error migrating settings:', e)),
+              migratePreferences().catch((e) =>
+                console.error('Error migrating preferences:', e),
+              ),
             ]);
           }
         }
@@ -162,30 +162,27 @@ function App() {
     };
 
     initializeApp();
-  }, [user, authLoading, isCapacitorWebView]);
+  }, [user, authLoading, isCapacitorWebView, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
 
-  // Check if onboarding should be shown
   useEffect(() => {
     const checkOnboarding = () => {
       try {
         if (user && !authLoading) {
           const isTestOnboarding = location.pathname === '/test-onboarding';
-          
-          // For mobile, we'll use a different storage mechanism
+
           let onboardingCompleted = false;
-          
+
           if (isCapacitorWebView) {
-            // In WebView, default to completed unless explicitly testing
             onboardingCompleted = !isTestOnboarding;
           } else {
             try {
               onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
             } catch (e) {
               console.warn('Error reading onboarding status:', e);
-              onboardingCompleted = true; // Fail safe
+              onboardingCompleted = true;
             }
           }
-          
+
           setShowOnboarding(!onboardingCompleted || isTestOnboarding);
           setOnboardingChecked(true);
         } else if (!user && !authLoading) {
@@ -197,11 +194,10 @@ function App() {
         setShowOnboarding(false);
       }
     };
-    
+
     checkOnboarding();
   }, [user, authLoading, location.pathname, isCapacitorWebView]);
 
-  // Handle theme changes
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -218,12 +214,10 @@ function App() {
       }
     } catch (error) {
       console.error('Error saving onboarding completion:', error);
-      // Even if storage fails, we can proceed
       setShowOnboarding(false);
     }
   };
 
-  // Show error state
   if (initError) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -237,27 +231,25 @@ function App() {
     );
   }
 
-  // Show loading state
   if (!onboardingChecked || authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
       </div>
     );
   }
 
-  // Show onboarding for new users
   if ((showOnboarding && user) || location.pathname === '/test-onboarding') {
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
+      <Suspense fallback={<RouteFallback />}>
+        <LazyOnboardingFlow onComplete={handleOnboardingComplete} />
       </Suspense>
     );
   }
 
   return (
     <AppErrorBoundary>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Home />} />
@@ -273,7 +265,7 @@ function App() {
               path="calculator/concrete"
               element={
                 <AuthGuard>
-                  <ConcreteCalculatorPage />
+                  <LazyRoute Page={LazyConcreteCalculatorPage} />
                 </AuthGuard>
               }
             />
@@ -281,7 +273,7 @@ function App() {
               path="calculator/reinforcement"
               element={
                 <AuthGuard>
-                  <ReinforcementCalculatorPage />
+                  <LazyRoute Page={LazyReinforcementCalculatorPage} />
                 </AuthGuard>
               }
             />
@@ -289,7 +281,7 @@ function App() {
               path="calculator/labor"
               element={
                 <AuthGuard>
-                  <LaborCalculatorPage />
+                  <LazyRoute Page={LazyLaborCalculatorPage} />
                 </AuthGuard>
               }
             />
@@ -297,7 +289,7 @@ function App() {
               path="calculator/general-trade-labor"
               element={
                 <AuthGuard>
-                  <GeneralTradeLaborCalculatorPage />
+                  <LazyRoute Page={LazyGeneralTradeLaborCalculatorPage} />
                 </AuthGuard>
               }
             />
@@ -305,7 +297,7 @@ function App() {
               path="calculator/custom"
               element={
                 <AuthGuard>
-                  <CustomEstimatePage />
+                  <LazyRoute Page={LazyCustomEstimatePage} />
                 </AuthGuard>
               }
             />
@@ -313,7 +305,7 @@ function App() {
               path="projects"
               element={
                 <AuthGuard>
-                  <Projects />
+                  <LazyRoute Page={LazyProjects} />
                 </AuthGuard>
               }
             />
@@ -330,7 +322,7 @@ function App() {
               element={
                 <AuthGuard>
                   <OwnerGuard>
-                    <EmployeeManagementPage />
+                    <LazyRoute Page={LazyEmployeeManagementPage} />
                   </OwnerGuard>
                 </AuthGuard>
               }
@@ -340,7 +332,7 @@ function App() {
               element={
                 <AuthGuard>
                   <OwnerGuard>
-                    <OwnerReviewPage />
+                    <LazyRoute Page={LazyOwnerReviewPage} />
                   </OwnerGuard>
                 </AuthGuard>
               }
@@ -351,7 +343,7 @@ function App() {
               path="pour-planner"
               element={
                 <AuthGuard>
-                  <PourPlanner />
+                  <LazyRoute Page={LazyPourPlanner} />
                 </AuthGuard>
               }
             />
@@ -359,7 +351,7 @@ function App() {
               path="mix-design-advisor"
               element={
                 <AuthGuard>
-                  <MixDesignAdvisor />
+                  <LazyRoute Page={LazyMixDesignAdvisor} />
                 </AuthGuard>
               }
             />
@@ -367,7 +359,7 @@ function App() {
               path="proposal-generator"
               element={
                 <AuthGuard>
-                  <ProposalGenerator />
+                  <LazyRoute Page={LazyProposalGenerator} />
                 </AuthGuard>
               }
             />
@@ -375,7 +367,7 @@ function App() {
               path="proposals"
               element={
                 <AuthGuard>
-                  <Proposals />
+                  <LazyRoute Page={LazyProposals} />
                 </AuthGuard>
               }
             />
@@ -383,7 +375,7 @@ function App() {
               path="settings"
               element={
                 <AuthGuard>
-                  <Settings />
+                  <LazyRoute Page={LazySettings} />
                 </AuthGuard>
               }
             />
@@ -391,7 +383,7 @@ function App() {
               path="tools/safety-meeting"
               element={
                 <AuthGuard>
-                  <SafetyMeetingToolPage />
+                  <LazyRoute Page={LazySafetyMeetingToolPage} />
                 </AuthGuard>
               }
             />
@@ -399,48 +391,70 @@ function App() {
               path="tools/concrete-inspection"
               element={
                 <AuthGuard>
-                  <ConcreteInspectionChecklistPage />
+                  <LazyRoute Page={LazyConcreteInspectionChecklistPage} />
                 </AuthGuard>
               }
             />
-            <Route path="resources" element={<Resources chatStore={chatStore} />} />
-            <Route path="resources/mix-designs" element={<MixDesigns />} />
-            <Route path="resources/weather-effects" element={<WeatherEffects />} />
-            <Route path="resources/reinforcement" element={<Reinforcement />} />
-            <Route path="resources/proper-finishing" element={<ProperFinishing />} />
-            <Route path="resources/common-problems" element={<CommonProblems />} />
-            <Route path="resources/admixtures" element={<Admixtures />} />
-            <Route path="resources/external-resources" element={<ExternalResources />} />
+            <Route
+              path="resources"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <LazyResources chatStore={chatStore} />
+                </Suspense>
+              }
+            />
+            <Route path="resources/mix-designs" element={<LazyRoute Page={LazyMixDesigns} />} />
+            <Route
+              path="resources/weather-effects"
+              element={<LazyRoute Page={LazyWeatherEffects} />}
+            />
+            <Route path="resources/reinforcement" element={<LazyRoute Page={LazyReinforcement} />} />
+            <Route
+              path="resources/proper-finishing"
+              element={<LazyRoute Page={LazyProperFinishing} />}
+            />
+            <Route path="resources/common-problems" element={<LazyRoute Page={LazyCommonProblems} />} />
+            <Route path="resources/admixtures" element={<LazyRoute Page={LazyAdmixtures} />} />
+            <Route
+              path="resources/external-resources"
+              element={<LazyRoute Page={LazyExternalResources} />}
+            />
           </Route>
           <Route
             element={
               <AuthGuard>
-                <PlannerWorkspaceLayout />
+                <LazyRoute Page={LazyPlannerWorkspaceLayout} />
               </AuthGuard>
             }
           >
-            <Route path="planner/hub" element={<PlannerHubPage />} />
-            <Route path="planner/schedule" element={<ScheduleWorkspacePage />} />
-            <Route path="planner/rfis" element={<PlannerAllRfisPage />} />
-            <Route path="planner/fars" element={<PlannerAllFarsPage />} />
-            <Route path="planner/change-orders" element={<PlannerAllChangeOrdersPage />} />
-            <Route path="projects/:projectId/planner" element={<PlannerProjectShell />}>
+            <Route path="planner/hub" element={<LazyRoute Page={LazyPlannerHubPage} />} />
+            <Route path="planner/schedule" element={<LazyRoute Page={LazyScheduleWorkspacePage} />} />
+            <Route path="planner/rfis" element={<LazyRoute Page={LazyPlannerAllRfisPage} />} />
+            <Route path="planner/fars" element={<LazyRoute Page={LazyPlannerAllFarsPage} />} />
+            <Route
+              path="planner/change-orders"
+              element={<LazyRoute Page={LazyPlannerAllChangeOrdersPage} />}
+            />
+            <Route path="projects/:projectId/planner" element={<LazyRoute Page={LazyPlannerProjectShell} />}>
               <Route index element={<PlannerIndexRedirect />} />
-              <Route path="board" element={<PlannerBoardPage />} />
-              <Route path="charts" element={<PlannerChartsPage />} />
-              <Route path="schedule" element={<PlannerSchedulePage />} />
-              <Route path="documents" element={<PlannerDocumentsPage />} />
-              <Route path="rfis" element={<PlannerRFIsPage />} />
-              <Route path="adjustments" element={<PlannerAdjustmentsPage />} />
-              <Route path="change-orders" element={<PlannerChangeOrdersPage />} />
-              <Route path="change-orders/:changeOrderId" element={<ChangeOrderBuilderPage />} />
-              <Route path="team" element={<PlannerTeamPage />} />
+              <Route path="board" element={<LazyRoute Page={LazyPlannerBoardPage} />} />
+              <Route path="charts" element={<LazyRoute Page={LazyPlannerChartsPage} />} />
+              <Route path="schedule" element={<LazyRoute Page={LazyPlannerSchedulePage} />} />
+              <Route path="documents" element={<LazyRoute Page={LazyPlannerDocumentsPage} />} />
+              <Route path="rfis" element={<LazyRoute Page={LazyPlannerRFIsPage} />} />
+              <Route path="adjustments" element={<LazyRoute Page={LazyPlannerAdjustmentsPage} />} />
+              <Route path="change-orders" element={<LazyRoute Page={LazyPlannerChangeOrdersPage} />} />
+              <Route
+                path="change-orders/:changeOrderId"
+                element={<LazyRoute Page={LazyChangeOrderBuilderPage} />}
+              />
+              <Route path="team" element={<LazyRoute Page={LazyPlannerTeamPage} />} />
             </Route>
             <Route
               path="employee/tasks"
               element={
                 <EmployeeGuard>
-                  <EmployeeTasksPage />
+                  <LazyRoute Page={LazyEmployeeTasksPage} />
                 </EmployeeGuard>
               }
             />
@@ -448,7 +462,7 @@ function App() {
               path="employee/tasks/:taskId"
               element={
                 <EmployeeGuard>
-                  <EmployeeTaskPlannerRedirect />
+                  <LazyRoute Page={LazyEmployeeTaskPlannerRedirect} />
                 </EmployeeGuard>
               }
             />
@@ -457,29 +471,40 @@ function App() {
             element={
               <AuthGuard>
                 <EmployeeGuard>
-                  <EmployeeLayout />
+                  <LazyRoute Page={LazyEmployeeLayout} />
                 </EmployeeGuard>
               </AuthGuard>
             }
           >
-            <Route path="/employee/dashboard" element={<EmployeeDashboardPage />} />
-            <Route path="/employee/projects" element={<EmployeeProjectsPage />} />
-            <Route path="/employee/messages" element={<EmployeeMessagesPage />} />
-            <Route path="/employee/uploads" element={<EmployeeUploadsPage />} />
+            <Route path="/employee/dashboard" element={<LazyRoute Page={LazyEmployeeDashboardPage} />} />
+            <Route path="/employee/projects" element={<LazyRoute Page={LazyEmployeeProjectsPage} />} />
+            <Route path="/employee/messages" element={<LazyRoute Page={LazyEmployeeMessagesPage} />} />
+            <Route path="/employee/uploads" element={<LazyRoute Page={LazyEmployeeUploadsPage} />} />
           </Route>
-          <Route path="/proposal/:token" element={<PublicProposal />} />
-          <Route path="/change-order/:token" element={<PublicChangeOrder />} />
-          <Route path="/client/project/:token" element={<ClientPortal />} />
+          <Route path="/proposal/:token" element={<LazyRoute Page={LazyPublicProposal} />} />
+          <Route path="/change-order/:token" element={<LazyRoute Page={LazyPublicChangeOrder} />} />
+          <Route path="/client/project/:token" element={<LazyRoute Page={LazyClientPortal} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/test-onboarding" element={<OnboardingFlow onComplete={handleOnboardingComplete} />} />
+          <Route
+            path="/test-onboarding"
+            element={
+              <Suspense fallback={<RouteFallback />}>
+                <LazyOnboardingFlow onComplete={handleOnboardingComplete} />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
         {chatStore.isVisible &&
           !location.pathname.startsWith('/proposal/') &&
-          !location.pathname.startsWith('/client/project/') && <ConcreteChat />}
+          !location.pathname.startsWith('/client/project/') && (
+            <Suspense fallback={null}>
+              <LazyConcreteChat />
+            </Suspense>
+          )}
       </Suspense>
     </AppErrorBoundary>
   );
