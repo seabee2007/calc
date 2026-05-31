@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+}
+
+.dark {
+  --color-canvas: #020617;
+  --color-surface: #0f172a;
+  --color-border: #334155;
+}
+
 @layer utilities {
   .no-scrollbar {
     -ms-overflow-style: none;

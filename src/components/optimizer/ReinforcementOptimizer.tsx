@@ -27,6 +27,7 @@ import RebarCostEstimateSummary from '../rebar/RebarCostEstimateSummary';
 import type { ReinforcementPricing } from '../../types/reinforcementPricing';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { CALCULATOR_SECTION } from '../../theme/appTheme';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import { generateReinforcementPDF } from '../../utils/pdf';
@@ -604,7 +605,7 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                 embedded ? 'rounded-b-lg' : ''
               }`}
             >
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 p-4 sm:p-6">
+              <div className={CALCULATOR_SECTION}>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   {getModeIcon(mode)}

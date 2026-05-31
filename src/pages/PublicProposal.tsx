@@ -13,6 +13,7 @@ import {
   markProposalOpened,
 } from '../lib/proposalTracking';
 import Button from '../components/ui/Button';
+import { SURFACE, SURFACE_ELEVATED, TEXT_MUTED } from '../theme/appTheme';
 
 const PublicProposal: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -95,7 +96,7 @@ const PublicProposal: React.FC = () => {
   if (error || !proposal) {
     return (
       <div className="min-h-screen bg-slate-100 dark:bg-gray-900 flex items-center justify-center p-6">
-        <div className="max-w-md text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+        <div className={`max-w-md text-center rounded-xl p-8 shadow-lg ${SURFACE_ELEVATED}`}>
           <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Proposal unavailable
           </p>
@@ -117,7 +118,7 @@ const PublicProposal: React.FC = () => {
     <div className="min-h-screen bg-slate-100 dark:bg-gray-900 py-6 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-4 text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className={`text-sm ${TEXT_MUTED}`}>
             {data.businessName} — Project proposal
           </p>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white mt-1">
@@ -136,7 +137,7 @@ const PublicProposal: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-6">
+        <div className={`rounded-xl shadow-lg overflow-hidden mb-6 ${SURFACE_ELEVATED}`}>
           {proposal.template_type === 'modern' && (
             <ProposalTemplateModern {...templateProps} />
           )}

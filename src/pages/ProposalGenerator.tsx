@@ -64,6 +64,7 @@ import {
   mergeProjectJobsiteIntoClientAddress,
   syncProposalAddressesForSave,
 } from '../utils/proposalAddress';
+import { APP_SECTION_CARD, FORM_TEXTAREA } from '../theme/appTheme';
 import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
@@ -71,8 +72,7 @@ type TemplateType = 'classic' | 'modern' | 'minimal';
 /** Matches site pages: header on concrete, content in rounded cards. */
 const PAGE_TITLE = CC_PAGE_TITLE;
 const PAGE_SUBTITLE = `${CC_PAGE_SUBTITLE} mt-2`;
-const SECTION_CARD =
-  'bg-white/90 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200/80 dark:border-slate-700/80 p-6';
+const SECTION_CARD = APP_SECTION_CARD;
 const SECTION_TITLE = 'text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4';
 
 const ProposalGenerator: React.FC = () => {
@@ -1296,7 +1296,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Enter proposal title"
                     value={proposalTitle}
                     onChange={(e) => setProposalTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div className="md:col-span-1 flex flex-wrap items-end gap-2">
@@ -1384,7 +1384,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Your Business Name"
                     value={proposalData.businessName}
                     onChange={(e) => handleInputChange('businessName', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1394,7 +1394,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="https://example.com/logo.png"
                     value={proposalData.businessLogoUrl || ''}
                     onChange={(e) => handleInputChange('businessLogoUrl', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -1420,7 +1420,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="(555) 123-4567"
                     value={proposalData.businessPhone || ''}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                     inputMode="numeric"
                     pattern="[0-9\s\(\)\-]*"
                     maxLength={14}
@@ -1433,7 +1433,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="contact@company.com"
                     value={proposalData.businessEmail || ''}
                     onChange={(e) => handleInputChange('businessEmail', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1443,7 +1443,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="License #12345"
                     value={proposalData.businessLicenseNumber || ''}
                     onChange={(e) => handleInputChange('businessLicenseNumber', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1453,7 +1453,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Building Excellence, One Project at a Time"
                     value={proposalData.businessSlogan || ''}
                     onChange={(e) => handleInputChange('businessSlogan', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
               </div>
@@ -1475,7 +1475,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Client Name"
                     value={proposalData.clientName}
                     onChange={(e) => handleInputChange('clientName', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1485,7 +1485,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Client Company"
                     value={proposalData.clientCompany || ''}
                     onChange={(e) => handleInputChange('clientCompany', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -1527,7 +1527,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Project Title"
                     value={proposalData.projectTitle}
                     onChange={(e) => handleInputChange('projectTitle', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1537,7 +1537,7 @@ const ProposalGenerator: React.FC = () => {
                     placeholder="Today's Date"
                     value={proposalData.date}
                     onChange={(e) => handleInputChange('date', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1547,7 +1547,7 @@ const ProposalGenerator: React.FC = () => {
                     value={proposalData.introduction}
                     onChange={(e) => handleInputChange('introduction', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div>
@@ -1557,7 +1557,7 @@ const ProposalGenerator: React.FC = () => {
                     value={proposalData.scope}
                     onChange={(e) => handleInputChange('scope', e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
               </div>
@@ -1592,7 +1592,7 @@ const ProposalGenerator: React.FC = () => {
                         placeholder="Project Phase"
                         value={item.phase}
                         onChange={(e) => handleTimelineChange(index, 'phase', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className={FORM_TEXTAREA}
                       />
                     </div>
                     <div>
@@ -1602,7 +1602,7 @@ const ProposalGenerator: React.FC = () => {
                         placeholder="Start Date"
                         value={item.start}
                         onChange={(e) => handleTimelineChange(index, 'start', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className={FORM_TEXTAREA}
                       />
                     </div>
                     <div>
@@ -1612,7 +1612,7 @@ const ProposalGenerator: React.FC = () => {
                         placeholder="End Date"
                         value={item.end}
                         onChange={(e) => handleTimelineChange(index, 'end', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className={FORM_TEXTAREA}
                       />
                     </div>
                     <Button
@@ -1701,7 +1701,7 @@ const ProposalGenerator: React.FC = () => {
                     value={proposalData.terms}
                     onChange={(e) => handleInputChange('terms', e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className={FORM_TEXTAREA}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1712,7 +1712,7 @@ const ProposalGenerator: React.FC = () => {
                       placeholder="Your Name"
                       value={proposalData.preparedBy}
                       onChange={(e) => handleInputChange('preparedBy', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      className={FORM_TEXTAREA}
                     />
                   </div>
                   <div>
@@ -1722,7 +1722,7 @@ const ProposalGenerator: React.FC = () => {
                       placeholder="Project Manager"
                       value={proposalData.preparedByTitle || ''}
                       onChange={(e) => handleInputChange('preparedByTitle', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      className={FORM_TEXTAREA}
                     />
                   </div>
                 </div>

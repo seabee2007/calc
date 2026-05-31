@@ -17,6 +17,11 @@ import {
   PLANNER_MUTED,
   PLANNER_PAGE_BG,
   PLANNER_SECTION_TITLE,
+  PLANNER_TABLE,
+  PLANNER_TABLE_HEAD,
+  PLANNER_TABLE_ROW,
+  PLANNER_TABLE_ROW_HIGHLIGHT,
+  PLANNER_TABLE_WRAPPER,
 } from '../../components/planner/plannerTheme';
 
 function formatDocDate(iso: string | undefined): string {
@@ -69,10 +74,10 @@ export default function PlannerDocumentsPage() {
       return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
     }
     return (
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <table className="min-w-full text-sm">
+      <div className={PLANNER_TABLE_WRAPPER}>
+        <table className={PLANNER_TABLE}>
           <thead>
-            <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-slate-700 dark:text-slate-400">
+            <tr className={PLANNER_TABLE_HEAD}>
               <th className="px-4 py-3 font-semibold">Date</th>
               <th className="px-4 py-3 font-semibold">Title</th>
               <th className="px-4 py-3 font-semibold">Details</th>
@@ -86,8 +91,8 @@ export default function PlannerDocumentsPage() {
               return (
                 <tr
                   key={row.id}
-                  className={`border-b border-slate-100 dark:border-slate-800 ${
-                    highlighted ? 'bg-cyan-50/80 dark:bg-cyan-950/30' : ''
+                  className={`${PLANNER_TABLE_ROW} ${
+                    highlighted ? PLANNER_TABLE_ROW_HIGHLIGHT : ''
                   }`}
                 >
                   <td className="px-4 py-3 whitespace-nowrap text-gray-900 dark:text-white">

@@ -2,6 +2,7 @@ import React from 'react';
 import { DollarSign, TrendingUp, Percent, Hammer, Package } from 'lucide-react';
 import OpsCard from './OpsCard';
 import { OPS_MUTED, OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
+import { TEXT_ACCENT, TEXT_SUCCESS, TEXT_WARNING } from '../../theme/appTheme';
 import type { ProposalFinancialKpis } from '../../utils/proposalKpis';
 import { formatProposalMoney, formatWinRate } from '../../utils/proposalKpis';
 
@@ -14,7 +15,7 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
 }) => (
   <OpsCard>
     <div className="flex items-center gap-2 mb-4">
-      <DollarSign className="h-5 w-5 text-emerald-400" />
+      <DollarSign className={`h-5 w-5 ${TEXT_SUCCESS}`} />
       <h3 className={`font-semibold ${OPS_TITLE}`}>Financial snapshot</h3>
     </div>
 
@@ -31,7 +32,7 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
       <Metric
         label="Monthly revenue"
         value={formatProposalMoney(financial.monthlyRevenue)}
-        icon={<TrendingUp className="h-3 w-3 text-cyan-400" />}
+        icon={<TrendingUp className={`h-3 w-3 ${TEXT_ACCENT}`} />}
       />
       <Metric
         label="Avg job size"
@@ -40,7 +41,7 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
       <Metric
         label="Win rate"
         value={formatWinRate(financial.winRate)}
-        icon={<Percent className="h-3 w-3 text-amber-400" />}
+        icon={<Percent className={`h-3 w-3 ${TEXT_WARNING}`} />}
       />
       <Metric
         label="Gross profit"
@@ -51,7 +52,7 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
         <Metric
           label="Gross margin"
           value={`${((financial.grossProfit / financial.acceptedRevenue) * 100).toFixed(1)}%`}
-          icon={<Percent className="h-3 w-3 text-emerald-400" />}
+          icon={<Percent className={`h-3 w-3 ${TEXT_SUCCESS}`} />}
         />
       )}
       {financial.currentContractValue > 0 && (
@@ -83,7 +84,7 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
         <Metric
           label="CO forecast"
           value={formatProposalMoney(financial.changeOrderWeightedForecast)}
-          icon={<TrendingUp className="h-3 w-3 text-amber-400" />}
+          icon={<TrendingUp className={`h-3 w-3 ${TEXT_WARNING}`} />}
         />
       )}
     </div>
@@ -128,7 +129,7 @@ function Metric({
       </p>
       <p
         className={`text-sm font-bold ${
-          highlight ? 'text-emerald-600 dark:text-emerald-400' : OPS_TITLE
+          highlight ? TEXT_SUCCESS : OPS_TITLE
         }`}
       >
         {value}

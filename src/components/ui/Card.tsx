@@ -1,11 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import {
+  BORDER_DEFAULT,
+  SHADOW_CARD,
+  SURFACE,
+  SURFACE_ELEVATED,
+  SURFACE_GLASS,
+  SURFACE_GLASS_PANEL,
+} from '../../theme/appTheme';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  shadow?: 'sm' | 'md' | 'lg';
+  shadow?: 'sm' | 'md' | 'lg' | 'none';
   border?: boolean;
   hoverable?: boolean;
   clickable?: boolean;
+  variant?: 'default' | 'elevated' | 'glass' | 'panel' | 'flat';
 }
 
 const Card: React.FC<CardProps> = ({
@@ -14,29 +23,35 @@ const Card: React.FC<CardProps> = ({
   border = false,
   hoverable = false,
   clickable = false,
+  variant = 'default',
   className = '',
   ...props
 }) => {
-  // Base styles
-  const baseStyles = 'bg-white dark:bg-gray-800 rounded-lg overflow-hidden backdrop-blur-sm transform-gpu';
-  
-  // Shadow styles with more pronounced 3D effect
-  const shadowStyles = {
-    sm: 'shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2),0_2px_4px_-2px_rgba(0,0,0,0.15)]',
-    md: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.2),0_4px_6px_-4px_rgba(0,0,0,0.15)]',
-    lg: 'shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.2),0_8px_10px_-6px_rgba(0,0,0,0.15)]'
+  const variantStyles: Record<NonNullable<CardProps['variant']>, string> = {
+    default: SURFACE,
+    elevated: SURFACE_ELEVATED,
+    glass: SURFACE_GLASS,
+    panel: `${SURFACE_GLASS_PANEL} ${BORDER_DEFAULT}`,
+    flat: 'bg-transparent',
   };
-  
-  // Border style
-  const borderStyle = border ? 'border border-slate-200 dark:border-gray-700' : '';
-  
-  // Enhanced hover style with 3D transform
-  const hoverStyle = hoverable ? 'transition-all duration-300 ease-out hover:shadow-[0_25px_30px_-12px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_25px_30px_-12px_rgba(0,0,0,0.25)] hover:-translate-y-2 hover:scale-[1.02]' : '';
-  
-  // Clickable style
+
+  const baseStyles = `${variantStyles[variant]} rounded-lg overflow-hidden backdrop-blur-sm transform-gpu`;
+
+  const shadowStyles = {
+    none: '',
+    sm: SHADOW_CARD,
+    md: SHADOW_CARD,
+    lg: 'shadow-lg dark:shadow-xl',
+  };
+
+  const borderStyle = border || variant === 'panel' ? `border ${BORDER_DEFAULT}` : '';
+
+  const hoverStyle = hoverable
+    ? 'transition-all duration-300 ease-out hover:shadow-lg dark:hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01]'
+    : '';
+
   const clickableStyle = clickable ? 'cursor-pointer' : '';
-  
-  // Combine all styles
+
   const cardStyles = `${baseStyles} ${shadowStyles[shadow]} ${borderStyle} ${hoverStyle} ${clickableStyle} ${className}`;
 
   const cardVariants = {

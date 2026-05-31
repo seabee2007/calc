@@ -6,6 +6,7 @@ import PlannerAppBar from '../planner/PlannerAppBar';
 import PlannerSidebar from '../planner/PlannerSidebar';
 import ToolsModal from '../workflow/ToolsModal';
 import SiteBackground from './SiteBackground';
+import { COLOR_CANVAS_DARK, COLOR_CANVAS_LIGHT } from '../../theme/appTheme';
 
 function PlannerWorkspaceMain() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -60,7 +61,7 @@ const PlannerWorkspaceLayout: React.FC = () => {
   useEffect(() => {
     const setThemeColors = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      const bg = isDark ? '#020617' : '#f8fafc';
+      const bg = isDark ? COLOR_CANVAS_DARK : COLOR_CANVAS_LIGHT;
       document.documentElement.style.backgroundColor = bg;
       document.body.style.backgroundColor = bg;
     };

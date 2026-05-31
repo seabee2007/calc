@@ -1,6 +1,5 @@
 import React from 'react';
 import Card from '../ui/Card';
-import { OPS_PANEL } from './opsTheme';
 
 interface OpsCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -15,7 +14,8 @@ const OpsCard: React.FC<OpsCardProps> = ({
   ...props
 }) => (
   <Card
-    className={`${padding ? 'p-5 ' : ''}${OPS_PANEL} ${className}`.trim()}
+    variant="panel"
+    className={`${padding ? 'p-5 ' : ''}${className}`.trim()}
     shadow="md"
     {...props}
   >

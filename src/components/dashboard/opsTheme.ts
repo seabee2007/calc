@@ -1,21 +1,28 @@
 /** Shared Tailwind classes for operations dashboard panels (light + dark). */
 
-export const OPS_SHELL =
-  'text-gray-900 dark:text-slate-100 isolation-auto rounded-xl min-h-[200px]';
+import {
+  APP_SECTION_CARD,
+  TEXT_BODY,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+  TEXT_SUBTLE,
+} from '../../theme/appTheme';
 
-export const OPS_PANEL =
-  '!bg-white/95 !border !border-slate-200 !text-gray-900 shadow-lg dark:!bg-slate-900/95 dark:!border-slate-700 dark:!text-white';
+export const OPS_SHELL =
+  `text-slate-900 dark:text-slate-100 isolation-auto rounded-xl min-h-[200px]`;
+
+export const OPS_PANEL = APP_SECTION_CARD;
 
 export const OPS_PANEL_INNER =
   'rounded-lg border border-slate-100 bg-slate-50 dark:border-transparent dark:bg-slate-800/80';
 
-export const OPS_MUTED = 'text-slate-600 dark:text-slate-400';
+export const OPS_MUTED = TEXT_MUTED;
 
-export const OPS_SUBTLE = 'text-slate-500 dark:text-slate-500';
+export const OPS_SUBTLE = TEXT_SUBTLE;
 
-export const OPS_TITLE = 'text-gray-900 dark:text-white';
+export const OPS_TITLE = TEXT_FOREGROUND;
 
-export const OPS_BODY = 'text-slate-700 dark:text-slate-300';
+export const OPS_BODY = TEXT_BODY;
 
 export const OPS_OUTLINE_BTN =
   '!border-slate-300 !text-gray-800 hover:!bg-slate-100 dark:!border-slate-600 dark:!text-white dark:hover:!bg-slate-700';

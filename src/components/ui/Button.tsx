@@ -6,7 +6,7 @@ import { hapticService } from '../../services/hapticService';
  * Variants: primary (blue CTA), accent (cyan ops/planner), secondary, outline, ghost, danger.
  * Selection tiles / icon-only menu triggers may use raw <button> — see app button audit.
  */
-type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'warning';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -28,6 +28,8 @@ const focusRingByVariant: Record<ButtonVariant, string> = {
   outline: 'focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400',
   ghost: 'focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400',
   danger: 'focus-visible:ring-red-500 dark:focus-visible:ring-red-400',
+  success: 'focus-visible:ring-emerald-500 dark:focus-visible:ring-emerald-400',
+  warning: 'focus-visible:ring-amber-500 dark:focus-visible:ring-amber-400',
 };
 
 const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(({
@@ -49,7 +51,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     if (variant === 'danger') {
       await hapticService.heavy();
-    } else if (variant === 'primary' || variant === 'accent') {
+    } else if (variant === 'primary' || variant === 'accent' || variant === 'success') {
       await hapticService.medium();
     } else {
       await hapticService.light();
@@ -61,7 +63,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   };
 
   const baseStyles =
-    'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none dark:focus-visible:ring-offset-gray-800';
+    'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none dark:focus-visible:ring-offset-slate-900';
 
   const variantStyles: Record<ButtonVariant, string> = {
     primary:
@@ -69,13 +71,17 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
     accent:
       'bg-cyan-600 text-white hover:bg-cyan-500 active:bg-cyan-700 dark:bg-cyan-600 dark:text-white dark:hover:bg-cyan-500 dark:active:bg-cyan-700',
     secondary:
-      'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+      'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 dark:active:bg-slate-500',
     outline:
-      'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-900 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white',
+      'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-900 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-700 dark:hover:text-white',
     ghost:
-      'bg-transparent hover:bg-slate-100 text-slate-900 dark:text-gray-100 dark:hover:bg-gray-700 dark:hover:text-white',
+      'bg-transparent hover:bg-slate-100 text-slate-900 dark:text-slate-100 dark:hover:bg-slate-700 dark:hover:text-white',
     danger:
       'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700',
+    success:
+      'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-700',
+    warning:
+      'bg-amber-500 text-white hover:bg-amber-600 active:bg-amber-700 dark:bg-amber-500 dark:text-white dark:hover:bg-amber-600',
   };
 
   const sizeStyles: Record<ButtonSize, string> = {

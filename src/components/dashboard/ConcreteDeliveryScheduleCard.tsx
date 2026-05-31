@@ -23,11 +23,16 @@ import {
   formatProfessionalCalendarDate,
 } from '../../utils/operationsDashboard';
 import { workflowQuery } from '../../utils/workflow';
+import {
+  STATUS_AT_RISK,
+  STATUS_DELAYED,
+  STATUS_ON_TRACK,
+} from '../../theme/appTheme';
 
 const statusStyles: Record<TimelineStatus, string> = {
-  on_schedule: 'bg-emerald-500',
-  at_risk: 'bg-amber-400',
-  delayed: 'bg-red-500',
+  on_schedule: STATUS_ON_TRACK,
+  at_risk: STATUS_AT_RISK,
+  delayed: STATUS_DELAYED,
   pending: 'bg-slate-500',
 };
 
@@ -234,10 +239,10 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
                   </ul>
                   <div className={`flex flex-wrap gap-3 mt-3 text-xs ${OPS_SUBTLE}`}>
                     <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" /> On schedule
+                      <span className={`h-2 w-2 rounded-full ${STATUS_ON_TRACK}`} /> On schedule
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-amber-400" /> At risk
+                      <span className={`h-2 w-2 rounded-full ${STATUS_AT_RISK}`} /> At risk
                     </span>
                   </div>
                 </div>

@@ -299,6 +299,15 @@ describe('layoutTimedEventsForDay', () => {
     expect(layouts[0].heightPx).toBeGreaterThan(0);
   });
 
+  it('positions evening events within the full-day grid', () => {
+    const layouts = layoutTimedEventsForDay([
+      mockEvent({ startTime: '19:00', endTime: '20:00' }),
+    ]);
+    expect(layouts).toHaveLength(1);
+    expect(layouts[0].topPx).toBe(19 * 60 * (24 / 30));
+    expect(layouts[0].heightPx).toBe(60 * (24 / 30));
+  });
+
   it('excludes all-day events', () => {
     const layouts = layoutTimedEventsForDay([mockEvent({ startTime: null })]);
     expect(layouts).toHaveLength(0);

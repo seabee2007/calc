@@ -4,6 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
+import {
+  MODAL_BODY,
+  MODAL_CLOSE_BTN,
+  MODAL_HEADER,
+  MODAL_PANEL,
+  MODAL_TITLE,
+} from '../../theme/appTheme';
 
 interface ModalProps {
   isOpen: boolean;
@@ -111,18 +118,18 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={panelTransition}
-            className={`pointer-events-auto relative z-10 flex w-full max-h-[min(90dvh,100%)] flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800 ${sizeClasses[size]}`}
+            className={`pointer-events-auto relative z-10 flex w-full max-h-[min(90dvh,100%)] flex-col ${MODAL_PANEL} ${sizeClasses[size]}`}
             onClick={(e) => e.stopPropagation()}
           >
-              <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <div className={MODAL_HEADER}>
+                <h2 className={MODAL_TITLE}>
                   {title}
                 </h2>
 
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                  className={MODAL_CLOSE_BTN}
                   aria-label="Close modal"
                 >
                   <X size={20} />
@@ -130,17 +137,17 @@ const Modal: React.FC<ModalProps> = ({
               </div>
 
               <div
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 text-gray-800 dark:text-gray-200
-                  [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:dark:text-white
-                  [&_h2]:font-semibold [&_h2]:text-gray-900 [&_h2]:dark:text-white
-                  [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:dark:text-white
-                  [&_p]:leading-relaxed [&_p]:text-gray-800 [&_p]:dark:text-gray-200
-                  [&_li]:leading-relaxed [&_li]:text-gray-800 [&_li]:dark:text-gray-200
-                  [&_strong]:text-gray-900 [&_strong]:dark:text-white
+                className={`${MODAL_BODY}
+                  [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-white
+                  [&_h2]:font-semibold [&_h2]:text-slate-900 [&_h2]:dark:text-white
+                  [&_h3]:font-semibold [&_h3]:text-slate-900 [&_h3]:dark:text-white
+                  [&_p]:leading-relaxed
+                  [&_li]:leading-relaxed
+                  [&_strong]:text-slate-900 [&_strong]:dark:text-white
                   [&_a]:text-blue-600 [&_a]:underline [&_a]:dark:text-blue-400
-                  [&_hr]:border-gray-200 [&_hr]:dark:border-gray-700
-                  [&_td]:text-gray-800 [&_td]:dark:text-gray-200
-                  [&_th]:text-gray-900 [&_th]:dark:text-gray-100"
+                  [&_hr]:border-slate-200 [&_hr]:dark:border-slate-700
+                  [&_td]:text-slate-800 [&_td]:dark:text-slate-200
+                  [&_th]:text-slate-900 [&_th]:dark:text-slate-100`}
               >
                 {children}
               </div>

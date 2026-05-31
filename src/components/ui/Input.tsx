@@ -1,4 +1,13 @@
 import React, { useState } from 'react';
+import {
+  FORM_ERROR,
+  FORM_HELPER,
+  FORM_INPUT,
+  FORM_LABEL,
+  FORM_LABEL_ERROR,
+  FORM_LABEL_FOCUS,
+  TEXT_FOREGROUND,
+} from '../../theme/appTheme';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -42,12 +51,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   };
   
   // Base styles
-  const baseInputStyles = "block px-4 py-2 bg-white dark:bg-gray-900 border rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0";
+  const baseInputStyles = FORM_INPUT;
   
-  // Conditional styles
   const conditionalStyles = error
     ? "border-red-300 focus:border-red-500 focus:ring-red-500 text-red-900 dark:text-red-100 placeholder-red-300"
-    : "border-slate-300 text-slate-900 placeholder:text-slate-400 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:text-white dark:placeholder-gray-500";
+    : "";
   
   // Width style
   const widthStyle = fullWidth ? 'w-full' : '';
@@ -56,7 +64,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   const inputStyles = `${baseInputStyles} ${conditionalStyles} ${widthStyle} ${className}`;
   
   // Label and container styles
-  const containerStyles = `${fullWidth ? 'w-full' : ''} ${error ? 'text-red-900 dark:text-red-100' : 'text-slate-900 dark:text-white'}`;
+  const containerStyles = `${fullWidth ? 'w-full' : ''} ${error ? 'text-red-900 dark:text-red-100' : TEXT_FOREGROUND}`;
 
   // Determine input mode and pattern based on type
   const inputMode = type === 'number' ? 'decimal' : undefined;
@@ -73,8 +81,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
     <div className={containerStyles}>
       {label && (
         <label 
-          className={`block text-sm font-medium mb-1 ${
-            error ? 'text-red-500 dark:text-red-400' : isFocused ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-gray-300'
+          className={`${FORM_LABEL} ${
+            error ? FORM_LABEL_ERROR : isFocused ? FORM_LABEL_FOCUS : ''
           }`}
         >
           {label}
@@ -109,7 +117,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
       </div>
       
       {(helperText || error) && (
-        <p className={`mt-1 text-sm ${error ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+        <p className={`${error ? FORM_ERROR : FORM_HELPER}`}>
           {error || helperText}
         </p>
       )}

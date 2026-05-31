@@ -6,12 +6,14 @@ import type { ScheduleEvent } from '../../types/scheduleEvent';
 import ScheduleEventDetailContent from './ScheduleEventDetailContent';
 import ScheduleEventDetailActions from './ScheduleEventDetailActions';
 import {
+  PLANNER_CLOSE_BTN,
   PLANNER_DRAWER_BACKDROP,
   PLANNER_DRAWER_BODY,
   PLANNER_DRAWER_HEADER,
   PLANNER_DRAWER_PANEL_TRANSITION,
   PLANNER_OVERLAY_TRANSITION,
 } from '../planner/plannerTheme';
+import { SCHEDULE_DRAWER_PANEL } from './scheduleTheme';
 
 interface Props {
   event: ScheduleEvent | null;
@@ -54,8 +56,8 @@ export default function ScheduleEventDetailDrawer({
   if (!event) return null;
 
   const panelClass = bottomSheet
-    ? 'fixed inset-x-0 bottom-0 z-[200] flex max-h-[90vh] flex-col rounded-t-2xl border border-[#E5E7EB] bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900'
-    : 'fixed inset-y-0 right-0 z-[200] flex w-full max-w-lg flex-col border-l border-[#E5E7EB] bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900';
+    ? `fixed inset-x-0 bottom-0 z-[200] flex max-h-[90vh] flex-col rounded-t-2xl shadow-2xl ${SCHEDULE_DRAWER_PANEL}`
+    : `fixed inset-y-0 right-0 z-[200] flex w-full max-w-lg flex-col shadow-2xl ${SCHEDULE_DRAWER_PANEL}`;
 
   return createPortal(
     <AnimatePresence>
@@ -77,7 +79,7 @@ export default function ScheduleEventDetailDrawer({
         >
           <div className={PLANNER_DRAWER_HEADER}>
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">Event details</h2>
-            <button type="button" onClick={onClose} className="rounded-md p-1" aria-label="Close">
+            <button type="button" onClick={onClose} className={PLANNER_CLOSE_BTN} aria-label="Close">
               <X className="h-5 w-5" />
             </button>
           </div>

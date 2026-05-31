@@ -4,6 +4,19 @@ import type {
   SchedulePriority,
 } from '../../types/scheduleEvent';
 import { SCHEDULE_EVENT_TYPES } from '../../types/scheduleEvent';
+import {
+  BORDER_DEFAULT,
+  DRAWER_PANEL,
+  FORM_INPUT,
+  PLANNER_TABLE,
+  PLANNER_TABLE_HEAD,
+  PLANNER_TABLE_ROW,
+  PLANNER_TABLE_WRAPPER,
+  SURFACE,
+  TEXT_BODY,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+} from '../../theme/appTheme';
 
 const neutralBadge =
   'bg-neutral-50 text-neutral-700 border-neutral-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-600';
@@ -118,22 +131,37 @@ export const SCHEDULE_EVENT_TYPE_STYLES = Object.fromEntries(
   SCHEDULE_EVENT_TYPES.map((t) => [t, { ...defaultTypeStyle, ...typeStyleMap[t] }]),
 ) as Record<ScheduleEventType, { badge: string; dot: string; surface: string }>;
 
-export const SCHEDULE_PAGE_BG = 'bg-[#F8FAFC] dark:bg-slate-950';
+export const SCHEDULE_PAGE_BG = 'bg-slate-50 dark:bg-slate-950';
 export const SCHEDULE_CARD =
-  'rounded-xl border border-[#E5E7EB] bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900';
-export const SCHEDULE_HEADING = 'text-[#1F2937] dark:text-slate-100';
-export const SCHEDULE_BODY = 'text-[#4B5563] dark:text-slate-300';
-export const SCHEDULE_MUTED = 'text-[#6B7280] dark:text-slate-400';
+  `rounded-xl border shadow-sm ${BORDER_DEFAULT} ${SURFACE}`;
+export const SCHEDULE_HEADING = TEXT_FOREGROUND;
+export const SCHEDULE_BODY = TEXT_BODY;
+export const SCHEDULE_MUTED = TEXT_MUTED;
 export const SCHEDULE_SUB_NAV =
-  'w-full lg:w-60 shrink-0 flex flex-col gap-4 border-[#E5E7EB] lg:border-r lg:pr-4 dark:border-slate-700';
+  `w-full lg:w-60 shrink-0 flex flex-col gap-4 border-slate-200 lg:border-r lg:pr-4 dark:border-slate-700`;
 export const SCHEDULE_DETAIL_PANEL =
-  'hidden lg:flex lg:w-[24%] lg:min-w-[280px] lg:max-w-[360px] shrink-0 flex-col border-l border-[#E5E7EB] bg-white dark:border-slate-700 dark:bg-slate-900';
+  `hidden lg:flex lg:w-[24%] lg:min-w-[280px] lg:max-w-[360px] shrink-0 flex-col border-l ${BORDER_DEFAULT} ${SURFACE}`;
 
 export const SCHEDULE_CALENDAR_GRID =
-  'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-900';
+  `flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${SURFACE}`;
 
 export const SCHEDULE_TOOLBAR =
-  'flex shrink-0 flex-wrap items-center gap-2 border-b border-[#E5E7EB] bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900 sm:px-4';
+  `flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2 sm:px-4 ${BORDER_DEFAULT} ${SURFACE}`;
+
+export const SCHEDULE_FILTER_INPUT =
+  `rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 ${FORM_INPUT}`;
+
+export const SCHEDULE_ACCENT = 'text-blue-600 dark:text-blue-400';
+export const SCHEDULE_ACCENT_BORDER = 'border-blue-600 dark:border-blue-400';
+export const SCHEDULE_ACCENT_BG = 'bg-blue-600';
+export const SCHEDULE_ACCENT_RING = 'ring-blue-600 dark:ring-blue-400';
+
+export const SCHEDULE_DRAWER_PANEL = DRAWER_PANEL;
+
+export const SCHEDULE_TABLE_WRAPPER = PLANNER_TABLE_WRAPPER;
+export const SCHEDULE_TABLE = PLANNER_TABLE;
+export const SCHEDULE_TABLE_HEAD = `${PLANNER_TABLE_HEAD} font-semibold tracking-wide`;
+export const SCHEDULE_TABLE_ROW = PLANNER_TABLE_ROW;
 
 export const SCHEDULE_STATUS_STYLES: Record<ScheduleEventStatus, { badge: string }> = {
   scheduled: {
@@ -162,9 +190,6 @@ export const SCHEDULE_PRIORITY_STYLES: Record<SchedulePriority, { badge: string 
   high: { badge: 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200' },
   critical: { badge: 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/30 dark:text-red-200' },
 };
-
-export const SCHEDULE_FILTER_INPUT =
-  'w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#1F2937] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
 
 export const SCHEDULE_SUB_TAB =
   'rounded-md px-2.5 py-1 text-xs font-medium transition-colors';

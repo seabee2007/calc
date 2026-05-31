@@ -1,19 +1,23 @@
 import React from 'react';
 import type { TaskPriority, TaskStatus } from '../../types/fieldPlanner';
+import {
+  BADGE_BASE,
+  BADGE_DANGER,
+  BADGE_GREEN,
+  BADGE_INFO,
+  BADGE_NEUTRAL,
+  BADGE_ORANGE,
+  BADGE_SUCCESS,
+  BADGE_WARNING,
+} from '../../theme/statusColors';
 
 const STATUS_STYLES: Record<TaskStatus, string> = {
-  'Not Started':
-    'bg-slate-100/90 text-slate-700 ring-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:ring-slate-600',
-  'In Progress':
-    'bg-blue-100/90 text-blue-800 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-200 dark:ring-blue-800/60',
-  Submitted:
-    'bg-amber-100/90 text-amber-900 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:ring-amber-800/60',
-  'Needs Revision':
-    'bg-orange-100/90 text-orange-900 ring-orange-200 dark:bg-orange-900/30 dark:text-orange-200 dark:ring-orange-800/60',
-  Approved:
-    'bg-emerald-100/90 text-emerald-900 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800/60',
-  Completed:
-    'bg-green-100/90 text-green-900 ring-green-200 dark:bg-green-900/30 dark:text-green-200 dark:ring-green-800/60',
+  'Not Started': BADGE_NEUTRAL,
+  'In Progress': BADGE_INFO,
+  Submitted: BADGE_WARNING,
+  'Needs Revision': BADGE_ORANGE,
+  Approved: BADGE_SUCCESS,
+  Completed: BADGE_GREEN,
 };
 
 const PRIORITY_STYLES: Record<TaskPriority, string> = {
@@ -25,9 +29,7 @@ const PRIORITY_STYLES: Record<TaskPriority, string> = {
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${STATUS_STYLES[status]}`}
-    >
+    <span className={`${BADGE_BASE} ${STATUS_STYLES[status]}`}>
       {status}
     </span>
   );

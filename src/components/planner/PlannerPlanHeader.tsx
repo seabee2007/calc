@@ -4,6 +4,7 @@ import { Download, MoreHorizontal } from 'lucide-react';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import { exportPlannerBoardJson, exportPlannerTasksCsv } from '../../utils/plannerExport';
 import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
+import { PLANNER_MENU_PANEL } from './plannerTheme';
 import UserAvatar from './UserAvatar';
 import Button from '../ui/Button';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
@@ -89,7 +90,7 @@ export default function PlannerPlanHeader() {
                     aria-label="Close"
                     onClick={() => setMenuOpen(false)}
                   />
-                  <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                  <div className={`absolute right-0 top-full w-44 py-1 ${PLANNER_MENU_PANEL}`}>
                     <button
                       type="button"
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"

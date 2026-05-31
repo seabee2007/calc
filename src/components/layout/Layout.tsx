@@ -8,6 +8,7 @@ import MoreMenuModal from '../workflow/MoreMenuModal';
 import { useAuth } from '../../hooks/useAuth';
 import { isPlannerWorkspacePath } from '../../utils/plannerRoutes';
 import SiteBackground from './SiteBackground';
+import { COLOR_CANVAS_DARK, COLOR_CANVAS_LIGHT } from '../../theme/appTheme';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -52,7 +53,7 @@ const Layout: React.FC = () => {
 
     const setThemeColors = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      const bgColor = isDark ? '#020617' : '#f8fafc';
+      const bgColor = isDark ? COLOR_CANVAS_DARK : COLOR_CANVAS_LIGHT;
       const metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
 
       document.documentElement.style.backgroundColor = bgColor;

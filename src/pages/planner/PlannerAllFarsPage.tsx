@@ -11,7 +11,7 @@ import Button from '../../components/ui/Button';
 import FarDetailDrawer from '../../components/field/FarDetailDrawer';
 import FieldRecordStatusBadge from '../../components/field/FieldRecordStatusBadge';
 import PlannerHubRecordsLayout from '../../components/planner/PlannerHubRecordsLayout';
-import { PLANNER_LINK, PLANNER_MUTED } from '../../components/planner/plannerTheme';
+import { PLANNER_LINK, PLANNER_MUTED, PLANNER_TABLE, PLANNER_TABLE_HEAD, PLANNER_TABLE_ROW, PLANNER_TABLE_ROW_HIGHLIGHT, PLANNER_TABLE_WRAPPER } from '../../components/planner/plannerTheme';
 
 type SectionKey =
   | 'Pending'
@@ -101,9 +101,9 @@ export default function PlannerAllFarsPage() {
       return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
     }
     return (
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+      <div className={PLANNER_TABLE_WRAPPER}>
+        <table className={PLANNER_TABLE}>
+          <thead className={PLANNER_TABLE_HEAD}>
             <tr>
               <th className="px-3 py-2">Request #</th>
               <th className="px-3 py-2">Project</th>

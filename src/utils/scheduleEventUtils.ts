@@ -650,8 +650,8 @@ export interface TimedEventLayout {
   heightPx: number;
 }
 
-export const DEFAULT_GRID_DAY_START_HOUR = 7;
-export const DEFAULT_GRID_DAY_END_HOUR = 18;
+export const DEFAULT_GRID_DAY_START_HOUR = 0;
+export const DEFAULT_GRID_DAY_END_HOUR = 24;
 export const DEFAULT_GRID_SLOT_MINUTES = 30;
 export const DEFAULT_GRID_SLOT_HEIGHT_PX = 24;
 

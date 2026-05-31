@@ -12,6 +12,12 @@ import {
   OPS_TITLE,
 } from './opsTheme';
 import type { ProjectRiskLevel, ProjectRiskReview } from '../../utils/projectRiskReview';
+import {
+  HEALTH_ATTENTION_BADGE,
+  HEALTH_ATTENTION_TEXT,
+  HEALTH_GOOD_BADGE,
+  HEALTH_GOOD_TEXT,
+} from '../../theme/statusColors';
 
 interface ProjectHealthCardProps {
   review: ProjectRiskReview;
@@ -25,13 +31,13 @@ function riskTone(level: ProjectRiskLevel): { badge: string; text: string } {
       return { badge: 'bg-red-500/15 text-red-300 border-red-500/40', text: 'text-red-400' };
     case 'moderate':
       return {
-        badge: 'bg-amber-500/15 text-amber-200 border-amber-500/40',
-        text: 'text-amber-400',
+        badge: HEALTH_ATTENTION_BADGE,
+        text: HEALTH_ATTENTION_TEXT,
       };
     default:
       return {
-        badge: 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40',
-        text: 'text-emerald-400',
+        badge: HEALTH_GOOD_BADGE,
+        text: HEALTH_GOOD_TEXT,
       };
   }
 }

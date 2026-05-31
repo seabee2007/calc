@@ -20,7 +20,13 @@ import {
 } from '../../utils/supplierPricing';
 import { useProjectStore } from '../../store';
 import type { PlacementOrder } from '../../types/placementOrder';
-import { DEFAULT_BATCH_PLANT_CONTACT } from '../../types/placementOrder';
+import {
+  CALCULATOR_SECTION,
+  CALCULATOR_SECTION_SUBTITLE,
+  CALCULATOR_SECTION_TITLE,
+  TEXT_MUTED,
+  TEXT_FOREGROUND,
+} from '../../theme/appTheme';
 
 export type PricingCalculatorVariant = 'calculator' | 'planner';
 
@@ -380,7 +386,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
       {isPlanner ? (
         <div className="flex items-start justify-between gap-3 mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 className={CALCULATOR_SECTION_TITLE}>
               Ready-Mixed Concrete
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -405,7 +411,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
           <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
             Cost Estimate
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className={`${CALCULATOR_SECTION_SUBTITLE} mb-4`}>
             {volume.toFixed(2)} {volumeUnitLabel}
             <span className="text-gray-500 dark:text-gray-500">
               {' '}
@@ -418,7 +424,7 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
 
       <div className={isPlanner ? '' : 'mb-4'}>
         {!isPlanner && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className={`${CALCULATOR_SECTION_SUBTITLE} mb-4`}>
             {volume.toFixed(2)} {volumeUnitLabel}
             <span className="text-gray-500 dark:text-gray-500">
               {' '}

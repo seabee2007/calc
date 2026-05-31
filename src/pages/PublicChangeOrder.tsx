@@ -11,6 +11,7 @@ import type { ChangeOrder } from '../types/changeOrder';
 import ChangeOrderDocument from '../components/change-order/ChangeOrderDocument';
 import SignatureBlock from '../components/change-order/SignatureBlock';
 import Button from '../components/ui/Button';
+import { SURFACE_ELEVATED, TEXT_MUTED } from '../theme/appTheme';
 
 const PublicChangeOrder: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -109,7 +110,7 @@ const PublicChangeOrder: React.FC = () => {
   if (error && !order) {
     return (
       <div className="min-h-screen bg-slate-100 dark:bg-gray-900 flex items-center justify-center p-6">
-        <div className="max-w-md text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+        <div className={`max-w-md text-center rounded-xl p-8 shadow-lg ${SURFACE_ELEVATED}`}>
           <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Change order unavailable
           </p>
@@ -148,7 +149,7 @@ const PublicChangeOrder: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-6">
+        <div className={`rounded-xl shadow-lg overflow-hidden mb-6 ${SURFACE_ELEVATED}`}>
           <ChangeOrderDocument order={order} />
         </div>
 

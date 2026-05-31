@@ -5,7 +5,7 @@ import ScheduleStatusBadge from '../ScheduleStatusBadge';
 import SchedulePriorityBadge from '../SchedulePriorityBadge';
 import ScheduleEmptyState from '../ScheduleEmptyState';
 import Button from '../../ui/Button';
-import { SCHEDULE_CARD, SCHEDULE_BODY, SCHEDULE_MUTED } from '../scheduleTheme';
+import { SCHEDULE_CARD, SCHEDULE_BODY, SCHEDULE_MUTED, SCHEDULE_TABLE_HEAD, SCHEDULE_TABLE_ROW, SCHEDULE_TABLE_WRAPPER } from '../scheduleTheme';
 import { formatScheduleDate, statusAccentClass } from '../../../utils/scheduleEventUtils';
 
 interface Props {
@@ -21,9 +21,9 @@ export default function ScheduleListView({ events, selectedId, onSelect }: Props
 
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-xl border border-[#E5E7EB] bg-white md:block dark:border-slate-700 dark:bg-slate-900">
+      <div className={`hidden md:block ${SCHEDULE_TABLE_WRAPPER}`}>
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-[#E5E7EB] bg-[#F8FAFC] text-xs font-semibold uppercase tracking-wide text-[#6B7280] dark:border-slate-700 dark:bg-slate-800">
+          <thead className={SCHEDULE_TABLE_HEAD}>
             <tr>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Event</th>
@@ -41,7 +41,7 @@ export default function ScheduleListView({ events, selectedId, onSelect }: Props
             {events.map((event) => (
               <tr
                 key={event.id}
-                className={`border-b border-[#E5E7EB] last:border-0 dark:border-slate-800 ${statusAccentClass(
+                className={`${SCHEDULE_TABLE_ROW} ${statusAccentClass(
                   event.status,
                 )} ${selectedId === event.id ? 'bg-blue-50/50 dark:bg-blue-950/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
               >

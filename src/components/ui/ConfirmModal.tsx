@@ -2,9 +2,15 @@ import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
+import { useModalLayer } from '../../hooks/useModalLayer';
 import Button from './Button';
 import { soundService } from '../../services/soundService';
 import { hapticService } from '../../services/hapticService';
+import {
+  MODAL_PANEL,
+  MODAL_TITLE,
+  TEXT_BODY,
+} from '../../theme/appTheme';
 
 export type ConfirmVariant = 'danger' | 'success' | 'primary';
 
@@ -52,19 +58,12 @@ export default function ConfirmModal({
     }
   }, [isOpen]);
 
+  useModalLayer(isOpen, onCancel);
+
   useEffect(() => {
     if (!isOpen) return;
 
-    const savedScrollY = window.scrollY;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        void soundService.play('click');
-        void hapticService.button();
-        onCancelRef.current();
-        return;
-      }
       if (e.key === 'Enter') {
         const target = e.target as HTMLElement;
         if (target.tagName === 'TEXTAREA') return;
@@ -76,14 +75,11 @@ export default function ConfirmModal({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
     const t = window.setTimeout(() => confirmRef.current?.focus(), 50);
 
     return () => {
       window.clearTimeout(t);
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-      window.scrollTo(0, savedScrollY);
     };
   }, [isOpen]);
 
@@ -91,7 +87,7 @@ export default function ConfirmModal({
     confirmVariant === 'danger'
       ? 'danger'
       : confirmVariant === 'success'
-        ? 'primary'
+        ? 'success'
         : 'primary';
 
   const modal = (
@@ -102,12 +98,12 @@ export default function ConfirmModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-modal-overlay bg-black/50 backdrop-blur-sm"
             onClick={() => onCancel()}
             aria-hidden
           />
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-modal flex items-center justify-center p-4 pointer-events-none"
             style={{
               paddingTop: 'max(env(safe-area-inset-top), 1rem)',
               paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)',
@@ -122,7 +118,7 @@ export default function ConfirmModal({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
               transition={{ type: 'spring', damping: 22 }}
-              className="pointer-events-auto w-full max-w-md rounded-lg border border-slate-700 bg-slate-800 p-5 shadow-xl"
+              className={`pointer-events-auto w-full max-w-md p-5 ${MODAL_PANEL}`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex gap-3">
@@ -135,10 +131,10 @@ export default function ConfirmModal({
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <h2 id={titleId} className="text-lg font-semibold text-slate-100">
+                  <h2 id={titleId} className={MODAL_TITLE}>
                     {title}
                   </h2>
-                  <p id={descId} className="mt-2 text-sm text-slate-300 whitespace-pre-line">
+                  <p id={descId} className={`mt-2 text-sm whitespace-pre-line ${TEXT_BODY}`}>
                     {message}
                   </p>
                 </div>
