@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Save, X, Calendar, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { Save, X, Calendar, MapPin, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { useProjectStore } from '../../store';
+import { generateProjectName } from '../../services/projectNamingService';
+import { resolveStateCode } from '../../types/address';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
@@ -69,6 +73,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const [verifiedAddress, setVerifiedAddress] = useState<USAddress | null>(null);
   const [existingPortal, setExistingPortal] = useState<ClientPortalRecord | null>(null);
   const [portalLoading, setPortalLoading] = useState(Boolean(projectId));
+  const [nameGenerating, setNameGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generatedNamePreview, setGeneratedNamePreview] = useState<string | null>(null);
+  const { user } = useAuth();
+  const storeProjects = useProjectStore((s) => s.projects);
 
   const buildDefaults = (): ProjectFormData => ({
     name: initialData?.name ?? '',
@@ -206,6 +215,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   };
 
   const onFormSubmit = async (data: ProjectFormData) => {
+    setGenerateError(null);
     let jobsite = data.jobsiteAddress;
 
     if (requireVerifiedAddress && isUSAddressGeocodable(jobsite)) {
@@ -218,8 +228,38 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       }
     }
 
+    let projectName = data.name.trim();
+
+    if (!isEditing) {
+      if (!user?.id) {
+        setGenerateError('Sign in to create a project.');
+        return;
+      }
+      setNameGenerating(true);
+      setGeneratedNamePreview(null);
+      try {
+        const generated = await generateProjectName({
+          scopeDescription: data.description,
+          jobsiteAddress: sanitizeUSAddress(jobsite),
+          userId: user.id,
+          additionalNames: storeProjects.map((p) => p.name),
+        });
+        projectName = generated.name;
+        setGeneratedNamePreview(generated.name);
+      } catch (err) {
+        setGenerateError(err instanceof Error ? err.message : 'Could not generate project name.');
+        return;
+      } finally {
+        setNameGenerating(false);
+      }
+    } else if (!projectName) {
+      setGenerateError('Project name is required.');
+      return;
+    }
+
     const payload: ProjectFormData = {
       ...data,
+      name: projectName,
       jobsiteAddress: sanitizeUSAddress(jobsite),
       clientInfo: {
         ...data.clientInfo,
@@ -262,14 +302,59 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     await onSubmit(payload);
   };
 
+  const jobsiteState = watch('jobsiteAddress.state');
+  const stateCodePreview = resolveStateCode(jobsiteState ?? '');
+  const yearSuffix = String(new Date().getFullYear()).slice(-2);
+
   const formBody = (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
-      <Input
-        label="Project Name"
-        fullWidth
-        error={errors.name?.message?.toString()}
-        {...register('name', { required: 'Project name is required' })}
-      />
+      {isEditing ? (
+        <Input
+          label="Project Name"
+          fullWidth
+          error={errors.name?.message?.toString()}
+          {...register('name', { required: 'Project name is required' })}
+        />
+      ) : (
+        <div className="rounded-lg border border-cyan-200/60 bg-cyan-50/40 p-4 dark:border-cyan-800/50 dark:bg-cyan-950/20">
+          <div className="flex items-start gap-2">
+            <Sparkles className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                Auto project number & name
+              </p>
+              <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">
+                When you click Create Project, we assign the next number for your jobsite state and
+                year
+                {stateCodePreview ? (
+                  <>
+                    {' '}
+                    (<span className="font-mono text-cyan-700 dark:text-cyan-300">
+                      {stateCodePreview}
+                      {yearSuffix}-###
+                    </span>
+                    )
+                  </>
+                ) : (
+                  <> (e.g. GA26-201)</>
+                )}{' '}
+                and summarize your job scope into the title.
+              </p>
+              {generatedNamePreview && (
+                <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                  {generatedNamePreview}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {generateError && (
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          {generateError}
+        </p>
+      )}
 
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
         <div>
@@ -456,8 +541,15 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           rows={3}
           placeholder="Brief scope of work — carries into the proposal scope section."
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
-          {...register('description')}
+          {...register('description', {
+            required: isEditing ? false : 'Job scope is required to name the project',
+          })}
         />
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {errors.description.message?.toString()}
+          </p>
+        )}
       </div>
 
       <div>
@@ -540,8 +632,20 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
         <Button type="button" variant="outline" onClick={onCancel} icon={<X size={18} />}>
           Cancel
         </Button>
-        <Button type="submit" icon={<Save size={18} />}>
-          {submitLabel ?? (isEditing ? 'Update Project' : 'Create Project')}
+        <Button
+          type="submit"
+          disabled={nameGenerating}
+          icon={
+            nameGenerating ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Save size={18} />
+            )
+          }
+        >
+          {nameGenerating
+            ? 'Generating name…'
+            : submitLabel ?? (isEditing ? 'Update Project' : 'Create Project')}
         </Button>
       </div>
     </form>
