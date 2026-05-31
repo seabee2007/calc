@@ -22,7 +22,11 @@ import {
   type ProposalDashboardMetrics,
 } from './proposalKpis';
 import { getProjectFolder, summarizeQcBreakAlerts } from './projectFolders';
-import { formatPlacementPourDateTime } from './placementPourDate';
+import {
+  formatPlacementPourDateTime,
+  parsePlacementPourMoment,
+  parsePlacementStartTimeFromOrder,
+} from './placementPourDate';
 
 export type OpsRiskLevel = 'low' | 'moderate' | 'high' | 'unknown';
 export type TimelineStatus = 'on_schedule' | 'at_risk' | 'delayed' | 'pending';
@@ -76,6 +80,7 @@ export interface UpcomingPlacementRow {
   projectName: string;
   pourDateLabel: string;
   sortTime: number;
+  pourTimeLabel: string;
   volumeYd: number;
   batchPlantName: string;
   nextLoadLabel: string;
@@ -133,10 +138,11 @@ function isSameDay(a: Date, b: Date): boolean {
   return startOfDay(a).getTime() === startOfDay(b).getTime();
 }
 
-function parsePourDate(iso?: string): Date | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? null : d;
+function parsePourDate(
+  iso?: string,
+  order?: PlacementOrder,
+): Date | null {
+  return parsePlacementPourMoment(iso, order);
 }
 
 function formatPourDateLabel(d: Date): string {
@@ -153,7 +159,12 @@ export function formatProfessionalCalendarDate(d: Date): string {
   return `${day} ${month} ${d.getFullYear()}`;
 }
 
-export function formatPourTimeLabel(d: Date): string {
+export function formatPourTimeLabel(d: Date, startTimeHHmm?: string): string {
+  const normalized = startTimeHHmm?.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (normalized) {
+    const h = Math.min(23, Math.max(0, parseInt(normalized[1], 10)));
+    return `${String(h).padStart(2, '0')}:${normalized[2]}`;
+  }
   return d.toLocaleTimeString(undefined, {
     hour: '2-digit',
     minute: '2-digit',
@@ -204,16 +215,7 @@ function parseSummaryNumber(lines: string[] | undefined, pattern: RegExp): numbe
 }
 
 function parseStartTimeFromSummary(lines: string[] | undefined): string {
-  if (!lines?.length) return '07:00';
-  for (const line of lines) {
-    const m = line.match(/Requested Start Time:\s*(.+)/i);
-    if (m) {
-      const inner = m[1].match(/\((\d{1,2}:\d{2})\)/);
-      if (inner) return inner[1];
-      if (/^\d{1,2}:\d{2}/.test(m[1].trim())) return m[1].trim().slice(0, 5);
-    }
-  }
-  return '07:00';
+  return parsePlacementStartTimeFromOrder({ summaryLines: lines });
 }
 
 function timeToMinutes(t: string): number {
@@ -585,19 +587,21 @@ export function buildUpcomingPlacements(
 
   for (const project of projects) {
     if (isProjectClosedOut(project)) continue;
-    const pourDate = parsePourDate(project.pourDate);
+    const order = project.placementOrder;
+    const pourDate = parsePourDate(project.pourDate, order);
     if (!pourDate || pourDate < today) continue;
 
-    const order = project.placementOrder;
     const timeline = buildPourTimeline(order, pourDate, now);
     const schedule = isSameDay(pourDate, now)
       ? buildDeliverySchedule(order, pourDate, project.name, now)
       : null;
+    const pourTimeLabel = parsePlacementStartTimeFromOrder(order);
 
     rows.push({
       projectId: project.id,
       projectName: project.name,
       pourDateLabel: formatPourDateLabel(pourDate),
+      pourTimeLabel,
       sortTime: pourDate.getTime(),
       volumeYd: projectVolumeYd(project),
       batchPlantName: order?.batchPlantName ?? '—',
@@ -633,7 +637,7 @@ export function buildOperationsSnapshot(
   const cards: DashboardProjectCard[] = projects.map((project) => {
     const order = project.placementOrder;
     const volumeYd = projectVolumeYd(project);
-    const pourDate = parsePourDate(project.pourDate);
+    const pourDate = parsePourDate(project.pourDate, order);
     const { score, statusLabel } = computeReadinessScore(project, order);
     const matchedProposal = proposals.find(
       (p) =>
@@ -681,23 +685,25 @@ export function buildOperationsSnapshot(
     };
   });
 
+  const projectById = new Map(projects.map((p) => [p.id, p]));
+
   const todayPours = cards.filter((c) => {
-    const d = parsePourDate(c.pourDateIso);
+    const d = parsePourDate(c.pourDateIso, projectById.get(c.id)?.placementOrder);
     return d && isSameDay(d, now);
   });
 
   const upcomingPours = cards.filter((c) => {
-    const d = parsePourDate(c.pourDateIso);
+    const d = parsePourDate(c.pourDateIso, projectById.get(c.id)?.placementOrder);
     return d && d > today && d.getTime() - today.getTime() < 14 * 86400000;
   });
 
   const hasPlacementsToday = todayPours.length > 0;
   const todayPrimary = todayPours[0];
   const todayPrimaryProject = todayPrimary
-    ? projects.find((p) => p.id === todayPrimary.id)
+    ? projectById.get(todayPrimary.id)
     : undefined;
   const todayOrder = todayPrimaryProject?.placementOrder;
-  const todayPourDate = parsePourDate(todayPrimary?.pourDateIso);
+  const todayPourDate = parsePourDate(todayPrimary?.pourDateIso, todayOrder);
 
   const timeline = hasPlacementsToday
     ? buildPourTimeline(todayOrder, todayPourDate, now)

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildPlacementPourDateIso,
+  parsePlacementPourMoment,
+  parsePlacementStartTimeFromOrder,
   placementDateYmdFromIso,
   resolvePlacementDateYmd,
 } from './placementPourDate';
@@ -29,5 +31,25 @@ describe('placementPourDate', () => {
         placementOrder: undefined,
       }),
     ).toBe('2026-08-01');
+  });
+
+  it('uses order start time instead of UTC offset from legacy noon ISO', () => {
+    const legacyNoonUtc = '2026-06-15T12:00:00.000Z';
+    const moment = parsePlacementPourMoment(legacyNoonUtc, {
+      pourStartTime: '07:00',
+      summaryLines: [],
+    });
+    expect(moment).not.toBeNull();
+    expect(moment!.getHours()).toBe(7);
+    expect(moment!.getMinutes()).toBe(0);
+    expect(moment!.getDate()).toBe(15);
+  });
+
+  it('reads start time from call sheet summary', () => {
+    expect(
+      parsePlacementStartTimeFromOrder({
+        summaryLines: ['Requested Start Time: 6:30 AM (06:30)'],
+      }),
+    ).toBe('06:30');
   });
 });

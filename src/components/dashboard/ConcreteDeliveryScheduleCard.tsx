@@ -20,7 +20,6 @@ import type {
 import {
   calendarDaysUntil,
   formatNextPlacementLeadLabel,
-  formatPourTimeLabel,
   formatProfessionalCalendarDate,
 } from '../../utils/operationsDashboard';
 import { workflowQuery } from '../../utils/workflow';
@@ -98,7 +97,7 @@ const ConcreteDeliveryScheduleCard: React.FC<ConcreteDeliveryScheduleCardProps> 
             {formatProfessionalCalendarDate(upcomingPourDate)}
           </p>
           <p className="text-sm text-cyan-700 dark:text-cyan-300 font-mono mt-1">
-            {formatPourTimeLabel(upcomingPourDate)}
+            {nextPlacement.pourTimeLabel}
           </p>
 
           <dl className="grid grid-cols-1 gap-2 text-sm mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/80">

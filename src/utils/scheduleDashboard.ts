@@ -1,5 +1,6 @@
 import type { ScheduleEvent } from '../types/scheduleEvent';
-import { addDays, toIsoDate } from './scheduleEventUtils';
+import { addDays, eventOccursOnDate, toIsoDate } from './scheduleEventUtils';
+import { expandRecurringEventsForRange } from './scheduleRecurrenceUtils';
 
 export interface ScheduleDashboardSnapshot {
   todayEvents: ScheduleEvent[];
@@ -21,6 +22,40 @@ const DEADLINE_TYPES = new Set([
   'rfi_due',
 ]);
 
+/** One row per calendar occurrence (matches planner calendar expansion). */
+function scheduleEventDisplayKey(e: ScheduleEvent): string {
+  if (e.seriesMasterId && e.occurrenceDate) {
+    return `series:${e.seriesMasterId}:${e.occurrenceDate}`;
+  }
+  if (e.recurrenceSeriesId && e.recurrenceInstanceDate) {
+    return `series:${e.recurrenceSeriesId}:${e.recurrenceInstanceDate}`;
+  }
+  return `id:${e.id}`;
+}
+
+function eventsForCalendarDay(
+  events: ScheduleEvent[],
+  dayIso: string,
+): ScheduleEvent[] {
+  const expanded = expandRecurringEventsForRange(events, dayIso, dayIso);
+  const seen = new Set<string>();
+  const out: ScheduleEvent[] = [];
+  for (const e of expanded) {
+    if (e.status === 'cancelled') continue;
+    if (!eventOccursOnDate(e, dayIso)) continue;
+    const key = scheduleEventDisplayKey(e);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(e);
+  }
+  return out.sort((a, b) => {
+    const ta = a.startTime ?? '';
+    const tb = b.startTime ?? '';
+    if (ta !== tb) return ta.localeCompare(tb);
+    return a.title.localeCompare(b.title);
+  });
+}
+
 export function buildScheduleDashboardSnapshot(
   events: ScheduleEvent[],
   todayIso: string = toIsoDate(new Date()),
@@ -28,7 +63,7 @@ export function buildScheduleDashboardSnapshot(
   const horizon = addDays(todayIso, 14);
   const weekAgo = addDays(todayIso, -7);
 
-  const todayEvents = events.filter((e) => e.startDate === todayIso);
+  const todayEvents = eventsForCalendarDay(events, todayIso);
   const upcoming = events.filter(
     (e) => e.startDate >= todayIso && e.startDate <= horizon && e.status !== 'cancelled',
   );

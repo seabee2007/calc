@@ -51,6 +51,56 @@ export function resolvePlacementDateYmd(
   return placementDateYmdFromIso(project?.pourDate);
 }
 
+/** HH:mm from placement order (planner field, then call sheet summary). */
+export function parsePlacementStartTimeFromOrder(
+  order?: {
+    pourStartTime?: string | null;
+    summaryLines?: string[] | null;
+  } | null,
+): string {
+  if (order?.pourStartTime?.trim()) {
+    const m = order.pourStartTime.trim().match(/^(\d{1,2}):(\d{2})/);
+    if (m) {
+      return `${String(Math.min(23, Math.max(0, parseInt(m[1], 10)))).padStart(2, '0')}:${m[2]}`;
+    }
+  }
+  const lines = order?.summaryLines;
+  if (lines?.length) {
+    for (const line of lines) {
+      const m = line.match(/Requested Start Time:\s*(.+)/i);
+      if (m) {
+        const inner = m[1].match(/\((\d{1,2}:\d{2})\)/);
+        if (inner) return inner[1];
+        if (/^\d{1,2}:\d{2}/.test(m[1].trim())) return m[1].trim().slice(0, 5);
+      }
+    }
+  }
+  return '07:00';
+}
+
+/**
+ * Local placement moment for scheduling: calendar day from ISO + start time from order.
+ * Avoids UTC midnight shifting the pour to the previous calendar day.
+ */
+export function parsePlacementPourMoment(
+  pourDateIso?: string | null,
+  order?: {
+    pourDateIso?: string | null;
+    pourStartTime?: string | null;
+    summaryLines?: string[] | null;
+  } | null,
+): Date | null {
+  const ymd =
+    placementDateYmdFromIso(pourDateIso) ??
+    placementDateYmdFromIso(order?.pourDateIso);
+  if (!ymd) return null;
+  try {
+    return new Date(buildPlacementPourDateIso(ymd, parsePlacementStartTimeFromOrder(order)));
+  } catch {
+    return null;
+  }
+}
+
 /** Human-readable placement date/time for dashboards and project cards. */
 export function formatPlacementPourDateTime(
   pourDateIso?: string | null,

@@ -30,6 +30,9 @@ export default function ScheduleTodayCard({ events }: Props) {
             <li key={e.id} className="truncate">
               {e.startTime ? formatScheduleTime(e.startTime) + ' · ' : ''}
               {e.title}
+              {e.projectName ? (
+                <span className="text-slate-400 dark:text-slate-500"> · {e.projectName}</span>
+              ) : null}
             </li>
           ))}
         </ul>
