@@ -136,7 +136,7 @@ export function paramsFromLegacyIndirect(
   indirect: ChangeOrderIndirectInputs,
 ): PricingParams {
   return {
-    pricingModel: indirect.pricingModel ?? 'legacy',
+    pricingModel: indirect.pricingModel,
     wasteFactorPercent: indirect.wasteFactorPercent ?? DEFAULT_WASTE_FACTOR_PERCENT,
     contingencyPercent: indirect.contingencyPercent ?? 0,
     overheadPercent: indirect.overheadPercent ?? DEFAULT_OVERHEAD_PERCENT,
@@ -395,8 +395,7 @@ export function computeChangeOrderBreakdown(
   const params = paramsFromLegacyIndirect(indirect);
   if (!params.pricingModel) {
     params.pricingModel =
-      indirect.pricingModel ??
-      (indirect.targetMarginPercent != null ? 'standard' : 'legacy');
+      indirect.targetMarginPercent != null ? 'standard' : 'legacy';
   }
   return computePricingBreakdown(
     laborItems,

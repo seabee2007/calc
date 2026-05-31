@@ -18,6 +18,7 @@ function standardParams(overrides: Partial<ReturnType<typeof defaultPricingParam
   return {
     ...defaultPricingParams(),
     pricingModel: 'standard' as const,
+    wasteFactorPercent: 0,
     contingencyPercent: 0,
     overheadPercent: 0,
     targetMarginPercent: 0,
@@ -197,6 +198,7 @@ describe('computeChangeOrderBreakdown (legacy dispatcher)', () => {
         overheadPercent: 0,
         profitPercent: 0,
         markupPercent: 0,
+        wasteFactorPercent: 0,
         targetMarginPercent: 20,
       },
     );
