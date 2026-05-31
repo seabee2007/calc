@@ -18,8 +18,18 @@ export interface ClientPortalAccessInput {
   clientPhone?: string;
 }
 
+export type ClientTimelineStepKey =
+  | 'created'
+  | 'estimating'
+  | 'proposal_sent'
+  | 'accepted'
+  | 'in_progress'
+  | 'job_completed'
+  | 'paid'
+  | 'closed';
+
 export interface ClientTimelineStep {
-  key: string;
+  key: ClientTimelineStepKey;
   label: string;
   status: 'completed' | 'current' | 'upcoming';
 }

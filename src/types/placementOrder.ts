@@ -67,6 +67,8 @@ export interface PlacementOrder {
   callSheet?: Partial<CallSheetFields>;
   updatedAt: string;
   pourDateIso?: string;
+  /** Requested truck / placement start (HH:mm), from Placement Planner. */
+  pourStartTime?: string;
   batchPlantName?: string;
   batchPlantAddress?: string;
   /** Drive time from batch plant to jobsite (minutes). */

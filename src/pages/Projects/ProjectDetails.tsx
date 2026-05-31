@@ -33,6 +33,7 @@ import {
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
 import { workflowQuery } from '../../utils/workflow';
+import { formatPlacementPourDateTime } from '../../utils/placementPourDate';
 import {
   plannerAdjustmentHref,
   plannerBoardHref,
@@ -108,11 +109,8 @@ export default function ProjectDetails() {
 
   const pourDateLabel = useMemo(() => {
     if (!project?.pourDate) return '—';
-    try {
-      return format(new Date(project.pourDate), 'EEEE HH:mm');
-    } catch {
-      return '—';
-    }
+    const label = formatPlacementPourDateTime(project.pourDate);
+    return label ?? '—';
   }, [project?.pourDate]);
 
   const workflow = useMemo(() => {
@@ -161,7 +159,7 @@ export default function ProjectDetails() {
       issues.push({ msg: 'No estimates saved yet', action: 'project' });
     }
 
-    if (workflow.stage === 'accepted') {
+    if (workflow.stage === 'accepted' || workflow.stage === 'in_progress') {
       const order = project.placementOrder;
       const plantAssigned = Boolean(
         order?.batchPlantName?.trim() || order?.batchPlantAddress?.trim(),
@@ -496,7 +494,7 @@ export default function ProjectDetails() {
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-[10px] uppercase tracking-wide">
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-[10px] uppercase tracking-wide">
           {PROJECT_LIFECYCLE_STAGE_ORDER.map((s, i) => {
             const done = stageIndex >= i;
             return (

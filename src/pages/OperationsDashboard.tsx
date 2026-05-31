@@ -39,19 +39,7 @@ import {
   OPS_MUTED,
   OPS_SHELL,
 } from '../components/dashboard/opsTheme';
-
-function parseIsoMaybe(iso?: string): Date | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function formatPourDateLabel(d: Date): string {
-  const weekday = d.toLocaleDateString(undefined, { weekday: 'long' });
-  const monthDay = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
-  return `${weekday}, ${monthDay} • ${time}`;
-}
+import { formatPlacementPourDateTime } from '../utils/placementPourDate';
 
 const OperationsDashboard: React.FC = () => {
   const { isOwner, user } = useAuth();
@@ -65,10 +53,8 @@ const OperationsDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (projects.length === 0) {
-      void loadProjects();
-    }
-  }, [projects.length, loadProjects]);
+    void loadProjects();
+  }, [loadProjects]);
 
   useEffect(() => {
     if (
@@ -188,7 +174,7 @@ const OperationsDashboard: React.FC = () => {
     const order = project.placementOrder as
       | { batchPlantName?: string; batchPlantAddress?: string; summaryLines?: string[]; callSheet?: Record<string, unknown> }
       | undefined;
-    const pourDate = parseIsoMaybe(project.pourDate as string | undefined);
+    const pourDateLabel = formatPlacementPourDateTime(project.pourDate as string | undefined);
     const volumeYd = (project.calculations ?? []).reduce(
       (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
       0,
@@ -220,7 +206,7 @@ const OperationsDashboard: React.FC = () => {
     return {
       projectId: project.id as string,
       projectName: project.name as string,
-      pourDateLabel: pourDate ? formatPourDateLabel(pourDate) : undefined,
+      pourDateLabel: pourDateLabel ?? undefined,
       checks: {
         mixSelected,
         volumeCalculated,

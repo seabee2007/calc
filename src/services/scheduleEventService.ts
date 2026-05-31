@@ -87,6 +87,7 @@ function buildInsertPayload(input: ScheduleEventInput): Record<string, unknown> 
     weather_risk: input.weatherRisk ?? null,
     milestone_key: milestoneDb,
     recurrence_rule: input.recurrenceRule ?? null,
+    sync_metadata: input.syncMetadata ?? null,
   };
 }
 
@@ -248,6 +249,7 @@ export async function updateScheduleEvent(
     activityLog: ScheduleEventActivityEntry[];
     comments: ScheduleEventComment[];
     recurrenceRule: RecurrenceRule | null;
+    syncMetadata: Record<string, unknown> | null;
   }>,
 ): Promise<ScheduleEvent> {
   const payload: Record<string, unknown> = {
@@ -280,6 +282,9 @@ export async function updateScheduleEvent(
   if (updates.comments !== undefined) payload.comments = updates.comments;
   if (updates.recurrenceRule !== undefined) {
     payload.recurrence_rule = updates.recurrenceRule;
+  }
+  if (updates.syncMetadata !== undefined) {
+    payload.sync_metadata = updates.syncMetadata;
   }
 
   const { data, error } = await supabase

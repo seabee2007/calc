@@ -18,6 +18,8 @@ import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
 import type { ProjectFormData } from '../../components/projects/ProjectForm';
 import { defaultPlacementOrder } from '../../types/placementOrder';
 import { createClientPortal } from '../../services/clientPortalService';
+import { syncPlacementPourToSchedule } from '../../services/placementScheduleSyncService';
+import { buildPlacementPourDateIso } from '../../utils/placementPourDate';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
 const ProjectsContext = createContext<ReturnType<typeof useProjectsState> | null>(null);
@@ -309,8 +311,17 @@ function useProjectsState() {
         setUi(s => ({ ...s, isSaving: true }));
         try {
           // Create a proper ISO date string for the pourDate
-          const isoDate = new Date(date + 'T00:00:00.000Z').toISOString();
+          const isoDate = buildPlacementPourDateIso(
+            date,
+            currentProject.placementOrder?.pourStartTime,
+          );
           await updateProject(currentProject.id, { pourDate: isoDate });
+          await syncPlacementPourToSchedule({
+            projectId: currentProject.id,
+            projectName: currentProject.name,
+            pourDateIso: isoDate,
+            startTime: currentProject.placementOrder?.pourStartTime ?? null,
+          });
           toast('Placement date updated successfully', 'success');
         } catch (error) {
           console.error('Error updating pour date:', error);

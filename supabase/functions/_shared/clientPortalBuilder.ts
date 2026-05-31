@@ -1,13 +1,11 @@
-export type ClientTimelineStepKey =
-  | "created"
-  | "proposal_sent"
-  | "accepted"
-  | "placement_scheduled"
-  | "ordered"
-  | "placed"
-  | "completed"
-  | "qc_closeout"
-  | "closed";
+import {
+  PROJECT_LIFECYCLE_TIMELINE,
+  inferLifecycleFromSignals,
+  lifecycleStepIndex,
+  type ProjectLifecycleKey,
+} from "./projectLifecycle.ts";
+
+export type ClientTimelineStepKey = ProjectLifecycleKey;
 
 export type ClientTimelineStepStatus = "completed" | "current" | "upcoming";
 
@@ -48,20 +46,14 @@ export interface ClientPortalSafePayload {
   updates: ClientPortalUpdate[];
 }
 
-const TIMELINE_ORDER: Array<{ key: ClientTimelineStepKey; label: string }> = [
-  { key: "created", label: "Created" },
-  { key: "proposal_sent", label: "Proposal Sent" },
-  { key: "accepted", label: "Accepted" },
-  { key: "placement_scheduled", label: "Placement Scheduled" },
-  { key: "ordered", label: "Ready Mix Ordered" },
-  { key: "placed", label: "Concrete Placed" },
-  { key: "completed", label: "Completed" },
-  { key: "qc_closeout", label: "QC Closeout" },
-  { key: "closed", label: "Closed" },
-];
-
-function stepIndex(key: ClientTimelineStepKey): number {
-  return TIMELINE_ORDER.findIndex((s) => s.key === key);
+function buildTimeline(currentKey: ProjectLifecycleKey): ClientTimelineStep[] {
+  const currentIdx = lifecycleStepIndex(currentKey);
+  return PROJECT_LIFECYCLE_TIMELINE.map((step, idx) => {
+    let status: ClientTimelineStepStatus = "upcoming";
+    if (idx < currentIdx) status = "completed";
+    else if (idx === currentIdx) status = "current";
+    return { ...step, status };
+  });
 }
 
 function formatIsoDate(value: string | null | undefined): string | null {
@@ -109,40 +101,6 @@ function paymentStatusLabel(status: string | null | undefined): string | null {
   }
   if (status === "declined") return "Proposal declined";
   return null;
-}
-
-function inferCurrentStepKey(input: {
-  proposalStatus?: string | null;
-  pourDate?: string | null;
-  lifecycleStage?: string | null;
-  orderStatus?: string | null;
-  qcComplete: boolean;
-  concretePlaced: boolean;
-}): ClientTimelineStepKey {
-  const lifecycle = input.lifecycleStage ?? "";
-  if (lifecycle === "closed") return "closed";
-  if (input.qcComplete && input.concretePlaced) return "closed";
-  if (input.concretePlaced && !input.qcComplete) return "qc_closeout";
-  if (lifecycle === "paid" || input.orderStatus === "completed") return "completed";
-  if (input.concretePlaced || lifecycle === "placed") return "placed";
-  if (lifecycle === "ordered" || input.orderStatus === "ordered") return "ordered";
-  if (input.pourDate || lifecycle === "placement_scheduled") return "placement_scheduled";
-
-  const ps = input.proposalStatus ?? "";
-  if (["accepted", "deposit_paid", "scheduled", "paid"].includes(ps)) return "accepted";
-  if (["sent", "viewed", "opened", "declined"].includes(ps)) return "proposal_sent";
-
-  return "created";
-}
-
-function buildTimeline(currentKey: ClientTimelineStepKey): ClientTimelineStep[] {
-  const currentIdx = stepIndex(currentKey);
-  return TIMELINE_ORDER.map((step, idx) => {
-    let status: ClientTimelineStepStatus = "upcoming";
-    if (idx < currentIdx) status = "completed";
-    else if (idx === currentIdx) status = "current";
-    return { ...step, status };
-  });
 }
 
 function buildQcSummary(input: {
@@ -217,25 +175,27 @@ export function buildClientPortalSafePayload(input: {
 
   const concretePlaced = Boolean(
     placementOrder?.lifecycleStage === "placed" ||
+      placementOrder?.lifecycleStage === "job_completed" ||
       placementOrder?.lifecycleStage === "paid" ||
       placementOrder?.status === "completed" ||
       (pourDate && new Date(pourDate) < new Date()),
   );
 
   const qcComplete = twentyEightDayComplete;
-  const currentKey = inferCurrentStepKey({
+  const currentKey = inferLifecycleFromSignals({
     proposalStatus,
     pourDate,
     lifecycleStage: placementOrder?.lifecycleStage ?? null,
     orderStatus: placementOrder?.status ?? null,
-    qcComplete,
     concretePlaced,
+    qcComplete,
   });
 
   const timeline = buildTimeline(currentKey);
-  const currentPhase = TIMELINE_ORDER.find((s) => s.key === currentKey)?.label ?? "Created";
-  const nextIdx = Math.min(stepIndex(currentKey) + 1, TIMELINE_ORDER.length - 1);
-  const nextMilestone = TIMELINE_ORDER[nextIdx]?.label ?? "Closed";
+  const currentPhase =
+    PROJECT_LIFECYCLE_TIMELINE.find((s) => s.key === currentKey)?.label ?? "Created";
+  const nextIdx = Math.min(lifecycleStepIndex(currentKey) + 1, PROJECT_LIFECYCLE_TIMELINE.length - 1);
+  const nextMilestone = PROJECT_LIFECYCLE_TIMELINE[nextIdx]?.label ?? "Closed";
 
   const jobsiteLocation = [input.project.jobsite_city, input.project.jobsite_state]
     .filter(Boolean)
@@ -263,7 +223,7 @@ export function buildClientPortalSafePayload(input: {
   if (input.proposal?.deposit_paid_at) {
     updates.push({ date: input.proposal.deposit_paid_at, message: "Deposit received." });
   }
-  if (pourDate) {
+  if (pourDate && currentKey === "in_progress") {
     updates.push({
       date: pourDate,
       message: `Placement scheduled for ${formatDisplayDate(pourDate) ?? "upcoming date"}.`,

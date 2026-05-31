@@ -18,6 +18,7 @@ export type ProjectWorkflowStage =
   | 'estimating'
   | 'proposal_sent'
   | 'accepted'
+  | 'in_progress'
   | 'mix_approved'
   | 'placement_scheduled'
   | 'ordered'
@@ -32,6 +33,7 @@ export const PROJECT_LIFECYCLE_STAGE_ORDER = [
   'estimating',
   'proposal_sent',
   'accepted',
+  'in_progress',
   'job_completed',
   'paid',
   'closed',
@@ -44,6 +46,7 @@ export const PROJECT_LIFECYCLE_LABELS: Record<ProjectLifecycleStage, string> = {
   estimating: 'Estimating',
   proposal_sent: 'Proposal Sent',
   accepted: 'Accepted',
+  in_progress: 'In Progress',
   job_completed: 'Job Completed',
   paid: 'Paid',
   closed: 'Closed',
@@ -54,27 +57,32 @@ export const PROJECT_WORKFLOW_LABELS: Record<ProjectWorkflowStage, string> = {
   estimating: 'Estimating',
   proposal_sent: 'Proposal Sent',
   accepted: 'Accepted',
-  mix_approved: 'Accepted',
-  placement_scheduled: 'Accepted',
-  ordered: 'Accepted',
+  in_progress: 'In Progress',
+  mix_approved: 'In Progress',
+  placement_scheduled: 'In Progress',
+  ordered: 'In Progress',
   placed: 'Job Completed',
   job_completed: 'Job Completed',
   paid: 'Paid',
   closed: 'Closed',
 };
 
-const LEGACY_CONCRETE_DISPATCH_STAGES: ProjectWorkflowStage[] = [
+const LEGACY_IN_PROGRESS_STAGES: ProjectWorkflowStage[] = [
   'mix_approved',
   'placement_scheduled',
   'ordered',
 ];
 
-/** Map legacy placement/dispatch stages to the simplified PM lifecycle. */
+/** Map granular / legacy workflow stages to the PM lifecycle bar. */
 export function normalizeWorkflowStageForDisplay(
   stage: ProjectWorkflowStage,
 ): ProjectLifecycleStage {
-  if (LEGACY_CONCRETE_DISPATCH_STAGES.includes(stage)) return 'accepted';
-  if (stage === 'placed') return 'job_completed';
+  if (stage === 'closed') return 'closed';
+  if (stage === 'paid') return 'paid';
+  if (stage === 'job_completed' || stage === 'placed') return 'job_completed';
+  if (stage === 'in_progress' || LEGACY_IN_PROGRESS_STAGES.includes(stage)) {
+    return 'in_progress';
+  }
   if (PROJECT_LIFECYCLE_STAGE_ORDER.includes(stage as ProjectLifecycleStage)) {
     return stage as ProjectLifecycleStage;
   }
@@ -108,7 +116,8 @@ export interface ProjectNextAction {
 /** Stages where pour planner / placement configuration is still relevant (incl. legacy inferred). */
 export const PLACEMENT_PLANNER_STAGES: ProjectWorkflowStage[] = [
   'accepted',
-  ...LEGACY_CONCRETE_DISPATCH_STAGES,
+  'in_progress',
+  ...LEGACY_IN_PROGRESS_STAGES,
   'placed',
 ];
 
@@ -293,13 +302,31 @@ export function getProjectCardPresentation(
   if (displayStage === 'accepted') {
     return finalizeProjectCardPresentation(
       {
+        priorityLabel: 'Accepted',
+        priorityBadgeClass:
+          'bg-cyan-500/15 text-cyan-800 border-cyan-500/40 dark:text-cyan-200',
+        priorityRingClass: 'ring-1 ring-cyan-500/35',
+        progressPct: baseProgress,
+        nextActionLabel: nextActionLabel,
+        scheduleFooterLabel: 'Ready for field work',
+        scheduleFooterComplete: false,
+        hidePlacementOrder: false,
+      },
+      stage,
+      pour,
+    );
+  }
+
+  if (displayStage === 'in_progress') {
+    return finalizeProjectCardPresentation(
+      {
         priorityLabel: 'In progress',
         priorityBadgeClass:
           'bg-emerald-500/15 text-emerald-800 border-emerald-500/40 dark:text-emerald-200',
         priorityRingClass: 'ring-1 ring-emerald-500/35',
         progressPct: baseProgress,
         nextActionLabel: nextActionLabel,
-        scheduleFooterLabel: hasPourDate ? 'Field work scheduled' : 'Execute job',
+        scheduleFooterLabel: hasPourDate ? 'Field work underway' : 'Execute job',
         scheduleFooterComplete: hasPourDate,
         hidePlacementOrder: false,
       },
@@ -386,7 +413,7 @@ function inferStage(
     status === 'ready_to_call' ||
     (pourDate && (!status || status === 'draft'))
   ) {
-    return 'accepted';
+    return 'placement_scheduled';
   }
 
   if (proposalStatus === 'paid') return 'paid';
@@ -482,8 +509,15 @@ function buildNextAction(
         };
       }
       return {
+        label: 'Schedule placement',
+        description: 'Set pour date and open Placement Planner when ready',
+        path: '/pour-planner',
+        search: q,
+      };
+    case 'in_progress':
+      return {
         label: 'Log QC & field notes',
-        description: 'Use Tools for placement and mix when needed; update stage when done',
+        description: 'Track placement, testing, and closeout on this job',
         path: '/projects',
         kind: 'scroll_to_qc',
       };
@@ -538,7 +572,7 @@ export function buildReadinessIssues(
       fixSearch: q,
     });
   }
-  if (!project.pourDate && lifecycleStage === 'accepted') {
+  if (!project.pourDate && (lifecycleStage === 'accepted' || lifecycleStage === 'in_progress')) {
     issues.push({
       id: 'pour-time',
       message: 'No placement date set (optional)',

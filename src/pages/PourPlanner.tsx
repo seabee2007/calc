@@ -49,6 +49,22 @@ import {
   placementOrderFromForm,
   applyPlannerPlacementOrderDispatchFields,
 } from '../utils/placementOrderForm';
+import { syncPlacementPourToSchedule } from '../services/placementScheduleSyncService';
+import type { ScheduleWeatherRisk } from '../types/scheduleEvent';
+import type { PourRating } from '../utils/pourScoring';
+import {
+  buildPlacementPourDateIso,
+  resolvePlacementDateYmd,
+} from '../utils/placementPourDate';
+
+function pourRatingToScheduleWeatherRisk(
+  rating?: PourRating,
+): ScheduleWeatherRisk | null {
+  if (!rating) return null;
+  if (rating === 'excellent' || rating === 'good') return 'low';
+  if (rating === 'fair') return 'medium';
+  return 'high';
+}
 
 const FORECAST_DAYS = 5;
 
@@ -60,7 +76,7 @@ const PourPlanner: React.FC = () => {
   const workflowProjectId = getWorkflowProjectId(routerLocation.search, workflowState);
 
   const { user } = useAuth();
-  const { updateProject, projects, setCurrentProject } = useProjectStore();
+  const { updateProject, projects, setCurrentProject, loadProjects } = useProjectStore();
   const [location, setLocation] = useState<ForecastLocation | null>(null);
   const [jobsiteLocation, setJobsiteLocation] = useState<ForecastLocation | null>(null);
   const [loading, setLoading] = useState(false);
@@ -103,6 +119,13 @@ const PourPlanner: React.FC = () => {
       setCurrentProject(workflowProjectId);
     }
   }, [inWorkflow, workflowProjectId, setCurrentProject]);
+
+  useEffect(() => {
+    if (!planner.form.projectId || selectedDate) return;
+    const project = projects.find((p) => p.id === planner.form.projectId);
+    const ymd = resolvePlacementDateYmd(null, project);
+    if (ymd) setSelectedDate(ymd);
+  }, [planner.form.projectId, projects, selectedDate]);
 
   useEffect(() => {
     if (!inWorkflow || !workflowProjectId) return;
@@ -342,14 +365,25 @@ const PourPlanner: React.FC = () => {
   };
 
   const isLastStep = planner.activeStepId === 'risk';
+  const resolvedPlacementDateYmd = resolvePlacementDateYmd(
+    selectedDate,
+    planner.project,
+  );
   const canFinish = Boolean(
-    user &&
-      planner.form.projectId &&
-      (inWorkflow && isLastStep ? true : Boolean(selectedDate)),
+    user && planner.form.projectId && Boolean(resolvedPlacementDateYmd),
   );
 
-  const savePlacementOrderToProject = async () => {
-    if (!planner.form.projectId) return;
+  const savePlacementOrderToProject = async (placementDateYmd: string) => {
+    if (!planner.form.projectId) {
+      throw new Error('No project selected');
+    }
+
+    const pourDateIso = buildPlacementPourDateIso(
+      placementDateYmd,
+      planner.form.pourStartTime,
+    );
+    const dayForSummary =
+      selectedDay ?? displayDays.find((d) => d.date === placementDateYmd);
 
     const dispatchNotes =
       planner.form.orderNotes.trim() ||
@@ -368,8 +402,8 @@ const PourPlanner: React.FC = () => {
       travelDistanceMi: parseFloat(planner.form.travelDistance) || 0,
       deliveryStatus: planner.deliveryWindow.statusLabel,
       preferences: planner.preferences,
-      selectedDay,
-      projectPourDateIso: planner.project?.pourDate,
+      selectedDay: dayForSummary,
+      projectPourDateIso: pourDateIso,
       hotWeatherRiskLevel: planner.hotWeather.riskLevel,
     });
 
@@ -383,36 +417,54 @@ const PourPlanner: React.FC = () => {
     );
     order.summaryLines = summaryLines;
     order.jobsiteAddress = jobsiteDisplayAddress(planner.form);
-    order.pourDateIso = selectedDate
-      ? `${selectedDate}T12:00:00.000Z`
-      : planner.project?.pourDate;
+    order.pourDateIso = pourDateIso;
+    order.pourStartTime = planner.form.pourStartTime.trim() || undefined;
 
-    await updateProject(planner.form.projectId, { placementOrder: order });
+    return { order, pourDateIso };
   };
 
   const handleFinish = async () => {
     if (!planner.form.projectId || !user) return;
+    const placementDateYmd = resolvePlacementDateYmd(selectedDate, planner.project);
+    if (!placementDateYmd) {
+      setError(
+        'Choose a placement day in Step 4 (Weather & conditions) before saving.',
+      );
+      return;
+    }
+
     setSavePourDateLoading(true);
     setSavePourDateMessage(null);
     setError(null);
     try {
-      await savePlacementOrderToProject();
-      if (selectedDate) {
-        await updateProject(planner.form.projectId, {
-          pourDate: `${selectedDate}T12:00:00.000Z`,
-        });
-      }
+      const { order, pourDateIso } = await savePlacementOrderToProject(placementDateYmd);
+      await updateProject(planner.form.projectId, {
+        placementOrder: order,
+        pourDate: pourDateIso,
+      });
+      await syncPlacementPourToSchedule({
+        projectId: planner.form.projectId,
+        projectName: planner.project?.name ?? 'Project',
+        pourDateIso,
+        userId: user.id,
+        location: jobsiteDisplayAddress(planner.form) || null,
+        startTime: planner.form.pourStartTime || null,
+        weatherRisk: pourRatingToScheduleWeatherRisk(selectedDay?.rating),
+        volumeYd: planner.deliveryPlan.volumeYd,
+      });
+      await loadProjects();
       if (inWorkflow) {
         navigateToProjectDetail(navigate, planner.form.projectId);
         return;
       }
       setSavePourDateMessage(
-        selectedDate
-          ? 'Call sheet and placement date saved to project.'
-          : 'Call sheet saved to project.',
+        'Call sheet and placement date saved. The pour appears on the project planner calendar.',
       );
-    } catch {
-      setError('Failed to save to project. Run DB migration if placement_order column is missing.');
+    } catch (err) {
+      console.error('Placement planner save failed:', err);
+      setError(
+        'Failed to save to project. Confirm placement_order and pour_date columns exist in Supabase.',
+      );
     } finally {
       setSavePourDateLoading(false);
     }

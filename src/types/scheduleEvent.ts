@@ -206,6 +206,7 @@ export interface ScheduleEventInput {
   weatherRisk?: ScheduleWeatherRisk | null;
   milestoneKey?: ProjectMilestoneKey | string | null;
   recurrenceRule?: RecurrenceRule | null;
+  syncMetadata?: Record<string, unknown> | null;
 }
 
 export interface ScheduleEventSavePayload extends ScheduleEventInput {

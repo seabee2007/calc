@@ -22,6 +22,7 @@ import {
   type ProposalDashboardMetrics,
 } from './proposalKpis';
 import { getProjectFolder, summarizeQcBreakAlerts } from './projectFolders';
+import { formatPlacementPourDateTime } from './placementPourDate';
 
 export type OpsRiskLevel = 'low' | 'moderate' | 'high' | 'unknown';
 export type TimelineStatus = 'on_schedule' | 'at_risk' | 'delayed' | 'pending';
@@ -139,13 +140,10 @@ function parsePourDate(iso?: string): Date | null {
 }
 
 function formatPourDateLabel(d: Date): string {
-  return d.toLocaleString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return (
+    formatPlacementPourDateTime(d.toISOString(), { includeWeekday: true }) ??
+    d.toLocaleString()
+  );
 }
 
 /** Calendar date for ops displays, e.g. "31 May 2026". */

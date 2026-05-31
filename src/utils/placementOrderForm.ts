@@ -130,6 +130,7 @@ export function placementOrderFromForm(
       return Number.isFinite(n) && n > 0 ? n : undefined;
     })(),
     callSheet: callSheetFieldsFromForm(form),
+    pourStartTime: form.pourStartTime.trim() || undefined,
     ...(production ? { production } : {}),
   };
 }
@@ -157,6 +158,7 @@ export function applyPlacementOrderToForm(
     batchPlantContactSource: c.source === 'ai' ? 'ai' : '',
     orderStatus: order.status ?? '',
     orderNotes: order.orderNotes ?? '',
+    pourStartTime: order.pourStartTime ?? '',
     ...applyCallSheetToForm(order.callSheet),
     ...applyProductionSnapshotToForm(order.production),
   };

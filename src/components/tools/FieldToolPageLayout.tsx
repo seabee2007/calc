@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { plannerDocumentsHref } from '../../utils/plannerRoutes';
 import { useProjectStore } from '../../store';
@@ -32,6 +33,7 @@ export default function FieldToolPageLayout({
 }: FieldToolPageLayoutProps) {
   const [searchParams] = useSearchParams();
   const { projects, currentProject, setCurrentProject } = useProjectStore();
+  const plannerProjectId = searchParams.get('project') ?? currentProject?.id ?? null;
 
   useEffect(() => {
     const projectId = searchParams.get('project');
@@ -52,6 +54,16 @@ export default function FieldToolPageLayout({
           .print\\:hidden { display: none !important; }
         }
       `}</style>
+
+      {plannerProjectId && (
+        <Link
+          to={plannerDocumentsHref(plannerProjectId)}
+          className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-700 hover:text-cyan-800 dark:text-cyan-400 print:hidden"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Back to documents
+        </Link>
+      )}
 
       <header className="mb-6 flex gap-4 items-start print:hidden">
         <span className={FIELD_TOOL_ICON_WRAP}>

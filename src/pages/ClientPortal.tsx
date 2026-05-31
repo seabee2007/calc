@@ -325,7 +325,7 @@ function Timeline({ steps }: { steps: ClientTimelineStep[] }) {
               {step.label}
             </p>
             {step.status === 'current' && (
-              <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-0.5">In progress</p>
+              <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-0.5">Current step</p>
             )}
           </div>
         </li>
