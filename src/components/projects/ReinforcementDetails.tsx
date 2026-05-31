@@ -6,6 +6,11 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { type ReinforcementSet } from '../../types/index';
 import { soundService } from '../../services/soundService';
+import {
+  OPS_EMPTY_STATE,
+  OPS_MUTED,
+  OPS_TITLE,
+} from '../dashboard/opsTheme';
 
 interface ReinforcementDetailsProps {
   reinforcements: ReinforcementSet[];
@@ -43,14 +48,14 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
 }) => {
   if (!reinforcements || reinforcements.length === 0) {
     return (
-      <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <BarChart3 className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Reinforcement Designs</h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-4">
+      <div className={OPS_EMPTY_STATE}>
+        <BarChart3 className={`h-12 w-12 ${OPS_MUTED} mx-auto mb-4`} />
+        <h3 className={`text-lg font-medium ${OPS_TITLE} mb-2`}>No Reinforcement Designs</h3>
+        <p className={`${OPS_MUTED} mb-4`}>
           Run the rebar calculator for this project to add designs here.
         </p>
         {onOpenCalculator && (
-          <Button onClick={onOpenCalculator} icon={<Plus size={16} />}>
+          <Button variant="accent" onClick={onOpenCalculator} icon={<Plus size={16} />}>
             Open Rebar Calculator
           </Button>
         )}
@@ -106,11 +111,12 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className={`text-lg font-semibold ${OPS_TITLE}`}>
           Reinforcement Designs ({reinforcements.length})
         </h3>
         {onOpenCalculator && (
           <Button
+            variant="accent"
             size="sm"
             onClick={onOpenCalculator}
             icon={<Plus size={16} />}

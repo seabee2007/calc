@@ -20,6 +20,7 @@ import {
   type ProjectFolderContext,
 } from '../../utils/projectFolders';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { OPS_OUTLINE_BTN } from '../../components/dashboard/opsTheme';
 
 function matchProposal(
   project: Project,
@@ -140,7 +141,7 @@ const ProjectsContent: React.FC = () => {
             icon={<ArrowLeftCircle size={20} />}
             size="lg"
             variant="outline"
-            className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className={OPS_OUTLINE_BTN}
           >
             <span className="hidden sm:inline">Back to Projects</span>
           </Button>

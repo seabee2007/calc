@@ -8,6 +8,12 @@ import Card from '../ui/Card';
 import { format } from 'date-fns';
 import { soundService } from '../../services/soundService';
 import { computeBreakResult } from '../../utils/qcRecordDb';
+import {
+  OPS_EMPTY_STATE,
+  OPS_MUTED,
+  OPS_SECTION_EYEBROW,
+  OPS_TITLE,
+} from '../dashboard/opsTheme';
 
 interface QCRecordsProps {
   projectId: string;
@@ -279,19 +285,19 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className={`text-xl font-semibold ${OPS_TITLE}`}>
             Concrete QC Records
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className={`text-sm ${OPS_MUTED} mt-1`}>
             Use Concrete Slump Test for placement-day field tests. Use Break Test Result for 7, 14,
             and 28-day cylinder results.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">
-          <Button onClick={() => openNewForm('fresh_test')} icon={<Plus size={16} />}>
+          <Button variant="accent" onClick={() => openNewForm('fresh_test')} icon={<Plus size={16} />}>
             Slump Test
           </Button>
-          <Button onClick={() => openNewForm('break_test')}  icon={<Plus size={16} />}
+          <Button variant="accent" onClick={() => openNewForm('break_test')}  icon={<Plus size={16} />}
           >
             Break Result
           </Button>
@@ -570,14 +576,14 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       )}
 
       {filteredRecords.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <p className="text-gray-500 dark:text-gray-400">No QC records found</p>
+        <div className={OPS_EMPTY_STATE}>
+          <p className={OPS_MUTED}>No QC records found</p>
         </div>
       ) : (
         <div className="space-y-8">
           {freshRecords.length > 0 && (
             <section className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <h4 className={`text-sm font-semibold uppercase tracking-wide ${OPS_SECTION_EYEBROW}`}>
                 Fresh Concrete Tests
               </h4>
               {freshRecords.map((record) => (
@@ -596,7 +602,7 @@ const QCRecords: React.FC<QCRecordsProps> = ({
 
           {breakRecords.length > 0 && (
             <section className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <h4 className={`text-sm font-semibold uppercase tracking-wide ${OPS_SECTION_EYEBROW}`}>
                 Break Test Results
               </h4>
               {breakRecords.map((record) => (

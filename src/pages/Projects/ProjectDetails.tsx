@@ -13,7 +13,6 @@ import {
   ClipboardCheck,
   CloudSun,
 } from 'lucide-react';
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useProjects } from './useProjects';
 import { format } from 'date-fns';
@@ -24,6 +23,21 @@ import QCSection from './QCSection';
 import ReinforcementSection from './ReinforcementSection';
 import StrengthProgress from '../../components/projects/StrengthProgress';
 import PlacementOrderStatusPanel from '../../components/projects/PlacementOrderStatusPanel';
+import {
+  OPS_BODY,
+  OPS_HERO_LABEL,
+  OPS_HERO_STAT_INNER,
+  OPS_HERO_STAT_LABEL,
+  OPS_HERO_STAT_VALUE,
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_PANEL_INNER,
+  OPS_PROJECT_HERO,
+  OPS_SECTION,
+  OPS_SECTION_EYEBROW,
+  OPS_SECTION_TITLE,
+} from '../../components/dashboard/opsTheme';
+import { TEXT_ACCENT } from '../../theme/appTheme';
 import {
   resolveProjectWorkflow,
   PROJECT_LIFECYCLE_LABELS,
@@ -360,18 +374,22 @@ export default function ProjectDetails() {
   if (!project) return null;
 
   return (
-    <Card className="p-6 mb-6 dark:bg-gray-800/90">
+    <div className="space-y-4 sm:space-y-5 mb-6">
       {/* SECTION 1 — PROJECT COMMAND HEADER */}
-      <div className="flex flex-col gap-4 mb-6">
+      <section className={`px-4 py-4 sm:px-5 ${OPS_PROJECT_HERO}`}>
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col-reverse sm:flex-row sm:items-start justify-between gap-3">
           <div className="mt-2 sm:mt-0 min-w-0">
-            <div className="flex items-center">
-              <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2 shrink-0" />
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white truncate">
+            <p className={`text-xs font-semibold uppercase tracking-[0.25em] ${OPS_HERO_LABEL}`}>
+              {workflow.stageLabel}
+            </p>
+            <div className="flex items-center mt-2">
+              <FolderOpen className={`h-6 w-6 ${TEXT_ACCENT} mr-2 shrink-0`} />
+              <h2 className={`text-2xl font-semibold truncate ${OPS_HERO_STAT_VALUE}`}>
                 {project.name}
               </h2>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className={`text-sm ${OPS_MUTED} mt-1`}>
               Created: {format(new Date(project.createdAt), 'MM/dd/yyyy')} • Last updated:{' '}
               {format(new Date(project.updatedAt), 'MM/dd/yyyy')}
             </p>
@@ -379,6 +397,8 @@ export default function ProjectDetails() {
 
           <div className="flex items-center justify-center gap-2 shrink-0">
             <Button
+            variant="outline"
+            className={OPS_OUTLINE_BTN}
             size="sm"
             onClick={handlers.saveWasteFactor}
             disabled={ui.isSaving}
@@ -387,11 +407,13 @@ export default function ProjectDetails() {
             <span className="hidden sm:inline">Save</span>
             </Button>
             <Button
+            variant="ghost"
             size="sm"
             onClick={handlers.printPDF}
             icon={<Printer size={16} />}
           />
             <Button
+            variant="ghost"
             size="sm"
             onClick={handlers.startEditing}
             icon={<Edit size={16} />}
@@ -406,54 +428,54 @@ export default function ProjectDetails() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
-            <p className="text-gray-600 dark:text-gray-300">
+          <div className={`lg:col-span-2 ${OPS_HERO_STAT_INNER} p-4`}>
+            <p className={OPS_BODY}>
               {project.description || 'No description provided'}
             </p>
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-                <Calendar className="h-4 w-4 text-blue-500" />
-                <span className="text-gray-500 dark:text-gray-400">Placement date:</span>
-                <span className="font-semibold">{pourDateLabel}</span>
+              <div className={`flex items-center gap-2 ${OPS_BODY}`}>
+                <Calendar className={`h-4 w-4 ${TEXT_ACCENT}`} />
+                <span className={OPS_HERO_STAT_LABEL}>Placement date:</span>
+                <span className={`font-semibold ${OPS_HERO_STAT_VALUE}`}>{pourDateLabel}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+              <div className={`flex items-center gap-2 ${OPS_BODY}`}>
                 <ClipboardCheck className="h-4 w-4 text-emerald-500" />
-                <span className="text-gray-500 dark:text-gray-400">Status:</span>
-                <span className="font-semibold">{proposalStatusLabel}</span>
+                <span className={OPS_HERO_STAT_LABEL}>Status:</span>
+                <span className={`font-semibold ${OPS_HERO_STAT_VALUE}`}>{proposalStatusLabel}</span>
               </div>
             </div>
 
             
           </div>
 
-          <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <div className={`${OPS_HERO_STAT_INNER} p-4`}>
+            <p className={`text-xs uppercase tracking-wide ${OPS_SECTION_EYEBROW}`}>
               Financial visibility
             </p>
             <div className="mt-2 space-y-2 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <span className={`${OPS_HERO_STAT_LABEL} flex items-center gap-2`}>
                   <DollarSign className="h-4 w-4 text-emerald-500" /> Project value
                 </span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className={`font-semibold ${OPS_HERO_STAT_VALUE}`}>
                   {financial ? `$${financial.value.toLocaleString()}` : '—'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Estimated profit</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className={OPS_HERO_STAT_LABEL}>Estimated profit</span>
+                <span className={`font-semibold ${OPS_HERO_STAT_VALUE}`}>
                   {financial ? `$${Math.round(financial.profit).toLocaleString()}` : '—'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Margin</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className={OPS_HERO_STAT_LABEL}>Margin</span>
+                <span className={`font-semibold ${OPS_HERO_STAT_VALUE}`}>
                   {financial ? `${Math.round(financial.margin * 100)}%` : '—'}
                 </span>
               </div>
               {!financial && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                <p className={`text-xs ${OPS_MUTED} mt-2`}>
                   Link a proposal to unlock value/margin.
                 </p>
               )}
@@ -481,24 +503,25 @@ export default function ProjectDetails() {
           </div>
         )}
       </div>
+      </section>
 
       {/* SECTION 2 — PROJECT WORKFLOW STATUS */}
-      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+      <div className={OPS_SECTION}>
         <div className="flex items-center justify-between gap-3 mb-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            <p className={`text-xs uppercase tracking-wide ${OPS_SECTION_EYEBROW}`}>
               Project workflow
             </p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+            <p className={`text-sm ${OPS_SECTION_TITLE}`}>
               {workflow.stageLabel}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Progress</p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">{progressPct}%</p>
+            <p className={`text-xs ${OPS_MUTED}`}>Progress</p>
+            <p className={`text-sm ${OPS_SECTION_TITLE}`}>{progressPct}%</p>
           </div>
         </div>
-        <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
           <div
             className="h-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full"
             style={{ width: `${progressPct}%` }}
@@ -513,7 +536,7 @@ export default function ProjectDetails() {
                 className={`px-2 py-1 rounded border ${
                   done
                     ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-gray-100 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+                    : 'bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
                 }`}
               >
                 {PROJECT_LIFECYCLE_LABELS[s]}
@@ -525,15 +548,15 @@ export default function ProjectDetails() {
       </div>
 
       {/* SECTION 3 — NEXT ACTION PANEL */}
-      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
+      <div className={OPS_SECTION}>
         <div className="flex items-center justify-between gap-3 mb-2">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">Next actions</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className={OPS_SECTION_TITLE}>Next actions</p>
+          <p className={`text-xs ${OPS_MUTED}`}>
             Next: <span className="font-semibold">{workflow.nextAction.label}</span>
           </p>
         </div>
         {nextActions.length === 0 ? (
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className={`text-sm ${OPS_BODY}`}>
             {workflow.stage === 'closed'
               ? 'This project is closed. No further actions are required.'
               : workflow.stage === 'paid'
@@ -543,7 +566,7 @@ export default function ProjectDetails() {
         ) : (
           <ul className="space-y-1.5 mt-2">
             {nextActions.map((x) => (
-              <li key={x.msg} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-200">
+              <li key={x.msg} className={`flex items-start gap-2 text-sm ${OPS_BODY}`}>
                 <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                 {x.action === 'qc' ? (
                   <button
@@ -567,6 +590,7 @@ export default function ProjectDetails() {
         )}
         <div className="mt-3 flex flex-col sm:flex-row gap-2">
           <Button
+            variant="accent"
             size="sm"
             className="whitespace-nowrap"
             onClick={() => {
@@ -597,7 +621,7 @@ export default function ProjectDetails() {
             <Button
               size="sm"
               variant="outline"
-              className="whitespace-nowrap"
+              className={`whitespace-nowrap ${OPS_OUTLINE_BTN}`}
               onClick={() =>
                 navigate({
                   pathname: '/pour-planner',
@@ -613,8 +637,8 @@ export default function ProjectDetails() {
       </div>
 
       {/* SECTION 4 — FINANCIALS */}
-      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Financial snapshot</p>
+      <div className={OPS_SECTION}>
+        <p className={`${OPS_SECTION_TITLE} mb-2`}>Financial snapshot</p>
         {financial ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <InfoRow label="Proposal value" value={`$${financial.value.toLocaleString()}`} />
@@ -623,15 +647,15 @@ export default function ProjectDetails() {
             <InfoRow label="Projected profit" value={`$${Math.round(financial.profit).toLocaleString()} (${Math.round(financial.margin * 100)}%)`} />
           </div>
         ) : (
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className={`text-sm ${OPS_BODY}`}>
             No proposal linked yet — create/link a proposal to unlock margin and profit tracking.
           </p>
         )}
       </div>
 
       {/* SECTION 7 — PROJECT FILES */}
-      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Project files</p>
+      <div className={OPS_SECTION}>
+        <p className={`${OPS_SECTION_TITLE} mb-2`}>Project files</p>
         <nav
           className="flex flex-wrap items-center gap-y-1 text-sm"
           aria-label="Jump to project file areas"
@@ -651,7 +675,7 @@ export default function ProjectDetails() {
           ).map((item, index) => (
             <span key={item.key} className="inline-flex items-center">
               {index > 0 && (
-                <span className="mx-2 text-gray-400 dark:text-gray-500" aria-hidden>
+                <span className={`mx-2 ${OPS_MUTED}`} aria-hidden>
                   |
                 </span>
               )}
@@ -664,7 +688,7 @@ export default function ProjectDetails() {
             </span>
           ))}
           <span className="inline-flex items-center">
-            <span className="mx-2 text-gray-400 dark:text-gray-500" aria-hidden>
+            <span className={`mx-2 ${OPS_MUTED}`} aria-hidden>
               |
             </span>
             <button
@@ -684,8 +708,8 @@ export default function ProjectDetails() {
       </div>
 
       {/* TECHNICAL DETAILS — placement, calculations, then reinforcement below */}
-      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Technical details</p>
+      <div className={OPS_SECTION}>
+        <p className={`${OPS_SECTION_TITLE} mb-2`}>Technical details</p>
         {project.calculations.length > 0 && (
           <StrengthProgress
             project={project}
@@ -697,8 +721,8 @@ export default function ProjectDetails() {
 
         <div className="mt-4 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-200 mb-2">
+            <div className={`${OPS_PANEL_INNER} p-4`}>
+              <p className={`text-xs uppercase tracking-wide ${OPS_SECTION_EYEBROW} mb-2`}>
                 Placement details
               </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -712,25 +736,25 @@ export default function ProjectDetails() {
                 <InfoRow label="Truck spacing" value={pourDetails.spacing} />
               </div>
               {pourDetails.pumpCompany && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                <p className={`text-xs ${OPS_MUTED} mt-2`}>
                   Pump:{' '}
-                  <span className="font-semibold text-gray-700 dark:text-gray-200">
+                  <span className={`font-semibold ${OPS_BODY}`}>
                     {pourDetails.pumpCompany}
                   </span>
                 </p>
               )}
             </div>
 
-            <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+            <div className={`${OPS_PANEL_INNER} p-4`}>
               <div className="flex items-center gap-2 mb-2">
                 <CloudSun className="h-5 w-5 text-amber-500" />
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                <p className={OPS_SECTION_TITLE}>
                   Placement conditions
                 </p>
               </div>
               {!placementConditions ? (
                 <>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className={`text-sm ${OPS_BODY}`}>
                     {workflow.stage === 'closed'
                       ? 'No forecast was saved for this completed project.'
                       : 'No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.'}
@@ -740,6 +764,7 @@ export default function ProjectDetails() {
                       <Button
                         size="sm"
                         variant="outline"
+                        className={OPS_OUTLINE_BTN}
                         onClick={() =>
                           navigate({
                             pathname: '/pour-planner',
@@ -769,20 +794,20 @@ export default function ProjectDetails() {
                     />
                   </div>
 
-                  <p className="text-sm text-gray-700 dark:text-gray-200 mt-2">
+                  <p className={`text-sm ${OPS_BODY} mt-2`}>
                     Recommended window:{' '}
                     <span className="font-semibold">{placementConditions.recommendedWindow}</span>
                   </p>
 
-                  <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
+                  <p className={`text-[10px] uppercase tracking-wide ${OPS_SECTION_EYEBROW} mt-3 mb-1.5`}>
                     Concerns
                   </p>
                   {placementConditions.concerns.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <p className={`text-sm ${OPS_BODY}`}>
                       No major concerns detected.
                     </p>
                   ) : (
-                    <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                    <ul className={`text-sm ${OPS_BODY} space-y-1`}>
                       {placementConditions.concerns.map((c) => (
                         <li key={c} className="flex gap-2">
                           <span className="text-amber-500">•</span>
@@ -792,13 +817,13 @@ export default function ProjectDetails() {
                     </ul>
                   )}
 
-                  <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
+                  <p className={`text-[10px] uppercase tracking-wide ${OPS_SECTION_EYEBROW} mt-3 mb-1.5`}>
                     Mitigations
                   </p>
                   {placementConditions.mitigations.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-gray-300">—</p>
+                    <p className={`text-sm ${OPS_BODY}`}>—</p>
                   ) : (
-                    <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                    <ul className={`text-sm ${OPS_BODY} space-y-1`}>
                       {placementConditions.mitigations.map((m) => (
                         <li key={m} className="flex gap-2">
                           <span className="text-cyan-500">•</span>
@@ -820,11 +845,12 @@ export default function ProjectDetails() {
       </div>
 
       {projectHasCustomEstimate(project) && (
-        <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6 mt-6">
+        <div className={OPS_SECTION}>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Custom estimate</p>
+            <p className={OPS_SECTION_TITLE}>Custom estimate</p>
             <Button
               variant="outline"
+              className={OPS_OUTLINE_BTN}
               size="sm"
               onClick={() =>
                 navigate(`/calculator/custom${workflowQuery(project.id)}`, {
@@ -854,15 +880,15 @@ export default function ProjectDetails() {
       <div id="project-qc-section">
         <QCSection />
       </div>
-    </Card>
+    </div>
   );
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200/60 dark:border-gray-700/70 bg-white/40 dark:bg-gray-900/20 px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
-      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 truncate">{value}</p>
+    <div className={`${OPS_HERO_STAT_INNER} px-3 py-2`}>
+      <p className={`text-[10px] uppercase tracking-wide ${OPS_HERO_STAT_LABEL}`}>{label}</p>
+      <p className={`text-sm font-semibold ${OPS_HERO_STAT_VALUE} mt-0.5 truncate`}>{value}</p>
     </div>
   );
 }

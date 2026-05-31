@@ -7,6 +7,15 @@ import LaborTaskBreakdown from '../labor/LaborTaskBreakdown';
 import type { LaborEstimate } from '../../types/laborEstimate';
 import type { Calculation } from '../../types';
 import { buildConcreteLaborEstimateInput } from '../../utils/concreteLaborInputMapper';
+import {
+  OPS_BODY,
+  OPS_EMPTY_STATE,
+  OPS_HERO_STAT_INNER,
+  OPS_HERO_STAT_LABEL,
+  OPS_HERO_STAT_VALUE,
+  OPS_MUTED,
+  OPS_TITLE,
+} from '../dashboard/opsTheme';
 
 interface LaborEstimateDetailsProps {
   estimate?: LaborEstimate | null;
@@ -60,17 +69,17 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
 
   if (!hasEstimate) {
     return (
-      <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+      <div className={OPS_EMPTY_STATE}>
+        <Users className={`h-12 w-12 ${OPS_MUTED} mx-auto mb-4`} />
+        <h3 className={`text-lg font-medium ${OPS_TITLE} mb-2`}>
           No labor estimate
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-4">
+        <p className={`${OPS_MUTED} mb-4`}>
           Run the concrete labor calculator for this project to save crew, task hours, and
           placement cost here.
         </p>
         {onOpenCalculator && (
-          <Button onClick={onOpenCalculator} icon={<Plus size={16} />}>
+          <Button variant="accent" onClick={onOpenCalculator} icon={<Plus size={16} />}>
             Open Concrete Labor Calculator
           </Button>
         )}
@@ -96,11 +105,11 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className={`text-lg font-semibold ${OPS_TITLE}`}>
             {estimate?.label ?? 'Placement labor estimate'}
           </h3>
           {savedLabel && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+            <p className={`text-xs ${OPS_MUTED} mt-0.5 flex items-center gap-1`}>
               <Calendar className="h-3.5 w-3.5" />
               Saved {savedLabel}
             </p>
@@ -108,6 +117,7 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
         </div>
         {onOpenCalculator && (
           <Button
+            variant="accent"
             size="sm"
             onClick={onOpenCalculator}
             icon={<Plus size={16} />}
@@ -130,7 +140,7 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
           />
         </Card>
       ) : (
-        <Card className="p-5 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+        <Card className={`p-5 space-y-3 text-sm ${OPS_BODY}`}>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <SummaryCell
               label="Total labor"
@@ -152,7 +162,7 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
           {estimate?.inputs.finishType && (
             <p>
               Finish:{' '}
-              <strong className="text-gray-900 dark:text-white">
+              <strong className={OPS_TITLE}>
                 {titleCase(estimate.inputs.finishType)}
               </strong>
             </p>
@@ -160,7 +170,7 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
           {(finishers > 0 || foremen > 0) && (
             <p>
               Crew mix:{' '}
-              <strong className="text-gray-900 dark:text-white">
+              <strong className={OPS_TITLE}>
                 {Math.max(0, crewSize - finishers - foremen)} laborers · {finishers} finishers
                 {foremen > 0 ? ` · ${foremen} foreman` : ''}
               </strong>
@@ -174,11 +184,11 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
 
 function SummaryCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200/80 dark:border-gray-700 bg-white/50 dark:bg-gray-900/40 px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+    <div className={`${OPS_HERO_STAT_INNER} px-3 py-2`}>
+      <p className={`text-[10px] uppercase tracking-wide ${OPS_HERO_STAT_LABEL}`}>
         {label}
       </p>
-      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">{value}</p>
+      <p className={`text-sm font-semibold ${OPS_HERO_STAT_VALUE} mt-0.5`}>{value}</p>
     </div>
   );
 }

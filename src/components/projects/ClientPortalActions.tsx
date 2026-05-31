@@ -9,6 +9,13 @@ import {
 } from '../../services/clientPortalService';
 import type { ClientPortalRecord } from '../../types/clientPortal';
 import ClientPortalCreatedModal from './ClientPortalCreatedModal';
+import {
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_SECTION,
+  OPS_SECTION_TITLE,
+} from '../dashboard/opsTheme';
+import { TEXT_ACCENT } from '../../theme/appTheme';
 
 interface ClientPortalActionsProps {
   projectId: string;
@@ -82,7 +89,7 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+      <div className={`flex items-center gap-2 text-sm ${OPS_MUTED}`}>
         <Loader2 className="h-4 w-4 animate-spin" />
         Checking client portal…
       </div>
@@ -91,14 +98,14 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
 
   return (
     <>
-      <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+      <div className={OPS_SECTION}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Link2 className="h-4 w-4 text-cyan-600" />
+            <p className={`${OPS_SECTION_TITLE} flex items-center gap-2`}>
+              <Link2 className={`h-4 w-4 ${TEXT_ACCENT}`} />
               Client project portal
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className={`text-xs ${OPS_MUTED} mt-1`}>
               Share a read-only progress dashboard with your client — no login required.
             </p>
           </div>
@@ -106,6 +113,8 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
           {portal ? (
             <Button
               size="sm"
+              variant="outline"
+              className={OPS_OUTLINE_BTN}
               icon={<Copy size={16} />}
               onClick={() => void handleCopy()}
             >
@@ -114,6 +123,8 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
           ) : (
             <Button
               size="sm"
+              variant="outline"
+              className={OPS_OUTLINE_BTN}
               icon={creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />}
               disabled={creating}
               onClick={() => void handleCreate()}
@@ -124,7 +135,7 @@ const ClientPortalActions: React.FC<ClientPortalActionsProps> = ({
         </div>
 
         {portal && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 break-all">
+          <p className={`text-xs ${OPS_MUTED} mt-3 break-all`}>
             {getClientPortalUrl(portal.token)}
           </p>
         )}
