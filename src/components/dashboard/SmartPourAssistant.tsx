@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClipboardCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ClipboardCheck, AlertTriangle, CheckCircle2, Calendar, Truck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import Button from '../ui/Button';
@@ -7,6 +7,7 @@ import {
   OPS_ATTENTION_CHIP,
   OPS_BODY,
   OPS_MUTED,
+  OPS_OUTLINE_BTN,
   OPS_SUBTLE,
   OPS_TITLE,
 } from './opsTheme';
@@ -70,10 +71,10 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
           </p>
           {!emptyMessage && (
             <Button
-              variant="accent"
               size="sm"
-              fullWidth
-              className="mt-3"
+              variant="outline"
+              className={`${OPS_OUTLINE_BTN} mt-4 w-full`}
+              icon={<Calendar className="h-4 w-4" />}
               onClick={() => navigate('/projects')}
             >
               Schedule Placement
@@ -116,10 +117,10 @@ const SmartPourAssistant: React.FC<SmartPourAssistantProps> = ({
           )}
 
           <Button
-            variant="accent"
             size="sm"
-            fullWidth
-            className="mt-3"
+            variant="outline"
+            className={`${OPS_OUTLINE_BTN} mt-4 w-full`}
+            icon={<Truck className="h-4 w-4" />}
             onClick={() => navigate(`/pour-planner?flow=1&project=${projectId}`)}
           >
             Open Placement Planner

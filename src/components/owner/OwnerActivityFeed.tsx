@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Activity } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getOwnerFieldActivity } from '../../services/fieldActivityService';
 import { useFieldActivityDismissStore } from '../../store/fieldActivityDismissStore';
@@ -107,7 +107,15 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
           </p>
           <p className={`text-sm ${OPS_MUTED}`}>Employee updates across your projects</p>
         </div>
-        <Activity className="h-5 w-5 text-cyan-400/80" />
+        <Button
+          variant="accent"
+          size="sm"
+          className="shrink-0"
+          icon={<LayoutGrid className="h-4 w-4" />}
+          onClick={() => navigate('/planner/hub')}
+        >
+          Open Planner Hub
+        </Button>
       </div>
 
       {loading && <p className={`text-sm ${OPS_MUTED}`}>Loading…</p>}

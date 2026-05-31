@@ -7,7 +7,7 @@ import {
   eventsForCalendarCell,
   getMonthGrid,
   layoutMonthWeekMultiDayBars,
-  toIsoDate,
+  todayIsoDate,
 } from '../../../../utils/scheduleEventUtils';
 
 interface Props {
@@ -29,7 +29,7 @@ export default function ScheduleCalendarMonthView({
   month,
 }: Props) {
   const weeks = useMemo(() => getMonthGrid(year, month), [year, month]);
-  const todayIso = toIsoDate(new Date());
+  const todayIso = todayIsoDate();
 
   const weekLayouts = useMemo(
     () =>
@@ -92,12 +92,19 @@ export default function ScheduleCalendarMonthView({
                   <div
                     key={iso}
                     className={`min-h-[100px] border-r border-[#E5E7EB] p-1 last:border-r-0 dark:border-slate-700 ${
-                      isToday ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
+                      isToday
+                        ? 'z-[1] bg-blue-50/30 ring-2 ring-inset ring-[#2563EB] dark:bg-blue-950/20 dark:ring-blue-400'
+                        : ''
                     }`}
                     style={{ gridColumn: di + 1, gridRow: laneCount > 0 ? laneCount + 1 : 1 }}
                   >
                     <span
-                      className={`text-xs font-medium ${isToday ? 'text-[#2563EB]' : SCHEDULE_MUTED}`}
+                      className={
+                        isToday
+                          ? 'inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full border-2 border-[#2563EB] text-xs font-semibold text-[#2563EB] dark:border-blue-400 dark:text-blue-300'
+                          : `text-xs font-medium ${SCHEDULE_MUTED}`
+                      }
+                      aria-current={isToday ? 'date' : undefined}
                     >
                       {dayNum}
                     </span>

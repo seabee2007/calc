@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FolderKanban, LayoutGrid } from 'lucide-react';
+import { FolderKanban } from 'lucide-react';
 import { useProjectStore } from '../store';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
 import { buildOperationsSnapshot, buildQcDashboardStats, resolveNextUpcomingPlacement } from '../utils/operationsDashboard';
@@ -31,7 +31,6 @@ import ScheduleOperationsSection from '../components/dashboard/schedule/Schedule
 import type { ChangeOrder } from '../types/changeOrder';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
-import OwnerFieldSummaryCards from '../components/owner/OwnerFieldSummaryCards';
 import OwnerActivityFeed from '../components/owner/OwnerActivityFeed';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
@@ -39,7 +38,6 @@ import {
   OPS_EMPTY_STATE,
   OPS_MUTED,
   OPS_SHELL,
-  OPS_STRIP,
 } from '../components/dashboard/opsTheme';
 
 function parseIsoMaybe(iso?: string): Date | null {
@@ -255,35 +253,9 @@ const OperationsDashboard: React.FC = () => {
         onQuickQuote={() => navigate('/proposal-generator')}
       />
 
-      {isOwner && scheduleSnapshot && (
-        <ScheduleOperationsSection snapshot={scheduleSnapshot} />
-      )}
+      {isOwner && <ScheduleOperationsSection snapshot={scheduleSnapshot} />}
 
-      {isOwner && (
-        <section className="space-y-4">
-          <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${OPS_STRIP}`}>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
-                Field Planner
-              </p>
-              <p className={`mt-1 text-sm ${OPS_MUTED}`}>
-                Manage tasks, RFIs, and field updates across all active projects.
-              </p>
-            </div>
-            <Button
-              variant="accent"
-              size="sm"
-              className="shrink-0"
-              icon={<LayoutGrid className="h-4 w-4" />}
-              onClick={() => navigate('/planner/hub')}
-            >
-              Open Planner Hub
-            </Button>
-          </div>
-          <OwnerFieldSummaryCards />
-          <OwnerActivityFeed limit={8} />
-        </section>
-      )}
+      {isOwner && <OwnerActivityFeed limit={8} />}
 
       <section className="space-y-4 lg:hidden">
         <FinancialSnapshotCard financial={financial} />
@@ -298,13 +270,10 @@ const OperationsDashboard: React.FC = () => {
           snapshot={snapshot}
           hasPlacementsToday={snapshot.hasPlacementsToday}
         />
-        <ConcreteDeliveryScheduleCard
-          schedule={snapshot.deliverySchedule}
-          timeline={snapshot.timeline}
-          hasPlacementsToday={snapshot.hasPlacementsToday}
-          nextPlacement={nextUpcomingPlacement}
-          primaryProjectId={primaryPourToday?.id}
-          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+        <QcAlertsCard
+          testsDue={qcStats.qcTestsDue}
+          testsOverdue={qcStats.qcTestsOverdue}
+          totalRecords={totalQcRecords}
         />
         <SmartPourAssistant
           projectId={prePlacement.projectId}
@@ -318,10 +287,13 @@ const OperationsDashboard: React.FC = () => {
           review={projectRiskReview}
           emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
         />
-        <QcAlertsCard
-          testsDue={qcStats.qcTestsDue}
-          testsOverdue={qcStats.qcTestsOverdue}
-          totalRecords={totalQcRecords}
+        <ConcreteDeliveryScheduleCard
+          schedule={snapshot.deliverySchedule}
+          timeline={snapshot.timeline}
+          hasPlacementsToday={snapshot.hasPlacementsToday}
+          nextPlacement={nextUpcomingPlacement}
+          primaryProjectId={primaryPourToday?.id}
+          emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
         />
       </section>
 
@@ -343,13 +315,10 @@ const OperationsDashboard: React.FC = () => {
             snapshot={snapshot}
             hasPlacementsToday={snapshot.hasPlacementsToday}
           />
-          <ConcreteDeliveryScheduleCard
-            schedule={snapshot.deliverySchedule}
-            timeline={snapshot.timeline}
-            hasPlacementsToday={snapshot.hasPlacementsToday}
-            nextPlacement={nextUpcomingPlacement}
-            primaryProjectId={primaryPourToday?.id}
-            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
+          <QcAlertsCard
+            testsDue={qcStats.qcTestsDue}
+            testsOverdue={qcStats.qcTestsOverdue}
+            totalRecords={totalQcRecords}
           />
         </section>
         <section className="grid grid-cols-3 gap-5">
@@ -365,10 +334,13 @@ const OperationsDashboard: React.FC = () => {
             review={projectRiskReview}
             emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
-          <QcAlertsCard
-            testsDue={qcStats.qcTestsDue}
-            testsOverdue={qcStats.qcTestsOverdue}
-            totalRecords={totalQcRecords}
+          <ConcreteDeliveryScheduleCard
+            schedule={snapshot.deliverySchedule}
+            timeline={snapshot.timeline}
+            hasPlacementsToday={snapshot.hasPlacementsToday}
+            nextPlacement={nextUpcomingPlacement}
+            primaryProjectId={primaryPourToday?.id}
+            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
           />
         </section>
       </div>

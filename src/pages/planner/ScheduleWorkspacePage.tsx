@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { usePlannerAccessibleProjects } from '../../hooks/usePlannerAccessibleProjects';
 import { useProjectStore } from '../../store';
 import type {
@@ -54,6 +55,7 @@ import {
   getCalendarRangeLabel,
   getDefaultDateRange,
   shiftCalendarAnchor,
+  todayIsoDate,
   toIsoDate,
 } from '../../utils/scheduleEventUtils';
 import { buildScheduleConstructionKpis } from '../../utils/scheduleConstructionKpis';
@@ -89,6 +91,7 @@ function parseCal(raw: string | null): CalendarSubView {
 
 export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
   const { user, isOwner } = useAuth();
+  const confirm = useConfirm();
   const { projects, projectIds, projectNames, loading: projectsLoading } =
     usePlannerAccessibleProjects();
   const { projects: storeProjects } = useProjectStore();
@@ -121,7 +124,7 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
     mode: 'edit' | 'delete';
   }>({ open: false, mode: 'edit' });
   const [isMobile, setIsMobile] = useState(false);
-  const [anchorIso, setAnchorIso] = useState(() => toIsoDate(new Date()));
+  const [anchorIso, setAnchorIso] = useState(() => todayIsoDate());
 
   const view = parseView(searchParams.get('view'));
   const cal = parseCal(searchParams.get('cal'));
@@ -398,19 +401,8 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
 
   const handleRecurrenceScopeConfirm = async (scope: RecurrenceEditScope) => {
     if (recurrenceScopeModal.mode === 'delete') {
-      if (!selectedEvent || !user) return;
-      setBusy(true);
-      try {
-        await deleteRecurringScheduleEvent(selectedEvent.id, scope, {
-          occurrenceDate: selectedEvent.occurrenceDate ?? undefined,
-          userId: user.id,
-        });
-        clearSelection();
-        await load();
-      } finally {
-        setBusy(false);
-        setRecurrenceScopeModal({ open: false, mode: 'delete' });
-      }
+      setRecurrenceScopeModal({ open: false, mode: 'delete' });
+      await performDelete(scope);
       return;
     }
     if (pendingSave) {
@@ -461,23 +453,37 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedEvent) return;
-    if (!window.confirm('Delete this schedule event?')) return;
-    if (needsRecurrenceScope(selectedEvent)) {
-      setRecurrenceScopeModal({ open: true, mode: 'delete' });
-      return;
-    }
+  const performDelete = async (scope: RecurrenceEditScope = 'entire_series') => {
+    if (!selectedEvent || !user) return;
     setBusy(true);
     try {
-      await deleteRecurringScheduleEvent(selectedEvent.id, 'entire_series', {
-        userId: user!.id,
+      await deleteRecurringScheduleEvent(selectedEvent.id, scope, {
+        occurrenceDate: selectedEvent.occurrenceDate ?? undefined,
+        userId: user.id,
       });
       clearSelection();
       await load();
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedEvent) return;
+    const ok = await confirm({
+      title: 'Delete event',
+      message: `Delete "${selectedEvent.title}"? This cannot be undone.`,
+      cancelLabel: 'Cancel',
+      confirmLabel: 'Delete',
+      confirmVariant: 'danger',
+      showWarningIcon: true,
+    });
+    if (!ok) return;
+    if (needsRecurrenceScope(selectedEvent)) {
+      setRecurrenceScopeModal({ open: true, mode: 'delete' });
+      return;
+    }
+    await performDelete('entire_series');
   };
 
   const handleDuplicate = async () => {
@@ -651,7 +657,7 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
             rangeLabel={rangeLabel}
             onPrev={() => setAnchorIso((a) => shiftCalendarAnchor(cal, a, -1))}
             onNext={() => setAnchorIso((a) => shiftCalendarAnchor(cal, a, 1))}
-            onToday={() => setAnchorIso(toIsoDate(new Date()))}
+            onToday={() => setAnchorIso(todayIsoDate())}
             onCalChange={setCal}
             onViewChange={setView}
             onAddEvent={isOwner ? openCreate : undefined}

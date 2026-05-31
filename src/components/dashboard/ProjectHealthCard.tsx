@@ -1,9 +1,16 @@
 import React from 'react';
-import { ShieldAlert, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, CheckCircle2, Calendar, FolderKanban } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import Button from '../ui/Button';
-import { OPS_ATTENTION_CHIP, OPS_BODY, OPS_MUTED, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
+import {
+  OPS_ATTENTION_CHIP,
+  OPS_BODY,
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_SUBTLE,
+  OPS_TITLE,
+} from './opsTheme';
 import type { ProjectRiskLevel, ProjectRiskReview } from '../../utils/projectRiskReview';
 
 interface ProjectHealthCardProps {
@@ -56,10 +63,10 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           </p>
           {!emptyMessage && (
             <Button
-              variant="accent"
               size="sm"
-              fullWidth
-              className="mt-3"
+              variant="outline"
+              className={`${OPS_OUTLINE_BTN} mt-4 w-full`}
+              icon={<Calendar className="h-4 w-4" />}
               onClick={() => navigate('/projects')}
             >
               Schedule Placement
@@ -122,10 +129,10 @@ const ProjectHealthCard: React.FC<ProjectHealthCardProps> = ({
           )}
 
           <Button
-            variant="accent"
             size="sm"
-            fullWidth
-            className="mt-3"
+            variant="outline"
+            className={`${OPS_OUTLINE_BTN} mt-4 w-full`}
+            icon={<FolderKanban className="h-4 w-4" />}
             onClick={() => navigate(`/projects?project=${review.projectId}`)}
           >
             Open Project

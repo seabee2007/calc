@@ -12,6 +12,7 @@ import {
   getCalendarLoadRange,
   getCalendarRangeLabel,
   getDateRangePreset,
+  shiftCalendarAnchor,
   getEventDateSpan,
   getMonthGridDateBounds,
   getWeekDays,
@@ -27,6 +28,7 @@ import {
   resolveMilestoneForProject,
   splitEventsForTimeGrid,
   statusAccentClass,
+  todayIsoDate,
 } from './scheduleEventUtils';
 
 function mockEvent(overrides: Partial<ScheduleEvent> = {}): ScheduleEvent {
@@ -312,6 +314,24 @@ describe('layoutTimedEventsForDay', () => {
     expect(isAllDayScheduleEvent(proposal)).toBe(true);
     expect(isTimedGridEvent(proposal)).toBe(false);
     expect(layoutTimedEventsForDay([proposal])).toHaveLength(0);
+  });
+});
+
+describe('shiftCalendarAnchor', () => {
+  it('advances one month from May 31 without skipping June', () => {
+    const next = shiftCalendarAnchor('month', '2026-05-31', 1);
+    expect(next).toBe('2026-06-30');
+    const prev = shiftCalendarAnchor('month', '2026-05-31', -1);
+    expect(prev).toBe('2026-04-30');
+  });
+
+  it('today anchor stays in current month for month view', () => {
+    const today = todayIsoDate();
+    const label = getCalendarRangeLabel('month', today);
+    const anchor = new Date(today + 'T12:00:00');
+    expect(label).toContain(
+      anchor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    );
   });
 });
 

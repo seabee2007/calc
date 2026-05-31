@@ -253,8 +253,16 @@ export function getWeekStart(date: Date): Date {
   return d;
 }
 
+/** Local calendar date as YYYY-MM-DD (avoids UTC drift from toISOString). */
 export function toIsoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+export function todayIsoDate(): string {
+  return toIsoDate(new Date());
 }
 
 export function addDays(isoDate: string, days: number): string {
@@ -712,8 +720,11 @@ export function shiftCalendarAnchor(
 ): string {
   const d = new Date(anchorIso + 'T12:00:00');
   if (cal === 'month') {
-    d.setMonth(d.getMonth() + delta);
-    return toIsoDate(d);
+    const year = d.getFullYear();
+    const month = d.getMonth() + delta;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const day = Math.min(d.getDate(), lastDay);
+    return toIsoDate(new Date(year, month, day, 12, 0, 0));
   }
   if (cal === 'day') {
     d.setDate(d.getDate() + delta);
