@@ -407,24 +407,6 @@ export function computeChangeOrderBreakdown(
   );
 }
 
-/** @deprecated Use computeChangeOrderBreakdown */
-export function computeChangeOrderTotals(
-  laborItems: ChangeOrderLineItem[],
-  materialItems: ChangeOrderLineItem[],
-  equipmentItems: ChangeOrderLineItem[],
-  markupPercent: number,
-): { subtotal: number; total: number } {
-  const b = computeChangeOrderBreakdown(laborItems, materialItems, equipmentItems, {
-    feesAmount: 0,
-    permitsAmount: 0,
-    overheadPercent: DEFAULT_OVERHEAD_PERCENT,
-    profitPercent: DEFAULT_PROFIT_PERCENT,
-    markupPercent,
-    pricingModel: 'legacy',
-  });
-  return { subtotal: b.directCost, total: b.totalPrice };
-}
-
 export function emptyLineItem(category: ChangeOrderLineItemCategory): ChangeOrderLineItem {
   return {
     description: '',

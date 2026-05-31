@@ -146,8 +146,3 @@ export const LazyEmployeeMessagesPage = lazyPage(
 export const LazyEmployeeUploadsPage = lazyPage(
   () => import('../pages/employee/EmployeeUploadsPage'),
 );
-
-// QC dashboard (also lazy-loaded from Home.tsx)
-export const LazyOperationsDashboard = lazyPage(
-  () => import('../pages/OperationsDashboard'),
-);

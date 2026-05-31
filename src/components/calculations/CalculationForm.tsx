@@ -179,8 +179,6 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   };
   
   const calculateVolume = async (data: FormInputs) => {
-    console.log('Calculate button pressed - Form data received:', data);
-    
     let volumeCubicFeet = 0;
     let dimensions: Record<string, number> = {};
     
@@ -216,10 +214,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
         break;
     }
 
-    console.log('Has required inputs:', hasRequiredInputs);
-
     if (!hasRequiredInputs) {
-      console.log('No valid inputs provided, showing error message');
       setCalculationResult({
         volume: 0,
         bags: 0,

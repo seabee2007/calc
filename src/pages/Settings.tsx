@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { optimizeLogo, validateImageFile, formatFileSize } from '../utils/imageOptimization';
+import { optimizeLogo, validateImageFile } from '../utils/imageOptimization';
 import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
 import { UserPreferences } from '../types';
@@ -85,26 +85,15 @@ const Settings: React.FC = () => {
     const initializeSettings = async () => {
       if (user && !initializationRef.current) {
         initializationRef.current = true;
-        console.log('🔄 Settings page: User already authenticated, data should be loaded globally');
-        // Data loading is now handled in App.tsx, so we don't need to load again here
-        // Just log that initialization was attempted
       }
     };
 
     initializeSettings();
-  }, [user]); // Simplified dependencies
+  }, [user]);
 
   // Initialize local state only once when company settings are first loaded
   useEffect(() => {
-    console.log('🔍 Checking local state initialization:', {
-      isLocalStateInitialized,
-      companySettingsKeys: Object.keys(companySettings),
-      companyName: companySettings.companyName
-    });
-    
-    // Only initialize if not already done AND we have actual data from database
     if (!isLocalStateInitialized && (companySettings.companyName !== undefined || companySettings.address !== undefined)) {
-      console.log('🔧 Initializing local state with:', companySettings);
       setLocalCompanySettings({
         companyName: companySettings.companyName || '',
         address: companySettings.address || '',
@@ -140,11 +129,9 @@ const Settings: React.FC = () => {
               ...localCompanySettingsRef.current,
               address: formatUSAddress(businessAddressRef.current),
             };
-            console.log('Auto-saving all local settings:', currentSettings);
             
             try {
               await updateCompanySettings(currentSettings);
-              console.log('Auto-save successful for all fields');
               setSaveMessage({ 
                 text: 'Auto-saved ✓', 
                 type: 'success' 
@@ -169,21 +156,13 @@ const Settings: React.FC = () => {
 
   // Handle text input changes (with debouncing)
   const handleCompanyTextChange = (field: string, value: string) => {
-    console.log(`📝 Text input changed - Field: ${field}, Value: "${value}"`);
-    
-    // Update local state immediately for responsive UI
     setLocalCompanySettings(prev => {
       const updated = { ...prev, [field]: value };
-      console.log('🔄 Updated local state:', updated);
       return updated;
     });
     
-    // Debounce the API call only if preferences are loaded
     if (!preferencesLoading && preferences.autoSave) {
-      console.log(`⏰ Triggering debounced save for all fields (triggered by ${field})`);
-      debouncedSave(); // No longer pass field/value - save everything
-    } else {
-      console.log(`❌ Auto-save skipped - preferencesLoading: ${preferencesLoading}, autoSave: ${preferences.autoSave}`);
+      debouncedSave();
     }
   };
 
@@ -284,9 +263,7 @@ const Settings: React.FC = () => {
         ...localCompanySettingsRef.current,
         address: formatUSAddress(businessAddressRef.current),
       };
-      console.log('🔄 Force saving all local settings:', currentSettings);
       await updateCompanySettings(currentSettings);
-      console.log('✅ Force save successful');
       setSaveMessage({ 
         text: 'Settings saved successfully! ✓', 
         type: 'success' 
@@ -311,9 +288,6 @@ const Settings: React.FC = () => {
       try {
         // Upload to Supabase Storage with optimization
         const result = await replaceLogo(file, user.id, companySettings.logoPath || undefined);
-        
-        // Show compression stats
-        console.log(`Logo optimized from ${formatFileSize(result.optimization.originalSize)} to ${formatFileSize(result.optimization.compressedSize)} (${result.optimization.compressionRatio.toFixed(1)}% reduction)`);
         
         // Update company settings with the Supabase URL and path
         await updateCompanySettings({ 
@@ -711,7 +685,6 @@ const Settings: React.FC = () => {
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => {
-                  console.log('Testing sounds...');
                   soundService.testSounds();
                 }}
                 variant="outline"
@@ -746,7 +719,6 @@ const Settings: React.FC = () => {
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => {
-                  console.log('Testing haptics...');
                   hapticService.testHaptics();
                 }}
                 variant="outline"

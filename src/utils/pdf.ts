@@ -73,12 +73,10 @@ export async function savePDFWithPlatformSupport(
           files: [fileUri.uri] // Add files array for better compatibility
         });
         
-        console.log('PDF saved and shared successfully on native platform');
         return true;
       } catch (shareError: any) {
         // Handle share cancellation gracefully
         if (shareError.message === 'Share canceled' || shareError.errorMessage === 'Share canceled') {
-          console.log('User canceled share dialog');
           return true; // Still consider this a success
         }
         
@@ -96,7 +94,6 @@ export async function savePDFWithPlatformSupport(
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
           
-          console.log('PDF downloaded successfully as fallback');
           return true;
         } catch (fallbackError) {
           console.error('Both share and download failed:', fallbackError);
@@ -146,7 +143,6 @@ export async function savePDFWithPlatformSupport(
         doc.save(filename);
       }
       
-      console.log('PDF handled successfully on web platform');
       return true;
     }
   } catch (error) {
@@ -163,8 +159,6 @@ export async function generateMixSpecPDF(
   admixtures: string[],
   filename?: string
 ): Promise<boolean> {
-  console.log('Generating Mix Spec PDF with data:', { psi, airContent, waterCementRatio, admixtures });
-  
   try {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -233,10 +227,8 @@ export async function generateMixSpecPDF(
     
     // Save the PDF with platform support
     const pdfFilename = filename || `mix-specification-${psi}psi-${Date.now()}.pdf`;
-    console.log('Attempting to save PDF with filename:', pdfFilename);
     
     await savePDFWithPlatformSupport(doc, pdfFilename, `Mix Specification - ${psi} PSI`);
-    console.log('PDF save method called successfully');
     
     return true;
   } catch (error) {
@@ -300,7 +292,6 @@ Consult with a qualified engineer for final mix design approval.
       URL.revokeObjectURL(url);
       }
       
-      console.log('Generated fallback text file instead of PDF');
       if (Capacitor.isNativePlatform()) {
         // Show native alert on mobile
         alert('PDF generation failed, shared as text file instead.');
@@ -325,9 +316,6 @@ export async function generateProposalPDF(
   proposalData?: any
 ): Promise<void> {
   try {
-    console.log('Starting PDF generation with template:', templateType);
-    console.log('Proposal data:', proposalData);
-    
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
@@ -384,8 +372,6 @@ export async function generateProposalPDF(
       preparedBy: ''
     };
     
-    console.log('Extracted data for PDF:', extractedData);
-    
     // Extract tables for timeline and pricing
     const tables = tempDiv.querySelectorAll('table');
     const timelineTable: string[][] = [];
@@ -415,7 +401,6 @@ export async function generateProposalPDF(
       }
     });
     
-    console.log('Timeline table:', timelineTable);
     if (
       proposalData &&
       (proposalData.laborItems?.length ||
@@ -434,8 +419,6 @@ export async function generateProposalPDF(
       }
     }
 
-    console.log('Pricing table:', pricingTable);
-    
     // Generate Classic Template Layout
     if (templateType === 'classic') {
       // Header section with business info on left, proposal info on right

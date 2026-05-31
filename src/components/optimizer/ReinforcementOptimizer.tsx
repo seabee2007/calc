@@ -179,8 +179,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          
-          console.log('Column CSV export completed successfully');
         } else {
           // For slabs, use the existing CSV generation function
           const slabResult = rebarResult as RebarResult;
@@ -201,8 +199,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          
-          console.log('Slab CSV export completed successfully');
         }
         
       } catch (error) {
@@ -220,8 +216,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
     setSaveMessage(null);
     
     try {
-      console.log('Starting save process...', { result, mode, isColumn });
-      
       const saveOptions: any = {
         projectId: currentProject?.id,  // Link to current project
         projectName: projectName || 'Untitled Project',
@@ -235,8 +229,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         type: mode,
       };
 
-      console.log('Basic save options:', saveOptions);
-
       // Add mode-specific data with complete information
       if (mode === 'rebar') {
         const rebarResult = result as RebarResult | ColumnRebarResult;
@@ -244,7 +236,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         if (isColumn) {
           // Column rebar data
           const columnResult = rebarResult as ColumnRebarResult;
-          console.log('Saving column rebar data:', columnResult);
           
           Object.assign(saveOptions, {
             pickSize: columnResult.pick.size,
@@ -256,7 +247,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         } else {
           // Slab rebar data
           const slabResult = rebarResult as RebarResult;
-          console.log('Saving slab rebar data:', slabResult);
           
           Object.assign(saveOptions, {
             pickSize: slabResult.pick.size,
@@ -272,7 +262,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         }
       } else if (mode === 'fiber') {
         const fiberResult = result as FiberResult;
-        console.log('Saving fiber data:', fiberResult);
         
         Object.assign(saveOptions, {
           fiberData: {
@@ -284,7 +273,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         });
       } else if (mode === 'mesh') {
         const meshResult = result as MeshResult;
-        console.log('Saving mesh data:', meshResult);
         
         Object.assign(saveOptions, {
           meshData: {
@@ -299,7 +287,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
       }
 
       const setId = await saveReinforcement(saveOptions);
-      console.log('Save successful, setId:', setId);
       
       setSaveMessage({ text: 'Reinforcement design saved successfully! ✓', type: 'success' });
       onSaved?.(setId);
@@ -331,7 +318,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
       // Auto-hide error message after 5 seconds
       setTimeout(() => setSaveMessage(null), 5000);
     } finally {
-      console.log('Save process completed, resetting loading state');
       setIsSaving(false);
     }
   };
@@ -354,8 +340,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
         spacingYIn: getSpacingValue(spacingYIn),
         verticalBars
       }, title);
-      
-      console.log('Reinforcement PDF generated successfully');
     } catch (error) {
       console.error('Error generating reinforcement PDF:', error);
       alert('Failed to generate PDF. Please try again.');
