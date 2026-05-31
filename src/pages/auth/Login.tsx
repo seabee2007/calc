@@ -22,6 +22,7 @@ const Login: React.FC = () => {
     (location.state as { inviteToken?: string } | null)?.inviteToken ??
     new URLSearchParams(location.search).get('invite') ??
     undefined;
+  const loginMessage = (location.state as { message?: string } | null)?.message;
   const { register, handleSubmit, formState: { errors }, setError, watch } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = React.useState(false);
   const [resetEmailSent, setResetEmailSent] = React.useState(false);
@@ -37,12 +38,16 @@ const Login: React.FC = () => {
       if (inviteToken && session.user) {
         const { acceptInviteForCurrentUser } = await import('../../services/employeeService');
         try {
-          await acceptInviteForCurrentUser(inviteToken, session.user.id);
+          await acceptInviteForCurrentUser(inviteToken);
           await refreshProfile();
           navigate('/employee/dashboard', { replace: true });
           return;
-        } catch {
-          // fall through to default home
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Could not accept invite';
+          setError('root', {
+            message: `Signed in, but invite could not be applied: ${msg}`,
+          });
+          return;
         }
       }
       navigate('/', { replace: true });
@@ -123,13 +128,31 @@ const Login: React.FC = () => {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => navigate('/signup')}
+                onClick={() =>
+                  navigate(
+                    inviteToken
+                      ? `/signup?invite=${encodeURIComponent(inviteToken)}`
+                      : '/signup',
+                  )
+                }
                 className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 create a new account
               </Button>
             </p>
           </div>
+
+          {inviteToken && (
+            <div className="mb-6 rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
+              Sign in with the email address that received the team invite to join your company.
+            </div>
+          )}
+
+          {loginMessage && (
+            <div className="mb-6 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-100">
+              {loginMessage}
+            </div>
+          )}
 
           {resetEmailSent ? (
             <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-md p-4 text-center">

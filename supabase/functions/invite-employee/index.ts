@@ -4,7 +4,20 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const SITE_URL = Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL") ?? "";
+const SITE_URL = (Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL") ?? "").replace(
+  /\/$/,
+  "",
+);
+
+function isExistingUserError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("already") ||
+    lower.includes("registered") ||
+    lower.includes("exists") ||
+    lower.includes("duplicate")
+  );
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -49,9 +62,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const inviteId = String(body.inviteId ?? "").trim();
-    const redirectTo =
-      String(body.redirectTo ?? "").trim() ||
-      (SITE_URL ? `${SITE_URL}/login?invite=accepted` : undefined);
+    const siteUrl = String(body.siteUrl ?? SITE_URL ?? "").replace(/\/$/, "");
 
     if (!inviteId) {
       return new Response(JSON.stringify({ error: "inviteId is required" }), {
@@ -77,17 +88,21 @@ serve(async (req) => {
       });
     }
 
+    const token = invite.token as string;
     const email = invite.email as string;
-    const inviteLink = SITE_URL
-      ? `${SITE_URL}/signup?invite=${invite.token}`
+    const inviteLink = siteUrl
+      ? `${siteUrl}/signup?invite=${encodeURIComponent(token)}`
+      : undefined;
+    const loginLink = siteUrl
+      ? `${siteUrl}/login?invite=${encodeURIComponent(token)}`
       : undefined;
 
     const { data: inviteData, error: sendError } = await admin.auth.admin.inviteUserByEmail(
       email,
       {
-        redirectTo: redirectTo ?? undefined,
+        redirectTo: inviteLink ?? loginLink ?? undefined,
         data: {
-          invite_token: invite.token,
+          invite_token: token,
           employer_id: user.id,
           role: invite.role,
         },
@@ -95,6 +110,31 @@ serve(async (req) => {
     );
 
     if (sendError) {
+      if (isExistingUserError(sendError.message) && (inviteLink || loginLink)) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            inviteLink: loginLink ?? inviteLink,
+            existingUser: true,
+            emailSent: false,
+            message: "User already has an account. Share the login invite link.",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      if (inviteLink) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            inviteLink,
+            emailSent: false,
+            warning: sendError.message,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       return new Response(JSON.stringify({ error: sendError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -104,7 +144,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         ok: true,
-        inviteLink,
+        inviteLink: inviteLink ?? loginLink,
+        emailSent: true,
         user: inviteData.user?.id ?? null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },

@@ -3,6 +3,11 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserPlus, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  acceptInviteForCurrentUser,
+  fetchEmployeeInvitePreview,
+} from '../../services/employeeService';
+import { supabase } from '../../lib/supabase';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -28,16 +33,24 @@ const SignUp: React.FC = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
     setError
   } = useForm<SignUpForm>({
     defaultValues: {
-      agreeToTerms: false
+      agreeToTerms: false,
+      email: '',
     }
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
+  const [invitePreview, setInvitePreview] = useState<{
+    email: string;
+    role: string;
+    expired: boolean;
+  } | null>(null);
+  const [inviteLoadError, setInviteLoadError] = useState<string | null>(null);
 
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -46,6 +59,27 @@ const SignUp: React.FC = () => {
   useEffect(() => {
     generateVerificationQuestion();
   }, []);
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    void (async () => {
+      try {
+        const preview = await fetchEmployeeInvitePreview(inviteToken);
+        if (!preview) {
+          setInviteLoadError('This invite link is invalid or has already been used.');
+          return;
+        }
+        if (preview.expired) {
+          setInviteLoadError('This invite has expired. Ask your manager to send a new invite.');
+          return;
+        }
+        setInvitePreview(preview);
+        setValue('email', preview.email);
+      } catch {
+        setInviteLoadError('Could not load invite details. You can still sign up manually.');
+      }
+    })();
+  }, [inviteToken, setValue]);
 
   const generateVerificationQuestion = () => {
     const operators: Array<'+' | '-' | 'x'> = ['+', '-', 'x'];
@@ -106,12 +140,32 @@ const SignUp: React.FC = () => {
       setIsLoading(true);
       await signUp(data.email, data.password);
 
-      navigate('/login', {
-        state: {
-          message: 'Account created successfully! Please sign in.',
-          inviteToken: inviteToken ?? undefined,
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (inviteToken && sessionData.session?.user) {
+        try {
+          await acceptInviteForCurrentUser(inviteToken);
+          navigate('/employee/dashboard', { replace: true });
+          return;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Could not accept invite';
+          navigate(`/login?invite=${encodeURIComponent(inviteToken)}`, {
+            state: { message: `Account created. Sign in to finish joining the team. ${msg}` },
+          });
+          return;
+        }
+      }
+
+      navigate(
+        inviteToken
+          ? `/login?invite=${encodeURIComponent(inviteToken)}`
+          : '/login',
+        {
+          state: {
+            message: 'Account created successfully! Please sign in.',
+            inviteToken: inviteToken ?? undefined,
+          },
         },
-      });
+      );
     } catch {
       setError('root', {
         message: 'Error creating account. Please try again.'
@@ -168,13 +222,28 @@ const SignUp: React.FC = () => {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => navigate('/login')}
+                  onClick={() =>
+                    navigate(inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login')
+                  }
                   className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   sign in to existing account
                 </Button>
               </p>
             </div>
+
+            {invitePreview && !invitePreview.expired && (
+              <div className="mb-6 rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
+                You&apos;re joining as <strong>{invitePreview.role.replace('_', ' ')}</strong>.
+                Use <strong>{invitePreview.email}</strong> to accept this invite.
+              </div>
+            )}
+
+            {inviteLoadError && (
+              <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+                {inviteLoadError}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Input

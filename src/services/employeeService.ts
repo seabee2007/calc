@@ -1,6 +1,53 @@
 import { supabase } from '../lib/supabase';
 import type { EmployeeInvite, EmployeeProjectAssignment, UserRole } from '../types/fieldPlanner';
 
+export function employeeInviteSignupHref(token: string, origin?: string): string {
+  const base = (origin ?? (typeof window !== 'undefined' ? window.location.origin : '')).replace(
+    /\/$/,
+    '',
+  );
+  return `${base}/signup?invite=${encodeURIComponent(token)}`;
+}
+
+export function employeeInviteLoginHref(token: string, origin?: string): string {
+  const base = (origin ?? (typeof window !== 'undefined' ? window.location.origin : '')).replace(
+    /\/$/,
+    '',
+  );
+  return `${base}/login?invite=${encodeURIComponent(token)}`;
+}
+
+export interface EmployeeInvitePreview {
+  email: string;
+  role: string;
+  expired: boolean;
+}
+
+export async function fetchEmployeeInvitePreview(
+  token: string,
+): Promise<EmployeeInvitePreview | null> {
+  const { data, error } = await supabase.rpc('get_employee_invite_by_token', {
+    p_token: token,
+  });
+  if (error) throw error;
+  if (!data || typeof data !== 'object') return null;
+  const row = data as Record<string, unknown>;
+  if (row.expired === true && typeof row.email === 'string') {
+    return { email: row.email, role: 'employee', expired: true };
+  }
+  if (typeof row.email !== 'string') return null;
+  return {
+    email: row.email,
+    role: typeof row.role === 'string' ? row.role : 'employee',
+    expired: false,
+  };
+}
+
+export interface SendEmployeeInviteResult {
+  inviteLink: string;
+  existingUser?: boolean;
+}
+
 function mapInvite(row: Record<string, unknown>): EmployeeInvite {
   return {
     id: row.id as string,
@@ -58,12 +105,13 @@ export async function createEmployeeInvite(
 
 export async function sendEmployeeInviteEmail(
   inviteId: string,
-  redirectTo?: string,
-): Promise<void> {
+  options?: { redirectTo?: string; siteUrl?: string },
+): Promise<SendEmployeeInviteResult> {
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
   if (!token) throw new Error('Not authenticated');
 
+  const siteUrl = options?.siteUrl ?? (typeof window !== 'undefined' ? window.location.origin : '');
   const base = import.meta.env.VITE_SUPABASE_URL;
   const res = await fetch(`${base}/functions/v1/invite-employee`, {
     method: 'POST',
@@ -71,43 +119,37 @@ export async function sendEmployeeInviteEmail(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ inviteId, redirectTo }),
+    body: JSON.stringify({
+      inviteId,
+      siteUrl,
+      redirectTo: options?.redirectTo,
+    }),
   });
 
+  const body = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    inviteLink?: string;
+    existingUser?: boolean;
+  };
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? 'Failed to send invite');
+    throw new Error(body.error ?? 'Failed to send invite');
   }
+
+  return {
+    inviteLink: body.inviteLink ?? '',
+    existingUser: body.existingUser,
+  };
 }
 
 export async function acceptInviteForCurrentUser(
   inviteToken: string,
-  userId: string,
+  _userId?: string,
 ): Promise<void> {
-  const { data: invite, error } = await supabase
-    .from('employee_invites')
-    .select('*')
-    .eq('token', inviteToken)
-    .is('accepted_at', null)
-    .maybeSingle();
-
+  const { error } = await supabase.rpc('accept_employee_invite', {
+    p_token: inviteToken,
+  });
   if (error) throw error;
-  if (!invite) throw new Error('Invite not found or expired');
-
-  const expires = new Date(invite.expires_at as string);
-  if (expires < new Date()) throw new Error('Invite has expired');
-
-  const { ensureEmployeeProfile } = await import('./profileService');
-  await ensureEmployeeProfile(
-    userId,
-    invite.employer_id as string,
-    invite.role as UserRole,
-  );
-
-  await supabase
-    .from('employee_invites')
-    .update({ accepted_at: new Date().toISOString() })
-    .eq('id', invite.id);
 }
 
 export async function fetchAssignmentsForProject(

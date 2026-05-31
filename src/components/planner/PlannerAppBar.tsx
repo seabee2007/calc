@@ -160,22 +160,31 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
                 {!isOwner && (
                   <Link
                     to="/employee/dashboard"
-                    className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-800"
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
                     onClick={() => setProfileOpen(false)}
                   >
                     Employee portal
                   </Link>
                 )}
+                {isOwner && (
+                  <Link
+                    to="/employees"
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    Team & employees
+                  </Link>
+                )}
                 <Link
                   to="/projects"
-                  className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-800"
+                  className="block w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
                   onClick={() => setProfileOpen(false)}
                 >
                   Projects
                 </Link>
                 <button
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-slate-800"
+                  className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
                   onClick={() => {
                     setProfileOpen(false);
                     void signOut().then(() => navigate('/login'));

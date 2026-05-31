@@ -4,6 +4,8 @@ import { useAuth } from '../../hooks/useAuth';
 import {
   assignEmployeeToProject,
   createEmployeeInvite,
+  employeeInviteLoginHref,
+  employeeInviteSignupHref,
   fetchAssignmentsForProject,
   fetchPendingInvites,
   sendEmployeeInviteEmail,
@@ -49,11 +51,25 @@ export default function EmployeeManagement() {
     setMessage(null);
     try {
       const invite = await createEmployeeInvite(user.id, email, role as import('../../types/fieldPlanner').UserRole);
+      const signupLink = employeeInviteSignupHref(invite.token);
       try {
-        await sendEmployeeInviteEmail(invite.id);
-        setMessage(`Invite sent to ${email}`);
-      } catch {
-        setMessage(`Invite created. Share signup link with ?invite=${invite.token}`);
+        const result = await sendEmployeeInviteEmail(invite.id, {
+          siteUrl: window.location.origin,
+        });
+        const link = result.inviteLink || signupLink;
+        if (result.existingUser) {
+          setMessage(
+            `Account already exists for ${email}. Share this login link: ${result.inviteLink || employeeInviteLoginHref(invite.token)}`,
+          );
+        } else {
+          setMessage(`Invite email sent to ${email}. Backup link: ${link}`);
+        }
+      } catch (err) {
+        setMessage(
+          `Invite created. Share this signup link: ${signupLink}${
+            err instanceof Error ? ` (${err.message})` : ''
+          }`,
+        );
       }
       setEmail('');
       await reload();
@@ -117,8 +133,13 @@ export default function EmployeeManagement() {
         ) : (
           <ul className="space-y-2">
             {invites.map((inv) => (
-              <li key={inv.id} className="text-sm text-slate-600 dark:text-slate-300 dark:text-white">
-                {inv.email} · {inv.role}
+              <li key={inv.id} className="text-sm text-slate-600 dark:text-slate-300">
+                <span>
+                  {inv.email} · {inv.role}
+                </span>
+                <div className="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">
+                  {employeeInviteSignupHref(inv.token)}
+                </div>
               </li>
             ))}
           </ul>
