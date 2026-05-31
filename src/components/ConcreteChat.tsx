@@ -354,14 +354,14 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="group flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white/95 px-3 shadow-sm backdrop-blur-sm transition-colors hover:border-cyan-500/40 hover:bg-slate-50 sm:px-3.5 dark:border-slate-700/70 dark:bg-slate-900/95 dark:hover:border-cyan-500/35 dark:hover:bg-slate-800/95"
+            className="group flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur-sm transition-[width,padding,gap,border-color,background-color] duration-200 ease-out hover:border-cyan-500/40 hover:bg-slate-50 dark:border-slate-700/70 dark:bg-slate-900/95 dark:hover:border-cyan-500/35 dark:hover:bg-slate-800/95 md:hover:w-auto md:hover:justify-start md:hover:gap-2 md:hover:px-3.5"
             aria-label="Open Project Assistant"
           >
             <MessageSquare
               className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400"
               aria-hidden
             />
-            <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-200 sm:inline">
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-medium text-slate-700 opacity-0 transition-[max-width,opacity] duration-200 ease-out max-md:hidden dark:text-slate-200 md:group-hover:max-w-[10rem] md:group-hover:opacity-100">
               Project Assistant
             </span>
           </button>
