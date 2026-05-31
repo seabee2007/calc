@@ -28,7 +28,7 @@ import {
   Volume
 } from 'lucide-react';
 import Card from '../components/ui/Card';
-import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE, CC_PAGE_META } from '../theme/pageTypography';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
@@ -404,17 +404,17 @@ const Settings: React.FC = () => {
       className="max-w-4xl mx-auto space-y-6"
     >
       <div className="mb-6">
-        <h1 className={CC_PAGE_TITLE}>
-          Settings
-        </h1>
-        <p className={`${CC_PAGE_SUBTITLE} mt-2`}>
-          Customize your account and application preferences
-          {preferences.autoSave && (
-            <span className="ml-2 text-sm font-semibold bg-green-500/20 text-green-200 px-2 py-1 rounded drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+        <h1 className={CC_PAGE_HERO_TITLE}>Settings</h1>
+        <p className={CC_PAGE_HERO_SUBTITLE}>
+          Customize your account and application preferences.
+        </p>
+        {preferences.autoSave && (
+          <p className={CC_PAGE_META}>
+            <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
               Auto-save enabled
             </span>
-          )}
-        </p>
+          </p>
+        )}
       </div>
 
       {/* Save Message - Fixed Overlay Toast */}

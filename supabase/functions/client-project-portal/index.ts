@@ -2,6 +2,10 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { corsHeaders } from "../_shared/cors.ts";
 import { buildClientPortalSafePayload } from "../_shared/clientPortalBuilder.ts";
+import {
+  resolveProposalForProject,
+  type PortalProposalRow,
+} from "../_shared/projectLifecycle.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -54,7 +58,7 @@ serve(async (req) => {
     const { data: project, error: projectError } = await supabase
       .from("projects")
       .select(
-        "id, name, pour_date, jobsite_city, jobsite_state, created_at, user_id, placement_order",
+        "id, name, pour_date, jobsite_city, jobsite_state, created_at, user_id, placement_order, custom_estimates",
       )
       .eq("id", portal.project_id)
       .maybeSingle();
@@ -66,7 +70,13 @@ serve(async (req) => {
       });
     }
 
-    const [{ data: company }, { data: proposal }, { data: qcRecords }] = await Promise.all([
+    const [
+      { data: company },
+      { data: proposalRows },
+      { data: qcRecords },
+      { count: calculationsCount },
+      { data: laborEstimate },
+    ] = await Promise.all([
       supabase
         .from("company_settings")
         .select("company_name, email, phone, logo_url")
@@ -74,17 +84,32 @@ serve(async (req) => {
         .maybeSingle(),
       supabase
         .from("proposals")
-        .select("status, public_token, sent_at, accepted_at, deposit_paid_at")
-        .eq("project_id", project.id)
-        .neq("status", "draft")
+        .select(
+          "status, public_token, sent_at, accepted_at, deposit_paid_at, title, data, project_id, updated_at",
+        )
+        .eq("user_id", project.user_id)
         .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .limit(100),
       supabase
         .from("qc_records")
         .select("record_type, record_data, test_age_days, date")
         .eq("project_id", project.id),
+      supabase
+        .from("calculations")
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", project.id),
+      supabase
+        .from("labor_estimates")
+        .select("id")
+        .eq("project_id", project.id)
+        .limit(1)
+        .maybeSingle(),
     ]);
+
+    const proposal = resolveProposalForProject(
+      { id: project.id, name: project.name },
+      (proposalRows ?? []) as PortalProposalRow[],
+    );
 
     const origin = req.headers.get("origin") ??
       req.headers.get("referer")?.replace(/\/[^/]*$/, "") ??
@@ -96,6 +121,8 @@ serve(async (req) => {
       company,
       proposal,
       qcRecords: qcRecords ?? [],
+      calculationsCount: calculationsCount ?? 0,
+      hasLaborEstimate: Boolean(laborEstimate),
     });
 
     await supabase

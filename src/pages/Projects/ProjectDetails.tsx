@@ -134,13 +134,13 @@ export default function ProjectDetails() {
     const data = matchedProposal?.data;
     if (!data || !project) return null;
     const fin = computeProposalFinancials(data);
-    const estLabor = project.laborEstimates?.[0]?.laborCost ?? 0;
+    const estLabor = fin.labor_cost;
     const estMaterial = fin.material_cost;
     const value = fin.total_amount;
     const profit = value > 0 ? value - (estLabor + estMaterial) : 0;
     const margin = value > 0 ? profit / value : 0;
     return { value, estLabor, estMaterial, profit, margin };
-  }, [matchedProposal?.data, project, project?.laborEstimates]);
+  }, [matchedProposal?.data, project]);
 
   const nextActions = useMemo(() => {
     const issues: { msg: string; action: 'proposal' | 'placement' | 'project' | 'qc' }[] = [];

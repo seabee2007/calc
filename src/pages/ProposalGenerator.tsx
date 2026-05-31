@@ -354,6 +354,21 @@ const ProposalGenerator: React.FC = () => {
     ? projects.find((p) => p.id === workflowProjectId)
     : undefined;
 
+  const resolveLinkedProjectId = (data: ProposalData): string | null | undefined => {
+    if (workflowProjectId) return workflowProjectId;
+    if (currentProposal?.project_id) return currentProposal.project_id;
+    const title = data.projectTitle?.trim() || proposalTitle.trim();
+    if (!title) return undefined;
+    const matched = projects.find((p) => {
+      const name = p.name?.trim();
+      if (!name) return false;
+      const lowerTitle = title.toLowerCase();
+      const lowerName = name.toLowerCase();
+      return title === name || lowerTitle.includes(lowerName) || lowerName.includes(lowerTitle);
+    });
+    return matched?.id;
+  };
+
   const showConcreteToolActions = projectHasConcreteWork(workflowProject);
 
   const finishWorkflowToProject = () => {
@@ -419,7 +434,7 @@ const ProposalGenerator: React.FC = () => {
   // Save proposal function
   const handleSave = async () => {
     if (!proposalTitle.trim()) {
-      alert('Please enter a proposal title');
+      showImportFeedback('Proposal title required', 'warning', 'Please enter a proposal title.');
       return;
     }
 
@@ -430,21 +445,25 @@ const ProposalGenerator: React.FC = () => {
       setProposalData(dataToSave);
 
       if (isEditing && currentProposal) {
+        const linkedProjectId = resolveLinkedProjectId(dataToSave);
         await ProposalService.update(currentProposal.id, {
           title: proposalTitle,
           template_type: selectedTemplate,
           data: dataToSave,
+          ...(linkedProjectId ? { project_id: linkedProjectId } : {}),
         });
         if (!inWorkflow) {
-          alert('Proposal updated successfully!');
+          showImportFeedback('Proposal updated', 'success', 'Your changes were saved successfully.');
         } else {
           setWorkflowStepReady(true);
         }
       } else {
+        const linkedProjectId = resolveLinkedProjectId(dataToSave);
         const savedProposal = await ProposalService.create({
           title: proposalTitle,
           template_type: selectedTemplate,
           data: dataToSave,
+          ...(linkedProjectId ? { project_id: linkedProjectId } : {}),
         });
         setCurrentProposal(savedProposal);
         if (inWorkflow) {
@@ -463,13 +482,17 @@ const ProposalGenerator: React.FC = () => {
             },
           );
         } else {
-          alert('Proposal saved successfully!');
+          showImportFeedback('Proposal saved', 'success', 'Your proposal was saved successfully.');
           navigate(`/proposal-generator?edit=${savedProposal.id}`, { replace: true });
         }
       }
     } catch (error) {
       console.error('Failed to save proposal:', error);
-      alert('Failed to save proposal. Please try again.');
+      showImportFeedback(
+        'Save failed',
+        'error',
+        'Could not save the proposal. Please try again.',
+      );
     } finally {
       setSaving(false);
     }
@@ -873,12 +896,14 @@ const ProposalGenerator: React.FC = () => {
     const dataToSave = syncProposalAddressesForSave(proposalData);
     setProposalData(dataToSave);
 
+    const linkedProjectId = resolveLinkedProjectId(dataToSave);
+
     if (isEditing && currentProposal) {
       return ProposalService.update(currentProposal.id, {
         title: proposalTitle,
         template_type: selectedTemplate,
         data: dataToSave,
-          project_id: workflowProjectId ?? undefined,
+        ...(linkedProjectId ? { project_id: linkedProjectId } : {}),
       });
     }
 
@@ -886,7 +911,7 @@ const ProposalGenerator: React.FC = () => {
       title: proposalTitle,
       template_type: selectedTemplate,
       data: dataToSave,
-        project_id: workflowProjectId ?? undefined,
+      ...(linkedProjectId ? { project_id: linkedProjectId } : {}),
     });
     setCurrentProposal(saved);
     if (!inWorkflow) {

@@ -1,7 +1,11 @@
 import {
   PROJECT_LIFECYCLE_TIMELINE,
+  customEstimatesHasLines,
+  hasEstimateSignals,
   inferLifecycleFromSignals,
   lifecycleStepIndex,
+  resolveProposalForProject,
+  type PortalProposalRow,
   type ProjectLifecycleKey,
 } from "./projectLifecycle.ts";
 
@@ -135,25 +139,22 @@ export function buildClientPortalSafePayload(input: {
     jobsite_city?: string | null;
     jobsite_state?: string | null;
     created_at?: string | null;
+    custom_estimates?: unknown;
     placement_order?: {
       lifecycleStage?: string;
       status?: string;
       summaryLines?: string[];
     } | null;
   };
+  calculationsCount?: number;
+  hasLaborEstimate?: boolean;
   company?: {
     company_name?: string | null;
     email?: string | null;
     phone?: string | null;
     logo_url?: string | null;
   } | null;
-  proposal?: {
-    status?: string | null;
-    public_token?: string | null;
-    sent_at?: string | null;
-    accepted_at?: string | null;
-    deposit_paid_at?: string | null;
-  } | null;
+  proposal?: PortalProposalRow | null;
   qcRecords?: Array<{
     record_type?: string | null;
     record_data?: Record<string, unknown> | null;
@@ -182,6 +183,12 @@ export function buildClientPortalSafePayload(input: {
   );
 
   const qcComplete = twentyEightDayComplete;
+  const hasSavedEstimates = hasEstimateSignals({
+    calculationsCount: input.calculationsCount,
+    hasLaborEstimate: input.hasLaborEstimate,
+    hasCustomEstimateLines: customEstimatesHasLines(input.project.custom_estimates),
+  });
+
   const currentKey = inferLifecycleFromSignals({
     proposalStatus,
     pourDate,
@@ -189,6 +196,7 @@ export function buildClientPortalSafePayload(input: {
     orderStatus: placementOrder?.status ?? null,
     concretePlaced,
     qcComplete,
+    hasSavedEstimates,
   });
 
   const timeline = buildTimeline(currentKey);

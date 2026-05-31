@@ -12,6 +12,12 @@ export function escapeRegexLiteral(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/** Two-letter year suffix from prefix (e.g. GA26- → 26). */
+export function parseYearSuffixFromPrefix(prefix: string): string | null {
+  const m = prefix.trim().match(/^[A-Za-z]{2}(\d{2})-$/);
+  return m ? m[1] : null;
+}
+
 /** Extract numeric suffix after prefix (e.g. GA26-201 → 201). */
 export function parseProjectNumberFromName(name: string, prefix: string): number | null {
   const re = new RegExp(`^${escapeRegexLiteral(prefix)}(\\d+)\\s`, 'i');
@@ -21,14 +27,33 @@ export function parseProjectNumberFromName(name: string, prefix: string): number
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Extract project sequence number for any state in the same calendar year
+ * (e.g. GA26-200 and GU26-201 both match year 26).
+ */
+export function parseProjectNumberForYear(name: string, yearSuffix: string): number | null {
+  const re = new RegExp(`^[A-Za-z]{2}${escapeRegexLiteral(yearSuffix)}-(\\d+)\\s`, 'i');
+  const m = name.trim().match(re);
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Next sequence number for the year — shared across all state prefixes
+ * (GA26-201, GU26-202, FL26-203, …).
+ */
 export function computeNextProjectNumber(
   existingNames: string[],
   prefix: string,
   startAt = MIN_PROJECT_NUMBER,
 ): number {
+  const yearSuffix = parseYearSuffixFromPrefix(prefix);
   let max = startAt - 1;
   for (const name of existingNames) {
-    const n = parseProjectNumberFromName(name, prefix);
+    const n = yearSuffix
+      ? parseProjectNumberForYear(name, yearSuffix)
+      : parseProjectNumberFromName(name, prefix);
     if (n != null) max = Math.max(max, n);
   }
   return Math.max(startAt, max + 1);

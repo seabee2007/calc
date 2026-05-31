@@ -324,8 +324,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                 Auto project number & name
               </p>
               <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">
-                When you click Create Project, we assign the next number for your jobsite state and
-                year
+                When you click Create Project, we assign the next number for the year with your
+                jobsite state prefix
                 {stateCodePreview ? (
                   <>
                     {' '}

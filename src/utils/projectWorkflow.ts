@@ -10,7 +10,7 @@ import {
   type MixDesignWorkflowContext,
 } from './mixDesignWorkflow';
 import { formatPlacementCalculationLabel } from './placementCalculations';
-import { projectHasCustomEstimate, projectHasSavedEstimates } from './customEstimateUtils';
+import { projectHasSavedEstimates } from './customEstimateUtils';
 
 /** Global project lifecycle — drives dashboard, filters, and next actions. */
 export type ProjectWorkflowStage =
@@ -399,7 +399,6 @@ function inferStage(
   now = new Date(),
 ): ProjectWorkflowStage {
   const pourDate = parsePourDate(project.pourDate);
-  const volume = projectVolumeYd(project);
   const status = order?.status ?? null;
   if (status === 'completed' || status === 'cancelled') return 'closed';
 
@@ -426,16 +425,13 @@ function inferStage(
   }
   if (
     proposalStatus &&
-    ['sent', 'viewed', 'opened'].includes(proposalStatus)
+    ['sent', 'viewed', 'opened', 'declined'].includes(proposalStatus)
   ) {
     return 'proposal_sent';
   }
 
-  if (
-    hasProposalDraft &&
-    (volume > 0 || projectHasCustomEstimate(project))
-  ) {
-    return 'proposal_sent';
+  if (proposalStatus === 'draft' && hasProposalDraft) {
+    return 'estimating';
   }
 
   if (projectHasSavedEstimates(project)) return 'estimating';
