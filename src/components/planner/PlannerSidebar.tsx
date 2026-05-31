@@ -7,6 +7,7 @@ import {
   ClipboardList,
   FolderKanban,
   LayoutGrid,
+  Calendar,
   Plus,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -105,6 +106,15 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
       >
         <LayoutGrid className="h-4 w-4 shrink-0" />
         <span className="truncate">Planner Hub</span>
+      </Link>
+
+      <Link
+        to="/planner/schedule"
+        onClick={onMobileClose}
+        className={navClass(location.pathname === '/planner/schedule')}
+      >
+        <Calendar className="h-4 w-4 shrink-0" />
+        <span className="truncate">Schedule</span>
       </Link>
 
       <Link

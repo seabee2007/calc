@@ -91,17 +91,6 @@ const ToolsModal: React.FC = () => {
       heading: 'Estimating',
       cards: [
         {
-          title: 'General trade labor',
-          description: 'Hours and labor cost for non-concrete trades',
-          path: '/calculator/general-trade-labor',
-          icon: HardHat,
-        },
-      ],
-    },
-    {
-      heading: 'Concrete tools',
-      cards: [
-        {
           title: 'Concrete calculator',
           description: 'Volume and ready-mix pricing',
           path: '/calculator/concrete',
@@ -118,6 +107,12 @@ const ToolsModal: React.FC = () => {
           description: 'Crew and production — concrete placement labor',
           path: '/calculator/labor',
           icon: Users,
+        },
+        {
+          title: 'General trade labor',
+          description: 'Hours and labor cost for non-concrete trades',
+          path: '/calculator/general-trade-labor',
+          icon: HardHat,
         },
         {
           title: 'Custom estimate',
@@ -141,7 +136,7 @@ const ToolsModal: React.FC = () => {
     },
   ];
 
-  const concretePaths = new Set([
+  const estimatingPathsWithProject = new Set([
     '/calculator/concrete',
     '/calculator/reinforcement',
     '/calculator/labor',
@@ -155,13 +150,13 @@ const ToolsModal: React.FC = () => {
     <Modal isOpen={isOpen} onClose={close} title="Tools" size="lg">
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 -mt-2">
         Jump to any area of your project workspace. The guided workflow is Project → Estimates →
-        Proposal; use concrete tools below when a job includes ready-mix work.
+        Proposal.
       </p>
       {projectId && currentProject && (
         <p className="text-sm text-cyan-700 dark:text-cyan-300/90 mb-4 font-medium">
           Active project: {currentProject.name}
           <span className="block text-xs font-normal text-gray-500 dark:text-gray-400 mt-0.5">
-            Calculator and concrete tools open with this project selected.
+            Estimating tools open with this project selected.
           </span>
         </p>
       )}
@@ -179,7 +174,7 @@ const ToolsModal: React.FC = () => {
                   onClick={() =>
                     onNavigate
                       ? onNavigate()
-                      : handleNavigate(path, concretePaths.has(path))
+                      : handleNavigate(path, estimatingPathsWithProject.has(path))
                   }
                   className="flex w-full items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left transition-colors hover:border-cyan-500/50 hover:bg-cyan-50/50 dark:border-slate-600 dark:bg-slate-800/80 dark:hover:border-cyan-500/40 dark:hover:bg-slate-700/80"
                 >

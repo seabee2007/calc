@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, BookOpen, LogOut, type LucideIcon } from 'lucide-react';
+import { Settings, BookOpen, LogOut, Calendar, type LucideIcon } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { useMoreMenuStore } from '../../store/moreMenuStore';
@@ -13,6 +13,7 @@ interface MoreItem {
 }
 
 const MORE_ITEMS: MoreItem[] = [
+  { title: 'Schedule', path: '/planner/schedule', icon: Calendar },
   { title: 'Settings', path: '/settings', icon: Settings },
   { title: 'Resources', path: '/resources', icon: BookOpen },
 ];

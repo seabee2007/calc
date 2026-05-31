@@ -5,6 +5,7 @@ import {
   plannerAllChangeOrdersHref,
   plannerAllFarsHref,
   plannerAllRfisHref,
+  plannerScheduleHubHref,
 } from '../../utils/plannerRoutes';
 import { PLANNER_LINK } from './plannerTheme';
 
@@ -29,6 +30,10 @@ export default function PlannerRecordsQuickNav() {
       className="flex flex-wrap items-center gap-x-2 text-sm lg:shrink-0 lg:justify-end"
       aria-label="Quick links to field records"
     >
+      <QuickDivider />
+      <NavLink to={plannerScheduleHubHref()} className={quickLinkClass} end>
+        Schedule
+      </NavLink>
       <QuickDivider />
       <NavLink to={plannerAllRfisHref()} className={quickLinkClass} end>
         RFIs

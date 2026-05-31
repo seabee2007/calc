@@ -43,6 +43,7 @@ import PlannerRFIsPage from './pages/planner/PlannerRFIsPage';
 import PlannerAdjustmentsPage from './pages/planner/PlannerAdjustmentsPage';
 import PlannerTeamPage from './pages/planner/PlannerTeamPage';
 import PlannerHubPage from './pages/planner/PlannerHubPage';
+import ScheduleWorkspacePage from './pages/planner/ScheduleWorkspacePage';
 import PlannerAllRfisPage from './pages/planner/PlannerAllRfisPage';
 import PlannerAllFarsPage from './pages/planner/PlannerAllFarsPage';
 import PlannerAllChangeOrdersPage from './pages/planner/PlannerAllChangeOrdersPage';
@@ -401,6 +402,7 @@ function App() {
             }
           >
             <Route path="planner/hub" element={<PlannerHubPage />} />
+            <Route path="planner/schedule" element={<ScheduleWorkspacePage />} />
             <Route path="planner/rfis" element={<PlannerAllRfisPage />} />
             <Route path="planner/fars" element={<PlannerAllFarsPage />} />
             <Route path="planner/change-orders" element={<PlannerAllChangeOrdersPage />} />

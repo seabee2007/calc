@@ -7,6 +7,36 @@ export function isPlannerWorkspacePath(pathname: string): boolean {
   return false;
 }
 
+export type ScheduleViewParam = 'calendar' | 'timeline' | 'list' | 'milestone';
+export type CalendarSubViewParam = 'month' | 'week' | 'work_week' | 'day' | 'agenda';
+
+export function plannerScheduleHubHref(params?: {
+  event?: string;
+  view?: ScheduleViewParam;
+  cal?: CalendarSubViewParam;
+}): string {
+  const base = '/planner/schedule';
+  if (!params?.event && !params?.view && !params?.cal) return base;
+  const q = new URLSearchParams();
+  if (params.event) q.set('event', params.event);
+  if (params.view) q.set('view', params.view);
+  if (params.cal) q.set('cal', params.cal);
+  return `${base}?${q.toString()}`;
+}
+
+export function plannerScheduleHref(
+  projectId: string,
+  params?: { event?: string; view?: ScheduleViewParam; cal?: CalendarSubViewParam },
+): string {
+  const base = `/projects/${projectId}/planner/schedule`;
+  if (!params?.event && !params?.view && !params?.cal) return base;
+  const q = new URLSearchParams();
+  if (params.event) q.set('event', params.event);
+  if (params.view) q.set('view', params.view);
+  if (params.cal) q.set('cal', params.cal);
+  return `${base}?${q.toString()}`;
+}
+
 export function plannerBoardHref(projectId: string, taskId?: string): string {
   const base = `/projects/${projectId}/planner/board`;
   if (!taskId) return base;

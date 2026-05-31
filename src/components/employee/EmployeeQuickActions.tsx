@@ -7,6 +7,7 @@ import {
   HelpCircle,
   Wrench,
   Calculator,
+  Calendar,
 } from 'lucide-react';
 import CreateRfiModal from '../field/CreateRfiModal';
 import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
@@ -56,6 +57,12 @@ export default function EmployeeQuickActions({
       label: 'Calculator',
       icon: Calculator,
       onClick: () => navigate('/calculator'),
+    },
+    {
+      label: 'Schedule',
+      icon: Calendar,
+      onClick: () => navigate('/planner/schedule'),
+      disabled: !defaultProjectId,
     },
   ];
 

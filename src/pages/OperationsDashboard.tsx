@@ -21,6 +21,13 @@ import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
 import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
 import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
 import { fetchChangeOrdersForProjectIds } from '../services/changeOrderService';
+import {
+  enrichEventsWithProjectNames,
+  fetchScheduleEventsInDateRange,
+} from '../services/scheduleEventService';
+import { buildScheduleDashboardSnapshot } from '../utils/scheduleDashboard';
+import { addDays, toIsoDate } from '../utils/scheduleEventUtils';
+import ScheduleOperationsSection from '../components/dashboard/schedule/ScheduleOperationsSection';
 import type { ChangeOrder } from '../types/changeOrder';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
@@ -52,6 +59,9 @@ const OperationsDashboard: React.FC = () => {
   const { isOwner, user } = useAuth();
   const { projects, loadProjects } = useProjectStore();
   const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>([]);
+  const [scheduleSnapshot, setScheduleSnapshot] = useState<ReturnType<
+    typeof buildScheduleDashboardSnapshot
+  > | null>(null);
   const location = useLocation();
   const { proposals, refresh: refreshProposals } = useTrackedProposals();
   const navigate = useNavigate();
@@ -84,6 +94,23 @@ const OperationsDashboard: React.FC = () => {
     const ids = operationalProjects.map((p) => p.id);
     void fetchChangeOrdersForProjectIds(ids).then(setChangeOrders).catch(() => setChangeOrders([]));
   }, [isOwner, user, operationalProjects]);
+
+  useEffect(() => {
+    if (!isOwner || operationalProjects.length === 0) {
+      setScheduleSnapshot(null);
+      return;
+    }
+    const ids = operationalProjects.map((p) => p.id);
+    const today = toIsoDate(new Date());
+    const from = addDays(today, -7);
+    const to = addDays(today, 30);
+    const names = new Map(operationalProjects.map((p) => [p.id, p.name]));
+    void fetchScheduleEventsInDateRange(ids, from, to)
+      .then((rows) => enrichEventsWithProjectNames(rows, names))
+      .then((events) => buildScheduleDashboardSnapshot(events, today))
+      .then(setScheduleSnapshot)
+      .catch(() => setScheduleSnapshot(null));
+  }, [isOwner, operationalProjects]);
 
   const allProjectsClosedOut =
     projects.length > 0 && operationalProjects.length === 0;
@@ -227,6 +254,10 @@ const OperationsDashboard: React.FC = () => {
         onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
         onQuickQuote={() => navigate('/proposal-generator')}
       />
+
+      {isOwner && scheduleSnapshot && (
+        <ScheduleOperationsSection snapshot={scheduleSnapshot} />
+      )}
 
       {isOwner && (
         <section className="space-y-4">
