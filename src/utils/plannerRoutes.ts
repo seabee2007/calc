@@ -43,6 +43,103 @@ export function plannerBoardHref(projectId: string, taskId?: string): string {
   return `${base}?task=${taskId}`;
 }
 
+const SAFE_PROJECT_PLANNER_SEGMENTS = new Set([
+  'board',
+  'charts',
+  'schedule',
+  'documents',
+  'rfis',
+  'adjustments',
+  'team',
+  'change-orders',
+]);
+
+const PROJECT_ENTITY_QUERY_KEYS = [
+  'task',
+  'rfi',
+  'adjustment',
+  'event',
+  'safety',
+  'inspection',
+  'file',
+  'far',
+];
+
+function appendQuery(path: string, query: string): string {
+  return query ? `${path}?${query}` : path;
+}
+
+function sanitizeScheduleSearch(search: string): string {
+  const params = new URLSearchParams(search);
+  const view = params.get('view');
+  const cal = params.get('cal');
+  const next = new URLSearchParams();
+  if (view) next.set('view', view);
+  if (cal) next.set('cal', cal);
+  return next.toString();
+}
+
+function sanitizeGeneralPlannerSearch(segment: string, search: string): string {
+  const params = new URLSearchParams(search);
+  for (const key of PROJECT_ENTITY_QUERY_KEYS) {
+    params.delete(key);
+  }
+  if (segment === 'change-orders') {
+    params.delete('far');
+    params.delete('rfi');
+    params.delete('task');
+  }
+  return params.toString();
+}
+
+function isSafeChangeOrdersSubPath(subPath: string): boolean {
+  return subPath === 'change-orders' || subPath === 'change-orders/new';
+}
+
+/**
+ * Build the URL when switching projects from the planner sidebar.
+ * Preserves the current planner sub-route and schedule view when safe.
+ */
+export function plannerProjectSwitchHref(
+  targetProjectId: string,
+  location: { pathname: string; search: string },
+): string {
+  const { pathname, search } = location;
+
+  if (pathname === '/planner/schedule' || pathname.startsWith('/planner/schedule/')) {
+    const base = `/projects/${targetProjectId}/planner/schedule`;
+    return appendQuery(base, sanitizeScheduleSearch(search));
+  }
+
+  const projectMatch = pathname.match(/^\/projects\/[^/]+\/planner(?:\/(.*))?$/);
+  if (!projectMatch) {
+    return plannerBoardHref(targetProjectId);
+  }
+
+  const subPath = projectMatch[1] ?? '';
+  if (!subPath) {
+    return plannerBoardHref(targetProjectId);
+  }
+
+  const firstSegment = subPath.split('/')[0];
+
+  if (firstSegment === 'change-orders') {
+    if (!isSafeChangeOrdersSubPath(subPath)) {
+      return plannerBoardHref(targetProjectId);
+    }
+  } else if (!SAFE_PROJECT_PLANNER_SEGMENTS.has(firstSegment)) {
+    return plannerBoardHref(targetProjectId);
+  }
+
+  const base = `/projects/${targetProjectId}/planner/${subPath}`;
+
+  if (firstSegment === 'schedule') {
+    return appendQuery(base, sanitizeScheduleSearch(search));
+  }
+
+  return appendQuery(base, sanitizeGeneralPlannerSearch(firstSegment, search));
+}
+
 export function plannerRfiHref(projectId: string, rfiId?: string): string {
   const base = `/projects/${projectId}/planner/rfis`;
   if (!rfiId) return base;

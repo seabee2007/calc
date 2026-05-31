@@ -14,7 +14,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { fetchAssignedProjects } from '../../services/employeeService';
 import { resolveProjectWorkflow } from '../../utils/projectWorkflow';
-import { plannerBoardHref } from '../../utils/plannerRoutes';
+import { plannerProjectSwitchHref } from '../../utils/plannerRoutes';
 
 interface SidebarProject {
   id: string;
@@ -144,7 +144,7 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
             activeProjects.map((p) => (
               <Link
                 key={p.id}
-                to={plannerBoardHref(p.id)}
+                to={plannerProjectSwitchHref(p.id, location)}
                 onClick={onMobileClose}
                 className={navClass(location.pathname.includes(`/projects/${p.id}/planner`))}
               >
@@ -165,7 +165,7 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
             completedProjects.map((p) => (
               <Link
                 key={p.id}
-                to={plannerBoardHref(p.id)}
+                to={plannerProjectSwitchHref(p.id, location)}
                 onClick={onMobileClose}
                 className={navClass(location.pathname.includes(`/projects/${p.id}/planner`))}
               >
@@ -184,7 +184,7 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
           {projects.map((p) => (
             <Link
               key={p.id}
-              to={plannerBoardHref(p.id)}
+              to={plannerProjectSwitchHref(p.id, location)}
               onClick={onMobileClose}
               className={navClass(location.pathname.includes(`/projects/${p.id}/planner`))}
             >
