@@ -675,10 +675,14 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
           </ScheduleCalendarShell>
         </div>
 
-        {!isMobile && <ScheduleEventDetailPanel {...detailProps} />}
+        {!isMobile && (
+          <ScheduleEventDetailPanel {...detailProps} open={!!selectedEvent} />
+        )}
       </div>
 
-      {isMobile && selectedEvent && <ScheduleEventDetailDrawer {...detailProps} />}
+      {isMobile && selectedEvent && (
+        <ScheduleEventDetailDrawer {...detailProps} />
+      )}
 
       {user && (
         <ScheduleEventFormModal

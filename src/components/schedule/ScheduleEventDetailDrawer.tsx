@@ -9,6 +9,7 @@ import {
   PLANNER_DRAWER_BACKDROP,
   PLANNER_DRAWER_BODY,
   PLANNER_DRAWER_HEADER,
+  PLANNER_DRAWER_PANEL_TRANSITION,
   PLANNER_OVERLAY_TRANSITION,
 } from '../planner/plannerTheme';
 
@@ -71,7 +72,7 @@ export default function ScheduleEventDetailDrawer({
           initial={bottomSheet ? { y: '100%' } : { x: '100%' }}
           animate={bottomSheet ? { y: 0 } : { x: 0 }}
           exit={bottomSheet ? { y: '100%' } : { x: '100%' }}
-          transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+          transition={PLANNER_DRAWER_PANEL_TRANSITION}
           onClick={(e) => e.stopPropagation()}
         >
           <div className={PLANNER_DRAWER_HEADER}>
