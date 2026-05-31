@@ -66,12 +66,12 @@ const LaborEstimateDetails: React.FC<LaborEstimateDetailsProps> = ({
           No labor estimate
         </h3>
         <p className="text-gray-500 dark:text-gray-400 mb-4">
-          Run the labor calculator for this project to save crew, task hours, and placement
-          cost here.
+          Run the concrete labor calculator for this project to save crew, task hours, and
+          placement cost here.
         </p>
         {onOpenCalculator && (
           <Button onClick={onOpenCalculator} icon={<Plus size={16} />}>
-            Open Labor Calculator
+            Open Concrete Labor Calculator
           </Button>
         )}
       </div>

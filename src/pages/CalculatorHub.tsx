@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Circle,
   PenLine,
+  HardHat,
 } from 'lucide-react';
 import { projectHasCustomEstimate } from '../utils/customEstimateUtils';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
@@ -60,12 +61,21 @@ const CALCULATORS = [
   {
     id: 'labor',
     path: '/calculator/labor',
-    title: 'Labor',
-    description: 'Crew and production — placement labor cost',
+    title: 'Concrete Labor',
+    description: 'Crew and production — concrete placement labor',
     icon: Users,
     done: (p: Project | null) =>
       (p?.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
       (p?.placementOrder?.production?.laborCost ?? 0) > 0,
+  },
+  {
+    id: 'general-trade-labor',
+    path: '/calculator/general-trade-labor',
+    title: 'General Trade Labor',
+    description: 'Non-concrete trades — hours, crew days, labor price',
+    icon: HardHat,
+    done: (p: Project | null) =>
+      (p?.customEstimates?.laborItems ?? []).some((i) => (i.amount ?? 0) > 0),
   },
   {
     id: 'custom',
@@ -117,8 +127,8 @@ const CalculatorHub: React.FC = () => {
           <h1 className={CC_PAGE_TITLE}>Estimates</h1>
           <div className="mt-2 space-y-2">
             <p className={CC_PAGE_SUBTITLE}>
-              Run concrete, reinforcement, labor, or enter a custom estimate. Saved costs import
-              into your proposal.
+              Run concrete, reinforcement, concrete labor, general trade labor, or enter a custom
+              estimate. Saved costs import into your proposal.
             </p>
             <p className={CC_PAGE_SUBTITLE}>
               Select a project inside each tool before saving.
@@ -129,7 +139,7 @@ const CalculatorHub: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {CALCULATORS.map(({ path, title, description, icon: Icon, done }) => {
             const complete = hubProject ? done(hubProject) : false;
             return (
@@ -163,7 +173,7 @@ const CalculatorHub: React.FC = () => {
             <p className="text-sm text-cyan-100/90">
               {canContinueProposal
                 ? 'Estimates saved — continue to build your proposal.'
-                : 'Save at least one estimate (concrete, reinforcement, labor, or custom) to continue.'}
+                : 'Save at least one estimate (concrete, reinforcement, labor calculators, or custom) to continue.'}
             </p>
             <Button
               onClick={() =>

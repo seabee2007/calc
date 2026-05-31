@@ -10,6 +10,7 @@ import {
   Grid3x3,
   Users,
   PenLine,
+  HardHat,
   type LucideIcon,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
@@ -87,6 +88,17 @@ const ToolsModal: React.FC = () => {
       ],
     },
     {
+      heading: 'Estimating',
+      cards: [
+        {
+          title: 'General trade labor',
+          description: 'Hours and labor cost for non-concrete trades',
+          path: '/calculator/general-trade-labor',
+          icon: HardHat,
+        },
+      ],
+    },
+    {
       heading: 'Concrete tools',
       cards: [
         {
@@ -102,8 +114,8 @@ const ToolsModal: React.FC = () => {
           icon: Grid3x3,
         },
         {
-          title: 'Labor calculator',
-          description: 'Crew and production labor cost',
+          title: 'Concrete labor calculator',
+          description: 'Crew and production — concrete placement labor',
           path: '/calculator/labor',
           icon: Users,
         },
@@ -133,6 +145,7 @@ const ToolsModal: React.FC = () => {
     '/calculator/concrete',
     '/calculator/reinforcement',
     '/calculator/labor',
+    '/calculator/general-trade-labor',
     '/calculator/custom',
     '/mix-design-advisor',
     '/pour-planner',

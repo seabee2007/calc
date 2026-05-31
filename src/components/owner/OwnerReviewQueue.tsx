@@ -190,7 +190,7 @@ export default function OwnerReviewQueue() {
 
       <motion.div custom={2} initial="hidden" animate="visible" variants={sectionVariants}>
         <OpsCard className="p-4">
-          <h2 className="mb-4 text-lg font-semibold text-white">Pending field adjustments</h2>
+          <h2 className="mb-4 text-lg font-semibold text-white">Pending FAR&apos;s</h2>
           <ul className="space-y-3">
             {adjustments.map((adj) => (
               <li

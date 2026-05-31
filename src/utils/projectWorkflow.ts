@@ -1,5 +1,5 @@
 import type { Project } from '../types';
-import { workflowQuery } from './workflow';
+import { projectHasConcreteWork, workflowQuery } from './workflow';
 import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrder';
 import type { ProposalData } from '../types/proposal';
 import type { ProposalStatus } from '../types/proposalTracking';
@@ -10,6 +10,7 @@ import {
   type MixDesignWorkflowContext,
 } from './mixDesignWorkflow';
 import { formatPlacementCalculationLabel } from './placementCalculations';
+import { projectHasCustomEstimate, projectHasSavedEstimates } from './customEstimateUtils';
 
 /** Global project lifecycle — drives dashboard, filters, and next actions. */
 export type ProjectWorkflowStage =
@@ -403,9 +404,14 @@ function inferStage(
     return 'proposal_sent';
   }
 
-  if (hasProposalDraft && volume > 0) return 'proposal_sent';
+  if (
+    hasProposalDraft &&
+    (volume > 0 || projectHasCustomEstimate(project))
+  ) {
+    return 'proposal_sent';
+  }
 
-  if (volume > 0 || (project.calculations?.length ?? 0) > 0) return 'estimating';
+  if (projectHasSavedEstimates(project)) return 'estimating';
 
   return 'created';
 }
@@ -557,11 +563,18 @@ export function buildReadinessIssues(
     });
   }
   const volume = projectVolumeYd(project);
-  if (volume <= 0) {
+  if (volume <= 0 && !projectHasSavedEstimates(project)) {
+    issues.push({
+      id: 'volume',
+      message: 'No estimates saved yet',
+      fixPath: '/calculator',
+      fixSearch: q,
+    });
+  } else if (volume <= 0 && projectHasConcreteWork(project)) {
     issues.push({
       id: 'volume',
       message: 'Placement volume not calculated',
-      fixPath: '/calculator',
+      fixPath: '/calculator/concrete',
       fixSearch: q,
     });
   }

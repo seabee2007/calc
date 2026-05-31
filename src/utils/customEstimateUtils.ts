@@ -49,6 +49,46 @@ export function projectHasCustomEstimate(project: Project | null | undefined): b
   return sumCustomEstimateTotal(project) > 0;
 }
 
+function projectConcreteVolumeYd(project: Project): number {
+  return (project.calculations ?? []).reduce(
+    (sum, c) => sum + (c.result?.volume > 0 ? c.result.volume : 0),
+    0,
+  );
+}
+
+function projectHasReinforcementEstimate(project: Project): boolean {
+  const sets = project.reinforcements ?? [];
+  if (sets.length === 0) return false;
+  return sets.some((r) => {
+    if ((r.pricing?.estimatedCost ?? 0) > 0) return true;
+    if (r.reinforcement_type === 'fiber') {
+      return (r.fiber_total_lb ?? 0) > 0 || (r.fiber_bags ?? 0) > 0;
+    }
+    if (r.reinforcement_type === 'mesh') {
+      return (r.mesh_sheets ?? 0) > 0;
+    }
+    return (r.total_bars ?? 0) > 0 || (r.total_linear_ft ?? 0) > 0;
+  });
+}
+
+function projectHasConcreteLaborEstimate(project: Project): boolean {
+  return (
+    (project.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
+    (project.placementOrder?.production?.laborCost ?? 0) > 0
+  );
+}
+
+/** True when any estimate source is saved (concrete, rebar, labor, or custom lines). */
+export function projectHasSavedEstimates(project: Project | null | undefined): boolean {
+  if (!project) return false;
+  if (projectConcreteVolumeYd(project) > 0) return true;
+  if ((project.calculations?.length ?? 0) > 0) return true;
+  if (projectHasConcreteLaborEstimate(project)) return true;
+  if (projectHasReinforcementEstimate(project)) return true;
+  if (projectHasCustomEstimate(project)) return true;
+  return false;
+}
+
 export function totalsFromCustomEstimateItems(
   items: Pick<ProjectCustomEstimates, 'laborItems' | 'materialItems' | 'equipmentItems'>,
 ): { labor: number; material: number; equipment: number; total: number } {

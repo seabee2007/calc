@@ -8,6 +8,7 @@ import Calculator from './pages/Calculator';
 import ConcreteCalculatorPage from './pages/calculators/ConcreteCalculatorPage';
 import ReinforcementCalculatorPage from './pages/calculators/ReinforcementCalculatorPage';
 import LaborCalculatorPage from './pages/calculators/LaborCalculatorPage';
+import GeneralTradeLaborCalculatorPage from './pages/calculators/GeneralTradeLaborCalculatorPage';
 import CustomEstimatePage from './pages/calculators/CustomEstimatePage';
 import Projects from './pages/Projects/Projects';
 import Settings from './pages/Settings';
@@ -286,6 +287,14 @@ function App() {
               element={
                 <AuthGuard>
                   <LaborCalculatorPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="calculator/general-trade-labor"
+              element={
+                <AuthGuard>
+                  <GeneralTradeLaborCalculatorPage />
                 </AuthGuard>
               }
             />

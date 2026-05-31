@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -7,10 +7,7 @@ import type { PlacementOrder } from '../../types/placementOrder';
 import {
   PROJECT_LIFECYCLE_STAGE_ORDER,
   PROJECT_LIFECYCLE_LABELS,
-  normalizeWorkflowStageForDisplay,
-  resolveProjectWorkflow,
   type ProjectLifecycleStage,
-  type ProjectWorkflowStage,
 } from '../../utils/projectWorkflow';
 import { defaultPlacementOrder } from '../../types/placementOrder';
 import { useProjectStore } from '../../store';
@@ -22,49 +19,28 @@ const LIFECYCLE_OPTIONS = PROJECT_LIFECYCLE_STAGE_ORDER.map((value) => ({
 
 interface PlacementOrderStatusPanelProps {
   project: Project;
+  /** Resolved lifecycle stage from `resolveProjectWorkflow` (single source of truth). */
+  resolvedStage: ProjectLifecycleStage;
 }
 
-export default function PlacementOrderStatusPanel({ project }: PlacementOrderStatusPanelProps) {
+export default function PlacementOrderStatusPanel({
+  project,
+  resolvedStage,
+}: PlacementOrderStatusPanelProps) {
   const updateProject = useProjectStore((s) => s.updateProject);
-  const order = project.placementOrder;
 
-  const inferredStage = useMemo(
-    () => resolveProjectWorkflow(project).stage,
-    [project],
-  );
-
-  const savedLifecycle = useMemo(
-    () =>
-      normalizeWorkflowStageForDisplay(
-        (order?.lifecycleStage as ProjectWorkflowStage | undefined) ?? inferredStage,
-      ),
-    [order?.lifecycleStage, inferredStage],
-  );
-
-  const [lifecycleStage, setLifecycleStage] = useState<ProjectLifecycleStage>(savedLifecycle);
-  const [notes, setNotes] = useState(order?.orderNotes ?? '');
+  const [lifecycleStage, setLifecycleStage] = useState<ProjectLifecycleStage>(resolvedStage);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const next = normalizeWorkflowStageForDisplay(
-      (project.placementOrder?.lifecycleStage as ProjectWorkflowStage | undefined) ??
-        resolveProjectWorkflow(project).stage,
-    );
-    setLifecycleStage(next);
-    setNotes(project.placementOrder?.orderNotes ?? '');
+    setLifecycleStage(resolvedStage);
     setMessage(null);
     setError(null);
-  }, [
-    project.id,
-    project.placementOrder?.lifecycleStage,
-    project.placementOrder?.orderNotes,
-    project.updatedAt,
-  ]);
+  }, [resolvedStage, project.id, project.updatedAt]);
 
-  const dirty =
-    lifecycleStage !== savedLifecycle || notes.trim() !== (order?.orderNotes ?? '').trim();
+  const dirty = lifecycleStage !== resolvedStage;
 
   const handleSave = async () => {
     setSaving(true);
@@ -73,12 +49,11 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
     const nextOrder: PlacementOrder = {
       ...(project.placementOrder ?? defaultPlacementOrder()),
       lifecycleStage,
-      orderNotes: notes.trim(),
       updatedAt: new Date().toISOString(),
     };
     try {
       await updateProject(project.id, { placementOrder: nextOrder });
-      setMessage('Project stage saved.');
+      setMessage('Project stage updated.');
     } catch {
       setError('Could not save project stage. Try again.');
     } finally {
@@ -88,52 +63,35 @@ export default function PlacementOrderStatusPanel({ project }: PlacementOrderSta
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-200/80 dark:border-gray-700/80">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-        Placement order
+      <Select
+        label="Project stage"
+        options={LIFECYCLE_OPTIONS}
+        value={lifecycleStage}
+        onChange={(v) => setLifecycleStage(v as ProjectLifecycleStage)}
+      />
+      <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        Matches project workflow above. Change only when you need to override the automatic stage.
       </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-        Set where this job sits in your pipeline. Dispatch details and call sheet stay in
-        Placement Planner.
-      </p>
-      <div className="space-y-3">
-        <Select
-          label="Project stage"
-          options={LIFECYCLE_OPTIONS}
-          value={lifecycleStage}
-          onChange={(v) => setLifecycleStage(v as ProjectLifecycleStage)}
-        />
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-          Dispatch notes
-          <textarea
-            className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm min-h-[88px] placeholder:text-gray-400 dark:placeholder:text-gray-500"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder={
-              'No washout on pavement.\nCall superintendent before entering convoy gate.\nSlump test each truck.'
-            }
-          />
-        </label>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void handleSave()}
-            disabled={saving || !dirty}
-            icon={
-              saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )
-            }
-          >
-            {saving ? 'Saving…' : 'Save project stage'}
-          </Button>
-          {message && (
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">{message}</p>
-          )}
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        </div>
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => void handleSave()}
+          disabled={saving || !dirty}
+          icon={
+            saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )
+          }
+        >
+          {saving ? 'Saving…' : 'Save stage'}
+        </Button>
+        {message && (
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">{message}</p>
+        )}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       </div>
     </div>
   );

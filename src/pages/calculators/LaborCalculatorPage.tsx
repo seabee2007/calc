@@ -33,8 +33,8 @@ const LaborCalculatorPage: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <ProjectCalculatorShell
-        title="Labor Calculator"
-        description="Task-based crew labor estimating — cost imports into your proposal."
+        title="Concrete Labor Calculator"
+        description="Task-based crew placement labor for concrete work — cost imports into your proposal."
       >
         <LaborCalculatorPanel
           calculation={latestConcrete}

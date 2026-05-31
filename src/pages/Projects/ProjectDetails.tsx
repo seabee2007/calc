@@ -33,6 +33,7 @@ import {
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
 import { workflowQuery } from '../../utils/workflow';
+import { projectHasSavedEstimates } from '../../utils/customEstimateUtils';
 import {
   customEstimateCategoryTotals,
   projectHasCustomEstimate,
@@ -139,13 +140,9 @@ export default function ProjectDetails() {
       issues.push({ msg: 'Proposal not accepted', action: 'proposal' });
     }
 
-    const volumeYd = (project.calculations ?? []).reduce(
-      (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
-      0,
-    );
     if (
       (workflow.stage === 'created' || workflow.stage === 'estimating') &&
-      volumeYd <= 0
+      !projectHasSavedEstimates(project)
     ) {
       issues.push({ msg: 'No estimates saved yet', action: 'project' });
     }
@@ -502,6 +499,7 @@ export default function ProjectDetails() {
             );
           })}
         </div>
+        <PlacementOrderStatusPanel project={project} resolvedStage={displayStage} />
       </div>
 
       {/* SECTION 3 — NEXT ACTION PANEL */}
@@ -590,121 +588,9 @@ export default function ProjectDetails() {
             </Button>
           )}
         </div>
-        <PlacementOrderStatusPanel project={project} />
       </div>
 
-      {/* SECTION 4 — PLACEMENT INFORMATION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-200 mb-2">
-            Placement details
-          </p>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <InfoRow label="Volume" value={pourDetails.volumeLabel} />
-            <InfoRow label="Mix" value={pourDetails.mixLabel} />
-            <InfoRow label="Placement" value={pourDetails.placement} />
-            <InfoRow label="Finish" value={pourDetails.finishType} />
-            <InfoRow label="Crew" value={pourDetails.crewLabel} />
-            <InfoRow label="Batch plant" value={pourDetails.batchPlant} />
-            <InfoRow label="First truck" value={pourDetails.firstTruck} />
-            <InfoRow label="Truck spacing" value={pourDetails.spacing} />
-          </div>
-          {pourDetails.pumpCompany && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Pump: <span className="font-semibold text-gray-700 dark:text-gray-200">{pourDetails.pumpCompany}</span>
-            </p>
-          )}
-        </div>
-
-        {/* SECTION 5 — WEATHER & RISK */}
-        <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <CloudSun className="h-5 w-5 text-amber-500" />
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Placement conditions</p>
-          </div>
-          {!placementConditions ? (
-            <>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {workflow.stage === 'closed'
-                  ? 'No forecast was saved for this completed project.'
-                  : 'No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.'}
-              </p>
-              {shouldShowConfigurePlacement(workflow.stage) && (
-                <div className="mt-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      navigate({
-                        pathname: '/pour-planner',
-                        search: workflowQuery(project.id).replace(/^\?/, ''),
-                      })
-                    }
-                    icon={<ArrowRight size={16} />}
-                  >
-                    Open Placement Planner
-                  </Button>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <p className={`text-lg font-bold ${placementConditions.riskTone}`}>
-                {placementConditions.riskLabel}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <InfoRow label="Heat (max)" value={`${placementConditions.stats.heatF}°F`} />
-                <InfoRow label="Wind (max)" value={`${placementConditions.stats.windMph} mph`} />
-                <InfoRow label="Rain chance" value={`${placementConditions.stats.rainPct}%`} />
-                <InfoRow
-                  label="Evaporation"
-                  value={titleCase(String(placementConditions.stats.evaporation))}
-                />
-              </div>
-
-              <p className="text-sm text-gray-700 dark:text-gray-200 mt-2">
-                Recommended window:{' '}
-                <span className="font-semibold">{placementConditions.recommendedWindow}</span>
-              </p>
-
-              <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
-                Concerns
-              </p>
-              {placementConditions.concerns.length === 0 ? (
-                <p className="text-sm text-gray-600 dark:text-gray-300">No major concerns detected.</p>
-              ) : (
-                <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                  {placementConditions.concerns.map((c) => (
-                    <li key={c} className="flex gap-2">
-                      <span className="text-amber-500">•</span>
-                      <span>{c}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
-                Mitigations
-              </p>
-              {placementConditions.mitigations.length === 0 ? (
-                <p className="text-sm text-gray-600 dark:text-gray-300">—</p>
-              ) : (
-                <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                  {placementConditions.mitigations.map((m) => (
-                    <li key={m} className="flex gap-2">
-                      <span className="text-cyan-500">•</span>
-                      <span>{m}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* SECTION 6 — FINANCIALS */}
+      {/* SECTION 4 — FINANCIALS */}
       <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Financial snapshot</p>
         {financial ? (
@@ -732,7 +618,7 @@ export default function ProjectDetails() {
         </ul>
       </div>
 
-      {/* TECHNICAL DETAILS (downgraded prominence) */}
+      {/* TECHNICAL DETAILS — placement, calculations, then reinforcement below */}
       <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Technical details</p>
         {project.calculations.length > 0 && (
@@ -743,9 +629,128 @@ export default function ProjectDetails() {
             onPourDateChange={handlers.dateChange}
           />
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <MixDesignSection />
-          <CalculationSection />
+
+        <div className="mt-4 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-200 mb-2">
+                Placement details
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <InfoRow label="Volume" value={pourDetails.volumeLabel} />
+                <InfoRow label="Mix" value={pourDetails.mixLabel} />
+                <InfoRow label="Placement" value={pourDetails.placement} />
+                <InfoRow label="Finish" value={pourDetails.finishType} />
+                <InfoRow label="Crew" value={pourDetails.crewLabel} />
+                <InfoRow label="Batch plant" value={pourDetails.batchPlant} />
+                <InfoRow label="First truck" value={pourDetails.firstTruck} />
+                <InfoRow label="Truck spacing" value={pourDetails.spacing} />
+              </div>
+              {pourDetails.pumpCompany && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Pump:{' '}
+                  <span className="font-semibold text-gray-700 dark:text-gray-200">
+                    {pourDetails.pumpCompany}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CloudSun className="h-5 w-5 text-amber-500" />
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Placement conditions
+                </p>
+              </div>
+              {!placementConditions ? (
+                <>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {workflow.stage === 'closed'
+                      ? 'No forecast was saved for this completed project.'
+                      : 'No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.'}
+                  </p>
+                  {shouldShowConfigurePlacement(workflow.stage) && (
+                    <div className="mt-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          navigate({
+                            pathname: '/pour-planner',
+                            search: workflowQuery(project.id).replace(/^\?/, ''),
+                          })
+                        }
+                        icon={<ArrowRight size={16} />}
+                      >
+                        Open Placement Planner
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className={`text-lg font-bold ${placementConditions.riskTone}`}>
+                    {placementConditions.riskLabel}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <InfoRow label="Heat (max)" value={`${placementConditions.stats.heatF}°F`} />
+                    <InfoRow label="Wind (max)" value={`${placementConditions.stats.windMph} mph`} />
+                    <InfoRow label="Rain chance" value={`${placementConditions.stats.rainPct}%`} />
+                    <InfoRow
+                      label="Evaporation"
+                      value={titleCase(String(placementConditions.stats.evaporation))}
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-700 dark:text-gray-200 mt-2">
+                    Recommended window:{' '}
+                    <span className="font-semibold">{placementConditions.recommendedWindow}</span>
+                  </p>
+
+                  <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
+                    Concerns
+                  </p>
+                  {placementConditions.concerns.length === 0 ? (
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      No major concerns detected.
+                    </p>
+                  ) : (
+                    <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                      {placementConditions.concerns.map((c) => (
+                        <li key={c} className="flex gap-2">
+                          <span className="text-amber-500">•</span>
+                          <span>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-3 mb-1.5">
+                    Mitigations
+                  </p>
+                  {placementConditions.mitigations.length === 0 ? (
+                    <p className="text-sm text-gray-600 dark:text-gray-300">—</p>
+                  ) : (
+                    <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                      {placementConditions.mitigations.map((m) => (
+                        <li key={m} className="flex gap-2">
+                          <span className="text-cyan-500">•</span>
+                          <span>{m}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <MixDesignSection />
+            <CalculationSection />
+          </div>
         </div>
       </div>
 
@@ -779,11 +784,11 @@ export default function ProjectDetails() {
         </div>
       )}
 
+      <ReinforcementSection />
       <LaborSection />
       <div id="project-qc-section">
         <QCSection />
       </div>
-      <ReinforcementSection />
     </Card>
   );
 }
