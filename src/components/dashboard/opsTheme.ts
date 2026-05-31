@@ -16,7 +16,7 @@ export const OPS_PANEL = APP_SECTION_CARD;
 
 /** Hero card — matches OpsCard `panel` surface (slate-900 dark), not APP_SECTION_CARD slate-800. */
 export const OPS_HERO_CARD =
-  'border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/90';
+  'rounded-xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/90';
 
 export const OPS_HERO_LABEL = TEXT_ACCENT;
 

@@ -16,6 +16,21 @@ import {
 import Card from '../components/ui/Card';
 import { fetchClientPortalView } from '../services/clientPortalService';
 import type { ClientPortalViewData, ClientTimelineStep } from '../types/clientPortal';
+import {
+  OPS_BODY,
+  OPS_EMPTY_STATE,
+  OPS_HERO_LABEL,
+  OPS_HERO_STAT_INNER,
+  OPS_HERO_STAT_LABEL,
+  OPS_HERO_STAT_VALUE,
+  OPS_MUTED,
+  OPS_PROJECT_HERO,
+  OPS_SECTION,
+  OPS_SECTION_EYEBROW,
+  OPS_SECTION_TITLE,
+  OPS_TITLE,
+} from '../components/dashboard/opsTheme';
+import { TEXT_ACCENT } from '../theme/appTheme';
 
 const ClientPortal: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -55,7 +70,7 @@ const ClientPortal: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+        <Loader2 className={`h-8 w-8 animate-spin ${TEXT_ACCENT}`} />
       </div>
     );
   }
@@ -63,15 +78,15 @@ const ClientPortal: React.FC = () => {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full p-8 text-center">
+        <div className={`max-w-md w-full ${OPS_EMPTY_STATE}`}>
           <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h1 className={`text-xl font-semibold ${OPS_HERO_STAT_VALUE} mb-2`}>
             Portal not found or expired
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className={`text-sm ${OPS_MUTED}`}>
             {error ?? 'This project link is invalid or has been deactivated.'}
           </p>
-        </Card>
+        </div>
       </div>
     );
   }
@@ -80,7 +95,7 @@ const ClientPortal: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="max-w-5xl mx-auto px-4 py-5 sm:px-6">
-          <p className="text-xs uppercase tracking-widest text-cyan-600 dark:text-cyan-400 font-semibold">
+          <p className={`text-xs uppercase tracking-widest font-semibold ${OPS_HERO_LABEL}`}>
             ConcreteCalc Client Portal
           </p>
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -95,10 +110,10 @@ const ClientPortal: React.FC = () => {
                 <Building2 className="h-10 w-10 text-slate-400 shrink-0" />
               )}
               <div className="min-w-0">
-                <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                <p className={`text-sm truncate ${OPS_MUTED}`}>
                   {data.contractorCompany ?? 'Your contractor'}
                 </p>
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
+                <h1 className={`text-xl sm:text-2xl font-bold truncate ${OPS_HERO_STAT_VALUE}`}>
                   {data.projectName}
                 </h1>
               </div>
@@ -109,8 +124,8 @@ const ClientPortal: React.FC = () => {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 space-y-6">
-        <Card className="p-6 bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-950/30 dark:to-slate-900 border-cyan-200/60 dark:border-cyan-800/40">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <section className={`p-4 sm:p-5 ${OPS_PROJECT_HERO}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <HeroStat label="Project status" value={data.currentPhase} />
             <HeroStat label="Next milestone" value={data.nextMilestone} />
             <HeroStat
@@ -118,7 +133,7 @@ const ClientPortal: React.FC = () => {
               value={data.placementDate ?? 'Not scheduled yet'}
             />
           </div>
-        </Card>
+        </section>
 
         {data.weatherDelayNotice && (
           <Card className="p-4 border-amber-300/60 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700/50">
@@ -137,8 +152,8 @@ const ClientPortal: React.FC = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className={`sm:p-6 ${OPS_SECTION}`}>
+            <h2 className={`text-lg ${OPS_SECTION_TITLE} mb-4`}>
               Project overview
             </h2>
             <dl className="space-y-3 text-sm">
@@ -162,7 +177,7 @@ const ClientPortal: React.FC = () => {
 
             {(data.contractorEmail || data.contractorPhone) && (
               <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
+                <p className={`text-xs uppercase tracking-wide mb-2 ${OPS_SECTION_EYEBROW}`}>
                   Contractor contact
                 </p>
                 <div className="space-y-2 text-sm">
@@ -187,30 +202,30 @@ const ClientPortal: React.FC = () => {
                 </div>
               </div>
             )}
-          </Card>
+          </div>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className={`sm:p-6 ${OPS_SECTION}`}>
+            <h2 className={`text-lg ${OPS_SECTION_TITLE} mb-4`}>
               Progress timeline
             </h2>
             <Timeline steps={data.timeline} />
-          </Card>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          <div className={`sm:p-6 ${OPS_SECTION}`}>
+            <h2 className={`text-lg ${OPS_SECTION_TITLE} mb-3`}>
               QC status
             </h2>
-            <p className="text-sm text-gray-700 dark:text-gray-300">{data.qcSummary}</p>
-          </Card>
+            <p className={`text-sm ${OPS_BODY}`}>{data.qcSummary}</p>
+          </div>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          <div className={`sm:p-6 ${OPS_SECTION}`}>
+            <h2 className={`text-lg ${OPS_SECTION_TITLE} mb-3`}>
               Documents
             </h2>
             {data.documents.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className={`text-sm ${OPS_MUTED}`}>
                 Documents will appear here when your contractor shares them.
               </p>
             ) : (
@@ -230,15 +245,15 @@ const ClientPortal: React.FC = () => {
                 ))}
               </ul>
             )}
-          </Card>
+          </div>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className={`sm:p-6 ${OPS_SECTION}`}>
+          <h2 className={`text-lg ${OPS_SECTION_TITLE} mb-4`}>
             Project updates
           </h2>
           {data.updates.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className={`text-sm ${OPS_MUTED}`}>
               Updates will appear here as your project progresses.
             </p>
           ) : (
@@ -250,8 +265,8 @@ const ClientPortal: React.FC = () => {
                 >
                   <Clock className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-gray-900 dark:text-white">{update.message}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className={OPS_HERO_STAT_VALUE}>{update.message}</p>
+                    <p className={`text-xs ${OPS_MUTED} mt-0.5`}>
                       {formatUpdateDate(update.date)}
                     </p>
                   </div>
@@ -259,7 +274,7 @@ const ClientPortal: React.FC = () => {
               ))}
             </ul>
           )}
-        </Card>
+        </div>
       </main>
     </div>
   );
@@ -275,9 +290,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">{value}</p>
+    <div className={`${OPS_HERO_STAT_INNER} p-3`}>
+      <p className={`text-xs uppercase tracking-wide ${OPS_HERO_STAT_LABEL}`}>{label}</p>
+      <p className={`mt-1 text-base font-semibold ${OPS_HERO_STAT_VALUE}`}>{value}</p>
     </div>
   );
 }
@@ -295,8 +310,8 @@ function OverviewRow({
     <div className="flex gap-3">
       <span className="text-slate-400 mt-0.5 shrink-0">{icon}</span>
       <div>
-        <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
-        <dd className="font-medium text-slate-900 dark:text-white mt-0.5">{children}</dd>
+        <dt className={OPS_MUTED}>{label}</dt>
+        <dd className={`font-medium mt-0.5 ${OPS_TITLE}`}>{children}</dd>
       </div>
     </div>
   );
@@ -317,15 +332,13 @@ function Timeline({ steps }: { steps: ClientTimelineStep[] }) {
           <div>
             <p
               className={`text-sm font-medium ${
-                step.status === 'upcoming'
-                  ? 'text-slate-400 dark:text-slate-500'
-                  : 'text-slate-900 dark:text-white'
+                step.status === 'upcoming' ? OPS_MUTED : OPS_HERO_STAT_VALUE
               }`}
             >
               {step.label}
             </p>
             {step.status === 'current' && (
-              <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-0.5">Current step</p>
+              <p className={`text-xs ${TEXT_ACCENT} mt-0.5`}>Current step</p>
             )}
           </div>
         </li>

@@ -56,6 +56,14 @@ const TAB_CLASS_IDLE =
 
 const PROJECT_FOLDERS: ProjectFolder[] = ['active', 'qc_closeout', 'archived'];
 
+const VIEW_TRANSITION = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const };
+const viewMotion = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -6 },
+  transition: VIEW_TRANSITION,
+};
+
 function parseProjectFolder(value: string | null): ProjectFolder {
   if (value && PROJECT_FOLDERS.includes(value as ProjectFolder)) {
     return value as ProjectFolder;
@@ -148,41 +156,47 @@ const ProjectsContent: React.FC = () => {
         )}
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {ui.showCreate && (
-          <ProjectForm 
-            onSubmit={handlers.create} 
-            onCancel={() => setUi(s => ({ ...s, showCreate: false }))} 
-            hidePourDate
-          />
+          <motion.div key="create" {...viewMotion}>
+            <ProjectForm 
+              onSubmit={handlers.create} 
+              onCancel={() => setUi(s => ({ ...s, showCreate: false }))} 
+              hidePourDate
+            />
+          </motion.div>
         )}
 
-        {ui.showDetails && !currentProject && (
-          <p className="text-white/90 text-sm py-8">Loading project…</p>
-        )}
-
-        {ui.showDetails && currentProject && !ui.editing && (
-          <ProjectDetails />
+        {ui.showDetails && !ui.editing && (
+          <motion.div key="details" {...viewMotion}>
+            {!currentProject ? (
+              <p className="text-white/90 text-sm py-8">Loading project…</p>
+            ) : (
+              <ProjectDetails />
+            )}
+          </motion.div>
         )}
 
         {ui.editing && currentProject && (
-          <ProjectForm 
-            onSubmit={handlers.update}
-            onCancel={() => setUi(s => ({ ...s, editing: false }))}
-            initialData={{
-              name: currentProject.name,
-              description: currentProject.description,
-              jobsiteAddress: currentProject.jobsiteAddress,
-              clientInfo: currentProject.clientInfo,
-              pourDate: currentProject.pourDate?.split('T')[0],
-            }}
-            projectId={currentProject.id}
-            isEditing
-          />
+          <motion.div key="edit" {...viewMotion}>
+            <ProjectForm 
+              onSubmit={handlers.update}
+              onCancel={() => setUi(s => ({ ...s, editing: false }))}
+              initialData={{
+                name: currentProject.name,
+                description: currentProject.description,
+                jobsiteAddress: currentProject.jobsiteAddress,
+                clientInfo: currentProject.clientInfo,
+                pourDate: currentProject.pourDate?.split('T')[0],
+              }}
+              projectId={currentProject.id}
+              isEditing
+            />
+          </motion.div>
         )}
 
         {!ui.showCreate && !ui.showDetails && (
-          <>
+          <motion.div key="list" {...viewMotion}>
             <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
               {PROJECT_FOLDERS.map((key) => (
                   <button
@@ -207,7 +221,7 @@ const ProjectsContent: React.FC = () => {
               onDelete={(id) => handlers.confirmDelete('project', id)}
               onCreate={() => setUi((s) => ({ ...s, showCreate: true }))}
             />
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 

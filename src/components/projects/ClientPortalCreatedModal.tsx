@@ -3,6 +3,13 @@ import { Copy, ExternalLink } from 'lucide-react';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { getClientPortalUrl } from '../../services/clientPortalService';
+import {
+  OPS_BODY,
+  OPS_HERO_STAT_INNER,
+  OPS_MUTED,
+  OPS_OUTLINE_BTN,
+  OPS_TITLE,
+} from '../dashboard/opsTheme';
 
 interface ClientPortalCreatedModalProps {
   clientName: string;
@@ -28,15 +35,15 @@ const ClientPortalCreatedModal: React.FC<ClientPortalCreatedModalProps> = ({
     <Modal isOpen title="Client Portal Created" onClose={onClose} size="md">
       <div className="space-y-4 -mt-2">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Client</p>
-          <p className="font-medium text-gray-900 dark:text-white">{clientName}</p>
+          <p className={`text-sm ${OPS_MUTED}`}>Client</p>
+          <p className={`font-medium ${OPS_TITLE}`}>{clientName}</p>
         </div>
 
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+          <p className={`text-sm ${OPS_MUTED} mb-2`}>
             Share this secure project link:
           </p>
-          <div className="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 break-all">
+          <div className={`${OPS_HERO_STAT_INNER} px-3 py-2 text-sm break-all ${OPS_BODY}`}>
             {url}
           </div>
         </div>
@@ -44,6 +51,7 @@ const ClientPortalCreatedModal: React.FC<ClientPortalCreatedModalProps> = ({
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <Button
             type="button"
+            variant="accent"
             className="flex-1"
             icon={<Copy size={16} />}
             onClick={() => void handleCopy()}
@@ -52,8 +60,8 @@ const ClientPortalCreatedModal: React.FC<ClientPortalCreatedModalProps> = ({
           </Button>
           <Button
             type="button"
-            variant="secondary"
-            className="flex-1"
+            variant="outline"
+            className={`flex-1 ${OPS_OUTLINE_BTN}`}
             icon={<ExternalLink size={16} />}
             onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
           >
