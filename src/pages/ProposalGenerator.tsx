@@ -1012,12 +1012,15 @@ const ProposalGenerator: React.FC = () => {
     }
   };
 
+  const proposalPreviewShellClass =
+    'w-full max-w-5xl mx-auto min-w-0 [&>div]:mx-0 [&>div]:w-full [&>div]:max-w-none';
+
   if (showPreview) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="max-w-5xl mx-auto"
+        className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"
       >
         <div className="mb-8">
           <h1 className={PAGE_TITLE}>Proposal Preview</h1>
@@ -1093,11 +1096,13 @@ const ProposalGenerator: React.FC = () => {
             </div>
         </div>
 
-        <div
-          ref={printRef}
-          className={`${SECTION_CARD} overflow-hidden print:shadow-none print:rounded-none print:border-0 print:bg-white`}
-        >
-          {renderTemplate()}
+        <div className="flex w-full justify-center">
+          <div
+            ref={printRef}
+            className={`${SECTION_CARD} ${proposalPreviewShellClass} overflow-hidden print:shadow-none print:rounded-none print:border-0 print:bg-white`}
+          >
+            {renderTemplate()}
+          </div>
         </div>
       </motion.div>
     );
@@ -1117,7 +1122,7 @@ const ProposalGenerator: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto"
+      className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"
     >
         <WorkflowStepHeader />
         {inWorkflow && !workflowStepReady && (
@@ -1237,9 +1242,7 @@ const ProposalGenerator: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="mx-auto w-full max-w-6xl space-y-6">
             {/* Proposal Title & Save */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -1277,6 +1280,15 @@ const ProposalGenerator: React.FC = () => {
                     className="whitespace-nowrap"
                   >
                     {isEditing ? 'Update' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreview(true)}
+                    icon={<FileText size={18} />}
+                    className="whitespace-nowrap"
+                  >
+                    Preview
                   </Button>
                   <Button
                     variant="outline"
@@ -1665,43 +1677,6 @@ const ProposalGenerator: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-          </div>
-
-          {/* Preview Section */}
-          <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={`${SECTION_CARD} sticky top-8`}
-            >
-              <h2 className={SECTION_TITLE}>Preview</h2>
-              <div className="space-y-4">
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-                  <div className="text-center text-gray-500 dark:text-gray-400">
-                    <p className="text-sm mb-2">Template: {templatePreviews[selectedTemplate].name}</p>
-                    <p className="text-xs">{templatePreviews[selectedTemplate].description}</p>
-                  </div>
-                </div>
-                
-                <Button
-                  type="button"
-                  variant="primary"
-                  fullWidth
-                  onClick={() => setShowPreview(true)}
-                  icon={<FileText size={18} />}
-                >
-                  Preview Proposal
-                </Button>
-                
-                <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                  <p>• Fill out the form to customize your proposal</p>
-                  <p>• Choose from 3 professional templates</p>
-                  <p>• Preview and print/export as PDF</p>
-                  <p>• Placeholder text disappears when typing</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
         </div>
 
       <Modal
