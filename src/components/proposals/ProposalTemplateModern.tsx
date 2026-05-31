@@ -1,12 +1,12 @@
 import React from 'react';
 import { ProposalData } from '../../types/proposal';
+import ProposalPricingSection from './ProposalPricingSection';
+import type { ProposalTemplateProps } from './ProposalTemplateClassic';
 
-interface ModernProps {
-  data: ProposalData;
-  total: string;
-}
-
-const ProposalTemplateModern: React.FC<ModernProps> = ({ data, total }) => {
+const ProposalTemplateModern: React.FC<ProposalTemplateProps> = ({
+  data,
+  audience = 'client',
+}) => {
   const {
     businessName,
     businessLogoUrl,
@@ -22,7 +22,6 @@ const ProposalTemplateModern: React.FC<ModernProps> = ({ data, total }) => {
     introduction,
     scope,
     timeline,
-    pricing,
     terms,
     preparedBy,
     preparedByTitle,
@@ -87,21 +86,8 @@ const ProposalTemplateModern: React.FC<ModernProps> = ({ data, total }) => {
           </ul>
         </div>
 
-        {/* Pricing Card */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Pricing</h3>
-          <ul className="space-y-3">
-            {pricing.map((p, idx) => (
-              <li key={idx} className="flex justify-between">
-                <span className="text-gray-600">{p.description}</span>
-                <span className="font-medium text-gray-800">{p.amount}</span>
-              </li>
-            ))}
-            <li className="flex justify-between pt-3 mt-3 border-t border-gray-300">
-              <span className="font-semibold text-gray-800">Total Cost</span>
-              <span className="font-bold text-lg text-indigo-600">{total}</span>
-            </li>
-          </ul>
+          <ProposalPricingSection data={data} audience={audience} title="Pricing" />
         </div>
       </div>
 

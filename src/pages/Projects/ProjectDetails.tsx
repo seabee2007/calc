@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FolderOpen,
   Save,
@@ -33,6 +33,12 @@ import {
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
 import { workflowQuery } from '../../utils/workflow';
+import {
+  plannerAdjustmentHref,
+  plannerBoardHref,
+  plannerDocumentsHref,
+  plannerRfiHref,
+} from '../../utils/plannerRoutes';
 import { projectHasSavedEstimates } from '../../utils/customEstimateUtils';
 import {
   customEstimateCategoryTotals,
@@ -75,6 +81,14 @@ export default function ProjectDetails() {
         proposal.title.toLowerCase().includes(name.toLowerCase()),
     );
   }, [proposals, project?.id, project?.name]);
+
+  const projectProposalHref = useMemo(() => {
+    if (!project?.id) return '/proposals';
+    if (matchedProposal?.id) {
+      return `/proposal-generator?edit=${encodeURIComponent(matchedProposal.id)}`;
+    }
+    return `/proposal-generator${workflowQuery(project.id)}`;
+  }, [project?.id, matchedProposal?.id]);
 
   const proposalStatusLabel = useMemo(() => {
     const s = matchedProposal?.status ?? null;
@@ -607,15 +621,58 @@ export default function ProjectDetails() {
         )}
       </div>
 
-      {/* SECTION 7 — PROJECT DOCUMENTS (starter list; real attachments later) */}
+      {/* SECTION 7 — PROJECT FILES */}
       <div className="rounded-xl border border-gray-200/60 dark:border-gray-700/70 bg-white/50 dark:bg-gray-900/30 p-4 mb-6">
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Project files</p>
-        <ul className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
-          <li>• Proposal (tracked)</li>
-          <li>• Placement call sheet (Placement Planner)</li>
-          <li>• QC logs</li>
-          <li>• Mix report / calculator outputs</li>
-        </ul>
+        <nav
+          className="flex flex-wrap items-center gap-y-1 text-sm"
+          aria-label="Jump to project file areas"
+        >
+          {(
+            [
+              { key: 'files', label: 'Files', to: plannerDocumentsHref(project.id) },
+              { key: 'rfis', label: "RFI's", to: plannerRfiHref(project.id) },
+              { key: 'fars', label: "FAR's", to: plannerAdjustmentHref(project.id) },
+              {
+                key: 'proposals',
+                label: 'Proposals',
+                to: projectProposalHref,
+              },
+              { key: 'photos', label: 'Photos', to: plannerBoardHref(project.id) },
+            ] as const
+          ).map((item, index) => (
+            <span key={item.key} className="inline-flex items-center">
+              {index > 0 && (
+                <span className="mx-2 text-gray-400 dark:text-gray-500" aria-hidden>
+                  |
+                </span>
+              )}
+              <Link
+                to={item.to}
+                className="font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-400"
+              >
+                {item.label}
+              </Link>
+            </span>
+          ))}
+          <span className="inline-flex items-center">
+            <span className="mx-2 text-gray-400 dark:text-gray-500" aria-hidden>
+              |
+            </span>
+            <button
+              type="button"
+              className="font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-400"
+              onClick={() =>
+                document.getElementById('project-qc-section')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                })
+              }
+            >
+              QC
+            </button>
+          </span>
+        </nav>
       </div>
 
       {/* TECHNICAL DETAILS — placement, calculations, then reinforcement below */}

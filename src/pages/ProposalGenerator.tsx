@@ -33,13 +33,20 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import {
-  buildProposalPricingFromProject,
+  buildProposalLineItemsFromProject,
+  countProposalLineItemsFromProject,
   getProjectEstimateSourceLabels,
   projectHasImportablePricing,
 } from '../utils/proposalPricingImport';
+import ProposalPricingEditor, {
+  proposalIndirectFromData,
+} from '../components/proposals/ProposalPricingEditor';
+import {
+  emptyProposalPricingState,
+  hydrateProposalPricing,
+} from '../utils/proposalPricing';
 import Modal from '../components/ui/Modal';
 import Toast, { type ToastType } from '../components/ui/Toast';
-import { parseProposalAmount } from '../utils/proposalFinancials';
 import { soundService } from '../services/soundService';
 import { useConfirm } from '../contexts/ConfirmContext';
 import USAddressFields from '../components/address/USAddressFields';
@@ -129,16 +136,12 @@ const ProposalGenerator: React.FC = () => {
     timeline: [
       { phase: '', start: '', end: '' },
     ],
-    pricing: [
-      { description: '', amount: '' },
-    ],
+    ...emptyProposalPricingState(),
     terms: '',
     preparedBy: '',
     preparedByTitle: '',
   }),
   );
-  const [profitMarginPct, setProfitMarginPct] = useState<number>(20);
-
   // Load proposal data when editing or previewing
   useEffect(() => {
     const loadProposal = async () => {
@@ -149,7 +152,9 @@ const ProposalGenerator: React.FC = () => {
         setLoading(true);
         const proposal = await ProposalService.getById(id);
         setCurrentProposal(proposal);
-        setProposalData(hydrateProposalAddresses(proposal.data));
+        setProposalData(
+          hydrateProposalPricing(hydrateProposalAddresses(proposal.data)),
+        );
         setSelectedTemplate(proposal.template_type);
         setProposalTitle(proposal.title);
         
@@ -196,7 +201,11 @@ const ProposalGenerator: React.FC = () => {
     const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
     const draft = projectId ? getProposalDraft(projectId) : undefined;
     if (draft && !proposalDraftRestoredRef.current) {
-      setProposalData(mergeProjectIntoProposalFields(draft.proposalData, project));
+      setProposalData(
+        hydrateProposalPricing(
+          mergeProjectIntoProposalFields(draft.proposalData, project),
+        ),
+      );
       setProposalTitle(draft.proposalTitle);
       setSelectedTemplate(draft.selectedTemplate);
       setShowPreview(draft.showPreview);
@@ -295,8 +304,12 @@ const ProposalGenerator: React.FC = () => {
       return;
     }
 
-    const pricingItems = buildProposalPricingFromProject(project);
-    if (pricingItems.length === 0) {
+    const lineItems = buildProposalLineItemsFromProject(project);
+    const lineCount =
+      lineItems.laborItems.length +
+      lineItems.materialItems.length +
+      lineItems.equipmentItems.length;
+    if (lineCount === 0) {
       showImportFeedback(
         'Import failed',
         'error',
@@ -307,13 +320,15 @@ const ProposalGenerator: React.FC = () => {
     }
 
     setProposalData((prev) =>
-      mergeProjectJobsiteIntoClientAddress(
-        hydrateProposalAddresses({
-          ...prev,
-          pricing: pricingItems,
-          projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
-        }),
-        project.jobsiteAddress,
+      hydrateProposalPricing(
+        mergeProjectJobsiteIntoClientAddress(
+          hydrateProposalAddresses({
+            ...prev,
+            ...lineItems,
+            projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
+          }),
+          project.jobsiteAddress,
+        ),
       ),
     );
 
@@ -323,7 +338,7 @@ const ProposalGenerator: React.FC = () => {
     showImportFeedback(
       'Pricing imported',
       'success',
-      `Added ${pricingItems.length} line(s) from "${project.name}" (${sourcesLabel}).`,
+      `Added ${lineCount} line(s) from "${project.name}" (${sourcesLabel}).`,
       options,
     );
   };
@@ -936,9 +951,7 @@ const ProposalGenerator: React.FC = () => {
   };
 
   const renderTemplate = () => {
-    const calculatedTotal = calculateTotal();
-    
-    const displayData: ProposalData = {
+    const displayData: ProposalData = hydrateProposalPricing({
       ...proposalData,
       businessName: getDisplayValue(proposalData.businessName, 'Your Business Name'),
       businessAddress: getDisplayValue(
@@ -959,18 +972,14 @@ const ProposalGenerator: React.FC = () => {
         start: getDisplayValue(item.start, 'Start Date'),
         end: getDisplayValue(item.end, 'End Date'),
       })),
-      pricing: proposalData.pricing.map(item => ({
-        description: getDisplayValue(item.description, 'Service Description'),
-        amount: getDisplayValue(item.amount, '$0.00'),
-      })),
       terms: getDisplayValue(proposalData.terms, 'A 50% deposit is due upon acceptance of this proposal. Final payment is due upon completion. All work performed in accordance with ACI standards and local building codes. Warranty: 1 year against workmanship defects.'),
       preparedBy: getDisplayValue(proposalData.preparedBy, 'Your Name'),
       preparedByTitle: getDisplayValue(proposalData.preparedByTitle, 'Project Manager'),
-    };
+    });
 
     const templateProps = {
       data: displayData,
-      total: formatTotal(calculatedTotal)
+      audience: 'client' as const,
     };
 
     switch (selectedTemplate) {
@@ -1001,54 +1010,6 @@ const ProposalGenerator: React.FC = () => {
       description: 'Clean, simple design focused on essential information',
       color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
     }
-  };
-
-  // Calculate total from pricing items
-  const calculateTotal = () => {
-    return proposalData.pricing.reduce((total, item) => {
-      if (!item.amount) return total;
-      
-      // Remove currency symbols and formatting, then parse as number
-      const numericValue = item.amount.replace(/[^0-9.-]/g, '');
-      const amount = parseFloat(numericValue) || 0;
-      return total + amount;
-    }, 0);
-  };
-
-  const formatTotal = (total: number) => {
-    return total.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
-
-  const applyProfitMargin = () => {
-    const margin = Math.max(0, Math.min(90, Number(profitMarginPct) || 0)) / 100;
-    setProfitMarginPct(Math.round(margin * 100));
-
-    setProposalData((prev) => {
-      const PROFIT_DESC = 'Profit (Markup)';
-      const items = [...(prev.pricing ?? [])];
-
-      const nonProfit = items.filter(
-        (x) => (x.description ?? '').trim().toLowerCase() !== PROFIT_DESC.toLowerCase(),
-      );
-      const baseCost = nonProfit.reduce((sum, x) => sum + parseProposalAmount(x.amount), 0);
-      const sellPrice = margin >= 0.9 ? baseCost : baseCost / (1 - margin);
-      const profit = Math.max(0, sellPrice - baseCost);
-
-      const profitLine = {
-        description: PROFIT_DESC,
-        amount: profit > 0 ? `$${profit.toFixed(2)}` : '',
-      };
-
-      return {
-        ...prev,
-        pricing: [...nonProfit, profitLine],
-      };
-    });
   };
 
   if (showPreview) {
@@ -1638,99 +1599,27 @@ const ProposalGenerator: React.FC = () => {
                     <span className="hidden sm:inline">Import from Project</span>
                     <span className="sm:hidden">Import</span>
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addPricingItem}
-                    icon={<Plus size={14} />}
-                  >
-                    <span className="hidden sm:inline">Add Item</span>
-                    <span className="sm:hidden">Add</span>
-                  </Button>
                 </div>
               </div>
 
-              {/* Profit / markup */}
-              <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Profit margin (%)
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={90}
-                      value={profitMarginPct}
-                      onChange={(e) => setProfitMarginPct(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Adds/updates a “Profit (Markup)” line item so totals reflect margin.
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    onClick={applyProfitMargin}
-                    className="whitespace-nowrap shrink-0"
-                  >
-                    Apply Profit
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {proposalData.pricing.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                      <input
-                        type="text"
-                        placeholder="Service Description"
-                        value={item.description}
-                        onChange={(e) => handlePricingChange(index, 'description', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
-                      <input
-                        type="text"
-                        placeholder="$0.00"
-                        value={item.amount}
-                        onChange={(e) => handlePricingChange(index, 'amount', e.target.value)}
-                        onBlur={(e) => handleAmountBlur(index, e.target.value)}
-                        onFocus={(e) => handleAmountFocus(index, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        inputMode="decimal"
-                        pattern="[0-9]*"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="danger"
-                      size="sm"
-                      onClick={() => removePricingItem(index)}
-                      className="w-full md:w-auto"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Total Pricing */}
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Cost</span>
-                  <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {formatTotal(calculateTotal())}
-                  </span>
-                </div>
-              </div>
+              <ProposalPricingEditor
+                laborItems={proposalData.laborItems ?? []}
+                materialItems={proposalData.materialItems ?? []}
+                equipmentItems={proposalData.equipmentItems ?? []}
+                indirect={proposalIndirectFromData(proposalData)}
+                onLaborChange={(laborItems) =>
+                  setProposalData((prev) => ({ ...prev, laborItems }))
+                }
+                onMaterialChange={(materialItems) =>
+                  setProposalData((prev) => ({ ...prev, materialItems }))
+                }
+                onEquipmentChange={(equipmentItems) =>
+                  setProposalData((prev) => ({ ...prev, equipmentItems }))
+                }
+                onIndirectChange={(pricingIndirect) =>
+                  setProposalData((prev) => ({ ...prev, pricingIndirect }))
+                }
+              />
             </motion.div>
 
             {/* Terms & Footer */}
@@ -1840,7 +1729,7 @@ const ProposalGenerator: React.FC = () => {
               const sources = getProjectEstimateSourceLabels(project);
               const canImport = projectHasImportablePricing(project);
               const lineCount = canImport
-                ? buildProposalPricingFromProject(project).length
+                ? countProposalLineItemsFromProject(project)
                 : 0;
               return (
                 <button

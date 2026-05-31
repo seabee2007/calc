@@ -114,7 +114,7 @@ export default function ChangeOrderLineItemsEditor({
             <input
               type="number"
               min={0}
-              step={1}
+              step={isEquipment ? 1 : 0.01}
               value={row.unitPrice ?? ''}
               onChange={(e) =>
                 update(index, {
@@ -122,7 +122,11 @@ export default function ChangeOrderLineItemsEditor({
                 })
               }
               placeholder={isEquipment ? '$/hr' : 'Unit $'}
-              title="Use arrows for whole numbers; you can type decimals (e.g. 45.60)"
+              title={
+                isEquipment
+                  ? 'Equipment rate per hour'
+                  : 'Unit price (e.g. $/hr or $/SF); line total = Qty × unit price'
+              }
               className={PLANNER_INPUT}
             />
             <div

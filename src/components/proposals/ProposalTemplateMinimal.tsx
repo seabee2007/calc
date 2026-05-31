@@ -1,12 +1,12 @@
 import React from 'react';
 import { ProposalData } from '../../types/proposal';
+import ProposalPricingSection from './ProposalPricingSection';
+import type { ProposalTemplateProps } from './ProposalTemplateClassic';
 
-interface MinimalProps {
-  data: ProposalData;
-  total: string;
-}
-
-const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data, total }) => {
+const ProposalTemplateMinimal: React.FC<ProposalTemplateProps> = ({
+  data,
+  audience = 'client',
+}) => {
   const {
     businessName,
     businessAddress,
@@ -20,7 +20,6 @@ const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data, total }) => {
     introduction,
     scope,
     timeline,
-    pricing,
     terms,
     preparedBy,
   } = data;
@@ -74,22 +73,12 @@ const ProposalTemplateMinimal: React.FC<MinimalProps> = ({ data, total }) => {
         </div>
       </section>
 
-      {/* Pricing Inline */}
-      <section className="mb-6">
-        <h4 className="font-semibold mb-2">Pricing</h4>
-        <div className="space-y-2">
-          {pricing.map((p, idx) => (
-            <div key={idx} className="flex justify-between text-sm">
-              <span>{p.description}</span>
-              <span className="font-medium">{p.amount}</span>
-            </div>
-          ))}
-          <div className="flex justify-between text-sm pt-2 mt-2 border-t border-gray-300">
-            <span className="font-semibold">Total Cost</span>
-            <span className="font-bold text-lg">{total}</span>
-          </div>
-        </div>
-      </section>
+      <ProposalPricingSection
+        data={data}
+        audience={audience}
+        title="Pricing"
+        className="mb-6"
+      />
 
       {/* Terms */}
       <section className="mb-6">

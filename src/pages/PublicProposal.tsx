@@ -12,20 +12,7 @@ import {
   fetchProposalByPublicToken,
   markProposalOpened,
 } from '../lib/proposalTracking';
-import { parseProposalAmount } from '../utils/proposalFinancials';
 import Button from '../components/ui/Button';
-
-function formatTotal(total: number): string {
-  return total.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  });
-}
-
-function proposalTotal(data: ProposalData): number {
-  return (data.pricing ?? []).reduce((s, row) => s + parseProposalAmount(row.amount), 0);
-}
 
 const PublicProposal: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -119,12 +106,11 @@ const PublicProposal: React.FC = () => {
   }
 
   const data = proposal.data;
-  const total = formatTotal(proposalTotal(data));
   const isFinal = proposal.status === 'accepted' || proposal.status === 'declined';
 
   const templateProps = {
     data,
-    total,
+    audience: 'client' as const,
   };
 
   return (

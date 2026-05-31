@@ -1,4 +1,14 @@
 import type { USAddress } from './address';
+import type { ChangeOrderLineItem } from './changeOrder';
+
+/** Indirect costs — same scheme as change orders (fees, permits, OH%, profit%, material markup %). */
+export interface ProposalPricingIndirect {
+  feesAmount: number;
+  permitsAmount: number;
+  overheadPercent: number;
+  profitPercent: number;
+  markupPercent: number;
+}
 
 export interface ProposalData {
   businessName: string;
@@ -24,10 +34,15 @@ export interface ProposalData {
     start: string;
     end: string;
   }[];
-  pricing: {                     // pricing breakdown
+  /** @deprecated Legacy flat lines — migrated to labor/material/equipment on load when empty. */
+  pricing?: {
     description: string;
-    amount: string;              // e.g. "$5,000"
+    amount: string;
   }[];
+  laborItems?: ChangeOrderLineItem[];
+  materialItems?: ChangeOrderLineItem[];
+  equipmentItems?: ChangeOrderLineItem[];
+  pricingIndirect?: ProposalPricingIndirect;
   terms: string;                 // any legal terms / notes
   preparedBy: string;            // your name/title
   preparedByTitle?: string;      // e.g. "Senior Estimator"

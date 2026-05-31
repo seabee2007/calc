@@ -1,12 +1,16 @@
 import React from 'react';
 import { ProposalData } from '../../types/proposal';
+import ProposalPricingSection from './ProposalPricingSection';
 
-interface ClassicProps {
+export interface ProposalTemplateProps {
   data: ProposalData;
-  total: string;
+  audience?: 'client' | 'internal';
 }
 
-const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data, total }) => {
+const ProposalTemplateClassic: React.FC<ProposalTemplateProps> = ({
+  data,
+  audience = 'client',
+}) => {
   const {
     businessName,
     businessLogoUrl,
@@ -23,7 +27,6 @@ const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data, total }) => {
     introduction,
     scope,
     timeline,
-    pricing,
     terms,
     preparedBy,
     preparedByTitle,
@@ -107,32 +110,7 @@ const ProposalTemplateClassic: React.FC<ClassicProps> = ({ data, total }) => {
         </div>
       </section>
 
-      {/* Pricing (table) */}
-      <section className="mb-8">
-        <h3 className="text-lg font-semibold mb-4">Pricing</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-2 px-4 text-left text-sm font-medium text-gray-700 border-b">Description</th>
-                <th className="py-2 px-4 text-left text-sm font-medium text-gray-700 border-b">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pricing.map((p, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="py-2 px-4 border-b">{p.description}</td>
-                  <td className="py-2 px-4 border-b">{p.amount}</td>
-                </tr>
-              ))}
-              <tr className="bg-gray-50 font-bold">
-                <td className="py-3 px-4 border-b-2 border-gray-300 text-right">Total Cost</td>
-                <td className="py-3 px-4 border-b-2 border-gray-300 text-lg">{total}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <ProposalPricingSection data={data} audience={audience} className="mb-8" />
 
       {/* Terms */}
       <section className="mb-8">
