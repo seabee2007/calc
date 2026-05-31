@@ -49,10 +49,14 @@ function folderContext(
   };
 }
 
+const CHIP_BASE =
+  'shrink-0 rounded-xl border px-4 py-2 text-sm transition-colors';
+
 const TAB_CLASS_ACTIVE =
-  'shrink-0 rounded-xl border border-cyan-500/50 bg-cyan-950/50 px-4 py-2 text-sm font-semibold text-cyan-100 shadow-sm';
+  `${CHIP_BASE} border-cyan-500/50 bg-cyan-500/10 font-semibold text-cyan-600 dark:border-cyan-500/45 dark:bg-cyan-500/15 dark:text-cyan-300`;
+
 const TAB_CLASS_IDLE =
-  'shrink-0 rounded-xl border border-slate-600/80 bg-slate-800/60 px-4 py-2 text-sm font-medium text-slate-300 hover:border-slate-500 hover:bg-slate-800';
+  `${CHIP_BASE} border-slate-300 bg-white/80 font-medium text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-600`;
 
 const PROJECT_FOLDERS: ProjectFolder[] = ['active', 'qc_closeout', 'archived'];
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Send, X } from 'lucide-react';
+import { MessageSquare, Send, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useProjectStore } from '../store';
 import Button from './ui/Button';
@@ -11,11 +11,12 @@ import AssistantMessageActions from './chat/AssistantMessageActions';
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
 const QUICK_PROMPTS = [
-  'Can I place today?',
-  'Estimate crew size',
-  'Ready mix order help',
-  'Weather risks',
-  'ACI guidance',
+  'What should I focus on today?',
+  'Review project risks',
+  'Estimate labor and crew needs',
+  'Help with an RFI or change order',
+  'Plan a concrete placement',
+  'Review weather and schedule impacts',
 ] as const;
 
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
@@ -169,7 +170,7 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
         <ChatHeader onClose={onClose} />
         <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
           <h3 className="text-lg font-semibold text-white mb-2">
-            Sign in to use ConcreteCalc AI
+            Sign in to use Project Assistant
           </h3>
           <p className="text-sm text-slate-400 mb-4">
             Get placement, mix, labor, and ready-mix guidance tied to your projects.
@@ -216,13 +217,13 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
         {messages.length === 0 && (
           <>
             <div className="p-5 text-center border-b border-slate-800/80">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600/20 text-2xl">
-                🧱
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10">
+                <MessageSquare className="h-6 w-6 text-cyan-400" aria-hidden />
               </div>
-              <h4 className="text-lg font-bold text-white">Ask ConcreteCalc AI</h4>
+              <h4 className="text-lg font-bold text-white">Project Assistant</h4>
               <p className="mt-2 text-sm text-slate-300 leading-relaxed">
-                Get help with concrete quantities, mix design, placement planning, labor,
-                weather risk, rebar, and ready-mix ordering.
+                Planning, scheduling, estimating, RFIs, change orders, field activity, and
+                concrete placement — grounded in your project context.
               </p>
             </div>
 
@@ -289,7 +290,7 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask ConcreteCalc AI…"
+            placeholder="Ask Project Assistant…"
             rows={1}
             disabled={loading}
             className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none disabled:opacity-60"
@@ -315,8 +316,10 @@ function ChatHeader({ onClose }: { onClose?: () => void }) {
     <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 border-b border-blue-500/30 px-5 py-4 shrink-0">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-white font-bold text-lg leading-tight">ConcreteCalc AI</h3>
-          <p className="text-blue-200 text-sm">Concrete placement assistant</p>
+          <h3 className="text-white font-bold text-lg leading-tight">Project Assistant</h3>
+          <p className="text-blue-200 text-sm">
+            Construction planning, estimating, scheduling, and concrete guidance.
+          </p>
         </div>
         {onClose && (
           <button
@@ -351,13 +354,16 @@ export default function ConcreteChat({ isModal, onClose }: ConcreteChatProps) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 px-4 py-3 shadow-lg border border-blue-500/40 text-white hover:border-blue-400 transition-colors"
-            aria-label="Open ConcreteCalc AI"
+            className="group flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white/95 px-3 shadow-sm backdrop-blur-sm transition-colors hover:border-cyan-500/40 hover:bg-slate-50 sm:px-3.5 dark:border-slate-700/70 dark:bg-slate-900/95 dark:hover:border-cyan-500/35 dark:hover:bg-slate-800/95"
+            aria-label="Open Project Assistant"
           >
-            <span className="text-lg" aria-hidden>
-              🧱
+            <MessageSquare
+              className="h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-400"
+              aria-hidden
+            />
+            <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-200 sm:inline">
+              Project Assistant
             </span>
-            <span className="text-sm font-semibold hidden sm:inline">Ask AI</span>
           </button>
         </div>
       );
