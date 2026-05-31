@@ -2,6 +2,7 @@
 
 import {
   APP_SECTION_CARD,
+  TEXT_ACCENT,
   TEXT_BODY,
   TEXT_FOREGROUND,
   TEXT_MUTED,
@@ -12,6 +13,21 @@ export const OPS_SHELL =
   `text-slate-900 dark:text-slate-100 isolation-auto rounded-xl min-h-[200px]`;
 
 export const OPS_PANEL = APP_SECTION_CARD;
+
+/** Hero card — matches OpsCard `panel` surface (slate-900 dark), not APP_SECTION_CARD slate-800. */
+export const OPS_HERO_CARD =
+  'border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/90';
+
+export const OPS_HERO_LABEL = TEXT_ACCENT;
+
+export const OPS_HERO_BODY = 'text-slate-600 dark:text-slate-300';
+
+export const OPS_HERO_STAT_LABEL = 'text-slate-500 dark:text-slate-400';
+
+export const OPS_HERO_STAT_VALUE = 'text-slate-900 dark:text-white';
+
+export const OPS_HERO_STAT_INNER =
+  'rounded-lg border border-slate-200 bg-slate-50/80 dark:border-slate-700/70 dark:bg-slate-800/50';
 
 export const OPS_PANEL_INNER =
   'rounded-lg border border-slate-100 bg-slate-50 dark:border-transparent dark:bg-slate-800/80';
