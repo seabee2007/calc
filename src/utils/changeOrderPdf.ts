@@ -2,9 +2,10 @@ import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import type { ChangeOrder } from '../types/changeOrder';
 import {
-  computeChangeOrderBreakdown,
+  computePricingBreakdown,
   formatChangeOrderMoney,
 } from './changeOrderFinancials';
+import { pricingParamsFromChangeOrder } from './pricingParams';
 import { savePDFWithPlatformSupport } from './pdf';
 
 function formatSignedAt(iso: string | null | undefined): string {
@@ -95,17 +96,12 @@ export async function generateChangeOrderPDF(order: ChangeOrder): Promise<void> 
   const margin = 20;
   const y = { value: margin };
 
-  const breakdown = computeChangeOrderBreakdown(
+  const breakdown = computePricingBreakdown(
     order.laborItems,
     order.materialItems,
     order.equipmentItems,
-    {
-      feesAmount: order.feesAmount,
-      permitsAmount: order.permitsAmount,
-      overheadPercent: order.overheadPercent,
-      profitPercent: order.profitPercent,
-      markupPercent: order.markupPercent,
-    },
+    order.subcontractorItems ?? [],
+    pricingParamsFromChangeOrder(order),
   );
 
   doc.setFontSize(16);
@@ -139,9 +135,7 @@ export async function generateChangeOrderPDF(order: ChangeOrder): Promise<void> 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   const totals = [
-    `Total Direct Costs: ${formatChangeOrderMoney(breakdown.directCost)}`,
-    `Total Indirect costs: ${formatChangeOrderMoney(breakdown.indirectCost)}`,
-    `Total Change Order: ${formatChangeOrderMoney(breakdown.totalPrice)}`,
+    `Total Change Order Price: ${formatChangeOrderMoney(breakdown.totalPrice)}`,
   ];
   for (const line of totals) {
     doc.text(line, margin, y.value);

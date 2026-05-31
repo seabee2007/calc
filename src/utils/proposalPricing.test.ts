@@ -20,11 +20,18 @@ describe('proposalPricing', () => {
       materialItems: [{ description: 'Concrete', amount: 5000 }],
       equipmentItems: [],
       pricingIndirect: {
+        pricingModel: 'legacy',
         feesAmount: 100,
         permitsAmount: 50,
         overheadPercent: 10,
         profitPercent: 10,
         markupPercent: 5,
+        wasteFactorPercent: 0,
+        contingencyPercent: 0,
+        targetMarginPercent: 0,
+        taxSystem: 'none',
+        taxRatePercent: 0,
+        taxApplication: 'materials_only',
       },
     };
     const b = computeProposalBreakdown(data);
@@ -34,6 +41,36 @@ describe('proposalPricing', () => {
     expect(b.markupAmount).toBe(250);
     expect(b.indirectCost).toBe(100 + 50 + 600 + 600 + 250);
     expect(b.totalPrice).toBe(b.directCost + b.indirectCost);
+  });
+
+  it('standard model returns materialTotal on breakdown', () => {
+    const data: ProposalData = {
+      businessName: 'Co',
+      clientName: 'Client',
+      projectTitle: 'Job',
+      date: 'Jan 1',
+      introduction: '',
+      scope: '',
+      timeline: [],
+      materialItems: [{ description: 'Concrete', amount: 10000 }],
+      laborItems: [],
+      equipmentItems: [],
+      pricingIndirect: {
+        pricingModel: 'standard',
+        wasteFactorPercent: 0,
+        contingencyPercent: 0,
+        overheadPercent: 0,
+        targetMarginPercent: 0,
+        feesAmount: 0,
+        permitsAmount: 0,
+        taxSystem: 'none',
+        taxRatePercent: 0,
+        taxApplication: 'materials_only',
+      },
+    };
+    const b = computeProposalBreakdown(data);
+    expect(b.materialTotal).toBe(10000);
+    expect(b.pricingModel).toBe('standard');
   });
 
   it('migrates legacy flat pricing lines', () => {

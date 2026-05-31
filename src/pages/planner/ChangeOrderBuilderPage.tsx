@@ -14,11 +14,16 @@ import {
 } from '../../services/changeOrderService';
 import type { ChangeOrder, ChangeOrderLineItem } from '../../types/changeOrder';
 import {
-  computeChangeOrderBreakdown,
-  DEFAULT_OVERHEAD_PERCENT,
-  DEFAULT_PROFIT_PERCENT,
+  computePricingBreakdown,
   normalizeLineItems,
 } from '../../utils/changeOrderFinancials';
+import type { PricingParams } from '../../types/pricingParams';
+import {
+  defaultPricingParams,
+  pricingParamsFromChangeOrder,
+} from '../../utils/pricingParams';
+import PricingParamsEditor from '../../components/pricing/PricingParamsEditor';
+import { useSettingsStore } from '../../store';
 import { getPublicChangeOrderUrl } from '../../lib/changeOrderTracking';
 import { changeOrderEditHref, plannerChangeOrdersHref } from '../../utils/plannerRoutes';
 import ChangeOrderLineItemsEditor from '../../components/change-order/ChangeOrderLineItemsEditor';
@@ -56,14 +61,19 @@ export default function ChangeOrderBuilderPage() {
   const [reason, setReason] = useState('');
   const [terms, setTerms] = useState('');
   const [scheduleImpact, setScheduleImpact] = useState('');
-  const [markupPercent, setMarkupPercent] = useState('0');
-  const [feesAmount, setFeesAmount] = useState('0');
-  const [permitsAmount, setPermitsAmount] = useState('0');
-  const [overheadPercent, setOverheadPercent] = useState(String(DEFAULT_OVERHEAD_PERCENT));
-  const [profitPercent, setProfitPercent] = useState(String(DEFAULT_PROFIT_PERCENT));
+  const { companySettings } = useSettingsStore();
+  const companyTax = {
+    taxSystem: companySettings.taxSystem,
+    taxRatePercent: companySettings.taxRatePercent,
+    taxApplication: companySettings.taxApplication,
+  };
+  const [pricingParams, setPricingParams] = useState<PricingParams>(() =>
+    defaultPricingParams(companyTax),
+  );
   const [laborItems, setLaborItems] = useState<ChangeOrderLineItem[]>([]);
   const [materialItems, setMaterialItems] = useState<ChangeOrderLineItem[]>([]);
   const [equipmentItems, setEquipmentItems] = useState<ChangeOrderLineItem[]>([]);
+  const [subcontractorItems, setSubcontractorItems] = useState<ChangeOrderLineItem[]>([]);
   const [linkedFarId, setLinkedFarId] = useState<string | null>(null);
   const [linkedRfiId, setLinkedRfiId] = useState<string | null>(null);
   const [linkedTaskId, setLinkedTaskId] = useState<string | null>(null);
@@ -99,14 +109,11 @@ export default function ChangeOrderBuilderPage() {
     setReason(co.reasonForChange);
     setTerms(co.terms);
     setScheduleImpact(co.scheduleImpact ?? '');
-    setMarkupPercent(String(co.markupPercent));
-    setFeesAmount(String(co.feesAmount));
-    setPermitsAmount(String(co.permitsAmount));
-    setOverheadPercent(String(co.overheadPercent));
-    setProfitPercent(String(co.profitPercent));
+    setPricingParams(pricingParamsFromChangeOrder(co));
     setLaborItems(co.laborItems);
     setMaterialItems(co.materialItems);
     setEquipmentItems(co.equipmentItems);
+    setSubcontractorItems(co.subcontractorItems ?? []);
     setLinkedFarId(co.linkedFarId);
     setLinkedRfiId(co.linkedRfiId);
     setLinkedTaskId(co.linkedTaskId);
@@ -234,14 +241,11 @@ export default function ChangeOrderBuilderPage() {
       reasonForChange: reason,
       terms,
       scheduleImpact: scheduleImpact || null,
-      markupPercent: Number(markupPercent) || 0,
-      feesAmount: Number(feesAmount) || 0,
-      permitsAmount: Number(permitsAmount) || 0,
-      overheadPercent: Number(overheadPercent) || 0,
-      profitPercent: Number(profitPercent) || 0,
+      ...pricingParams,
       laborItems,
       materialItems,
       equipmentItems,
+      subcontractorItems,
       linkedFarId,
       linkedRfiId,
       linkedTaskId,
@@ -256,14 +260,11 @@ export default function ChangeOrderBuilderPage() {
     reason,
     terms,
     scheduleImpact,
-    markupPercent,
-    feesAmount,
-    permitsAmount,
-    overheadPercent,
-    profitPercent,
+    pricingParams,
     laborItems,
     materialItems,
     equipmentItems,
+    subcontractorItems,
     linkedFarId,
     linkedRfiId,
     linkedTaskId,
@@ -276,14 +277,14 @@ export default function ChangeOrderBuilderPage() {
     const labor = normalizeLineItems(laborItems, 'labor');
     const material = normalizeLineItems(materialItems, 'material');
     const equipment = normalizeLineItems(equipmentItems, 'equipment');
-    const markup = Number(markupPercent) || 0;
-    const breakdown = computeChangeOrderBreakdown(labor, material, equipment, {
-      feesAmount: Number(feesAmount) || 0,
-      permitsAmount: Number(permitsAmount) || 0,
-      overheadPercent: Number(overheadPercent) || 0,
-      profitPercent: Number(profitPercent) || 0,
-      markupPercent: markup,
-    });
+    const subcontractor = normalizeLineItems(subcontractorItems, 'subcontractor');
+    const breakdown = computePricingBreakdown(
+      labor,
+      material,
+      equipment,
+      subcontractor,
+      pricingParams,
+    );
     return {
       id: coId,
       projectId,
@@ -299,7 +300,25 @@ export default function ChangeOrderBuilderPage() {
       laborItems: labor,
       materialItems: material,
       equipmentItems: equipment,
-      markupPercent: markup,
+      subcontractorItems: subcontractor,
+      pricingModel: breakdown.pricingModel,
+      wasteFactorPercent: breakdown.wasteFactorPercent,
+      wasteCost: breakdown.wasteCost,
+      materialCostBase: breakdown.materialCostBase,
+      materialCostAdjusted: breakdown.materialCostAdjusted,
+      contingencyPercent: breakdown.contingencyPercent,
+      contingencyCost: breakdown.contingencyCost,
+      taxSystem: breakdown.taxSystem,
+      taxRatePercent: breakdown.taxRatePercent,
+      taxApplication: breakdown.taxApplication,
+      taxCost: breakdown.taxCost,
+      targetMarginPercent: breakdown.targetMarginPercent,
+      grossProfit: breakdown.grossProfit,
+      grossMarginPercent: breakdown.grossMarginPercent,
+      markupPercentReporting: breakdown.markupPercentReporting,
+      costWithOverhead: breakdown.costWithOverhead,
+      totalEstimatedCost: breakdown.totalEstimatedCost,
+      markupPercent: breakdown.markupPercent,
       feesAmount: breakdown.feesAmount,
       permitsAmount: breakdown.permitsAmount,
       overheadPercent: breakdown.overheadPercent,
@@ -340,11 +359,8 @@ export default function ChangeOrderBuilderPage() {
     laborItems,
     materialItems,
     equipmentItems,
-    markupPercent,
-    feesAmount,
-    permitsAmount,
-    overheadPercent,
-    profitPercent,
+    subcontractorItems,
+    pricingParams,
     scheduleImpact,
     status,
     publicToken,
@@ -562,51 +578,16 @@ export default function ChangeOrderBuilderPage() {
               items={equipmentItems}
               onChange={setEquipmentItems}
             />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Input
-                label="Fees ($)"
-                type="number"
-                min={0}
-                step={0.01}
-                value={feesAmount}
-                onChange={(e) => setFeesAmount(e.target.value)}
-                fullWidth
-              />
-              <Input
-                label="Permits ($)"
-                type="number"
-                min={0}
-                step={0.01}
-                value={permitsAmount}
-                onChange={(e) => setPermitsAmount(e.target.value)}
-                fullWidth
-              />
-              <Input
-                label="Overhead % (of direct cost)"
-                type="number"
-                min={0}
-                step={1}
-                value={overheadPercent}
-                onChange={(e) => setOverheadPercent(e.target.value)}
-                fullWidth
-              />
-              <Input
-                label="Profit % (of direct cost)"
-                type="number"
-                min={0}
-                step={1}
-                value={profitPercent}
-                onChange={(e) => setProfitPercent(e.target.value)}
-                fullWidth
-              />
-            </div>
-            <Input
-              label="Markup % (applied to material cost only)"
-              type="number"
-              min={0}
-              value={markupPercent}
-              onChange={(e) => setMarkupPercent(e.target.value)}
-              fullWidth
+            <ChangeOrderLineItemsEditor
+              label="Subcontractors"
+              category="subcontractor"
+              items={subcontractorItems}
+              onChange={setSubcontractorItems}
+            />
+            <PricingParamsEditor
+              params={pricingParams}
+              onChange={setPricingParams}
+              showLegacyToggle
             />
             {preview && <ChangeOrderInternalPricingSummary order={preview} />}
             <div>

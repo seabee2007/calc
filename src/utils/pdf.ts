@@ -4,6 +4,8 @@ import { format } from 'date-fns';
 import { Project, CONCRETE_MIX_DESIGNS } from '../types';
 import { calculateMixMaterials } from './calculations';
 import { calculateConcreteCost, formatPrice } from './pricing';
+import { computeProposalBreakdown } from './proposalPricing';
+import { formatChangeOrderMoney } from './changeOrderFinancials';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
@@ -414,6 +416,24 @@ export async function generateProposalPDF(
     });
     
     console.log('Timeline table:', timelineTable);
+    if (
+      proposalData &&
+      (proposalData.laborItems?.length ||
+        proposalData.materialItems?.length ||
+        proposalData.pricingIndirect)
+    ) {
+      try {
+        const total = computeProposalBreakdown(proposalData).totalPrice;
+        pricingTable.length = 0;
+        pricingTable.push(
+          ['Description', 'Amount'],
+          ['Total Proposal Price', formatChangeOrderMoney(total)],
+        );
+      } catch {
+        /* keep HTML-extracted table */
+      }
+    }
+
     console.log('Pricing table:', pricingTable);
     
     // Generate Classic Template Layout

@@ -173,7 +173,14 @@ export function buildProposalFinancialKpis(
     0,
   );
 
-  const grossProfit = totalRevenue - laborCostTotal - materialCostTotal;
+  const storedGrossProfit = wonProposals.reduce(
+    (sum, p) => sum + num(p.gross_profit),
+    0,
+  );
+  const grossProfit =
+    storedGrossProfit > 0
+      ? storedGrossProfit
+      : totalRevenue - laborCostTotal - materialCostTotal;
 
   return {
     pendingRevenue,

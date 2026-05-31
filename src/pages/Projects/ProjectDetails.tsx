@@ -137,8 +137,18 @@ export default function ProjectDetails() {
     const estLabor = fin.labor_cost;
     const estMaterial = fin.material_cost;
     const value = fin.total_amount;
-    const profit = value > 0 ? value - (estLabor + estMaterial) : 0;
-    const margin = value > 0 ? profit / value : 0;
+    const profit =
+      fin.gross_profit > 0
+        ? fin.gross_profit
+        : value > 0
+          ? value - (estLabor + estMaterial)
+          : 0;
+    const margin =
+      fin.gross_margin_percent > 0
+        ? fin.gross_margin_percent / 100
+        : value > 0
+          ? profit / value
+          : 0;
     return { value, estLabor, estMaterial, profit, margin };
   }, [matchedProposal?.data, project]);
 

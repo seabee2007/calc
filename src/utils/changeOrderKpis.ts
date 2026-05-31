@@ -73,6 +73,10 @@ function sumMaterial(co: ChangeOrder): number {
   return co.materialItems.reduce((s, row) => s + num(row.amount), 0);
 }
 
+function sumSubcontractor(co: ChangeOrder): number {
+  return (co.subcontractorItems ?? []).reduce((s, row) => s + num(row.amount), 0);
+}
+
 function acceptedAt(co: ChangeOrder): string | null {
   return co.acceptedAt ?? co.updatedAt ?? null;
 }
@@ -147,7 +151,10 @@ export function buildChangeOrderFinancialKpis(
 
   const winRate = sentCount > 0 ? acceptedCount / sentCount : 0;
 
-  const directLaborTotal = accepted.reduce((s, co) => s + sumLabor(co), 0);
+  const directLaborTotal = accepted.reduce(
+    (s, co) => s + sumLabor(co) + sumSubcontractor(co),
+    0,
+  );
   const directMaterialTotal = accepted.reduce((s, co) => s + sumMaterial(co), 0);
 
   return {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Calculator, Package, Save, Loader } from 'lucide-react';
 import Button from '../ui/Button';
@@ -431,9 +431,12 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
     setSelectedPsi(value);
   };
 
-  const handlePricingCalculated = (pricing: Calculation['result']['pricing'] | null) => {
-    setPricingData(pricing);
-  };
+  const handlePricingCalculated = useCallback(
+    (pricing: Calculation['result']['pricing'] | null) => {
+      setPricingData(pricing);
+    },
+    [],
+  );
 
   const renderDimensionInputs = (baseName: string, label: string) => (
     <div className="grid grid-cols-3 gap-2">

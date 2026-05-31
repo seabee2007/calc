@@ -104,11 +104,17 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     lastAutoSearchKeyRef.current = '';
   }, []);
 
+  const initialLocationKey =
+    initialLocation != null
+      ? `${initialLocation.latitude.toFixed(5)},${initialLocation.longitude.toFixed(5)}`
+      : '';
+
   useEffect(() => {
-    if (initialLocation) {
-      applyJobsiteCoords(initialLocation);
-    }
-  }, [initialLocation, applyJobsiteCoords]);
+    if (!initialLocation) return;
+    applyJobsiteCoords(initialLocation);
+    // Only re-run when coordinates change, not when parent passes a new object reference.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLocationKey, applyJobsiteCoords]);
 
   const persistBatchPlantToProject = useCallback(
     async (
@@ -255,9 +261,19 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
     void runBatchPlantSearch(jobsiteCoords);
   }, [jobsiteCoords, isPlanner, runBatchPlantSearch]);
 
+  const linkedProject = projectId
+    ? projects.find((p) => p.id === projectId)
+    : undefined;
+  const wasteFactorPercent = linkedProject?.wasteFactor ?? 10;
+
   const volumeYd = useMemo(
     () => volumeToCubicYards(volume, volumeUnit),
     [volume, volumeUnit],
+  );
+
+  const orderVolumeYd = useMemo(
+    () => volumeYd * (1 + wasteFactorPercent / 100),
+    [volumeYd, wasteFactorPercent],
   );
 
   const pricing = useMemo(() => {
@@ -269,10 +285,20 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
         needsPumpTruck,
         isSaturdayDelivery: isSaturday,
         isAfterHoursDelivery: isAfterHours,
+        wasteFactorPercent,
       },
       supplier,
     );
-  }, [volumeYd, psi, distance, needsPumpTruck, isSaturday, isAfterHours, supplier]);
+  }, [
+    volumeYd,
+    psi,
+    distance,
+    needsPumpTruck,
+    isSaturday,
+    isAfterHours,
+    supplier,
+    wasteFactorPercent,
+  ]);
 
   const serviceFeeRates = useMemo(() => {
     if (!supplier) return null;
@@ -289,22 +315,62 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
   const hasAdditionalLineItems =
     needsPumpTruck || isSaturday || isAfterHours;
 
+  const onPricingCalculatedRef = useRef(onPricingCalculated);
+  onPricingCalculatedRef.current = onPricingCalculated;
+
+  const lastPricingNotifyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (onPricingCalculated) {
-      if (pricing && supplier) {
-        onPricingCalculated({
-          ...pricing,
-          supplier: {
-            id: supplier.id,
-            name: supplier.name,
-            location: supplier.address,
-          },
-        });
-      } else {
-        onPricingCalculated(null);
-      }
+    const notify = onPricingCalculatedRef.current;
+    if (!notify) return;
+
+    if (!supplier) {
+      if (lastPricingNotifyRef.current === 'none') return;
+      lastPricingNotifyRef.current = 'none';
+      notify(null);
+      return;
     }
-  }, [pricing, supplier, onPricingCalculated]);
+
+    const signature = [
+      pricing.totalCost,
+      pricing.concreteCost,
+      pricing.pricePerYard,
+      pricing.deliveryFees.totalDeliveryFees,
+      pricing.additionalServices.totalAdditionalFees,
+      supplier.id,
+      needsPumpTruck,
+      isSaturday,
+      isAfterHours,
+      distance,
+      wasteFactorPercent,
+    ].join('|');
+
+    if (lastPricingNotifyRef.current === signature) return;
+    lastPricingNotifyRef.current = signature;
+
+    notify({
+      ...pricing,
+      supplier: {
+        id: supplier.id,
+        name: supplier.name,
+        location: supplier.address,
+      },
+    });
+  }, [
+    pricing.totalCost,
+    pricing.concreteCost,
+    pricing.pricePerYard,
+    pricing.deliveryFees.totalDeliveryFees,
+    pricing.additionalServices.totalAdditionalFees,
+    supplier?.id,
+    supplier?.name,
+    supplier?.address,
+    needsPumpTruck,
+    isSaturday,
+    isAfterHours,
+    distance,
+    wasteFactorPercent,
+  ]);
 
   const volumeUnitLabel =
     volumeUnit === 'cubic_yards' ? 'yd³' : volumeUnit === 'cubic_feet' ? 'ft³' : 'm³';
@@ -343,7 +409,8 @@ const PricingCalculator: React.FC<PricingCalculatorProps> = ({
             {volume.toFixed(2)} {volumeUnitLabel}
             <span className="text-gray-500 dark:text-gray-500">
               {' '}
-              ({volumeYd.toFixed(2)} yd³ for pricing)
+              ({volumeYd.toFixed(2)} yd³ net · {orderVolumeYd.toFixed(2)} yd³ order @{' '}
+              {wasteFactorPercent}% waste)
             </span>
           </p>
         </div>

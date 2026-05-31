@@ -40,6 +40,8 @@ export interface ProposalFinancialFields {
   labor_cost: number;
   material_cost: number;
   deposit_amount: number;
+  gross_profit?: number;
+  gross_margin_percent?: number;
 }
 
 export interface TrackedProposalRow {
@@ -64,5 +66,7 @@ export interface TrackedProposalRow {
   labor_cost: number;
   material_cost: number;
   deposit_amount: number;
+  gross_profit: number;
+  gross_margin_percent: number;
   public_token: string;
 }

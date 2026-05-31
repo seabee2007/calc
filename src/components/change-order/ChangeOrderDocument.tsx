@@ -1,9 +1,10 @@
 import React from 'react';
 import type { ChangeOrder } from '../../types/changeOrder';
 import {
-  computeChangeOrderBreakdown,
+  computePricingBreakdown,
   formatChangeOrderMoney,
 } from '../../utils/changeOrderFinancials';
+import { pricingParamsFromChangeOrder } from '../../utils/pricingParams';
 
 function DocumentTextBlock({ label, text }: { label: string; text: string }) {
   return (
@@ -73,17 +74,12 @@ export default function ChangeOrderDocument({
   order: ChangeOrder;
   audience?: 'client' | 'internal';
 }) {
-  const breakdown = computeChangeOrderBreakdown(
+  const breakdown = computePricingBreakdown(
     order.laborItems,
     order.materialItems,
     order.equipmentItems,
-    {
-      feesAmount: order.feesAmount,
-      permitsAmount: order.permitsAmount,
-      overheadPercent: order.overheadPercent,
-      profitPercent: order.profitPercent,
-      markupPercent: order.markupPercent,
-    },
+    order.subcontractorItems ?? [],
+    pricingParamsFromChangeOrder(order),
   );
 
   return (
@@ -106,15 +102,7 @@ export default function ChangeOrderDocument({
         {audience === 'client' ? (
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden px-4">
             <ClientTotalRow
-              label="Total Direct Costs"
-              value={formatChangeOrderMoney(breakdown.directCost)}
-            />
-            <ClientTotalRow
-              label="Total Indirect costs"
-              value={formatChangeOrderMoney(breakdown.indirectCost)}
-            />
-            <ClientTotalRow
-              label="Total Change Order"
+              label="Total Change Order Price"
               value={formatChangeOrderMoney(breakdown.totalPrice)}
               grand
             />

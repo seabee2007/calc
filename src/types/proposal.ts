@@ -1,35 +1,28 @@
 import type { USAddress } from './address';
 import type { ChangeOrderLineItem } from './changeOrder';
+import type { PricingParams } from './pricingParams';
 
-/** Indirect costs — same scheme as change orders (fees, permits, OH%, profit%, material markup %). */
-export interface ProposalPricingIndirect {
-  feesAmount: number;
-  permitsAmount: number;
-  overheadPercent: number;
-  profitPercent: number;
-  markupPercent: number;
-}
+/** Pricing parameters stored on proposals (extends standard PricingParams). */
+export type ProposalPricingIndirect = PricingParams;
 
 export interface ProposalData {
   businessName: string;
-  businessLogoUrl?: string;      // optional logo
-  /** Formatted line for PDF/templates (synced from businessAddressParts). */
+  businessLogoUrl?: string;
   businessAddress?: string;
   businessAddressParts?: USAddress;
-  businessPhone?: string;        // phone number
-  businessEmail?: string;        // email address
-  businessLicenseNumber?: string; // license number
-  businessSlogan?: string;       // company motto/slogan
+  businessPhone?: string;
+  businessEmail?: string;
+  businessLicenseNumber?: string;
+  businessSlogan?: string;
   clientName: string;
   clientCompany?: string;
-  /** Formatted line for PDF/templates (synced from clientAddressParts). */
   clientAddress?: string;
   clientAddressParts?: USAddress;
   projectTitle: string;
-  date: string;                  // e.g. "June 1, 2025"
-  introduction: string;          // opening paragraph
-  scope: string;                 // scope of work details
-  timeline: {                    // for a simple table
+  date: string;
+  introduction: string;
+  scope: string;
+  timeline: {
     phase: string;
     start: string;
     end: string;
@@ -42,8 +35,9 @@ export interface ProposalData {
   laborItems?: ChangeOrderLineItem[];
   materialItems?: ChangeOrderLineItem[];
   equipmentItems?: ChangeOrderLineItem[];
+  subcontractorItems?: ChangeOrderLineItem[];
   pricingIndirect?: ProposalPricingIndirect;
-  terms: string;                 // any legal terms / notes
-  preparedBy: string;            // your name/title
-  preparedByTitle?: string;      // e.g. "Senior Estimator"
-} 
+  terms: string;
+  preparedBy: string;
+  preparedByTitle?: string;
+}

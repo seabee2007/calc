@@ -4,6 +4,8 @@ export interface CostOptions {
   needsPumpTruck?: boolean;
   isSaturdayDelivery?: boolean;
   isAfterHoursDelivery?: boolean;
+  /** Material waste allowance applied to order volume before costing (0–100). */
+  wasteFactorPercent?: number;
 }
 
 export interface ConcreteCostResult {
@@ -44,15 +46,17 @@ export function calculateConcreteCost(
   if (!supplier) return EMPTY_PRICING;
 
   const pricing = supplier.pricing;
-  
+  const wastePct = Math.max(0, options.wasteFactorPercent ?? 0);
+  const orderVolume = volume * (1 + wastePct / 100);
+
   // Base and PSI-adjusted pricing
   const psiAdj = pricing.psiPriceAdjustments[psi] ?? 0;
   const pricePerYard = pricing.basePrice + psiAdj;
-  const concreteCost = volume * pricePerYard;
+  const concreteCost = orderVolume * pricePerYard;
   
   // Delivery fees
   const { baseDeliveryFee, minimumOrder, smallLoadFee, distanceFee, baseDistance } = pricing.deliveryFees;
-  const smallFee = volume < minimumOrder ? smallLoadFee : 0;
+  const smallFee = orderVolume < minimumOrder ? smallLoadFee : 0;
   const extraMiles = Math.max(0, distance - baseDistance);
   const distFee = extraMiles * distanceFee;
   const totalDelivery = baseDeliveryFee + smallFee + distFee;

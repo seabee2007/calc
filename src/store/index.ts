@@ -794,6 +794,9 @@ interface CompanySettings {
   logo: string | null;
   logoUrl?: string | null;
   logoPath?: string | null;
+  taxSystem: 'none' | 'sales_tax' | 'gross_receipts_tax' | 'vat';
+  taxRatePercent: number;
+  taxApplication: 'materials_only' | 'materials_and_equipment' | 'entire_project';
 }
 
 interface SettingsState {
@@ -831,7 +834,10 @@ const defaultCompanySettings: CompanySettings = {
   email: '',
   licenseNumber: '',
   motto: '',
-  logo: null
+  logo: null,
+  taxSystem: 'none',
+  taxRatePercent: 0,
+  taxApplication: 'materials_only',
 };
 
 // --- Helpers to map DB rows ---
@@ -1704,9 +1710,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
           email: settings.email,
           licenseNumber: settings.licenseNumber,
           motto: settings.motto,
-          logo: settings.logoUrl, // Map logoUrl to logo for backward compatibility
+          logo: settings.logoUrl,
           logoUrl: settings.logoUrl,
-          logoPath: settings.logoPath
+          logoPath: settings.logoPath,
+          taxSystem: settings.taxSystem,
+          taxRatePercent: settings.taxRatePercent,
+          taxApplication: settings.taxApplication,
         };
         
         set({ companySettings: mappedSettings, loading: false });
@@ -1734,8 +1743,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
           email: newSettings.email,
           licenseNumber: newSettings.licenseNumber,
           motto: newSettings.motto,
-          logoUrl: newSettings.logoUrl || newSettings.logo, // Handle both logoUrl and logo
-          logoPath: newSettings.logoPath
+          logoUrl: newSettings.logoUrl || newSettings.logo,
+          logoPath: newSettings.logoPath,
+          taxSystem: newSettings.taxSystem,
+          taxRatePercent: newSettings.taxRatePercent,
+          taxApplication: newSettings.taxApplication,
         };
         
         const updatedSettings = await updateSupabaseSettings(supabaseSettings);
@@ -1750,7 +1762,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
           motto: updatedSettings.motto,
           logo: updatedSettings.logoUrl,
           logoUrl: updatedSettings.logoUrl,
-          logoPath: updatedSettings.logoPath
+          logoPath: updatedSettings.logoPath,
+          taxSystem: updatedSettings.taxSystem,
+          taxRatePercent: updatedSettings.taxRatePercent,
+          taxApplication: updatedSettings.taxApplication,
         };
         
         set({ companySettings: mappedSettings, loading: false });
@@ -1780,7 +1795,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
             motto: migratedSettings.motto,
             logo: migratedSettings.logoUrl,
             logoUrl: migratedSettings.logoUrl,
-            logoPath: migratedSettings.logoPath
+            logoPath: migratedSettings.logoPath,
+            taxSystem: migratedSettings.taxSystem,
+            taxRatePercent: migratedSettings.taxRatePercent,
+            taxApplication: migratedSettings.taxApplication,
           };
           
           set({ companySettings: mappedSettings });

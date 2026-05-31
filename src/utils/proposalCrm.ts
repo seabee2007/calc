@@ -120,6 +120,10 @@ export function sumPipelineColumn(
 export function getProposalMargin(proposal: TrackedProposalRow): number {
   const total = num(proposal.total_amount);
   if (total <= 0) return 0;
+  const stored = num(proposal.gross_margin_percent);
+  if (stored > 0) return stored / 100;
+  const storedProfit = num(proposal.gross_profit);
+  if (storedProfit > 0) return storedProfit / total;
   const profit =
     total - num(proposal.labor_cost) - num(proposal.material_cost);
   return profit / total;

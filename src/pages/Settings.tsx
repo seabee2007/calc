@@ -32,6 +32,7 @@ import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE, CC_PAGE_META } from '../them
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
+import TaxRatePercentInput from '../components/pricing/TaxRatePercentInput';
 import { useThemeStore } from '../store/themeStore';
 import { useSettingsStore, usePreferencesStore } from '../store';
 import USAddressFields from '../components/address/USAddressFields';
@@ -572,6 +573,48 @@ const Settings: React.FC = () => {
             onChange={(e) => handleCompanyTextChange('motto', e.target.value)}
             placeholder="Building Excellence, One Project at a Time"
             icon={<Quote size={16} />}
+          />
+        </div>
+      </Card>
+
+      {/* Company tax defaults for proposals & change orders */}
+      <Card className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Company Tax Settings
+          </h2>
+        </div>
+        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          Default tax applied to new proposals and change orders. You can override per document.
+        </p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Select
+            label="Tax system"
+            value={companySettings.taxSystem}
+            onChange={(value) => void handleCompanyImmediateChange('taxSystem', value)}
+            options={[
+              { value: 'none', label: 'None' },
+              { value: 'sales_tax', label: 'Sales tax' },
+              { value: 'gross_receipts_tax', label: 'Gross receipts tax' },
+              { value: 'vat', label: 'VAT' },
+            ]}
+          />
+          <TaxRatePercentInput
+            value={companySettings.taxRatePercent}
+            onChange={(rate) => void updateCompanySettings({ taxRatePercent: rate })}
+          />
+          <Select
+            label="Apply tax to"
+            value={companySettings.taxApplication}
+            onChange={(value) =>
+              void handleCompanyImmediateChange('taxApplication', value)
+            }
+            options={[
+              { value: 'materials_only', label: 'Materials only' },
+              { value: 'materials_and_equipment', label: 'Materials + equipment' },
+              { value: 'entire_project', label: 'Entire pre-tax amount' },
+            ]}
           />
         </div>
       </Card>

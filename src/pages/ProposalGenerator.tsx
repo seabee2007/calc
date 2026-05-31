@@ -326,9 +326,22 @@ const ProposalGenerator: React.FC = () => {
             ...prev,
             ...lineItems,
             projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
+            pricingIndirect: {
+              ...proposalIndirectFromData(prev, {
+                taxSystem: companySettings.taxSystem,
+                taxRatePercent: companySettings.taxRatePercent,
+                taxApplication: companySettings.taxApplication,
+              }),
+              wasteFactorPercent: project.wasteFactor ?? 10,
+            },
           }),
           project.jobsiteAddress,
         ),
+        {
+          taxSystem: companySettings.taxSystem,
+          taxRatePercent: companySettings.taxRatePercent,
+          taxApplication: companySettings.taxApplication,
+        },
       ),
     );
 
@@ -1643,7 +1656,17 @@ const ProposalGenerator: React.FC = () => {
                 laborItems={proposalData.laborItems ?? []}
                 materialItems={proposalData.materialItems ?? []}
                 equipmentItems={proposalData.equipmentItems ?? []}
-                indirect={proposalIndirectFromData(proposalData)}
+                subcontractorItems={proposalData.subcontractorItems ?? []}
+                indirect={proposalIndirectFromData(proposalData, {
+                  taxSystem: companySettings.taxSystem,
+                  taxRatePercent: companySettings.taxRatePercent,
+                  taxApplication: companySettings.taxApplication,
+                })}
+                companyTax={{
+                  taxSystem: companySettings.taxSystem,
+                  taxRatePercent: companySettings.taxRatePercent,
+                  taxApplication: companySettings.taxApplication,
+                }}
                 onLaborChange={(laborItems) =>
                   setProposalData((prev) => ({ ...prev, laborItems }))
                 }
@@ -1652,6 +1675,9 @@ const ProposalGenerator: React.FC = () => {
                 }
                 onEquipmentChange={(equipmentItems) =>
                   setProposalData((prev) => ({ ...prev, equipmentItems }))
+                }
+                onSubcontractorChange={(subcontractorItems) =>
+                  setProposalData((prev) => ({ ...prev, subcontractorItems }))
                 }
                 onIndirectChange={(pricingIndirect) =>
                   setProposalData((prev) => ({ ...prev, pricingIndirect }))

@@ -47,6 +47,13 @@ const FinancialSnapshotCard: React.FC<FinancialSnapshotCardProps> = ({
         value={formatProposalMoney(financial.grossProfit)}
         highlight={financial.grossProfit >= 0}
       />
+      {financial.acceptedRevenue > 0 && financial.grossProfit > 0 && (
+        <Metric
+          label="Gross margin"
+          value={`${((financial.grossProfit / financial.acceptedRevenue) * 100).toFixed(1)}%`}
+          icon={<Percent className="h-3 w-3 text-emerald-400" />}
+        />
+      )}
       {financial.currentContractValue > 0 && (
         <Metric
           label="Contract value"

@@ -2,30 +2,41 @@ import React from 'react';
 import type { ProposalData, ProposalPricingIndirect } from '../../types/proposal';
 import type { ChangeOrderLineItem } from '../../types/changeOrder';
 import ChangeOrderLineItemsEditor from '../change-order/ChangeOrderLineItemsEditor';
-import Input from '../ui/Input';
-import ProposalPricingSection from './ProposalPricingSection';
-import { defaultProposalPricingIndirect } from '../../utils/proposalPricing';
+import PricingParamsEditor from '../pricing/PricingParamsEditor';
+import StandardPricingBreakdown from '../pricing/StandardPricingBreakdown';
+import { computeProposalBreakdown, defaultProposalPricingIndirect } from '../../utils/proposalPricing';
+import { hydratePricingParams } from '../../utils/pricingParams';
 
 interface ProposalPricingEditorProps {
   laborItems: ChangeOrderLineItem[];
   materialItems: ChangeOrderLineItem[];
   equipmentItems: ChangeOrderLineItem[];
+  subcontractorItems: ChangeOrderLineItem[];
   indirect: ProposalPricingIndirect;
   onLaborChange: (items: ChangeOrderLineItem[]) => void;
   onMaterialChange: (items: ChangeOrderLineItem[]) => void;
   onEquipmentChange: (items: ChangeOrderLineItem[]) => void;
+  onSubcontractorChange: (items: ChangeOrderLineItem[]) => void;
   onIndirectChange: (indirect: ProposalPricingIndirect) => void;
+  companyTax?: {
+    taxSystem?: ProposalPricingIndirect['taxSystem'];
+    taxRatePercent?: number;
+    taxApplication?: ProposalPricingIndirect['taxApplication'];
+  };
 }
 
 export default function ProposalPricingEditor({
   laborItems,
   materialItems,
   equipmentItems,
+  subcontractorItems,
   indirect,
   onLaborChange,
   onMaterialChange,
   onEquipmentChange,
+  onSubcontractorChange,
   onIndirectChange,
+  companyTax,
 }: ProposalPricingEditorProps) {
   const previewData: ProposalData = {
     businessName: '',
@@ -38,18 +49,22 @@ export default function ProposalPricingEditor({
     laborItems,
     materialItems,
     equipmentItems,
+    subcontractorItems,
     pricingIndirect: indirect,
   };
 
-  const setIndirectField = <K extends keyof ProposalPricingIndirect>(
-    key: K,
-    value: ProposalPricingIndirect[K],
-  ) => {
-    onIndirectChange({ ...indirect, [key]: value });
-  };
+  const breakdown = computeProposalBreakdown(previewData, companyTax);
+  const params = hydratePricingParams(previewData, companyTax);
 
   return (
     <div className="space-y-4">
+      {params.pricingModel === 'legacy' && (
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+          This proposal uses legacy pricing. Save with standard parameters to switch to
+          waste, tax, and true-margin pricing.
+        </p>
+      )}
+
       <ChangeOrderLineItemsEditor
         label="Labor"
         category="labor"
@@ -68,72 +83,32 @@ export default function ProposalPricingEditor({
         items={equipmentItems}
         onChange={onEquipmentChange}
       />
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Input
-          label="Fees ($)"
-          type="number"
-          min={0}
-          step={0.01}
-          value={indirect.feesAmount}
-          onChange={(e) =>
-            setIndirectField('feesAmount', Math.max(0, Number(e.target.value) || 0))
-          }
-          fullWidth
-        />
-        <Input
-          label="Permits ($)"
-          type="number"
-          min={0}
-          step={0.01}
-          value={indirect.permitsAmount}
-          onChange={(e) =>
-            setIndirectField('permitsAmount', Math.max(0, Number(e.target.value) || 0))
-          }
-          fullWidth
-        />
-        <Input
-          label="Overhead % (of direct cost)"
-          type="number"
-          min={0}
-          step={1}
-          value={indirect.overheadPercent}
-          onChange={(e) =>
-            setIndirectField('overheadPercent', Math.max(0, Number(e.target.value) || 0))
-          }
-          fullWidth
-        />
-        <Input
-          label="Profit % (of direct cost)"
-          type="number"
-          min={0}
-          step={1}
-          value={indirect.profitPercent}
-          onChange={(e) =>
-            setIndirectField('profitPercent', Math.max(0, Number(e.target.value) || 0))
-          }
-          fullWidth
-        />
-      </div>
-      <Input
-        label="Markup % (applied to material cost only)"
-        type="number"
-        min={0}
-        value={indirect.markupPercent}
-        onChange={(e) =>
-          setIndirectField('markupPercent', Math.max(0, Number(e.target.value) || 0))
-        }
-        fullWidth
+      <ChangeOrderLineItemsEditor
+        label="Subcontractors"
+        category="subcontractor"
+        items={subcontractorItems}
+        onChange={onSubcontractorChange}
       />
 
-      <ProposalPricingSection data={previewData} audience="internal" title="Pricing summary" />
+      <PricingParamsEditor
+        params={params}
+        onChange={(next) => onIndirectChange(next as ProposalPricingIndirect)}
+        showLegacyToggle
+      />
+
+      <StandardPricingBreakdown breakdown={breakdown} />
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        Clients see direct costs, indirect costs, and total proposal — same as change orders.
+        Clients see only the total proposal price — internal costs are not shown.
       </p>
     </div>
   );
 }
 
-export function proposalIndirectFromData(data: ProposalData): ProposalPricingIndirect {
-  return { ...defaultProposalPricingIndirect(), ...data.pricingIndirect };
+export function proposalIndirectFromData(
+  data: ProposalData,
+  companyTax?: Parameters<typeof hydratePricingParams>[1],
+): ProposalPricingIndirect {
+  return hydratePricingParams(data, companyTax) as ProposalPricingIndirect;
 }
+
+export { defaultProposalPricingIndirect };

@@ -5,11 +5,15 @@ import type {
   ChangeOrderLineItem,
   ChangeOrderStatus,
 } from '../types/changeOrder';
+import type { PricingParams } from '../types/pricingParams';
 import {
-  computeChangeOrderBreakdown,
+  computePricingBreakdown,
   DEFAULT_OVERHEAD_PERCENT,
   DEFAULT_PROFIT_PERCENT,
+  DEFAULT_TARGET_MARGIN_PERCENT,
+  DEFAULT_WASTE_FACTOR_PERCENT,
   normalizeLineItems,
+  type ChangeOrderPricingBreakdown,
 } from '../utils/changeOrderFinancials';
 import { linkFarToChangeOrder } from './fieldAdjustmentService';
 import { fetchAdjustmentById } from './fieldAdjustmentService';
@@ -54,7 +58,28 @@ export function mapChangeOrder(row: Record<string, unknown>): ChangeOrder {
     laborItems: parseItems(row.labor_items),
     materialItems: parseItems(row.material_items),
     equipmentItems: parseItems(row.equipment_items),
+    subcontractorItems: parseItems(row.subcontractor_items),
     markupPercent: Number(row.markup_percent ?? 0),
+    pricingModel:
+      (row.pricing_model as ChangeOrder['pricingModel']) ?? 'standard',
+    wasteFactorPercent: Number(row.waste_factor_percent ?? DEFAULT_WASTE_FACTOR_PERCENT),
+    wasteCost: Number(row.waste_cost ?? 0),
+    materialCostBase: Number(row.material_cost_base ?? 0),
+    materialCostAdjusted: Number(row.material_cost_adjusted ?? 0),
+    contingencyPercent: Number(row.contingency_percent ?? 0),
+    contingencyCost: Number(row.contingency_cost ?? 0),
+    taxSystem: String(row.tax_system ?? 'none'),
+    taxRatePercent: Number(row.tax_rate_percent ?? 0),
+    taxApplication: String(row.tax_application ?? 'materials_only'),
+    taxCost: Number(row.tax_cost ?? 0),
+    targetMarginPercent: Number(
+      row.target_margin_percent ?? DEFAULT_TARGET_MARGIN_PERCENT,
+    ),
+    grossProfit: Number(row.gross_profit ?? 0),
+    grossMarginPercent: Number(row.gross_margin_percent ?? 0),
+    markupPercentReporting: Number(row.markup_percent_reporting ?? 0),
+    costWithOverhead: Number(row.cost_with_overhead ?? 0),
+    totalEstimatedCost: Number(row.total_estimated_cost ?? 0),
     feesAmount: Number(row.fees_amount ?? 0),
     permitsAmount: Number(row.permits_amount ?? 0),
     overheadPercent: Number(row.overhead_percent ?? DEFAULT_OVERHEAD_PERCENT),
@@ -82,15 +107,37 @@ export function mapChangeOrder(row: Record<string, unknown>): ChangeOrder {
   };
 }
 
+function pricingParamsFromInput(input: ChangeOrderInput): PricingParams {
+  return {
+    pricingModel: input.pricingModel ?? 'standard',
+    wasteFactorPercent: input.wasteFactorPercent ?? DEFAULT_WASTE_FACTOR_PERCENT,
+    contingencyPercent: input.contingencyPercent ?? 0,
+    overheadPercent: input.overheadPercent ?? DEFAULT_OVERHEAD_PERCENT,
+    targetMarginPercent:
+      input.targetMarginPercent ?? DEFAULT_TARGET_MARGIN_PERCENT,
+    feesAmount: input.feesAmount ?? 0,
+    permitsAmount: input.permitsAmount ?? 0,
+    taxSystem: (input.taxSystem as PricingParams['taxSystem']) ?? 'none',
+    taxRatePercent: input.taxRatePercent ?? 0,
+    taxApplication:
+      (input.taxApplication as PricingParams['taxApplication']) ??
+      'materials_only',
+    profitPercent: input.profitPercent ?? DEFAULT_PROFIT_PERCENT,
+    markupPercent: input.markupPercent ?? 0,
+  };
+}
+
 function buildPayload(
   input: ChangeOrderInput,
-  totals: {
-    subtotal: number;
-    total: number;
-    overheadAmount: number;
-    profitAmount: number;
+  breakdown: ChangeOrderPricingBreakdown,
+  items: {
+    labor: ChangeOrderLineItem[];
+    material: ChangeOrderLineItem[];
+    equipment: ChangeOrderLineItem[];
+    subcontractor: ChangeOrderLineItem[];
   },
 ) {
+  const params = pricingParamsFromInput(input);
   return {
     project_id: input.projectId,
     user_id: input.userId,
@@ -101,18 +148,36 @@ function buildPayload(
     scope_description: input.scopeDescription,
     reason_for_change: input.reasonForChange,
     terms: input.terms ?? '',
-    labor_items: input.laborItems ?? [],
-    material_items: input.materialItems ?? [],
-    equipment_items: input.equipmentItems ?? [],
-    markup_percent: input.markupPercent ?? 0,
-    fees_amount: input.feesAmount ?? 0,
-    permits_amount: input.permitsAmount ?? 0,
-    overhead_percent: input.overheadPercent ?? DEFAULT_OVERHEAD_PERCENT,
-    profit_percent: input.profitPercent ?? DEFAULT_PROFIT_PERCENT,
-    overhead_amount: totals.overheadAmount ?? 0,
-    profit_amount: totals.profitAmount ?? 0,
-    subtotal: totals.subtotal,
-    total: totals.total,
+    labor_items: items.labor,
+    material_items: items.material,
+    equipment_items: items.equipment,
+    subcontractor_items: items.subcontractor,
+    markup_percent: params.markupPercent ?? 0,
+    fees_amount: params.feesAmount,
+    permits_amount: params.permitsAmount,
+    overhead_percent: params.overheadPercent,
+    profit_percent: params.profitPercent ?? DEFAULT_PROFIT_PERCENT,
+    overhead_amount: breakdown.overheadAmount,
+    profit_amount: breakdown.profitAmount,
+    subtotal: breakdown.directCost,
+    total: breakdown.totalPrice,
+    pricing_model: breakdown.pricingModel,
+    waste_factor_percent: breakdown.wasteFactorPercent,
+    waste_cost: breakdown.wasteCost,
+    material_cost_base: breakdown.materialCostBase,
+    material_cost_adjusted: breakdown.materialCostAdjusted,
+    contingency_percent: breakdown.contingencyPercent,
+    contingency_cost: breakdown.contingencyCost,
+    tax_system: breakdown.taxSystem,
+    tax_rate_percent: breakdown.taxRatePercent,
+    tax_application: breakdown.taxApplication,
+    tax_cost: breakdown.taxCost,
+    target_margin_percent: breakdown.targetMarginPercent,
+    gross_profit: breakdown.grossProfit,
+    gross_margin_percent: breakdown.grossMarginPercent,
+    markup_percent_reporting: breakdown.markupPercentReporting,
+    cost_with_overhead: breakdown.costWithOverhead,
+    total_estimated_cost: breakdown.totalEstimatedCost,
     schedule_impact: input.scheduleImpact ?? null,
     contractor_name: input.contractorName ?? null,
     contractor_signature: input.contractorSignature ?? null,
@@ -191,11 +256,16 @@ function normalizeInputItems(input: ChangeOrderInput): {
   labor: ChangeOrderLineItem[];
   material: ChangeOrderLineItem[];
   equipment: ChangeOrderLineItem[];
+  subcontractor: ChangeOrderLineItem[];
 } {
   return {
     labor: normalizeLineItems(input.laborItems ?? [], 'labor'),
     material: normalizeLineItems(input.materialItems ?? [], 'material'),
     equipment: normalizeLineItems(input.equipmentItems ?? [], 'equipment'),
+    subcontractor: normalizeLineItems(
+      input.subcontractorItems ?? [],
+      'subcontractor',
+    ),
   };
 }
 
@@ -203,25 +273,20 @@ export async function saveChangeOrder(
   id: string | null,
   input: ChangeOrderInput,
 ): Promise<ChangeOrder> {
-  const { labor, material, equipment } = normalizeInputItems(input);
-  const payloadInput: ChangeOrderInput = {
-    ...input,
-    laborItems: labor,
-    materialItems: material,
-    equipmentItems: equipment,
-  };
-  const breakdown = computeChangeOrderBreakdown(labor, material, equipment, {
-    feesAmount: input.feesAmount ?? 0,
-    permitsAmount: input.permitsAmount ?? 0,
-    overheadPercent: input.overheadPercent ?? DEFAULT_OVERHEAD_PERCENT,
-    profitPercent: input.profitPercent ?? DEFAULT_PROFIT_PERCENT,
-    markupPercent: input.markupPercent ?? 0,
-  });
-  const payload = buildPayload(payloadInput, {
-    subtotal: breakdown.directCost,
-    total: breakdown.totalPrice,
-    overheadAmount: breakdown.overheadAmount,
-    profitAmount: breakdown.profitAmount,
+  const { labor, material, equipment, subcontractor } = normalizeInputItems(input);
+  const params = pricingParamsFromInput(input);
+  const breakdown = computePricingBreakdown(
+    labor,
+    material,
+    equipment,
+    subcontractor,
+    params,
+  );
+  const payload = buildPayload(input, breakdown, {
+    labor,
+    material,
+    equipment,
+    subcontractor,
   });
 
   if (id) {

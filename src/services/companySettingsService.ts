@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { UserPreferences } from '../types';
+import type { TaxApplication, TaxSystem } from '../types/pricingParams';
 
 export interface CompanySettings {
   id?: string;
@@ -12,8 +13,32 @@ export interface CompanySettings {
   motto: string;
   logoUrl: string | null;
   logoPath: string | null;
+  taxSystem: TaxSystem;
+  taxRatePercent: number;
+  taxApplication: TaxApplication;
   createdAt?: string;
   updatedAt?: string;
+}
+
+function mapCompanyRow(data: Record<string, unknown>): CompanySettings {
+  return {
+    id: data.id as string,
+    userId: data.user_id as string,
+    companyName: (data.company_name as string) || '',
+    address: (data.address as string) || '',
+    phone: (data.phone as string) || '',
+    email: (data.email as string) || '',
+    licenseNumber: (data.license_number as string) || '',
+    motto: (data.motto as string) || '',
+    logoUrl: (data.logo_url as string | null) ?? null,
+    logoPath: (data.logo_path as string | null) ?? null,
+    taxSystem: (data.tax_system as TaxSystem) || 'none',
+    taxRatePercent: Number(data.tax_rate_percent ?? 0),
+    taxApplication:
+      (data.tax_application as TaxApplication) || 'materials_only',
+    createdAt: data.created_at as string,
+    updatedAt: data.updated_at as string,
+  };
 }
 
 /**
@@ -40,23 +65,9 @@ export async function getCompanySettings(): Promise<CompanySettings> {
 
   // Return data if exists, otherwise return default settings
   if (data) {
-    return {
-      id: data.id,
-      userId: data.user_id,
-      companyName: data.company_name || '',
-      address: data.address || '',
-      phone: data.phone || '',
-      email: data.email || '',
-      licenseNumber: data.license_number || '',
-      motto: data.motto || '',
-      logoUrl: data.logo_url,
-      logoPath: data.logo_path,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
+    return mapCompanyRow(data as Record<string, unknown>);
   }
 
-  // Return default settings for new users
   return {
     companyName: '',
     address: '',
@@ -65,7 +76,10 @@ export async function getCompanySettings(): Promise<CompanySettings> {
     licenseNumber: '',
     motto: '',
     logoUrl: null,
-    logoPath: null
+    logoPath: null,
+    taxSystem: 'none',
+    taxRatePercent: 0,
+    taxApplication: 'materials_only',
   };
 }
 
@@ -82,7 +96,7 @@ export async function saveCompanySettings(settings: Partial<CompanySettings>): P
   }
 
   // Prepare the data for database
-  const dbData = {
+  const dbData: Record<string, unknown> = {
     user_id: user.id,
     company_name: settings.companyName || '',
     address: settings.address || '',
@@ -91,8 +105,15 @@ export async function saveCompanySettings(settings: Partial<CompanySettings>): P
     license_number: settings.licenseNumber || '',
     motto: settings.motto || '',
     logo_url: settings.logoUrl,
-    logo_path: settings.logoPath
+    logo_path: settings.logoPath,
   };
+  if (settings.taxSystem !== undefined) dbData.tax_system = settings.taxSystem;
+  if (settings.taxRatePercent !== undefined) {
+    dbData.tax_rate_percent = settings.taxRatePercent;
+  }
+  if (settings.taxApplication !== undefined) {
+    dbData.tax_application = settings.taxApplication;
+  }
 
   // Use upsert to insert or update
   const { data, error } = await supabase
@@ -107,20 +128,7 @@ export async function saveCompanySettings(settings: Partial<CompanySettings>): P
     throw error;
   }
 
-  return {
-    id: data.id,
-    userId: data.user_id,
-    companyName: data.company_name || '',
-    address: data.address || '',
-    phone: data.phone || '',
-    email: data.email || '',
-    licenseNumber: data.license_number || '',
-    motto: data.motto || '',
-    logoUrl: data.logo_url,
-    logoPath: data.logo_path,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at
-  };
+  return mapCompanyRow(data as Record<string, unknown>);
 }
 
 /**

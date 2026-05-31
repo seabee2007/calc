@@ -57,6 +57,10 @@ export async function lookupBatchPlantPricing(
     }),
   });
 
+  if (res.status === 404) {
+    throw new Error('batch-plant-pricing function is not deployed');
+  }
+
   const data = (await res.json()) as Parameters<typeof mapPricingApiResponse>[0] & {
     error?: string;
   };

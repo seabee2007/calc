@@ -9,7 +9,11 @@ export const CHANGE_ORDER_STATUSES = [
 
 export type ChangeOrderStatus = (typeof CHANGE_ORDER_STATUSES)[number];
 
-export type ChangeOrderLineItemCategory = 'labor' | 'material' | 'equipment';
+export type ChangeOrderLineItemCategory =
+  | 'labor'
+  | 'material'
+  | 'equipment'
+  | 'subcontractor';
 
 export interface ChangeOrderLineItem {
   description: string;
@@ -40,7 +44,25 @@ export interface ChangeOrder {
   laborItems: ChangeOrderLineItem[];
   materialItems: ChangeOrderLineItem[];
   equipmentItems: ChangeOrderLineItem[];
+  subcontractorItems: ChangeOrderLineItem[];
   markupPercent: number;
+  pricingModel: 'legacy' | 'standard';
+  wasteFactorPercent: number;
+  wasteCost: number;
+  materialCostBase: number;
+  materialCostAdjusted: number;
+  contingencyPercent: number;
+  contingencyCost: number;
+  taxSystem: string;
+  taxRatePercent: number;
+  taxApplication: string;
+  taxCost: number;
+  targetMarginPercent: number;
+  grossProfit: number;
+  grossMarginPercent: number;
+  markupPercentReporting: number;
+  costWithOverhead: number;
+  totalEstimatedCost: number;
   feesAmount: number;
   permitsAmount: number;
   /** % of direct cost (default 8). */
@@ -81,7 +103,15 @@ export interface ChangeOrderInput {
   laborItems?: ChangeOrderLineItem[];
   materialItems?: ChangeOrderLineItem[];
   equipmentItems?: ChangeOrderLineItem[];
+  subcontractorItems?: ChangeOrderLineItem[];
   markupPercent?: number;
+  pricingModel?: 'legacy' | 'standard';
+  wasteFactorPercent?: number;
+  contingencyPercent?: number;
+  targetMarginPercent?: number;
+  taxSystem?: string;
+  taxRatePercent?: number;
+  taxApplication?: string;
   feesAmount?: number;
   permitsAmount?: number;
   overheadPercent?: number;

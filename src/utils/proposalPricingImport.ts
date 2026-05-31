@@ -9,8 +9,14 @@ export interface ProposalPricingLine {
   amount: string;
 }
 
+function projectWasteMultiplier(project: Project): number {
+  const wf = project.wasteFactor ?? 10;
+  return 1 + Math.max(0, wf) / 100;
+}
+
 /** Build proposal pricing lines from project concrete, reinforcement, and labor data. */
 export function buildProposalPricingFromProject(project: Project): ProposalPricingLine[] {
+  const wasteMult = projectWasteMultiplier(project);
   const pricingItems: ProposalPricingLine[] = [];
 
   const calculationsWithPricing = (project.calculations ?? []).filter((calc) => {
@@ -72,9 +78,10 @@ export function buildProposalPricingFromProject(project: Project): ProposalPrici
         : data.calcTypes.length === 2
           ? data.calcTypes.join(' & ')
           : 'Mixed Concrete Work';
+    const orderVolume = data.volume * wasteMult;
     pricingItems.push({
-      description: `${calcTypesStr} - ${data.volume.toFixed(2)} yd³ concrete (${psi} PSI)`,
-      amount: formatPrice(data.cost),
+      description: `${calcTypesStr} - ${orderVolume.toFixed(2)} yd³ order (${psi} PSI, incl. waste)`,
+      amount: formatPrice(data.cost * wasteMult),
     });
   });
 
@@ -189,6 +196,7 @@ function laborMoneyLine(
 export function buildProposalLineItemsFromProject(
   project: Project,
 ): ProposalLineItemsFromProject {
+  const wasteMult = projectWasteMultiplier(project);
   const laborItems: ChangeOrderLineItem[] = [];
   const materialItems: ChangeOrderLineItem[] = [];
   const equipmentItems: ChangeOrderLineItem[] = [];
@@ -252,9 +260,10 @@ export function buildProposalLineItemsFromProject(
         : data.calcTypes.length === 2
           ? data.calcTypes.join(' & ')
           : 'Mixed concrete work';
+    const orderVolume = data.volume * wasteMult;
     const row = moneyLine(
-      `${calcTypesStr} — ${data.volume.toFixed(2)} yd³ concrete (${psi} PSI)`,
-      data.cost,
+      `${calcTypesStr} — ${orderVolume.toFixed(2)} yd³ order (${psi} PSI, incl. waste)`,
+      data.cost * wasteMult,
     );
     if (row) materialItems.push(row);
   });
