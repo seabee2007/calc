@@ -5,7 +5,7 @@ import { usePlannerAccessibleProjects } from '../../hooks/usePlannerAccessiblePr
 import type { RfiRequest } from '../../types/fieldPlanner';
 import { RFI_PRIORITIES } from '../../types/fieldPlanner';
 import { fetchRfisForProjectIds, isRfiClosed } from '../../services/rfiService';
-import { fetchProfilesByIds, displayNameFor } from '../../services/profileService';
+import { buildProfileNameMap, nameFromMap } from '../../services/profileService';
 import { plannerRfiHref } from '../../utils/plannerRoutes';
 import Button from '../../components/ui/Button';
 import RfiDetailDrawer from '../../components/field/RfiDetailDrawer';
@@ -39,12 +39,7 @@ export default function PlannerAllRfisPage() {
       const list = await fetchRfisForProjectIds(projectIds);
       setRfis(list);
       const ids = [...new Set(list.map((r) => r.submittedBy))];
-      const profiles = await fetchProfilesByIds(ids);
-      const map = new Map<string, string>();
-      for (const id of ids) {
-        map.set(id, displayNameFor(profiles.get(id), 'Team member'));
-      }
-      setNameMap(map);
+      setNameMap(await buildProfileNameMap(ids));
     } finally {
       setLoading(false);
     }
@@ -122,7 +117,7 @@ export default function PlannerAllRfisPage() {
                 <td className="px-3 py-2">
                   <TaskPriorityBadge priority={rfi.urgency as 'Low' | 'Normal' | 'High' | 'Urgent'} />
                 </td>
-                <td className="px-3 py-2">{nameMap.get(rfi.submittedBy) ?? '—'}</td>
+                <td className="px-3 py-2">{nameFromMap(nameMap, rfi.submittedBy, '—')}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-gray-500">
                   {new Date(rfi.createdAt).toLocaleDateString()}
                 </td>

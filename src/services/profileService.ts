@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import type { Profile, UserRole } from '../types/fieldPlanner';
 
+export const DEFAULT_PROFILE_DISPLAY_NAME = 'Team member';
+
 function mapProfile(row: Record<string, unknown>): Profile {
   return {
     id: row.id as string,
@@ -64,7 +66,7 @@ export async function ensureEmployeeProfile(
       id: userId,
       role,
       employer_id: employerId,
-      display_name: displayName ?? 'Team Member',
+      display_name: displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
     })
     .select('*')
     .single();
@@ -97,6 +99,30 @@ export async function fetchProfilesByIds(ids: string[]): Promise<Map<string, Pro
   return map;
 }
 
-export function displayNameFor(profile: Profile | undefined, fallback = 'Team Member'): string {
+export function displayNameFor(
+  profile: Profile | undefined,
+  fallback = DEFAULT_PROFILE_DISPLAY_NAME,
+): string {
   return profile?.displayName?.trim() || fallback;
+}
+
+export async function buildProfileNameMap(
+  ids: string[],
+  fallback = DEFAULT_PROFILE_DISPLAY_NAME,
+): Promise<Map<string, string>> {
+  const profiles = await fetchProfilesByIds(ids);
+  const map = new Map<string, string>();
+  for (const id of [...new Set(ids)]) {
+    map.set(id, displayNameFor(profiles.get(id), fallback));
+  }
+  return map;
+}
+
+export function nameFromMap(
+  map: Map<string, string>,
+  id: string | null | undefined,
+  fallback = DEFAULT_PROFILE_DISPLAY_NAME,
+): string {
+  if (!id) return fallback;
+  return map.get(id) ?? fallback;
 }

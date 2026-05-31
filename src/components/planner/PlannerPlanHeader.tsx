@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { Download, MoreHorizontal } from 'lucide-react';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import { exportPlannerBoardJson, exportPlannerTasksCsv } from '../../utils/plannerExport';
+import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import UserAvatar from './UserAvatar';
 import Button from '../ui/Button';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
@@ -61,7 +62,7 @@ export default function PlannerPlanHeader() {
             {visibleTeam.map((m) => (
               <UserAvatar
                 key={m.id}
-                name={m.displayName ?? 'Member'}
+                name={m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME}
                 size="md"
                 className="ring-2 ring-white dark:ring-slate-900"
               />

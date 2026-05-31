@@ -8,7 +8,7 @@ import {
   type TaskPriority,
   type TaskStatus,
 } from '../types/fieldPlanner';
-import { fetchProfilesByIds, displayNameFor } from './profileService';
+import { buildProfileNameMap, nameFromMap } from './profileService';
 import { plannerBoardHref } from '../utils/plannerRoutes';
 
 function mapBoard(row: Record<string, unknown>): PlannerBoard {
@@ -99,7 +99,7 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
   const taskIds = tasks.map((t) => t.id);
   const assigneeIds = tasks.map((t) => t.assignedTo).filter(Boolean) as string[];
 
-  const [commentsRes, attachmentsRes, checklistRes, rfiRes, adjRes, profiles] = await Promise.all([
+  const [commentsRes, attachmentsRes, checklistRes, rfiRes, adjRes, profileNames] = await Promise.all([
     supabase.from('task_comments').select('task_id').in('task_id', taskIds),
     supabase
       .from('task_attachments')
@@ -113,7 +113,7 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
       .order('position'),
     supabase.from('rfi_requests').select('task_id').in('task_id', taskIds),
     supabase.from('field_adjustment_requests').select('task_id').in('task_id', taskIds),
-    fetchProfilesByIds(assigneeIds),
+    buildProfileNameMap(assigneeIds),
   ]);
 
   const commentCounts = new Map<string, number>();
@@ -180,9 +180,7 @@ async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {
     checklistPreview: checklistPreviewMap.get(t.id) ?? [],
     rfiCount: rfiCounts.get(t.id) ?? 0,
     adjustmentCount: adjustmentCounts.get(t.id) ?? 0,
-    assigneeName: t.assignedTo
-      ? displayNameFor(profiles.get(t.assignedTo))
-      : null,
+    assigneeName: t.assignedTo ? nameFromMap(profileNames, t.assignedTo) : null,
   }));
 }
 

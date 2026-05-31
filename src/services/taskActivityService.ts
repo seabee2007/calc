@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { TaskAttachment, TaskChecklistItem, TaskComment } from '../types/fieldPlanner';
-import { fetchProfilesByIds, displayNameFor } from './profileService';
+import { buildProfileNameMap, nameFromMap } from './profileService';
 
 function mapComment(row: Record<string, unknown>): TaskComment {
   return {
@@ -50,10 +50,10 @@ export async function fetchTaskComments(taskId: string): Promise<TaskComment[]> 
 
   if (error) throw error;
   const comments = (data ?? []).map(mapComment);
-  const profiles = await fetchProfilesByIds(comments.map((c) => c.userId));
+  const nameMap = await buildProfileNameMap(comments.map((c) => c.userId));
   return comments.map((c) => ({
     ...c,
-    authorName: displayNameFor(profiles.get(c.userId)),
+    authorName: nameFromMap(nameMap, c.userId),
   }));
 }
 

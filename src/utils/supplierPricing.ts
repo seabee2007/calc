@@ -4,7 +4,7 @@ import type {
   BatchPlantPricingLookupResult,
   BatchPlantPricingLookupInput,
 } from '../services/batchPlantPricingService';
-import { getNearestLocation } from './pricing';
+import { getNearestLocation } from './readyMixCost';
 
 export interface PlantPricingBundle {
   supplier: LocationPricing;

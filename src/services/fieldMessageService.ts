@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { FieldMessage } from '../types/fieldPlanner';
-import { fetchProfilesByIds, displayNameFor } from './profileService';
+import { buildProfileNameMap, nameFromMap } from './profileService';
 
 function mapMessage(row: Record<string, unknown>): FieldMessage {
   return {
@@ -42,7 +42,7 @@ export async function fetchMessagesForUser(
 
   const messages = (data ?? []).map(mapMessage);
   const senderIds = messages.map((m) => m.senderId);
-  const profiles = await fetchProfilesByIds(senderIds);
+  const nameMap = await buildProfileNameMap(senderIds);
 
   const projectIds = [...new Set(messages.map((m) => m.projectId))];
   const { data: projects } = await supabase
@@ -53,7 +53,7 @@ export async function fetchMessagesForUser(
 
   return messages.map((m) => ({
     ...m,
-    senderName: displayNameFor(profiles.get(m.senderId)),
+    senderName: nameFromMap(nameMap, m.senderId),
     projectName: projectNames.get(m.projectId) ?? 'Project',
   }));
 }

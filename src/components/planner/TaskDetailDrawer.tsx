@@ -16,6 +16,7 @@ import {
   fetchTaskAttachments,
   fetchTaskComments,
 } from '../../services/taskActivityService';
+import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import TaskChecklist from './TaskChecklist';
 import TaskComments from './TaskComments';
 import TaskAttachments from './TaskAttachments';
@@ -238,7 +239,7 @@ export default function TaskDetailDrawer({
                           { value: '', label: 'Unassigned' },
                           ...team.map((m) => ({
                             value: m.id,
-                            label: m.displayName ?? 'Team member',
+                            label: m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
                           })),
                         ]}
                       />

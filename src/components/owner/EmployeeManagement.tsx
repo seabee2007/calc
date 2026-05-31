@@ -8,7 +8,7 @@ import {
   fetchPendingInvites,
   sendEmployeeInviteEmail,
 } from '../../services/employeeService';
-import { fetchTeamProfiles } from '../../services/profileService';
+import { fetchTeamProfiles, DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import type { EmployeeInvite, Profile } from '../../types/fieldPlanner';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
@@ -136,7 +136,7 @@ export default function EmployeeManagement() {
               { value: '', label: 'Select employee' },
               ...team.map((m) => ({
                 value: m.id,
-                label: m.displayName ?? m.id.slice(0, 8),
+                label: m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
               })),
             ]}
           />
@@ -163,7 +163,7 @@ export default function EmployeeManagement() {
           <ul className="space-y-2">
             {team.map((m) => (
               <li key={m.id} className="text-sm">
-                {m.displayName ?? 'Member'} · {m.role}
+                {m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME} · {m.role}
               </li>
             ))}
           </ul>

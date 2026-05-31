@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import type { TaskComment } from '../../types/fieldPlanner';
 import { addTaskComment } from '../../services/taskActivityService';
+import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import Button from '../ui/Button';
 import UserAvatar from './UserAvatar';
 import {
@@ -73,10 +74,10 @@ export default function TaskComments({
         {comments.map((c) => (
           <li key={c.id} className={PLANNER_COMMENT_BOX}>
             <div className="flex gap-2">
-              <UserAvatar name={c.authorName ?? 'User'} />
+              <UserAvatar name={c.authorName ?? DEFAULT_PROFILE_DISPLAY_NAME} />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-gray-800 dark:text-slate-200">
-                  {c.authorName ?? 'User'}
+                  {c.authorName ?? DEFAULT_PROFILE_DISPLAY_NAME}
                 </p>
                 <p className={PLANNER_COMMENT_TEXT}>{c.comment}</p>
                 <p className={`mt-1 ${PLANNER_TASK_META}`}>

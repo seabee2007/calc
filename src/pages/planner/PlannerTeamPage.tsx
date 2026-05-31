@@ -6,7 +6,7 @@ import {
   fetchAssignmentsForProject,
   removeEmployeeFromProject,
 } from '../../services/employeeService';
-import { fetchTeamProfiles } from '../../services/profileService';
+import { fetchTeamProfiles, DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import type { EmployeeProjectAssignment, Profile } from '../../types/fieldPlanner';
 import Button from '../../components/ui/Button';
 import UserAvatar from '../../components/planner/UserAvatar';
@@ -86,7 +86,7 @@ export default function PlannerTeamPage() {
       <ul className="space-y-2">
         {assignments.map((a) => {
           const profile = profileFor(a.employeeId);
-          const name = profile?.displayName ?? 'Team member';
+          const name = profile?.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME;
           return (
             <li
               key={a.id}

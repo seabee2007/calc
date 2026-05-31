@@ -3,7 +3,7 @@ import { DollarSign, Truck, Clock, Calendar, MapPin, Factory, Loader2, CheckCirc
 import Card from '../ui/Card';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { calculateConcreteCost, formatPrice } from '../../utils/pricing';
+import { calculateConcreteCost, formatPrice } from '../../utils/readyMixCost';
 import { volumeToCubicYards } from '../../utils/readyMixDelivery';
 import { LocationPricing, VolumeUnit } from '../../types';
 import { GeocodedLocation } from '../../utils/location';

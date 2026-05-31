@@ -5,7 +5,7 @@ import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import type { FieldAdjustmentRequest } from '../../types/fieldPlanner';
 import { FAR_STATUSES } from '../../types/fieldPlanner';
 import { fetchAdjustmentsForProject } from '../../services/fieldAdjustmentService';
-import { fetchProfilesByIds, displayNameFor } from '../../services/profileService';
+import { buildProfileNameMap, nameFromMap } from '../../services/profileService';
 import Button from '../../components/ui/Button';
 import CreateFieldAdjustmentModal from '../../components/field/CreateFieldAdjustmentModal';
 import FarDetailDrawer from '../../components/field/FarDetailDrawer';
@@ -47,12 +47,7 @@ export default function PlannerAdjustmentsPage() {
     const list = await fetchAdjustmentsForProject(projectId);
     setItems(list);
     const ids = [...new Set(list.map((a) => a.submittedBy))];
-    const profiles = await fetchProfilesByIds(ids);
-    const map = new Map<string, string>();
-    for (const id of ids) {
-      map.set(id, displayNameFor(profiles.get(id), 'Team member'));
-    }
-    setNameMap(map);
+    setNameMap(await buildProfileNameMap(ids));
   }, [projectId]);
 
   useEffect(() => {
@@ -120,7 +115,7 @@ export default function PlannerAdjustmentsPage() {
               >
                 <td className="px-3 py-2 font-mono text-xs">{adj.displayNumber ?? '—'}</td>
                 <td className="max-w-[200px] truncate px-3 py-2 font-medium">{adj.title}</td>
-                <td className="px-3 py-2">{nameMap.get(adj.submittedBy) ?? '—'}</td>
+                <td className="px-3 py-2">{nameFromMap(nameMap, adj.submittedBy, '—')}</td>
                 <td className="px-3 py-2 text-gray-600 dark:text-slate-400">{impactSummary(adj)}</td>
                 <td className="px-3 py-2 text-gray-600 dark:text-slate-400">
                   {adj.scheduleImpact ?? '—'}

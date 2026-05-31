@@ -5,6 +5,7 @@ import Select from '../ui/Select';
 import Button from '../ui/Button';
 import { TASK_PRIORITIES, type TaskPriority } from '../../types/fieldPlanner';
 import type { Profile } from '../../types/fieldPlanner';
+import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import { PLANNER_INPUT } from './plannerTheme';
 
 interface AddTaskModalProps {
@@ -73,7 +74,7 @@ export default function AddTaskModal({ isOpen, onClose, team, onSubmit }: AddTas
             { value: '', label: 'Unassigned' },
             ...team.map((m) => ({
               value: m.id,
-              label: m.displayName ?? m.id.slice(0, 8),
+              label: m.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
             })),
           ]}
         />

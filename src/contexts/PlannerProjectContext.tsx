@@ -13,7 +13,7 @@ import {
   ensurePlannerBoard,
   fetchPlannerBoardBundle,
 } from '../services/plannerService';
-import { fetchTeamProfiles } from '../services/profileService';
+import { fetchTeamProfiles, fetchProfilesByIds } from '../services/profileService';
 import { fetchAssignmentsForProject } from '../services/employeeService';
 import {
   resolveProjectWorkflow,
@@ -122,20 +122,9 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
         const assignments = await fetchAssignmentsForProject(projectId);
         const ids = assignments.map((a) => a.employeeId);
         if (ids.length > 0) {
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('*')
-            .in('id', ids);
+          const profileMap = await fetchProfilesByIds(ids);
           setTeam(
-            (profiles ?? []).map((p) => ({
-              id: p.id as string,
-              role: p.role as Profile['role'],
-              employerId: (p.employer_id as string) ?? null,
-              displayName: (p.display_name as string) ?? null,
-              phone: (p.phone as string) ?? null,
-              createdAt: p.created_at as string,
-              updatedAt: p.updated_at as string,
-            })),
+            ids.map((id) => profileMap.get(id)).filter(Boolean) as Profile[],
           );
         }
       }

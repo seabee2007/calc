@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { FieldActivityItem } from '../types/fieldPlanner';
-import { fetchProfilesByIds, displayNameFor } from './profileService';
+import { buildProfileNameMap, nameFromMap } from './profileService';
 import {
   plannerAdjustmentHref,
   plannerBoardHref,
@@ -83,8 +83,7 @@ export async function getOwnerFieldActivity(
   for (const row of rfis.data ?? []) userIds.add(row.submitted_by as string);
   for (const row of adjustments.data ?? []) userIds.add(row.submitted_by as string);
 
-  const profiles = await fetchProfilesByIds([...userIds]);
-  const nameFor = (id: string) => displayNameFor(profiles.get(id), 'Team member');
+  const nameMap = await buildProfileNameMap([...userIds]);
 
   const items: FieldActivityItem[] = [];
 
@@ -96,8 +95,8 @@ export async function getOwnerFieldActivity(
       type: 'comment',
       projectId: pid,
       projectName: names.get(pid) ?? 'Project',
-      employeeName: nameFor(row.user_id as string),
-      summary: `${nameFor(row.user_id as string)} posted a field update`,
+      employeeName: nameFromMap(nameMap, row.user_id as string),
+      summary: `${nameFromMap(nameMap, row.user_id as string)} posted a field update`,
       timestamp: row.created_at as string,
       status: 'New',
       href: plannerBoardHref(pid, tid),
@@ -112,8 +111,8 @@ export async function getOwnerFieldActivity(
       type: 'task_submitted',
       projectId: pid,
       projectName: names.get(pid) ?? 'Project',
-      employeeName: aid ? nameFor(aid) : 'Team member',
-      summary: `${aid ? nameFor(aid) : 'Someone'} submitted ${row.title as string}`,
+      employeeName: nameFromMap(nameMap, aid),
+      summary: `${nameFromMap(nameMap, aid, 'Someone')} submitted ${row.title as string}`,
       timestamp: (row.submitted_at as string) ?? new Date().toISOString(),
       status: row.status as string,
       href: plannerBoardHref(pid, row.id as string),
@@ -128,8 +127,8 @@ export async function getOwnerFieldActivity(
       type: 'attachment',
       projectId: pid,
       projectName: names.get(pid) ?? 'Project',
-      employeeName: nameFor(row.uploaded_by as string),
-      summary: `${nameFor(row.uploaded_by as string)} uploaded ${row.file_name as string}`,
+      employeeName: nameFromMap(nameMap, row.uploaded_by as string),
+      summary: `${nameFromMap(nameMap, row.uploaded_by as string)} uploaded ${row.file_name as string}`,
       timestamp: row.created_at as string,
       status: 'Uploaded',
       href: plannerBoardHref(pid, tid),
@@ -143,8 +142,8 @@ export async function getOwnerFieldActivity(
       type: 'message',
       projectId: pid,
       projectName: names.get(pid) ?? 'Project',
-      employeeName: nameFor(row.sender_id as string),
-      summary: `Message from ${nameFor(row.sender_id as string)}`,
+      employeeName: nameFromMap(nameMap, row.sender_id as string),
+      summary: `Message from ${nameFromMap(nameMap, row.sender_id as string)}`,
       timestamp: row.created_at as string,
       status: 'Unread',
       href: `/employee/messages`,
@@ -154,7 +153,7 @@ export async function getOwnerFieldActivity(
   for (const row of rfis.data ?? []) {
     const pid = row.project_id as string;
     const rid = row.id as string;
-    const submitter = nameFor(row.submitted_by as string);
+    const submitter = nameFromMap(nameMap, row.submitted_by as string);
     items.push({
       id: `rfi-${rid}`,
       type: 'rfi',
@@ -184,7 +183,7 @@ export async function getOwnerFieldActivity(
   for (const row of adjustments.data ?? []) {
     const pid = row.project_id as string;
     const aid = row.id as string;
-    const submitter = nameFor(row.submitted_by as string);
+    const submitter = nameFromMap(nameMap, row.submitted_by as string);
     items.push({
       id: `adjustment-${aid}`,
       type: 'field_adjustment',
@@ -284,8 +283,7 @@ export async function buildProjectActivityFeed(
   for (const row of rfis.data ?? []) userIds.add(row.submitted_by as string);
   for (const row of adjustments.data ?? []) userIds.add(row.submitted_by as string);
 
-  const profiles = await fetchProfilesByIds([...userIds]);
-  const nameFor = (id: string) => displayNameFor(profiles.get(id), 'Team member');
+  const nameMap = await buildProfileNameMap([...userIds]);
 
   const items: FieldActivityItem[] = [];
 
@@ -296,8 +294,8 @@ export async function buildProjectActivityFeed(
       type: 'comment',
       projectId,
       projectName,
-      employeeName: nameFor(row.user_id as string),
-      summary: `${nameFor(row.user_id as string)} commented on a task`,
+      employeeName: nameFromMap(nameMap, row.user_id as string),
+      summary: `${nameFromMap(nameMap, row.user_id as string)} commented on a task`,
       timestamp: row.created_at as string,
       status: 'Update',
       href: plannerBoardHref(projectId, tid),
@@ -316,7 +314,7 @@ export async function buildProjectActivityFeed(
         type: 'task_submitted',
         projectId,
         projectName,
-        employeeName: assignee ? nameFor(assignee) : 'Team member',
+        employeeName: nameFromMap(nameMap, assignee),
         summary: `Task submitted for review: ${title}`,
         timestamp: row.submitted_at as string,
         status,
@@ -342,7 +340,7 @@ export async function buildProjectActivityFeed(
         type: 'task_completed',
         projectId,
         projectName,
-        employeeName: assignee ? nameFor(assignee) : 'Team member',
+        employeeName: nameFromMap(nameMap, assignee),
         summary: `Task completed: ${title}`,
         timestamp: row.completed_at as string,
         status,
@@ -355,7 +353,7 @@ export async function buildProjectActivityFeed(
         type: 'task_created',
         projectId,
         projectName,
-        employeeName: row.created_by ? nameFor(row.created_by as string) : 'Owner',
+        employeeName: row.created_by ? nameFromMap(nameMap, row.created_by as string) : 'Owner',
         summary: `Task created: ${title}`,
         timestamp: row.created_at as string,
         status: 'New',
@@ -371,8 +369,8 @@ export async function buildProjectActivityFeed(
       type: 'attachment',
       projectId,
       projectName,
-      employeeName: nameFor(row.uploaded_by as string),
-      summary: `${nameFor(row.uploaded_by as string)} uploaded ${row.file_name as string}`,
+      employeeName: nameFromMap(nameMap, row.uploaded_by as string),
+      summary: `${nameFromMap(nameMap, row.uploaded_by as string)} uploaded ${row.file_name as string}`,
       timestamp: row.created_at as string,
       status: 'Uploaded',
       href: plannerDocumentsHref(projectId, { fileId: row.id as string }),
@@ -386,7 +384,7 @@ export async function buildProjectActivityFeed(
       type: 'rfi',
       projectId,
       projectName,
-      employeeName: nameFor(row.submitted_by as string),
+      employeeName: nameFromMap(nameMap, row.submitted_by as string),
       summary: `RFI: ${row.title as string}`,
       timestamp: row.created_at as string,
       status: row.status as string,
@@ -414,7 +412,7 @@ export async function buildProjectActivityFeed(
       type: 'field_adjustment',
       projectId,
       projectName,
-      employeeName: nameFor(row.submitted_by as string),
+      employeeName: nameFromMap(nameMap, row.submitted_by as string),
       summary: `Field adjustment: ${row.title as string}`,
       timestamp: row.created_at as string,
       status: row.status as string,
