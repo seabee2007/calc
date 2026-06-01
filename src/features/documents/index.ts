@@ -4,8 +4,9 @@
  * All consumers import from this barrel only. Internal module layout
  * (engine/, templates/, packs/) is an implementation detail.
  *
- * Phase 0.1: architecture foundation. Engine functions return safe placeholder
- * data; no UI, routes, Supabase, or PDF export are wired up yet.
+ * Engine functions return safe placeholder data; no UI, routes, Supabase, or
+ * PDF export are wired up yet. The Generic Residential Pack ships real clause
+ * and addendum catalogs (draft-only, not attorney reviewed).
  */
 
 // Types (isolatedModules requires type-only re-exports).
@@ -13,6 +14,7 @@ export type {
   DocumentType,
   DocumentPackStatus,
   PriceModel,
+  ProjectType,
   ClauseCategory,
   DocumentClause,
   DocumentAddendum,
@@ -40,7 +42,7 @@ export type {
 } from './types';
 
 // Constants.
-export { DRAFT_DISCLAIMER } from './types';
+export { DRAFT_DISCLAIMER, ALL_PROJECT_TYPES, ALL_PRICE_MODELS } from './types';
 
 // Engine functions.
 export { assembleDocument } from './engine/documentAssembly';
@@ -52,14 +54,21 @@ export { scoreDocumentRisk } from './engine/riskEngine';
 export { recommendDocumentClauses } from './engine/recommendationEngine';
 
 // Packs.
-export { GENERIC_RESIDENTIAL_PACK } from './packs/genericResidential';
+export {
+  GENERIC_RESIDENTIAL_PACK,
+  GENERIC_RESIDENTIAL_CONTRACT_TEMPLATE,
+  genericResidentialClauses,
+  genericResidentialClauseKeys,
+  genericResidentialAddendums,
+  genericResidentialAddendumKeys,
+} from './packs/genericResidential';
 export { concretePacks } from './packs/concrete';
 export { roofingPacks } from './packs/roofing';
 export { insuranceRestorationPacks } from './packs/insuranceRestoration';
 export { timeAndMaterialsPacks } from './packs/timeAndMaterials';
 export { statePacks } from './packs/statePacks';
 
-// Template catalogs (empty placeholders during Phase 0.1).
+// Document-level template catalogs (per document type).
 export { contractTemplates } from './templates/contracts';
 export { proposalTemplates } from './templates/proposals';
 export { changeOrderTemplates } from './templates/changeOrders';

@@ -38,6 +38,17 @@ export type PriceModel =
   | 'time_and_materials'
   | 'cost_plus';
 
+export type ProjectType =
+  | 'remodel'
+  | 'repair'
+  | 'concrete'
+  | 'roofing'
+  | 'adu'
+  | 'deck'
+  | 'fence'
+  | 'new_construction'
+  | 'insurance_restoration';
+
 export type ClauseCategory =
   | 'master'
   | 'pricing'
@@ -50,28 +61,45 @@ export type ClauseCategory =
   | 'contractor_responsibility'
   | 'dispute'
   | 'termination'
+  | 'completion'
+  | 'insurance'
+  | 'site_protection'
+  | 'documentation'
+  | 'weather'
   | 'addendum'
   | 'state_notice';
 
+/**
+ * A single contract clause template. Field names follow the Contract &
+ * Document Engine template contract: every template carries a stable `key`,
+ * its owning `documentType`, applicability filters, the raw `bodyTemplate`
+ * (Handlebars-style tokens), and legal-posture flags.
+ */
 export interface DocumentClause {
-  clauseKey: string;
+  key: string;
   title: string;
   category: ClauseCategory;
-  jurisdictions: string[];
-  projectTypes: string[];
-  priceModels: PriceModel[];
+  documentType: DocumentType;
+  applicableProjectTypes: ProjectType[];
+  applicablePriceModels: PriceModel[];
   bodyTemplate: string;
   locked: boolean;
   attorneyReviewed: boolean;
   version: string;
 }
 
+/**
+ * Addendum templates share the same shape as clauses. Their `category` is
+ * always 'addendum'; they are attached to a document as optional sections.
+ */
 export interface DocumentAddendum {
-  addendumKey: string;
+  key: string;
   title: string;
+  category: ClauseCategory;
+  documentType: DocumentType;
+  applicableProjectTypes: ProjectType[];
+  applicablePriceModels: PriceModel[];
   bodyTemplate: string;
-  jurisdictions: string[];
-  projectTypes: string[];
   locked: boolean;
   attorneyReviewed: boolean;
   version: string;
@@ -221,3 +249,23 @@ export interface DocumentAssemblyResult {
  */
 export const DRAFT_DISCLAIMER =
   'Draft document only. This document is not legal advice and should be reviewed by a qualified attorney before use.';
+
+/** Every residential project type supported by the Generic Residential Pack. */
+export const ALL_PROJECT_TYPES: ProjectType[] = [
+  'remodel',
+  'repair',
+  'concrete',
+  'roofing',
+  'adu',
+  'deck',
+  'fence',
+  'new_construction',
+  'insurance_restoration',
+];
+
+/** Every price model a clause can apply to. */
+export const ALL_PRICE_MODELS: PriceModel[] = [
+  'fixed_price',
+  'time_and_materials',
+  'cost_plus',
+];
