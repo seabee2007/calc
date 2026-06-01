@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useConfirm } from '../../contexts/ConfirmContext';
@@ -69,6 +69,8 @@ interface Props {
   lockedProjectId?: string;
 }
 
+const MOBILE_SWIPE_THRESHOLD_PX = 50;
+
 function defaultCalendarSubView(): CalendarSubView {
   if (typeof window !== 'undefined' && window.innerWidth < 768) return 'agenda';
   return 'week';
@@ -125,6 +127,7 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
   }>({ open: false, mode: 'edit' });
   const [isMobile, setIsMobile] = useState(false);
   const [anchorIso, setAnchorIso] = useState(() => todayIsoDate());
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const view = parseView(searchParams.get('view'));
   const cal = parseCal(searchParams.get('cal'));
@@ -330,6 +333,41 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
     next.set('view', 'calendar');
     next.set('cal', sub);
     setSearchParams(next, { replace: true });
+  };
+
+  const shiftVisiblePeriod = useCallback(
+    (direction: -1 | 1) => {
+      setAnchorIso((a) => shiftCalendarAnchor(cal, a, direction));
+    },
+    [cal],
+  );
+
+  const canSwipeCalendar =
+    isMobile && view === 'calendar' && cal !== 'agenda' && !loading && !projectsLoading;
+
+  const handleCalendarTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!canSwipeCalendar || event.touches.length !== 1) {
+      swipeStartRef.current = null;
+      return;
+    }
+
+    const touch = event.touches[0];
+    swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleCalendarTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = swipeStartRef.current;
+    swipeStartRef.current = null;
+    if (!canSwipeCalendar || !start || event.changedTouches.length === 0) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (Math.abs(deltaX) < MOBILE_SWIPE_THRESHOLD_PX) return;
+    if (Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+    shiftVisiblePeriod(deltaX < 0 ? 1 : -1);
   };
 
   const selectEvent = (id: string) => {
@@ -655,8 +693,8 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
             view={view}
             cal={cal}
             rangeLabel={rangeLabel}
-            onPrev={() => setAnchorIso((a) => shiftCalendarAnchor(cal, a, -1))}
-            onNext={() => setAnchorIso((a) => shiftCalendarAnchor(cal, a, 1))}
+            onPrev={() => shiftVisiblePeriod(-1)}
+            onNext={() => shiftVisiblePeriod(1)}
             onToday={() => setAnchorIso(todayIsoDate())}
             onCalChange={setCal}
             onViewChange={setView}
@@ -675,7 +713,12 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
             onOpenFiltersMobile={() => setFilterSheetOpen(true)}
             constructionKpis={view === 'calendar' ? constructionKpis : undefined}
           >
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-1 sm:p-2">
+            <div
+              className="flex min-h-0 flex-1 flex-col overflow-hidden p-1 sm:p-2"
+              onTouchStart={handleCalendarTouchStart}
+              onTouchEnd={handleCalendarTouchEnd}
+              style={canSwipeCalendar ? { touchAction: 'pan-y' } : undefined}
+            >
               {view === 'calendar' ? renderCalendarContent() : renderOverflowContent()}
             </div>
           </ScheduleCalendarShell>
