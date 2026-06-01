@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, FileSignature, Lock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -143,7 +143,10 @@ export default function DocumentBuilderPage() {
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
   );
   const builderColumnRef = useRef<HTMLElement | null>(null);
+  const newContractCardRef = useRef<HTMLDivElement | null>(null);
   const [toggleLeft, setToggleLeft] = useState<number | null>(null);
+  const [toggleTop, setToggleTop] = useState<number | null>(null);
+  const [toggleReady, setToggleReady] = useState(false);
 
   const refreshSavedDocs = useCallback(async (scopedProjectId?: string | null) => {
     try {
@@ -162,38 +165,70 @@ export default function DocumentBuilderPage() {
   }, [projectId, refreshSavedDocs]);
 
   useEffect(() => {
+    if (isPreviewOpen) return;
+    const frameId = window.requestAnimationFrame(() => {
+      const maxScrollTop = Math.max(0, document.body.scrollHeight - window.innerHeight);
+      if (window.scrollY > maxScrollTop) {
+        window.scrollTo({
+          top: maxScrollTop,
+          behavior: 'smooth',
+        });
+      }
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isPreviewOpen]);
+
+  useLayoutEffect(() => {
     let frameId: number | null = null;
+    let settleTimer: number | null = null;
     let transitionTimer: number | null = null;
-    const column = builderColumnRef.current;
+    setToggleReady(false);
 
     const updateTogglePosition = () => {
       if (frameId !== null) window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
-        const rect = builderColumnRef.current?.getBoundingClientRect();
-        setToggleLeft(rect ? rect.right : null);
+        const builderRect = builderColumnRef.current?.getBoundingClientRect();
+        const cardRect = newContractCardRef.current?.getBoundingClientRect();
+        if (!builderRect || !cardRect) {
+          setToggleLeft(null);
+          setToggleTop(null);
+          setToggleReady(false);
+          return;
+        }
+
+        const stickyTop = 112; // top-28: keep the toggle below the page header area.
+        const cardTopAnchor = cardRect.top + 24;
+        setToggleLeft(builderRect.right);
+        setToggleTop(Math.max(stickyTop, cardTopAnchor));
+        setToggleReady(true);
       });
     };
 
     updateTogglePosition();
+    settleTimer = window.setTimeout(updateTogglePosition, 0);
     transitionTimer = window.setTimeout(updateTogglePosition, 350);
 
+    const column = builderColumnRef.current;
+    const card = newContractCardRef.current;
     const resizeObserver =
       typeof ResizeObserver !== 'undefined' && column
         ? new ResizeObserver(updateTogglePosition)
         : null;
     resizeObserver?.observe(column);
+    if (card && card !== column) resizeObserver?.observe(card);
 
     window.addEventListener('resize', updateTogglePosition);
     window.addEventListener('scroll', updateTogglePosition, { passive: true });
 
     return () => {
       if (frameId !== null) window.cancelAnimationFrame(frameId);
+      if (settleTimer !== null) window.clearTimeout(settleTimer);
       if (transitionTimer !== null) window.clearTimeout(transitionTimer);
       resizeObserver?.disconnect();
       window.removeEventListener('resize', updateTogglePosition);
       window.removeEventListener('scroll', updateTogglePosition);
     };
-  }, [isPreviewOpen]);
+  }, [documentId, isPreviewOpen, projectId]);
 
   const queryProjectId = searchParams.get('project');
   const queryDocumentId = searchParams.get('id');
@@ -729,14 +764,16 @@ export default function DocumentBuilderPage() {
               ref={builderColumnRef}
               className="relative min-w-0 space-y-4 transition-all duration-300 ease-in-out"
             >
-              <DocumentMetaPanel
-                documentId={documentId}
-                title={title}
-                savedDocs={savedDocs}
-                onTitleChange={setTitle}
-                onNewContract={handleNewContract}
-                onLoadDocument={handleLoadDocument}
-              />
+              <div ref={newContractCardRef}>
+                <DocumentMetaPanel
+                  documentId={documentId}
+                  title={title}
+                  savedDocs={savedDocs}
+                  onTitleChange={setTitle}
+                  onNewContract={handleNewContract}
+                  onLoadDocument={handleLoadDocument}
+                />
+              </div>
               <IntakePanel
                 packOptions={packOptions}
                 packKey={packKey}
@@ -780,30 +817,30 @@ export default function DocumentBuilderPage() {
               />
             </section>
 
-            <button
-              type="button"
-              onClick={() => setIsPreviewOpen((open) => !open)}
-              aria-label={isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
-              title={isPreviewOpen ? 'Hide preview' : 'Show preview'}
-              style={{
-                left: toggleLeft !== null ? `${toggleLeft}px` : undefined,
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-              }}
-              className={`fixed z-50 hidden h-12 w-12 items-center justify-center rounded-full border border-cyan-500/50 bg-slate-950/90 text-cyan-300 shadow-xl shadow-slate-900/25 transition-all duration-300 ease-in-out hover:bg-cyan-950 hover:text-cyan-100 hover:shadow-cyan-500/25 lg:flex print:hidden ${
-                toggleLeft === null ? 'opacity-0' : 'opacity-100'
-              }`}
-            >
-              <ChevronRight
-                className={`h-5 w-5 transition-transform duration-300 ease-in-out ${
-                  isPreviewOpen ? '' : 'rotate-180'
-                }`}
-                aria-hidden
-              />
-              <span className="sr-only">
-                {isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
-              </span>
-            </button>
+            {toggleReady && toggleLeft !== null && toggleTop !== null && (
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen((open) => !open)}
+                aria-label={isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
+                title={isPreviewOpen ? 'Hide preview' : 'Show preview'}
+                style={{
+                  left: `${toggleLeft}px`,
+                  top: `${toggleTop}px`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                className="fixed z-50 hidden h-12 w-12 items-center justify-center rounded-full border border-cyan-400/40 bg-slate-950/60 text-cyan-300 shadow-md backdrop-blur-sm transition-all duration-300 ease-in-out hover:border-cyan-300/70 hover:bg-slate-900/80 hover:text-cyan-100 lg:flex print:hidden"
+              >
+                <ChevronRight
+                  className={`h-5 w-5 transition-transform duration-300 ease-in-out ${
+                    isPreviewOpen ? '' : 'rotate-180'
+                  }`}
+                  aria-hidden
+                />
+                <span className="sr-only">
+                  {isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
+                </span>
+              </button>
+            )}
 
             {/* Mobile preview toggle — between builder and preview */}
             <button
@@ -832,37 +869,33 @@ export default function DocumentBuilderPage() {
               )}
             </button>
 
-            <section
-              className={`min-w-0 space-y-4 overflow-hidden transition-all duration-300 ease-in-out print:block ${
-                isPreviewOpen
-                  ? 'translate-x-0 opacity-100'
-                  : 'pointer-events-none hidden max-h-0 opacity-0 translate-x-4 lg:block lg:max-h-none lg:w-0 lg:max-w-0 lg:p-0'
-              }`}
-            >
-              <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
-                    Save Draft
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowValidation(true)} fullWidth>
-                    Run Compliance
-                  </Button>
-                  <Button variant="outline" onClick={handlePreviewContract} fullWidth>
-                    Preview Contract
-                  </Button>
+            {isPreviewOpen && (
+              <section className="min-w-0 translate-x-0 space-y-4 overflow-hidden opacity-100 transition-all duration-300 ease-in-out print:block">
+                <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
+                      Save Draft
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowValidation(true)} fullWidth>
+                      Run Compliance
+                    </Button>
+                    <Button variant="outline" onClick={handlePreviewContract} fullWidth>
+                      Preview Contract
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <VersionHistoryPanel
-                versions={versions}
-                previewVersion={previewVersion}
-                onSelectVersion={setPreviewVersion}
-                onClearPreview={() => setPreviewVersion(null)}
-              />
-              <PreviewPanel
-                previewHeading={previewHeading}
-                previewSections={previewSections}
-              />
-            </section>
+                <VersionHistoryPanel
+                  versions={versions}
+                  previewVersion={previewVersion}
+                  onSelectVersion={setPreviewVersion}
+                  onClearPreview={() => setPreviewVersion(null)}
+                />
+                <PreviewPanel
+                  previewHeading={previewHeading}
+                  previewSections={previewSections}
+                />
+              </section>
+            )}
         </div>
       </FieldToolPageLayout>
 
