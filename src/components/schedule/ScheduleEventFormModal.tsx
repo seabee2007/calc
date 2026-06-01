@@ -37,12 +37,19 @@ interface ProjectOption {
   name: string;
 }
 
+export interface ScheduleEventCreateDefaults {
+  startDate: string;
+  startTime?: string;
+  endTime?: string;
+}
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSave: (input: ScheduleEventSavePayload) => Promise<void>;
   projects: ProjectOption[];
   defaultProjectId?: string;
+  defaultValues?: ScheduleEventCreateDefaults | null;
   event?: ScheduleEvent | null;
   focusDatesOnly?: boolean;
   userId: string;
@@ -60,6 +67,7 @@ export default function ScheduleEventFormModal({
   onSave,
   projects,
   defaultProjectId,
+  defaultValues,
   event,
   focusDatesOnly,
   userId,
@@ -117,10 +125,10 @@ export default function ScheduleEventFormModal({
       setTitle('');
       setEventType('general_task');
       setStatus('scheduled');
-      setStartDate(toIsoDate(new Date()));
+      setStartDate(defaultValues?.startDate ?? toIsoDate(new Date()));
       setEndDate('');
-      setStartTime('');
-      setEndTime('');
+      setStartTime(defaultValues?.startTime ?? '');
+      setEndTime(defaultValues?.endTime ?? '');
       setTrade('');
       setCrew('');
       setLocation('');
@@ -134,7 +142,7 @@ export default function ScheduleEventFormModal({
       setRecurrenceEnabled(false);
       setRecurrenceRule(defaultRecurrenceRule());
     }
-  }, [isOpen, event, defaultProjectId, projects]);
+  }, [isOpen, event, defaultProjectId, defaultValues, projects]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

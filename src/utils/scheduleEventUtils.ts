@@ -655,6 +655,38 @@ export const DEFAULT_GRID_DAY_END_HOUR = 24;
 export const DEFAULT_GRID_SLOT_MINUTES = 30;
 export const DEFAULT_GRID_SLOT_HEIGHT_PX = 24;
 
+export function formatMinutesToTime(totalMinutes: number): string {
+  const clamped = Math.max(0, Math.min(totalMinutes, 24 * 60 - 1));
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+export function slotIndexToTimes(
+  slotIndex: number,
+  options?: {
+    dayStartHour?: number;
+    dayEndHour?: number;
+    slotMinutes?: number;
+    defaultDurationMinutes?: number;
+  },
+): { startTime: string; endTime: string } {
+  const dayStartHour = options?.dayStartHour ?? DEFAULT_GRID_DAY_START_HOUR;
+  const dayEndHour = options?.dayEndHour ?? DEFAULT_GRID_DAY_END_HOUR;
+  const slotMinutes = options?.slotMinutes ?? DEFAULT_GRID_SLOT_MINUTES;
+  const duration = options?.defaultDurationMinutes ?? 60;
+
+  const startMinutes = dayStartHour * 60 + slotIndex * slotMinutes;
+  const maxStart = dayEndHour * 60 - duration;
+  const clampedStart = Math.min(Math.max(startMinutes, dayStartHour * 60), maxStart);
+  const endMinutes = clampedStart + duration;
+
+  return {
+    startTime: formatMinutesToTime(clampedStart),
+    endTime: formatMinutesToTime(endMinutes),
+  };
+}
+
 export function layoutTimedEventsForDay(
   events: ScheduleEvent[],
   options?: {

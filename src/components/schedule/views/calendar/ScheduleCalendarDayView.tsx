@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import type { ScheduleEvent } from '../../../../types/scheduleEvent';
 import type { Project } from '../../../../types';
-import ScheduleTimeGridView from './ScheduleTimeGridView';
+import ScheduleTimeGridView, {
+  type ScheduleCreateAtSlotPayload,
+} from './ScheduleTimeGridView';
 import { dayOperationalSummary } from '../../../../utils/scheduleEventUtils';
 import { SCHEDULE_CARD, SCHEDULE_BODY, SCHEDULE_MUTED } from '../../scheduleTheme';
 
@@ -11,6 +13,10 @@ interface Props {
   onSelect: (id: string) => void;
   anchorIso: string;
   projectForWeather?: Project | null;
+  onCreateAtSlot?: (payload: ScheduleCreateAtSlotPayload) => void;
+  enableHeaderSwipe?: boolean;
+  onPeriodShift?: (direction: -1 | 1) => void;
+  lastSwipeAtRef?: React.MutableRefObject<number>;
 }
 
 export default function ScheduleCalendarDayView({
@@ -19,6 +25,10 @@ export default function ScheduleCalendarDayView({
   onSelect,
   anchorIso,
   projectForWeather,
+  onCreateAtSlot,
+  enableHeaderSwipe,
+  onPeriodShift,
+  lastSwipeAtRef,
 }: Props) {
   const dayIso = anchorIso;
   const summary = useMemo(
@@ -56,6 +66,10 @@ export default function ScheduleCalendarDayView({
           days={[dayIso]}
           selectedId={selectedId}
           onSelect={onSelect}
+          onCreateAtSlot={onCreateAtSlot}
+          enableHeaderSwipe={enableHeaderSwipe}
+          onPeriodShift={onPeriodShift}
+          lastSwipeAtRef={lastSwipeAtRef}
         />
       </div>
     </div>

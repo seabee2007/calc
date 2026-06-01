@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import type { ScheduleEvent } from '../../../../types/scheduleEvent';
-import ScheduleTimeGridView from './ScheduleTimeGridView';
+import ScheduleTimeGridView, {
+  type ScheduleCreateAtSlotPayload,
+} from './ScheduleTimeGridView';
 import {
   getWeekDays,
   getWeekStart,
@@ -14,6 +16,10 @@ interface Props {
   onSelect: (id: string) => void;
   anchorIso: string;
   mode?: 'week' | 'work_week';
+  onCreateAtSlot?: (payload: ScheduleCreateAtSlotPayload) => void;
+  enableHeaderSwipe?: boolean;
+  onPeriodShift?: (direction: -1 | 1) => void;
+  lastSwipeAtRef?: React.MutableRefObject<number>;
 }
 
 export default function ScheduleCalendarWeekView({
@@ -22,6 +28,10 @@ export default function ScheduleCalendarWeekView({
   onSelect,
   anchorIso,
   mode = 'week',
+  onCreateAtSlot,
+  enableHeaderSwipe,
+  onPeriodShift,
+  lastSwipeAtRef,
 }: Props) {
   const days = useMemo(() => {
     const weekStart = toIsoDate(getWeekStart(new Date(anchorIso + 'T12:00:00')));
@@ -34,6 +44,10 @@ export default function ScheduleCalendarWeekView({
       days={days}
       selectedId={selectedId}
       onSelect={onSelect}
+      onCreateAtSlot={onCreateAtSlot}
+      enableHeaderSwipe={enableHeaderSwipe}
+      onPeriodShift={onPeriodShift}
+      lastSwipeAtRef={lastSwipeAtRef}
     />
   );
 }

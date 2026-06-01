@@ -33,7 +33,10 @@ export default function ScheduleCalendarEventBlock({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       style={style}
       className={`absolute left-0.5 right-0.5 z-10 overflow-hidden rounded-md border p-1.5 text-left shadow-sm ${typeStyle.surface} ${statusAccentClass(
         event.status,

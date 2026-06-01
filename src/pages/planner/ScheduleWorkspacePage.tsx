@@ -64,12 +64,21 @@ import {
   isRecurringOccurrenceSelection,
   isRecurringSeriesMaster,
 } from '../../utils/scheduleRecurrenceUtils';
+import {
+  evaluateHorizontalSwipe,
+  isScheduleInteractiveTarget,
+  type TouchPoint,
+} from '../../utils/scheduleTouchInteraction';
 
 interface Props {
   lockedProjectId?: string;
 }
 
-const MOBILE_SWIPE_THRESHOLD_PX = 50;
+interface CreateEventDefaults {
+  startDate: string;
+  startTime?: string;
+  endTime?: string;
+}
 
 function defaultCalendarSubView(): CalendarSubView {
   if (typeof window !== 'undefined' && window.innerWidth < 768) return 'agenda';
@@ -127,7 +136,9 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
   }>({ open: false, mode: 'edit' });
   const [isMobile, setIsMobile] = useState(false);
   const [anchorIso, setAnchorIso] = useState(() => todayIsoDate());
-  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [createDefaults, setCreateDefaults] = useState<CreateEventDefaults | null>(null);
+  const swipeStartRef = useRef<TouchPoint | null>(null);
+  const lastSwipeAtRef = useRef(0);
 
   const view = parseView(searchParams.get('view'));
   const cal = parseCal(searchParams.get('cal'));
@@ -342,32 +353,50 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
     [cal],
   );
 
-  const canSwipeCalendar =
-    isMobile && view === 'calendar' && cal !== 'agenda' && !loading && !projectsLoading;
+  const canSwipeCalendarMonth =
+    isMobile && view === 'calendar' && cal === 'month' && !loading && !projectsLoading;
+
+  const canSwipeTimeGridHeader =
+    isMobile &&
+    view === 'calendar' &&
+    (cal === 'week' || cal === 'work_week' || cal === 'day') &&
+    !loading &&
+    !projectsLoading;
 
   const handleCalendarTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (!canSwipeCalendar || event.touches.length !== 1) {
+    if (!canSwipeCalendarMonth || event.touches.length !== 1) {
+      swipeStartRef.current = null;
+      return;
+    }
+    if (isScheduleInteractiveTarget(event.target)) {
       swipeStartRef.current = null;
       return;
     }
 
     const touch = event.touches[0];
-    swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
+    swipeStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+    };
   };
 
   const handleCalendarTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
     const start = swipeStartRef.current;
     swipeStartRef.current = null;
-    if (!canSwipeCalendar || !start || event.changedTouches.length === 0) return;
+    if (!canSwipeCalendarMonth || !start || event.changedTouches.length === 0) return;
+    if (isScheduleInteractiveTarget(event.target)) return;
 
     const touch = event.changedTouches[0];
-    const deltaX = touch.clientX - start.x;
-    const deltaY = touch.clientY - start.y;
+    const direction = evaluateHorizontalSwipe(
+      start,
+      { x: touch.clientX, y: touch.clientY },
+      lastSwipeAtRef.current,
+    );
+    if (direction == null) return;
 
-    if (Math.abs(deltaX) < MOBILE_SWIPE_THRESHOLD_PX) return;
-    if (Math.abs(deltaX) < Math.abs(deltaY)) return;
-
-    shiftVisiblePeriod(deltaX < 0 ? 1 : -1);
+    lastSwipeAtRef.current = Date.now();
+    shiftVisiblePeriod(direction);
   };
 
   const selectEvent = (id: string) => {
@@ -386,8 +415,24 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
   const openCreate = () => {
     setEditingEvent(null);
     setRescheduleOnly(false);
+    setCreateDefaults(null);
     setFormOpen(true);
   };
+
+  const openCreateAt = useCallback(
+    ({ date, startTime, endTime }: { date: string; startTime?: string; endTime?: string }) => {
+      if (!isOwner) return;
+      setEditingEvent(null);
+      setRescheduleOnly(false);
+      setCreateDefaults({
+        startDate: date,
+        startTime,
+        endTime,
+      });
+      setFormOpen(true);
+    },
+    [isOwner],
+  );
 
   const openEdit = () => {
     if (!selectedEvent) return;
@@ -605,6 +650,22 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
       onSelect: selectEvent,
     };
 
+    const createAtDate = isOwner
+      ? (date: string) => openCreateAt({ date })
+      : undefined;
+
+    const createAtSlot = isOwner
+      ? ({ date, startTime, endTime }: { date: string; startTime: string; endTime: string }) =>
+          openCreateAt({ date, startTime, endTime })
+      : undefined;
+
+    const timeGridInteractionProps = {
+      onCreateAtSlot: createAtSlot,
+      enableHeaderSwipe: canSwipeTimeGridHeader,
+      onPeriodShift: shiftVisiblePeriod,
+      lastSwipeAtRef,
+    };
+
     switch (cal) {
       case 'month':
         return (
@@ -612,6 +673,7 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
             {...viewProps}
             year={calendarYear}
             month={calendarMonth}
+            onCreateAtDate={createAtDate}
           />
         );
       case 'day':
@@ -620,6 +682,7 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
             {...viewProps}
             anchorIso={anchorIso}
             projectForWeather={projectForWeather}
+            {...timeGridInteractionProps}
           />
         );
       case 'agenda':
@@ -635,12 +698,18 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
             {...viewProps}
             anchorIso={anchorIso}
             mode="work_week"
+            {...timeGridInteractionProps}
           />
         );
       case 'week':
       default:
         return (
-          <ScheduleCalendarWeekView {...viewProps} anchorIso={anchorIso} mode="week" />
+          <ScheduleCalendarWeekView
+            {...viewProps}
+            anchorIso={anchorIso}
+            mode="week"
+            {...timeGridInteractionProps}
+          />
         );
     }
   };
@@ -715,9 +784,9 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
           >
             <div
               className="flex min-h-0 flex-1 flex-col overflow-hidden p-1 sm:p-2"
-              onTouchStart={handleCalendarTouchStart}
-              onTouchEnd={handleCalendarTouchEnd}
-              style={canSwipeCalendar ? { touchAction: 'pan-y' } : undefined}
+              onTouchStart={canSwipeCalendarMonth ? handleCalendarTouchStart : undefined}
+              onTouchEnd={canSwipeCalendarMonth ? handleCalendarTouchEnd : undefined}
+              style={canSwipeCalendarMonth ? { touchAction: 'pan-y' } : undefined}
             >
               {view === 'calendar' ? renderCalendarContent() : renderOverflowContent()}
             </div>
@@ -739,10 +808,12 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
           onClose={() => {
             setFormOpen(false);
             setEditingEvent(null);
+            setCreateDefaults(null);
           }}
           onSave={handleSave}
           projects={projectOptions}
           defaultProjectId={lockedProjectId ?? filters.projectId}
+          defaultValues={createDefaults}
           event={editingEvent}
           focusDatesOnly={rescheduleOnly}
           userId={user.id}

@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import type { ScheduleEvent } from '../../../../types/scheduleEvent';
 import ScheduleCalendarEventChip from '../../ScheduleCalendarEventChip';
 import ScheduleCalendarMultiDayBar, { multiDayLaneCount } from '../../ScheduleCalendarMultiDayBar';
 import { SCHEDULE_CARD } from '../../scheduleTheme';
+import { isTapGesture, isScheduleInteractiveTarget } from '../../../../utils/scheduleTouchInteraction';
 import {
   eventsForCalendarCell,
   getMonthGrid,
@@ -16,6 +17,7 @@ interface Props {
   onSelect: (id: string) => void;
   year: number;
   month: number;
+  onCreateAtDate?: (date: string) => void;
 }
 
 const MAX_SINGLE_DAY = 2;
@@ -27,9 +29,11 @@ export default function ScheduleCalendarMonthView({
   onSelect,
   year,
   month,
+  onCreateAtDate,
 }: Props) {
   const weeks = useMemo(() => getMonthGrid(year, month), [year, month]);
   const todayIso = todayIsoDate();
+  const cellTouchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const weekLayouts = useMemo(
     () =>
@@ -39,6 +43,36 @@ export default function ScheduleCalendarMonthView({
       }),
     [weeks, events],
   );
+
+  const handleDayCellClick = (iso: string) => {
+    onCreateAtDate?.(iso);
+  };
+
+  const handleDayCellTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!onCreateAtDate || event.touches.length !== 1) {
+      cellTouchStartRef.current = null;
+      return;
+    }
+    const touch = event.touches[0];
+    cellTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleDayCellTouchEnd = (iso: string, event: React.TouchEvent<HTMLDivElement>) => {
+    const start = cellTouchStartRef.current;
+    cellTouchStartRef.current = null;
+    if (!onCreateAtDate || !start || event.changedTouches.length === 0) return;
+    if (isScheduleInteractiveTarget(event.target)) return;
+
+    const touch = event.changedTouches[0];
+    if (!isTapGesture(start, { x: touch.clientX, y: touch.clientY })) return;
+
+    event.preventDefault();
+    onCreateAtDate(iso);
+  };
+
+  const dayCellInteractiveClass = onCreateAtDate
+    ? 'cursor-pointer transition-colors hover:bg-slate-50 active:bg-slate-100 dark:hover:bg-slate-900/80 dark:active:bg-slate-800/80'
+    : '';
 
   return (
     <div className={`${SCHEDULE_CARD} flex min-h-0 flex-1 flex-col overflow-hidden`}>
@@ -91,7 +125,19 @@ export default function ScheduleCalendarMonthView({
                 return (
                   <div
                     key={iso}
-                    className={`min-h-[100px] border-r border-slate-200 bg-white p-1 last:border-r-0 dark:border-slate-700 dark:bg-slate-950 ${
+                    role={onCreateAtDate ? 'button' : undefined}
+                    tabIndex={onCreateAtDate ? 0 : undefined}
+                    onClick={() => handleDayCellClick(iso)}
+                    onKeyDown={(event) => {
+                      if (!onCreateAtDate) return;
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleDayCellClick(iso);
+                      }
+                    }}
+                    onTouchStart={handleDayCellTouchStart}
+                    onTouchEnd={(event) => handleDayCellTouchEnd(iso, event)}
+                    className={`min-h-[100px] border-r border-slate-200 bg-white p-1 last:border-r-0 dark:border-slate-700 dark:bg-slate-950 ${dayCellInteractiveClass} ${
                       isToday
                         ? 'z-[1] !bg-blue-50 ring-2 ring-inset ring-blue-500 text-blue-700 dark:!bg-blue-950/40 dark:ring-blue-400 dark:text-blue-300'
                         : ''
