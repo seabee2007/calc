@@ -13,6 +13,7 @@ import {
   HardHat,
   ShieldCheck,
   ClipboardList,
+  FileSignature,
   type LucideIcon,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
@@ -153,6 +154,17 @@ const ToolsModal: React.FC = () => {
         },
       ],
     },
+    {
+      heading: 'Contracts & documents',
+      cards: [
+        {
+          title: 'Contract Builder',
+          description: 'Draft residential construction agreements (draft only)',
+          path: '/tools/contract-builder',
+          icon: FileSignature,
+        },
+      ],
+    },
   ];
 
   const pathsWithProject = new Set([
@@ -165,6 +177,7 @@ const ToolsModal: React.FC = () => {
     '/pour-planner',
     '/tools/safety-meeting',
     '/tools/concrete-inspection',
+    '/tools/contract-builder',
   ]);
 
   return (

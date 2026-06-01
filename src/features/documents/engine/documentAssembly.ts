@@ -9,15 +9,32 @@ import type {
   PriceModel,
   ProjectType,
 } from '../types';
-import { ALL_PRICE_MODELS, ALL_PROJECT_TYPES, DRAFT_DISCLAIMER } from '../types';
+import { ALL_PRICE_MODELS, ALL_PROJECT_TYPES, DRAFT_DISCLAIMER, ENGINE_VERSION } from '../types';
+import type { QuestionVisibilityRule } from '../types';
 import { DEFAULT_PACK_KEY, getPackCatalog } from '../packs/registry';
 import {
+  answerMatches,
   getAcceptedAddendumKeys,
   getPriceModel,
   getProjectType,
+  getQuestionnaireMode,
+  getRecommendationDecisions,
   toRenderData,
 } from './inputUtils';
+import { hashSections } from './hash';
 import { renderTemplate } from './templateRenderer';
+
+/**
+ * Layered selection precedence (mirrors the report's rule model):
+ *   1. jurisdiction / pack    - which catalog is active (registry)
+ *   2. project-type layer     - `applicableProjectTypes`
+ *   3. pricing layer          - `applicablePriceModels` (e.g. only the selected
+ *                               pricing clause renders)
+ *   4. risk / answer layer    - `includeWhen` gates optional clauses + addenda
+ *   5. notice-formatting layer- locked `state_notice` clauses append in order
+ *   6. hard-stop layer        - compliance engine blocks final export
+ * Selection here implements layers 2-5; layer 6 lives in complianceEngine.
+ */
 
 function clauseApplies(
   clause: DocumentClause,
@@ -29,21 +46,33 @@ function clauseApplies(
   return projectOk && priceOk;
 }
 
+/** Answer-driven inclusion: absent rules => always-on; otherwise ALL must match. */
+function includeWhenSatisfied(
+  rules: QuestionVisibilityRule[] | undefined,
+  answers: Record<string, unknown>,
+): boolean {
+  if (!rules || rules.length === 0) return true;
+  return rules.every((rule) => answerMatches(answers[rule.questionKey], rule.equals));
+}
+
 /**
  * Select clauses for the document in canonical template order, filtered by the
- * resolved project type and price model. Unknown project type / price model
- * (incomplete draft input) does not filter on that dimension.
+ * resolved project type, price model, and answer-driven `includeWhen` rules.
+ * Unknown project type / price model (incomplete draft input) does not filter
+ * on that dimension.
  */
 export function selectClauses(
   catalog: PackCatalog,
   projectType: ProjectType | undefined,
   priceModel: PriceModel | undefined,
+  answers: Record<string, unknown> = {},
 ): DocumentClause[] {
   const byKey = new Map(catalog.clauses.map((clause) => [clause.key, clause]));
   return catalog.template.clauseKeys
     .map((key) => byKey.get(key))
     .filter((clause): clause is DocumentClause => clause !== undefined)
-    .filter((clause) => clauseApplies(clause, projectType, priceModel));
+    .filter((clause) => clauseApplies(clause, projectType, priceModel))
+    .filter((clause) => includeWhenSatisfied(clause.includeWhen, answers));
 }
 
 /**
@@ -58,6 +87,7 @@ export function selectAddenda(
   projectType: ProjectType | undefined,
   priceModel: PriceModel | undefined,
   acceptedKeys: string[],
+  answers: Record<string, unknown> = {},
 ): DocumentAddendum[] {
   const byKey = new Map(catalog.addenda.map((addendum) => [addendum.key, addendum]));
   const accepted = new Set(acceptedKeys);
@@ -66,7 +96,13 @@ export function selectAddenda(
     .map((key) => byKey.get(key))
     .filter((addendum): addendum is DocumentAddendum => addendum !== undefined)
     .filter((addendum) => {
+      // Explicit acceptance always wins.
       if (accepted.has(addendum.key)) return true;
+
+      // Answer-driven addenda (e.g. design-build) include on a matching answer.
+      if (addendum.includeWhen && includeWhenSatisfied(addendum.includeWhen, answers)) {
+        return true;
+      }
 
       const matchesProject =
         projectType === undefined || addendum.applicableProjectTypes.includes(projectType);
@@ -87,6 +123,7 @@ export function buildManifest(
   catalog: PackCatalog,
   clauses: DocumentClause[],
   addenda: DocumentAddendum[],
+  sections: DocumentSection[],
 ): DocumentManifest {
   const generatedAt =
     typeof input.facts.generatedAt === 'string'
@@ -103,9 +140,18 @@ export function buildManifest(
     documentType: input.documentType,
     packKey: catalog.pack.packKey,
     packVersion: catalog.pack.version,
+    engineVersion: ENGINE_VERSION,
     generatedAt,
+    mode: getQuestionnaireMode(input),
+    inputSnapshot: {
+      packKey: input.packKey,
+      answers: input.answers,
+      facts: input.facts,
+    },
     clauseVersions,
     addendumVersions,
+    recommendationDecisions: getRecommendationDecisions(input),
+    outputHash: hashSections(sections),
     disclaimer: DRAFT_DISCLAIMER,
   };
 }
@@ -121,12 +167,21 @@ function emptyResult(input: DocumentInput): DocumentAssemblyResult {
       documentType: input.documentType,
       packKey: input.packKey,
       packVersion: '0.0.0',
+      engineVersion: ENGINE_VERSION,
       generatedAt:
         typeof input.facts.generatedAt === 'string'
           ? input.facts.generatedAt
           : new Date().toISOString(),
+      mode: getQuestionnaireMode(input),
+      inputSnapshot: {
+        packKey: input.packKey,
+        answers: input.answers,
+        facts: input.facts,
+      },
       clauseVersions: {},
       addendumVersions: {},
+      recommendationDecisions: getRecommendationDecisions(input),
+      outputHash: hashSections([]),
       disclaimer: DRAFT_DISCLAIMER,
     },
   };
@@ -146,8 +201,8 @@ export function assembleDocument(input: DocumentInput): DocumentAssemblyResult {
   const acceptedKeys = getAcceptedAddendumKeys(input);
   const data = toRenderData(input);
 
-  const clauses = selectClauses(catalog, projectType, priceModel);
-  const addenda = selectAddenda(catalog, projectType, priceModel, acceptedKeys);
+  const clauses = selectClauses(catalog, projectType, priceModel, data);
+  const addenda = selectAddenda(catalog, projectType, priceModel, acceptedKeys, data);
 
   const clauseSections: DocumentSection[] = clauses.map((clause) => ({
     clauseKey: clause.key,
@@ -161,12 +216,14 @@ export function assembleDocument(input: DocumentInput): DocumentAssemblyResult {
     body: renderTemplate(addendum.bodyTemplate, data),
   }));
 
+  const sections = [...clauseSections, ...addendumSections];
+
   return {
     documentType: input.documentType,
     packKey: catalog.pack.packKey,
     title: catalog.template.title,
-    sections: [...clauseSections, ...addendumSections],
+    sections,
     disclaimer: DRAFT_DISCLAIMER,
-    manifest: buildManifest(input, catalog, clauses, addenda),
+    manifest: buildManifest(input, catalog, clauses, addenda, sections),
   };
 }

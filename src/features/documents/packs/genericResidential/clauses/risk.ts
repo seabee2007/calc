@@ -36,6 +36,7 @@ Code-required changes, upgrades, or corrections discovered after work begins may
   {
     ...base,
     key: 'risk.hazardous_materials',
+    includeWhen: [{ questionKey: 'hazardousMaterialsPossible', equals: [true] }],
     title: 'Hazardous Materials',
     bodyTemplate: `Unless specifically included in the scope, Contractor is not responsible for testing, handling, removal, encapsulation, transport, or disposal of hazardous materials, including but not limited to asbestos, lead, mold, contaminated soil, fuel, chemicals, or biological hazards.
 
@@ -44,6 +45,7 @@ If suspected hazardous materials are discovered, Contractor may stop work in the
   {
     ...base,
     key: 'risk.material_escalation',
+    includeWhen: [{ questionKey: 'materialEscalationConcern', equals: [true] }],
     title: 'Material Escalation',
     bodyTemplate: `The Contract Price is based on material prices available at the time of proposal. If material prices increase substantially due to market conditions, supply shortages, tariffs, transportation costs, disaster conditions, or other causes beyond Contractor's reasonable control, Contractor may request an equitable adjustment by Change Order.
 

@@ -14,6 +14,9 @@ export const disputeClauses: DocumentClause[] = [
   {
     ...base,
     key: 'dispute.resolution',
+    includeWhen: [
+      { questionKey: 'disputeMethod', equals: ['mediation', 'arbitration', 'litigation'] },
+    ],
     title: 'Dispute Resolution',
     category: 'dispute',
     bodyTemplate: `The parties shall first attempt to resolve disputes through good-faith discussion. If unresolved, the parties agree to non-binding mediation before filing litigation or arbitration, unless emergency legal action is needed to preserve rights.
@@ -26,6 +29,7 @@ This clause shall not limit rights that cannot be waived under applicable law.`,
   {
     ...base,
     key: 'dispute.attorney_fees',
+    includeWhen: [{ questionKey: 'attorneyFees', equals: [true] }],
     title: 'Attorney Fees',
     category: 'dispute',
     bodyTemplate: `Where allowed by law, the prevailing party in a dispute arising from this Agreement may recover reasonable attorney fees, costs, and expenses.`,

@@ -60,6 +60,7 @@ Unless this Agreement states a guaranteed maximum price, the estimate is not a f
   {
     ...base,
     key: 'deposit.clause',
+    includeWhen: [{ questionKey: 'depositRequired', equals: [true] }],
     title: 'Deposit',
     category: 'payment',
     applicablePriceModels: ALL_PRICE_MODELS,
@@ -91,6 +92,7 @@ Payments are due upon completion of the stated milestone or upon invoice, as sta
   {
     ...base,
     key: 'payment.progress',
+    includeWhen: [{ questionKey: 'progressPayments', equals: [true] }],
     title: 'Progress Payments',
     category: 'payment',
     applicablePriceModels: ALL_PRICE_MODELS,
@@ -105,6 +107,7 @@ Typical milestones may include demolition complete, foundation complete, framing
   {
     ...base,
     key: 'payment.retainage',
+    includeWhen: [{ questionKey: 'retainage', equals: [true] }],
     title: 'Retainage',
     category: 'payment',
     applicablePriceModels: ALL_PRICE_MODELS,

@@ -27,6 +27,7 @@ import {
   LazyCustomEstimatePage,
   LazySafetyMeetingToolPage,
   LazyConcreteInspectionChecklistPage,
+  LazyContractBuilderPage,
   LazyProjects,
   LazySettings,
   LazyPourPlanner,
@@ -35,6 +36,7 @@ import {
   LazyProposals,
   LazyPublicProposal,
   LazyPublicChangeOrder,
+  LazyPublicContract,
   LazyClientPortal,
   LazyResources,
   LazyMixDesigns,
@@ -396,6 +398,14 @@ function App() {
               }
             />
             <Route
+              path="tools/contract-builder"
+              element={
+                <AuthGuard>
+                  <LazyRoute Page={LazyContractBuilderPage} />
+                </AuthGuard>
+              }
+            />
+            <Route
               path="resources"
               element={
                 <Suspense fallback={<RouteFallback />}>
@@ -483,6 +493,7 @@ function App() {
           </Route>
           <Route path="/proposal/:token" element={<LazyRoute Page={LazyPublicProposal} />} />
           <Route path="/change-order/:token" element={<LazyRoute Page={LazyPublicChangeOrder} />} />
+          <Route path="/contract/:token" element={<LazyRoute Page={LazyPublicContract} />} />
           <Route path="/client/project/:token" element={<LazyRoute Page={LazyClientPortal} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />

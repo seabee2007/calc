@@ -160,6 +160,15 @@ export function buildClientPortalSafePayload(input: {
     record_data?: Record<string, unknown> | null;
     test_age_days?: number | null;
   }>;
+  contracts?: Array<{
+    public_token?: string | null;
+    title?: string | null;
+    signing_status?: string | null;
+    sent_at?: string | null;
+    signed_at?: string | null;
+    public_token_expires_at?: string | null;
+    public_token_revoked_at?: string | null;
+  }>;
 }): ClientPortalSafePayload {
   const placementOrder = input.project.placement_order ?? undefined;
   const proposalStatus = input.proposal?.status ?? null;
@@ -217,6 +226,20 @@ export function buildClientPortalSafePayload(input: {
       type: "proposal",
     });
   }
+  for (const contract of input.contracts ?? []) {
+    const status = contract.signing_status ?? "";
+    const revoked = Boolean(contract.public_token_revoked_at);
+    const expired = contract.public_token_expires_at
+      ? new Date(contract.public_token_expires_at) < new Date()
+      : false;
+    if (contract.public_token && status !== "draft" && status !== "void" && !revoked && !expired) {
+      documents.push({
+        label: status === "signed" ? "View signed contract" : "Review & sign contract",
+        url: `${input.origin}/contract/${contract.public_token}`,
+        type: "other",
+      });
+    }
+  }
 
   const updates: ClientPortalUpdate[] = [];
   if (input.project.created_at) {
@@ -242,6 +265,14 @@ export function buildClientPortalSafePayload(input: {
       date: pourDate ?? new Date().toISOString(),
       message: "Concrete placement completed.",
     });
+  }
+  for (const contract of input.contracts ?? []) {
+    if (contract.sent_at) {
+      updates.push({ date: contract.sent_at, message: "Contract sent for signature." });
+    }
+    if (contract.signed_at) {
+      updates.push({ date: contract.signed_at, message: "Contract signed." });
+    }
   }
 
   return {

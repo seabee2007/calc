@@ -8,10 +8,8 @@ import { DRAFT_DISCLAIMER } from '../types';
 import { DEFAULT_PACK_KEY, getPackCatalog } from '../packs/registry';
 import { getPriceModel, getProjectType, toRenderData } from './inputUtils';
 import { selectClauses } from './documentAssembly';
+import { getComplianceProfile } from '../registry/complianceRegistry';
 import { buildQuestionnaire, findMissingRequiredAnswers } from './questionnaireEngine';
-
-/** Clauses that must always be present for a valid residential draft. */
-const REQUIRED_CLAUSE_KEYS = ['contract.title', 'scope.work'];
 
 /**
  * Resolve the export policy for an input. The Generic Residential Pack is
@@ -40,7 +38,10 @@ export function evaluateExportPolicy(
     if (hasBlocker) {
       reason = 'Resolve blocking compliance issues before final export.';
     } else if (!pack.attorneyReviewed) {
-      reason = `${pack.label} is draft-only. Final export requires an attorney-reviewed pack for the jurisdiction.`;
+      reason =
+        pack.status === 'attorney_review_required'
+          ? `${pack.label} contains locked statutory notices that require attorney review for ${pack.jurisdictions.join(', ')} before final export.`
+          : `${pack.label} is draft-only. Final export requires an attorney-reviewed pack for the jurisdiction.`;
     } else {
       reason = 'Final export is not enabled for this pack.';
     }
@@ -77,7 +78,11 @@ export function evaluateDocumentCompliance(
   const answers = toRenderData(input);
 
   // Missing-field checks (warnings: a draft may still be generated).
-  const questionnaire = buildQuestionnaire(input.documentType, 'advanced');
+  const profile = getComplianceProfile(input.documentType);
+  const questionnaire = buildQuestionnaire(
+    input.documentType,
+    profile.questionnaireModeForValidation,
+  );
   for (const missing of findMissingRequiredAnswers(questionnaire, answers)) {
     issues.push({
       code: `missing_field:${missing}`,
@@ -90,9 +95,9 @@ export function evaluateDocumentCompliance(
   const projectType = getProjectType(input);
   const priceModel = getPriceModel(input);
   const selectedKeys = new Set(
-    selectClauses(catalog, projectType, priceModel).map((clause) => clause.key),
+    selectClauses(catalog, projectType, priceModel, answers).map((clause) => clause.key),
   );
-  for (const requiredKey of REQUIRED_CLAUSE_KEYS) {
+  for (const requiredKey of profile.requiredClauseKeys) {
     if (!selectedKeys.has(requiredKey)) {
       issues.push({
         code: `missing_required_clause:${requiredKey}`,
@@ -102,13 +107,22 @@ export function evaluateDocumentCompliance(
     }
   }
 
-  // Draft-only posture surfaced as info.
+  // Legal-posture: attorney-review-required packs surface as a warning, plain
+  // draft-only packs as info. Neither blocks draft preview.
   if (!catalog.pack.attorneyReviewed) {
-    issues.push({
-      code: 'draft_only',
-      message: `${catalog.pack.label} produces draft documents only. Have a qualified attorney review before use.`,
-      severity: 'info',
-    });
+    if (catalog.pack.status === 'attorney_review_required') {
+      issues.push({
+        code: 'attorney_review_required',
+        message: `${catalog.pack.label} includes locked statutory notices for ${catalog.pack.jurisdictions.join(', ')} that require attorney review before any export. Notice blocks are placeholders pending verified text.`,
+        severity: 'warning',
+      });
+    } else {
+      issues.push({
+        code: 'draft_only',
+        message: `${catalog.pack.label} produces draft documents only. Have a qualified attorney review before use.`,
+        severity: 'info',
+      });
+    }
   }
 
   const hasBlocker = issues.some((issue) => issue.severity === 'blocker');

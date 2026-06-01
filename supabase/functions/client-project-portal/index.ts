@@ -76,6 +76,7 @@ serve(async (req) => {
       { data: qcRecords },
       { count: calculationsCount },
       { data: laborEstimate },
+      { data: contractRows },
     ] = await Promise.all([
       supabase
         .from("company_settings")
@@ -104,6 +105,14 @@ serve(async (req) => {
         .eq("project_id", project.id)
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from("contract_documents")
+        .select("public_token, title, signing_status, sent_at, signed_at, public_token_expires_at, public_token_revoked_at")
+        .eq("project_id", project.id)
+        .in("signing_status", ["sent", "viewed", "signed"])
+        .is("public_token_revoked_at", null)
+        .order("updated_at", { ascending: false })
+        .limit(25),
     ]);
 
     const proposal = resolveProposalForProject(
@@ -123,6 +132,7 @@ serve(async (req) => {
       qcRecords: qcRecords ?? [],
       calculationsCount: calculationsCount ?? 0,
       hasLaborEstimate: Boolean(laborEstimate),
+      contracts: contractRows ?? [],
     });
 
     await supabase

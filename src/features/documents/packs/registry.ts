@@ -6,11 +6,13 @@ import {
   genericResidentialAddendums,
 } from './genericResidential';
 import { concreteAddendums } from './concrete';
+import { stateCatalogs } from './statePacks';
 
 /**
  * Pack registry. Resolves a `packKey` to its full catalog (metadata + template
- * + concrete clause/addendum data). Only the Generic Residential Pack is wired
- * up today; state and specialty packs register here in later phases.
+ * + clause/addendum data). The Generic Residential Pack is the nationwide
+ * default; state packs (CA/FL/NY locked statutory notices, TX/GA/GU draft
+ * warnings) layer their notices on top of the generic catalog.
  */
 const PACK_CATALOGS: Record<string, PackCatalog> = {
   [GENERIC_RESIDENTIAL_PACK.packKey]: {
@@ -19,6 +21,7 @@ const PACK_CATALOGS: Record<string, PackCatalog> = {
     clauses: genericResidentialClauses,
     addenda: [...genericResidentialAddendums, ...concreteAddendums],
   },
+  ...Object.fromEntries(stateCatalogs.map((catalog) => [catalog.pack.packKey, catalog])),
 };
 
 export const DEFAULT_PACK_KEY = GENERIC_RESIDENTIAL_PACK.packKey;
@@ -33,4 +36,9 @@ export function getPack(packKey: string): DocumentPack | undefined {
 
 export function listPackKeys(): string[] {
   return Object.keys(PACK_CATALOGS);
+}
+
+/** All registered pack metadata (Generic Residential first, then state packs). */
+export function listPacks(): DocumentPack[] {
+  return Object.values(PACK_CATALOGS).map((catalog) => catalog.pack);
 }

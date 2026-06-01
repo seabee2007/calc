@@ -42,13 +42,15 @@ export type {
   DocumentComplianceIssue,
   DocumentComplianceResult,
   DocumentExportPolicy,
+  DocumentInputSnapshot,
+  DocumentRecommendationDecision,
   DocumentManifest,
   DocumentSection,
   DocumentAssemblyResult,
 } from './types';
 
 // Constants.
-export { DRAFT_DISCLAIMER, ALL_PROJECT_TYPES, ALL_PRICE_MODELS } from './types';
+export { DRAFT_DISCLAIMER, ENGINE_VERSION, ALL_PROJECT_TYPES, ALL_PRICE_MODELS } from './types';
 
 // Engine functions.
 export {
@@ -78,9 +80,12 @@ export {
   getProjectType,
   getPriceModel,
   getAcceptedAddendumKeys,
+  getQuestionnaireMode,
+  getRecommendationDecisions,
   answerMatches,
   FACT_KEYS,
 } from './engine/inputUtils';
+export { hashString, hashSections } from './engine/hash';
 
 // Packs.
 export {
@@ -95,9 +100,19 @@ export {
   getPack,
   getPackCatalog,
   listPackKeys,
+  listPacks,
   DEFAULT_PACK_KEY,
 } from './packs/registry';
 export { residentialQuestions } from './engine/questionnaire/residentialQuestions';
+export {
+  getDocumentTypeDefinition,
+  getDefaultPackKey,
+  isRuntimeSupported,
+  listSupportedDocumentTypes,
+  getQuestions,
+  getTemplate,
+  getComplianceProfile,
+} from './registry';
 export { concretePacks, concreteAddendums, concreteAddendumKeys } from './packs/concrete';
 export { roofingPacks } from './packs/roofing';
 export { insuranceRestorationPacks } from './packs/insuranceRestoration';

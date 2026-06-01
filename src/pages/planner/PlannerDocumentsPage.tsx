@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ClipboardList, FileText, Plus, ShieldCheck } from 'lucide-react';
+import { ClipboardList, FileSignature, FileText, Plus, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import { listSafetyMeetingsForProject } from '../../services/safetyMeetingService';
 import { listConcreteInspectionsForProject } from '../../services/concreteInspectionService';
+import { listContractDocuments } from '../../features/documents/services/contractDocumentService';
+import type { ContractDocumentRow } from '../../features/documents/services/contractDocumentTypes';
 import type { SafetyMeeting } from '../../types/fieldTools';
 import type { ConcreteInspectionChecklist } from '../../types/fieldTools';
 import {
   concreteInspectionToolHref,
+  contractBuilderToolHref,
   safetyMeetingToolHref,
 } from '../../utils/plannerRoutes';
 import Button from '../../components/ui/Button';
@@ -33,6 +36,15 @@ function formatDocDate(iso: string | undefined): string {
   }
 }
 
+function formatSigningMeta(doc: ContractDocumentRow): string {
+  const status = doc.signing_status ?? 'draft';
+  if (status === 'signed') return 'Signed';
+  if (status === 'sent' || status === 'viewed') return 'Awaiting client signature';
+  if (status === 'declined') return 'Declined';
+  if (status === 'void') return 'Void';
+  return `Draft · v${doc.latest_version_number}`;
+}
+
 export default function PlannerDocumentsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -40,21 +52,25 @@ export default function PlannerDocumentsPage() {
   const [searchParams] = useSearchParams();
   const highlightSafety = searchParams.get('safety');
   const highlightInspection = searchParams.get('inspection');
+  const highlightContract = searchParams.get('contract');
 
   const [safetyMeetings, setSafetyMeetings] = useState<SafetyMeeting[]>([]);
   const [inspections, setInspections] = useState<ConcreteInspectionChecklist[]>([]);
+  const [contracts, setContracts] = useState<ContractDocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!user?.id || !projectId) return;
     setLoading(true);
     try {
-      const [meetings, checklists] = await Promise.all([
+      const [meetings, checklists, contractRows] = await Promise.all([
         listSafetyMeetingsForProject(projectId, user.id),
         listConcreteInspectionsForProject(projectId, user.id),
+        listContractDocuments(projectId),
       ]);
       setSafetyMeetings(meetings);
       setInspections(checklists);
+      setContracts(contractRows);
     } finally {
       setLoading(false);
     }
@@ -124,7 +140,7 @@ export default function PlannerDocumentsPage() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Documents</h2>
             <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-              Safety meetings and concrete inspection checklists saved for{' '}
+              Safety meetings, contracts, and concrete inspection checklists saved for{' '}
               {project?.name ?? 'this project'}.
             </p>
           </div>
@@ -140,6 +156,34 @@ export default function PlannerDocumentsPage() {
 
         {!loading && (
           <>
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FileSignature className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>Contracts</h3>
+                </div>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={() => navigate(contractBuilderToolHref(projectId))}
+                >
+                  New contract
+                </Button>
+              </div>
+              {renderTable(
+                contracts.map((c) => ({
+                  id: c.id,
+                  date: formatDocDate(c.updated_at),
+                  title: c.title,
+                  meta: formatSigningMeta(c),
+                })),
+                'No contracts saved for this project yet.',
+                highlightContract,
+                (id) => contractBuilderToolHref(projectId, id),
+              )}
+            </section>
+
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">

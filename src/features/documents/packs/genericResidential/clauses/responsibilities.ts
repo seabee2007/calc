@@ -23,6 +23,7 @@ Owner delays may result in additional time and cost.`,
   {
     ...base,
     key: 'owner.supplied_materials',
+    includeWhen: [{ questionKey: 'ownerSuppliedMaterials', equals: [true] }],
     title: 'Owner-Supplied Materials',
     category: 'owner_responsibility',
     bodyTemplate: `If Owner supplies materials, fixtures, appliances, equipment, or finishes, Owner is responsible for correct quantity, correct size, correct model, timely delivery, damage before installation, defects, missing parts, manufacturer warranty, and compatibility with the project.
@@ -42,6 +43,7 @@ export const contractorClauses: DocumentClause[] = [
   {
     ...base,
     key: 'contractor.subcontractors',
+    includeWhen: [{ questionKey: 'subcontractorsUsed', equals: [true] }],
     title: 'Subcontractors',
     category: 'contractor_responsibility',
     bodyTemplate: `Contractor may use subcontractors to perform portions of the work. Contractor remains responsible for coordinating subcontracted work within the scope of this Agreement.

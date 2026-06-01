@@ -5,17 +5,13 @@ import type {
   QuestionnaireMode,
   QuestionVisibilityRule,
 } from '../types';
+import { getQuestions } from '../registry/questionnaireRegistry';
 import { answerMatches } from './inputUtils';
-import { residentialQuestions } from './questionnaire/residentialQuestions';
 
 const MODE_RANK: Record<QuestionnaireMode, number> = {
   quick: 0,
   standard: 1,
   advanced: 2,
-};
-
-const QUESTION_BANKS: Partial<Record<DocumentType, DocumentQuestion[]>> = {
-  residential_contract: residentialQuestions,
 };
 
 function rulesSatisfied(
@@ -35,7 +31,7 @@ export function buildQuestionnaire(
   documentType: DocumentType,
   mode: QuestionnaireMode = 'standard',
 ): DocumentQuestionnaire {
-  const bank = QUESTION_BANKS[documentType] ?? [];
+  const bank = getQuestions(documentType);
   const limit = MODE_RANK[mode];
   const questions = bank.filter((question) => MODE_RANK[question.mode] <= limit);
   return { documentType, mode, questions };

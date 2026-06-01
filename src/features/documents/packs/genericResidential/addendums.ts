@@ -36,6 +36,7 @@ Contractor Signature: ______________ Date: ________`,
   {
     ...base,
     key: 'addendum.allowance_schedule',
+    includeWhen: [{ questionKey: 'allowances', equals: [true] }],
     title: 'Allowance Schedule Addendum',
     bodyTemplate: `ALLOWANCE SCHEDULE
 
@@ -50,6 +51,7 @@ If Owner selects items above the allowance amount, the difference plus applicabl
   {
     ...base,
     key: 'addendum.owner_supplied_materials',
+    includeWhen: [{ questionKey: 'ownerSuppliedMaterials', equals: [true] }],
     title: 'Owner-Supplied Materials Addendum',
     bodyTemplate: `OWNER-SUPPLIED MATERIALS ADDENDUM
 
@@ -64,6 +66,7 @@ Owner is responsible for correct selection, delivery, damage, defects, missing p
   {
     ...base,
     key: 'addendum.hoa_condo',
+    includeWhen: [{ questionKey: 'hoa', equals: [true] }],
     title: 'HOA / Condo Addendum',
     bodyTemplate: `HOA / CONDO ADDENDUM
 
@@ -123,6 +126,7 @@ Invoices may include labor, material, equipment, subcontractor charges, delivery
   {
     ...base,
     key: 'addendum.design_build',
+    includeWhen: [{ questionKey: 'designBuild', equals: [true] }],
     title: 'Design-Build Addendum',
     bodyTemplate: `DESIGN-BUILD ADDENDUM
 
@@ -133,6 +137,7 @@ Engineering, architectural drawings, surveys, and stamped plans are excluded unl
   {
     ...base,
     key: 'addendum.hazardous_materials',
+    includeWhen: [{ questionKey: 'hazardousMaterialsPossible', equals: [true] }],
     title: 'Hazardous Materials Addendum',
     bodyTemplate: `HAZARDOUS MATERIALS ADDENDUM
 

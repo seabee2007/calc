@@ -35,6 +35,7 @@ export const protectionClauses: DocumentClause[] = [
   {
     ...base,
     key: 'insurance.requirements',
+    includeWhen: [{ questionKey: 'insuranceProvided', equals: [true] }],
     title: 'Insurance Requirements',
     category: 'insurance',
     bodyTemplate: `Contractor shall maintain insurance coverage as required to perform the work, which may include:
@@ -47,6 +48,7 @@ Certificates of insurance are available to Owner on request. Owner is responsibl
   {
     ...base,
     key: 'site.protection',
+    includeWhen: [{ questionKey: 'siteProtectionConcerns', equals: [true] }],
     title: 'Site Protection',
     category: 'site_protection',
     bodyTemplate: `Contractor shall take reasonable measures to protect the work area during construction. Owner acknowledges that some impact to landscaping, driveways, walkways, and existing surfaces may occur during normal construction activity.
@@ -56,6 +58,7 @@ Contractor is not responsible for pre-existing conditions, including existing cr
   {
     ...base,
     key: 'documentation.photos',
+    includeWhen: [{ questionKey: 'photoDocumentation', equals: [true] }],
     title: 'Photo Documentation',
     category: 'documentation',
     bodyTemplate: `Owner authorizes Contractor to take before, during, and after photographs and video of the work for documentation, quality control, warranty, and marketing purposes.
@@ -65,6 +68,7 @@ If Owner objects to use of project images for marketing, Owner shall notify Cont
   {
     ...base,
     key: 'weather.delay',
+    includeWhen: [{ questionKey: 'weatherSensitive', equals: [true] }],
     title: 'Weather Delay',
     category: 'weather',
     bodyTemplate: `Weather conditions may delay the work or affect material delivery and placement. Contractor shall not be responsible for delays or impacts caused by rain, extreme heat, freezing temperatures, high wind, storms, typhoons, hurricanes, flooding, or other weather conditions beyond Contractor's reasonable control.

@@ -86,6 +86,12 @@ export interface DocumentClause {
   locked: boolean;
   attorneyReviewed: boolean;
   version: string;
+  /**
+   * Optional answer-driven inclusion. When present, the clause assembles only
+   * if ALL rules match the collected answers. Absent means always-on (subject
+   * to project-type / price-model applicability).
+   */
+  includeWhen?: QuestionVisibilityRule[];
 }
 
 /**
@@ -103,6 +109,8 @@ export interface DocumentAddendum {
   locked: boolean;
   attorneyReviewed: boolean;
   version: string;
+  /** Optional answer-driven inclusion (same semantics as DocumentClause). */
+  includeWhen?: QuestionVisibilityRule[];
 }
 
 export interface DocumentTemplate {
@@ -276,13 +284,38 @@ export interface DocumentExportPolicy {
   reason?: string;
 }
 
+/** A point-in-time copy of the engine input, recorded for audit/reproducibility. */
+export interface DocumentInputSnapshot {
+  packKey: string;
+  answers: Record<string, unknown>;
+  facts: Record<string, unknown>;
+}
+
+/** An accept/reject decision the contractor made on a recommended clause/addendum. */
+export interface DocumentRecommendationDecision {
+  clauseKey: string;
+  accepted: boolean;
+}
+
 export interface DocumentManifest {
   documentType: DocumentType;
   packKey: string;
   packVersion: string;
+  /** Version of the assembly engine that produced this manifest. */
+  engineVersion: string;
   generatedAt: string;
+  /** Questionnaire mode used during intake, when known. */
+  mode?: QuestionnaireMode;
+  /** Exact input that produced the document (answers + facts + pack). */
+  inputSnapshot: DocumentInputSnapshot;
   clauseVersions: Record<string, string>;
   addendumVersions: Record<string, string>;
+  /** Accept/reject decisions on recommended clauses/addenda. */
+  recommendationDecisions: DocumentRecommendationDecision[];
+  /** Export policy in effect when the manifest was produced, when known. */
+  exportPolicy?: DocumentExportPolicy;
+  /** Stable hash over the ordered rendered sections (reproducibility check). */
+  outputHash: string;
   disclaimer: string;
 }
 
@@ -307,6 +340,12 @@ export interface DocumentAssemblyResult {
  */
 export const DRAFT_DISCLAIMER =
   'Draft document only. This document is not legal advice and should be reviewed by a qualified attorney before use.';
+
+/**
+ * Assembly engine version. Bump when selection, rendering, or manifest shape
+ * changes so manifests/output hashes remain traceable to engine behavior.
+ */
+export const ENGINE_VERSION = '0.2.0';
 
 /** Every residential project type supported by the Generic Residential Pack. */
 export const ALL_PROJECT_TYPES: ProjectType[] = [

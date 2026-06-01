@@ -50,6 +50,9 @@ export const LazySafetyMeetingToolPage = lazyPage(
 export const LazyConcreteInspectionChecklistPage = lazyPage(
   () => import('../pages/tools/ConcreteInspectionChecklistPage'),
 );
+export const LazyContractBuilderPage = lazyPage(
+  () => import('../features/documents/ui/DocumentBuilderPage'),
+);
 
 // Project management & proposals
 export const LazyProjects = lazyPage(() => import('../pages/Projects/Projects'));
@@ -60,6 +63,9 @@ export const LazyProposalGenerator = lazyPage(() => import('../pages/ProposalGen
 export const LazyProposals = lazyPage(() => import('../pages/Proposals'));
 export const LazyPublicProposal = lazyPage(() => import('../pages/PublicProposal'));
 export const LazyPublicChangeOrder = lazyPage(() => import('../pages/PublicChangeOrder'));
+export const LazyPublicContract = lazyPage(
+  () => import('../features/documents/ui/PublicContractPage'),
+);
 export const LazyClientPortal = lazyPage(() => import('../pages/ClientPortal'));
 
 // Onboarding & chat
