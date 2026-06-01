@@ -64,7 +64,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
           aria-label="Tools"
           title="Tools"
         >
-          <LayoutGrid className="h-5 w-5" />
+          <Wrench className="h-5 w-5" />
         </button>,
       ]
     : [];
@@ -123,6 +123,13 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
 
+        <Link
+          to={dashboardHref}
+          className="shrink-0 rounded px-1.5 py-1 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white lg:hidden"
+        >
+          Dashboard
+        </Link>
+        <span className="text-slate-600 lg:hidden">|</span>
         <span className="hidden text-slate-600 lg:inline">|</span>
         <span className="truncate text-sm font-medium text-slate-300 lg:hidden">Planner</span>
         <span className="hidden truncate text-sm text-slate-300 lg:inline">{sectionLabel}</span>

@@ -54,6 +54,7 @@ const Navbar: React.FC = () => {
     () => sectionLabelForPath(location.pathname, location.search),
     [location.pathname],
   );
+  const mobileSectionLabel = location.pathname === '/' ? 'Dashboard' : sectionLabel;
 
   const startProject = () => {
     setMobileOpen(false);
@@ -118,7 +119,7 @@ const Navbar: React.FC = () => {
         {user && (
           <>
             <span className="hidden text-slate-600 sm:inline">|</span>
-            <span className="truncate text-sm text-slate-300 md:hidden">{sectionLabel}</span>
+            <span className="truncate text-sm text-slate-300 md:hidden">{mobileSectionLabel}</span>
             <span className="hidden truncate text-sm text-slate-300 md:inline">{sectionLabel}</span>
           </>
         )}
@@ -158,6 +159,15 @@ const Navbar: React.FC = () => {
 
         {user && isOwner && (
           <div className="flex shrink-0 items-center gap-0.5 md:hidden">
+            <Link
+              to="/planner/hub"
+              className={appNavIconButtonClass(isActive('/planner'))}
+              aria-label="Open Planner Hub"
+              title="Planner Hub"
+              onClick={() => setMobileOpen(false)}
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
             <button
               type="button"
               onClick={startProject}
@@ -174,7 +184,7 @@ const Navbar: React.FC = () => {
               aria-label="Tools"
               title="Tools"
             >
-              <LayoutGrid className="h-5 w-5" />
+              <Wrench className="h-5 w-5" />
             </button>
           </div>
         )}
