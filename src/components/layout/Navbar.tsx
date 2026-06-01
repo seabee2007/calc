@@ -99,7 +99,7 @@ const Navbar: React.FC = () => {
         {user ? (
           <Link
             to={dashboardHref}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
+            className="hidden shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10 md:inline-flex"
             onClick={() => setMobileOpen(false)}
           >
             <LayoutDashboard className="h-4 w-4 text-cyan-400" />
@@ -118,7 +118,8 @@ const Navbar: React.FC = () => {
         {user && (
           <>
             <span className="hidden text-slate-600 sm:inline">|</span>
-            <span className="truncate text-sm text-slate-300">{sectionLabel}</span>
+            <span className="truncate text-sm text-slate-300 md:hidden">{sectionLabel}</span>
+            <span className="hidden truncate text-sm text-slate-300 md:inline">{sectionLabel}</span>
           </>
         )}
       </div>
@@ -152,15 +153,30 @@ const Navbar: React.FC = () => {
             >
               <Wrench className="h-5 w-5" />
             </button>
-            <Link
-              to="/resources"
-              className={`hidden md:inline-flex ${appNavIconButtonClass(isActive('/resources'))}`}
-              aria-label="Resources"
-              title="Resources"
-            >
-              <BookOpen className="h-5 w-5" />
-            </Link>
           </>
+        )}
+
+        {user && isOwner && (
+          <div className="flex shrink-0 items-center gap-0.5 md:hidden">
+            <button
+              type="button"
+              onClick={startProject}
+              className={appNavIconButtonClass()}
+              aria-label="Start new project"
+              title="Start new project"
+            >
+              <FolderPlus className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleTools}
+              className={appNavIconButtonClass()}
+              aria-label="Tools"
+              title="Tools"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </button>
+          </div>
         )}
 
         {user && isEmployee && !isOwner && (
@@ -185,11 +201,15 @@ const Navbar: React.FC = () => {
           </Link>
         )}
 
-        <div className="hidden sm:block [&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
+        <div className="[&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
           <ThemeToggle />
         </div>
 
-        {user && isOwner && <FieldNotificationsBell />}
+        {user && isOwner && (
+          <span className="hidden md:inline-flex">
+            <FieldNotificationsBell />
+          </span>
+        )}
 
         {user ? (
           <div className="relative">
@@ -230,9 +250,6 @@ const Navbar: React.FC = () => {
                   >
                     Projects
                   </Link>
-                  <div className="border-t border-slate-700 px-3 py-2 sm:hidden">
-                    <ThemeToggle />
-                  </div>
                   <button
                     type="button"
                     className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"

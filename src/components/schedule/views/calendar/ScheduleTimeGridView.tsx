@@ -68,21 +68,21 @@ export default function ScheduleTimeGridView({ events, days, selectedId, onSelec
     <div className={`${SCHEDULE_CARD} flex min-h-0 flex-1 flex-col overflow-hidden`}>
       <div className="flex min-h-0 flex-1 flex-col overflow-auto">
         <div
-          className="sticky top-0 z-20 grid border-b border-[#E5E7EB] bg-[#F8FAFC] dark:border-slate-700 dark:bg-slate-800"
+          className="sticky top-0 z-20 grid border-b border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
           style={{ gridTemplateColumns: `56px repeat(${days.length}, minmax(100px, 1fr))` }}
         >
-          <div className="border-r border-[#E5E7EB] dark:border-slate-700" />
+          <div className="border-r border-slate-200 dark:border-slate-700" />
           {days.map((iso) => {
             const isToday = iso === toIsoDate(new Date());
             return (
               <div
                 key={iso}
-                className={`border-r border-[#E5E7EB] px-2 py-2 text-center last:border-r-0 dark:border-slate-700 ${
-                  isToday ? 'bg-blue-50/80 dark:bg-blue-950/30' : ''
+                className={`border-r border-slate-200 px-2 py-2 text-center last:border-r-0 dark:border-slate-700 ${
+                  isToday ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : ''
                 }`}
               >
                 <p
-                  className={`text-xs font-semibold ${isToday ? 'text-[#2563EB]' : 'text-[#1F2937] dark:text-slate-200'}`}
+                  className={`text-xs font-semibold ${isToday ? 'text-blue-700 dark:text-blue-300' : 'text-slate-900 dark:text-slate-200'}`}
                 >
                   {dayLabel(iso)}
                 </p>
@@ -93,14 +93,14 @@ export default function ScheduleTimeGridView({ events, days, selectedId, onSelec
 
         {showMultiLane && (
           <div
-            className="grid gap-1 border-b border-[#E5E7EB] bg-[#F8FAFC]/80 px-0.5 py-1 dark:border-slate-700 dark:bg-slate-900/80"
+            className="grid gap-1 border-b border-slate-200 bg-slate-50 px-0.5 py-1 dark:border-slate-700 dark:bg-slate-900/80"
             style={{
               gridTemplateColumns: gridCols,
               gridTemplateRows: `repeat(${multiLaneCount}, minmax(28px, auto))`,
             }}
           >
             <div
-              className={`row-span-full flex items-start border-r border-[#E5E7EB] px-1 pt-1 text-[10px] font-medium ${SCHEDULE_MUTED} dark:border-slate-700`}
+              className={`row-span-full flex items-start border-r border-slate-200 px-1 pt-1 text-[10px] font-medium ${SCHEDULE_MUTED} dark:border-slate-700`}
               style={{ gridRow: `1 / span ${multiLaneCount}` }}
             >
               Multi-day
@@ -120,18 +120,18 @@ export default function ScheduleTimeGridView({ events, days, selectedId, onSelec
 
         {hasAllDay && (
           <div
-            className="grid border-b border-[#E5E7EB] bg-white dark:border-slate-700 dark:bg-slate-900"
+            className="grid border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
             style={{ gridTemplateColumns: gridCols }}
           >
             <div
-              className={`flex items-center border-r border-[#E5E7EB] px-1 text-[10px] font-medium ${SCHEDULE_MUTED} dark:border-slate-700`}
+              className={`flex items-center border-r border-slate-200 px-1 text-[10px] font-medium ${SCHEDULE_MUTED} dark:border-slate-700`}
             >
               All day
             </div>
             {dayData.map(({ iso, allDay }) => (
               <div
                 key={`allday-${iso}`}
-                className="min-h-[48px] space-y-1 border-r border-[#E5E7EB] p-1 last:border-r-0 dark:border-slate-700"
+                className="min-h-[48px] space-y-1 border-r border-slate-200 bg-white p-1 last:border-r-0 dark:border-slate-700 dark:bg-slate-900"
               >
                 {allDay.map((e) => (
                   <ScheduleCalendarEventChip
@@ -152,13 +152,13 @@ export default function ScheduleTimeGridView({ events, days, selectedId, onSelec
           style={{ gridTemplateColumns: `56px repeat(${days.length}, minmax(100px, 1fr))` }}
         >
           <div
-            className="relative border-r border-[#E5E7EB] dark:border-slate-700"
+            className="relative border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
             style={{ height: gridHeight }}
           >
             {Array.from({ length: endHour - startHour }).map((_, i) => (
               <div
                 key={i}
-                className={`absolute left-0 right-0 border-b border-[#E5E7EB] px-1 text-right text-[10px] ${SCHEDULE_MUTED} dark:border-slate-700`}
+                className={`absolute left-0 right-0 border-b border-slate-200 px-1 text-right text-[10px] ${SCHEDULE_MUTED} dark:border-slate-700`}
                 style={{ top: i * hourRowHeight, height: hourRowHeight }}
               >
                 {formatHourLabel(startHour + i)}
@@ -169,13 +169,13 @@ export default function ScheduleTimeGridView({ events, days, selectedId, onSelec
           {dayData.map(({ iso, layouts }) => (
             <div
               key={`grid-${iso}`}
-              className="relative border-r border-[#E5E7EB] last:border-r-0 dark:border-slate-700"
+              className="relative border-r border-slate-200 bg-white last:border-r-0 dark:border-slate-700 dark:bg-slate-900"
               style={{ height: gridHeight }}
             >
               {Array.from({ length: slotCount }).map((_, i) => (
                 <div
                   key={i}
-                  className="absolute left-0 right-0 border-b border-[#E5E7EB]/60 dark:border-slate-700/60"
+                  className="absolute left-0 right-0 border-b border-slate-200/70 dark:border-slate-700/60"
                   style={{ top: i * slotHeightPx, height: slotHeightPx }}
                 />
               ))}

@@ -62,14 +62,14 @@ const typeStyleMap: Partial<
     surface: 'bg-green-100/90 border-green-200 dark:bg-green-950/50 dark:border-green-800',
   },
   material_delivery: {
-    badge: 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800',
-    dot: 'bg-amber-500',
-    surface: 'bg-amber-100/90 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800',
+    badge: 'bg-orange-50 text-orange-900 border-orange-300 dark:bg-orange-950/40 dark:text-orange-100 dark:border-orange-700',
+    dot: 'bg-orange-500',
+    surface: 'bg-orange-50 border-orange-300 dark:bg-orange-950/40 dark:border-orange-700',
   },
   equipment_delivery: {
-    badge: 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800',
-    dot: 'bg-amber-600',
-    surface: 'bg-amber-100/90 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800',
+    badge: 'bg-orange-50 text-orange-900 border-orange-300 dark:bg-orange-950/40 dark:text-orange-100 dark:border-orange-700',
+    dot: 'bg-orange-600',
+    surface: 'bg-orange-50 border-orange-300 dark:bg-orange-950/40 dark:border-orange-700',
   },
   inspection: {
     badge: 'bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/40 dark:text-purple-200 dark:border-purple-800',
@@ -143,7 +143,7 @@ export const SCHEDULE_DETAIL_PANEL =
   `hidden lg:flex lg:w-[24%] lg:min-w-[280px] lg:max-w-[360px] shrink-0 flex-col border-l ${BORDER_DEFAULT} ${SURFACE}`;
 
 export const SCHEDULE_CALENDAR_GRID =
-  `flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${SURFACE}`;
+  `flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950`;
 
 export const SCHEDULE_TOOLBAR =
   `flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2 sm:px-4 ${BORDER_DEFAULT} ${SURFACE}`;

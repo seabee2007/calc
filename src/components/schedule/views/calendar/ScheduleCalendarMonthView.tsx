@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import type { ScheduleEvent } from '../../../../types/scheduleEvent';
 import ScheduleCalendarEventChip from '../../ScheduleCalendarEventChip';
 import ScheduleCalendarMultiDayBar, { multiDayLaneCount } from '../../ScheduleCalendarMultiDayBar';
-import { SCHEDULE_CARD, SCHEDULE_MUTED } from '../../scheduleTheme';
+import { SCHEDULE_CARD } from '../../scheduleTheme';
 import {
   eventsForCalendarCell,
   getMonthGrid,
@@ -42,7 +42,7 @@ export default function ScheduleCalendarMonthView({
 
   return (
     <div className={`${SCHEDULE_CARD} flex min-h-0 flex-1 flex-col overflow-hidden`}>
-      <div className="grid grid-cols-7 border-b border-[#E5E7EB] bg-[#F8FAFC] text-center text-xs font-semibold text-[#6B7280] dark:border-slate-700 dark:bg-slate-800">
+      <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-100 text-center text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
           <div key={d} className="py-2">
             {d}
@@ -59,7 +59,7 @@ export default function ScheduleCalendarMonthView({
           return (
             <div
               key={wi}
-              className="grid grid-cols-7 border-b border-[#E5E7EB] last:border-0 dark:border-slate-700"
+              className="grid grid-cols-7 border-b border-slate-200 last:border-0 dark:border-slate-700"
               style={{ gridTemplateRows: rowTemplate }}
             >
               {laneCount > 0 &&
@@ -79,7 +79,7 @@ export default function ScheduleCalendarMonthView({
                   return (
                     <div
                       key={`empty-${wi}-${di}`}
-                      className="min-h-[100px] bg-slate-50/50 dark:bg-slate-900/30"
+                      className="min-h-[100px] bg-slate-50 dark:bg-slate-900/30"
                       style={{ gridColumn: di + 1, gridRow: laneCount > 0 ? laneCount + 1 : 1 }}
                     />
                   );
@@ -91,9 +91,9 @@ export default function ScheduleCalendarMonthView({
                 return (
                   <div
                     key={iso}
-                    className={`min-h-[100px] border-r border-[#E5E7EB] p-1 last:border-r-0 dark:border-slate-700 ${
+                    className={`min-h-[100px] border-r border-slate-200 bg-white p-1 last:border-r-0 dark:border-slate-700 dark:bg-slate-950 ${
                       isToday
-                        ? 'z-[1] bg-blue-50/30 ring-2 ring-inset ring-[#2563EB] dark:bg-blue-950/20 dark:ring-blue-400'
+                        ? 'z-[1] !bg-blue-50 ring-2 ring-inset ring-blue-500 text-blue-700 dark:!bg-blue-950/40 dark:ring-blue-400 dark:text-blue-300'
                         : ''
                     }`}
                     style={{ gridColumn: di + 1, gridRow: laneCount > 0 ? laneCount + 1 : 1 }}
@@ -101,8 +101,8 @@ export default function ScheduleCalendarMonthView({
                     <span
                       className={
                         isToday
-                          ? 'inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full border-2 border-[#2563EB] text-xs font-semibold text-[#2563EB] dark:border-blue-400 dark:text-blue-300'
-                          : `text-xs font-medium ${SCHEDULE_MUTED}`
+                          ? 'inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full border-2 border-blue-500 bg-blue-50 text-xs font-semibold text-blue-700 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-300'
+                          : 'text-xs font-medium text-slate-700 dark:text-slate-300'
                       }
                       aria-current={isToday ? 'date' : undefined}
                     >

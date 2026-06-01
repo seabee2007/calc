@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen,
   FolderPlus,
   LayoutDashboard,
   LayoutGrid,
@@ -45,6 +44,65 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
     navigate('/projects', { state: { openCreate: true } });
   };
 
+  const mobilePlannerActions: ReactNode[] = isOwner
+    ? [
+        <button
+          key="start-project"
+          type="button"
+          onClick={startProject}
+          className={appNavIconButtonClass()}
+          aria-label="Start new project"
+          title="Start new project"
+        >
+          <FolderPlus className="h-5 w-5" />
+        </button>,
+        <button
+          key="tools"
+          type="button"
+          onClick={openTools}
+          className={appNavIconButtonClass()}
+          aria-label="Tools"
+          title="Tools"
+        >
+          <LayoutGrid className="h-5 w-5" />
+        </button>,
+      ]
+    : [];
+
+  const desktopOwnerActions: ReactNode[] = isOwner
+    ? [
+        <Link
+          key="planner-hub"
+          to="/planner/hub"
+          className={appNavIconButtonClass(location.pathname === '/planner/hub')}
+          aria-label="Planner Hub"
+          title="Planner Hub"
+        >
+          <LayoutGrid className="h-5 w-5" />
+        </Link>,
+        <button
+          key="start-project"
+          type="button"
+          onClick={startProject}
+          className={appNavIconButtonClass()}
+          aria-label="Start new project"
+          title="Start new project"
+        >
+          <FolderPlus className="h-5 w-5" />
+        </button>,
+        <button
+          key="tools"
+          type="button"
+          onClick={openTools}
+          className={appNavIconButtonClass()}
+          aria-label="Tools"
+          title="Tools"
+        >
+          <Wrench className="h-5 w-5" />
+        </button>,
+      ]
+    : [];
+
   return (
     <header className={APP_NAV_HEADER}>
       <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
@@ -59,60 +117,34 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
 
         <Link
           to={dashboardHref}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
+          className="hidden shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10 lg:inline-flex"
         >
           <LayoutDashboard className="h-4 w-4 text-cyan-400" />
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
 
-        <span className="hidden text-slate-600 sm:inline">|</span>
-        <span className="truncate text-sm text-slate-300">{sectionLabel}</span>
+        <span className="hidden text-slate-600 lg:inline">|</span>
+        <span className="truncate text-sm font-medium text-slate-300 lg:hidden">Planner</span>
+        <span className="hidden truncate text-sm text-slate-300 lg:inline">{sectionLabel}</span>
       </div>
 
       <div className="flex shrink-0 items-center gap-0.5">
-        {isOwner && (
-          <>
-            <Link
-              to="/planner/hub"
-              className={appNavIconButtonClass(location.pathname === '/planner/hub')}
-              aria-label="Planner Hub"
-              title="Planner Hub"
-            >
-              <LayoutGrid className="h-5 w-5" />
-            </Link>
-            <button
-              type="button"
-              onClick={startProject}
-              className={appNavIconButtonClass()}
-              aria-label="Start new project"
-              title="Start new project"
-            >
-              <FolderPlus className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={openTools}
-              className={appNavIconButtonClass()}
-              aria-label="Tools"
-              title="Tools"
-            >
-              <Wrench className="h-5 w-5" />
-            </button>
-            <Link
-              to="/resources"
-              className={appNavIconButtonClass(location.pathname.startsWith('/resources'))}
-              aria-label="Resources"
-              title="Resources"
-            >
-              <BookOpen className="h-5 w-5" />
-            </Link>
-          </>
+        {mobilePlannerActions.length > 0 && (
+          <div className="flex shrink-0 items-center gap-0.5 lg:hidden">
+            {mobilePlannerActions}
+          </div>
+        )}
+
+        {desktopOwnerActions.length > 0 && (
+          <div className="hidden shrink-0 items-center gap-0.5 lg:flex">
+            {desktopOwnerActions}
+          </div>
         )}
 
         {isEmployee && !isOwner && (
           <Link
             to="/employee/tasks"
-            className={appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}
+            className={`hidden lg:inline-flex ${appNavIconButtonClass(location.pathname.startsWith('/employee/tasks'))}`}
             aria-label="My tasks"
             title="My tasks"
           >
@@ -122,7 +154,7 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
 
         <Link
           to="/settings"
-          className={appNavIconButtonClass(location.pathname === '/settings')}
+          className={`hidden lg:inline-flex ${appNavIconButtonClass(location.pathname === '/settings')}`}
           aria-label="Settings"
           title="Settings"
         >
@@ -133,7 +165,11 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
           <ThemeToggle />
         </div>
 
-        {isOwner && <FieldNotificationsBell />}
+        {isOwner && (
+          <span className="hidden lg:inline-flex">
+            <FieldNotificationsBell />
+          </span>
+        )}
 
         <div className="relative">
           <button

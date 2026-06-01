@@ -20,6 +20,16 @@ export default function ScheduleCalendarEventChip({
 }: Props) {
   const style = SCHEDULE_EVENT_TYPE_STYLES[event.eventType];
   const typeLabel = SCHEDULE_EVENT_TYPE_LABELS[event.eventType];
+  const isOrangeDelivery = event.eventType === 'material_delivery' || event.eventType === 'equipment_delivery';
+  const titleColor = isOrangeDelivery
+    ? 'text-orange-900 dark:text-orange-100'
+    : 'text-[#1F2937] dark:text-slate-100';
+  const subtitleColor = isOrangeDelivery
+    ? 'text-orange-700 dark:text-orange-200'
+    : 'text-[#4B5563] dark:text-slate-300';
+  const metaColor = isOrangeDelivery
+    ? 'text-orange-700/80 dark:text-orange-200/80'
+    : 'text-[#6B7280] dark:text-slate-400';
 
   return (
     <button
@@ -41,7 +51,7 @@ export default function ScheduleCalendarEventChip({
         />
         <span
           className={`flex min-w-0 items-center gap-0.5 truncate text-[10px] font-semibold leading-tight ${
-            selected ? 'text-white' : 'text-[#1F2937] dark:text-slate-100'
+            selected ? 'text-white' : titleColor
           }`}
         >
           {(event.recurrenceRule || event.isRecurringInstance || event.seriesMasterId) && (
@@ -52,14 +62,14 @@ export default function ScheduleCalendarEventChip({
       </div>
       <span
         className={`truncate pl-2 text-[10px] leading-tight ${
-          selected ? 'text-blue-100' : 'text-[#4B5563] dark:text-slate-300'
+          selected ? 'text-blue-100' : subtitleColor
         }`}
       >
         {event.projectName ?? 'Project'}
       </span>
       <span
         className={`truncate pl-2 text-[9px] leading-tight ${
-          selected ? 'text-blue-100' : 'text-[#6B7280] dark:text-slate-400'
+          selected ? 'text-blue-100' : metaColor
         }`}
       >
         {typeLabel}

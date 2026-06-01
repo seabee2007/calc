@@ -12,11 +12,13 @@ import type {
   DocumentRecommendation,
   DocumentRiskScore,
 } from '../../types';
+import { getPackCatalog } from '../../packs/registry';
 import { RISK_STYLES, SEVERITY_TEXT } from '../contractBuilderConstants';
 
 const BASE_RECOMMENDED_CLAUSES = ['Change Order', 'Unknown Conditions', 'Force Majeure'];
 
 export interface CompliancePanelProps {
+  packKey: string;
   risk: DocumentRiskScore;
   recommendations: DocumentRecommendation[];
   complianceIssues: DocumentComplianceIssue[];
@@ -27,6 +29,7 @@ export interface CompliancePanelProps {
 }
 
 export default function CompliancePanel({
+  packKey,
   risk,
   recommendations,
   complianceIssues,
@@ -35,6 +38,32 @@ export default function CompliancePanel({
   onRunValidation,
   onToggleRecommendation,
 }: CompliancePanelProps) {
+  const catalog = getPackCatalog(packKey);
+  const titleForRecommendation = (clauseKey: string): string => {
+    const clause = catalog?.clauses.find((item) => item.key === clauseKey);
+    if (clause) {
+      return /\bclause\b/i.test(clause.title) ? clause.title : `${clause.title} Clause`;
+    }
+
+    const addendum = catalog?.addenda.find((item) => item.key === clauseKey);
+    if (addendum) {
+      return /\baddendum\b/i.test(addendum.title) ? addendum.title : `${addendum.title} Addendum`;
+    }
+
+    const isAddendum = clauseKey.startsWith('addendum.');
+    const rawName = clauseKey.replace(/^addendum\./, '').replace(/^[^.]+\./, '');
+    const readableName = rawName
+      .split('_')
+      .filter(Boolean)
+      .map((part) => {
+        if (part.toLowerCase() === 'hoa') return 'HOA';
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join(' ')
+      .replace(/^Owner Supplied\b/, 'Owner-Supplied');
+    return `${readableName} ${isAddendum ? 'Addendum' : 'Clause'}`;
+  };
+
   return (
     <>
       <div className={APP_SECTION_CARD}>
@@ -81,18 +110,22 @@ export default function CompliancePanel({
           <ul className="space-y-2">
             {recommendations.map((rec) => {
               const isAccepted = accepted.has(rec.clauseKey);
+              const title = titleForRecommendation(rec.clauseKey);
               return (
                 <li
                   key={rec.clauseKey}
                   className={`flex items-start justify-between gap-3 rounded-lg border p-3 ${BORDER_DEFAULT}`}
                 >
                   <div className="min-w-0">
-                    <p
-                      className={`font-mono text-xs ${SEVERITY_TEXT[rec.severity] ?? TEXT_MUTED}`}
-                    >
-                      {rec.clauseKey} · {rec.severity}
-                    </p>
-                    <p className={`mt-0.5 text-sm ${TEXT_BODY}`}>{rec.reason}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>{title}</p>
+                      <span
+                        className={`rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${SEVERITY_TEXT[rec.severity] ?? TEXT_MUTED}`}
+                      >
+                        Recommended
+                      </span>
+                    </div>
+                    <p className={`mt-1 text-sm ${TEXT_BODY}`}>{rec.reason}</p>
                   </div>
                   <Button
                     variant={isAccepted ? 'accent' : 'outline'}

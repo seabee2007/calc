@@ -26,6 +26,13 @@ export default function ScheduleCalendarMultiDayBar({
 }: Props) {
   const style = SCHEDULE_EVENT_TYPE_STYLES[event.eventType];
   const tooltip = `${event.title}\n${event.projectName ?? 'Project'}\n${formatScheduleEventDateRange(event)}`;
+  const isOrangeDelivery = event.eventType === 'material_delivery' || event.eventType === 'equipment_delivery';
+  const titleColor = isOrangeDelivery
+    ? 'text-orange-900 dark:text-orange-100'
+    : 'text-[#1F2937] dark:text-slate-100';
+  const subtitleColor = isOrangeDelivery
+    ? 'text-orange-700 dark:text-orange-200'
+    : 'text-[#6B7280] dark:text-slate-400';
 
   return (
     <button
@@ -46,10 +53,10 @@ export default function ScheduleCalendarMultiDayBar({
     >
       <span className={`h-full w-1 shrink-0 rounded-full ${style.dot}`} aria-hidden />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] font-semibold text-[#1F2937] dark:text-slate-100">
+        <p className={`truncate text-[11px] font-semibold ${titleColor}`}>
           {event.title}
         </p>
-        <p className="truncate text-[10px] text-[#6B7280] dark:text-slate-400">
+        <p className={`truncate text-[10px] ${subtitleColor}`}>
           {event.projectName ?? 'Project'}
         </p>
       </div>

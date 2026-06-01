@@ -790,6 +790,7 @@ export default function DocumentBuilderPage() {
                 onRefreshFromProject={() => applyPrefill(true)}
               />
               <CompliancePanel
+                packKey={packKey}
                 risk={risk}
                 recommendations={recommendations}
                 complianceIssues={compliance.issues}
