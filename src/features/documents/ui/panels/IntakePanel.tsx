@@ -1,5 +1,6 @@
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
+import USAddressFields from '../../../../components/address/USAddressFields';
 import {
   APP_SECTION_CARD,
   BORDER_DEFAULT,
@@ -7,8 +8,11 @@ import {
   TEXT_FOREGROUND,
   TEXT_MUTED,
 } from '../../../../theme/appTheme';
+import { EMPTY_US_ADDRESS, type USAddress } from '../../../../types/address';
+import { formatUSPhoneInput } from '../../../../utils/phoneFormat';
 import type { DocumentQuestion, IntakeGroup, QuestionnaireMode } from '../../types';
 import { GROUP_LABELS, MODES } from '../contractBuilderConstants';
+import type { ContractPrefillSource } from '../contractPrefill';
 
 export interface IntakePanelProps {
   packOptions: { value: string; label: string }[];
@@ -16,9 +20,50 @@ export interface IntakePanelProps {
   mode: QuestionnaireMode;
   groupedQuestions: { group: IntakeGroup; questions: DocumentQuestion[] }[];
   answers: Record<string, unknown>;
+  fieldSources?: Partial<Record<string, ContractPrefillSource>>;
+  fieldNotes?: Partial<Record<string, string>>;
+  fieldErrors?: Partial<Record<string, string>>;
+  hasSelectedProject?: boolean;
   onPackChange: (packKey: string) => void;
   onModeChange: (mode: QuestionnaireMode) => void;
   onAnswerChange: (key: string, value: unknown) => void;
+  onRefreshFromProject?: () => void;
+}
+
+const ADDRESS_PREFIXES = [
+  'contractorAddress',
+  'ownerMailingAddress',
+  'propertyAddress',
+] as const;
+
+type AddressPrefix = (typeof ADDRESS_PREFIXES)[number];
+
+const ADDRESS_FIRST_KEYS: Record<AddressPrefix, string> = {
+  contractorAddress: 'contractorAddressStreet',
+  ownerMailingAddress: 'ownerMailingAddressStreet',
+  propertyAddress: 'propertyAddressStreet',
+};
+
+const ADDRESS_LABELS: Record<AddressPrefix, string> = {
+  contractorAddress: 'Contractor address',
+  ownerMailingAddress: 'Owner mailing address',
+  propertyAddress: 'Property address',
+};
+
+function addressPrefixForKey(key: string): AddressPrefix | null {
+  return ADDRESS_PREFIXES.find((prefix) => key.startsWith(prefix)) ?? null;
+}
+
+function answerString(answers: Record<string, unknown>, key: string): string {
+  const value = answers[key];
+  return value === undefined || value === null ? '' : String(value);
+}
+
+function sourceLabel(source: ContractPrefillSource | undefined): string | null {
+  if (source === 'proposal') return 'From proposal';
+  if (source === 'project') return 'From project';
+  if (source === 'company') return 'From company';
+  return null;
 }
 
 export default function IntakePanel({
@@ -27,12 +72,69 @@ export default function IntakePanel({
   mode,
   groupedQuestions,
   answers,
+  fieldSources = {},
+  fieldNotes = {},
+  fieldErrors = {},
+  hasSelectedProject = false,
   onPackChange,
   onModeChange,
   onAnswerChange,
+  onRefreshFromProject,
 }: IntakePanelProps) {
+  const fieldMeta = (key: string, fallbackHelper?: string) => {
+    const label = sourceLabel(fieldSources[key]);
+    const note = fieldNotes[key] ?? fallbackHelper;
+    return {
+      helperText: [label, note].filter(Boolean).join(label && note ? ' · ' : '') || undefined,
+      error: fieldErrors[key],
+    };
+  };
+
+  const getAddress = (prefix: AddressPrefix): USAddress => ({
+    ...EMPTY_US_ADDRESS,
+    street: answerString(answers, `${prefix}Street`),
+    street2: answerString(answers, `${prefix}Street2`),
+    city: answerString(answers, `${prefix}City`),
+    state: answerString(answers, `${prefix}State`),
+    zip: answerString(answers, `${prefix}Zip`),
+  });
+
+  const renderAddress = (prefix: AddressPrefix) => {
+    const label = sourceLabel(
+      fieldSources[`${prefix}Street`] ??
+        fieldSources[`${prefix}City`] ??
+        fieldSources[`${prefix}State`] ??
+        fieldSources[`${prefix}Zip`],
+    );
+    return (
+      <div className="space-y-2">
+        <p className={`text-xs font-semibold uppercase tracking-wider ${TEXT_MUTED}`}>
+          {ADDRESS_LABELS[prefix]}
+        </p>
+        <USAddressFields
+          value={getAddress(prefix)}
+          onChange={(next) => {
+            onAnswerChange(`${prefix}Street`, next.street);
+            onAnswerChange(`${prefix}Street2`, next.street2);
+            onAnswerChange(`${prefix}City`, next.city);
+            onAnswerChange(`${prefix}State`, next.state);
+            onAnswerChange(`${prefix}Zip`, next.zip);
+          }}
+          streetLabel="Street Address"
+          showStreet2
+          idPrefix={`contract-${prefix}`}
+        />
+        {label && <p className={`text-xs ${TEXT_MUTED}`}>{label}</p>}
+      </div>
+    );
+  };
+
   const renderControl = (q: DocumentQuestion) => {
     const value = answers[q.questionKey];
+    const addressPrefix = addressPrefixForKey(q.questionKey);
+    if (addressPrefix) {
+      return q.questionKey === ADDRESS_FIRST_KEYS[addressPrefix] ? renderAddress(addressPrefix) : null;
+    }
     if (q.type === 'boolean') {
       const on = value === true;
       return (
@@ -67,12 +169,48 @@ export default function IntakePanel({
         />
       );
     }
+    const isPhone = /phone/i.test(q.questionKey);
+    const isEmail = /email/i.test(q.questionKey);
+    const isYearBuilt = q.questionKey === 'yearBuilt';
+    const isDepositAmount = q.questionKey === 'depositAmount';
+    const contractPrice = Number(answers.contractPrice);
+    const depositPercent = Number(answers.depositPercent);
+    const expectedDeposit =
+      Number.isFinite(contractPrice) && contractPrice > 0 && Number.isFinite(depositPercent)
+        ? Math.round(contractPrice * (depositPercent / 100) * 100) / 100
+        : undefined;
+    const depositAmount = Number(value);
+    const depositWarning =
+      isDepositAmount &&
+      expectedDeposit !== undefined &&
+      Number.isFinite(depositAmount) &&
+      depositAmount > 0 &&
+      Math.abs(depositAmount - expectedDeposit) > 0.01
+        ? 'Manual deposit amount differs from percentage calculation.'
+        : undefined;
+    const depositHelper =
+      isDepositAmount && (!Number.isFinite(contractPrice) || contractPrice <= 0)
+        ? 'Enter a fixed contract price first to calculate deposit.'
+        : depositWarning;
+    const meta = fieldMeta(
+      q.questionKey,
+      isYearBuilt ? 'Leave blank if unknown.' : depositHelper,
+    );
     return (
       <Input
         label={q.label}
-        type={q.type === 'number' ? 'number' : q.type === 'date' ? 'date' : 'text'}
+        type={q.type === 'number' ? 'number' : q.type === 'date' ? 'date' : isPhone ? 'tel' : isEmail ? 'email' : 'text'}
         value={value === undefined || value === null ? '' : String(value)}
-        onChange={(e) => onAnswerChange(q.questionKey, e.target.value)}
+        onChange={(e) =>
+          onAnswerChange(
+            q.questionKey,
+            isPhone ? formatUSPhoneInput(e.target.value) : e.target.value,
+          )
+        }
+        min={isYearBuilt ? 1900 : undefined}
+        max={isYearBuilt ? new Date().getFullYear() : undefined}
+        helperText={meta.helperText}
+        error={meta.error}
         fullWidth
       />
     );
@@ -119,7 +257,18 @@ export default function IntakePanel({
 
       {groupedQuestions.map(({ group, questions }) => (
         <div key={group} className={APP_SECTION_CARD}>
-          <h2 className={`mb-3 text-sm font-semibold ${TEXT_FOREGROUND}`}>{GROUP_LABELS[group]}</h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>{GROUP_LABELS[group]}</h2>
+            {group === 'project' && hasSelectedProject && onRefreshFromProject && (
+              <button
+                type="button"
+                onClick={onRefreshFromProject}
+                className="text-xs font-medium text-cyan-700 hover:text-cyan-800 dark:text-cyan-300"
+              >
+                Refresh from project
+              </button>
+            )}
+          </div>
           <div className="space-y-3">
             {questions.map((q) => (
               <div key={q.questionKey}>{renderControl(q)}</div>

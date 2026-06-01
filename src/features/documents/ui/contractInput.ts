@@ -3,6 +3,7 @@ import type {
   DocumentRecommendationDecision,
   QuestionnaireMode,
 } from '../index';
+import { formatUSAddress, type USAddress } from '../../../types/address';
 
 /**
  * UI -> engine input mapping. This is input collection only (no document
@@ -43,6 +44,21 @@ function str(value: unknown): string | undefined {
   return undefined;
 }
 
+function structuredAddress(
+  answers: ContractAnswers,
+  prefix: 'ownerMailingAddress' | 'propertyAddress' | 'contractorAddress',
+): string | undefined {
+  const addr: Partial<USAddress> = {
+    street: str(answers[`${prefix}Street`]) ?? '',
+    street2: str(answers[`${prefix}Street2`]) ?? '',
+    city: str(answers[`${prefix}City`]) ?? '',
+    state: str(answers[`${prefix}State`]) ?? '',
+    zip: str(answers[`${prefix}Zip`]) ?? '',
+  };
+  const formatted = formatUSAddress(addr);
+  return formatted || str(answers[prefix]);
+}
+
 export interface BuildDocumentInputOptions {
   company?: ContractCompanyInfo;
   packKey?: string;
@@ -72,18 +88,18 @@ export function buildDocumentInput(
     recommendationDecisions: recommendationDecisions ?? [],
     contractor: {
       legalName: str(answers.contractorLegalName) ?? company.legalName,
-      address: company.address,
-      phone: company.phone,
-      email: company.email,
-      licenseNumber: company.licenseNumber,
+      address: structuredAddress(answers, 'contractorAddress') ?? company.address,
+      phone: str(answers.contractorPhone) ?? company.phone,
+      email: str(answers.contractorEmail) ?? company.email,
+      licenseNumber: str(answers.contractorLicenseNumber) ?? company.licenseNumber,
     },
     owner: {
       fullName: str(answers.ownerFullName),
-      mailingAddress: str(answers.ownerMailingAddress),
+      mailingAddress: structuredAddress(answers, 'ownerMailingAddress'),
       phone: str(answers.ownerPhone),
       email: str(answers.ownerEmail),
     },
-    property: { address: str(answers.propertyAddress) },
+    property: { address: structuredAddress(answers, 'propertyAddress') },
     project: {
       name: str(answers.projectName) ?? str(answers.propertyAddress),
       projectType: projectTypeLabel,
@@ -101,7 +117,11 @@ export function buildDocumentInput(
     deposit: {
       amount: answers.depositAmount,
       percent: answers.depositPercent,
-      dueDate: str(answers.depositDueDate),
+      dueType: str(answers.depositDueType),
+      dueDate:
+        answers.depositDueType === 'upon_signing'
+          ? 'Due upon signing'
+          : str(answers.depositDueDate),
     },
     payment: {
       schedule: [],

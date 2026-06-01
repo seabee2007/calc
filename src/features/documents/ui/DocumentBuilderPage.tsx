@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileSignature, Lock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -19,6 +19,11 @@ import FieldToolPageLayout from '../../../components/tools/FieldToolPageLayout';
 import Toast from '../../../components/ui/Toast';
 import { useProjectStore, useSettingsStore } from '../../../store';
 import { buildDocumentInput, type ContractAnswers } from './contractInput';
+import {
+  buildContractCompanyPrefill,
+  buildContractPrefillFromProject,
+  type ContractPrefillResult,
+} from './contractPrefill';
 import { exportContractDraftPdf } from './contractPdf';
 import { buildSaveVersionPayload, restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
@@ -40,6 +45,24 @@ import CompliancePanel from './panels/CompliancePanel';
 import VersionHistoryPanel from './panels/VersionHistoryPanel';
 import ExportPanel from './panels/ExportPanel';
 import PreviewPanel from './panels/PreviewPanel';
+import { ProposalService, type SavedProposal } from '../../../lib/proposalService';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isBlank(value: unknown): boolean {
+  return value === undefined || value === null || String(value).trim() === '';
+}
+
+function validateContractEmails(answers: ContractAnswers): Partial<Record<string, string>> {
+  const errors: Partial<Record<string, string>> = {};
+  for (const [key, value] of Object.entries(answers)) {
+    if (!/email/i.test(key) || isBlank(value)) continue;
+    if (!EMAIL_RE.test(String(value).trim())) {
+      errors[key] = 'Enter a valid email address.';
+    }
+  }
+  return errors;
+}
 
 export default function DocumentBuilderPage() {
   const [searchParams] = useSearchParams();
@@ -51,6 +74,12 @@ export default function DocumentBuilderPage() {
   const [mode, setMode] = useState<QuestionnaireMode>('standard');
   const [packKey, setPackKey] = useState('GENERIC_RESIDENTIAL');
   const [answers, setAnswers] = useState<ContractAnswers>({});
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+  const [fieldSources, setFieldSources] = useState<ContractPrefillResult['sources']>({});
+  const [fieldNotes, setFieldNotes] = useState<ContractPrefillResult['notes']>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
+  const [projectProposals, setProjectProposals] = useState<SavedProposal[]>([]);
+  const prefillRunKeyRef = useRef<string | null>(null);
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<
@@ -116,6 +145,10 @@ export default function DocumentBuilderPage() {
           setPackKey(state.packKey);
           setMode(state.mode);
           setAnswers(state.answers);
+          setDirtyFields(new Set());
+          setFieldSources({});
+          setFieldNotes({});
+          setFieldErrors({});
           setAccepted(new Set(state.accepted));
         }
       } catch (e) {
@@ -125,6 +158,14 @@ export default function DocumentBuilderPage() {
   }, [queryDocumentId]);
 
   const setAnswer = useCallback((key: string, value: unknown) => {
+    setDirtyFields((prev) => new Set(prev).add(key));
+    setFieldErrors((prev) => {
+      if (!/email/i.test(key)) return prev;
+      const next = { ...prev };
+      if (isBlank(value) || EMAIL_RE.test(String(value).trim())) delete next[key];
+      else next[key] = 'Enter a valid email address.';
+      return next;
+    });
     setAnswers((prev) => ({ ...prev, [key]: value }));
   }, []);
 
@@ -147,6 +188,89 @@ export default function DocumentBuilderPage() {
     }),
     [companySettings],
   );
+
+  const selectedProject = useMemo(
+    () => projects.find((project) => project.id === projectId),
+    [projectId, projects],
+  );
+
+  useEffect(() => {
+    if (!projectId) {
+      setProjectProposals([]);
+      prefillRunKeyRef.current = null;
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const proposals = await ProposalService.getAll();
+        if (!cancelled) {
+          setProjectProposals(proposals.filter((proposal) => proposal.project_id === projectId));
+        }
+      } catch (e) {
+        console.error('Failed to load project proposals for contract prefill', e);
+        if (!cancelled) setProjectProposals([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const applyPrefill = useCallback(
+    (overwriteDirty = false) => {
+      if (!selectedProject) return;
+      const projectPrefill = buildContractPrefillFromProject(selectedProject, projectProposals);
+      const companyPrefill = buildContractCompanyPrefill(company);
+      const values = { ...companyPrefill.values, ...projectPrefill.values };
+      const sources = { ...companyPrefill.sources, ...projectPrefill.sources };
+      const notes = { ...companyPrefill.notes, ...projectPrefill.notes };
+      const appliedKeys = Object.keys(values).filter((key) => {
+        const value = values[key];
+        if (isBlank(value)) return false;
+        return overwriteDirty || (!dirtyFields.has(key) && isBlank(answers[key]));
+      });
+      if (appliedKeys.length === 0) return;
+
+      setAnswers((prev) => {
+        const next = { ...prev };
+        for (const key of appliedKeys) {
+          next[key] = values[key];
+        }
+        return next;
+      });
+
+      setFieldSources((prev) => {
+        const next = { ...prev };
+        for (const key of appliedKeys) next[key] = sources[key];
+        return next;
+      });
+      setFieldNotes((prev) => {
+        const next = { ...prev };
+        for (const key of appliedKeys) {
+          if (notes[key]) next[key] = notes[key];
+        }
+        return next;
+      });
+      if (overwriteDirty) {
+        setDirtyFields((prev) => {
+          const next = new Set(prev);
+          for (const key of appliedKeys) next.delete(key);
+          return next;
+        });
+      }
+    },
+    [answers, company, dirtyFields, projectProposals, selectedProject],
+  );
+
+  useEffect(() => {
+    if (!selectedProject) return;
+    const latestProposalKey = projectProposals.map((proposal) => proposal.id).join('|');
+    const runKey = `${selectedProject.id}:${latestProposalKey}`;
+    if (prefillRunKeyRef.current === runKey) return;
+    prefillRunKeyRef.current = runKey;
+    applyPrefill(false);
+  }, [applyPrefill, projectProposals, selectedProject]);
 
   const questionnaire = useMemo(() => buildQuestionnaire('residential_contract', mode), [mode]);
   const visibleQuestions = useMemo(
@@ -202,6 +326,34 @@ export default function DocumentBuilderPage() {
     }));
   }, [visibleQuestions]);
 
+  useEffect(() => {
+    if (answers.depositRequired !== true) return;
+    const patch: ContractAnswers = {};
+    if (!answers.depositDueType) patch.depositDueType = 'upon_signing';
+
+    const price = Number(answers.contractPrice);
+    const percent = Number(answers.depositPercent);
+    if (
+      Number.isFinite(price) &&
+      price > 0 &&
+      Number.isFinite(percent) &&
+      percent >= 0 &&
+      !dirtyFields.has('depositAmount')
+    ) {
+      patch.depositAmount = Math.round(price * (percent / 100) * 100) / 100;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      setAnswers((prev) => ({ ...prev, ...patch }));
+    }
+  }, [
+    answers.contractPrice,
+    answers.depositDueType,
+    answers.depositPercent,
+    answers.depositRequired,
+    dirtyFields,
+  ]);
+
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -245,6 +397,16 @@ export default function DocumentBuilderPage() {
   }, [answers, accepted, company, packKey, mode, recommendationDecisions, exportPolicy]);
 
   const handleSaveVersion = async () => {
+    const emailErrors = validateContractEmails(answers);
+    setFieldErrors(emailErrors);
+    if (Object.keys(emailErrors).length > 0) {
+      setToast({
+        title: 'Check email fields',
+        message: 'Enter a valid email address before saving.',
+        type: 'error',
+      });
+      return;
+    }
     setSaving(true);
     try {
       const payload = buildSaveVersionPayload(assembly, risk, {
@@ -284,6 +446,10 @@ export default function DocumentBuilderPage() {
     setPackKey(state.packKey);
     setMode(state.mode);
     setAnswers(state.answers);
+    setDirtyFields(new Set());
+    setFieldSources({});
+    setFieldNotes({});
+    setFieldErrors({});
     setAccepted(new Set(state.accepted));
   }, []);
 
@@ -321,11 +487,26 @@ export default function DocumentBuilderPage() {
     setVersions([]);
     setPreviewVersion(null);
     setAnswers({});
+    setDirtyFields(new Set());
+    setFieldSources({});
+    setFieldNotes({});
+    setFieldErrors({});
     setAccepted(new Set());
+    prefillRunKeyRef.current = null;
   };
 
   const handleSendForSignature = async () => {
     if (!documentId) return;
+    const emailErrors = validateContractEmails(answers);
+    setFieldErrors(emailErrors);
+    if (Object.keys(emailErrors).length > 0) {
+      setToast({
+        title: 'Check email fields',
+        message: 'Enter a valid email address before creating the signing link.',
+        type: 'error',
+      });
+      return;
+    }
     setSending(true);
     try {
       const updated = await sendContractForSignature({
@@ -430,9 +611,14 @@ export default function DocumentBuilderPage() {
               mode={mode}
               groupedQuestions={groupedQuestions}
               answers={answers}
+              fieldSources={fieldSources}
+              fieldNotes={fieldNotes}
+              fieldErrors={fieldErrors}
+              hasSelectedProject={Boolean(selectedProject)}
               onPackChange={setPackKey}
               onModeChange={setMode}
               onAnswerChange={setAnswer}
+              onRefreshFromProject={() => applyPrefill(true)}
             />
           </section>
 
