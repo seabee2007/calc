@@ -4,9 +4,11 @@
  * All consumers import from this barrel only. Internal module layout
  * (engine/, templates/, packs/) is an implementation detail.
  *
- * Engine functions return safe placeholder data; no UI, routes, Supabase, or
- * PDF export are wired up yet. The Generic Residential Pack ships real clause
- * and addendum catalogs (draft-only, not attorney reviewed).
+ * The engine logic is real and deterministic (questionnaire, assembly,
+ * compliance, risk, and rule-based recommendations). No UI, routes, Supabase,
+ * or PDF export are wired up yet. The Generic Residential Pack ships real
+ * clause and addendum catalogs - including concrete differentiator addenda -
+ * all draft-only and not attorney reviewed.
  */
 
 // Types (isolatedModules requires type-only re-exports).
@@ -20,10 +22,14 @@ export type {
   DocumentAddendum,
   DocumentTemplate,
   DocumentPack,
+  PackCatalog,
   QuestionnaireMode,
   QuestionType,
   QuestionOption,
+  AnswerScalar,
+  IntakeGroup,
   QuestionVisibilityRule,
+  QuestionRiskSignal,
   DocumentQuestion,
   DocumentQuestionnaire,
   DocumentInput,
@@ -45,13 +51,36 @@ export type {
 export { DRAFT_DISCLAIMER, ALL_PROJECT_TYPES, ALL_PRICE_MODELS } from './types';
 
 // Engine functions.
-export { assembleDocument } from './engine/documentAssembly';
+export {
+  assembleDocument,
+  selectClauses,
+  selectAddenda,
+  buildManifest,
+} from './engine/documentAssembly';
 export { renderTemplate } from './engine/templateRenderer';
-export { evaluateDocumentCompliance } from './engine/complianceEngine';
-export { buildQuestionnaire } from './engine/questionnaireEngine';
+export {
+  evaluateDocumentCompliance,
+  evaluateExportPolicy,
+} from './engine/complianceEngine';
+export {
+  buildQuestionnaire,
+  isQuestionVisible,
+  isQuestionRequired,
+  resolveVisibleQuestions,
+  findMissingRequiredAnswers,
+} from './engine/questionnaireEngine';
 export { generateDocumentManifest } from './engine/documentManifest';
 export { scoreDocumentRisk } from './engine/riskEngine';
 export { recommendDocumentClauses } from './engine/recommendationEngine';
+export {
+  toRenderData,
+  getAnswer,
+  getProjectType,
+  getPriceModel,
+  getAcceptedAddendumKeys,
+  answerMatches,
+  FACT_KEYS,
+} from './engine/inputUtils';
 
 // Packs.
 export {
@@ -62,7 +91,14 @@ export {
   genericResidentialAddendums,
   genericResidentialAddendumKeys,
 } from './packs/genericResidential';
-export { concretePacks } from './packs/concrete';
+export {
+  getPack,
+  getPackCatalog,
+  listPackKeys,
+  DEFAULT_PACK_KEY,
+} from './packs/registry';
+export { residentialQuestions } from './engine/questionnaire/residentialQuestions';
+export { concretePacks, concreteAddendums, concreteAddendumKeys } from './packs/concrete';
 export { roofingPacks } from './packs/roofing';
 export { insuranceRestorationPacks } from './packs/insuranceRestoration';
 export { timeAndMaterialsPacks } from './packs/timeAndMaterials';

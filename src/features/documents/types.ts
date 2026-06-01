@@ -127,6 +127,17 @@ export interface DocumentPack {
   version: string;
 }
 
+/**
+ * A fully resolved pack: its metadata plus the concrete clause/addendum
+ * catalogs and the document-level template that orders them.
+ */
+export interface PackCatalog {
+  pack: DocumentPack;
+  template: DocumentTemplate;
+  clauses: DocumentClause[];
+  addenda: DocumentAddendum[];
+}
+
 export type QuestionnaireMode = 'quick' | 'standard' | 'advanced';
 
 export type QuestionType =
@@ -142,23 +153,70 @@ export interface QuestionOption {
   label: string;
 }
 
+export type AnswerScalar = string | number | boolean;
+
 /**
- * Optional conditional-display rule. When present, the question is only shown
- * if the referenced answer matches one of the provided values.
+ * Structured intake groups (mirrors the report's contract data model). Used to
+ * organize the questionnaire and the eventual builder UI.
+ */
+export type IntakeGroup =
+  | 'project'
+  | 'parties'
+  | 'property'
+  | 'scope'
+  | 'pricing'
+  | 'payments'
+  | 'schedule'
+  | 'change_management'
+  | 'permits'
+  | 'insurance'
+  | 'risk'
+  | 'hoa'
+  | 'warranty'
+  | 'compliance'
+  | 'execution';
+
+/**
+ * Conditional rule evaluated against a prior answer. The rule is satisfied when
+ * the referenced answer equals (or, for multiselect answers, includes) one of
+ * the provided values.
  */
 export interface QuestionVisibilityRule {
   questionKey: string;
-  equals: Array<string | number | boolean>;
+  equals: AnswerScalar[];
+}
+
+/**
+ * Maps a specific answer to contract risk points. Evaluated by the risk engine
+ * when the answer for this question matches `whenEquals`.
+ */
+export interface QuestionRiskSignal {
+  whenEquals: AnswerScalar[];
+  key: string;
+  label: string;
+  points: number;
 }
 
 export interface DocumentQuestion {
   questionKey: string;
   label: string;
   type: QuestionType;
+  group: IntakeGroup;
   options?: QuestionOption[];
+  /** Base requiredness when the question is visible and `requiredWhen` is absent. */
   required: boolean;
+  /** Lowest questionnaire mode at which the question appears. */
   mode: QuestionnaireMode;
-  showIf?: QuestionVisibilityRule;
+  /** Question is visible only when ALL of these rules are satisfied. */
+  visibleWhen?: QuestionVisibilityRule[];
+  /** When present, the question is required only if ALL of these rules match. */
+  requiredWhen?: QuestionVisibilityRule[];
+  /** Clause keys this answer can pull into the assembled document. */
+  drivesClauses?: string[];
+  /** Addendum keys this answer can pull into the assembled document. */
+  drivesAddenda?: string[];
+  /** Risk contributions evaluated by the risk engine. */
+  riskSignals?: QuestionRiskSignal[];
 }
 
 export interface DocumentQuestionnaire {

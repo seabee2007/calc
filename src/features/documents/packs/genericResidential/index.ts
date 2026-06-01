@@ -1,6 +1,17 @@
 import type { DocumentPack, DocumentTemplate } from '../../types';
 import { genericResidentialClauseKeys } from './clauses';
 import { genericResidentialAddendumKeys } from './addendums';
+import { concreteAddendumKeys } from '../concrete';
+
+/**
+ * Generic + project-specific (concrete) addendum keys available to the
+ * residential contract. Project-specific addenda only assemble when their
+ * project type is active (handled by the assembly engine).
+ */
+const residentialAddendumKeys: string[] = [
+  ...genericResidentialAddendumKeys,
+  ...concreteAddendumKeys,
+];
 
 export {
   genericResidentialClauses,
@@ -20,7 +31,7 @@ export const GENERIC_RESIDENTIAL_CONTRACT_TEMPLATE: DocumentTemplate = {
   title: 'Generic Residential Construction Agreement',
   documentType: 'residential_contract',
   clauseKeys: genericResidentialClauseKeys,
-  addendumKeys: genericResidentialAddendumKeys,
+  addendumKeys: residentialAddendumKeys,
   version: '0.1.0',
 };
 
@@ -37,6 +48,6 @@ export const GENERIC_RESIDENTIAL_PACK: DocumentPack = {
   finalExportAllowed: false,
   jurisdictions: ['US'],
   templateKeys: [GENERIC_RESIDENTIAL_CONTRACT_TEMPLATE.templateKey],
-  addendumKeys: genericResidentialAddendumKeys,
+  addendumKeys: residentialAddendumKeys,
   version: '0.1.0',
 };

@@ -1,18 +1,123 @@
-import type { DocumentComplianceResult, DocumentInput } from '../types';
+import type {
+  DocumentComplianceIssue,
+  DocumentComplianceResult,
+  DocumentExportPolicy,
+  DocumentInput,
+} from '../types';
 import { DRAFT_DISCLAIMER } from '../types';
+import { DEFAULT_PACK_KEY, getPackCatalog } from '../packs/registry';
+import { getPriceModel, getProjectType, toRenderData } from './inputUtils';
+import { selectClauses } from './documentAssembly';
+import { buildQuestionnaire, findMissingRequiredAnswers } from './questionnaireEngine';
+
+/** Clauses that must always be present for a valid residential draft. */
+const REQUIRED_CLAUSE_KEYS = ['contract.title', 'scope.work'];
 
 /**
- * Phase 0.1 placeholder: every document is treated as a compliant draft that
- * is blocked from final export. State-pack and attorney-review gating is added
- * in a later phase.
+ * Resolve the export policy for an input. The Generic Residential Pack is
+ * draft-only: preview is always allowed, but final export stays blocked until
+ * an attorney-reviewed pack is active and no blocking issues remain.
+ */
+export function evaluateExportPolicy(
+  input: DocumentInput,
+  hasBlocker = false,
+): DocumentExportPolicy {
+  const catalog = getPackCatalog(input.packKey) ?? getPackCatalog(DEFAULT_PACK_KEY);
+  if (!catalog) {
+    return {
+      allowPreview: true,
+      allowFinalExport: false,
+      reason: `Unknown pack "${input.packKey}". Preview only.`,
+    };
+  }
+
+  const { pack } = catalog;
+  const allowFinalExport =
+    pack.finalExportAllowed && pack.attorneyReviewed && !hasBlocker;
+
+  let reason: string | undefined;
+  if (!allowFinalExport) {
+    if (hasBlocker) {
+      reason = 'Resolve blocking compliance issues before final export.';
+    } else if (!pack.attorneyReviewed) {
+      reason = `${pack.label} is draft-only. Final export requires an attorney-reviewed pack for the jurisdiction.`;
+    } else {
+      reason = 'Final export is not enabled for this pack.';
+    }
+  }
+
+  return { allowPreview: true, allowFinalExport, reason };
+}
+
+/**
+ * Evaluate draft/final eligibility. Missing recommended fields are warnings
+ * (drafts may contain blanks); missing required clauses are blockers. Generic
+ * packs never unlock final export here.
  */
 export function evaluateDocumentCompliance(
-  _input: DocumentInput,
+  input: DocumentInput,
 ): DocumentComplianceResult {
+  const issues: DocumentComplianceIssue[] = [];
+  const catalog = getPackCatalog(input.packKey) ?? getPackCatalog(DEFAULT_PACK_KEY);
+
+  if (!catalog) {
+    issues.push({
+      code: 'unknown_pack',
+      message: `No catalog registered for pack "${input.packKey}".`,
+      severity: 'blocker',
+    });
+    return {
+      compliant: false,
+      canFinalExport: false,
+      issues,
+      disclaimer: DRAFT_DISCLAIMER,
+    };
+  }
+
+  const answers = toRenderData(input);
+
+  // Missing-field checks (warnings: a draft may still be generated).
+  const questionnaire = buildQuestionnaire(input.documentType, 'advanced');
+  for (const missing of findMissingRequiredAnswers(questionnaire, answers)) {
+    issues.push({
+      code: `missing_field:${missing}`,
+      message: `Required field "${missing}" has not been provided.`,
+      severity: 'warning',
+    });
+  }
+
+  // Required clause presence (blocker: the document would be invalid).
+  const projectType = getProjectType(input);
+  const priceModel = getPriceModel(input);
+  const selectedKeys = new Set(
+    selectClauses(catalog, projectType, priceModel).map((clause) => clause.key),
+  );
+  for (const requiredKey of REQUIRED_CLAUSE_KEYS) {
+    if (!selectedKeys.has(requiredKey)) {
+      issues.push({
+        code: `missing_required_clause:${requiredKey}`,
+        message: `Required clause "${requiredKey}" is not present in the assembled document.`,
+        severity: 'blocker',
+      });
+    }
+  }
+
+  // Draft-only posture surfaced as info.
+  if (!catalog.pack.attorneyReviewed) {
+    issues.push({
+      code: 'draft_only',
+      message: `${catalog.pack.label} produces draft documents only. Have a qualified attorney review before use.`,
+      severity: 'info',
+    });
+  }
+
+  const hasBlocker = issues.some((issue) => issue.severity === 'blocker');
+  const policy = evaluateExportPolicy(input, hasBlocker);
+
   return {
-    compliant: true,
-    canFinalExport: false,
-    issues: [],
+    compliant: !hasBlocker,
+    canFinalExport: policy.allowFinalExport,
+    issues,
     disclaimer: DRAFT_DISCLAIMER,
   };
 }
