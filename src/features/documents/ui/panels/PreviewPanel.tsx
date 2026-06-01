@@ -1,18 +1,15 @@
 import { Lock } from 'lucide-react';
 import { APP_SECTION_CARD, TEXT_BODY, TEXT_FOREGROUND, TEXT_MUTED } from '../../../../theme/appTheme';
 import type { DocumentSection } from '../../types';
-import { SEVERITY_TEXT } from '../contractBuilderConstants';
 
 export interface PreviewPanelProps {
   previewHeading: string;
   previewSections: DocumentSection[];
-  disclaimer: string;
 }
 
 export default function PreviewPanel({
   previewHeading,
   previewSections,
-  disclaimer,
 }: PreviewPanelProps) {
   return (
     <div className={APP_SECTION_CARD}>
@@ -20,9 +17,6 @@ export default function PreviewPanel({
         <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>{previewHeading}</h2>
         <span className={`text-xs ${TEXT_MUTED}`}>{previewSections.length} sections</span>
       </div>
-      <p className={`mb-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs ${SEVERITY_TEXT.warning}`}>
-        {disclaimer}
-      </p>
       <div className="space-y-5">
         {previewSections.map((section) => {
           const isLockedNotice = section.clauseKey.startsWith('notice.');

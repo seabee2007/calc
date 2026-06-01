@@ -16,8 +16,10 @@ import {
   type QuestionnaireMode,
 } from '../index';
 import FieldToolPageLayout from '../../../components/tools/FieldToolPageLayout';
+import Button from '../../../components/ui/Button';
 import Toast from '../../../components/ui/Toast';
 import { useProjectStore, useSettingsStore } from '../../../store';
+import { formatUSAddress } from '../../../types/address';
 import { buildDocumentInput, type ContractAnswers } from './contractInput';
 import {
   buildContractCompanyPrefill,
@@ -39,6 +41,7 @@ import type {
   ContractDocumentVersionRow,
 } from '../services/contractDocumentTypes';
 import DocumentMetaPanel from './panels/DocumentMetaPanel';
+import ProjectSummaryPanel from './panels/ProjectSummaryPanel';
 import IntakePanel from './panels/IntakePanel';
 import SignaturePanel from './panels/SignaturePanel';
 import CompliancePanel from './panels/CompliancePanel';
@@ -48,6 +51,17 @@ import PreviewPanel from './panels/PreviewPanel';
 import { ProposalService, type SavedProposal } from '../../../lib/proposalService';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PROJECT_TYPE_LABELS: Record<string, string> = {
+  remodel: 'Remodel',
+  repair: 'Repair',
+  concrete: 'Concrete',
+  roofing: 'Roofing',
+  adu: 'ADU',
+  deck: 'Deck',
+  fence: 'Fence',
+  new_construction: 'New Construction',
+  insurance_restoration: 'Insurance Restoration',
+};
 
 function isBlank(value: unknown): boolean {
   return value === undefined || value === null || String(value).trim() === '';
@@ -62,6 +76,29 @@ function validateContractEmails(answers: ContractAnswers): Partial<Record<string
     }
   }
   return errors;
+}
+
+function formatCurrency(value: unknown): string | undefined {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function templateLabel(packKey: string, fallback: string): string {
+  const labels: Record<string, string> = {
+    GENERIC_RESIDENTIAL: 'Generic Residential Contract',
+    CA_RESIDENTIAL: 'Residential Remodel Contract',
+    FL_RESIDENTIAL: 'Residential Remodel Contract',
+    NY_RESIDENTIAL: 'Residential Remodel Contract',
+    TX_RESIDENTIAL: 'Residential Remodel Contract',
+    GA_RESIDENTIAL: 'Residential Remodel Contract',
+    GU_RESIDENTIAL: 'Residential Remodel Contract',
+  };
+  return labels[packKey] ?? fallback.replace(/\bpack\b/gi, '').trim();
 }
 
 export default function DocumentBuilderPage() {
@@ -81,6 +118,7 @@ export default function DocumentBuilderPage() {
   const [projectProposals, setProjectProposals] = useState<SavedProposal[]>([]);
   const prefillRunKeyRef = useRef<string | null>(null);
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
+  const [showValidation, setShowValidation] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<
     { title: string; message: string; type: 'success' | 'error' } | null
@@ -133,6 +171,7 @@ export default function DocumentBuilderPage() {
         setDocumentId(document.id);
         setTitle(document.title);
         setProjectId(document.project_id);
+        setCurrentProject(document.project_id);
         setLoadedDoc(document);
         setContractorName(document.contractor_signer_name ?? '');
         setContractorSignature(document.contractor_signature ?? '');
@@ -149,13 +188,14 @@ export default function DocumentBuilderPage() {
           setFieldSources({});
           setFieldNotes({});
           setFieldErrors({});
+          setShowValidation(false);
           setAccepted(new Set(state.accepted));
         }
       } catch (e) {
         console.error(e);
       }
     })();
-  }, [queryDocumentId]);
+  }, [queryDocumentId, setCurrentProject]);
 
   const setAnswer = useCallback((key: string, value: unknown) => {
     setDirtyFields((prev) => new Set(prev).add(key));
@@ -193,6 +233,37 @@ export default function DocumentBuilderPage() {
     () => projects.find((project) => project.id === projectId),
     [projectId, projects],
   );
+
+  const proposalTotal = useMemo(() => {
+    const acceptedProposal = [...projectProposals]
+      .filter((proposal) => proposal.status === 'accepted' || Boolean(proposal.accepted_at))
+      .sort((a, b) => {
+        const aTime = new Date(a.accepted_at ?? a.updated_at).getTime();
+        const bTime = new Date(b.accepted_at ?? b.updated_at).getTime();
+        return bTime - aTime;
+      })[0];
+    const latestProposal = [...projectProposals].sort(
+      (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+    )[0];
+    return formatCurrency(acceptedProposal?.total_amount ?? latestProposal?.total_amount);
+  }, [projectProposals]);
+
+  const projectSummary = useMemo(() => {
+    if (!selectedProject) return null;
+    const projectType = typeof answers.projectType === 'string' ? answers.projectType : '';
+    return {
+      projectName: selectedProject.name || 'Untitled project',
+      client: selectedProject.clientInfo?.clientName || 'Not available',
+      jobsiteAddress: selectedProject.jobsiteAddress
+        ? formatUSAddress(selectedProject.jobsiteAddress) || 'Not available'
+        : 'Not available',
+      proposalTotal: proposalTotal ?? 'Not available',
+      contractValue:
+        formatCurrency(selectedProject.currentContractValue ?? selectedProject.baseContractValue) ??
+        'Not available',
+      projectType: projectType ? PROJECT_TYPE_LABELS[projectType] ?? projectType : 'Not available',
+    };
+  }, [answers.projectType, proposalTotal, selectedProject]);
 
   useEffect(() => {
     if (!projectId) {
@@ -282,10 +353,7 @@ export default function DocumentBuilderPage() {
     () =>
       listPacks().map((p) => ({
         value: p.packKey,
-        label:
-          p.status === 'attorney_review_required'
-            ? `${p.label} - attorney review required`
-            : `${p.label} - draft only`,
+        label: templateLabel(p.packKey, p.label),
       })),
     [],
   );
@@ -355,6 +423,7 @@ export default function DocumentBuilderPage() {
   ]);
 
   const handleExport = async () => {
+    setShowValidation(true);
     setExporting(true);
     try {
       await exportContractDraftPdf(assembly, risk, {
@@ -373,6 +442,7 @@ export default function DocumentBuilderPage() {
   };
 
   const handleDownloadManifest = useCallback(() => {
+    setShowValidation(true);
     const manifestInput = buildDocumentInput(answers, [...accepted], {
       company,
       packKey,
@@ -397,6 +467,7 @@ export default function DocumentBuilderPage() {
   }, [answers, accepted, company, packKey, mode, recommendationDecisions, exportPolicy]);
 
   const handleSaveVersion = async () => {
+    setShowValidation(true);
     const emailErrors = validateContractEmails(answers);
     setFieldErrors(emailErrors);
     if (Object.keys(emailErrors).length > 0) {
@@ -419,6 +490,7 @@ export default function DocumentBuilderPage() {
       setDocumentId(document.id);
       setTitle(document.title);
       setProjectId(document.project_id);
+      setCurrentProject(document.project_id);
       setLoadedDoc(document);
       setPreviewVersion(null);
       const { versions: latestVersions } = await getContractDocument(document.id);
@@ -450,6 +522,7 @@ export default function DocumentBuilderPage() {
     setFieldSources({});
     setFieldNotes({});
     setFieldErrors({});
+    setShowValidation(false);
     setAccepted(new Set(state.accepted));
   }, []);
 
@@ -459,6 +532,7 @@ export default function DocumentBuilderPage() {
       setDocumentId(document.id);
       setTitle(document.title);
       setProjectId(document.project_id);
+      setCurrentProject(document.project_id);
       setLoadedDoc(document);
       setContractorName(document.contractor_signer_name ?? '');
       setContractorSignature(document.contractor_signature ?? '');
@@ -491,12 +565,14 @@ export default function DocumentBuilderPage() {
     setFieldSources({});
     setFieldNotes({});
     setFieldErrors({});
+    setShowValidation(false);
     setAccepted(new Set());
     prefillRunKeyRef.current = null;
   };
 
   const handleSendForSignature = async () => {
     if (!documentId) return;
+    setShowValidation(true);
     const emailErrors = validateContractEmails(answers);
     setFieldErrors(emailErrors);
     if (Object.keys(emailErrors).length > 0) {
@@ -543,19 +619,17 @@ export default function DocumentBuilderPage() {
     }
   };
 
+  const handlePreviewContract = () => {
+    setPreviewVersion(null);
+    setShowValidation(true);
+  };
+
   const handleProjectPrefill = useCallback(
     (id: string | null) => {
-      if (id) setProjectId(id);
+      setProjectId(id);
+      setShowValidation(false);
     },
     [],
-  );
-
-  const projectOptions = useMemo(
-    () => [
-      { value: '', label: 'No project (standalone)' },
-      ...projects.map((p) => ({ value: p.id, label: p.name })),
-    ],
-    [projects],
   );
 
   const previewSections = previewVersion ? previewVersion.sections : assembly.sections;
@@ -567,43 +641,37 @@ export default function DocumentBuilderPage() {
     <>
       <FieldToolPageLayout
         title="Contract Builder"
-        subtitle="Generate a draft residential construction agreement. Draft only — have a qualified attorney review before use."
-        icon={FileSignature}
-        onProjectPrefill={handleProjectPrefill}
-        actions={
-          <div className="mt-6 flex justify-end print:hidden">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-sm font-semibold text-amber-700 dark:text-amber-300">
-              <Lock className="h-3.5 w-3.5" aria-hidden />
-              Draft Only
-            </span>
-          </div>
+        subtitle={
+          selectedProject
+            ? `Create, review, and manage construction contracts linked to your projects. Selected Project: ${selectedProject.name}`
+            : 'Create, review, and manage construction contracts linked to your projects.'
         }
+        icon={FileSignature}
+        maxWidthClassName="max-w-7xl"
+        onProjectPrefill={handleProjectPrefill}
+        actions={null}
       >
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <section className="lg:col-span-1 space-y-4">
+        <ProjectSummaryPanel
+          summary={projectSummary}
+          onRefreshFromProject={() => applyPrefill(true)}
+        />
+
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-800 dark:text-amber-200">
+          <span className="inline-flex items-center gap-2">
+            <Lock className="h-4 w-4" aria-hidden />
+            Draft document only. Have a qualified attorney review before use.
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.54fr)_minmax(0,1fr)]">
+          <section className="space-y-4">
             <DocumentMetaPanel
               documentId={documentId}
               title={title}
-              projectId={projectId}
-              projectOptions={projectOptions}
               savedDocs={savedDocs}
-              saving={saving}
               onTitleChange={setTitle}
-              onProjectChange={setProjectId}
-              onSave={handleSaveVersion}
               onNewContract={handleNewContract}
               onLoadDocument={handleLoadDocument}
-            />
-            <SignaturePanel
-              documentId={documentId ?? ''}
-              loadedDoc={loadedDoc}
-              contractorName={contractorName}
-              contractorSignature={contractorSignature}
-              sending={sending}
-              onContractorNameChange={setContractorName}
-              onContractorSignatureChange={setContractorSignature}
-              onSendForSignature={handleSendForSignature}
-              onCopyContractLink={handleCopyContractLink}
             />
             <IntakePanel
               packOptions={packOptions}
@@ -620,23 +688,48 @@ export default function DocumentBuilderPage() {
               onAnswerChange={setAnswer}
               onRefreshFromProject={() => applyPrefill(true)}
             />
-          </section>
-
-          <section className="lg:col-span-2 space-y-4">
             <CompliancePanel
               risk={risk}
               recommendations={recommendations}
               complianceIssues={compliance.issues}
               accepted={accepted}
+              showValidation={showValidation}
+              onRunValidation={() => setShowValidation(true)}
               onToggleRecommendation={toggleRecommendation}
             />
             <ExportPanel
-              complianceIssues={compliance.issues}
               exportPolicy={exportPolicy}
               exporting={exporting}
               onExport={handleExport}
               onDownloadManifest={handleDownloadManifest}
             />
+            <SignaturePanel
+              documentId={documentId ?? ''}
+              loadedDoc={loadedDoc}
+              contractorName={contractorName}
+              contractorSignature={contractorSignature}
+              sending={sending}
+              onContractorNameChange={setContractorName}
+              onContractorSignatureChange={setContractorSignature}
+              onSendForSignature={handleSendForSignature}
+              onCopyContractLink={handleCopyContractLink}
+            />
+          </section>
+
+          <section className="space-y-4">
+            <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
+                  Save Draft
+                </Button>
+                <Button variant="outline" onClick={() => setShowValidation(true)} fullWidth>
+                  Run Compliance
+                </Button>
+                <Button variant="outline" onClick={handlePreviewContract} fullWidth>
+                  Preview Contract
+                </Button>
+              </div>
+            </div>
             <VersionHistoryPanel
               versions={versions}
               previewVersion={previewVersion}
@@ -646,7 +739,6 @@ export default function DocumentBuilderPage() {
             <PreviewPanel
               previewHeading={previewHeading}
               previewSections={previewSections}
-              disclaimer={assembly.disclaimer}
             />
           </section>
         </div>

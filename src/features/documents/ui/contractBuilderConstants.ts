@@ -1,9 +1,32 @@
 import type { DocumentRiskLevel, IntakeGroup, QuestionnaireMode } from '../types';
 
-export const MODES: { value: QuestionnaireMode; label: string; hint: string }[] = [
-  { value: 'quick', label: 'Quick', hint: 'Core fields for a fast draft' },
-  { value: 'standard', label: 'Standard', hint: 'Recommended for most jobs' },
-  { value: 'advanced', label: 'Advanced', hint: 'Larger or riskier jobs' },
+export const MODES: {
+  value: QuestionnaireMode;
+  label: string;
+  hint: string;
+  detail: string;
+  recommended?: boolean;
+}[] = [
+  {
+    value: 'quick',
+    label: 'Quick',
+    hint: '10-15 questions',
+    detail: 'Basic residential jobs',
+  },
+  {
+    value: 'standard',
+    label: 'Standard',
+    hint: 'Most projects',
+    detail: '',
+    recommended: true,
+  },
+  {
+    value: 'advanced',
+    label: 'Advanced',
+    hint: '',
+    detail:
+      'Detailed contract with allowances, special conditions, risk clauses, and project-specific options',
+  },
 ];
 
 export const GROUP_ORDER: IntakeGroup[] = [

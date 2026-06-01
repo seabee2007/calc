@@ -1,20 +1,14 @@
-import { FilePlus2, Save } from 'lucide-react';
+import { FilePlus2 } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import Input from '../../../../components/ui/Input';
-import Select from '../../../../components/ui/Select';
 import { APP_SECTION_CARD, TEXT_BODY, TEXT_FOREGROUND, TEXT_MUTED } from '../../../../theme/appTheme';
 import type { ContractDocumentRow } from '../../services/contractDocumentTypes';
 
 export interface DocumentMetaPanelProps {
   documentId: string | null;
   title: string;
-  projectId: string | null;
-  projectOptions: { value: string; label: string }[];
   savedDocs: ContractDocumentRow[];
-  saving: boolean;
   onTitleChange: (title: string) => void;
-  onProjectChange: (projectId: string | null) => void;
-  onSave: () => void;
   onNewContract: () => void;
   onLoadDocument: (id: string) => void;
 }
@@ -22,13 +16,8 @@ export interface DocumentMetaPanelProps {
 export default function DocumentMetaPanel({
   documentId,
   title,
-  projectId,
-  projectOptions,
   savedDocs,
-  saving,
   onTitleChange,
-  onProjectChange,
-  onSave,
   onNewContract,
   onLoadDocument,
 }: DocumentMetaPanelProps) {
@@ -53,17 +42,6 @@ export default function DocumentMetaPanel({
           placeholder="e.g. Smith driveway agreement"
           fullWidth
         />
-        <Select
-          label="Project (optional)"
-          options={projectOptions}
-          value={projectId ?? ''}
-          onChange={(v) => onProjectChange(v || null)}
-          fullWidth
-        />
-        <Button variant="accent" onClick={onSave} isLoading={saving} fullWidth>
-          <Save className="mr-1.5 h-4 w-4" aria-hidden />
-          {documentId ? 'Save new version' : 'Save contract'}
-        </Button>
       </div>
 
       {savedDocs.length > 0 && (

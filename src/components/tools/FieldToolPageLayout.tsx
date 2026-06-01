@@ -21,6 +21,7 @@ interface FieldToolPageLayoutProps {
   children: React.ReactNode;
   actions: React.ReactNode;
   onProjectPrefill?: (projectId: string | null) => void;
+  maxWidthClassName?: string;
 }
 
 export default function FieldToolPageLayout({
@@ -30,6 +31,7 @@ export default function FieldToolPageLayout({
   children,
   actions,
   onProjectPrefill,
+  maxWidthClassName = 'max-w-5xl',
 }: FieldToolPageLayoutProps) {
   const [searchParams] = useSearchParams();
   const { projects, currentProject, setCurrentProject } = useProjectStore();
@@ -45,7 +47,7 @@ export default function FieldToolPageLayout({
   }, [currentProject?.id, onProjectPrefill]);
 
   return (
-    <div className={`max-w-5xl mx-auto pb-8 ${FIELD_TOOL_PRINT_ROOT}`}>
+    <div className={`${maxWidthClassName} mx-auto pb-8 ${FIELD_TOOL_PRINT_ROOT}`}>
       <style>{`
         @media print {
           body * { visibility: hidden; }

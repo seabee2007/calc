@@ -1,4 +1,4 @@
-import { ShieldAlert } from 'lucide-react';
+import { CheckCircle2, ShieldAlert } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import {
   APP_SECTION_CARD,
@@ -14,11 +14,15 @@ import type {
 } from '../../types';
 import { RISK_STYLES, SEVERITY_TEXT } from '../contractBuilderConstants';
 
+const BASE_RECOMMENDED_CLAUSES = ['Change Order', 'Unknown Conditions', 'Force Majeure'];
+
 export interface CompliancePanelProps {
   risk: DocumentRiskScore;
   recommendations: DocumentRecommendation[];
   complianceIssues: DocumentComplianceIssue[];
   accepted: Set<string>;
+  showValidation: boolean;
+  onRunValidation: () => void;
   onToggleRecommendation: (clauseKey: string) => void;
 }
 
@@ -27,20 +31,25 @@ export default function CompliancePanel({
   recommendations,
   complianceIssues,
   accepted,
+  showValidation,
+  onRunValidation,
   onToggleRecommendation,
 }: CompliancePanelProps) {
   return (
     <>
       <div className={APP_SECTION_CARD}>
         <div className="flex items-center justify-between">
-          <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Contract risk</h2>
+          <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Risk Score</h2>
           <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold capitalize ${RISK_STYLES[risk.level]}`}
           >
             <ShieldAlert className="h-3.5 w-3.5" aria-hidden />
-            {risk.level} · {risk.score}/100
+            {risk.level} ({risk.score}/100)
           </span>
         </div>
+        <p className={`mt-4 text-xs font-semibold uppercase tracking-wider ${TEXT_MUTED}`}>
+          Potential Risks
+        </p>
         {risk.factors.length > 0 ? (
           <ul className={`mt-3 space-y-1 text-sm ${TEXT_BODY}`}>
             {risk.factors.map((f) => (
@@ -51,15 +60,24 @@ export default function CompliancePanel({
             ))}
           </ul>
         ) : (
-          <p className={`mt-2 text-sm ${TEXT_MUTED}`}>No elevated risk factors detected yet.</p>
+          <p className={`mt-2 text-sm ${TEXT_MUTED}`}>None detected</p>
         )}
-      </div>
 
-      {recommendations.length > 0 && (
-        <div className={APP_SECTION_CARD}>
-          <h2 className={`mb-3 text-sm font-semibold ${TEXT_FOREGROUND}`}>
-            Recommended clauses & addenda
-          </h2>
+        <div className="mt-5 border-t border-slate-200 pt-4 dark:border-slate-700">
+          <h3 className={`mb-3 text-xs font-semibold uppercase tracking-wider ${TEXT_MUTED}`}>
+            Recommended Clauses
+          </h3>
+          {recommendations.length === 0 && (
+            <ul className={`space-y-1.5 text-sm ${TEXT_BODY}`}>
+              {BASE_RECOMMENDED_CLAUSES.map((clause) => (
+                <li key={clause} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  {clause}
+                </li>
+              ))}
+            </ul>
+          )}
+          {recommendations.length > 0 && (
           <ul className="space-y-2">
             {recommendations.map((rec) => {
               const isAccepted = accepted.has(rec.clauseKey);
@@ -87,21 +105,33 @@ export default function CompliancePanel({
               );
             })}
           </ul>
+          )}
         </div>
-      )}
+      </div>
 
       <div className={APP_SECTION_CARD}>
-        <h2 className={`mb-3 text-sm font-semibold ${TEXT_FOREGROUND}`}>Compliance</h2>
-        <ul className="space-y-1.5">
-          {complianceIssues.map((issue, idx) => (
-            <li key={`${issue.code}-${idx}`} className={`text-sm ${TEXT_BODY}`}>
-              <span className={SEVERITY_TEXT[issue.severity] ?? TEXT_MUTED}>
-                [{issue.severity}]
-              </span>{' '}
-              {issue.message}
-            </li>
-          ))}
-        </ul>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Compliance</h2>
+          <Button variant="outline" size="sm" onClick={onRunValidation}>
+            Run Compliance Check
+          </Button>
+        </div>
+        {showValidation ? (
+          <ul className="space-y-1.5">
+            {complianceIssues.map((issue, idx) => (
+              <li key={`${issue.code}-${idx}`} className={`text-sm ${TEXT_BODY}`}>
+                <span className={SEVERITY_TEXT[issue.severity] ?? TEXT_MUTED}>
+                  [{issue.severity}]
+                </span>{' '}
+                {issue.message}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={`text-sm ${TEXT_MUTED}`}>
+            Complete the contract details to run compliance checks.
+          </p>
+        )}
       </div>
     </>
   );

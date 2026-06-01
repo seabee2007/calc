@@ -220,15 +220,15 @@ export default function IntakePanel({
     <>
       <div className={APP_SECTION_CARD}>
         <Select
-          label="Jurisdiction / pack"
+          label="Contract Template"
           options={packOptions}
           value={packKey}
           onChange={onPackChange}
           fullWidth
         />
         <p className={`mt-2 text-xs ${TEXT_MUTED}`}>
-          State packs append locked statutory notices. All packs are draft-only until attorney
-          reviewed.
+          Choose the contract form that best matches this project. State-specific templates can be
+          added separately when attorney-reviewed packs are available.
         </p>
       </div>
 
@@ -236,22 +236,40 @@ export default function IntakePanel({
         <p className={`mb-2 text-xs font-semibold uppercase tracking-wider ${TEXT_MUTED}`}>
           Contract mode
         </p>
-        <div className="grid grid-cols-3 gap-2">
-          {MODES.map((m) => (
-            <button
-              key={m.value}
-              type="button"
-              onClick={() => onModeChange(m.value)}
-              title={m.hint}
-              className={`rounded-lg border px-2 py-2 text-sm font-medium transition-colors ${
-                mode === m.value
-                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
-                  : `${BORDER_DEFAULT} ${TEXT_BODY} hover:bg-slate-100 dark:hover:bg-slate-700/60`
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
+          {MODES.map((m) => {
+            const description = [m.hint, m.detail].filter(Boolean).join(' · ');
+            return (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => onModeChange(m.value)}
+                title={description || m.label}
+                className={`flex h-full min-h-[5.5rem] flex-col rounded-lg border px-3 py-3 text-left transition-colors ${
+                  mode === m.value
+                    ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
+                    : `${BORDER_DEFAULT} ${TEXT_BODY} hover:bg-slate-100 dark:hover:bg-slate-700/60`
+                }`}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1.5">
+                  <span className="text-sm font-semibold leading-snug">{m.label}</span>
+                  {m.recommended && (
+                    <span className="shrink-0 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-cyan-700 dark:text-cyan-300">
+                      Recommended
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex flex-1 flex-col gap-1.5">
+                  {m.hint ? (
+                    <span className={`block text-xs leading-relaxed ${TEXT_MUTED}`}>{m.hint}</span>
+                  ) : null}
+                  {m.detail ? (
+                    <span className={`block text-xs leading-relaxed ${TEXT_MUTED}`}>{m.detail}</span>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
