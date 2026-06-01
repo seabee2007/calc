@@ -1,6 +1,12 @@
 import type { Project } from '../../../types';
-import { EMPTY_US_ADDRESS, formatUSAddress, parseLegacyUSAddress } from '../../../types/address';
+import {
+  EMPTY_US_ADDRESS,
+  formatUSAddress,
+  parseLegacyUSAddress,
+  sanitizeUSAddress,
+} from '../../../types/address';
 import type { USAddress } from '../../../types/address';
+import { resolveClientAddressForProposal } from '../../../types/projectClient';
 import { formatUSPhoneNumber } from '../../../utils/phoneFormat';
 import type { SavedProposal } from '../../../lib/proposalService';
 import type { ContractAnswers } from './contractInput';
@@ -64,6 +70,55 @@ function firstPositive(...values: unknown[]): number | undefined {
   return undefined;
 }
 
+function legacyJobsiteString(project: Project): string | undefined {
+  const placement = project.placementOrder?.jobsiteAddress;
+  if (typeof placement === 'string' && placement.trim()) return placement.trim();
+  return undefined;
+}
+
+/** Normalize jobsite address from structured fields, with a narrow legacy-string fallback for zip. */
+export function resolveProjectJobsiteAddress(project: Project): USAddress | undefined {
+  const structured = project.jobsiteAddress
+    ? sanitizeUSAddress(project.jobsiteAddress)
+    : undefined;
+  const hasStructuredParts = Boolean(
+    structured?.street || structured?.city || structured?.state || structured?.zip,
+  );
+  if (structured && hasStructuredParts) {
+    if (structured.zip) return structured;
+    const legacy = legacyJobsiteString(project);
+    if (legacy) {
+      const parsed = parseLegacyUSAddress(legacy);
+      if (parsed.zip) {
+        return sanitizeUSAddress({ ...structured, zip: parsed.zip });
+      }
+    }
+    return structured;
+  }
+
+  const legacy = legacyJobsiteString(project);
+  if (legacy) {
+    const parsed = parseLegacyUSAddress(legacy);
+    const formatted = formatUSAddress(parsed);
+    if (formatted) return parsed;
+  }
+
+  return structured;
+}
+
+/** Fingerprint for prefill re-run when project jobsite data enriches after initial load. */
+export function jobsitePrefillFingerprint(project: Project | undefined): string {
+  if (!project) return '';
+  const jobsite = resolveProjectJobsiteAddress(project);
+  return [
+    jobsite?.street ?? '',
+    jobsite?.street2 ?? '',
+    jobsite?.city ?? '',
+    jobsite?.state ?? '',
+    jobsite?.zip ?? '',
+  ].join('|');
+}
+
 function inferProjectType(project: Project): string | undefined {
   const text = `${project.name} ${project.description}`.toLowerCase();
   if (text.includes('roof')) return 'roofing';
@@ -85,11 +140,8 @@ export function buildContractPrefillFromProject(
   if (!project) return result;
 
   const clientInfo = project.clientInfo;
-  const jobsite = project.jobsiteAddress;
-  const clientAddress =
-    clientInfo?.clientAddressSameAsJobsite === false
-      ? clientInfo.clientAddress
-      : jobsite;
+  const jobsite = resolveProjectJobsiteAddress(project);
+  const clientAddress = resolveClientAddressForProposal(clientInfo, jobsite);
 
   put(result, 'projectName', project.name, 'project', 'Imported from selected project');
   put(result, 'projectType', inferProjectType(project), 'project', 'Imported from selected project');

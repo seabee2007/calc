@@ -7,6 +7,22 @@ export interface PreviewPanelProps {
   previewSections: DocumentSection[];
 }
 
+function renderPreviewBody(body: string) {
+  const marker = 'Not provided';
+  if (!body.includes(marker)) {
+    return body;
+  }
+  const parts = body.split(marker);
+  return parts.map((part, index) => (
+    <span key={index}>
+      {part}
+      {index < parts.length - 1 && (
+        <span className="italic text-slate-400 dark:text-slate-500">{marker}</span>
+      )}
+    </span>
+  ));
+}
+
 export default function PreviewPanel({
   previewHeading,
   previewSections,
@@ -36,7 +52,7 @@ export default function PreviewPanel({
                 {section.title}
               </h3>
               <p className={`whitespace-pre-wrap text-sm leading-relaxed ${TEXT_BODY}`}>
-                {section.body}
+                {renderPreviewBody(section.body)}
               </p>
             </article>
           );

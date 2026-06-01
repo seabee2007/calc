@@ -456,8 +456,16 @@ export const residentialQuestions: DocumentQuestion[] = [
     mode: 'standard',
   },
   {
-    questionKey: 'workHours',
-    label: 'Normal work hours',
+    questionKey: 'workStartTime',
+    label: 'Start time',
+    type: 'text',
+    group: 'schedule',
+    required: false,
+    mode: 'standard',
+  },
+  {
+    questionKey: 'workEndTime',
+    label: 'End time',
     type: 'text',
     group: 'schedule',
     required: false,

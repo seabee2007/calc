@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import USAddressFields from '../../../../components/address/USAddressFields';
@@ -9,6 +10,10 @@ import {
   TEXT_MUTED,
 } from '../../../../theme/appTheme';
 import { EMPTY_US_ADDRESS, type USAddress } from '../../../../types/address';
+import {
+  formatCurrencyDisplay,
+  parseCurrencyInput,
+} from '../../../../utils/currencyInput';
 import { formatUSPhoneInput } from '../../../../utils/phoneFormat';
 import type { DocumentQuestion, IntakeGroup, QuestionnaireMode } from '../../types';
 import { GROUP_LABELS, MODES } from '../contractBuilderConstants';
@@ -35,6 +40,8 @@ const ADDRESS_PREFIXES = [
   'ownerMailingAddress',
   'propertyAddress',
 ] as const;
+
+const CONTRACT_CURRENCY_KEYS = new Set(['contractPrice', 'estimatedTotal', 'depositAmount']);
 
 type AddressPrefix = (typeof ADDRESS_PREFIXES)[number];
 
@@ -66,6 +73,14 @@ function sourceLabel(source: ContractPrefillSource | undefined): string | null {
   return null;
 }
 
+function numericAnswer(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    return parseCurrencyInput(value);
+  }
+  return undefined;
+}
+
 export default function IntakePanel({
   packOptions,
   packKey,
@@ -81,6 +96,8 @@ export default function IntakePanel({
   onAnswerChange,
   onRefreshFromProject,
 }: IntakePanelProps) {
+  const [focusedCurrencyKey, setFocusedCurrencyKey] = useState<string | null>(null);
+
   const fieldMeta = (key: string, fallbackHelper?: string) => {
     const label = sourceLabel(fieldSources[key]);
     const note = fieldNotes[key] ?? fallbackHelper;
@@ -129,12 +146,49 @@ export default function IntakePanel({
     );
   };
 
+  const renderWorkHours = () => (
+      <div className="space-y-2">
+        <p className={`text-sm font-medium ${TEXT_BODY}`}>Normal working hours</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Input
+            label="Start time"
+            type="time"
+            value={answerString(answers, 'workStartTime')}
+            onChange={(e) => onAnswerChange('workStartTime', e.target.value)}
+            fullWidth
+          />
+          <Input
+            label="End time"
+            type="time"
+            value={answerString(answers, 'workEndTime')}
+            onChange={(e) => onAnswerChange('workEndTime', e.target.value)}
+            fullWidth
+          />
+        </div>
+        <p className={`text-xs ${TEXT_MUTED}`}>Example: 06:00 to 18:00</p>
+      </div>
+    );
+
+  const currencyDisplayValue = (key: string, value: unknown): string => {
+    if (focusedCurrencyKey === key) {
+      const n = numericAnswer(value);
+      if (n === undefined) return '';
+      return String(n);
+    }
+    const n = numericAnswer(value);
+    if (n === undefined) return '';
+    return formatCurrencyDisplay(n);
+  };
+
   const renderControl = (q: DocumentQuestion) => {
     const value = answers[q.questionKey];
     const addressPrefix = addressPrefixForKey(q.questionKey);
     if (addressPrefix) {
       return q.questionKey === ADDRESS_FIRST_KEYS[addressPrefix] ? renderAddress(addressPrefix) : null;
     }
+    if (q.questionKey === 'workStartTime') return renderWorkHours();
+    if (q.questionKey === 'workEndTime') return null;
+
     if (q.type === 'boolean') {
       const on = value === true;
       return (
@@ -169,6 +223,8 @@ export default function IntakePanel({
         />
       );
     }
+
+    const isCurrency = CONTRACT_CURRENCY_KEYS.has(q.questionKey);
     const isPhone = /phone/i.test(q.questionKey);
     const isEmail = /email/i.test(q.questionKey);
     const isYearBuilt = q.questionKey === 'yearBuilt';
@@ -196,6 +252,27 @@ export default function IntakePanel({
       q.questionKey,
       isYearBuilt ? 'Leave blank if unknown.' : depositHelper,
     );
+
+    if (isCurrency) {
+      return (
+        <Input
+          label={q.label}
+          type="text"
+          inputMode="decimal"
+          value={currencyDisplayValue(q.questionKey, value)}
+          onChange={(e) => {
+            const parsed = parseCurrencyInput(e.target.value);
+            onAnswerChange(q.questionKey, parsed === undefined ? '' : parsed);
+          }}
+          onFocus={() => setFocusedCurrencyKey(q.questionKey)}
+          onBlur={() => setFocusedCurrencyKey(null)}
+          helperText={meta.helperText}
+          error={meta.error}
+          fullWidth
+        />
+      );
+    }
+
     return (
       <Input
         label={q.label}
@@ -251,10 +328,10 @@ export default function IntakePanel({
                     : `${BORDER_DEFAULT} ${TEXT_BODY} hover:bg-slate-100 dark:hover:bg-slate-700/60`
                 }`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1.5">
+                <div className="flex flex-col gap-1">
                   <span className="text-sm font-semibold leading-snug">{m.label}</span>
                   {m.recommended && (
-                    <span className="shrink-0 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-cyan-700 dark:text-cyan-300">
+                    <span className="w-fit shrink-0 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-cyan-700 dark:text-cyan-300">
                       Recommended
                     </span>
                   )}

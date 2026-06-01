@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FileSignature, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileSignature, Lock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import {
   assembleDocument,
@@ -24,8 +24,11 @@ import { buildDocumentInput, type ContractAnswers } from './contractInput';
 import {
   buildContractCompanyPrefill,
   buildContractPrefillFromProject,
+  jobsitePrefillFingerprint,
   type ContractPrefillResult,
 } from './contractPrefill';
+import { normalizeContractAnswers } from './contractAnswersUtils';
+import { softenPreviewPlaceholders } from './previewDisplay';
 import { exportContractDraftPdf } from './contractPdf';
 import { buildSaveVersionPayload, restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
@@ -136,6 +139,11 @@ export default function DocumentBuilderPage() {
   const [contractorName, setContractorName] = useState('');
   const [contractorSignature, setContractorSignature] = useState('');
   const [sending, setSending] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+  );
+  const builderColumnRef = useRef<HTMLElement | null>(null);
+  const [toggleLeft, setToggleLeft] = useState<number | null>(null);
 
   const refreshSavedDocs = useCallback(async (scopedProjectId?: string | null) => {
     try {
@@ -152,6 +160,40 @@ export default function DocumentBuilderPage() {
   useEffect(() => {
     void refreshSavedDocs(projectId);
   }, [projectId, refreshSavedDocs]);
+
+  useEffect(() => {
+    let frameId: number | null = null;
+    let transitionTimer: number | null = null;
+    const column = builderColumnRef.current;
+
+    const updateTogglePosition = () => {
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        const rect = builderColumnRef.current?.getBoundingClientRect();
+        setToggleLeft(rect ? rect.right : null);
+      });
+    };
+
+    updateTogglePosition();
+    transitionTimer = window.setTimeout(updateTogglePosition, 350);
+
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined' && column
+        ? new ResizeObserver(updateTogglePosition)
+        : null;
+    resizeObserver?.observe(column);
+
+    window.addEventListener('resize', updateTogglePosition);
+    window.addEventListener('scroll', updateTogglePosition, { passive: true });
+
+    return () => {
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+      if (transitionTimer !== null) window.clearTimeout(transitionTimer);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateTogglePosition);
+      window.removeEventListener('scroll', updateTogglePosition);
+    };
+  }, [isPreviewOpen]);
 
   const queryProjectId = searchParams.get('project');
   const queryDocumentId = searchParams.get('id');
@@ -183,7 +225,7 @@ export default function DocumentBuilderPage() {
           const state = restoreBuilderStateFromSnapshot(current.input_snapshot);
           setPackKey(state.packKey);
           setMode(state.mode);
-          setAnswers(state.answers);
+          setAnswers(normalizeContractAnswers(state.answers));
           setDirtyFields(new Set());
           setFieldSources({});
           setFieldNotes({});
@@ -335,9 +377,14 @@ export default function DocumentBuilderPage() {
   );
 
   useEffect(() => {
+    prefillRunKeyRef.current = null;
+  }, [projectId]);
+
+  useEffect(() => {
     if (!selectedProject) return;
     const latestProposalKey = projectProposals.map((proposal) => proposal.id).join('|');
-    const runKey = `${selectedProject.id}:${latestProposalKey}`;
+    const jobsiteKey = jobsitePrefillFingerprint(selectedProject);
+    const runKey = `${selectedProject.id}:${jobsiteKey}:${latestProposalKey}`;
     if (prefillRunKeyRef.current === runKey) return;
     prefillRunKeyRef.current = runKey;
     applyPrefill(false);
@@ -517,7 +564,7 @@ export default function DocumentBuilderPage() {
     const state = restoreBuilderStateFromSnapshot(version.input_snapshot);
     setPackKey(state.packKey);
     setMode(state.mode);
-    setAnswers(state.answers);
+    setAnswers(normalizeContractAnswers(state.answers));
     setDirtyFields(new Set());
     setFieldSources({});
     setFieldNotes({});
@@ -632,7 +679,15 @@ export default function DocumentBuilderPage() {
     [],
   );
 
-  const previewSections = previewVersion ? previewVersion.sections : assembly.sections;
+  const previewSectionsRaw = previewVersion ? previewVersion.sections : assembly.sections;
+  const previewSections = useMemo(
+    () =>
+      previewSectionsRaw.map((section) => ({
+        ...section,
+        body: softenPreviewPlaceholders(section.body),
+      })),
+    [previewSectionsRaw],
+  );
   const previewHeading = previewVersion
     ? `${title || assembly.title} - version ${previewVersion.version_number} (read-only)`
     : assembly.title || 'Contract preview';
@@ -663,84 +718,151 @@ export default function DocumentBuilderPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.54fr)_minmax(0,1fr)]">
-          <section className="space-y-4">
-            <DocumentMetaPanel
-              documentId={documentId}
-              title={title}
-              savedDocs={savedDocs}
-              onTitleChange={setTitle}
-              onNewContract={handleNewContract}
-              onLoadDocument={handleLoadDocument}
-            />
-            <IntakePanel
-              packOptions={packOptions}
-              packKey={packKey}
-              mode={mode}
-              groupedQuestions={groupedQuestions}
-              answers={answers}
-              fieldSources={fieldSources}
-              fieldNotes={fieldNotes}
-              fieldErrors={fieldErrors}
-              hasSelectedProject={Boolean(selectedProject)}
-              onPackChange={setPackKey}
-              onModeChange={setMode}
-              onAnswerChange={setAnswer}
-              onRefreshFromProject={() => applyPrefill(true)}
-            />
-            <CompliancePanel
-              risk={risk}
-              recommendations={recommendations}
-              complianceIssues={compliance.issues}
-              accepted={accepted}
-              showValidation={showValidation}
-              onRunValidation={() => setShowValidation(true)}
-              onToggleRecommendation={toggleRecommendation}
-            />
-            <ExportPanel
-              exportPolicy={exportPolicy}
-              exporting={exporting}
-              onExport={handleExport}
-              onDownloadManifest={handleDownloadManifest}
-            />
-            <SignaturePanel
-              documentId={documentId ?? ''}
-              loadedDoc={loadedDoc}
-              contractorName={contractorName}
-              contractorSignature={contractorSignature}
-              sending={sending}
-              onContractorNameChange={setContractorName}
-              onContractorSignatureChange={setContractorSignature}
-              onSendForSignature={handleSendForSignature}
-              onCopyContractLink={handleCopyContractLink}
-            />
-          </section>
+        <div
+          className={`relative grid grid-cols-1 gap-6 transition-all duration-300 ease-in-out ${
+            isPreviewOpen
+              ? 'lg:grid-cols-[minmax(420px,0.85fr)_minmax(680px,1.4fr)]'
+              : 'lg:grid-cols-[minmax(640px,900px)] lg:justify-center'
+          }`}
+        >
+            <section
+              ref={builderColumnRef}
+              className="relative min-w-0 space-y-4 transition-all duration-300 ease-in-out"
+            >
+              <DocumentMetaPanel
+                documentId={documentId}
+                title={title}
+                savedDocs={savedDocs}
+                onTitleChange={setTitle}
+                onNewContract={handleNewContract}
+                onLoadDocument={handleLoadDocument}
+              />
+              <IntakePanel
+                packOptions={packOptions}
+                packKey={packKey}
+                mode={mode}
+                groupedQuestions={groupedQuestions}
+                answers={answers}
+                fieldSources={fieldSources}
+                fieldNotes={fieldNotes}
+                fieldErrors={fieldErrors}
+                hasSelectedProject={Boolean(selectedProject)}
+                onPackChange={setPackKey}
+                onModeChange={setMode}
+                onAnswerChange={setAnswer}
+                onRefreshFromProject={() => applyPrefill(true)}
+              />
+              <CompliancePanel
+                risk={risk}
+                recommendations={recommendations}
+                complianceIssues={compliance.issues}
+                accepted={accepted}
+                showValidation={showValidation}
+                onRunValidation={() => setShowValidation(true)}
+                onToggleRecommendation={toggleRecommendation}
+              />
+              <ExportPanel
+                exportPolicy={exportPolicy}
+                exporting={exporting}
+                onExport={handleExport}
+                onDownloadManifest={handleDownloadManifest}
+              />
+              <SignaturePanel
+                documentId={documentId ?? ''}
+                loadedDoc={loadedDoc}
+                contractorName={contractorName}
+                contractorSignature={contractorSignature}
+                sending={sending}
+                onContractorNameChange={setContractorName}
+                onContractorSignatureChange={setContractorSignature}
+                onSendForSignature={handleSendForSignature}
+                onCopyContractLink={handleCopyContractLink}
+              />
+            </section>
 
-          <section className="space-y-4">
-            <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
-                  Save Draft
-                </Button>
-                <Button variant="outline" onClick={() => setShowValidation(true)} fullWidth>
-                  Run Compliance
-                </Button>
-                <Button variant="outline" onClick={handlePreviewContract} fullWidth>
-                  Preview Contract
-                </Button>
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen((open) => !open)}
+              aria-label={isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
+              title={isPreviewOpen ? 'Hide preview' : 'Show preview'}
+              style={{
+                left: toggleLeft !== null ? `${toggleLeft}px` : undefined,
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}
+              className={`fixed z-50 hidden h-12 w-12 items-center justify-center rounded-full border border-cyan-500/50 bg-slate-950/90 text-cyan-300 shadow-xl shadow-slate-900/25 transition-all duration-300 ease-in-out hover:bg-cyan-950 hover:text-cyan-100 hover:shadow-cyan-500/25 lg:flex print:hidden ${
+                toggleLeft === null ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
+              <ChevronRight
+                className={`h-5 w-5 transition-transform duration-300 ease-in-out ${
+                  isPreviewOpen ? '' : 'rotate-180'
+                }`}
+                aria-hidden
+              />
+              <span className="sr-only">
+                {isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
+              </span>
+            </button>
+
+            {/* Mobile preview toggle — between builder and preview */}
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen((open) => !open)}
+              aria-label={isPreviewOpen ? 'Hide contract preview' : 'Show contract preview'}
+              title={isPreviewOpen ? 'Hide preview' : 'Show preview'}
+              className="flex w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-cyan-500/40 bg-slate-900 px-4 py-2.5 text-sm font-medium text-cyan-300 shadow-md transition-all duration-300 ease-in-out hover:border-cyan-400 hover:shadow-cyan-500/20 lg:hidden print:hidden"
+            >
+              {isPreviewOpen ? (
+                <>
+                  <ChevronRight
+                    className="h-4 w-4 rotate-90 transition-transform duration-300 ease-in-out"
+                    aria-hidden
+                  />
+                  Hide Contract Preview
+                </>
+              ) : (
+                <>
+                  <ChevronLeft
+                    className="h-4 w-4 -rotate-90 transition-transform duration-300 ease-in-out"
+                    aria-hidden
+                  />
+                  Show Contract Preview
+                </>
+              )}
+            </button>
+
+            <section
+              className={`min-w-0 space-y-4 overflow-hidden transition-all duration-300 ease-in-out print:block ${
+                isPreviewOpen
+                  ? 'translate-x-0 opacity-100'
+                  : 'pointer-events-none hidden max-h-0 opacity-0 translate-x-4 lg:block lg:max-h-none lg:w-0 lg:max-w-0 lg:p-0'
+              }`}
+            >
+              <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
+                    Save Draft
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowValidation(true)} fullWidth>
+                    Run Compliance
+                  </Button>
+                  <Button variant="outline" onClick={handlePreviewContract} fullWidth>
+                    Preview Contract
+                  </Button>
+                </div>
               </div>
-            </div>
-            <VersionHistoryPanel
-              versions={versions}
-              previewVersion={previewVersion}
-              onSelectVersion={setPreviewVersion}
-              onClearPreview={() => setPreviewVersion(null)}
-            />
-            <PreviewPanel
-              previewHeading={previewHeading}
-              previewSections={previewSections}
-            />
-          </section>
+              <VersionHistoryPanel
+                versions={versions}
+                previewVersion={previewVersion}
+                onSelectVersion={setPreviewVersion}
+                onClearPreview={() => setPreviewVersion(null)}
+              />
+              <PreviewPanel
+                previewHeading={previewHeading}
+                previewSections={previewSections}
+              />
+            </section>
         </div>
       </FieldToolPageLayout>
 

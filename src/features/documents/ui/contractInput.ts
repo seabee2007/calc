@@ -133,7 +133,15 @@ export function buildDocumentInput(
     schedule: {
       startDate: str(answers.startDate),
       completionDate: str(answers.completionDate),
-      workHours: str(answers.workHours),
+      workHours: (() => {
+        const start = str(answers.workStartTime);
+        const end = str(answers.workEndTime);
+        if (start && end) return `${start} - ${end}`;
+        const legacy = str(answers.workHours);
+        if (legacy) return legacy;
+        if (!start && !end) return '06:00 - 18:00';
+        return undefined;
+      })(),
     },
     permits: { responsibleParty: str(answers.permitsResponsibleParty), items: [] },
     warranty: { months: answers.workmanshipWarrantyMonths },
