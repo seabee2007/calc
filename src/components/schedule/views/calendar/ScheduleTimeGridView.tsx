@@ -16,9 +16,9 @@ import {
   toIsoDate,
 } from '../../../../utils/scheduleEventUtils';
 import {
+  createTouchPoint,
   evaluateHorizontalSwipe,
-  isScheduleInteractiveTarget,
-  isTapGesture,
+  logScheduleTouchDebug,
   type TouchPoint,
 } from '../../../../utils/scheduleTouchInteraction';
 import { SCHEDULE_CARD, SCHEDULE_MUTED } from '../../scheduleTheme';
@@ -65,8 +65,7 @@ export default function ScheduleTimeGridView({
   const slotsPerHour = 60 / slotMinutes;
   const hourRowHeight = slotHeightPx * slotsPerHour;
 
-  const headerSwipeStartRef = useRef<TouchPoint | null>(null);
-  const slotTouchStartRef = useRef<{ x: number; y: number; slotIndex: number } | null>(null);
+  const gridSwipeStartRef = useRef<TouchPoint | null>(null);
   const localSwipeAtRef = useRef(0);
   const swipeCooldownRef = lastSwipeAtRef ?? localSwipeAtRef;
 
@@ -105,34 +104,30 @@ export default function ScheduleTimeGridView({
   const handleSlotActivate = (iso: string, slotIndex: number) => {
     if (!onCreateAtSlot) return;
     const { startTime, endTime } = slotTimesForIndex(slotIndex);
+    logScheduleTouchDebug('create slot clicked', { iso, slotIndex, startTime, endTime });
     onCreateAtSlot({ date: iso, startTime, endTime });
   };
 
-  const handleHeaderTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+  const handleGridSwipeTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     if (!enableHeaderSwipe || !onPeriodShift || event.touches.length !== 1) {
-      headerSwipeStartRef.current = null;
-      return;
-    }
-    if (isScheduleInteractiveTarget(event.target)) {
-      headerSwipeStartRef.current = null;
+      gridSwipeStartRef.current = null;
       return;
     }
 
     const touch = event.touches[0];
-    headerSwipeStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now(),
-    };
+    gridSwipeStartRef.current = createTouchPoint(touch.clientX, touch.clientY, event.target);
+    logScheduleTouchDebug('time grid swipe touch start', {
+      blocked: gridSwipeStartRef.current.blocked,
+      target: (event.target as Element)?.tagName,
+    });
   };
 
-  const handleHeaderTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
-    const start = headerSwipeStartRef.current;
-    headerSwipeStartRef.current = null;
+  const handleGridSwipeTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = gridSwipeStartRef.current;
+    gridSwipeStartRef.current = null;
     if (!enableHeaderSwipe || !onPeriodShift || !start || event.changedTouches.length === 0) {
       return;
     }
-    if (isScheduleInteractiveTarget(event.target)) return;
 
     const touch = event.changedTouches[0];
     const direction = evaluateHorizontalSwipe(
@@ -151,14 +146,16 @@ export default function ScheduleTimeGridView({
     : 'z-0 pointer-events-none';
 
   return (
-    <div className={`${SCHEDULE_CARD} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+    <div
+      data-schedule-swipe-zone="true"
+      className={`${SCHEDULE_CARD} flex min-h-0 flex-1 flex-col overflow-hidden`}
+      onTouchStart={enableHeaderSwipe ? handleGridSwipeTouchStart : undefined}
+      onTouchEnd={enableHeaderSwipe ? handleGridSwipeTouchEnd : undefined}
+    >
       <div className="flex min-h-0 flex-1 flex-col overflow-auto">
         <div
-          data-schedule-swipe-zone="true"
           className="sticky top-0 z-20 grid border-b border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
           style={{ gridTemplateColumns: `56px repeat(${days.length}, minmax(100px, 1fr))` }}
-          onTouchStart={enableHeaderSwipe ? handleHeaderTouchStart : undefined}
-          onTouchEnd={enableHeaderSwipe ? handleHeaderTouchEnd : undefined}
         >
           <div className="border-r border-slate-200 dark:border-slate-700" />
           {days.map((iso) => {
@@ -263,36 +260,13 @@ export default function ScheduleTimeGridView({
             >
               {onCreateAtSlot &&
                 Array.from({ length: slotCount }).map((_, slotIndex) => (
-                  <button
+                  <div
                     key={`slot-${slotIndex}`}
-                    type="button"
-                    aria-label={`Add event on ${dayLabel(iso)}`}
+                    role="presentation"
+                    aria-hidden
                     className={`absolute left-0 right-0 border-b border-slate-200/70 dark:border-slate-700/60 ${slotInteractiveClass}`}
                     style={{ top: slotIndex * slotHeightPx, height: slotHeightPx }}
                     onClick={() => handleSlotActivate(iso, slotIndex)}
-                    onTouchStart={(event) => {
-                      if (event.touches.length !== 1) {
-                        slotTouchStartRef.current = null;
-                        return;
-                      }
-                      const touch = event.touches[0];
-                      slotTouchStartRef.current = {
-                        x: touch.clientX,
-                        y: touch.clientY,
-                        slotIndex,
-                      };
-                    }}
-                    onTouchEnd={(event) => {
-                      const start = slotTouchStartRef.current;
-                      slotTouchStartRef.current = null;
-                      if (!start || start.slotIndex !== slotIndex || event.changedTouches.length === 0) {
-                        return;
-                      }
-                      const touch = event.changedTouches[0];
-                      if (!isTapGesture(start, { x: touch.clientX, y: touch.clientY })) return;
-                      event.preventDefault();
-                      handleSlotActivate(iso, slotIndex);
-                    }}
                   />
                 ))}
               {!onCreateAtSlot &&

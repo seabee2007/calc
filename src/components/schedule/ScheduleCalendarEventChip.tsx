@@ -4,6 +4,7 @@ import type { ScheduleEvent } from '../../types/scheduleEvent';
 import { SCHEDULE_EVENT_TYPE_LABELS } from '../../types/scheduleEvent';
 import { SCHEDULE_EVENT_TYPE_STYLES } from './scheduleTheme';
 import ScheduleStatusBadge from './ScheduleStatusBadge';
+import { logScheduleTouchDebug } from '../../utils/scheduleTouchInteraction';
 
 interface Props {
   event: ScheduleEvent;
@@ -34,8 +35,11 @@ export default function ScheduleCalendarEventChip({
   return (
     <button
       type="button"
+      data-schedule-event="true"
+      data-no-swipe="true"
       onClick={(e) => {
         e.stopPropagation();
+        logScheduleTouchDebug('event chip clicked', { id: event.id });
         onClick();
       }}
       className={`flex w-full min-w-0 flex-col gap-0.5 rounded border px-1.5 py-1 text-left ${

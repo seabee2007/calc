@@ -4,6 +4,7 @@ import { SCHEDULE_EVENT_TYPE_LABELS } from '../../types/scheduleEvent';
 import { SCHEDULE_EVENT_TYPE_STYLES } from './scheduleTheme';
 import ScheduleStatusBadge from './ScheduleStatusBadge';
 import { statusAccentClass } from '../../utils/scheduleEventUtils';
+import { logScheduleTouchDebug } from '../../utils/scheduleTouchInteraction';
 
 interface Props {
   event: ScheduleEvent;
@@ -33,12 +34,15 @@ export default function ScheduleCalendarEventBlock({
   return (
     <button
       type="button"
+      data-schedule-event="true"
+      data-no-swipe="true"
       onClick={(e) => {
         e.stopPropagation();
+        logScheduleTouchDebug('event block clicked', { id: event.id });
         onClick();
       }}
       style={style}
-      className={`absolute left-0.5 right-0.5 z-10 overflow-hidden rounded-md border p-1.5 text-left shadow-sm ${typeStyle.surface} ${statusAccentClass(
+      className={`pointer-events-auto absolute left-0.5 right-0.5 z-10 overflow-hidden rounded-md border p-1.5 text-left shadow-sm ${typeStyle.surface} ${statusAccentClass(
         event.status,
       )} ${selected ? 'ring-2 ring-[#2563EB]' : 'hover:shadow-md'}`}
     >

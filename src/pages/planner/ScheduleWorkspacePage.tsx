@@ -65,8 +65,9 @@ import {
   isRecurringSeriesMaster,
 } from '../../utils/scheduleRecurrenceUtils';
 import {
+  createTouchPoint,
   evaluateHorizontalSwipe,
-  isScheduleInteractiveTarget,
+  logScheduleTouchDebug,
   type TouchPoint,
 } from '../../utils/scheduleTouchInteraction';
 
@@ -368,24 +369,19 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
       swipeStartRef.current = null;
       return;
     }
-    if (isScheduleInteractiveTarget(event.target)) {
-      swipeStartRef.current = null;
-      return;
-    }
 
     const touch = event.touches[0];
-    swipeStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now(),
-    };
+    swipeStartRef.current = createTouchPoint(touch.clientX, touch.clientY, event.target);
+    logScheduleTouchDebug('month swipe touch start', {
+      blocked: swipeStartRef.current.blocked,
+      target: (event.target as Element)?.tagName,
+    });
   };
 
   const handleCalendarTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
     const start = swipeStartRef.current;
     swipeStartRef.current = null;
     if (!canSwipeCalendarMonth || !start || event.changedTouches.length === 0) return;
-    if (isScheduleInteractiveTarget(event.target)) return;
 
     const touch = event.changedTouches[0];
     const direction = evaluateHorizontalSwipe(

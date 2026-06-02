@@ -1,9 +1,12 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import type { ScheduleEvent } from '../../../../types/scheduleEvent';
 import ScheduleCalendarEventChip from '../../ScheduleCalendarEventChip';
 import ScheduleCalendarMultiDayBar, { multiDayLaneCount } from '../../ScheduleCalendarMultiDayBar';
 import { SCHEDULE_CARD } from '../../scheduleTheme';
-import { isTapGesture, isScheduleInteractiveTarget } from '../../../../utils/scheduleTouchInteraction';
+import {
+  isScheduleInteractiveTarget,
+  logScheduleTouchDebug,
+} from '../../../../utils/scheduleTouchInteraction';
 import {
   eventsForCalendarCell,
   getMonthGrid,
@@ -33,7 +36,6 @@ export default function ScheduleCalendarMonthView({
 }: Props) {
   const weeks = useMemo(() => getMonthGrid(year, month), [year, month]);
   const todayIso = todayIsoDate();
-  const cellTouchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const weekLayouts = useMemo(
     () =>
@@ -44,29 +46,10 @@ export default function ScheduleCalendarMonthView({
     [weeks, events],
   );
 
-  const handleDayCellClick = (iso: string) => {
-    onCreateAtDate?.(iso);
-  };
-
-  const handleDayCellTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (!onCreateAtDate || event.touches.length !== 1) {
-      cellTouchStartRef.current = null;
-      return;
-    }
-    const touch = event.touches[0];
-    cellTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
-  };
-
-  const handleDayCellTouchEnd = (iso: string, event: React.TouchEvent<HTMLDivElement>) => {
-    const start = cellTouchStartRef.current;
-    cellTouchStartRef.current = null;
-    if (!onCreateAtDate || !start || event.changedTouches.length === 0) return;
+  const handleDayCellClick = (iso: string, event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onCreateAtDate) return;
     if (isScheduleInteractiveTarget(event.target)) return;
-
-    const touch = event.changedTouches[0];
-    if (!isTapGesture(start, { x: touch.clientX, y: touch.clientY })) return;
-
-    event.preventDefault();
+    logScheduleTouchDebug('create day cell clicked', { iso });
     onCreateAtDate(iso);
   };
 
@@ -125,18 +108,7 @@ export default function ScheduleCalendarMonthView({
                 return (
                   <div
                     key={iso}
-                    role={onCreateAtDate ? 'button' : undefined}
-                    tabIndex={onCreateAtDate ? 0 : undefined}
-                    onClick={() => handleDayCellClick(iso)}
-                    onKeyDown={(event) => {
-                      if (!onCreateAtDate) return;
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        handleDayCellClick(iso);
-                      }
-                    }}
-                    onTouchStart={handleDayCellTouchStart}
-                    onTouchEnd={(event) => handleDayCellTouchEnd(iso, event)}
+                    onClick={(event) => handleDayCellClick(iso, event)}
                     className={`min-h-[100px] border-r border-slate-200 bg-white p-1 last:border-r-0 dark:border-slate-700 dark:bg-slate-950 ${dayCellInteractiveClass} ${
                       isToday
                         ? 'z-[1] !bg-blue-50 ring-2 ring-inset ring-blue-500 text-blue-700 dark:!bg-blue-950/40 dark:ring-blue-400 dark:text-blue-300'
@@ -167,10 +139,18 @@ export default function ScheduleCalendarMonthView({
                       {overflow > 0 && (
                         <button
                           type="button"
+                          data-schedule-event="true"
+                          data-no-swipe="true"
                           className="w-full text-left text-[10px] font-medium text-[#2563EB] hover:underline"
-                          onClick={() =>
-                            dayEvents[MAX_SINGLE_DAY] && onSelect(dayEvents[MAX_SINGLE_DAY].id)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (dayEvents[MAX_SINGLE_DAY]) {
+                              logScheduleTouchDebug('event chip clicked', {
+                                id: dayEvents[MAX_SINGLE_DAY].id,
+                              });
+                              onSelect(dayEvents[MAX_SINGLE_DAY].id);
+                            }
+                          }}
                         >
                           +{overflow} more
                         </button>

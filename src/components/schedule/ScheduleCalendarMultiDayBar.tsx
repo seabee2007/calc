@@ -4,6 +4,7 @@ import ScheduleEventTypeBadge from './ScheduleEventTypeBadge';
 import ScheduleStatusBadge from './ScheduleStatusBadge';
 import { SCHEDULE_EVENT_TYPE_STYLES } from './scheduleTheme';
 import { formatScheduleEventDateRange, statusAccentClass } from '../../utils/scheduleEventUtils';
+import { logScheduleTouchDebug } from '../../utils/scheduleTouchInteraction';
 
 interface Props {
   event: ScheduleEvent;
@@ -37,9 +38,12 @@ export default function ScheduleCalendarMultiDayBar({
   return (
     <button
       type="button"
+      data-schedule-event="true"
+      data-no-swipe="true"
       title={tooltip}
       onClick={(e) => {
         e.stopPropagation();
+        logScheduleTouchDebug('event multi-day bar clicked', { id: event.id });
         onClick();
       }}
       className={`flex min-h-[26px] min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2 py-1 text-left shadow-sm ${statusAccentClass(
