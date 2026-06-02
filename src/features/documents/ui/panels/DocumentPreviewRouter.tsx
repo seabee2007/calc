@@ -1,9 +1,11 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, type ReactNode } from 'react';
 import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import type { ContractDocumentVersionRow } from '../../services/contractDocumentTypes';
+import type { DocumentComplianceIssue, DocumentRiskScore } from '../../types';
 import ChangeOrderDocument from '../../../../components/change-order/ChangeOrderDocument';
 import { buildChangeOrderPreviewFromDocumentAnswers } from '../adapters/changeOrderPreviewAdapter';
+import ResidentialContractDocument from '../renderers/ResidentialContractDocument';
 import PreviewPanel, { type PreviewPanelProps } from './PreviewPanel';
 
 interface DocumentPreviewRouterProps extends PreviewPanelProps {
@@ -17,8 +19,11 @@ interface DocumentPreviewRouterProps extends PreviewPanelProps {
     CompanySettings,
     'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
   > & { logo?: string | null };
-  /** Document title from the builder state — forwarded to the adapter for the CO header. */
+  /** Document title from the builder state — forwarded to dedicated renderers. */
   title?: string;
+  disclaimer?: string;
+  risk?: DocumentRiskScore;
+  complianceIssues?: DocumentComplianceIssue[];
   /**
    * When a saved version is being previewed, fall back to `PreviewPanel` so
    * historical section snapshots remain faithful and read-only.
@@ -33,11 +38,36 @@ interface DocumentPreviewRouterProps extends PreviewPanelProps {
   accepted?: string[];
 }
 
+function PaperPreviewShell({
+  audience,
+  children,
+}: {
+  audience?: 'client' | 'internal';
+  children: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2 dark:border-slate-700">
+        <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+          Paper preview
+        </span>
+        {audience === 'internal' && (
+          <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">
+            Internal view
+          </span>
+        )}
+      </div>
+      <div className="p-3">{children}</div>
+    </div>
+  );
+}
+
 /**
  * Selects the correct preview renderer based on document type / pack key.
  *
  * - `change_order` or `GENERIC_CHANGE_ORDER` pack (live preview) →
  *     professional `ChangeOrderDocument` wrapped in a paper-preview shell
+ * - `residential_contract` (live preview) → `ResidentialContractDocument`
  * - historical version selected → `PreviewPanel` (clause-list snapshot)
  * - everything else → `PreviewPanel`
  */
@@ -48,6 +78,9 @@ export default function DocumentPreviewRouter({
   selectedProject,
   companySettings,
   title,
+  disclaimer,
+  risk,
+  complianceIssues,
   previewVersion,
   audience = 'client',
   accepted = [],
@@ -56,20 +89,15 @@ export default function DocumentPreviewRouter({
 }: DocumentPreviewRouterProps) {
   const isChangeOrder =
     documentType === 'change_order' || packKey === 'GENERIC_CHANGE_ORDER';
+  const isResidentialContract = documentType === 'residential_contract';
 
-  // Track whether the adapter threw so we can show a safe fallback card instead
-  // of letting a React error boundary blank the entire page.
   const [adapterError, setAdapterError] = useState<string | null>(null);
 
-  // Reset the error state whenever the pack type or project changes so the user
-  // can retry after fixing project data without a hard page reload.
   useEffect(() => {
     setAdapterError(null);
   }, [isChangeOrder, selectedProject]);
 
   const changeOrderPreview = useMemo(() => {
-    // Show historical snapshots via PreviewPanel so the read-only view stays
-    // faithful to what was actually saved.
     if (!isChangeOrder || previewVersion) return null;
     try {
       return buildChangeOrderPreviewFromDocumentAnswers({
@@ -83,7 +111,6 @@ export default function DocumentPreviewRouter({
       if (import.meta.env.DEV) {
         console.error('[DocumentPreviewRouter] Change Order adapter error:', err);
       }
-      // Schedule the error state update outside the render cycle.
       setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
       return null;
     }
@@ -102,27 +129,30 @@ export default function DocumentPreviewRouter({
 
   if (changeOrderPreview) {
     return (
-      // Paper-preview shell: the outer card uses app dark-mode colours; the
-      // inner ChangeOrderDocument always renders as white paper with dark text.
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2 dark:border-slate-700">
-          <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
-            Paper preview
-          </span>
-          {audience === 'internal' && (
-            <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">
-              Internal view
-            </span>
-          )}
-        </div>
-        <div className="p-3">
-          <ChangeOrderDocument
-            order={changeOrderPreview.order}
-            audience={audience}
-            context={changeOrderPreview.context}
-          />
-        </div>
-      </div>
+      <PaperPreviewShell audience={audience}>
+        <ChangeOrderDocument
+          order={changeOrderPreview.order}
+          audience={audience}
+          context={changeOrderPreview.context}
+        />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (isResidentialContract && !previewVersion) {
+    return (
+      <PaperPreviewShell>
+        <ResidentialContractDocument
+          sections={previewSections}
+          documentTitle={title ?? previewHeading}
+          answers={answers}
+          selectedProject={selectedProject}
+          companySettings={companySettings}
+          disclaimer={disclaimer ?? 'Draft document only. Not legal advice.'}
+          risk={risk}
+          complianceIssues={complianceIssues}
+        />
+      </PaperPreviewShell>
     );
   }
 

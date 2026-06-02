@@ -29,7 +29,7 @@ import {
   type ContractPrefillResult,
 } from './contractPrefill';
 import { normalizeContractAnswers } from './contractAnswersUtils';
-import { softenPreviewPlaceholders } from './previewDisplay';
+import { cleanDocumentBody, softenPreviewPlaceholders } from './previewDisplay';
 import { exportContractDraftPdf } from './contractPdf';
 import { generateChangeOrderPDF } from '../../../utils/changeOrderPdf';
 import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrderPreviewAdapter';
@@ -565,6 +565,13 @@ export default function DocumentBuilderPage() {
           address: company.address || '',
           phone: company.phone || '',
           email: company.email,
+          licenseNumber: company.licenseNumber,
+        }, {
+          answers,
+          documentTitle: title || assembly.title,
+          complianceWarningCount: compliance.issues.filter(
+            (issue) => issue.severity === 'warning' || issue.severity === 'blocker',
+          ).length,
         });
         setToast({ title: 'Draft exported', message: 'Your draft contract PDF was generated.', type: 'success' });
       }
@@ -776,7 +783,7 @@ export default function DocumentBuilderPage() {
     () =>
       previewSectionsRaw.map((section) => ({
         ...section,
-        body: softenPreviewPlaceholders(section.body),
+        body: cleanDocumentBody(softenPreviewPlaceholders(section.body)),
       })),
     [previewSectionsRaw],
   );
@@ -963,6 +970,9 @@ export default function DocumentBuilderPage() {
                     selectedProject={selectedProject}
                     companySettings={companySettings}
                     title={title}
+                    disclaimer={assembly.disclaimer}
+                    risk={risk}
+                    complianceIssues={compliance.issues}
                     previewVersion={previewVersion}
                     accepted={[...accepted]}
                     previewHeading={previewHeading}
