@@ -1,20 +1,32 @@
 import { supabase } from './supabase';
 import { mapChangeOrder } from '../services/changeOrderService';
 import type { ChangeOrder } from '../types/changeOrder';
+import {
+  parseChangeOrderPublicBundle,
+  type ChangeOrderPublicBundle,
+} from '../utils/changeOrderDocumentContext';
 
 export function getPublicChangeOrderUrl(publicToken: string): string {
   return `${window.location.origin}/change-order/${publicToken}`;
 }
 
-export async function fetchChangeOrderByPublicToken(
+export async function fetchChangeOrderPublicBundle(
   token: string,
-): Promise<ChangeOrder | null> {
+): Promise<ChangeOrderPublicBundle | null> {
   const { data, error } = await supabase.rpc('get_change_order_by_public_token', {
     p_token: token,
   });
   if (error) throw error;
   if (!data) return null;
-  return mapChangeOrder(data as Record<string, unknown>);
+  return parseChangeOrderPublicBundle(data);
+}
+
+/** @deprecated Prefer fetchChangeOrderPublicBundle for project/company context. */
+export async function fetchChangeOrderByPublicToken(
+  token: string,
+): Promise<ChangeOrder | null> {
+  const bundle = await fetchChangeOrderPublicBundle(token);
+  return bundle?.order ?? null;
 }
 
 async function recordClientAction(

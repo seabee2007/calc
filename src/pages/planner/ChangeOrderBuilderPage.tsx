@@ -715,8 +715,8 @@ export default function ChangeOrderBuilderPage() {
             )}
           </div>
 
-          <div className="min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:self-start">
-            <div className="flex max-h-[calc(100vh-8rem)] min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+          <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <div className="min-w-0 rounded-xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
               <div className="shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-xs font-semibold uppercase text-gray-600 dark:text-slate-400">
@@ -754,10 +754,7 @@ export default function ChangeOrderBuilderPage() {
                   </div>
                 </div>
               </div>
-              <div
-                ref={printRef}
-                className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
-              >
+              <div ref={printRef} className="min-w-0 max-w-full overflow-x-hidden">
                 {preview && (
                   <ChangeOrderDocument
                     order={preview}

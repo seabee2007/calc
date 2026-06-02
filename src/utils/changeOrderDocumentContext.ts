@@ -1,10 +1,37 @@
 import { format } from 'date-fns';
 import type { CompanySettings } from '../services/companySettingsService';
+import { mapChangeOrder } from '../services/changeOrderService';
 import type { ChangeOrder } from '../types/changeOrder';
 import type { Project } from '../types/index';
-import { formatUSAddress } from '../types/address';
-import { resolveClientAddressForProposal } from '../types/projectClient';
+import { formatUSAddress, usAddressFromFields } from '../types/address';
+import { parseClientInfoFromDb, resolveClientAddressForProposal } from '../types/projectClient';
 import { formatChangeOrderMoney } from './changeOrderFinancials';
+
+/** Client-safe project fields returned by public change order RPC. */
+export interface ChangeOrderPublicProjectSnapshot {
+  name: string;
+  jobsiteAddress?: Project['jobsiteAddress'];
+  clientInfo?: Project['clientInfo'];
+  baseContractValue?: number;
+  approvedChangeOrderTotal?: number;
+  currentContractValue?: number;
+}
+
+/** Client-safe company fields returned by public change order RPC. */
+export interface ChangeOrderPublicCompanySnapshot {
+  companyName: string;
+  address: string;
+  phone: string;
+  email: string;
+  licenseNumber: string;
+  logoUrl: string | null;
+}
+
+export interface ChangeOrderPublicBundle {
+  order: ChangeOrder;
+  project: ChangeOrderPublicProjectSnapshot | null;
+  company: ChangeOrderPublicCompanySnapshot | null;
+}
 
 export interface ChangeOrderContractValues {
   originalAmount: number | null;
@@ -132,6 +159,123 @@ export function buildChangeOrderDocumentContext(input: {
     contractValues: buildChangeOrderContractValues(project, thisChangeOrderTotal),
     documentDate,
   };
+}
+
+function numOrUndefined(value: unknown): number | undefined {
+  if (value == null || value === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export function parseChangeOrderPublicProject(
+  raw: unknown,
+): ChangeOrderPublicProjectSnapshot | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const name = typeof row.name === 'string' ? row.name.trim() : '';
+  if (!name) return null;
+
+  return {
+    name,
+    jobsiteAddress: usAddressFromFields({
+      jobsiteStreet: String(row.jobsite_street ?? ''),
+      jobsiteStreet2: String(row.jobsite_street2 ?? ''),
+      jobsiteCity: String(row.jobsite_city ?? ''),
+      jobsiteState: String(row.jobsite_state ?? ''),
+      jobsiteZip: String(row.jobsite_zip ?? ''),
+    }),
+    clientInfo: parseClientInfoFromDb(row.client_info),
+    baseContractValue: numOrUndefined(row.base_contract_value),
+    approvedChangeOrderTotal: numOrUndefined(row.approved_change_order_total),
+    currentContractValue: numOrUndefined(row.current_contract_value),
+  };
+}
+
+export function parseChangeOrderPublicCompany(
+  raw: unknown,
+): ChangeOrderPublicCompanySnapshot | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const companyName =
+    typeof row.company_name === 'string' ? row.company_name.trim() : '';
+  if (!companyName) return null;
+
+  return {
+    companyName,
+    address: typeof row.address === 'string' ? row.address.trim() : '',
+    phone: typeof row.phone === 'string' ? row.phone.trim() : '',
+    email: typeof row.email === 'string' ? row.email.trim() : '',
+    licenseNumber:
+      typeof row.license_number === 'string' ? row.license_number.trim() : '',
+    logoUrl: typeof row.logo_url === 'string' ? row.logo_url : null,
+  };
+}
+
+/**
+ * Parses RPC response from get_change_order_by_public_token.
+ * Supports jsonb bundle (new) and flat change_orders row (legacy fallback).
+ */
+export function parseChangeOrderPublicBundle(
+  data: unknown,
+): ChangeOrderPublicBundle | null {
+  if (!data || typeof data !== 'object') return null;
+  const row = data as Record<string, unknown>;
+
+  if ('change_order' in row && row.change_order && typeof row.change_order === 'object') {
+    const order = mapChangeOrder(row.change_order as Record<string, unknown>);
+    return {
+      order,
+      project: parseChangeOrderPublicProject(row.project),
+      company: parseChangeOrderPublicCompany(row.company),
+    };
+  }
+
+  if ('id' in row && 'project_id' in row) {
+    return {
+      order: mapChangeOrder(row),
+      project: null,
+      company: null,
+    };
+  }
+
+  return null;
+}
+
+export function buildChangeOrderDocumentContextFromPublic(input: {
+  order: ChangeOrder;
+  project: ChangeOrderPublicProjectSnapshot | null;
+  company: ChangeOrderPublicCompanySnapshot | null;
+}): ChangeOrderDocumentContext {
+  const { order, project, company } = input;
+  const projectForContext: Project | null = project
+    ? ({
+        id: order.projectId,
+        name: project.name,
+        description: '',
+        jobsiteAddress: project.jobsiteAddress,
+        clientInfo: project.clientInfo,
+        baseContractValue: project.baseContractValue,
+        approvedChangeOrderTotal: project.approvedChangeOrderTotal,
+        currentContractValue: project.currentContractValue,
+        createdAt: '',
+        updatedAt: '',
+        calculations: [],
+      } as Project)
+    : null;
+
+  return buildChangeOrderDocumentContext({
+    order,
+    project: projectForContext,
+    companySettings: {
+      companyName: company?.companyName ?? order.contractorName ?? 'Contractor',
+      address: company?.address ?? '',
+      phone: company?.phone ?? '',
+      email: company?.email ?? '',
+      licenseNumber: company?.licenseNumber ?? '',
+      logoUrl: company?.logoUrl ?? null,
+    },
+    thisChangeOrderTotal: order.total,
+  });
 }
 
 export const CHANGE_ORDER_STATUS_LABELS: Record<ChangeOrder['status'], string> = {

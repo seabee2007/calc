@@ -1,6 +1,6 @@
 import React from 'react';
-import { ClipboardCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ClipboardCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import { OPS_BODY, OPS_MUTED, OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import Button from '../ui/Button';
@@ -30,9 +30,17 @@ const QcAlertsCard: React.FC<QcAlertsCardProps> = ({
 
   return (
     <OpsCard>
-      <div className="flex items-center gap-2 mb-3">
-        <ClipboardCheck className="h-5 w-5 text-emerald-400" />
-        <h3 className={`font-semibold ${OPS_TITLE}`}>QC alerts</h3>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <ClipboardCheck className="h-5 w-5 shrink-0 text-emerald-400" />
+          <h3 className={`font-semibold ${OPS_TITLE}`}>QC alerts</h3>
+        </div>
+        <Link
+          to={`/projects?folder=${QC_CLOSEOUT_FOLDER}`}
+          className="text-sm text-cyan-400 hover:underline inline-flex items-center gap-1 shrink-0"
+        >
+          QC docs <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className={`${OPS_PANEL_INNER} p-3 text-center`}>

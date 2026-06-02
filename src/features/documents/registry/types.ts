@@ -18,6 +18,11 @@ export interface DocumentTypeDefinition {
 export interface ComplianceProfile {
   requiredClauseKeys: string[];
   questionnaireModeForValidation: QuestionnaireMode;
+  /**
+   * Optional informational notes surfaced as `info`-severity compliance issues.
+   * Does not block export or draft preview.
+   */
+  advisoryNotes?: string[];
 }
 
 export interface RiskProfileEvaluator {

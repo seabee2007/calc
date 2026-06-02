@@ -52,5 +52,45 @@ export function evaluateDerivedRisk(input: DocumentInput): DocumentRiskFactor[] 
     });
   }
 
+  if (input.documentType === 'change_order') {
+    const coAmount = toNumber(getAnswer(input, 'totalChangeOrderAmount'));
+    if (coAmount !== undefined && coAmount >= 50000) {
+      factors.push({
+        key: 'co.high_value',
+        label: 'High change order amount increases financial exposure.',
+        points: 10,
+      });
+    }
+
+    const hasScheduleImpact = getAnswer(input, 'scheduleImpact');
+    if (hasScheduleImpact && String(hasScheduleImpact).trim()) {
+      factors.push({
+        key: 'co.schedule_impact',
+        label: 'Schedule impact documented — review contract extension provisions.',
+        points: 5,
+      });
+    }
+
+    const originalAmount = getAnswer(input, 'originalContractAmount');
+    if (originalAmount === undefined || originalAmount === null || originalAmount === '') {
+      factors.push({
+        key: 'co.missing_original_contract',
+        label: 'Original contract amount not provided — revised contract value cannot be calculated.',
+        points: 5,
+      });
+    }
+
+    const revisedDate = getAnswer(input, 'revisedCompletionDate');
+    const additionalDays = toNumber(getAnswer(input, 'additionalCalendarDays'));
+    const hasScheduleText = hasScheduleImpact && String(hasScheduleImpact).trim();
+    if (hasScheduleText && additionalDays && additionalDays > 0 && !revisedDate) {
+      factors.push({
+        key: 'co.missing_revised_completion',
+        label: 'Revised completion date not set — schedule exposure is undocumented.',
+        points: 5,
+      });
+    }
+  }
+
   return factors;
 }

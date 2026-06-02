@@ -107,6 +107,13 @@ export function evaluateDocumentCompliance(
     }
   }
 
+  // Advisory notes from the compliance profile surface as non-blocking info issues.
+  if (profile.advisoryNotes?.length) {
+    for (const note of profile.advisoryNotes) {
+      issues.push({ code: 'advisory', message: note, severity: 'info' });
+    }
+  }
+
   // Legal-posture: attorney-review-required packs surface as a warning, plain
   // draft-only packs as info. Neither blocks draft preview.
   if (!catalog.pack.attorneyReviewed) {

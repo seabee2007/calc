@@ -1,21 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Check, X, Loader2 } from 'lucide-react';
 import {
   acceptChangeOrder,
   declineChangeOrder,
-  fetchChangeOrderByPublicToken,
+  fetchChangeOrderPublicBundle,
   markChangeOrderOpened,
 } from '../lib/changeOrderTracking';
 import type { ChangeOrder } from '../types/changeOrder';
 import ChangeOrderDocument from '../components/change-order/ChangeOrderDocument';
 import SignatureBlock from '../components/change-order/SignatureBlock';
 import Button from '../components/ui/Button';
-import { SURFACE_ELEVATED, TEXT_MUTED } from '../theme/appTheme';
+import { SURFACE_ELEVATED } from '../theme/appTheme';
+import {
+  buildChangeOrderDocumentContextFromPublic,
+  type ChangeOrderPublicBundle,
+} from '../utils/changeOrderDocumentContext';
 
 const PublicChangeOrder: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const [order, setOrder] = useState<ChangeOrder | null>(null);
+  const [publicBundle, setPublicBundle] = useState<ChangeOrderPublicBundle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<'accept' | 'decline' | null>(null);
@@ -34,20 +39,26 @@ const PublicChangeOrder: React.FC = () => {
 
     void (async () => {
       try {
-        const row = await fetchChangeOrderByPublicToken(token);
+        const bundle = await fetchChangeOrderPublicBundle(token);
         if (cancelled) return;
-        if (!row) {
+        if (!bundle) {
           setError('This change order is unavailable or has not been sent yet.');
           setLoading(false);
           return;
         }
-        setOrder(row);
-        if (row.clientName) setClientName(row.clientName);
-        if (row.clientSignature) setClientSignature(row.clientSignature);
+        setPublicBundle(bundle);
+        setOrder(bundle.order);
+        if (bundle.order.clientName) setClientName(bundle.order.clientName);
+        if (bundle.order.clientSignature) setClientSignature(bundle.order.clientSignature);
         if (!openedRef.current) {
           openedRef.current = true;
           const updated = await markChangeOrderOpened(token);
-          if (!cancelled) setOrder(updated);
+          if (!cancelled) {
+            setOrder(updated);
+            setPublicBundle((prev) =>
+              prev ? { ...prev, order: updated } : { order: updated, project: null, company: null },
+            );
+          }
         }
       } catch {
         if (!cancelled) setError('Could not load this change order.');
@@ -79,6 +90,9 @@ const PublicChangeOrder: React.FC = () => {
         signature: clientSignature.trim(),
       });
       setOrder(updated);
+      setPublicBundle((prev) =>
+        prev ? { ...prev, order: updated } : { order: updated, project: null, company: null },
+      );
       setClientName(updated.clientName ?? clientName);
       setClientSignature(updated.clientSignature ?? clientSignature);
     } catch {
@@ -94,10 +108,19 @@ const PublicChangeOrder: React.FC = () => {
     try {
       const updated = await declineChangeOrder(token);
       setOrder(updated);
+      setPublicBundle((prev) =>
+        prev ? { ...prev, order: updated } : { order: updated, project: null, company: null },
+      );
     } finally {
       setActionLoading(null);
     }
   };
+
+  const documentContext = useMemo(() => {
+    if (!order) return undefined;
+    const bundle = publicBundle ?? { order, project: null, company: null };
+    return buildChangeOrderDocumentContextFromPublic(bundle);
+  }, [order, publicBundle]);
 
   if (loading) {
     return (
@@ -150,7 +173,11 @@ const PublicChangeOrder: React.FC = () => {
         )}
 
         <div className={`rounded-xl shadow-lg overflow-hidden mb-6 ${SURFACE_ELEVATED}`}>
-          <ChangeOrderDocument order={order} />
+          <ChangeOrderDocument
+            order={order}
+            audience="client"
+            context={documentContext}
+          />
         </div>
 
         {!isFinal && (

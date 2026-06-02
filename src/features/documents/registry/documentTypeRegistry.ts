@@ -9,6 +9,13 @@ const DEFINITIONS: Partial<Record<DocumentType, DocumentTypeDefinition>> = {
     defaultPackKey: 'GENERIC_RESIDENTIAL',
     defaultTemplateKey: 'GENERIC_RESIDENTIAL_CONTRACT',
   },
+  change_order: {
+    documentType: 'change_order',
+    label: 'Change Order',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_CHANGE_ORDER',
+    defaultTemplateKey: 'GENERIC_CHANGE_ORDER_TEMPLATE',
+  },
 };
 
 export function getDocumentTypeDefinition(

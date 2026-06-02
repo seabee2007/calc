@@ -7,6 +7,11 @@ import {
 } from './genericResidential';
 import { concreteAddendums } from './concrete';
 import { stateCatalogs } from './statePacks';
+import {
+  GENERIC_CHANGE_ORDER_PACK,
+  GENERIC_CHANGE_ORDER_TEMPLATE,
+  changeOrderPackClauses,
+} from './changeOrder';
 
 /**
  * Pack registry. Resolves a `packKey` to its full catalog (metadata + template
@@ -20,6 +25,12 @@ const PACK_CATALOGS: Record<string, PackCatalog> = {
     template: GENERIC_RESIDENTIAL_CONTRACT_TEMPLATE,
     clauses: genericResidentialClauses,
     addenda: [...genericResidentialAddendums, ...concreteAddendums],
+  },
+  [GENERIC_CHANGE_ORDER_PACK.packKey]: {
+    pack: GENERIC_CHANGE_ORDER_PACK,
+    template: GENERIC_CHANGE_ORDER_TEMPLATE,
+    clauses: changeOrderPackClauses,
+    addenda: [],
   },
   ...Object.fromEntries(stateCatalogs.map((catalog) => [catalog.pack.packKey, catalog])),
 };
