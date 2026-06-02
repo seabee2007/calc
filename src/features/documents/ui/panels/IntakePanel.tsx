@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import USAddressFields from '../../../../components/address/USAddressFields';
+import { fetchRfisForProject } from '../../../../services/rfiService';
+import { fetchAdjustmentsForProject } from '../../../../services/fieldAdjustmentService';
+import type { Project } from '../../../../types/index';
 import {
   APP_SECTION_CARD,
   BORDER_DEFAULT,
@@ -29,6 +32,8 @@ export interface IntakePanelProps {
   fieldNotes?: Partial<Record<string, string>>;
   fieldErrors?: Partial<Record<string, string>>;
   hasSelectedProject?: boolean;
+  /** Full project object — used by CO-specific renderers (e.g. RFI/FAR dropdown). */
+  selectedProject?: Project | null;
   onPackChange: (packKey: string) => void;
   onModeChange: (mode: QuestionnaireMode) => void;
   onAnswerChange: (key: string, value: unknown) => void;
@@ -91,12 +96,43 @@ export default function IntakePanel({
   fieldNotes = {},
   fieldErrors = {},
   hasSelectedProject = false,
+  selectedProject = null,
   onPackChange,
   onModeChange,
   onAnswerChange,
   onRefreshFromProject,
 }: IntakePanelProps) {
   const [focusedCurrencyKey, setFocusedCurrencyKey] = useState<string | null>(null);
+
+  // RFI / FAR options for the rfiFarReference field (Change Order docs only)
+  const [rfiFarOptions, setRfiFarOptions] = useState<{ value: string; label: string }[]>([]);
+  const [rfiFarLoading, setRfiFarLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedProject?.id) {
+      setRfiFarOptions([]);
+      return;
+    }
+    setRfiFarLoading(true);
+    Promise.all([
+      fetchRfisForProject(selectedProject.id),
+      fetchAdjustmentsForProject(selectedProject.id),
+    ])
+      .then(([rfis, fars]) => {
+        setRfiFarOptions([
+          ...rfis.map((r) => ({
+            value: `${r.displayNumber ?? 'RFI'} — ${r.title}`,
+            label: `${r.displayNumber ?? 'RFI'} — ${r.title}`,
+          })),
+          ...fars.map((f) => ({
+            value: `${f.displayNumber ?? 'FAR'} — ${f.title}`,
+            label: `${f.displayNumber ?? 'FAR'} — ${f.title}`,
+          })),
+        ]);
+      })
+      .catch(() => setRfiFarOptions([]))
+      .finally(() => setRfiFarLoading(false));
+  }, [selectedProject?.id]);
 
   const fieldMeta = (key: string, fallbackHelper?: string) => {
     const label = sourceLabel(fieldSources[key]);
@@ -180,6 +216,43 @@ export default function IntakePanel({
     return formatCurrencyDisplay(n);
   };
 
+  const renderRfiFarReference = (q: DocumentQuestion) => {
+    const currentValue = typeof answers[q.questionKey] === 'string' ? (answers[q.questionKey] as string) : '';
+    if (!selectedProject) {
+      return (
+        <div>
+          <p className={`mb-1 text-sm font-medium ${TEXT_BODY}`}>{q.label}</p>
+          <p className={`text-xs ${TEXT_MUTED}`}>Select a project above to link RFIs or FARs.</p>
+        </div>
+      );
+    }
+    if (rfiFarLoading) {
+      return (
+        <div>
+          <p className={`mb-1 text-sm font-medium ${TEXT_BODY}`}>{q.label}</p>
+          <p className={`text-xs ${TEXT_MUTED}`}>Loading RFIs and FARs…</p>
+        </div>
+      );
+    }
+    if (rfiFarOptions.length === 0) {
+      return (
+        <div>
+          <p className={`mb-1 text-sm font-medium ${TEXT_BODY}`}>{q.label}</p>
+          <p className={`text-xs ${TEXT_MUTED}`}>No RFIs or FARs found for this project.</p>
+        </div>
+      );
+    }
+    return (
+      <Select
+        label={q.label}
+        options={[{ value: '', label: 'None selected' }, ...rfiFarOptions]}
+        value={currentValue}
+        onChange={(v) => onAnswerChange(q.questionKey, v)}
+        fullWidth
+      />
+    );
+  };
+
   const renderControl = (q: DocumentQuestion) => {
     const value = answers[q.questionKey];
     const addressPrefix = addressPrefixForKey(q.questionKey);
@@ -188,27 +261,33 @@ export default function IntakePanel({
     }
     if (q.questionKey === 'workStartTime') return renderWorkHours();
     if (q.questionKey === 'workEndTime') return null;
+    if (q.questionKey === 'rfiFarReference') return renderRfiFarReference(q);
 
     if (q.type === 'boolean') {
       const on = value === true;
       return (
-        <div className="flex items-center justify-between gap-3">
-          <span className={`text-sm ${TEXT_BODY}`}>{q.label}</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={on}
-            onClick={() => onAnswerChange(q.questionKey, !on)}
-            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-              on ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-600'
-            }`}
-          >
-            <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                on ? 'translate-x-5' : 'translate-x-1'
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-3">
+            <span className={`text-sm ${TEXT_BODY}`}>{q.label}</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={on}
+              onClick={() => onAnswerChange(q.questionKey, !on)}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                on ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-600'
               }`}
-            />
-          </button>
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  on ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          {q.helperText && (
+            <p className={`text-xs ${TEXT_MUTED}`}>{q.helperText}</p>
+          )}
         </div>
       );
     }
@@ -248,9 +327,10 @@ export default function IntakePanel({
       isDepositAmount && (!Number.isFinite(contractPrice) || contractPrice <= 0)
         ? 'Enter a fixed contract price first to calculate deposit.'
         : depositWarning;
+    const specificHelper = isYearBuilt ? 'Leave blank if unknown.' : depositHelper;
     const meta = fieldMeta(
       q.questionKey,
-      isYearBuilt ? 'Leave blank if unknown.' : depositHelper,
+      specificHelper ?? q.helperText,
     );
 
     if (isCurrency) {

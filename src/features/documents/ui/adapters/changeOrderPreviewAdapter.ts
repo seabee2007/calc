@@ -8,6 +8,8 @@ import {
   buildChangeOrderContractValues,
 } from '../../../../utils/changeOrderDocumentContext';
 
+// ─── Preview base ─────────────────────────────────────────────────────────────
+
 /**
  * Zero-value base for preview `ChangeOrder` objects. Every required field
  * that answers cannot supply gets a safe default so `ChangeOrderDocument`
@@ -73,6 +75,8 @@ const PREVIEW_BASE: ChangeOrder = {
   updatedAt: new Date().toISOString(),
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function str(v: unknown): string {
   return typeof v === 'string' ? v : '';
 }
@@ -84,6 +88,10 @@ function num(v: unknown): number {
     if (Number.isFinite(n)) return n;
   }
   return 0;
+}
+
+function isTrue(v: unknown): boolean {
+  return v === true || v === 'true' || v === 'yes';
 }
 
 function toStatus(v: unknown): ChangeOrderStatus {
@@ -101,9 +109,44 @@ const REQUESTED_BY_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
+// ─── Clause text for accepted recommendations ─────────────────────────────────
+
 /**
- * Builds a composite `scopeDescription` string from the multiple scope
- * answer keys the questionnaire provides.
+ * When the user accepts a recommended clause in the Document Builder, this map
+ * provides the plain-language text that is appended to `order.terms` so the
+ * accepted clause is visible in the Change Order preview.
+ */
+const ACCEPTED_CLAUSE_TEXT: Record<string, string> = {
+  'co.approval_before_work':
+    'Work described in this Change Order shall not proceed until approved in writing by the Owner, except emergency protection work required to prevent damage or unsafe conditions.',
+  'co.emergency_work_docs':
+    'Emergency work shall be documented with photographs, labor records, materials used, and time logs, and the Owner shall be notified promptly.',
+  'co.concealed_condition':
+    'Concealed or unknown conditions were discovered during the course of work. These conditions are excluded from the original contract scope unless specifically included by this Change Order.',
+  'co.owner_requested_scope':
+    'Owner requested this change and acknowledges that the Contract Price and/or Contract Time may be adjusted accordingly.',
+  'co.cost_backup_required':
+    'Cost backup or detailed breakdown shall be attached to or made available with this Change Order before final approval.',
+  'co.schedule_adjustment':
+    'The Contract Time is adjusted as stated in the schedule impact section of this Change Order.',
+  'change_order.unknown_conditions':
+    'Concealed or unknown site conditions discovered during work may require additional changes not included in this Change Order.',
+};
+
+function uniqueTerms(parts: string[]): string[] {
+  const seen = new Set<string>();
+  return parts.filter((part) => {
+    const key = part.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// ─── Composite field builders ─────────────────────────────────────────────────
+
+/**
+ * Builds a composite `scopeDescription` from multiple scope answer keys.
  *
  * - `scopeOfChange` / `scope` — primary scope text (quick mode)
  * - `addedWork`   — appended as "Added: …"
@@ -121,9 +164,10 @@ function buildScopeDescription(answers: Record<string, unknown>): string {
 }
 
 /**
- * Builds a composite `scheduleImpact` string. The free-text `scheduleImpact`
- * field from the questionnaire is used first; numeric `additionalCalendarDays`
- * and `revisedCompletionDate` are appended when provided.
+ * Builds a composite `scheduleImpact` string.
+ *
+ * Free-text `scheduleImpact` is used first; `additionalCalendarDays` and
+ * `revisedCompletionDate` are appended when provided.
  */
 function buildScheduleImpact(answers: Record<string, unknown>): string | null {
   const base = str(answers.scheduleImpact);
@@ -138,7 +182,11 @@ function buildScheduleImpact(answers: Record<string, unknown>): string | null {
 
 /**
  * Builds a composite `reasonForChange` string.
- * Appends the human-readable `requestedBy` label when that field is set.
+ *
+ * Appends:
+ * - Human-readable `requestedBy` label
+ * - `fieldCondition` context note (latent/concealed condition)
+ * - `ownerRequestedChange` context note
  */
 function buildReasonForChange(answers: Record<string, unknown>): string {
   const reason = str(answers.reasonForChange);
@@ -146,8 +194,42 @@ function buildReasonForChange(answers: Record<string, unknown>): string {
   const requestedByText = requestedBy
     ? `Requested by: ${REQUESTED_BY_LABELS[requestedBy] ?? requestedBy}`
     : '';
-  return [reason, requestedByText].filter(Boolean).join(' · ');
+  const fieldConditionText = isTrue(answers.fieldCondition)
+    ? 'This change is related to concealed, latent, or unforeseen field conditions.'
+    : '';
+  const ownerRequestedText = isTrue(answers.ownerRequestedChange)
+    ? 'This change was requested by the Owner/Client.'
+    : '';
+  return [reason, requestedByText, fieldConditionText, ownerRequestedText]
+    .filter(Boolean)
+    .join(' · ');
 }
+
+/**
+ * Builds the composite `terms` string for Additional Terms in the preview.
+ *
+ * Change Management toggles trigger recommendations and risk signals only —
+ * they do not append clause language here. Accepted recommended clauses are
+ * the sole source of optional clause text (plus user-entered terms and RFI/FAR).
+ */
+function buildTerms(answers: Record<string, unknown>, accepted: string[]): string {
+  const rfiFarRef = str(answers.rfiFarReference);
+  const relatedReferenceText = rfiFarRef ? `Related reference: ${rfiFarRef}` : '';
+
+  const acceptedClauseTexts = accepted
+    .map((clauseKey) => ACCEPTED_CLAUSE_TEXT[clauseKey])
+    .filter((text): text is string => Boolean(text));
+
+  const termsParts = uniqueTerms([
+    str(answers.terms),
+    relatedReferenceText,
+    ...acceptedClauseTexts,
+  ]);
+
+  return termsParts.join('\n\n');
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
 
 /**
  * Builds a preview-only `ChangeOrder` + `ChangeOrderDocumentContext` from the
@@ -160,14 +242,13 @@ function buildReasonForChange(answers: Record<string, unknown>): string {
  *   changeOrderNumber           → displayNumber (fallback 'Draft')
  *   changeOrderTitle / title    → title (fallback 'Change Order')
  *   scopeOfChange + addedWork + deletedWork + exclusions → scopeDescription (composite)
- *   reasonForChange + requestedBy → reasonForChange (composite)
+ *   reasonForChange + requestedBy + fieldCondition + ownerRequestedChange → reasonForChange (composite)
  *   scheduleImpact + additionalCalendarDays + revisedCompletionDate → scheduleImpact (composite)
  *   totalChangeOrderAmount      → total / subtotal
- *   terms                       → terms
+ *   terms + rfiFarReference + accepted clauses → terms (composite)
  *   contractorName              → contractorName (signature block)
  *   clientName                  → clientName (signature block)
  *   status                      → status (validated against ChangeOrderStatus union)
- *   project (text)              → context.project.name fallback when no project selected
  *   originalContractAmount + previouslyApprovedChangeOrders → context.contractValues override
  */
 export function buildChangeOrderPreviewFromDocumentAnswers(input: {
@@ -178,8 +259,10 @@ export function buildChangeOrderPreviewFromDocumentAnswers(input: {
     'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
   > & { logo?: string | null };
   title?: string;
+  /** Accepted recommendation clause keys — their language is appended to order.terms. */
+  accepted?: string[];
 }): { order: ChangeOrder; context: ChangeOrderDocumentContext } {
-  const { answers, selectedProject, companySettings, title } = input;
+  const { answers, selectedProject, companySettings, title, accepted = [] } = input;
 
   // --- title / displayNumber / status ---
   const resolvedTitle =
@@ -198,9 +281,11 @@ export function buildChangeOrderPreviewFromDocumentAnswers(input: {
   const reasonForChange = buildReasonForChange(answers);
   const scheduleImpact = buildScheduleImpact(answers);
 
-  // --- money / terms ---
+  // --- money ---
   const total = num(answers.totalChangeOrderAmount);
-  const terms = str(answers.terms);
+
+  // --- composite terms (user text + accepted recommendations + references) ---
+  const terms = buildTerms(answers, accepted);
 
   // --- signature names ---
   const contractorName = str(answers.contractorName) || null;
@@ -232,20 +317,14 @@ export function buildChangeOrderPreviewFromDocumentAnswers(input: {
     thisChangeOrderTotal: total,
   });
 
-  // --- project name fallback from answer key 'project' when no project is selected ---
-  const projectName =
-    selectedProject?.name?.trim() ||
-    str(answers.project) ||
-    'Project';
+  // --- project name: selected project takes precedence; no more free-text fallback ---
+  const projectName = selectedProject?.name?.trim() || 'Project';
 
   // --- contract value override: use form answers when no project provides them ---
   const syntheticOriginal = num(answers.originalContractAmount);
   const syntheticPrevious = num(answers.previouslyApprovedChangeOrders);
   const syntheticRevised = num(answers.revisedContractAmount);
 
-  // Only substitute synthetic values when:
-  //   (a) no project is selected, OR
-  //   (b) the project has no baseContractValue and the user entered one manually
   const projectHasContractData =
     selectedProject != null &&
     (selectedProject.baseContractValue != null || selectedProject.currentContractValue != null);

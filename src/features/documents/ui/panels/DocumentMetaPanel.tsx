@@ -11,6 +11,12 @@ export interface DocumentMetaPanelProps {
   onTitleChange: (title: string) => void;
   onNewContract: () => void;
   onLoadDocument: (id: string) => void;
+  /**
+   * When true the document is a Change Order — the "Contract title" input is
+   * hidden because the Change Order title comes from the questionnaire field
+   * instead. The saved-docs list and New/Load controls remain visible.
+   */
+  isChangeOrder?: boolean;
 }
 
 export default function DocumentMetaPanel({
@@ -20,12 +26,16 @@ export default function DocumentMetaPanel({
   onTitleChange,
   onNewContract,
   onLoadDocument,
+  isChangeOrder = false,
 }: DocumentMetaPanelProps) {
+  const headingNew = isChangeOrder ? 'New document' : 'New contract';
+  const headingSaved = isChangeOrder ? 'Saved document' : 'Saved contract';
+
   return (
     <div className={APP_SECTION_CARD}>
       <div className="mb-3 flex items-center justify-between">
         <h2 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>
-          {documentId ? 'Saved contract' : 'New contract'}
+          {documentId ? headingSaved : headingNew}
         </h2>
         {documentId && (
           <Button variant="ghost" size="sm" onClick={onNewContract}>
@@ -34,18 +44,23 @@ export default function DocumentMetaPanel({
           </Button>
         )}
       </div>
-      <div className="space-y-3">
-        <Input
-          label="Contract title"
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="e.g. Smith driveway agreement"
-          fullWidth
-        />
-      </div>
+
+      {/* Contract title input — hidden for Change Orders because the CO title
+          comes from the "Change order title" questionnaire field instead. */}
+      {!isChangeOrder && (
+        <div className="space-y-3">
+          <Input
+            label="Contract title"
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+            placeholder="e.g. Smith driveway agreement"
+            fullWidth
+          />
+        </div>
+      )}
 
       {savedDocs.length > 0 && (
-        <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700">
+        <div className={`border-t border-slate-200 pt-3 dark:border-slate-700 ${!isChangeOrder ? 'mt-4' : ''}`}>
           <p className={`mb-2 text-xs font-semibold uppercase tracking-wider ${TEXT_MUTED}`}>
             Open saved
           </p>

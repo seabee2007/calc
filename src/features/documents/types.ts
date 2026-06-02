@@ -215,6 +215,8 @@ export interface DocumentQuestion {
   required: boolean;
   /** Lowest questionnaire mode at which the question appears. */
   mode: QuestionnaireMode;
+  /** Optional helper / description text shown below the input. */
+  helperText?: string;
   /** Question is visible only when ALL of these rules are satisfied. */
   visibleWhen?: QuestionVisibilityRule[];
   /** When present, the question is required only if ALL of these rules match. */

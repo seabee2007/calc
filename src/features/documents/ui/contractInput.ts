@@ -1,6 +1,7 @@
 import type {
   DocumentInput,
   DocumentRecommendationDecision,
+  DocumentType,
   QuestionnaireMode,
 } from '../index';
 import { formatUSAddress, type USAddress } from '../../../types/address';
@@ -64,6 +65,8 @@ export interface BuildDocumentInputOptions {
   packKey?: string;
   mode?: QuestionnaireMode;
   recommendationDecisions?: DocumentRecommendationDecision[];
+  /** Resolved document type — defaults to 'residential_contract' for backward compatibility. */
+  documentType?: DocumentType;
 }
 
 export function buildDocumentInput(
@@ -76,6 +79,7 @@ export function buildDocumentInput(
     packKey = 'GENERIC_RESIDENTIAL',
     mode,
     recommendationDecisions,
+    documentType = 'residential_contract',
   } = options;
   const projectTypeRaw = str(answers.projectType);
   const projectTypeLabel = projectTypeRaw
@@ -186,7 +190,7 @@ export function buildDocumentInput(
   };
 
   return {
-    documentType: 'residential_contract',
+    documentType,
     packKey,
     answers,
     facts,

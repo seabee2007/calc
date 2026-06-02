@@ -127,6 +127,56 @@ Owner / Client: ___________________________
 Printed name: ___________________________
 Date: ___________________________`,
   },
+  // Optional recommended clauses — surfaced by recommendationEngine when toggles
+  // fire; clause text is appended to Additional Terms only when the user accepts.
+  {
+    ...base,
+    key: 'co.approval_before_work',
+    title: 'Approval Before Work',
+    category: 'change_order',
+    bodyTemplate:
+      'Work described in this Change Order shall not proceed until approved in writing by the Owner, except emergency protection work required to prevent damage or unsafe conditions.',
+  },
+  {
+    ...base,
+    key: 'co.emergency_work_docs',
+    title: 'Emergency Work Documentation',
+    category: 'change_order',
+    bodyTemplate:
+      'Emergency work shall be documented with photographs, labor records, materials used, and time logs, and the Owner shall be notified promptly.',
+  },
+  {
+    ...base,
+    key: 'co.concealed_condition',
+    title: 'Concealed Condition',
+    category: 'change_order',
+    bodyTemplate:
+      'Concealed or unknown conditions were discovered during the course of work. These conditions are excluded from the original contract scope unless specifically included by this Change Order.',
+  },
+  {
+    ...base,
+    key: 'co.owner_requested_scope',
+    title: 'Owner Requested Scope',
+    category: 'change_order',
+    bodyTemplate:
+      'Owner requested this change and acknowledges that the Contract Price and/or Contract Time may be adjusted accordingly.',
+  },
+  {
+    ...base,
+    key: 'co.cost_backup_required',
+    title: 'Cost Backup',
+    category: 'change_order',
+    bodyTemplate:
+      'Cost backup or detailed breakdown shall be attached to or made available with this Change Order before final approval.',
+  },
+  {
+    ...base,
+    key: 'co.schedule_adjustment',
+    title: 'Schedule Adjustment',
+    category: 'change_order',
+    bodyTemplate:
+      'The Contract Time is adjusted as stated in the schedule impact section of this Change Order.',
+  },
 ];
 
 export const changeOrderPackClauseKeys: string[] = changeOrderPackClauses.map(

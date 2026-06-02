@@ -448,6 +448,7 @@ export default function DocumentBuilderPage() {
   }, [applyPrefill, projectProposals, selectedProject]);
 
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
+  const isChangeOrderDocument = currentDocumentType === 'change_order';
   const questionnaire = useMemo(
     () => buildQuestionnaire(currentDocumentType, mode),
     [currentDocumentType, mode],
@@ -467,8 +468,13 @@ export default function DocumentBuilderPage() {
   );
 
   const input = useMemo(
-    () => buildDocumentInput(answers, [...accepted], { company, packKey, mode }),
-    [answers, accepted, company, packKey, mode],
+    () => buildDocumentInput(answers, [...accepted], {
+      company,
+      packKey,
+      mode,
+      documentType: currentDocumentType,
+    }),
+    [answers, accepted, company, packKey, mode, currentDocumentType],
   );
 
   const assembly = useMemo(() => assembleDocument(input), [input]);
@@ -502,6 +508,16 @@ export default function DocumentBuilderPage() {
     }));
   }, [visibleQuestions]);
 
+  // For Change Order documents the "Contract title" input is hidden.
+  // Keep the internal `title` state in sync with `answers.changeOrderTitle` so
+  // the saved-document list and Save Draft use the CO title automatically.
+  useEffect(() => {
+    if (!isChangeOrderDocument) return;
+    const coTitle =
+      typeof answers.changeOrderTitle === 'string' ? answers.changeOrderTitle.trim() : '';
+    if (coTitle) setTitle(coTitle);
+  }, [isChangeOrderDocument, answers.changeOrderTitle]);
+
   useEffect(() => {
     if (answers.depositRequired !== true) return;
     const patch: ContractAnswers = {};
@@ -529,9 +545,6 @@ export default function DocumentBuilderPage() {
     answers.depositRequired,
     dirtyFields,
   ]);
-
-  const isChangeOrderDocument =
-    input.documentType === 'change_order' || packKey === 'GENERIC_CHANGE_ORDER';
 
   const handleExport = async () => {
     setShowValidation(true);
@@ -814,6 +827,7 @@ export default function DocumentBuilderPage() {
                   onTitleChange={setTitle}
                   onNewContract={handleNewContract}
                   onLoadDocument={handleLoadDocument}
+                  isChangeOrder={isChangeOrderDocument}
                 />
               </div>
               <IntakePanel
@@ -826,6 +840,7 @@ export default function DocumentBuilderPage() {
                 fieldNotes={fieldNotes}
                 fieldErrors={fieldErrors}
                 hasSelectedProject={Boolean(selectedProject)}
+                selectedProject={selectedProject}
                 onPackChange={setPackKey}
                 onModeChange={setMode}
                 onAnswerChange={setAnswer}
@@ -949,6 +964,7 @@ export default function DocumentBuilderPage() {
                     companySettings={companySettings}
                     title={title}
                     previewVersion={previewVersion}
+                    accepted={[...accepted]}
                     previewHeading={previewHeading}
                     previewSections={previewSections}
                   />

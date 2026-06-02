@@ -5,18 +5,22 @@ import type { DocumentQuestion } from '../../types';
  *
  * quick   — core fields for a minimal change order (title, scope, amount).
  * standard — operational fields for documented approval and schedule.
- * advanced — contract value tracking, RFI/FAR references, risk conditions.
+ * advanced — risk conditions, emergency work, field conditions.
+ *
+ * Field order follows the recommended CO builder layout:
+ *   Scope → Pricing → Schedule → Change Management → Execution (Terms)
+ *
+ * Note: "project" text question is intentionally omitted — project information
+ * is imported from the top project selector, not typed manually.
+ *
+ * Note: "Revised contract amount" is intentionally omitted — it is
+ * auto-calculated from originalContractAmount + previouslyApprovedChangeOrders
+ * + totalChangeOrderAmount and shown read-only in the preview.
  */
 export const changeOrderQuestions: DocumentQuestion[] = [
-  // --- Quick ---
-  {
-    questionKey: 'project',
-    label: 'Project name',
-    type: 'text',
-    group: 'project',
-    required: true,
-    mode: 'quick',
-  },
+
+  // ── Quick mode ─────────────────────────────────────────────────────────────
+
   {
     questionKey: 'changeOrderTitle',
     label: 'Change order title',
@@ -24,6 +28,7 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     group: 'scope',
     required: true,
     mode: 'quick',
+    helperText: 'A short description of this change, e.g. "Add outdoor electrical outlet".',
   },
   {
     questionKey: 'scopeOfChange',
@@ -56,14 +61,17 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     group: 'schedule',
     required: false,
     mode: 'quick',
+    helperText: 'Describe any impact to the project timeline.',
   },
 
-  // --- Standard ---
+  // ── Standard mode ──────────────────────────────────────────────────────────
+
+  // Scope — who/what/why detail
   {
     questionKey: 'requestedBy',
-    label: 'Requested by (owner / contractor / inspector / other)',
+    label: 'Requested by',
     type: 'select',
-    group: 'parties',
+    group: 'scope',
     options: [
       { value: 'owner', label: 'Owner / Client' },
       { value: 'contractor', label: 'Contractor' },
@@ -83,6 +91,15 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     ],
   },
   {
+    questionKey: 'rfiFarReference',
+    label: 'RFI or FAR reference (if applicable)',
+    type: 'text',
+    group: 'scope',
+    required: false,
+    mode: 'standard',
+    helperText: 'Link this change to an existing RFI or Field Adjustment Request.',
+  },
+  {
     questionKey: 'addedWork',
     label: 'Description of added work',
     type: 'text',
@@ -92,7 +109,7 @@ export const changeOrderQuestions: DocumentQuestion[] = [
   },
   {
     questionKey: 'deletedWork',
-    label: 'Description of deleted work',
+    label: 'Description of deleted / removed work',
     type: 'text',
     group: 'scope',
     required: false,
@@ -106,6 +123,27 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     required: false,
     mode: 'standard',
   },
+
+  // Pricing — contract value tracking
+  {
+    questionKey: 'originalContractAmount',
+    label: 'Original contract amount ($)',
+    type: 'number',
+    group: 'pricing',
+    required: false,
+    mode: 'standard',
+    helperText: 'Used to calculate the revised contract value in the preview. Auto-filled when a project with a contract value is selected.',
+  },
+  {
+    questionKey: 'previouslyApprovedChangeOrders',
+    label: 'Previously approved change orders total ($)',
+    type: 'number',
+    group: 'pricing',
+    required: false,
+    mode: 'standard',
+  },
+
+  // Schedule — time extensions
   {
     questionKey: 'additionalCalendarDays',
     label: 'Additional calendar days',
@@ -122,6 +160,8 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     required: false,
     mode: 'standard',
   },
+
+  // Change management — approval, risk signals
   {
     questionKey: 'approvalRequiredBeforeWorkStarts',
     label: 'Approval required before work starts',
@@ -129,6 +169,7 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     group: 'change_management',
     required: false,
     mode: 'standard',
+    helperText: 'Turn on to require written Owner approval before any work described in this Change Order begins.',
     riskSignals: [
       {
         whenEquals: [false],
@@ -139,6 +180,17 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     ],
   },
   {
+    questionKey: 'costBreakdownAvailable',
+    label: 'Cost backup attached or available?',
+    type: 'boolean',
+    group: 'change_management',
+    required: false,
+    mode: 'standard',
+    helperText: 'Turn on if labor, material, equipment, subcontractor, or vendor backup is attached or available for client review. Leaving this off when a total is entered will trigger a cost-backup recommendation.',
+  },
+
+  // Execution — additional terms
+  {
     questionKey: 'terms',
     label: 'Additional terms or conditions',
     type: 'text',
@@ -147,46 +199,17 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     mode: 'standard',
   },
 
-  // --- Advanced ---
-  {
-    questionKey: 'originalContractAmount',
-    label: 'Original contract amount ($)',
-    type: 'number',
-    group: 'pricing',
-    required: false,
-    mode: 'advanced',
-  },
-  {
-    questionKey: 'previouslyApprovedChangeOrders',
-    label: 'Previously approved change orders total ($)',
-    type: 'number',
-    group: 'pricing',
-    required: false,
-    mode: 'advanced',
-  },
-  {
-    questionKey: 'revisedContractAmount',
-    label: 'Revised contract amount ($)',
-    type: 'number',
-    group: 'pricing',
-    required: false,
-    mode: 'advanced',
-  },
-  {
-    questionKey: 'costBreakdownAvailable',
-    label: 'Cost breakdown available',
-    type: 'boolean',
-    group: 'pricing',
-    required: false,
-    mode: 'advanced',
-  },
+  // ── Advanced mode ──────────────────────────────────────────────────────────
+
+  // Change management — risk conditions (advanced detail)
   {
     questionKey: 'emergencyWork',
     label: 'Emergency work (required to prevent damage or unsafe conditions)',
     type: 'boolean',
-    group: 'risk',
+    group: 'change_management',
     required: false,
     mode: 'advanced',
+    helperText: 'Turn on if this work was required immediately to prevent property damage or unsafe conditions.',
     riskSignals: [
       {
         whenEquals: [true],
@@ -200,9 +223,10 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     questionKey: 'fieldCondition',
     label: 'Hidden or unforeseen field condition',
     type: 'boolean',
-    group: 'risk',
+    group: 'change_management',
     required: false,
     mode: 'advanced',
+    helperText: 'Turn on if a concealed, latent, or unforeseen condition was discovered during work.',
     riskSignals: [
       {
         whenEquals: [true],
@@ -216,9 +240,10 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     questionKey: 'ownerRequestedChange',
     label: 'Owner-requested scope change',
     type: 'boolean',
-    group: 'risk',
+    group: 'change_management',
     required: false,
     mode: 'advanced',
+    helperText: 'Turn on if the Owner directly requested this scope change (separate from the Requested By field above).',
     riskSignals: [
       {
         whenEquals: [true],
@@ -227,13 +252,5 @@ export const changeOrderQuestions: DocumentQuestion[] = [
         points: 5,
       },
     ],
-  },
-  {
-    questionKey: 'rfiFarReference',
-    label: 'RFI or FAR reference number (if applicable)',
-    type: 'text',
-    group: 'change_management',
-    required: false,
-    mode: 'advanced',
   },
 ];

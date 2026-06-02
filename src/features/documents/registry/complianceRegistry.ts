@@ -7,7 +7,12 @@ const profiles: Partial<Record<DocumentType, ComplianceProfile>> = {
     questionnaireModeForValidation: 'advanced',
   },
   change_order: {
-    requiredClauseKeys: ['co.title', 'co.scope', 'co.pricing_summary'],
+    // Clause keys present in the CO pack template; priceModel and residential
+    // contract clauses are intentionally excluded.
+    requiredClauseKeys: ['co.title', 'co.scope'],
+    // Validate against the standard questionnaire so all standard-mode required
+    // fields (changeOrderTitle, scopeOfChange, reasonForChange) are checked but
+    // residential-contract-only fields (priceModel, etc.) are never surfaced.
     questionnaireModeForValidation: 'standard',
     advisoryNotes: [
       'Change orders should be approved in writing before work begins.',
