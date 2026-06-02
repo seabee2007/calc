@@ -12,6 +12,7 @@ import {
   resolveVisibleQuestions,
   scoreDocumentRisk,
   type DocumentQuestion,
+  type DocumentType,
   type IntakeGroup,
   type QuestionnaireMode,
 } from '../index';
@@ -30,6 +31,8 @@ import {
 import { normalizeContractAnswers } from './contractAnswersUtils';
 import { softenPreviewPlaceholders } from './previewDisplay';
 import { exportContractDraftPdf } from './contractPdf';
+import { generateChangeOrderPDF } from '../../../utils/changeOrderPdf';
+import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrderPreviewAdapter';
 import { buildSaveVersionPayload, restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
 import {
@@ -50,7 +53,7 @@ import SignaturePanel from './panels/SignaturePanel';
 import CompliancePanel from './panels/CompliancePanel';
 import VersionHistoryPanel from './panels/VersionHistoryPanel';
 import ExportPanel from './panels/ExportPanel';
-import PreviewPanel from './panels/PreviewPanel';
+import DocumentPreviewRouter from './panels/DocumentPreviewRouter';
 import { ProposalService, type SavedProposal } from '../../../lib/proposalService';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -102,6 +105,17 @@ function templateLabel(packKey: string, fallback: string): string {
     GU_RESIDENTIAL: 'Residential Remodel Contract',
   };
   return labels[packKey] ?? fallback.replace(/\bpack\b/gi, '').trim();
+}
+
+/**
+ * Resolves the document type from the selected pack key.
+ * Keeps the questionnaire, assembly, compliance, and export logic in sync
+ * when the user switches document types in the builder dropdown.
+ */
+function resolveDocumentType(pk: string): DocumentType {
+  if (pk === 'GENERIC_CHANGE_ORDER') return 'change_order';
+  // All residential packs (GENERIC_RESIDENTIAL, CA_RESIDENTIAL, etc.)
+  return 'residential_contract';
 }
 
 export default function DocumentBuilderPage() {
@@ -315,7 +329,7 @@ export default function DocumentBuilderPage() {
   );
 
   const selectedProject = useMemo(
-    () => projects.find((project) => project.id === projectId),
+    () => projects.find((project) => project.id === projectId) ?? null,
     [projectId, projects],
   );
 
@@ -433,7 +447,11 @@ export default function DocumentBuilderPage() {
     applyPrefill(false);
   }, [applyPrefill, projectProposals, selectedProject]);
 
-  const questionnaire = useMemo(() => buildQuestionnaire('residential_contract', mode), [mode]);
+  const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
+  const questionnaire = useMemo(
+    () => buildQuestionnaire(currentDocumentType, mode),
+    [currentDocumentType, mode],
+  );
   const visibleQuestions = useMemo(
     () => resolveVisibleQuestions(questionnaire, answers),
     [questionnaire, answers],
@@ -512,17 +530,31 @@ export default function DocumentBuilderPage() {
     dirtyFields,
   ]);
 
+  const isChangeOrderDocument =
+    input.documentType === 'change_order' || packKey === 'GENERIC_CHANGE_ORDER';
+
   const handleExport = async () => {
     setShowValidation(true);
     setExporting(true);
     try {
-      await exportContractDraftPdf(assembly, risk, {
-        companyName: company.legalName || 'Concrete Calc',
-        address: company.address || '',
-        phone: company.phone || '',
-        email: company.email,
-      });
-      setToast({ title: 'Draft exported', message: 'Your draft contract PDF was generated.', type: 'success' });
+      if (isChangeOrderDocument) {
+        const preview = buildChangeOrderPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateChangeOrderPDF(preview.order, preview.context);
+        setToast({ title: 'Change order exported', message: 'Your change order PDF was generated.', type: 'success' });
+      } else {
+        await exportContractDraftPdf(assembly, risk, {
+          companyName: company.legalName || 'Concrete Calc',
+          address: company.address || '',
+          phone: company.phone || '',
+          email: company.email,
+        });
+        setToast({ title: 'Draft exported', message: 'Your draft contract PDF was generated.', type: 'success' });
+      }
     } catch (e) {
       console.error(e);
       setToast({ title: 'Export failed', message: 'Could not generate the PDF. Try again.', type: 'error' });
@@ -909,7 +941,14 @@ export default function DocumentBuilderPage() {
                   onClearPreview={() => setPreviewVersion(null)}
                 />
                 <div ref={previewPanelRef}>
-                  <PreviewPanel
+                  <DocumentPreviewRouter
+                    documentType={assembly.documentType}
+                    packKey={packKey}
+                    answers={answers}
+                    selectedProject={selectedProject}
+                    companySettings={companySettings}
+                    title={title}
+                    previewVersion={previewVersion}
                     previewHeading={previewHeading}
                     previewSections={previewSections}
                   />

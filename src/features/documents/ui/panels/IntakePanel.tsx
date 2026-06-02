@@ -297,15 +297,15 @@ export default function IntakePanel({
     <>
       <div className={APP_SECTION_CARD}>
         <Select
-          label="Contract Template"
+          label="Document Type / Template"
           options={packOptions}
           value={packKey}
           onChange={onPackChange}
           fullWidth
         />
         <p className={`mt-2 text-xs ${TEXT_MUTED}`}>
-          Choose the contract form that best matches this project. State-specific templates can be
-          added separately when attorney-reviewed packs are available.
+          Choose the document type or template to build. State-specific contract packs can be added
+          separately when attorney-reviewed packs are available.
         </p>
       </div>
 

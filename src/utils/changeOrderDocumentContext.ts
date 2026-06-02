@@ -3,9 +3,21 @@ import type { CompanySettings } from '../services/companySettingsService';
 import { mapChangeOrder } from '../services/changeOrderService';
 import type { ChangeOrder } from '../types/changeOrder';
 import type { Project } from '../types/index';
-import { formatUSAddress, usAddressFromFields } from '../types/address';
+import { formatUSAddress, usAddressFromFields, type USAddress } from '../types/address';
 import { parseClientInfoFromDb, resolveClientAddressForProposal } from '../types/projectClient';
 import { formatChangeOrderMoney } from './changeOrderFinancials';
+
+/**
+ * Null-safe wrapper around `formatUSAddress`.
+ * `formatUSAddress` accepts `Partial<USAddress>` but crashes when the entire
+ * `addr` argument is `null` or `undefined` (which happens when a project has
+ * no jobsite address set). Returns an empty string for missing addresses so
+ * the caller can fall through to the next candidate or use '—'.
+ */
+function safeFormatAddress(addr: USAddress | Partial<USAddress> | null | undefined): string {
+  if (!addr) return '';
+  return formatUSAddress(addr) || '';
+}
 
 /** Client-safe project fields returned by public change order RPC. */
 export interface ChangeOrderPublicProjectSnapshot {
@@ -120,8 +132,8 @@ export function buildChangeOrderDocumentContext(input: {
   const clientName = clientInfo?.clientName?.trim() || '—';
   const clientCompany = clientInfo?.clientCompany?.trim() || '';
   const projectAddress =
-    formatUSAddress(clientAddress) ||
-    formatUSAddress(jobsite) ||
+    safeFormatAddress(clientAddress) ||
+    safeFormatAddress(jobsite) ||
     '—';
 
   const logoUrl =

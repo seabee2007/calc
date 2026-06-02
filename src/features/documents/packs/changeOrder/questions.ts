@@ -138,6 +138,14 @@ export const changeOrderQuestions: DocumentQuestion[] = [
       },
     ],
   },
+  {
+    questionKey: 'terms',
+    label: 'Additional terms or conditions',
+    type: 'text',
+    group: 'execution',
+    required: false,
+    mode: 'standard',
+  },
 
   // --- Advanced ---
   {
@@ -224,7 +232,7 @@ export const changeOrderQuestions: DocumentQuestion[] = [
     questionKey: 'rfiFarReference',
     label: 'RFI or FAR reference number (if applicable)',
     type: 'text',
-    group: 'documentation',
+    group: 'change_management',
     required: false,
     mode: 'advanced',
   },
