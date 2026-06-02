@@ -142,6 +142,7 @@ export default function DocumentBuilderPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
   );
+  const [shouldRenderPreview, setShouldRenderPreview] = useState(isPreviewOpen);
   const builderColumnRef = useRef<HTMLElement | null>(null);
   const newContractCardRef = useRef<HTMLDivElement | null>(null);
   const previewPanelRef = useRef<HTMLDivElement | null>(null);
@@ -166,8 +167,13 @@ export default function DocumentBuilderPage() {
   }, [projectId, refreshSavedDocs]);
 
   useEffect(() => {
-    if (isPreviewOpen) return;
-    const frameId = window.requestAnimationFrame(() => {
+    if (isPreviewOpen) {
+      setShouldRenderPreview(true);
+      return;
+    }
+
+    const closeTimer = window.setTimeout(() => {
+      setShouldRenderPreview(false);
       const maxScrollTop = Math.max(0, document.body.scrollHeight - window.innerHeight);
       if (window.scrollY > maxScrollTop) {
         window.scrollTo({
@@ -175,8 +181,9 @@ export default function DocumentBuilderPage() {
           behavior: 'smooth',
         });
       }
-    });
-    return () => window.cancelAnimationFrame(frameId);
+    }, 300);
+
+    return () => window.clearTimeout(closeTimer);
   }, [isPreviewOpen]);
 
   useLayoutEffect(() => {
@@ -758,16 +765,14 @@ export default function DocumentBuilderPage() {
           </span>
         </div>
 
-        <div
-          className={`relative grid grid-cols-1 gap-6 transition-all duration-300 ease-in-out ${
-            isPreviewOpen
-              ? 'lg:grid-cols-[minmax(420px,0.85fr)_minmax(680px,1.4fr)]'
-              : 'lg:grid-cols-[minmax(640px,900px)] lg:justify-center'
-          }`}
-        >
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out motion-reduce:transition-none">
             <section
               ref={builderColumnRef}
-              className="relative min-w-0 space-y-4 transition-all duration-300 ease-in-out"
+              className={`relative min-w-0 space-y-4 motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out motion-reduce:transition-none ${
+                isPreviewOpen
+                  ? 'lg:basis-[calc(42%_-_0.75rem)] lg:shrink-0 lg:grow-0'
+                  : 'lg:mx-auto lg:w-full lg:max-w-5xl lg:basis-full'
+              }`}
             >
               <div ref={newContractCardRef}>
                 <DocumentMetaPanel
@@ -834,10 +839,10 @@ export default function DocumentBuilderPage() {
                   top: `${toggleTop}px`,
                   transform: 'translate(-50%, -50%)',
                 }}
-                className="fixed z-50 hidden h-12 w-12 items-center justify-center rounded-full border border-cyan-400/40 bg-slate-950/60 text-cyan-300 shadow-md backdrop-blur-sm transition-all duration-300 ease-in-out hover:border-cyan-300/70 hover:bg-slate-900/80 hover:text-cyan-100 lg:flex print:hidden"
+                className="fixed z-50 hidden h-12 w-12 items-center justify-center rounded-full border border-cyan-400/40 bg-slate-950/60 text-cyan-300 shadow-md backdrop-blur-sm motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out hover:scale-105 hover:border-cyan-300/70 hover:bg-slate-900/80 hover:text-cyan-100 active:scale-95 motion-reduce:transition-none lg:flex print:hidden"
               >
                 <ChevronRight
-                  className={`h-5 w-5 transition-transform duration-300 ease-in-out ${
+                  className={`h-5 w-5 motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-in-out motion-reduce:transition-none ${
                     isPreviewOpen ? '' : 'rotate-180'
                   }`}
                   aria-hidden
@@ -875,8 +880,15 @@ export default function DocumentBuilderPage() {
               )}
             </button>
 
-            {isPreviewOpen && (
-              <section className="min-w-0 translate-x-0 space-y-4 overflow-hidden opacity-100 transition-all duration-300 ease-in-out print:block">
+            {shouldRenderPreview && (
+              <section
+                className={`min-w-0 space-y-4 overflow-hidden motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out motion-reduce:transition-none print:block ${
+                  isPreviewOpen
+                    ? 'max-h-[10000px] translate-y-0 opacity-100 lg:basis-[calc(58%_-_0.75rem)] lg:translate-x-0'
+                    : 'max-h-0 translate-y-3 opacity-0 pointer-events-none lg:max-h-[10000px] lg:basis-0 lg:translate-x-4'
+                }`}
+                aria-hidden={!isPreviewOpen}
+              >
                 <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>

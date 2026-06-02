@@ -5,8 +5,16 @@ import {
   computePricingBreakdown,
   formatChangeOrderMoney,
 } from './changeOrderFinancials';
+import {
+  CHANGE_ORDER_APPROVAL_STATEMENT,
+  CHANGE_ORDER_STATUS_LABELS,
+  type ChangeOrderDocumentContext,
+} from './changeOrderDocumentContext';
 import { pricingParamsFromChangeOrder } from './pricingParams';
 import { savePDFWithPlatformSupport } from './pdf';
+
+const MARGIN = 18;
+const FOOTER_HEIGHT = 14;
 
 function formatSignedAt(iso: string | null | undefined): string {
   if (!iso) return '—';
@@ -17,84 +25,165 @@ function formatSignedAt(iso: string | null | undefined): string {
   }
 }
 
+function ensureSpace(doc: jsPDF, y: { value: number }, needed: number) {
+  const pageHeight = doc.internal.pageSize.height;
+  if (y.value + needed > pageHeight - MARGIN - FOOTER_HEIGHT) {
+    doc.addPage();
+    y.value = MARGIN;
+  }
+}
+
 function addSection(
   doc: jsPDF,
   y: { value: number },
-  margin: number,
   pageWidth: number,
-  pageHeight: number,
   title: string,
   body: string,
 ) {
-  const maxWidth = pageWidth - margin * 2;
-  doc.setFontSize(11);
+  const maxWidth = pageWidth - MARGIN * 2;
+  ensureSpace(doc, y, 20);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(title, margin, y.value);
-  y.value += 6;
+  doc.setTextColor(80, 80, 80);
+  doc.text(title.toUpperCase(), MARGIN, y.value);
+  y.value += 5;
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   const lines = doc.splitTextToSize(body, maxWidth);
   for (const line of lines) {
-    if (y.value > pageHeight - margin) {
-      doc.addPage();
-      y.value = margin;
-    }
-    doc.text(line, margin, y.value);
+    ensureSpace(doc, y, 6);
+    doc.text(line, MARGIN, y.value);
     y.value += 5;
   }
-  y.value += 4;
+  y.value += 3;
+}
+
+function drawBox(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.rect(x, y, width, height);
+}
+
+function addInfoBox(
+  doc: jsPDF,
+  y: { value: number },
+  pageWidth: number,
+  title: string,
+  rows: { label: string; value: string }[],
+) {
+  const boxWidth = pageWidth - MARGIN * 2;
+  const lineHeight = 5;
+  const padding = 4;
+  const contentHeight = rows.length * lineHeight + padding * 2 + 6;
+  ensureSpace(doc, y, contentHeight + 4);
+  const boxY = y.value;
+  drawBox(doc, MARGIN, boxY, boxWidth, contentHeight);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(90, 90, 90);
+  doc.text(title.toUpperCase(), MARGIN + padding, boxY + padding + 4);
+  let rowY = boxY + padding + 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(9);
+  for (const row of rows) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${row.label}:`, MARGIN + padding, rowY);
+    doc.setFont('helvetica', 'normal');
+    const valueLines = doc.splitTextToSize(row.value, boxWidth - 52);
+    doc.text(valueLines, MARGIN + 48, rowY);
+    rowY += Math.max(lineHeight, valueLines.length * lineHeight);
+  }
+  y.value = boxY + contentHeight + 6;
+}
+
+function addPricingRow(
+  doc: jsPDF,
+  y: { value: number },
+  pageWidth: number,
+  label: string,
+  value: string,
+  bold = false,
+) {
+  ensureSpace(doc, y, 8);
+  doc.setFontSize(bold ? 12 : 10);
+  doc.setFont('helvetica', bold ? 'bold' : 'normal');
+  doc.setTextColor(0, 0, 0);
+  doc.text(label, MARGIN, y.value);
+  doc.text(value, pageWidth - MARGIN, y.value, { align: 'right' });
+  y.value += bold ? 8 : 6;
 }
 
 function addSignatureSection(
   doc: jsPDF,
   y: { value: number },
-  margin: number,
   pageWidth: number,
-  pageHeight: number,
   role: string,
   name: string | null,
   signature: string | null,
   signedAt: string | null,
 ) {
-  if (y.value > pageHeight - 50) {
-    doc.addPage();
-    y.value = margin;
-  }
-  doc.setFontSize(11);
+  ensureSpace(doc, y, 42);
+  drawBox(doc, MARGIN, y.value, pageWidth - MARGIN * 2, 38);
+  const boxY = y.value;
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text(role, margin, y.value);
-  y.value += 6;
+  doc.setTextColor(90, 90, 90);
+  doc.text(role.toUpperCase(), MARGIN + 4, boxY + 7);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
-  doc.text(`Name: ${name?.trim() || '—'}`, margin, y.value);
-  y.value += 5;
+  doc.text(`Printed name: ${name?.trim() || '—'}`, MARGIN + 4, boxY + 14);
   if (signature?.startsWith('data:image')) {
     try {
-      doc.addImage(signature, 'PNG', margin, y.value, 60, 20);
-      y.value += 24;
+      doc.addImage(signature, 'PNG', MARGIN + 4, boxY + 16, 50, 16);
     } catch {
-      doc.text('Signature: (image)', margin, y.value);
-      y.value += 5;
+      doc.text('Signature on file', MARGIN + 4, boxY + 24);
     }
   } else if (signature?.trim()) {
     doc.setFont('helvetica', 'italic');
-    doc.text(signature.trim(), margin, y.value);
+    doc.text(signature.trim(), MARGIN + 4, boxY + 24);
     doc.setFont('helvetica', 'normal');
-    y.value += 6;
   } else {
-    doc.text('Signature: —', margin, y.value);
-    y.value += 5;
+    doc.setDrawColor(180, 180, 180);
+    doc.line(MARGIN + 4, boxY + 28, MARGIN + 80, boxY + 28);
   }
-  doc.text(`Signed: ${formatSignedAt(signedAt)}`, margin, y.value);
-  y.value += 10;
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Signed: ${formatSignedAt(signedAt)}`, MARGIN + 4, boxY + 35);
+  y.value = boxY + 44;
 }
 
-export async function generateChangeOrderPDF(order: ChangeOrder): Promise<void> {
-  const doc = new jsPDF();
+function addFooters(doc: jsPDF) {
+  const pageCount = doc.getNumberOfPages();
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
-  const margin = 20;
-  const y = { value: margin };
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text('Generated by Concrete Calc', MARGIN, pageHeight - 8);
+    doc.text(`Page ${i} of ${pageCount}`, pageWidth - MARGIN, pageHeight - 8, {
+      align: 'right',
+    });
+  }
+}
+
+export async function generateChangeOrderPDF(
+  order: ChangeOrder,
+  context?: ChangeOrderDocumentContext,
+): Promise<void> {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const y = { value: MARGIN };
 
   const breakdown = computePricingBreakdown(
     order.laborItems,
@@ -104,55 +193,143 @@ export async function generateChangeOrderPDF(order: ChangeOrder): Promise<void> 
     pricingParamsFromChangeOrder(order),
   );
 
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text(order.displayNumber ?? 'Change Order', margin, y.value);
-  y.value += 8;
+  const company = context?.company;
+  const project = context?.project;
+  const contractValues = context?.contractValues;
+  const documentDate = context?.documentDate ?? format(new Date(), 'MMMM d, yyyy');
+
+  if (company?.logoUrl) {
+    try {
+      doc.addImage(company.logoUrl, 'PNG', MARGIN, y.value, 40, 16);
+      y.value += 20;
+    } catch {
+      /* skip logo */
+    }
+  }
+
   doc.setFontSize(14);
-  const titleLines = doc.splitTextToSize(order.title, pageWidth - margin * 2);
-  doc.text(titleLines, margin, y.value);
-  y.value += titleLines.length * 6 + 4;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text(company?.name ?? 'Contractor', MARGIN, y.value);
+  y.value += 6;
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated ${format(new Date(), 'MMMM d, yyyy')}`, margin, y.value);
-  y.value += 10;
-
-  if (order.scopeDescription.trim()) {
-    addSection(doc, y, margin, pageWidth, pageHeight, 'Scope of change', order.scopeDescription);
+  doc.setTextColor(60, 60, 60);
+  if (company?.address) {
+    const addrLines = doc.splitTextToSize(company.address, pageWidth * 0.55);
+    doc.text(addrLines, MARGIN, y.value);
+    y.value += addrLines.length * 4 + 2;
   }
+  const contactParts = [company?.phone, company?.email, company?.licenseNumber ? `Lic. ${company.licenseNumber}` : '']
+    .filter(Boolean)
+    .join(' · ');
+  if (contactParts) {
+    doc.text(contactParts, MARGIN, y.value);
+    y.value += 5;
+  }
+
+  const boxW = 58;
+  const boxH = 28;
+  const boxX = pageWidth - MARGIN - boxW;
+  const boxY = MARGIN;
+  drawBox(doc, boxX, boxY, boxW, boxH);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('CHANGE ORDER', boxX + boxW / 2, boxY + 9, { align: 'center' });
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(order.displayNumber ?? 'Draft', boxX + boxW / 2, boxY + 16, { align: 'center' });
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Date: ${documentDate}`, boxX + boxW / 2, boxY + 22, { align: 'center' });
+
+  y.value = Math.max(y.value, boxY + boxH + 8);
+
+  addInfoBox(doc, y, pageWidth, 'Project information', [
+    { label: 'Project', value: project?.name ?? '—' },
+    { label: 'Address', value: project?.address ?? '—' },
+    { label: 'Owner / client', value: project?.clientName ?? '—' },
+    { label: 'Contractor', value: project?.contractorName ?? '—' },
+  ]);
+
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  ensureSpace(doc, y, 12);
+  const titleLines = doc.splitTextToSize(order.title, pageWidth - MARGIN * 2);
+  doc.text(titleLines, MARGIN, y.value);
+  y.value += titleLines.length * 6 + 2;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Status: ${CHANGE_ORDER_STATUS_LABELS[order.status]}`, MARGIN, y.value);
+  y.value += 8;
+
   if (order.reasonForChange.trim()) {
-    addSection(doc, y, margin, pageWidth, pageHeight, 'Reason for change', order.reasonForChange);
+    addSection(doc, y, pageWidth, 'Reason for change', order.reasonForChange);
+  }
+  if (order.scopeDescription.trim()) {
+    addSection(doc, y, pageWidth, 'Scope of change', order.scopeDescription);
   }
   if (order.scheduleImpact?.trim()) {
-    addSection(doc, y, margin, pageWidth, pageHeight, 'Schedule impact', order.scheduleImpact);
+    addSection(doc, y, pageWidth, 'Schedule impact', order.scheduleImpact);
   }
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('Pricing summary', margin, y.value);
-  y.value += 7;
-  doc.setFont('helvetica', 'normal');
+  ensureSpace(doc, y, 20);
   doc.setFontSize(10);
-  const totals = [
-    `Total Change Order Price: ${formatChangeOrderMoney(breakdown.totalPrice)}`,
-  ];
-  for (const line of totals) {
-    doc.text(line, margin, y.value);
-    y.value += 6;
-  }
-  y.value += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(80, 80, 80);
+  doc.text('PRICING SUMMARY', MARGIN, y.value);
+  y.value += 6;
+  const priceBoxH = 16;
+  drawBox(doc, MARGIN, y.value, pageWidth - MARGIN * 2, priceBoxH);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('Total change order price', MARGIN + 4, y.value + 10);
+  doc.text(formatChangeOrderMoney(breakdown.totalPrice), pageWidth - MARGIN - 4, y.value + 10, {
+    align: 'right',
+  });
+  y.value += priceBoxH + 6;
 
+  if (contractValues) {
+    ensureSpace(doc, y, 40);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.text('CONTRACT VALUE SUMMARY', MARGIN, y.value);
+    y.value += 6;
+    addPricingRow(doc, y, pageWidth, 'Original contract', contractValues.originalLabel);
+    addPricingRow(
+      doc,
+      y,
+      pageWidth,
+      'Previous approved changes',
+      contractValues.previousApprovedLabel,
+    );
+    addPricingRow(doc, y, pageWidth, 'This change order', contractValues.thisChangeOrderLabel);
+    addPricingRow(
+      doc,
+      y,
+      pageWidth,
+      'Revised contract value',
+      contractValues.revisedLabel,
+      true,
+    );
+    y.value += 4;
+  }
+
+  addSection(doc, y, pageWidth, 'Terms', CHANGE_ORDER_APPROVAL_STATEMENT);
   if (order.terms?.trim()) {
-    addSection(doc, y, margin, pageWidth, pageHeight, 'Terms', order.terms);
+    addSection(doc, y, pageWidth, 'Additional terms', order.terms);
   }
 
   addSignatureSection(
     doc,
     y,
-    margin,
     pageWidth,
-    pageHeight,
     'Contractor',
     order.contractorName,
     order.contractorSignature,
@@ -161,14 +338,14 @@ export async function generateChangeOrderPDF(order: ChangeOrder): Promise<void> 
   addSignatureSection(
     doc,
     y,
-    margin,
     pageWidth,
-    pageHeight,
     'Client',
     order.clientName,
     order.clientSignature,
     order.clientSignedAt,
   );
+
+  addFooters(doc);
 
   const filename = `${(order.displayNumber ?? 'change-order').replace(/\s+/g, '-')}-${Date.now()}.pdf`;
   await savePDFWithPlatformSupport(doc, filename, `Change Order — ${order.title}`);

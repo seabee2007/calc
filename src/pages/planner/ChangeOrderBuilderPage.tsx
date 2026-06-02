@@ -23,7 +23,7 @@ import {
   pricingParamsFromChangeOrder,
 } from '../../utils/pricingParams';
 import PricingParamsEditor from '../../components/pricing/PricingParamsEditor';
-import { useSettingsStore } from '../../store';
+import { useProjectStore, useSettingsStore } from '../../store';
 import { getPublicChangeOrderUrl } from '../../lib/changeOrderTracking';
 import { changeOrderEditHref, plannerChangeOrdersHref } from '../../utils/plannerRoutes';
 import ChangeOrderLineItemsEditor from '../../components/change-order/ChangeOrderLineItemsEditor';
@@ -35,6 +35,7 @@ import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkMo
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { generateChangeOrderPDF } from '../../utils/changeOrderPdf';
+import { buildChangeOrderDocumentContext } from '../../utils/changeOrderDocumentContext';
 import {
   PLANNER_FORM_LABEL,
   PLANNER_FORM_PANEL,
@@ -52,7 +53,9 @@ export default function ChangeOrderBuilderPage() {
   const navigate = useNavigate();
   const { user, isOwner } = useAuth();
   const { project, isOwner: projectOwner, reload } = usePlannerProject();
+  const { projects } = useProjectStore();
   const printRef = useRef<HTMLDivElement>(null);
+  const [previewAudience, setPreviewAudience] = useState<'client' | 'internal'>('client');
 
   const isNew = changeOrderId === 'new';
   const [coId, setCoId] = useState<string | null>(isNew ? null : changeOrderId ?? null);
@@ -377,6 +380,29 @@ export default function ChangeOrderBuilderPage() {
     clientSignedAt,
   ]);
 
+  const fullProject = useMemo(
+    () => projects.find((p) => p.id === projectId) ?? null,
+    [projects, projectId],
+  );
+
+  const documentContext = useMemo(() => {
+    if (!preview) return null;
+    return buildChangeOrderDocumentContext({
+      order: preview,
+      project: fullProject,
+      companySettings: {
+        companyName: companySettings.companyName,
+        address: companySettings.address,
+        phone: companySettings.phone,
+        email: companySettings.email,
+        licenseNumber: companySettings.licenseNumber,
+        logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
+        logo: companySettings.logo,
+      },
+      thisChangeOrderTotal: preview.total,
+    });
+  }, [preview, fullProject, companySettings]);
+
   const openMailto = useCallback(
     (url: string) => {
       const subject = encodeURIComponent(
@@ -475,7 +501,25 @@ export default function ChangeOrderBuilderPage() {
       if (coId) {
         const saved = await saveChangeOrder(coId, buildSaveInput());
         applyCoToState(saved);
-        await generateChangeOrderPDF(saved);
+        await generateChangeOrderPDF(
+          saved,
+          buildChangeOrderDocumentContext({
+            order: saved,
+            project: fullProject,
+            companySettings: {
+              companyName: companySettings.companyName,
+              address: companySettings.address,
+              phone: companySettings.phone,
+              email: companySettings.email,
+              licenseNumber: companySettings.licenseNumber,
+              logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
+              logo: companySettings.logo,
+            },
+            thisChangeOrderTotal: saved.total,
+          }),
+        );
+      } else if (documentContext) {
+        await generateChangeOrderPDF(preview, documentContext);
       } else {
         await generateChangeOrderPDF(preview);
       }
@@ -589,7 +633,16 @@ export default function ChangeOrderBuilderPage() {
               onChange={setPricingParams}
               showLegacyToggle
             />
-            {preview && <ChangeOrderInternalPricingSummary order={preview} />}
+            {preview && (
+              <div className="rounded-lg border border-dashed border-amber-300/60 bg-amber-50/50 p-1 dark:border-amber-700/50 dark:bg-amber-950/20">
+                <p className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
+                  Internal pricing (not shown to client)
+                </p>
+                <div className="p-2">
+                  <ChangeOrderInternalPricingSummary order={preview} />
+                </div>
+              </div>
+            )}
             <div>
               <label className={PLANNER_FORM_LABEL}>Terms</label>
               <textarea
@@ -662,12 +715,57 @@ export default function ChangeOrderBuilderPage() {
             )}
           </div>
 
-          <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
-            <p className="border-b border-slate-200 px-4 py-2 text-xs font-semibold uppercase text-gray-600 dark:border-slate-700 dark:text-slate-400">
-              Client preview
-            </p>
-            <div ref={printRef} className="min-w-0 max-w-full overflow-x-hidden">
-              {preview && <ChangeOrderDocument order={preview} audience="client" />}
+          <div className="min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:self-start">
+            <div className="flex max-h-[calc(100vh-8rem)] min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+              <div className="shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase text-gray-600 dark:text-slate-400">
+                    {previewAudience === 'client' ? 'Client preview' : 'Internal preview'}
+                  </p>
+                  <div
+                    className="inline-flex rounded-lg border border-slate-200 p-0.5 text-xs dark:border-slate-600"
+                    role="group"
+                    aria-label="Preview audience"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setPreviewAudience('client')}
+                      className={[
+                        'rounded-md px-3 py-1.5 font-medium transition-colors',
+                        previewAudience === 'client'
+                          ? 'bg-cyan-600 text-white shadow-sm'
+                          : 'text-gray-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700',
+                      ].join(' ')}
+                    >
+                      Client view
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewAudience('internal')}
+                      className={[
+                        'rounded-md px-3 py-1.5 font-medium transition-colors',
+                        previewAudience === 'internal'
+                          ? 'bg-cyan-600 text-white shadow-sm'
+                          : 'text-gray-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700',
+                      ].join(' ')}
+                    >
+                      Internal view
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                ref={printRef}
+                className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
+              >
+                {preview && (
+                  <ChangeOrderDocument
+                    order={preview}
+                    audience={previewAudience}
+                    context={documentContext ?? undefined}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
