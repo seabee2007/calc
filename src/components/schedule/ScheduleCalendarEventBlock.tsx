@@ -4,7 +4,6 @@ import { SCHEDULE_EVENT_TYPE_LABELS } from '../../types/scheduleEvent';
 import { SCHEDULE_EVENT_TYPE_STYLES } from './scheduleTheme';
 import ScheduleStatusBadge from './ScheduleStatusBadge';
 import { statusAccentClass } from '../../utils/scheduleEventUtils';
-import { logScheduleTouchDebug } from '../../utils/scheduleTouchInteraction';
 
 interface Props {
   event: ScheduleEvent;
@@ -38,7 +37,6 @@ export default function ScheduleCalendarEventBlock({
       data-no-swipe="true"
       onClick={(e) => {
         e.stopPropagation();
-        logScheduleTouchDebug('event block clicked', { id: event.id });
         onClick();
       }}
       style={style}

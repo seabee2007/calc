@@ -144,6 +144,7 @@ export default function DocumentBuilderPage() {
   );
   const builderColumnRef = useRef<HTMLElement | null>(null);
   const newContractCardRef = useRef<HTMLDivElement | null>(null);
+  const previewPanelRef = useRef<HTMLDivElement | null>(null);
   const [toggleLeft, setToggleLeft] = useState<number | null>(null);
   const [toggleTop, setToggleTop] = useState<number | null>(null);
   const [toggleReady, setToggleReady] = useState(false);
@@ -704,6 +705,10 @@ export default function DocumentBuilderPage() {
   const handlePreviewContract = () => {
     setPreviewVersion(null);
     setShowValidation(true);
+    setIsPreviewOpen(true);
+    window.requestAnimationFrame(() => {
+      previewPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   const handleProjectPrefill = useCallback(
@@ -891,10 +896,12 @@ export default function DocumentBuilderPage() {
                   onSelectVersion={setPreviewVersion}
                   onClearPreview={() => setPreviewVersion(null)}
                 />
-                <PreviewPanel
-                  previewHeading={previewHeading}
-                  previewSections={previewSections}
-                />
+                <div ref={previewPanelRef}>
+                  <PreviewPanel
+                    previewHeading={previewHeading}
+                    previewSections={previewSections}
+                  />
+                </div>
               </section>
             )}
         </div>

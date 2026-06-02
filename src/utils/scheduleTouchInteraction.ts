@@ -14,15 +14,6 @@ export interface TouchPoint {
   blocked: boolean;
 }
 
-export function logScheduleTouchDebug(
-  message: string,
-  data?: Record<string, unknown>,
-): void {
-  if (import.meta.env.DEV) {
-    console.log(`[schedule-touch] ${message}`, data ?? '');
-  }
-}
-
 export function isScheduleInteractiveTarget(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;
   return !!target.closest(SCHEDULE_INTERACTIVE_SELECTOR);
@@ -49,12 +40,10 @@ export function evaluateHorizontalSwipe(
   now = Date.now(),
 ): -1 | 1 | null {
   if (start.blocked) {
-    logScheduleTouchDebug('swipe rejected: blocked start target');
     return null;
   }
 
   if (now - lastSwipeAt < MOBILE_SWIPE_COOLDOWN_MS) {
-    logScheduleTouchDebug('swipe rejected: cooldown', { msSinceLast: now - lastSwipeAt });
     return null;
   }
 
@@ -63,23 +52,18 @@ export function evaluateHorizontalSwipe(
   const deltaY = end.y - start.y;
 
   if (elapsed > MOBILE_SWIPE_MAX_DURATION_MS) {
-    logScheduleTouchDebug('swipe rejected: duration', { elapsed });
     return null;
   }
 
   if (Math.abs(deltaX) < MOBILE_SWIPE_THRESHOLD_PX) {
-    logScheduleTouchDebug('swipe rejected: distance', { deltaX, deltaY, elapsed });
     return null;
   }
 
   if (Math.abs(deltaX) <= Math.abs(deltaY) * MOBILE_SWIPE_AXIS_RATIO) {
-    logScheduleTouchDebug('swipe rejected: axis ratio', { deltaX, deltaY, elapsed });
     return null;
   }
 
-  const direction = deltaX < 0 ? 1 : -1;
-  logScheduleTouchDebug('swipe accepted', { deltaX, deltaY, elapsed, direction });
-  return direction;
+  return deltaX < 0 ? 1 : -1;
 }
 
 export function isTapGesture(

@@ -3,10 +3,7 @@ import type { ScheduleEvent } from '../../../../types/scheduleEvent';
 import ScheduleCalendarEventChip from '../../ScheduleCalendarEventChip';
 import ScheduleCalendarMultiDayBar, { multiDayLaneCount } from '../../ScheduleCalendarMultiDayBar';
 import { SCHEDULE_CARD } from '../../scheduleTheme';
-import {
-  isScheduleInteractiveTarget,
-  logScheduleTouchDebug,
-} from '../../../../utils/scheduleTouchInteraction';
+import { isScheduleInteractiveTarget } from '../../../../utils/scheduleTouchInteraction';
 import {
   eventsForCalendarCell,
   getMonthGrid,
@@ -49,7 +46,6 @@ export default function ScheduleCalendarMonthView({
   const handleDayCellClick = (iso: string, event: React.MouseEvent<HTMLDivElement>) => {
     if (!onCreateAtDate) return;
     if (isScheduleInteractiveTarget(event.target)) return;
-    logScheduleTouchDebug('create day cell clicked', { iso });
     onCreateAtDate(iso);
   };
 
@@ -145,9 +141,6 @@ export default function ScheduleCalendarMonthView({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (dayEvents[MAX_SINGLE_DAY]) {
-                              logScheduleTouchDebug('event chip clicked', {
-                                id: dayEvents[MAX_SINGLE_DAY].id,
-                              });
                               onSelect(dayEvents[MAX_SINGLE_DAY].id);
                             }
                           }}

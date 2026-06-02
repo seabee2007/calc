@@ -18,7 +18,6 @@ import {
 import {
   createTouchPoint,
   evaluateHorizontalSwipe,
-  logScheduleTouchDebug,
   type TouchPoint,
 } from '../../../../utils/scheduleTouchInteraction';
 import { SCHEDULE_CARD, SCHEDULE_MUTED } from '../../scheduleTheme';
@@ -104,7 +103,6 @@ export default function ScheduleTimeGridView({
   const handleSlotActivate = (iso: string, slotIndex: number) => {
     if (!onCreateAtSlot) return;
     const { startTime, endTime } = slotTimesForIndex(slotIndex);
-    logScheduleTouchDebug('create slot clicked', { iso, slotIndex, startTime, endTime });
     onCreateAtSlot({ date: iso, startTime, endTime });
   };
 
@@ -116,10 +114,6 @@ export default function ScheduleTimeGridView({
 
     const touch = event.touches[0];
     gridSwipeStartRef.current = createTouchPoint(touch.clientX, touch.clientY, event.target);
-    logScheduleTouchDebug('time grid swipe touch start', {
-      blocked: gridSwipeStartRef.current.blocked,
-      target: (event.target as Element)?.tagName,
-    });
   };
 
   const handleGridSwipeTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {

@@ -20,6 +20,7 @@ import {
   enrichEventsWithProjectNames,
   fetchScheduleEventsInDateRange,
   markScheduleEventComplete,
+  updateScheduleEvent,
 } from '../../services/scheduleEventService';
 import {
   deleteRecurringScheduleEvent,
@@ -67,7 +68,6 @@ import {
 import {
   createTouchPoint,
   evaluateHorizontalSwipe,
-  logScheduleTouchDebug,
   type TouchPoint,
 } from '../../utils/scheduleTouchInteraction';
 
@@ -79,6 +79,28 @@ interface CreateEventDefaults {
   startDate: string;
   startTime?: string;
   endTime?: string;
+}
+
+function eventTaskConversionMessage(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const code =
+    typeof err === 'object' && err !== null && 'code' in err
+      ? String((err as { code?: unknown }).code)
+      : '';
+
+  if (/not linked to a project/i.test(message)) {
+    return 'This event is not linked to a project. Select a project before creating a planner task.';
+  }
+  if (/already linked/i.test(message)) {
+    return 'This event is already linked to a task.';
+  }
+  if (code === '42501' || /permission|policy|rls|not authorized/i.test(message)) {
+    return 'You do not have permission to create tasks for this project.';
+  }
+  if (/required|missing|invalid|No planner bucket/i.test(message)) {
+    return 'Task could not be created because required event details are missing.';
+  }
+  return 'Could not create planner task. Please try again.';
 }
 
 function defaultCalendarSubView(): CalendarSubView {
@@ -138,8 +160,11 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
   const [isMobile, setIsMobile] = useState(false);
   const [anchorIso, setAnchorIso] = useState(() => todayIsoDate());
   const [createDefaults, setCreateDefaults] = useState<CreateEventDefaults | null>(null);
+  const [mobileDrawerEvent, setMobileDrawerEvent] = useState<ScheduleEvent | null>(null);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const swipeStartRef = useRef<TouchPoint | null>(null);
   const lastSwipeAtRef = useRef(0);
+  const mobileDrawerOpenFrameRef = useRef<number | null>(null);
 
   const view = parseView(searchParams.get('view'));
   const cal = parseCal(searchParams.get('cal'));
@@ -293,6 +318,38 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
     [displayEvents, filteredEvents, events, selectedId],
   );
 
+  useEffect(() => {
+    if (mobileDrawerOpenFrameRef.current !== null) {
+      window.cancelAnimationFrame(mobileDrawerOpenFrameRef.current);
+      mobileDrawerOpenFrameRef.current = null;
+    }
+
+    if (!isMobile) {
+      setMobileDrawerOpen(false);
+      setMobileDrawerEvent(null);
+      return;
+    }
+
+    if (selectedEvent) {
+      setMobileDrawerEvent(selectedEvent);
+      mobileDrawerOpenFrameRef.current = window.requestAnimationFrame(() => {
+        setMobileDrawerOpen(true);
+        mobileDrawerOpenFrameRef.current = null;
+      });
+      return;
+    }
+
+    setMobileDrawerOpen(false);
+  }, [isMobile, selectedEvent]);
+
+  useEffect(() => {
+    return () => {
+      if (mobileDrawerOpenFrameRef.current !== null) {
+        window.cancelAnimationFrame(mobileDrawerOpenFrameRef.current);
+      }
+    };
+  }, []);
+
   const needsRecurrenceScope = useCallback((ev: ScheduleEvent | null) => {
     if (!ev) return false;
     return (
@@ -372,10 +429,6 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
 
     const touch = event.touches[0];
     swipeStartRef.current = createTouchPoint(touch.clientX, touch.clientY, event.target);
-    logScheduleTouchDebug('month swipe touch start', {
-      blocked: swipeStartRef.current.blocked,
-      target: (event.target as Element)?.tagName,
-    });
   };
 
   const handleCalendarTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -402,11 +455,25 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
     setSearchParams(next, { replace: true });
   };
 
-  const clearSelection = () => {
+  const clearSelection = useCallback(() => {
     const next = new URLSearchParams(searchParams);
     next.delete('event');
     setSearchParams(next, { replace: true });
-  };
+  }, [searchParams, setSearchParams]);
+
+  const closeMobileEventDrawer = useCallback(() => {
+    if (!selectedEvent && !mobileDrawerEvent) return;
+    if (mobileDrawerOpenFrameRef.current !== null) {
+      window.cancelAnimationFrame(mobileDrawerOpenFrameRef.current);
+      mobileDrawerOpenFrameRef.current = null;
+    }
+    setMobileDrawerOpen(false);
+  }, [mobileDrawerEvent, selectedEvent]);
+
+  const handleMobileDrawerExited = useCallback(() => {
+    setMobileDrawerEvent(null);
+    if (selectedId) clearSelection();
+  }, [clearSelection, selectedId]);
 
   const openCreate = () => {
     setEditingEvent(null);
@@ -590,27 +657,46 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
 
   const handleConvertToTask = async () => {
     if (!selectedEvent || !user || !isOwner) return;
+    if (selectedEvent.taskId) {
+      window.alert('This event is already linked to a task.');
+      return;
+    }
+    const resolvedProjectId = selectedEvent.projectId || lockedProjectId || filters.projectId;
+    if (!resolvedProjectId) {
+      window.alert('This event is not linked to a project. Select a project before creating a planner task.');
+      return;
+    }
     setBusy(true);
     try {
-      const board = await ensurePlannerBoard(selectedEvent.projectId, user.id);
-      const bundle = await fetchPlannerBoardBundle(selectedEvent.projectId);
+      const board = await ensurePlannerBoard(resolvedProjectId, user.id);
+      const bundle = await fetchPlannerBoardBundle(resolvedProjectId);
       const bucketId = bundle?.buckets[0]?.id;
       if (!bucketId) throw new Error('No planner bucket available');
-      const task = await createTask({
+      const taskInput = {
         boardId: board.id,
         bucketId,
-        projectId: selectedEvent.projectId,
+        projectId: resolvedProjectId,
         title: selectedEvent.title,
         description: selectedEvent.notes ?? undefined,
         assignedTo: selectedEvent.assignedTo[0] ?? null,
         createdBy: user.id,
-        dueDate: selectedEvent.startDate,
+        dueDate: selectedEvent.occurrenceDate ?? selectedEvent.startDate,
+      };
+      const task = await createTask({
+        boardId: taskInput.boardId,
+        bucketId: taskInput.bucketId,
+        projectId: taskInput.projectId,
+        title: taskInput.title,
+        description: taskInput.description,
+        assignedTo: taskInput.assignedTo,
+        createdBy: taskInput.createdBy,
+        dueDate: taskInput.dueDate,
       });
       await updateScheduleEvent(selectedEvent.id, { taskId: task.id });
       await load();
     } catch (err) {
-      console.error('Convert to task failed:', err);
-      window.alert('Could not create planner task. Try again from the project planner.');
+      console.error('Create task from event failed', err);
+      window.alert(eventTaskConversionMessage(err));
     } finally {
       setBusy(false);
     }
@@ -794,8 +880,14 @@ export default function ScheduleWorkspacePage({ lockedProjectId }: Props) {
         )}
       </div>
 
-      {isMobile && selectedEvent && (
-        <ScheduleEventDetailDrawer {...detailProps} />
+      {isMobile && mobileDrawerEvent && (
+        <ScheduleEventDetailDrawer
+          {...detailProps}
+          event={mobileDrawerEvent}
+          isOpen={mobileDrawerOpen}
+          onClose={closeMobileEventDrawer}
+          onExited={handleMobileDrawerExited}
+        />
       )}
 
       {user && (
