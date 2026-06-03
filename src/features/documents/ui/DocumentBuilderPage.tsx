@@ -97,12 +97,12 @@ function formatCurrency(value: unknown): string | undefined {
 function templateLabel(packKey: string, fallback: string): string {
   const labels: Record<string, string> = {
     GENERIC_RESIDENTIAL: 'Generic Residential Contract',
-    CA_RESIDENTIAL: 'Residential Remodel Contract',
-    FL_RESIDENTIAL: 'Residential Remodel Contract',
-    NY_RESIDENTIAL: 'Residential Remodel Contract',
-    TX_RESIDENTIAL: 'Residential Remodel Contract',
-    GA_RESIDENTIAL: 'Residential Remodel Contract',
-    GU_RESIDENTIAL: 'Residential Remodel Contract',
+    CA_RESIDENTIAL: 'California Residential Remodel Contract',
+    FL_RESIDENTIAL: 'Florida Residential Remodel Contract',
+    NY_RESIDENTIAL: 'New York Residential Remodel Contract',
+    TX_RESIDENTIAL: 'Texas Residential Remodel Contract',
+    GA_RESIDENTIAL: 'Georgia Residential Remodel Contract',
+    GU_RESIDENTIAL: 'Guam Residential Remodel Contract',
   };
   return labels[packKey] ?? fallback.replace(/\bpack\b/gi, '').trim();
 }

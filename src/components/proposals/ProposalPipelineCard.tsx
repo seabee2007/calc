@@ -84,11 +84,6 @@ export default function ProposalPipelineCard({
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset ${aging.badgeClass}`}
-              >
-                {aging.badgeLabel}
-              </span>
               <ProposalStatusBadge status={status} />
             </div>
           </div>

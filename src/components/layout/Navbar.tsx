@@ -111,7 +111,7 @@ const Navbar: React.FC = () => {
             to="/"
             className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
           >
-            <span className="text-cyan-400">Concrete</span>
+            <span>Concrete</span>
             <span className="hidden sm:inline">Calc</span>
           </Link>
         )}

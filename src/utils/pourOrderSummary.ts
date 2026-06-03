@@ -55,6 +55,9 @@ function labelValue(label: string, value: string | null | undefined): string {
   const v = value?.trim();
   return `${label}: ${v || '_______________'}`;
 }
+function contactValue(value: string | null | undefined): string {
+  return value?.trim() || 'Contact not provided';
+}
 
 function yesNo(value: boolean | undefined): string {
   return value ? 'Yes' : 'No';
@@ -204,9 +207,9 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
     lines,
     labelValue('Plant Name', plantName),
     labelValue('Plant Address', plantAddr),
-    labelValue('Dispatch Contact', form.batchPlantDispatchContact),
-    labelValue('Plant Phone', form.batchPlantPhone),
-    labelValue('Plant Email', form.batchPlantEmail),
+    labelValue('Dispatch Contact', contactValue(form.batchPlantDispatchContact)),
+    labelValue('Plant Phone', contactValue(form.batchPlantPhone)),
+    labelValue('Plant Email', contactValue(form.batchPlantEmail)),
   );
 
   push(lines, ...sectionTitle('CONCRETE MIX INFORMATION'));

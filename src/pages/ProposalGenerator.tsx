@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Save, Edit, ArrowLeft, Printer, Download, Mail, FileText, Plus, Upload, Beaker, CloudSun, SkipForward, Send, Link2 } from 'lucide-react';
+import { Save, Edit, ArrowLeft, Download, Mail, FileText, Plus, Upload, Beaker, CloudSun, SkipForward, Send, Link2 } from 'lucide-react';
 import { useWorkflowProgressStore } from '../store/workflowProgressStore';
 import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
@@ -29,9 +29,6 @@ import Button from '../components/ui/Button';
 import { generateProposalPDF } from '../utils/pdf';
 import { useSettingsStore } from '../store';
 import { useProjectStore } from '../store';
-import Card from '../components/ui/Card';
-import Input from '../components/ui/Input';
-import Select from '../components/ui/Select';
 import {
   buildProposalLineItemsFromProject,
   countProposalLineItemsFromProject,
@@ -52,7 +49,6 @@ import { useConfirm } from '../contexts/ConfirmContext';
 import USAddressFields from '../components/address/USAddressFields';
 import {
   EMPTY_US_ADDRESS,
-  formatUSAddress,
   parseLegacyUSAddress,
   type USAddress,
 } from '../types/address';
@@ -256,7 +252,7 @@ const ProposalGenerator: React.FC = () => {
     getProposalDraft,
   ]);
 
-  // Jobsite may load after projects fetch — fill client address when it arrives.
+  // Jobsite may load after projects fetch â€” fill client address when it arrives.
   useEffect(() => {
     if (isEditing || isPreviewMode) return;
     const projectId = workflowState?.projectId ?? workflowProjectId;
@@ -469,6 +465,7 @@ const ProposalGenerator: React.FC = () => {
           showImportFeedback('Proposal updated', 'success', 'Your changes were saved successfully.');
         } else {
           setWorkflowStepReady(true);
+          showImportFeedback('Proposal saved', 'success', 'Proposal saved successfully.');
         }
       } else {
         const linkedProjectId = resolveLinkedProjectId(dataToSave);
@@ -481,6 +478,7 @@ const ProposalGenerator: React.FC = () => {
         setCurrentProposal(savedProposal);
         if (inWorkflow) {
           setWorkflowStepReady(true);
+          showImportFeedback('Proposal saved', 'success', 'Proposal saved successfully.');
           navigate(
             {
               pathname: '/proposal-generator',
@@ -504,7 +502,7 @@ const ProposalGenerator: React.FC = () => {
       showImportFeedback(
         'Save failed',
         'error',
-        'Could not save the proposal. Please try again.',
+        'Could not save proposal',
       );
     } finally {
       setSaving(false);
@@ -558,67 +556,6 @@ const ProposalGenerator: React.FC = () => {
     }));
   };
 
-  const handlePricingChange = (index: number, field: keyof ProposalData['pricing'][0], value: string) => {
-    setProposalData(prev => ({
-      ...prev,
-      pricing: prev.pricing.map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
-      )
-    }));
-  };
-
-  const formatCurrency = (value: string): string => {
-    // Remove all non-numeric characters except decimal point
-    const numericValue = value.replace(/[^0-9.]/g, '');
-    
-    // Handle empty input
-    if (!numericValue) return '';
-    
-    // Ensure only one decimal point
-    const parts = numericValue.split('.');
-    let cleanValue = parts[0];
-    if (parts.length > 1) {
-      // Limit to 2 decimal places
-      cleanValue += '.' + parts[1].substring(0, 2);
-    }
-    
-    // Parse to number and format as currency
-    const number = parseFloat(cleanValue);
-    if (isNaN(number)) return '';
-    
-    return number.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
-
-  const handleAmountBlur = (index: number, value: string) => {
-    // Format as currency when user finishes editing
-    const formatted = formatCurrency(value);
-    if (formatted) {
-      setProposalData(prev => ({
-        ...prev,
-        pricing: prev.pricing.map((item, i) => 
-          i === index ? { ...item, amount: formatted } : item
-        )
-      }));
-    }
-  };
-
-  const handleAmountFocus = (index: number, value: string) => {
-    // Remove formatting for easier editing
-    if (value.startsWith('$')) {
-      const numericValue = value.replace(/[^0-9.]/g, '');
-      setProposalData(prev => ({
-        ...prev,
-        pricing: prev.pricing.map((item, i) => 
-          i === index ? { ...item, amount: numericValue } : item
-        )
-      }));
-    }
-  };
 
   const handlePhoneChange = (value: string) => {
     // Remove all non-numeric characters
@@ -642,12 +579,6 @@ const ProposalGenerator: React.FC = () => {
     }));
   };
 
-  const addPricingItem = () => {
-    setProposalData(prev => ({
-      ...prev,
-      pricing: [...prev.pricing, { description: '', amount: '' }]
-    }));
-  };
 
   const removeTimelineItem = (index: number) => {
     soundService.play('trash');
@@ -657,232 +588,6 @@ const ProposalGenerator: React.FC = () => {
     }));
   };
 
-  const removePricingItem = (index: number) => {
-    soundService.play('trash');
-    setProposalData(prev => ({
-      ...prev,
-      pricing: prev.pricing.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handlePrint = () => {
-    if (!printRef.current) {
-      alert('Preview not ready for printing. Please try again in a moment.');
-      return;
-    }
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      // More user-friendly message since we have download option
-      alert('Pop-ups are blocked. Please use the Download PDF button instead, or enable pop-ups and try again.');
-      return;
-    }
-
-    const printContent = printRef.current.innerHTML;
-    const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${title}</title>
-          <style>
-            * { box-sizing: border-box; }
-            body { 
-              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
-              padding: 20px; 
-              color: #374151;
-              line-height: 1.6;
-              font-size: 14px;
-            }
-            
-            /* Layout & Containers */
-            .max-w-3xl { max-width: 48rem; margin: 0 auto; }
-            .bg-white { background-color: #ffffff; }
-            .shadow-lg, .shadow-xl { box-shadow: none !important; }
-            .rounded-lg { border-radius: 0 !important; }
-            
-            /* Typography */
-            .text-2xl { font-size: 1.5rem; line-height: 2rem; }
-            .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-            .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
-            .text-base { font-size: 1rem; line-height: 1.5rem; }
-            .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-            .text-xs { font-size: 0.75rem; line-height: 1rem; }
-            .text-md { font-size: 1rem; line-height: 1.5rem; }
-            
-            .font-bold { font-weight: 700; }
-            .font-semibold { font-weight: 600; }
-            .font-medium { font-weight: 500; }
-            
-            /* Colors */
-            .text-gray-500 { color: #6b7280; }
-            .text-gray-600 { color: #4b5563; }
-            .text-gray-700 { color: #374151; }
-            .text-gray-800 { color: #1f2937; }
-            .text-indigo-600 { color: #4f46e5; }
-            
-            /* Spacing */
-            .p-8 { padding: 2rem; }
-            .p-6 { padding: 1.5rem; }
-            .p-4 { padding: 1rem; }
-            .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-            .px-4 { padding-left: 1rem; padding-right: 1rem; }
-            .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-            
-            .mb-8 { margin-bottom: 2rem; }
-            .mb-6 { margin-bottom: 1.5rem; }
-            .mb-4 { margin-bottom: 1rem; }
-            .mb-3 { margin-bottom: 0.75rem; }
-            .mb-2 { margin-bottom: 0.5rem; }
-            .mb-1 { margin-bottom: 0.25rem; }
-            .mt-12 { margin-top: 3rem; }
-            .mt-8 { margin-top: 2rem; }
-            .mt-1 { margin-top: 0.25rem; }
-            .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-            
-            .space-x-4 > * + * { margin-left: 1rem; }
-            .space-y-3 > * + * { margin-top: 0.75rem; }
-            
-            /* Flexbox */
-            .flex { display: flex; }
-            .items-center { align-items: center; }
-            .justify-between { justify-content: space-between; }
-            .text-right { text-align: right; }
-            .text-center { text-align: center; }
-            .text-left { text-align: left; }
-            .text-justify { text-align: justify; }
-            
-            /* Grid */
-            .grid { display: grid; }
-            .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .gap-8 { gap: 2rem; }
-            .gap-6 { gap: 1.5rem; }
-            
-            /* Tables */
-            .min-w-full { min-width: 100%; }
-            .overflow-x-auto { overflow-x: auto; }
-            table { 
-              border-collapse: collapse; 
-              width: 100%; 
-              border: 1px solid #e5e7eb;
-              background-color: #ffffff;
-            }
-            
-            th, td { 
-              border: 1px solid #e5e7eb; 
-              padding: 0.5rem 1rem; 
-              text-align: left; 
-              vertical-align: top;
-            }
-            
-            th { 
-              background-color: #f3f4f6 !important; 
-              font-weight: 600; 
-              color: #374151;
-            }
-            
-            .border { border: 1px solid #e5e7eb; }
-            .border-gray-200 { border-color: #e5e7eb; }
-            .border-gray-300 { border-color: #d1d5db; }
-            .border-b { border-bottom: 1px solid #e5e7eb; }
-            .border-b-2 { border-bottom: 2px solid #e5e7eb; }
-            .border-dashed { border-style: dashed; }
-            
-            /* Backgrounds */
-            .bg-gray-50 { background-color: #f9fafb; }
-            .bg-gray-100 { background-color: #f3f4f6; }
-            .bg-blue-50 { background-color: #eff6ff; }
-            .bg-indigo-50 { background-color: #eef2ff; }
-            
-            /* Lists */
-            ul { list-style: none; padding: 0; margin: 0; }
-            li { margin: 0; }
-            
-            /* Horizontal Rules */
-            hr { 
-              border: 0; 
-              height: 1px; 
-              background: #d1d5db; 
-              margin: 1rem 0; 
-            }
-            
-            /* Images */
-            img { max-width: 100%; height: auto; }
-            .h-16 { height: 4rem; }
-            .h-12 { height: 3rem; }
-            .w-auto { width: auto; }
-            
-            /* Text Utilities */
-            .leading-relaxed { line-height: 1.625; }
-            .whitespace-pre-line { white-space: pre-line; }
-            
-            /* Print-specific overrides */
-            @media print {
-              body { padding: 0; margin: 0; }
-              .shadow-lg, .shadow-xl { box-shadow: none !important; }
-              .rounded-lg { border-radius: 0 !important; }
-              
-              /* Force table borders and backgrounds to print */
-              table, th, td { 
-                border: 1px solid #000 !important; 
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              
-              th { 
-                background-color: #f3f4f6 !important; 
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              
-              .bg-gray-50, .bg-gray-100 { 
-                background-color: #f9fafb !important; 
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              
-              /* Ensure grid layouts work in print */
-              .grid-cols-2 { 
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-              }
-              
-              /* Force borders to show */
-              .border, .border-gray-200, .border-gray-300 {
-                border: 1px solid #000 !important;
-              }
-              
-              .border-b, .border-b-2 {
-                border-bottom: 1px solid #000 !important;
-              }
-            }
-            
-            /* Specific fixes for cards and containers */
-            .bg-gray-50.p-4.rounded-lg.border {
-              background-color: #f9fafb !important;
-              border: 1px solid #e5e7eb !important;
-              padding: 1rem !important;
-              margin-bottom: 1rem;
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    };
-  };
 
   const handleDownloadPDF = async () => {
     if (!printRef.current) {
@@ -1063,7 +768,7 @@ const ProposalGenerator: React.FC = () => {
         <div className="mb-8">
           <h1 className={PAGE_TITLE}>Proposal Preview</h1>
           <p className={PAGE_SUBTITLE}>
-            Proposal —{' '}
+            Proposal â€”{' '}
             {new Date().toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
@@ -1166,7 +871,7 @@ const ProposalGenerator: React.FC = () => {
         {inWorkflow && !workflowStepReady && (
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
             <p className="text-sm text-slate-300">
-              Skip this step if you do not need a formal proposal — you can return to the project
+              Skip this step if you do not need a formal proposal â€” you can return to the project
               and use concrete tools from Tools when needed.
             </p>
             <Button
@@ -1783,7 +1488,7 @@ const ProposalGenerator: React.FC = () => {
                         {canImport ? (
                           <>
                             <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                              {sources.join(' · ')}
+                              {sources.join(' Â· ')}
                             </span>
                             <span>
                               {lineCount} pricing line{lineCount === 1 ? '' : 's'}
@@ -1791,7 +1496,7 @@ const ProposalGenerator: React.FC = () => {
                           </>
                         ) : (
                           <span className="text-amber-700 dark:text-amber-400">
-                            No saved estimates — complete step 2 first
+                            No saved estimates â€” complete step 2 first
                           </span>
                         )}
                         <span>
