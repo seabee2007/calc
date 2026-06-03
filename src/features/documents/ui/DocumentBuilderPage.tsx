@@ -41,9 +41,15 @@ import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrd
 import { buildRfiPreviewFromDocumentAnswers } from './adapters/rfiPreviewAdapter';
 import { buildSubmittalPreviewFromDocumentAnswers } from './adapters/submittalPreviewAdapter';
 import { buildDailyReportPreviewFromDocumentAnswers } from './adapters/dailyReportPreviewAdapter';
+import { buildQcReportPreviewFromDocumentAnswers } from './adapters/qcReportPreviewAdapter';
+import { buildWarrantyCloseoutPreviewFromDocumentAnswers } from './adapters/warrantyCloseoutPreviewAdapter';
+import { buildPunchListPreviewFromDocumentAnswers } from './adapters/punchListPreviewAdapter';
 import { generateRfiPDF } from './pdf/rfiPdf';
 import { generateSubmittalPDF } from './pdf/submittalPdf';
 import { generateDailyReportPDF } from './pdf/dailyReportPdf';
+import { generateQcReportPDF } from './pdf/qcReportPdf';
+import { generateWarrantyCloseoutPDF } from './pdf/warrantyCloseoutPdf';
+import { generatePunchListPDF } from './pdf/punchListPdf';
 import { restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
 import {
@@ -59,6 +65,11 @@ import type {
 import DocumentMetaPanel from './panels/DocumentMetaPanel';
 import ProjectSummaryPanel from './panels/ProjectSummaryPanel';
 import IntakePanel from './panels/IntakePanel';
+import PunchListItemsEditor from './panels/PunchListItemsEditor';
+import {
+  legacyAnswersToPunchItems,
+  parsePunchListItems,
+} from '../packs/punchList/punchListItemTypes';
 import SignaturePanel from './panels/SignaturePanel';
 import CompliancePanel from './panels/CompliancePanel';
 import VersionHistoryPanel from './panels/VersionHistoryPanel';
@@ -110,6 +121,9 @@ function templateLabel(packKey: string, fallback: string): string {
     GENERIC_RFI: 'Generic RFI Pack',
     GENERIC_SUBMITTAL: 'Submittal Cover Sheet',
     GENERIC_DAILY_REPORT: 'Daily Report',
+    GENERIC_QC_REPORT: 'QC Report',
+    GENERIC_WARRANTY_CLOSEOUT: 'Warranty / Closeout Letter',
+    GENERIC_PUNCH_LIST: 'Punch List',
     GENERIC_RESIDENTIAL: 'Generic Residential Contract',
     CA_RESIDENTIAL: 'California Residential Remodel Contract',
     FL_RESIDENTIAL: 'Florida Residential Remodel Contract',
@@ -131,6 +145,9 @@ function resolveDocumentType(pk: string): DocumentType {
   if (pk === 'GENERIC_RFI') return 'rfi';
   if (pk === 'GENERIC_SUBMITTAL') return 'submittal';
   if (pk === 'GENERIC_DAILY_REPORT') return 'daily_report';
+  if (pk === 'GENERIC_QC_REPORT') return 'qc_report';
+  if (pk === 'GENERIC_WARRANTY_CLOSEOUT') return 'warranty_letter';
+  if (pk === 'GENERIC_PUNCH_LIST') return 'punch_list';
   // All residential packs (GENERIC_RESIDENTIAL, CA_RESIDENTIAL, etc.)
   return 'residential_contract';
 }
@@ -498,6 +515,10 @@ export default function DocumentBuilderPage() {
   const isRfiDocument = currentDocumentType === 'rfi';
   const isSubmittalDocument = currentDocumentType === 'submittal';
   const isDailyReportDocument = currentDocumentType === 'daily_report';
+  const isQcReportDocument = currentDocumentType === 'qc_report';
+  const isWarrantyCloseoutDocument = currentDocumentType === 'warranty_letter';
+  const isPunchListDocument = currentDocumentType === 'punch_list';
+  const punchListLegacyHydratedRef = useRef(false);
   const questionnaire = useMemo(
     () => buildQuestionnaire(currentDocumentType, mode),
     [currentDocumentType, mode],
@@ -506,6 +527,20 @@ export default function DocumentBuilderPage() {
     () => resolveVisibleQuestions(questionnaire, answers),
     [questionnaire, answers],
   );
+
+  useEffect(() => {
+    if (!isPunchListDocument) {
+      punchListLegacyHydratedRef.current = false;
+      return;
+    }
+    if (punchListLegacyHydratedRef.current) return;
+    punchListLegacyHydratedRef.current = true;
+    const existing = parsePunchListItems(answers.punchItems);
+    if (existing.length > 0) return;
+    const legacy = legacyAnswersToPunchItems(answers);
+    if (legacy.length === 0) return;
+    setAnswers((prev) => ({ ...prev, punchItems: legacy }));
+  }, [isPunchListDocument, answers.punchItems, answers.itemDescription, answers.itemNumber]);
 
   const packOptions = useMemo(
     () =>
@@ -590,17 +625,73 @@ export default function DocumentBuilderPage() {
       } else {
         setTitle('Daily Report');
       }
+      return;
+    }
+    if (isQcReportDocument) {
+      const reportNumber =
+        typeof answers.reportNumber === 'string' ? answers.reportNumber.trim() : '';
+      const inspectionTypeRaw =
+        typeof answers.inspectionType === 'string' ? answers.inspectionType.trim() : '';
+      const reportDate =
+        typeof answers.reportDate === 'string' ? answers.reportDate.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (reportNumber && inspectionTypeRaw) {
+        setTitle(`QC Report — ${reportNumber} — ${inspectionTypeRaw}`);
+      } else if (inspectionTypeRaw && projectName) {
+        setTitle(`QC Report — ${inspectionTypeRaw} — ${projectName}`);
+      } else if (reportDate && projectName) {
+        setTitle(`QC Report — ${reportDate} — ${projectName}`);
+      } else if (reportDate) {
+        setTitle(`QC Report — ${reportDate}`);
+      } else if (projectName) {
+        setTitle(`QC Report — ${projectName}`);
+      } else {
+        setTitle('QC Report');
+      }
+      return;
+    }
+    if (isWarrantyCloseoutDocument) {
+      const docNumber =
+        typeof answers.documentNumber === 'string' ? answers.documentNumber.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (docNumber) {
+        setTitle(`Warranty / Closeout Letter — ${docNumber}`);
+      } else if (projectName) {
+        setTitle(`Warranty / Closeout Letter — ${projectName}`);
+      } else {
+        setTitle('Warranty / Closeout Letter');
+      }
+      return;
+    }
+    if (isPunchListDocument) {
+      const punchListNumber =
+        typeof answers.punchListNumber === 'string' ? answers.punchListNumber.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (punchListNumber) {
+        setTitle(`Punch List — ${punchListNumber}`);
+      } else if (projectName) {
+        setTitle(`Punch List — ${projectName}`);
+      } else {
+        setTitle('Punch List');
+      }
     }
   }, [
     isChangeOrderDocument,
     isRfiDocument,
     isSubmittalDocument,
     isDailyReportDocument,
+    isQcReportDocument,
+    isWarrantyCloseoutDocument,
+    isPunchListDocument,
     selectedProject,
     answers.changeOrderTitle,
     answers.rfiTitle,
     answers.submittalTitle,
     answers.reportDate,
+    answers.reportNumber,
+    answers.inspectionType,
+    answers.documentNumber,
+    answers.punchListNumber,
   ]);
 
   useEffect(() => {
@@ -679,6 +770,45 @@ export default function DocumentBuilderPage() {
           message: 'Your daily report PDF was generated.',
           type: 'success',
         });
+      } else if (isQcReportDocument) {
+        const view = buildQcReportPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateQcReportPDF(view);
+        setToast({
+          title: 'QC report exported',
+          message: 'Your QC report PDF was generated.',
+          type: 'success',
+        });
+      } else if (isWarrantyCloseoutDocument) {
+        const view = buildWarrantyCloseoutPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateWarrantyCloseoutPDF(view);
+        setToast({
+          title: 'Warranty / closeout exported',
+          message: 'Your warranty / closeout letter PDF was generated.',
+          type: 'success',
+        });
+      } else if (isPunchListDocument) {
+        const view = buildPunchListPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generatePunchListPDF(view);
+        setToast({
+          title: 'Punch list exported',
+          message: 'Your punch list PDF was generated.',
+          type: 'success',
+        });
       } else {
         await exportContractDraftPdf(assembly, risk, {
           companyName: company.legalName || companySettings.companyName || 'Concrete Calc',
@@ -733,7 +863,10 @@ export default function DocumentBuilderPage() {
     isChangeOrderDocument ||
     isRfiDocument ||
     isSubmittalDocument ||
-    isDailyReportDocument;
+    isDailyReportDocument ||
+    isQcReportDocument ||
+    isWarrantyCloseoutDocument ||
+    isPunchListDocument;
 
   const lastSavedLabel = useMemo(() => {
     if (!loadedDoc?.updated_at) return null;
@@ -827,6 +960,7 @@ export default function DocumentBuilderPage() {
   }, [queryExportPdf, queryDocumentId, documentId, handleExport]);
 
   const applySnapshot = useCallback((version: ContractDocumentVersionRow) => {
+    punchListLegacyHydratedRef.current = false;
     const state = restoreBuilderStateFromSnapshot(version.input_snapshot);
     setPackKey(state.packKey);
     setMode(state.mode);
@@ -867,6 +1001,7 @@ export default function DocumentBuilderPage() {
   };
 
   const handleNewContract = () => {
+    punchListLegacyHydratedRef.current = false;
     setDocumentId(null);
     setTitle('');
     setProjectId(queryProjectId ?? null);
@@ -1011,7 +1146,10 @@ export default function DocumentBuilderPage() {
                     isChangeOrderDocument ||
                     isRfiDocument ||
                     isSubmittalDocument ||
-                    isDailyReportDocument
+                    isDailyReportDocument ||
+                    isQcReportDocument ||
+                    isWarrantyCloseoutDocument ||
+                    isPunchListDocument
                   }
                 />
               </div>
@@ -1031,6 +1169,13 @@ export default function DocumentBuilderPage() {
                 onAnswerChange={setAnswer}
                 onRefreshFromProject={() => applyPrefill(true)}
               />
+              {isPunchListDocument ? (
+                <PunchListItemsEditor
+                  mode={mode}
+                  items={parsePunchListItems(answers.punchItems)}
+                  onChange={(items) => setAnswer('punchItems', items)}
+                />
+              ) : null}
               <CompliancePanel
                 packKey={packKey}
                 risk={risk}

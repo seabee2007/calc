@@ -87,6 +87,7 @@ export default function PlannerDocumentsPage() {
     submittals: submittalDocs,
     dailyReports: dailyReportDocs,
     qcReports: qcReportDocs,
+    punchLists: punchListDocs,
     closeout: closeoutDocs,
     other: otherBuilderDocs,
   } = useMemo(() => filterDocumentsTabBuilderDocuments(builderDocs), [builderDocs]);
@@ -289,24 +290,80 @@ export default function PlannerDocumentsPage() {
             </section>
 
             <section>
-              <div className="mb-3 flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-                <h3 className={PLANNER_SECTION_TITLE}>QC reports</h3>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>QC reports</h3>
+                </div>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={() =>
+                    navigate(
+                      contractBuilderToolHref(projectId, undefined, {
+                        packKey: 'GENERIC_QC_REPORT',
+                        documentType: 'qc_report',
+                      }),
+                    )
+                  }
+                >
+                  New QC report
+                </Button>
               </div>
-              {renderBuilderDraftsTable(
-                qcReportDocs,
-                'No QC reports saved for this project yet.',
-              )}
+              {renderBuilderDraftsTable(qcReportDocs, 'No QC reports saved yet.')}
             </section>
 
             <section>
-              <div className="mb-3 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-                <h3 className={PLANNER_SECTION_TITLE}>Closeout / warranty</h3>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>Punch lists</h3>
+                </div>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={() =>
+                    navigate(
+                      contractBuilderToolHref(projectId, undefined, {
+                        packKey: 'GENERIC_PUNCH_LIST',
+                        documentType: 'punch_list',
+                      }),
+                    )
+                  }
+                >
+                  New punch list
+                </Button>
+              </div>
+              {renderBuilderDraftsTable(punchListDocs, 'No punch lists saved yet.')}
+            </section>
+
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>Closeout / warranty</h3>
+                </div>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={() =>
+                    navigate(
+                      contractBuilderToolHref(projectId, undefined, {
+                        packKey: 'GENERIC_WARRANTY_CLOSEOUT',
+                        documentType: 'warranty_letter',
+                      }),
+                    )
+                  }
+                >
+                  New closeout / warranty letter
+                </Button>
               </div>
               {renderBuilderDraftsTable(
                 closeoutDocs,
-                'No closeout or warranty documents saved for this project yet.',
+                'No closeout or warranty documents saved yet.',
               )}
             </section>
 

@@ -39,7 +39,10 @@ export type BuilderDocumentType =
   | 'change_order'
   | 'rfi'
   | 'submittal'
-  | 'daily_report';
+  | 'daily_report'
+  | 'qc_report'
+  | 'warranty_letter'
+  | 'punch_list';
 
 export type ProjectDocumentRow = ContractDocumentRow;
 
@@ -179,6 +182,9 @@ export const BUILDER_DOCUMENT_TYPE_LABELS: Record<string, string> = {
   rfi: 'RFI',
   submittal: 'Submittal',
   daily_report: 'Daily Report',
+  qc_report: 'QC Report',
+  warranty_letter: 'Warranty / Closeout Letter',
+  punch_list: 'Punch List',
 };
 
 export function formatProjectDocumentTypeLabel(documentType: string): string {

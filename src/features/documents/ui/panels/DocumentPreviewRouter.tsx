@@ -8,7 +8,13 @@ import { buildChangeOrderPreviewFromDocumentAnswers } from '../adapters/changeOr
 import { buildRfiPreviewFromDocumentAnswers } from '../adapters/rfiPreviewAdapter';
 import { buildSubmittalPreviewFromDocumentAnswers } from '../adapters/submittalPreviewAdapter';
 import { buildDailyReportPreviewFromDocumentAnswers } from '../adapters/dailyReportPreviewAdapter';
+import { buildQcReportPreviewFromDocumentAnswers } from '../adapters/qcReportPreviewAdapter';
+import { buildWarrantyCloseoutPreviewFromDocumentAnswers } from '../adapters/warrantyCloseoutPreviewAdapter';
+import { buildPunchListPreviewFromDocumentAnswers } from '../adapters/punchListPreviewAdapter';
 import DailyReportDocument from '../renderers/DailyReportDocument';
+import PunchListDocument from '../renderers/PunchListDocument';
+import QcReportDocument from '../renderers/QcReportDocument';
+import WarrantyCloseoutDocument from '../renderers/WarrantyCloseoutDocument';
 import ResidentialContractDocument from '../renderers/ResidentialContractDocument';
 import RfiDocument from '../renderers/RfiDocument';
 import SubmittalDocument from '../renderers/SubmittalDocument';
@@ -77,6 +83,9 @@ function PaperPreviewShell({
  * - `rfi` (live preview) → professional `RfiDocument`
  * - `submittal` (live preview) → professional `SubmittalDocument`
  * - `daily_report` (live preview) → professional `DailyReportDocument`
+ * - `qc_report` (live preview) → professional `QcReportDocument`
+ * - `warranty_letter` (live preview) → professional `WarrantyCloseoutDocument`
+ * - `punch_list` (live preview) → professional `PunchListDocument`
  * - historical version selected → `PreviewPanel` (clause-list snapshot)
  * - everything else → `PreviewPanel`
  */
@@ -102,12 +111,25 @@ export default function DocumentPreviewRouter({
   const isRfi = documentType === 'rfi' || packKey === 'GENERIC_RFI';
   const isSubmittal = documentType === 'submittal' || packKey === 'GENERIC_SUBMITTAL';
   const isDailyReport = documentType === 'daily_report' || packKey === 'GENERIC_DAILY_REPORT';
+  const isQcReport = documentType === 'qc_report' || packKey === 'GENERIC_QC_REPORT';
+  const isWarrantyCloseout =
+    documentType === 'warranty_letter' || packKey === 'GENERIC_WARRANTY_CLOSEOUT';
+  const isPunchList = documentType === 'punch_list' || packKey === 'GENERIC_PUNCH_LIST';
 
   const [adapterError, setAdapterError] = useState<string | null>(null);
 
   useEffect(() => {
     setAdapterError(null);
-  }, [isChangeOrder, isRfi, isSubmittal, isDailyReport, selectedProject]);
+  }, [
+    isChangeOrder,
+    isRfi,
+    isSubmittal,
+    isDailyReport,
+    isQcReport,
+    isWarrantyCloseout,
+    isPunchList,
+    selectedProject,
+  ]);
 
   const changeOrderPreview = useMemo(() => {
     if (!isChangeOrder || previewVersion) return null;
@@ -182,6 +204,60 @@ export default function DocumentPreviewRouter({
     }
   }, [isDailyReport, previewVersion, answers, selectedProject, companySettings, title]);
 
+  const qcReportPreview = useMemo(() => {
+    if (!isQcReport || previewVersion) return null;
+    try {
+      return buildQcReportPreviewFromDocumentAnswers({
+        answers,
+        selectedProject,
+        companySettings,
+        title,
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[DocumentPreviewRouter] QC Report adapter error:', err);
+      }
+      setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
+      return null;
+    }
+  }, [isQcReport, previewVersion, answers, selectedProject, companySettings, title]);
+
+  const warrantyCloseoutPreview = useMemo(() => {
+    if (!isWarrantyCloseout || previewVersion) return null;
+    try {
+      return buildWarrantyCloseoutPreviewFromDocumentAnswers({
+        answers,
+        selectedProject,
+        companySettings,
+        title,
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[DocumentPreviewRouter] Warranty / Closeout adapter error:', err);
+      }
+      setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
+      return null;
+    }
+  }, [isWarrantyCloseout, previewVersion, answers, selectedProject, companySettings, title]);
+
+  const punchListPreview = useMemo(() => {
+    if (!isPunchList || previewVersion) return null;
+    try {
+      return buildPunchListPreviewFromDocumentAnswers({
+        answers,
+        selectedProject,
+        companySettings,
+        title,
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[DocumentPreviewRouter] Punch List adapter error:', err);
+      }
+      setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
+      return null;
+    }
+  }, [isPunchList, previewVersion, answers, selectedProject, companySettings, title]);
+
   if (adapterError) {
     return (
       <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-6 text-sm text-amber-800 dark:text-amber-200">
@@ -225,6 +301,30 @@ export default function DocumentPreviewRouter({
     return (
       <PaperPreviewShell>
         <DailyReportDocument view={dailyReportPreview} />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (qcReportPreview) {
+    return (
+      <PaperPreviewShell>
+        <QcReportDocument view={qcReportPreview} />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (warrantyCloseoutPreview) {
+    return (
+      <PaperPreviewShell>
+        <WarrantyCloseoutDocument view={warrantyCloseoutPreview} />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (punchListPreview) {
+    return (
+      <PaperPreviewShell>
+        <PunchListDocument view={punchListPreview} />
       </PaperPreviewShell>
     );
   }

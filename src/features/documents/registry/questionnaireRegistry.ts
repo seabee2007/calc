@@ -4,6 +4,9 @@ import { changeOrderQuestions } from '../packs/changeOrder';
 import { rfiQuestions } from '../packs/rfi';
 import { submittalQuestions } from '../packs/submittal';
 import { dailyReportQuestions } from '../packs/dailyReport';
+import { qcReportQuestions } from '../packs/qcReport';
+import { warrantyCloseoutQuestions } from '../packs/warrantyCloseout';
+import { punchListQuestions } from '../packs/punchList';
 
 const banks = new Map<DocumentType, DocumentQuestion[]>([
   ['residential_contract', residentialQuestions],
@@ -11,6 +14,9 @@ const banks = new Map<DocumentType, DocumentQuestion[]>([
   ['rfi', rfiQuestions],
   ['submittal', submittalQuestions],
   ['daily_report', dailyReportQuestions],
+  ['qc_report', qcReportQuestions],
+  ['warranty_letter', warrantyCloseoutQuestions],
+  ['punch_list', punchListQuestions],
 ]);
 
 export function registerQuestionBank(documentType: DocumentType, questions: DocumentQuestion[]): void {

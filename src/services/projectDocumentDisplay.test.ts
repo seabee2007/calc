@@ -42,6 +42,38 @@ describe('projectDocumentDisplay', () => {
     expect(getProjectDocumentDisplayMeta(doc).group).toBe('Daily Reports');
   });
 
+  it('routes GENERIC_WARRANTY_CLOSEOUT pack to Closeout / Warranty group', () => {
+    const doc = row({
+      document_type: 'residential_contract',
+      pack_key: 'GENERIC_WARRANTY_CLOSEOUT',
+      id: 'wc',
+    });
+    expect(resolveEffectiveDocumentType(doc)).toBe('warranty_letter');
+    expect(getProjectDocumentDisplayMeta(doc).group).toBe('Closeout / Warranty');
+    const grouped = filterDocumentsTabBuilderDocuments([doc]);
+    expect(grouped.closeout.map((d) => d.id)).toEqual(['wc']);
+  });
+
+  it('routes GENERIC_PUNCH_LIST pack to Punch Lists group', () => {
+    const doc = row({
+      document_type: 'residential_contract',
+      pack_key: 'GENERIC_PUNCH_LIST',
+      id: 'pl',
+    });
+    expect(resolveEffectiveDocumentType(doc)).toBe('punch_list');
+    expect(getProjectDocumentDisplayMeta(doc).group).toBe('Punch Lists');
+    const grouped = filterDocumentsTabBuilderDocuments([doc]);
+    expect(grouped.punchLists.map((d) => d.id)).toEqual(['pl']);
+  });
+
+  it('routes GENERIC_QC_REPORT pack to QC Reports group', () => {
+    const doc = row({ document_type: 'residential_contract', pack_key: 'GENERIC_QC_REPORT', id: 'qc' });
+    expect(resolveEffectiveDocumentType(doc)).toBe('qc_report');
+    expect(getProjectDocumentDisplayMeta(doc).group).toBe('QC Reports');
+    const grouped = filterDocumentsTabBuilderDocuments([doc]);
+    expect(grouped.qcReports.map((d) => d.id)).toEqual(['qc']);
+  });
+
   it('groups documents tab rows correctly', () => {
     const docs = [
       row({ document_type: 'change_order', pack_key: 'GENERIC_DAILY_REPORT', id: 'dr' }),

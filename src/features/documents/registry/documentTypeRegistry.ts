@@ -30,6 +30,27 @@ const DEFINITIONS: Partial<Record<DocumentType, DocumentTypeDefinition>> = {
     defaultPackKey: 'GENERIC_DAILY_REPORT',
     defaultTemplateKey: 'GENERIC_DAILY_REPORT_TEMPLATE',
   },
+  qc_report: {
+    documentType: 'qc_report',
+    label: 'QC Report',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_QC_REPORT',
+    defaultTemplateKey: 'GENERIC_QC_REPORT_TEMPLATE',
+  },
+  warranty_letter: {
+    documentType: 'warranty_letter',
+    label: 'Warranty / Closeout Letter',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_WARRANTY_CLOSEOUT',
+    defaultTemplateKey: 'GENERIC_WARRANTY_CLOSEOUT_TEMPLATE',
+  },
+  punch_list: {
+    documentType: 'punch_list',
+    label: 'Punch List',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_PUNCH_LIST',
+    defaultTemplateKey: 'GENERIC_PUNCH_LIST_TEMPLATE',
+  },
 };
 
 export function getDocumentTypeDefinition(

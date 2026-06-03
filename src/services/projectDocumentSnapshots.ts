@@ -84,6 +84,9 @@ export function extractDocumentNumber(
     rfi: ['rfiNumber', 'displayNumber'],
     submittal: ['submittalNumber', 'displayNumber'],
     daily_report: ['reportNumber', 'displayNumber'],
+    qc_report: ['reportNumber', 'displayNumber'],
+    warranty_letter: ['documentNumber', 'displayNumber'],
+    punch_list: ['punchListNumber', 'displayNumber'],
     change_order: ['changeOrderNumber', 'displayNumber'],
     residential_contract: ['contractNumber', 'displayNumber'],
   };

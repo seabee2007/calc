@@ -8,6 +8,7 @@ export type ProjectDocumentPlannerGroup =
   | 'Submittals'
   | 'Daily Reports'
   | 'QC Reports'
+  | 'Punch Lists'
   | 'Closeout / Warranty'
   | 'Other Documents';
 
@@ -23,6 +24,9 @@ const PACK_TO_TYPE: Record<string, string> = {
   GENERIC_RFI: 'rfi',
   GENERIC_SUBMITTAL: 'submittal',
   GENERIC_DAILY_REPORT: 'daily_report',
+  GENERIC_QC_REPORT: 'qc_report',
+  GENERIC_WARRANTY_CLOSEOUT: 'warranty_letter',
+  GENERIC_PUNCH_LIST: 'punch_list',
   GENERIC_RESIDENTIAL: 'residential_contract',
 };
 
@@ -55,6 +59,26 @@ export function getProjectDocumentDisplayMeta(
         label: 'Daily Report',
         group: 'Daily Reports',
         subtitleLabel: 'Daily Report',
+      };
+    case 'qc_report':
+    case 'inspection_report':
+      return {
+        label: 'QC Report',
+        group: 'QC Reports',
+        subtitleLabel: 'QC Report',
+      };
+    case 'punch_list':
+      return {
+        label: 'Punch List',
+        group: 'Punch Lists',
+        subtitleLabel: 'Punch List',
+      };
+    case 'warranty_letter':
+    case 'closeout_document':
+      return {
+        label: 'Warranty / Closeout Letter',
+        group: 'Closeout / Warranty',
+        subtitleLabel: 'Warranty / Closeout Letter',
       };
     case 'submittal':
       return {
@@ -145,6 +169,7 @@ export function filterDocumentsTabBuilderDocuments(docs: ProjectDocumentRow[]): 
   submittals: ProjectDocumentRow[];
   dailyReports: ProjectDocumentRow[];
   qcReports: ProjectDocumentRow[];
+  punchLists: ProjectDocumentRow[];
   closeout: ProjectDocumentRow[];
   other: ProjectDocumentRow[];
 } {
@@ -152,6 +177,7 @@ export function filterDocumentsTabBuilderDocuments(docs: ProjectDocumentRow[]): 
   const submittals: ProjectDocumentRow[] = [];
   const dailyReports: ProjectDocumentRow[] = [];
   const qcReports: ProjectDocumentRow[] = [];
+  const punchLists: ProjectDocumentRow[] = [];
   const closeout: ProjectDocumentRow[] = [];
   const other: ProjectDocumentRow[] = [];
 
@@ -171,6 +197,9 @@ export function filterDocumentsTabBuilderDocuments(docs: ProjectDocumentRow[]): 
       case 'QC Reports':
         qcReports.push(doc);
         break;
+      case 'Punch Lists':
+        punchLists.push(doc);
+        break;
       case 'Closeout / Warranty':
         closeout.push(doc);
         break;
@@ -180,7 +209,7 @@ export function filterDocumentsTabBuilderDocuments(docs: ProjectDocumentRow[]): 
     }
   }
 
-  return { contracts, submittals, dailyReports, qcReports, closeout, other };
+  return { contracts, submittals, dailyReports, qcReports, punchLists, closeout, other };
 }
 
 export const DEFAULT_PACK_BY_DOCUMENT_TYPE: Record<string, string> = {
@@ -188,5 +217,8 @@ export const DEFAULT_PACK_BY_DOCUMENT_TYPE: Record<string, string> = {
   rfi: 'GENERIC_RFI',
   submittal: 'GENERIC_SUBMITTAL',
   daily_report: 'GENERIC_DAILY_REPORT',
+  qc_report: 'GENERIC_QC_REPORT',
+  warranty_letter: 'GENERIC_WARRANTY_CLOSEOUT',
+  punch_list: 'GENERIC_PUNCH_LIST',
   residential_contract: 'GENERIC_RESIDENTIAL',
 };
