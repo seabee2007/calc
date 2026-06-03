@@ -15,9 +15,16 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 export async function createProject(project: Pick<Project, 'name' | 'description'>): Promise<Project> {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user) throw new Error('You must be signed in to create a project.');
   const { data, error } = await supabase
     .from('projects')
-    .insert(project)
+    .insert({
+      user_id: user.id,
+      name: project.name,
+      description: project.description,
+    })
     .select()
     .single();
 

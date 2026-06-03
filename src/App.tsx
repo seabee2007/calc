@@ -21,7 +21,6 @@ import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
 import AuthGuard from './components/auth/AuthGuard';
-import { useProjectStore } from './store';
 import ConcreteChat from "./components/ConcreteChat";
 
 export const useChatStore = () => {
@@ -30,13 +29,8 @@ export const useChatStore = () => {
 };
 
 function App() {
-  const { loadProjects } = useProjectStore();
   const chatStore = useChatStore();
   const { isDark } = useThemeStore();
-
-  useEffect(() => {
-    loadProjects().catch(console.error);
-  }, [loadProjects]);
 
   useEffect(() => {
     if (isDark) {
@@ -111,7 +105,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/\" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {chatStore.isVisible && (

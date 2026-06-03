@@ -71,7 +71,7 @@ const Projects: React.FC = () => {
   }, [currentProject]);
 
   useEffect(() => {
-    loadProjects();
+    loadProjects().catch(console.error);
   }, [loadProjects]);
 
   const handleMixProfileChange = async (newProfile: MixProfileType) => {
@@ -104,12 +104,6 @@ const Projects: React.FC = () => {
           localDate.getMilliseconds()
         ));
 
-        const { error } = await supabase
-          .from('projects')
-          .update({ pour_date: utcDate.toISOString() })
-          .eq('id', currentProject.id);
-
-        if (error) throw error;
 
         await updateProject(currentProject.id, { pourDate: utcDate.toISOString() });
         showToastMessage('Pour date updated successfully', 'success');
@@ -137,10 +131,15 @@ const Projects: React.FC = () => {
     }
   };
 
-  const handleCreateProject = (data: { name: string; description: string }) => {
-    addProject(data);
-    setShowCreateForm(false);
-    showToastMessage('Project created successfully', 'success');
+  const handleCreateProject = async (data: { name: string; description: string }) => {
+    try {
+      await addProject(data);
+      setShowCreateForm(false);
+      showToastMessage('Project created successfully', 'success');
+    } catch (error) {
+      console.error('Error creating project:', error);
+      showToastMessage('Error creating project', 'error');
+    }
   };
 
   const handleProjectClick = (project: Project) => {

@@ -218,9 +218,13 @@ export const useProjectStore = create<ProjectState>((set) => ({
   },
 
   addProject: async (project) => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('You must be signed in to create a project.');
     const { data, error } = await supabase
       .from('projects')
       .insert({
+        user_id:      user.id,
         name:         project.name,
         description:  project.description,
         waste_factor: project.wasteFactor,
