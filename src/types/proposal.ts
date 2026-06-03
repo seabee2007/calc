@@ -41,3 +41,9 @@ export interface ProposalData {
   preparedBy: string;
   preparedByTitle?: string;
 }
+
+/** Empty legal/sign-off fields for previews, tests, and partial drafts. */
+export const EMPTY_PROPOSAL_DOCUMENT_FIELDS = {
+  terms: '',
+  preparedBy: '',
+} as const satisfies Pick<ProposalData, 'terms' | 'preparedBy'>;

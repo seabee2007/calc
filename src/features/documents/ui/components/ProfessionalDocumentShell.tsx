@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { DOCUMENT_HEADER_LOGO_CLASS } from './documentHeaderTheme';
 import type { DocumentCompany, DocumentProject } from './professionalDocumentTypes';
 import DocumentStatusBadge from './DocumentStatusBadge';
 
@@ -54,7 +55,7 @@ export default function ProfessionalDocumentShell({
               <img
                 src={company.logoUrl}
                 alt=""
-                className="mb-3 max-h-14 max-w-[200px] object-contain"
+                className={DOCUMENT_HEADER_LOGO_CLASS}
               />
             ) : null}
             <p className="text-lg font-bold text-slate-900">

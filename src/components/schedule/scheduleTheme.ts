@@ -42,6 +42,7 @@ const typeStyleMap: Partial<
   contract_award: {
     badge: 'bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800',
     dot: 'bg-indigo-600',
+    surface: 'bg-indigo-100/90 border-indigo-200 dark:bg-indigo-950/50 dark:border-indigo-800',
   },
   site_visit: {
     badge: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600',
@@ -51,10 +52,12 @@ const typeStyleMap: Partial<
   preconstruction_meeting: {
     badge: 'bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800',
     dot: 'bg-indigo-500',
+    surface: 'bg-indigo-100/90 border-indigo-200 dark:bg-indigo-950/50 dark:border-indigo-800',
   },
   mobilization: {
     badge: 'bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-800',
     dot: 'bg-teal-500',
+    surface: 'bg-teal-100/90 border-teal-200 dark:bg-teal-950/50 dark:border-teal-800',
   },
   crew_work_day: {
     badge: 'bg-green-50 text-green-800 border-green-200 dark:bg-green-950/40 dark:text-green-200 dark:border-green-800',
@@ -79,6 +82,7 @@ const typeStyleMap: Partial<
   subcontractor_meeting: {
     badge: 'bg-cyan-50 text-cyan-900 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-200 dark:border-cyan-800',
     dot: 'bg-cyan-500',
+    surface: 'bg-cyan-100/90 border-cyan-200 dark:bg-cyan-950/50 dark:border-cyan-800',
   },
   weather_delay: {
     badge: 'bg-orange-50 text-orange-900 border-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-800',
@@ -93,14 +97,17 @@ const typeStyleMap: Partial<
   permit_deadline: {
     badge: 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800',
     dot: 'bg-red-400',
+    surface: 'bg-red-100/90 border-red-200 dark:bg-red-950/50 dark:border-red-800',
   },
   submittal_due: {
     badge: 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800',
     dot: 'bg-rose-500',
+    surface: 'bg-rose-100/90 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800',
   },
   rfi_due: {
     badge: 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800',
     dot: 'bg-rose-400',
+    surface: 'bg-rose-100/90 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800',
   },
   punch_list: {
     badge: 'bg-yellow-50 text-yellow-900 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-200 dark:border-yellow-800',
@@ -110,14 +117,17 @@ const typeStyleMap: Partial<
   closeout: {
     badge: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600',
     dot: 'bg-gray-600',
+    surface: 'bg-gray-100 border-gray-200 dark:bg-slate-800/80 dark:border-slate-600',
   },
   warranty_follow_up: {
     badge: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600',
     dot: 'bg-gray-500',
+    surface: 'bg-gray-100 border-gray-200 dark:bg-slate-800/80 dark:border-slate-600',
   },
   general_task: {
     badge: neutralBadge,
     dot: 'bg-neutral-400',
+    surface: 'bg-neutral-50 border-neutral-200 dark:bg-slate-800/80 dark:border-slate-600',
   },
 };
 

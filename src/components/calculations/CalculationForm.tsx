@@ -505,7 +505,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             <Select
               options={fractionOptions}
               fullWidth
-              value={field.value}
+              value={field.value ?? ''}
               onChange={field.onChange}
             />
           )}
@@ -708,7 +708,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Recommendations</h3>
               <ul className="space-y-2">
-                {calculationResult.recommendations.map((rec, index) => (
+                {(calculationResult.recommendations ?? []).map((rec, index) => (
                   <li key={index} className="flex items-start">
                     <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm mr-2">
                       {index + 1}

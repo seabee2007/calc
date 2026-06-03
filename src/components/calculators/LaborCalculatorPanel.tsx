@@ -86,7 +86,7 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
   }, [laborInput, volumeYd]);
 
   const handleAiCrewReview = async () => {
-    if (!optimization || volumeYd <= 0) return;
+    if (!optimization || volumeYd <= 0 || !optimization.current) return;
 
     setAiReviewLoading(true);
     setAiReviewError(null);
@@ -407,7 +407,8 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
                 </p>
                 <p className="font-medium text-gray-900 dark:text-white">
                   {formatCurrency(suggestedScenario.totalLaborCost)}
-                  {optimization.current.totalLaborCost > suggestedScenario.totalLaborCost && (
+                  {optimization.current &&
+                    optimization.current.totalLaborCost > suggestedScenario.totalLaborCost && (
                     <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
                       saves{' '}
                       {formatCurrency(

@@ -89,11 +89,13 @@ const ConcreteCalculatorPage: React.FC = () => {
                 <Button
                   variant="secondary"
                   onClick={() =>
-                    navigate({
-                      pathname: '/calculator',
-                      search: workflowQuery(workflowProjectId),
-                      state: workflowNavigateState(workflowProjectId),
-                    })
+                    navigate(
+                      {
+                        pathname: '/calculator',
+                        search: workflowQuery(workflowProjectId),
+                      },
+                      { state: workflowNavigateState(workflowProjectId) },
+                    )
                   }
                   className="shadow-sm"
                 >

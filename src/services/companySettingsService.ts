@@ -1,5 +1,11 @@
 import { supabase } from '../lib/supabase';
 import type { TaxApplication, TaxSystem } from '../types/pricingParams';
+import {
+  mergeCompanySettingsUpdates,
+  type CompanySettingsUpdateOptions,
+} from './companySettingsMerge';
+
+export type { CompanySettingsUpdateOptions } from './companySettingsMerge';
 
 export {
   getUserPreferences,
@@ -109,8 +115,8 @@ export async function saveCompanySettings(settings: Partial<CompanySettings>): P
     email: settings.email || '',
     license_number: settings.licenseNumber || '',
     motto: settings.motto || '',
-    logo_url: settings.logoUrl,
-    logo_path: settings.logoPath,
+    logo_url: settings.logoUrl ?? null,
+    logo_path: settings.logoPath ?? null,
   };
   if (settings.taxSystem !== undefined) dbData.tax_system = settings.taxSystem;
   if (settings.taxRatePercent !== undefined) {
@@ -141,17 +147,12 @@ export async function saveCompanySettings(settings: Partial<CompanySettings>): P
  * @param updates - The fields to update
  * @returns The updated settings
  */
-export async function updateCompanySettings(updates: Partial<CompanySettings>): Promise<CompanySettings> {
-  // Get current settings first
+export async function updateCompanySettings(
+  updates: Partial<CompanySettings>,
+  options?: CompanySettingsUpdateOptions,
+): Promise<CompanySettings> {
   const currentSettings = await getCompanySettings();
-  
-  // Merge updates with current settings
-  const updatedSettings = {
-    ...currentSettings,
-    ...updates
-  };
-
-  // Save the merged settings
+  const updatedSettings = mergeCompanySettingsUpdates(currentSettings, updates, options);
   return await saveCompanySettings(updatedSettings);
 }
 

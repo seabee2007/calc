@@ -98,7 +98,7 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
         )}
         {currentProject && hasProjectJobsite(currentProject.jobsiteAddress) && (
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Jobsite: {formatUSAddress(currentProject.jobsiteAddress)}
+            Jobsite: {formatUSAddress(currentProject.jobsiteAddress!)}
           </p>
         )}
       </div>

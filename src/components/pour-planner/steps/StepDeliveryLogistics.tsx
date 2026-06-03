@@ -228,10 +228,7 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
         <ReadyMixDelivery
           volume={volume}
           volumeUnit={preferences.volumeUnit}
-          truckCapacityYd={truckCapacityYd}
-          plannedTruckCount={plannedTruckCount}
-          isShortLoad={isShortLoadPour}
-          suggestedTruckTypeId={suggestedTruckTypeId}
+          defaultTruckTypeId={suggestedTruckTypeId}
         />
 
         <Card className="p-4 mt-4 bg-gray-50 dark:bg-gray-800/50">

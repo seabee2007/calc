@@ -66,7 +66,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
           motto: formData.motto
         };
 
-        await updateCompanySettings(settingsData);
+        await updateCompanySettings(settingsData, { allowEmptyTextOverwrite: true });
         onComplete();
         // Navigate to home page
         navigate('/');

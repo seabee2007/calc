@@ -53,9 +53,9 @@ function mapRowToPreferences(data: Record<string, unknown>): UserPreferences {
       (data.measurement_system as UserPreferences['measurementSystem']) || 'imperial',
     currency: (data.currency as UserPreferences['currency']) || 'USD',
     defaultPSI: (data.default_psi as UserPreferences['defaultPSI']) || '3000',
-    autoSave: data.auto_save ?? true,
-    soundEnabled: data.sound_enabled ?? true,
-    hapticsEnabled: data.haptics_enabled ?? true,
+    autoSave: typeof data.auto_save === 'boolean' ? data.auto_save : true,
+    soundEnabled: typeof data.sound_enabled === 'boolean' ? data.sound_enabled : true,
+    hapticsEnabled: typeof data.haptics_enabled === 'boolean' ? data.haptics_enabled : true,
     notifications:
       (data.notifications as UserPreferences['notifications']) || DEFAULT_NOTIFICATIONS,
   };

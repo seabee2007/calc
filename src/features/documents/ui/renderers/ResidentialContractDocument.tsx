@@ -9,6 +9,7 @@ import {
   buildResidentialContractDisplayContext,
   filterVisibleRows,
 } from './residentialContractContext';
+import { DOCUMENT_HEADER_LOGO_CLASS } from '../components/documentHeaderTheme';
 import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 
@@ -141,7 +142,7 @@ export default function ResidentialContractDocument({
               <img
                 src={context.company.logoUrl}
                 alt=""
-                className="mb-3 max-h-14 max-w-[200px] object-contain"
+                className={DOCUMENT_HEADER_LOGO_CLASS}
               />
             ) : null}
             <p className="text-lg font-bold text-slate-900">{context.company.name}</p>
@@ -265,11 +266,8 @@ export default function ResidentialContractDocument({
                 {isLockedNotice ? (
                   <Lock className="h-4 w-4 shrink-0 text-amber-700" aria-hidden />
                 ) : null}
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Section
-                </p>
+                <h3 className="text-base font-semibold text-slate-950">{section.title}</h3>
               </div>
-              <h3 className="mt-1 text-base font-semibold text-slate-950">{section.title}</h3>
               {renderSectionBody(section.body)}
             </article>
           );

@@ -217,6 +217,8 @@ describe('proposal pricing integration', () => {
       introduction: '',
       scope: '',
       timeline: [],
+      terms: '',
+      preparedBy: '',
       laborItems: [{ description: 'Labor', amount: 1000 }],
       materialItems: [{ description: 'Concrete', amount: 5000 }],
       equipmentItems: [],

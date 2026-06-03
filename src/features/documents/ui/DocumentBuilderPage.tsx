@@ -25,6 +25,8 @@ import { buildDocumentInput, type ContractAnswers } from './contractInput';
 import {
   buildContractCompanyPrefill,
   buildContractPrefillFromProject,
+  companyPrefillFingerprint,
+  mapCompanySettingsToContractPrefillSource,
   jobsitePrefillFingerprint,
   type ContractPrefillResult,
 } from './contractPrefill';
@@ -126,6 +128,7 @@ function resolveDocumentType(pk: string): DocumentType {
 export default function DocumentBuilderPage() {
   const [searchParams] = useSearchParams();
   const companySettings = useSettingsStore((s) => s.companySettings);
+  const loadCompanySettings = useSettingsStore((s) => s.loadCompanySettings);
   const projects = useProjectStore((s) => s.projects);
   const loadProjects = useProjectStore((s) => s.loadProjects);
   const setCurrentProject = useProjectStore((s) => s.setCurrentProject);
@@ -180,6 +183,10 @@ export default function DocumentBuilderPage() {
   useEffect(() => {
     void loadProjects();
   }, [loadProjects]);
+
+  useEffect(() => {
+    void loadCompanySettings();
+  }, [loadCompanySettings]);
 
   useEffect(() => {
     void refreshSavedDocs(projectId);
@@ -323,13 +330,7 @@ export default function DocumentBuilderPage() {
   }, []);
 
   const company = useMemo(
-    () => ({
-      legalName: companySettings.companyName,
-      address: companySettings.address,
-      phone: companySettings.phone,
-      email: companySettings.email,
-      licenseNumber: companySettings.licenseNumber,
-    }),
+    () => mapCompanySettingsToContractPrefillSource(companySettings),
     [companySettings],
   );
 
@@ -394,8 +395,9 @@ export default function DocumentBuilderPage() {
 
   const applyPrefill = useCallback(
     (overwriteDirty = false) => {
-      if (!selectedProject) return;
-      const projectPrefill = buildContractPrefillFromProject(selectedProject, projectProposals);
+      const projectPrefill = selectedProject
+        ? buildContractPrefillFromProject(selectedProject, projectProposals)
+        : { values: {}, sources: {}, notes: {} };
       const companyPrefill = buildContractCompanyPrefill(company);
       const values = { ...companyPrefill.values, ...projectPrefill.values };
       const sources = { ...companyPrefill.sources, ...projectPrefill.sources };
@@ -443,14 +445,15 @@ export default function DocumentBuilderPage() {
   }, [projectId]);
 
   useEffect(() => {
-    if (!selectedProject) return;
+    const companyKey = companyPrefillFingerprint(companySettings);
     const latestProposalKey = projectProposals.map((proposal) => proposal.id).join('|');
-    const jobsiteKey = jobsitePrefillFingerprint(selectedProject);
-    const runKey = `${selectedProject.id}:${jobsiteKey}:${latestProposalKey}`;
+    const runKey = selectedProject
+      ? `${selectedProject.id}:${jobsitePrefillFingerprint(selectedProject)}:${latestProposalKey}:${companyKey}`
+      : `company:${companyKey}`;
     if (prefillRunKeyRef.current === runKey) return;
     prefillRunKeyRef.current = runKey;
     applyPrefill(false);
-  }, [applyPrefill, projectProposals, selectedProject]);
+  }, [applyPrefill, companySettings, projectProposals, selectedProject]);
 
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
   const isChangeOrderDocument = currentDocumentType === 'change_order';
@@ -581,11 +584,12 @@ export default function DocumentBuilderPage() {
         setToast({ title: 'RFI exported', message: 'Your RFI PDF was generated.', type: 'success' });
       } else {
         await exportContractDraftPdf(assembly, risk, {
-          companyName: company.legalName || 'Concrete Calc',
-          address: company.address || '',
-          phone: company.phone || '',
-          email: company.email,
-          licenseNumber: company.licenseNumber,
+          companyName: company.legalName || companySettings.companyName || 'Concrete Calc',
+          address: company.address || companySettings.address || '',
+          phone: company.phone || companySettings.phone || '',
+          email: company.email || companySettings.email,
+          licenseNumber: company.licenseNumber || companySettings.licenseNumber,
+          logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
         }, {
           answers,
           documentTitle: title || assembly.title,
