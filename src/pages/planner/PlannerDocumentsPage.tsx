@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ClipboardList, FileSignature, FileText, Plus, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
@@ -6,8 +6,10 @@ import { useAuth } from '../../hooks/useAuth';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import { listSafetyMeetingsForProject } from '../../services/safetyMeetingService';
 import { listConcreteInspectionsForProject } from '../../services/concreteInspectionService';
-import { listContractDocuments } from '../../features/documents/services/contractDocumentService';
-import type { ContractDocumentRow } from '../../features/documents/services/contractDocumentTypes';
+import { listProjectDocuments } from '../../services/projectDocumentService';
+import type { ProjectDocumentRow } from '../../services/projectDocumentService';
+import { filterDocumentsTabBuilderDocuments } from '../../services/projectDocumentDisplay';
+import PlannerBuilderDocumentRow from '../../components/planner/PlannerBuilderDocumentRow';
 import type { SafetyMeeting } from '../../types/fieldTools';
 import type { ConcreteInspectionChecklist } from '../../types/fieldTools';
 import {
@@ -36,7 +38,7 @@ function formatDocDate(iso: string | undefined): string {
   }
 }
 
-function formatSigningMeta(doc: ContractDocumentRow): string {
+function formatSigningMeta(doc: ProjectDocumentRow): string {
   const status = doc.signing_status ?? 'draft';
   if (status === 'signed') return 'Signed';
   if (status === 'sent' || status === 'viewed') return 'Awaiting client signature';
@@ -56,7 +58,7 @@ export default function PlannerDocumentsPage() {
 
   const [safetyMeetings, setSafetyMeetings] = useState<SafetyMeeting[]>([]);
   const [inspections, setInspections] = useState<ConcreteInspectionChecklist[]>([]);
-  const [contracts, setContracts] = useState<ContractDocumentRow[]>([]);
+  const [builderDocs, setBuilderDocs] = useState<ProjectDocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -66,11 +68,11 @@ export default function PlannerDocumentsPage() {
       const [meetings, checklists, contractRows] = await Promise.all([
         listSafetyMeetingsForProject(projectId, user.id),
         listConcreteInspectionsForProject(projectId, user.id),
-        listContractDocuments(projectId),
+        listProjectDocuments(projectId),
       ]);
       setSafetyMeetings(meetings);
       setInspections(checklists);
-      setContracts(contractRows);
+      setBuilderDocs(contractRows);
     } finally {
       setLoading(false);
     }
@@ -79,6 +81,45 @@ export default function PlannerDocumentsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const {
+    contracts: residentialContracts,
+    submittals: submittalDocs,
+    dailyReports: dailyReportDocs,
+    qcReports: qcReportDocs,
+    closeout: closeoutDocs,
+    other: otherBuilderDocs,
+  } = useMemo(() => filterDocumentsTabBuilderDocuments(builderDocs), [builderDocs]);
+
+  const renderBuilderDraftsTable = (docs: ProjectDocumentRow[], empty: string) => {
+    if (docs.length === 0) {
+      return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
+    }
+    return (
+      <div className={PLANNER_TABLE_WRAPPER}>
+        <table className={PLANNER_TABLE}>
+          <thead>
+            <tr className={PLANNER_TABLE_HEAD}>
+              <th className="px-4 py-3 font-semibold">Updated</th>
+              <th className="px-4 py-3 font-semibold">Title</th>
+              <th className="px-4 py-3 font-semibold">Number / Status</th>
+              <th className="px-4 py-3 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {docs.map((doc) => (
+              <PlannerBuilderDocumentRow
+                key={doc.id}
+                doc={doc}
+                projectId={projectId}
+                onDeleted={() => void load()}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   const renderTable = (
     rows: { id?: string; date: string; title: string; meta: string }[],
@@ -140,7 +181,7 @@ export default function PlannerDocumentsPage() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Documents</h2>
             <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-              Safety meetings, contracts, and concrete inspection checklists saved for{' '}
+              Contracts, submittals, daily reports, safety meetings, and QC checklists for{' '}
               {project?.name ?? 'this project'}.
             </p>
           </div>
@@ -166,13 +207,20 @@ export default function PlannerDocumentsPage() {
                   variant="accent"
                   size="sm"
                   icon={<Plus className="h-4 w-4" />}
-                  onClick={() => navigate(contractBuilderToolHref(projectId))}
+                  onClick={() =>
+                    navigate(
+                      contractBuilderToolHref(projectId, undefined, {
+                        packKey: 'GENERIC_RESIDENTIAL',
+                        documentType: 'residential_contract',
+                      }),
+                    )
+                  }
                 >
                   New contract
                 </Button>
               </div>
               {renderTable(
-                contracts.map((c) => ({
+                residentialContracts.map((c) => ({
                   id: c.id,
                   date: formatDocDate(c.updated_at),
                   title: c.title,
@@ -183,6 +231,94 @@ export default function PlannerDocumentsPage() {
                 (id) => contractBuilderToolHref(projectId, id),
               )}
             </section>
+
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>Submittals</h3>
+                </div>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={() =>
+                    navigate(
+                      contractBuilderToolHref(projectId, undefined, {
+                        packKey: 'GENERIC_SUBMITTAL',
+                        documentType: 'submittal',
+                      }),
+                    )
+                  }
+                >
+                  New submittal
+                </Button>
+              </div>
+              {renderBuilderDraftsTable(
+                submittalDocs,
+                'No submittal cover sheets saved for this project yet.',
+              )}
+            </section>
+
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>Daily reports</h3>
+                </div>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={() =>
+                    navigate(
+                      contractBuilderToolHref(projectId, undefined, {
+                        packKey: 'GENERIC_DAILY_REPORT',
+                        documentType: 'daily_report',
+                      }),
+                    )
+                  }
+                >
+                  New daily report
+                </Button>
+              </div>
+              {renderBuilderDraftsTable(
+                dailyReportDocs,
+                'No daily reports saved yet.',
+              )}
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                <h3 className={PLANNER_SECTION_TITLE}>QC reports</h3>
+              </div>
+              {renderBuilderDraftsTable(
+                qcReportDocs,
+                'No QC reports saved for this project yet.',
+              )}
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                <h3 className={PLANNER_SECTION_TITLE}>Closeout / warranty</h3>
+              </div>
+              {renderBuilderDraftsTable(
+                closeoutDocs,
+                'No closeout or warranty documents saved for this project yet.',
+              )}
+            </section>
+
+            {otherBuilderDocs.length > 0 ? (
+              <section>
+                <div className="mb-3 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  <h3 className={PLANNER_SECTION_TITLE}>Other documents</h3>
+                </div>
+                {renderBuilderDraftsTable(otherBuilderDocs, '')}
+              </section>
+            ) : null}
 
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

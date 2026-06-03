@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, FileSignature, Lock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { saveProjectDocumentDraft } from '../../../services/projectDocumentService';
+import { DEFAULT_PACK_BY_DOCUMENT_TYPE } from '../../../services/projectDocumentDisplay';
 import {
   assembleDocument,
   buildQuestionnaire,
@@ -36,14 +39,17 @@ import { exportContractDraftPdf } from './contractPdf';
 import { generateChangeOrderPDF } from '../../../utils/changeOrderPdf';
 import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrderPreviewAdapter';
 import { buildRfiPreviewFromDocumentAnswers } from './adapters/rfiPreviewAdapter';
+import { buildSubmittalPreviewFromDocumentAnswers } from './adapters/submittalPreviewAdapter';
+import { buildDailyReportPreviewFromDocumentAnswers } from './adapters/dailyReportPreviewAdapter';
 import { generateRfiPDF } from './pdf/rfiPdf';
-import { buildSaveVersionPayload, restoreBuilderStateFromSnapshot } from './contractVersionState';
+import { generateSubmittalPDF } from './pdf/submittalPdf';
+import { generateDailyReportPDF } from './pdf/dailyReportPdf';
+import { restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
 import {
   getContractDocument,
   getPublicContractUrl,
   listContractDocuments,
-  saveContractVersion,
   sendContractForSignature,
 } from '../services/contractDocumentService';
 import type {
@@ -102,6 +108,8 @@ function templateLabel(packKey: string, fallback: string): string {
   const labels: Record<string, string> = {
     GENERIC_CHANGE_ORDER: 'Generic Change Order',
     GENERIC_RFI: 'Generic RFI Pack',
+    GENERIC_SUBMITTAL: 'Submittal Cover Sheet',
+    GENERIC_DAILY_REPORT: 'Daily Report',
     GENERIC_RESIDENTIAL: 'Generic Residential Contract',
     CA_RESIDENTIAL: 'California Residential Remodel Contract',
     FL_RESIDENTIAL: 'Florida Residential Remodel Contract',
@@ -121,6 +129,8 @@ function templateLabel(packKey: string, fallback: string): string {
 function resolveDocumentType(pk: string): DocumentType {
   if (pk === 'GENERIC_CHANGE_ORDER') return 'change_order';
   if (pk === 'GENERIC_RFI') return 'rfi';
+  if (pk === 'GENERIC_SUBMITTAL') return 'submittal';
+  if (pk === 'GENERIC_DAILY_REPORT') return 'daily_report';
   // All residential packs (GENERIC_RESIDENTIAL, CA_RESIDENTIAL, etc.)
   return 'residential_contract';
 }
@@ -142,6 +152,8 @@ export default function DocumentBuilderPage() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [projectProposals, setProjectProposals] = useState<SavedProposal[]>([]);
   const prefillRunKeyRef = useRef<string | null>(null);
+  const documentHydratedRef = useRef(false);
+  const exportTriggeredRef = useRef(false);
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
   const [showValidation, setShowValidation] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -266,16 +278,35 @@ export default function DocumentBuilderPage() {
 
   const queryProjectId = searchParams.get('project');
   const queryDocumentId = searchParams.get('id');
+  const queryPackKey = searchParams.get('packKey');
+  const queryDocumentType = searchParams.get('documentType');
+  const queryExportPdf = searchParams.get('export') === '1';
 
   useEffect(() => {
     if (queryProjectId) {
       setProjectId(queryProjectId);
       setCurrentProject(queryProjectId);
     }
-  }, [queryProjectId, setCurrentProject]);
+    if (!queryDocumentId) {
+      documentHydratedRef.current = true;
+    }
+  }, [queryProjectId, queryDocumentId, setCurrentProject]);
+
+  useEffect(() => {
+    if (queryDocumentId) return;
+    if (queryPackKey) {
+      setPackKey(queryPackKey);
+      return;
+    }
+    if (queryDocumentType) {
+      const defaultPack = DEFAULT_PACK_BY_DOCUMENT_TYPE[queryDocumentType];
+      if (defaultPack) setPackKey(defaultPack);
+    }
+  }, [queryDocumentId, queryPackKey, queryDocumentType]);
 
   useEffect(() => {
     if (!queryDocumentId) return;
+    documentHydratedRef.current = false;
     void (async () => {
       try {
         const { document, versions: docVersions } = await getContractDocument(queryDocumentId);
@@ -304,6 +335,13 @@ export default function DocumentBuilderPage() {
         }
       } catch (e) {
         console.error(e);
+        setToast({
+          title: 'Could not open document',
+          message: e instanceof Error ? e.message : 'Document not found or access denied.',
+          type: 'error',
+        });
+      } finally {
+        documentHydratedRef.current = true;
       }
     })();
   }, [queryDocumentId, setCurrentProject]);
@@ -458,6 +496,8 @@ export default function DocumentBuilderPage() {
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
   const isChangeOrderDocument = currentDocumentType === 'change_order';
   const isRfiDocument = currentDocumentType === 'rfi';
+  const isSubmittalDocument = currentDocumentType === 'submittal';
+  const isDailyReportDocument = currentDocumentType === 'daily_report';
   const questionnaire = useMemo(
     () => buildQuestionnaire(currentDocumentType, mode),
     [currentDocumentType, mode],
@@ -529,8 +569,39 @@ export default function DocumentBuilderPage() {
     if (isRfiDocument) {
       const rfiTitle = typeof answers.rfiTitle === 'string' ? answers.rfiTitle.trim() : '';
       if (rfiTitle) setTitle(rfiTitle);
+      return;
     }
-  }, [isChangeOrderDocument, isRfiDocument, answers.changeOrderTitle, answers.rfiTitle]);
+    if (isSubmittalDocument) {
+      const submittalTitle =
+        typeof answers.submittalTitle === 'string' ? answers.submittalTitle.trim() : '';
+      if (submittalTitle) setTitle(submittalTitle);
+      return;
+    }
+    if (isDailyReportDocument) {
+      const reportDate =
+        typeof answers.reportDate === 'string' ? answers.reportDate.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (reportDate && projectName) {
+        setTitle(`Daily Report — ${reportDate} — ${projectName}`);
+      } else if (reportDate) {
+        setTitle(`Daily Report — ${reportDate}`);
+      } else if (projectName) {
+        setTitle(`Daily Report — ${projectName}`);
+      } else {
+        setTitle('Daily Report');
+      }
+    }
+  }, [
+    isChangeOrderDocument,
+    isRfiDocument,
+    isSubmittalDocument,
+    isDailyReportDocument,
+    selectedProject,
+    answers.changeOrderTitle,
+    answers.rfiTitle,
+    answers.submittalTitle,
+    answers.reportDate,
+  ]);
 
   useEffect(() => {
     if (answers.depositRequired !== true) return;
@@ -582,6 +653,32 @@ export default function DocumentBuilderPage() {
         });
         await generateRfiPDF(view);
         setToast({ title: 'RFI exported', message: 'Your RFI PDF was generated.', type: 'success' });
+      } else if (isSubmittalDocument) {
+        const view = buildSubmittalPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateSubmittalPDF(view);
+        setToast({
+          title: 'Submittal exported',
+          message: 'Your submittal cover sheet PDF was generated.',
+          type: 'success',
+        });
+      } else if (isDailyReportDocument) {
+        const view = buildDailyReportPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateDailyReportPDF(view);
+        setToast({
+          title: 'Daily report exported',
+          message: 'Your daily report PDF was generated.',
+          type: 'success',
+        });
       } else {
         await exportContractDraftPdf(assembly, risk, {
           companyName: company.legalName || companySettings.companyName || 'Concrete Calc',
@@ -632,27 +729,69 @@ export default function DocumentBuilderPage() {
     });
   }, [answers, accepted, company, packKey, mode, recommendationDecisions, exportPolicy]);
 
+  const requiresProjectForSave =
+    isChangeOrderDocument ||
+    isRfiDocument ||
+    isSubmittalDocument ||
+    isDailyReportDocument;
+
+  const lastSavedLabel = useMemo(() => {
+    if (!loadedDoc?.updated_at) return null;
+    try {
+      return format(new Date(loadedDoc.updated_at), 'MMM d, yyyy h:mm a');
+    } catch {
+      return loadedDoc.updated_at;
+    }
+  }, [loadedDoc?.updated_at]);
+
   const handleSaveVersion = async () => {
-    setShowValidation(true);
-    const emailErrors = validateContractEmails(answers);
-    setFieldErrors(emailErrors);
-    if (Object.keys(emailErrors).length > 0) {
+    if (!documentHydratedRef.current) {
       setToast({
-        title: 'Check email fields',
-        message: 'Enter a valid email address before saving.',
+        title: 'Still loading',
+        message: 'Wait for the document to finish loading before saving.',
         type: 'error',
       });
       return;
     }
+
+    if (requiresProjectForSave && !projectId) {
+      setToast({
+        title: 'Project required',
+        message: 'Select a project before saving this document draft.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setShowValidation(true);
+    if (currentDocumentType === 'residential_contract') {
+      const emailErrors = validateContractEmails(answers);
+      setFieldErrors(emailErrors);
+      if (Object.keys(emailErrors).length > 0) {
+        setToast({
+          title: 'Check email fields',
+          message: 'Enter a valid email address before saving.',
+          type: 'error',
+        });
+        return;
+      }
+    }
+
     setSaving(true);
     try {
-      const payload = buildSaveVersionPayload(assembly, risk, {
+      const { document } = await saveProjectDocumentDraft({
         documentId,
-        title: title.trim() || assembly.title || 'Untitled contract',
+        title: title.trim() || assembly.title || 'Untitled document',
         projectId,
+        documentType: currentDocumentType,
+        packKey,
+        mode,
+        assembly,
+        risk,
         status: 'draft',
+        selectedProject,
+        companySettings,
       });
-      const { document } = await saveContractVersion(payload);
       setDocumentId(document.id);
       setTitle(document.title);
       setProjectId(document.project_id);
@@ -663,21 +802,29 @@ export default function DocumentBuilderPage() {
       setVersions(latestVersions);
       await refreshSavedDocs(document.project_id);
       setToast({
-        title: 'Contract saved',
+        title: 'Document draft saved',
         message: `Saved as version ${document.latest_version_number}.`,
         type: 'success',
       });
     } catch (e) {
       console.error(e);
       setToast({
-        title: 'Save failed',
-        message: e instanceof Error ? e.message : 'Could not save the contract.',
+        title: 'Could not save document draft',
+        message: e instanceof Error ? e.message : 'Save failed. Try again.',
         type: 'error',
       });
     } finally {
       setSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (!queryExportPdf || exportTriggeredRef.current) return;
+    if (!documentHydratedRef.current) return;
+    if (queryDocumentId && !documentId) return;
+    exportTriggeredRef.current = true;
+    void handleExport();
+  }, [queryExportPdf, queryDocumentId, documentId, handleExport]);
 
   const applySnapshot = useCallback((version: ContractDocumentVersionRow) => {
     const state = restoreBuilderStateFromSnapshot(version.input_snapshot);
@@ -707,13 +854,15 @@ export default function DocumentBuilderPage() {
       const current =
         docVersions.find((v) => v.id === document.current_version_id) ?? docVersions[0];
       if (current) applySnapshot(current);
+      documentHydratedRef.current = true;
     } catch (e) {
       console.error(e);
       setToast({
         title: 'Load failed',
-        message: e instanceof Error ? e.message : 'Could not open that contract.',
+        message: e instanceof Error ? e.message : 'Could not open that document.',
         type: 'error',
       });
+      documentHydratedRef.current = true;
     }
   };
 
@@ -858,7 +1007,12 @@ export default function DocumentBuilderPage() {
                   onTitleChange={setTitle}
                   onNewContract={handleNewContract}
                   onLoadDocument={handleLoadDocument}
-                  isChangeOrder={isChangeOrderDocument || isRfiDocument}
+                  isChangeOrder={
+                    isChangeOrderDocument ||
+                    isRfiDocument ||
+                    isSubmittalDocument ||
+                    isDailyReportDocument
+                  }
                 />
               </div>
               <IntakePanel
@@ -968,6 +1122,12 @@ export default function DocumentBuilderPage() {
                 aria-hidden={!isPreviewOpen}
               >
                 <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
+                  {lastSavedLabel ? (
+                    <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                      Last saved: {lastSavedLabel}
+                      {documentId ? ` · v${loadedDoc?.latest_version_number ?? '—'}` : null}
+                    </p>
+                  ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
                       Save Draft

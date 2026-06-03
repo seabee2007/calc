@@ -185,9 +185,20 @@ export function concreteInspectionToolHref(projectId: string, recordId?: string)
   return `/tools/concrete-inspection?${q.toString()}`;
 }
 
-export function contractBuilderToolHref(projectId: string, documentId?: string): string {
+export type ContractBuilderToolOptions = {
+  packKey?: string;
+  documentType?: string;
+};
+
+export function contractBuilderToolHref(
+  projectId: string,
+  documentId?: string,
+  options?: ContractBuilderToolOptions,
+): string {
   const q = new URLSearchParams({ project: projectId });
   if (documentId) q.set('id', documentId);
+  if (options?.packKey) q.set('packKey', options.packKey);
+  if (options?.documentType) q.set('documentType', options.documentType);
   return `/tools/contract-builder?${q.toString()}`;
 }
 

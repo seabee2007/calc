@@ -6,8 +6,12 @@ import type { DocumentComplianceIssue, DocumentRiskScore } from '../../types';
 import ChangeOrderDocument from '../../../../components/change-order/ChangeOrderDocument';
 import { buildChangeOrderPreviewFromDocumentAnswers } from '../adapters/changeOrderPreviewAdapter';
 import { buildRfiPreviewFromDocumentAnswers } from '../adapters/rfiPreviewAdapter';
+import { buildSubmittalPreviewFromDocumentAnswers } from '../adapters/submittalPreviewAdapter';
+import { buildDailyReportPreviewFromDocumentAnswers } from '../adapters/dailyReportPreviewAdapter';
+import DailyReportDocument from '../renderers/DailyReportDocument';
 import ResidentialContractDocument from '../renderers/ResidentialContractDocument';
 import RfiDocument from '../renderers/RfiDocument';
+import SubmittalDocument from '../renderers/SubmittalDocument';
 import PreviewPanel, { type PreviewPanelProps } from './PreviewPanel';
 
 interface DocumentPreviewRouterProps extends PreviewPanelProps {
@@ -71,6 +75,8 @@ function PaperPreviewShell({
  *     professional `ChangeOrderDocument` wrapped in a paper-preview shell
  * - `residential_contract` (live preview) → `ResidentialContractDocument`
  * - `rfi` (live preview) → professional `RfiDocument`
+ * - `submittal` (live preview) → professional `SubmittalDocument`
+ * - `daily_report` (live preview) → professional `DailyReportDocument`
  * - historical version selected → `PreviewPanel` (clause-list snapshot)
  * - everything else → `PreviewPanel`
  */
@@ -94,12 +100,14 @@ export default function DocumentPreviewRouter({
     documentType === 'change_order' || packKey === 'GENERIC_CHANGE_ORDER';
   const isResidentialContract = documentType === 'residential_contract';
   const isRfi = documentType === 'rfi' || packKey === 'GENERIC_RFI';
+  const isSubmittal = documentType === 'submittal' || packKey === 'GENERIC_SUBMITTAL';
+  const isDailyReport = documentType === 'daily_report' || packKey === 'GENERIC_DAILY_REPORT';
 
   const [adapterError, setAdapterError] = useState<string | null>(null);
 
   useEffect(() => {
     setAdapterError(null);
-  }, [isChangeOrder, isRfi, selectedProject]);
+  }, [isChangeOrder, isRfi, isSubmittal, isDailyReport, selectedProject]);
 
   const changeOrderPreview = useMemo(() => {
     if (!isChangeOrder || previewVersion) return null;
@@ -138,6 +146,42 @@ export default function DocumentPreviewRouter({
     }
   }, [isRfi, previewVersion, answers, selectedProject, companySettings, title]);
 
+  const submittalPreview = useMemo(() => {
+    if (!isSubmittal || previewVersion) return null;
+    try {
+      return buildSubmittalPreviewFromDocumentAnswers({
+        answers,
+        selectedProject,
+        companySettings,
+        title,
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[DocumentPreviewRouter] Submittal adapter error:', err);
+      }
+      setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
+      return null;
+    }
+  }, [isSubmittal, previewVersion, answers, selectedProject, companySettings, title]);
+
+  const dailyReportPreview = useMemo(() => {
+    if (!isDailyReport || previewVersion) return null;
+    try {
+      return buildDailyReportPreviewFromDocumentAnswers({
+        answers,
+        selectedProject,
+        companySettings,
+        title,
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[DocumentPreviewRouter] Daily Report adapter error:', err);
+      }
+      setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
+      return null;
+    }
+  }, [isDailyReport, previewVersion, answers, selectedProject, companySettings, title]);
+
   if (adapterError) {
     return (
       <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-6 text-sm text-amber-800 dark:text-amber-200">
@@ -165,6 +209,22 @@ export default function DocumentPreviewRouter({
     return (
       <PaperPreviewShell>
         <RfiDocument view={rfiPreview} />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (submittalPreview) {
+    return (
+      <PaperPreviewShell>
+        <SubmittalDocument view={submittalPreview} />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (dailyReportPreview) {
+    return (
+      <PaperPreviewShell>
+        <DailyReportDocument view={dailyReportPreview} />
       </PaperPreviewShell>
     );
   }

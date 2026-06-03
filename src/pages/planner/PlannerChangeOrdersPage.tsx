@@ -7,6 +7,10 @@ import {
   fetchChangeOrdersForProject,
   voidChangeOrder,
 } from '../../services/changeOrderService';
+import { listProjectChangeOrderBuilderDocuments } from '../../services/projectDocumentService';
+import type { ProjectDocumentRow } from '../../services/projectDocumentService';
+import PlannerBuilderDocumentRow from '../../components/planner/PlannerBuilderDocumentRow';
+import { contractBuilderToolHref } from '../../utils/plannerRoutes';
 import type { ChangeOrder } from '../../types/changeOrder';
 import { changeOrderEditHref, openNewChangeOrder } from '../../utils/plannerRoutes';
 import Button from '../../components/ui/Button';
@@ -33,6 +37,7 @@ export default function PlannerChangeOrdersPage() {
   const navigate = useNavigate();
   const { projectId, isOwner } = usePlannerProject();
   const [orders, setOrders] = useState<ChangeOrder[]>([]);
+  const [builderCoDrafts, setBuilderCoDrafts] = useState<ProjectDocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -41,8 +46,12 @@ export default function PlannerChangeOrdersPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const list = await fetchChangeOrdersForProject(projectId);
+      const [list, drafts] = await Promise.all([
+        fetchChangeOrdersForProject(projectId),
+        listProjectChangeOrderBuilderDocuments(projectId),
+      ]);
       setOrders(list);
+      setBuilderCoDrafts(drafts);
     } finally {
       setLoading(false);
     }
@@ -153,6 +162,56 @@ export default function PlannerChangeOrdersPage() {
           </table>
         </div>
       )}
+
+      <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Document Builder drafts ({builderCoDrafts.length})
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              navigate(
+                contractBuilderToolHref(projectId, undefined, {
+                  packKey: 'GENERIC_CHANGE_ORDER',
+                  documentType: 'change_order',
+                }),
+              )
+            }
+          >
+            New draft CO
+          </Button>
+        </div>
+        {builderCoDrafts.length === 0 ? (
+          <p className={PLANNER_MUTED}>
+            No change order documents saved from the Contract & Document Builder.
+          </p>
+        ) : (
+          <div className={PLANNER_TABLE_WRAPPER}>
+            <table className={PLANNER_TABLE}>
+              <thead className={PLANNER_TABLE_HEAD}>
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Updated</th>
+                  <th className="px-4 py-3 font-semibold">Title</th>
+                  <th className="px-4 py-3 font-semibold">Number / Status</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {builderCoDrafts.map((doc) => (
+                  <PlannerBuilderDocumentRow
+                    key={doc.id}
+                    doc={doc}
+                    projectId={projectId}
+                    onDeleted={() => void load()}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

@@ -16,6 +16,20 @@ const DEFINITIONS: Partial<Record<DocumentType, DocumentTypeDefinition>> = {
     defaultPackKey: 'GENERIC_CHANGE_ORDER',
     defaultTemplateKey: 'GENERIC_CHANGE_ORDER_TEMPLATE',
   },
+  submittal: {
+    documentType: 'submittal',
+    label: 'Submittal Cover Sheet',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_SUBMITTAL',
+    defaultTemplateKey: 'GENERIC_SUBMITTAL_TEMPLATE',
+  },
+  daily_report: {
+    documentType: 'daily_report',
+    label: 'Daily Report',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_DAILY_REPORT',
+    defaultTemplateKey: 'GENERIC_DAILY_REPORT_TEMPLATE',
+  },
 };
 
 export function getDocumentTypeDefinition(

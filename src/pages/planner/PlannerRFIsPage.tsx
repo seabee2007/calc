@@ -5,6 +5,10 @@ import { usePlannerProject } from '../../contexts/PlannerProjectContext';
 import type { RfiRequest } from '../../types/fieldPlanner';
 import { RFI_PRIORITIES } from '../../types/fieldPlanner';
 import { fetchRfisForProject, isRfiClosed } from '../../services/rfiService';
+import { listProjectRfiBuilderDocuments } from '../../services/projectDocumentService';
+import type { ProjectDocumentRow } from '../../services/projectDocumentService';
+import PlannerBuilderDocumentRow from '../../components/planner/PlannerBuilderDocumentRow';
+import { contractBuilderToolHref } from '../../utils/plannerRoutes';
 import { buildProfileNameMap, nameFromMap } from '../../services/profileService';
 import Button from '../../components/ui/Button';
 import CreateRfiModal from '../../components/field/CreateRfiModal';
@@ -26,6 +30,7 @@ export default function PlannerRFIsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightId = searchParams.get('rfi');
   const [rfis, setRfis] = useState<RfiRequest[]>([]);
+  const [builderRfiDrafts, setBuilderRfiDrafts] = useState<ProjectDocumentRow[]>([]);
   const [nameMap, setNameMap] = useState<Map<string, string>>(new Map());
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(highlightId);
@@ -34,8 +39,12 @@ export default function PlannerRFIsPage() {
   const [statusFilter, setStatusFilter] = useState('');
 
   const load = useCallback(async () => {
-    const list = await fetchRfisForProject(projectId);
+    const [list, drafts] = await Promise.all([
+      fetchRfisForProject(projectId),
+      listProjectRfiBuilderDocuments(projectId),
+    ]);
     setRfis(list);
+    setBuilderRfiDrafts(drafts);
     const ids = [...new Set(list.map((r) => r.submittedBy))];
     setNameMap(await buildProfileNameMap(ids));
   }, [projectId]);
@@ -177,6 +186,56 @@ export default function PlannerRFIsPage() {
           Closed RFIs ({closedRfis.length})
         </h3>
         {renderTable(closedRfis, 'No closed RFIs.')}
+      </section>
+
+      <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Document Builder drafts ({builderRfiDrafts.length})
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              window.location.assign(
+                contractBuilderToolHref(projectId, undefined, {
+                  packKey: 'GENERIC_RFI',
+                  documentType: 'rfi',
+                }),
+              )
+            }
+          >
+            New draft RFI
+          </Button>
+        </div>
+        {builderRfiDrafts.length === 0 ? (
+          <p className={`${PLANNER_MUTED} py-2 text-sm`}>
+            No RFI documents saved from the Contract & Document Builder.
+          </p>
+        ) : (
+          <div className={PLANNER_TABLE_WRAPPER}>
+            <table className={PLANNER_TABLE}>
+              <thead className={PLANNER_TABLE_HEAD}>
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Updated</th>
+                  <th className="px-4 py-3 font-semibold">Title</th>
+                  <th className="px-4 py-3 font-semibold">Number / Status</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {builderRfiDrafts.map((doc) => (
+                  <PlannerBuilderDocumentRow
+                    key={doc.id}
+                    doc={doc}
+                    projectId={projectId}
+                    onDeleted={() => void load()}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {user && (

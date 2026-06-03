@@ -13,6 +13,16 @@ import {
   changeOrderPackClauses,
 } from './changeOrder';
 import { GENERIC_RFI_PACK, GENERIC_RFI_TEMPLATE, rfiPackClauses } from './rfi';
+import {
+  GENERIC_SUBMITTAL_PACK,
+  GENERIC_SUBMITTAL_TEMPLATE,
+  submittalPackClauses,
+} from './submittal';
+import {
+  GENERIC_DAILY_REPORT_PACK,
+  GENERIC_DAILY_REPORT_TEMPLATE,
+  dailyReportPackClauses,
+} from './dailyReport';
 
 /**
  * Pack registry. Resolves a `packKey` to its full catalog (metadata + template
@@ -37,6 +47,18 @@ const PACK_CATALOGS: Record<string, PackCatalog> = {
     pack: GENERIC_RFI_PACK,
     template: GENERIC_RFI_TEMPLATE,
     clauses: rfiPackClauses,
+    addenda: [],
+  },
+  [GENERIC_SUBMITTAL_PACK.packKey]: {
+    pack: GENERIC_SUBMITTAL_PACK,
+    template: GENERIC_SUBMITTAL_TEMPLATE,
+    clauses: submittalPackClauses,
+    addenda: [],
+  },
+  [GENERIC_DAILY_REPORT_PACK.packKey]: {
+    pack: GENERIC_DAILY_REPORT_PACK,
+    template: GENERIC_DAILY_REPORT_TEMPLATE,
+    clauses: dailyReportPackClauses,
     addenda: [],
   },
   ...Object.fromEntries(stateCatalogs.map((catalog) => [catalog.pack.packKey, catalog])),
