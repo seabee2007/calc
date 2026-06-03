@@ -14,7 +14,11 @@ import {
 import { useProjectStore } from '../../store';
 import type { ChangeOrderLineItem } from '../../types/changeOrder';
 import { EMPTY_PROJECT_CUSTOM_ESTIMATES } from '../../types/projectEstimate';
-import { totalsFromCustomEstimateItems } from '../../utils/customEstimateUtils';
+import {
+  CUSTOM_ESTIMATE_SOURCE,
+  isGeneralTradeLaborLine,
+  totalsFromCustomEstimateItems,
+} from '../../utils/customEstimateUtils';
 import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
 import { PLANNER_FORM_PANEL } from '../../components/planner/plannerTheme';
 
@@ -45,7 +49,7 @@ export default function CustomEstimatePage() {
 
   useEffect(() => {
     const e = hubProject?.customEstimates ?? EMPTY_PROJECT_CUSTOM_ESTIMATES;
-    setLaborItems(e.laborItems);
+    setLaborItems(e.laborItems.filter((item) => !isGeneralTradeLaborLine(item)));
     setMaterialItems(e.materialItems);
     setEquipmentItems(e.equipmentItems);
   }, [hubProject?.id, hubProject?.customEstimates, hubProject?.updatedAt]);
@@ -60,10 +64,24 @@ export default function CustomEstimatePage() {
     setSaving(true);
     setSavedFlash(false);
     try {
+      const existing = hubProject.customEstimates ?? EMPTY_PROJECT_CUSTOM_ESTIMATES;
+      const generalTradeLaborItems = existing.laborItems.filter(isGeneralTradeLaborLine);
       await saveCustomEstimates(hubProject.id, {
-        laborItems,
-        materialItems,
-        equipmentItems,
+        laborItems: [
+          ...generalTradeLaborItems,
+          ...laborItems.map((item) => ({
+            ...item,
+            source: item.source ?? CUSTOM_ESTIMATE_SOURCE,
+          })),
+        ],
+        materialItems: materialItems.map((item) => ({
+          ...item,
+          source: item.source ?? CUSTOM_ESTIMATE_SOURCE,
+        })),
+        equipmentItems: equipmentItems.map((item) => ({
+          ...item,
+          source: item.source ?? CUSTOM_ESTIMATE_SOURCE,
+        })),
       });
       setSavedFlash(true);
       window.setTimeout(() => setSavedFlash(false), 3000);

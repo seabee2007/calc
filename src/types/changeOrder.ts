@@ -27,6 +27,8 @@ export interface ChangeOrderLineItem {
   unitPrice?: number;
   /** Line total (computed from qty × unit price or qty × hrs × rate). */
   amount: number;
+  /** Workflow estimate source for distinguishing manual custom lines from generated lines. */
+  source?: 'general_trade_labor' | 'custom_estimate';
 }
 
 export interface ChangeOrder {

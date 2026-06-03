@@ -11,7 +11,14 @@ import {
   PenLine,
   HardHat,
 } from 'lucide-react';
-import { projectHasCustomEstimate } from '../utils/customEstimateUtils';
+import {
+  projectHasConcreteEstimate,
+  projectHasConcreteLaborEstimate,
+  projectHasCustomEstimate,
+  projectHasGeneralTradeLaborEstimate,
+  projectHasManualCustomEstimate,
+  projectHasReinforcementEstimate,
+} from '../utils/customEstimateUtils';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
 import {
   getWorkflowProjectId,
@@ -34,8 +41,7 @@ const CALCULATORS = [
     title: 'Concrete',
     description: 'Volume, ready-mix pricing, and delivery',
     icon: Box,
-    done: (p: Project | null) =>
-      (p?.calculations ?? []).some((c) => (c.result?.pricing?.concreteCost ?? 0) > 0),
+    done: projectHasConcreteEstimate,
   },
   {
     id: 'reinforcement',
@@ -43,20 +49,7 @@ const CALCULATORS = [
     title: 'Reinforcement',
     description: 'Rebar, mesh, or fiber design and material cost',
     icon: Grid3x3,
-    done: (p: Project | null) => {
-      const sets = p?.reinforcements ?? [];
-      if (sets.length === 0) return false;
-      return sets.some((r) => {
-        if ((r.pricing?.estimatedCost ?? 0) > 0) return true;
-        if (r.reinforcement_type === 'fiber') {
-          return (r.fiber_total_lb ?? 0) > 0 || (r.fiber_bags ?? 0) > 0;
-        }
-        if (r.reinforcement_type === 'mesh') {
-          return (r.mesh_sheets ?? 0) > 0;
-        }
-        return (r.total_bars ?? 0) > 0 || (r.total_linear_ft ?? 0) > 0;
-      });
-    },
+    done: projectHasReinforcementEstimate,
   },
   {
     id: 'labor',
@@ -64,9 +57,7 @@ const CALCULATORS = [
     title: 'Concrete Labor',
     description: 'Crew and production — concrete placement labor',
     icon: Users,
-    done: (p: Project | null) =>
-      (p?.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
-      (p?.placementOrder?.production?.laborCost ?? 0) > 0,
+    done: projectHasConcreteLaborEstimate,
   },
   {
     id: 'general-trade-labor',
@@ -74,8 +65,7 @@ const CALCULATORS = [
     title: 'General Trade Labor',
     description: 'Non-concrete trades — hours, crew days, labor price',
     icon: HardHat,
-    done: (p: Project | null) =>
-      (p?.customEstimates?.laborItems ?? []).some((i) => (i.amount ?? 0) > 0),
+    done: projectHasGeneralTradeLaborEstimate,
   },
   {
     id: 'custom',
@@ -83,7 +73,9 @@ const CALCULATORS = [
     title: 'Custom',
     description: 'Manual labor, material, and equipment lines',
     icon: PenLine,
-    done: (p: Project | null) => projectHasCustomEstimate(p),
+    done: (p: Project | null) =>
+      projectHasManualCustomEstimate(p) ||
+      (projectHasCustomEstimate(p) && !projectHasGeneralTradeLaborEstimate(p)),
   },
 ] as const;
 

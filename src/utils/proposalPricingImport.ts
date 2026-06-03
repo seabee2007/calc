@@ -1,7 +1,11 @@
 import type { Project } from '../types';
 import type { ChangeOrderLineItem } from '../types/changeOrder';
 import { computeLaborMaterialLineTotal } from './changeOrderFinancials';
-import { projectHasCustomEstimate } from './customEstimateUtils';
+import {
+  projectHasCustomEstimate,
+  projectHasGeneralTradeLaborEstimate,
+  projectHasManualCustomEstimate,
+} from './customEstimateUtils';
 
 function projectWasteMultiplier(project: Project): number {
   const wf = project.wasteFactor ?? 10;
@@ -200,7 +204,8 @@ export function getProjectEstimateSourceLabels(project: Project): string[] {
     (project.laborEstimates?.[0]?.laborCost ?? 0) > 0 ||
     (project.placementOrder?.production?.laborCost ?? 0) > 0;
   if (hasLabor) labels.push('Labor');
-  if (projectHasCustomEstimate(project)) labels.push('Custom');
+  if (projectHasGeneralTradeLaborEstimate(project)) labels.push('General Trade Labor');
+  if (projectHasManualCustomEstimate(project)) labels.push('Custom');
   return labels;
 }
 

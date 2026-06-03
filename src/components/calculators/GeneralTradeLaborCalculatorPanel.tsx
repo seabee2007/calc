@@ -39,6 +39,7 @@ import {
 import { useProjectStore } from '../../store';
 import { EMPTY_PROJECT_CUSTOM_ESTIMATES } from '../../types/projectEstimate';
 import type { ChangeOrderLineItem } from '../../types/changeOrder';
+import { GENERAL_TRADE_LABOR_ESTIMATE_SOURCE } from '../../utils/customEstimateUtils';
 
 type TabId = 'quick' | 'detailed' | 'saved';
 
@@ -170,6 +171,7 @@ export default function GeneralTradeLaborCalculatorPanel({
         unit: input.unit || undefined,
         unitPrice: result.costPerUnit,
         amount: result.totalLaborPrice,
+        source: GENERAL_TRADE_LABOR_ESTIMATE_SOURCE,
       };
       await saveCustomEstimates(currentProject.id, {
         ...existing,

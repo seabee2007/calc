@@ -19,13 +19,13 @@ import {
   regionalDefaultsFromLocation,
 } from '../../utils/supplierPricing';
 import { useProjectStore } from '../../store';
-import type { PlacementOrder } from '../../types/placementOrder';
 import {
-  CALCULATOR_SECTION,
+  DEFAULT_BATCH_PLANT_CONTACT,
+  type PlacementOrder,
+} from '../../types/placementOrder';
+import {
   CALCULATOR_SECTION_SUBTITLE,
   CALCULATOR_SECTION_TITLE,
-  TEXT_MUTED,
-  TEXT_FOREGROUND,
 } from '../../theme/appTheme';
 
 export type PricingCalculatorVariant = 'calculator' | 'planner';
