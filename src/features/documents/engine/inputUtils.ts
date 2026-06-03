@@ -24,7 +24,66 @@ export const FACT_KEYS = {
  * with structured facts taking precedence on key collisions.
  */
 export function toRenderData(input: DocumentInput): Record<string, unknown> {
-  return { ...input.answers, ...input.facts };
+  const base = { ...input.answers, ...input.facts };
+  if (input.documentType !== 'change_order') return base;
+  return { ...input.answers, ...buildChangeOrderRenderOverlay(input), ...input.facts };
+}
+
+function str(value: unknown): string | undefined {
+  if (typeof value === 'string') return value.trim() === '' ? undefined : value.trim();
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  return undefined;
+}
+
+/** Coerce questionnaire currency answers; missing values become 0 for display. */
+function numOrZero(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+/**
+ * Maps flat Change Order questionnaire answers to nested template paths such as
+ * `changeOrder.totalAmount`. Client-facing clauses use total only — no markup,
+ * margin, or internal cost breakdown.
+ */
+function buildChangeOrderRenderOverlay(input: DocumentInput): Record<string, unknown> {
+  const answers = input.answers;
+  const totalAmount = numOrZero(answers.totalChangeOrderAmount);
+  const originalContractAmount = numOrZero(answers.originalContractAmount);
+  const previousApprovedTotal = numOrZero(answers.previouslyApprovedChangeOrders);
+  const revisedContractValue =
+    originalContractAmount + previousApprovedTotal + totalAmount;
+
+  return {
+    changeOrder: {
+      displayNumber: str(answers.changeOrderNumber) ?? 'Draft',
+      date: new Date().toLocaleDateString('en-US'),
+      title: str(answers.changeOrderTitle) ?? 'Change Order',
+      status: str(answers.status) ?? 'draft',
+      requestedBy: str(answers.requestedBy),
+      reasonForChange: str(answers.reasonForChange) ?? '',
+      scopeDescription: str(answers.scopeOfChange) ?? '',
+      addedWork: str(answers.addedWork),
+      deletedWork: str(answers.deletedWork),
+      exclusions: str(answers.exclusions),
+      scheduleImpact: str(answers.scheduleImpact),
+      additionalCalendarDays: answers.additionalCalendarDays,
+      revisedCompletionDate: str(answers.revisedCompletionDate),
+      totalAmount,
+      originalContractAmount:
+        originalContractAmount > 0 ? originalContractAmount : undefined,
+      previousApprovedTotal,
+      revisedContractValue: revisedContractValue > 0 ? revisedContractValue : undefined,
+      approvalRequired: answers.approvalRequiredBeforeWorkStarts === true,
+      customTerms: str(answers.terms),
+      contractorName: str(answers.contractorName),
+    },
+  };
 }
 
 function readKey(input: DocumentInput, key: string): unknown {

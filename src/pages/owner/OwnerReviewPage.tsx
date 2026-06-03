@@ -12,7 +12,7 @@ export default function OwnerReviewPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto max-w-4xl py-6 pb-24 md:pb-8"
+      className="mx-auto min-h-screen max-w-5xl px-4 py-8 pb-24 text-slate-900 dark:text-slate-100 md:pb-8"
     >
       <Link
         to="/planner/hub"

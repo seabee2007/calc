@@ -179,6 +179,18 @@ Date: ___________________________`,
   },
 ];
 
+export const changeOrderDocumentClauseKeys: string[] = [
+  'co.title',
+  'co.project_info',
+  'co.change_summary',
+  'co.scope',
+  'co.schedule_impact',
+  'co.pricing_summary',
+  'co.contract_value_summary',
+  'co.terms',
+  'co.signatures',
+];
+
 export const changeOrderPackClauseKeys: string[] = changeOrderPackClauses.map(
   (clause) => clause.key,
 );

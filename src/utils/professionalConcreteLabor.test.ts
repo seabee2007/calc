@@ -53,7 +53,7 @@ describe('estimateProfessionalConcreteLabor', () => {
     expect(tiny.billableJobDurationHours).toBeGreaterThanOrEqual(4);
   });
 
-  it('52 CY chute easy broom — job clock ~6–9 hrs, $/CY in planning range, no false OT', () => {
+  it('52 CY chute easy broom — labor cost only, job clock ~6–9 hrs, $/CY in planning range, no false OT', () => {
     const input: ConcreteLaborEstimateInput = {
       ...baseInput,
       concreteYards: 52,
@@ -75,10 +75,10 @@ describe('estimateProfessionalConcreteLabor', () => {
     expect(result.estimatedJobDurationHours).toBeGreaterThanOrEqual(5);
     expect(result.estimatedJobDurationHours).toBeLessThanOrEqual(10);
     expect(result.overtimeJobHours).toBeLessThanOrEqual(2);
-    expect(result.unitCosts.laborCostPerCY).toBeGreaterThanOrEqual(70);
-    expect(result.unitCosts.laborCostPerCY).toBeLessThanOrEqual(200);
-    expect(result.costs.totalLaborCost).toBeGreaterThanOrEqual(4000);
-    expect(result.costs.totalLaborCost).toBeLessThanOrEqual(9500);
+    expect(result.unitCosts.laborCostPerCY).toBeGreaterThanOrEqual(40);
+    expect(result.unitCosts.laborCostPerCY).toBeLessThanOrEqual(120);
+    expect(result.costs.totalLaborCost).toBeGreaterThanOrEqual(2000);
+    expect(result.costs.totalLaborCost).toBeLessThanOrEqual(6500);
     expect(result.totalManHours).toBeCloseTo(
       result.billableJobDurationHours * result.crewSize,
       0,

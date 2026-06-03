@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,9 +8,7 @@ import {
   fetchApprovedFarsNeedingChangeOrder,
   fetchPendingAdjustmentsForOwner,
 } from '../../services/fieldAdjustmentService';
-import {
-  fetchChangeOrdersForOwnerReview,
-} from '../../services/changeOrderService';
+import { fetchChangeOrdersForOwnerReview } from '../../services/changeOrderService';
 import type { ChangeOrder } from '../../types/changeOrder';
 import type { PlannerTask, RfiRequest, FieldAdjustmentRequest } from '../../types/fieldPlanner';
 import {
@@ -21,18 +19,25 @@ import {
   plannerRfiHref,
 } from '../../utils/plannerRoutes';
 import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
+import {
+  APP_SECTION_CARD,
+  TEXT_ACCENT,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+  TEXT_WARNING,
+} from '../../theme/appTheme';
 import FieldRecordStatusBadge from '../field/FieldRecordStatusBadge';
 import { TaskStatusBadge } from '../planner/TaskStatusBadge';
 import Button from '../ui/Button';
-import OpsCard from '../dashboard/OpsCard';
 
-const CHANGE_ORDER_STATUS_LABEL: Record<ChangeOrder['status'], string> = {
+/** Short labels for shared status badge styles. */
+const CHANGE_ORDER_BADGE_STATUS: Record<ChangeOrder['status'], string> = {
   draft: 'Draft',
-  sent: 'Sent to client',
-  viewed: 'Viewed by client',
+  sent: 'Sent',
+  viewed: 'Viewed',
   accepted: 'Accepted',
   declined: 'Declined',
-  void: 'Void',
+  void: 'Closed',
 };
 
 function changeOrderActionLabel(status: ChangeOrder['status']): string {
@@ -49,6 +54,14 @@ const sectionVariants = {
     transition: { duration: 0.3, delay: i * 0.08, ease: 'easeOut' },
   }),
 };
+
+const QUEUE_SECTION_CARD = `${APP_SECTION_CARD} !p-4`;
+
+const QUEUE_LIST_ROW =
+  'flex flex-col gap-2 rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 transition-colors hover:bg-slate-100/80 dark:border-slate-700/70 dark:bg-slate-950/40 dark:hover:bg-slate-800/60 sm:flex-row sm:items-start sm:justify-between';
+
+const FAR_CO_ROW =
+  'flex flex-col gap-2 rounded-lg border border-amber-200/70 bg-amber-50/80 p-3 transition-colors hover:bg-amber-100/80 dark:border-amber-900/50 dark:bg-amber-950/20 dark:hover:bg-amber-950/30 sm:flex-row sm:items-start sm:justify-between';
 
 export default function OwnerReviewQueue() {
   const { user } = useAuth();
@@ -100,7 +113,7 @@ export default function OwnerReviewQueue() {
         aria-busy
         aria-label="Loading review queue"
       >
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-600 border-t-transparent dark:border-cyan-400" />
       </motion.div>
     );
   }
@@ -113,19 +126,19 @@ export default function OwnerReviewQueue() {
       className="space-y-6"
     >
       <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
-        <OpsCard className="p-4">
-          <h2 className="mb-4 text-lg font-semibold text-white">Tasks awaiting review</h2>
+        <div className={QUEUE_SECTION_CARD}>
+          <h2 className={`mb-4 text-lg font-semibold ${TEXT_FOREGROUND}`}>Submitted tasks</h2>
           {tasks.length === 0 && (
-            <p className="text-sm text-slate-400">No submitted tasks.</p>
+            <p className={`text-sm ${TEXT_MUTED}`}>No submitted tasks.</p>
           )}
           <ul className="space-y-3">
             {tasks.map((task) => (
               <li
                 key={task.id}
-                className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-800/60 p-3 sm:flex-row sm:items-center sm:justify-between"
+                className={`${QUEUE_LIST_ROW} sm:items-center`}
               >
                 <div>
-                  <p className="font-medium text-slate-100">{task.title}</p>
+                  <p className={`font-medium ${TEXT_FOREGROUND}`}>{task.title}</p>
                   <TaskStatusBadge status={task.status} />
                 </div>
                 <div className="flex gap-2">
@@ -152,27 +165,24 @@ export default function OwnerReviewQueue() {
               </li>
             ))}
           </ul>
-        </OpsCard>
+        </div>
       </motion.div>
 
       <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
-        <OpsCard className="p-4">
-          <h2 className="mb-4 text-lg font-semibold text-white">Open RFIs</h2>
+        <div className={QUEUE_SECTION_CARD}>
+          <h2 className={`mb-4 text-lg font-semibold ${TEXT_FOREGROUND}`}>Open RFIs</h2>
           <ul className="space-y-3">
             {rfis.map((rfi) => (
-              <li
-                key={rfi.id}
-                className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-800/60 p-3 sm:flex-row sm:items-start sm:justify-between"
-              >
+              <li key={rfi.id} className={QUEUE_LIST_ROW}>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     {rfi.displayNumber && (
-                      <span className="font-mono text-xs text-cyan-400">{rfi.displayNumber}</span>
+                      <span className={`font-mono text-xs ${TEXT_ACCENT}`}>{rfi.displayNumber}</span>
                     )}
                     <FieldRecordStatusBadge status={rfi.status} />
                   </div>
-                  <p className="mt-1 font-medium text-slate-100">{rfi.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-400">{rfi.question}</p>
+                  <p className={`mt-1 font-medium ${TEXT_FOREGROUND}`}>{rfi.title}</p>
+                  <p className={`mt-1 line-clamp-2 text-sm ${TEXT_MUTED}`}>{rfi.question}</p>
                 </div>
                 <Button
                   size="sm"
@@ -183,29 +193,30 @@ export default function OwnerReviewQueue() {
                 </Button>
               </li>
             ))}
-            {rfis.length === 0 && <p className="text-sm text-slate-400">No open RFIs.</p>}
+            {rfis.length === 0 && (
+              <p className={`text-sm ${TEXT_MUTED}`}>No open RFIs.</p>
+            )}
           </ul>
-        </OpsCard>
+        </div>
       </motion.div>
 
       <motion.div custom={2} initial="hidden" animate="visible" variants={sectionVariants}>
-        <OpsCard className="p-4">
-          <h2 className="mb-4 text-lg font-semibold text-white">Pending FAR&apos;s</h2>
+        <div className={QUEUE_SECTION_CARD}>
+          <h2 className={`mb-4 text-lg font-semibold ${TEXT_FOREGROUND}`}>
+            Pending adjustments
+          </h2>
           <ul className="space-y-3">
             {adjustments.map((adj) => (
-              <li
-                key={adj.id}
-                className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-800/60 p-3 sm:flex-row sm:items-start sm:justify-between"
-              >
+              <li key={adj.id} className={QUEUE_LIST_ROW}>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     {adj.displayNumber && (
-                      <span className="font-mono text-xs text-cyan-400">{adj.displayNumber}</span>
+                      <span className={`font-mono text-xs ${TEXT_ACCENT}`}>{adj.displayNumber}</span>
                     )}
                     <FieldRecordStatusBadge status={adj.status} />
                   </div>
-                  <p className="mt-1 font-medium text-slate-100">{adj.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-400">
+                  <p className={`mt-1 font-medium ${TEXT_FOREGROUND}`}>{adj.title}</p>
+                  <p className={`mt-1 line-clamp-2 text-sm ${TEXT_MUTED}`}>
                     {adj.conditionDescription ?? adj.description}
                   </p>
                 </div>
@@ -219,31 +230,28 @@ export default function OwnerReviewQueue() {
               </li>
             ))}
             {adjustments.length === 0 && (
-              <p className="text-sm text-slate-400">No pending adjustments.</p>
+              <p className={`text-sm ${TEXT_MUTED}`}>No pending adjustments.</p>
             )}
           </ul>
-        </OpsCard>
+        </div>
       </motion.div>
 
       <motion.div custom={3} initial="hidden" animate="visible" variants={sectionVariants}>
-        <OpsCard className="p-4">
-          <h2 className="mb-4 text-lg font-semibold text-white">Change orders</h2>
+        <div className={QUEUE_SECTION_CARD}>
+          <h2 className={`mb-4 text-lg font-semibold ${TEXT_FOREGROUND}`}>Change orders</h2>
           <ul className="space-y-3">
             {farsNeedingCo.map((adj) => (
-              <li
-                key={`far-co-${adj.id}`}
-                className="flex flex-col gap-2 rounded-lg border border-amber-900/50 bg-amber-950/20 p-3 sm:flex-row sm:items-start sm:justify-between"
-              >
+              <li key={`far-co-${adj.id}`} className={FAR_CO_ROW}>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-amber-400/90">
+                  <p className={`text-xs font-medium uppercase tracking-wide ${TEXT_WARNING}`}>
                     Create from approved FAR
                   </p>
                   {adj.displayNumber && (
-                    <span className="mt-1 inline-block font-mono text-xs text-cyan-400">
+                    <span className={`mt-1 inline-block font-mono text-xs ${TEXT_ACCENT}`}>
                       {adj.displayNumber}
                     </span>
                   )}
-                  <p className="mt-1 font-medium text-slate-100">{adj.title}</p>
+                  <p className={`mt-1 font-medium ${TEXT_FOREGROUND}`}>{adj.title}</p>
                 </div>
                 <Button
                   size="sm"
@@ -255,21 +263,16 @@ export default function OwnerReviewQueue() {
               </li>
             ))}
             {changeOrders.map((co) => (
-              <li
-                key={co.id}
-                className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-800/60 p-3 sm:flex-row sm:items-start sm:justify-between"
-              >
+              <li key={co.id} className={QUEUE_LIST_ROW}>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     {co.displayNumber && (
-                      <span className="font-mono text-xs text-cyan-400">{co.displayNumber}</span>
+                      <span className={`font-mono text-xs ${TEXT_ACCENT}`}>{co.displayNumber}</span>
                     )}
-                    <span className="rounded-full bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-200">
-                      {CHANGE_ORDER_STATUS_LABEL[co.status]}
-                    </span>
+                    <FieldRecordStatusBadge status={CHANGE_ORDER_BADGE_STATUS[co.status]} />
                   </div>
-                  <p className="mt-1 font-medium text-slate-100">{co.title}</p>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className={`mt-1 font-medium ${TEXT_FOREGROUND}`}>{co.title}</p>
+                  <p className={`mt-1 text-sm ${TEXT_MUTED}`}>
                     {formatChangeOrderMoney(co.total)}
                     {co.status === 'draft' && ' · Finish pricing and send to client'}
                     {(co.status === 'sent' || co.status === 'viewed') &&
@@ -287,10 +290,10 @@ export default function OwnerReviewQueue() {
               </li>
             ))}
             {farsNeedingCo.length === 0 && changeOrders.length === 0 && (
-              <p className="text-sm text-slate-400">No change orders need attention.</p>
+              <p className={`text-sm ${TEXT_MUTED}`}>No change orders need attention.</p>
             )}
           </ul>
-        </OpsCard>
+        </div>
       </motion.div>
     </motion.div>
   );

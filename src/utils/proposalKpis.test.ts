@@ -61,11 +61,14 @@ describe('proposalKpis', () => {
       mockProposal({ status: 'accepted', total_amount: 10000 }),
       mockProposal({ status: 'declined', total_amount: 8000 }),
     ]);
+  
     expect(financial.pendingRevenue).toBe(5000);
     expect(financial.openPipelineRevenue).toBe(15000);
     expect(financial.weightedForecast).toBe(5000 * 0.25 + 10000);
     expect(financial.acceptedRevenue).toBe(10000);
     expect(financial.winRate).toBeCloseTo(1 / 3);
-    expect(financial.grossProfit).toBe(10000 - 3 * (3000 + 4000));
+  
+    // Gross profit should be based on accepted work only.
+    expect(financial.grossProfit).toBe(10000 - (3000 + 4000));
   });
 });
