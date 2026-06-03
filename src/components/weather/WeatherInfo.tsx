@@ -1,5 +1,5 @@
 import React from 'react';
-import { Weather } from '../../types';
+import type { Weather } from '../../types';
 import { Sun, Cloud, CloudRain, Wind, Thermometer, Droplets, MapPin, CloudLightning, CloudFog, CloudDrizzle, CloudHail, CloudSnow } from 'lucide-react';
 import Card from '../ui/Card';
 

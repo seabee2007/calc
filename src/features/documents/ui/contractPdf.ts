@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import type { DocumentAssemblyResult, DocumentRiskScore } from '../index';
 import { cleanDocumentBody } from './previewDisplay';
+import { DOCUMENT_HEADER_LOGO_PDF_MM } from './components/documentHeaderTheme';
 import {
   buildResidentialContractDisplayContext,
   filterVisibleRows,
@@ -24,6 +25,7 @@ export interface ContractPdfCompanyHeader {
   phone: string;
   email?: string;
   licenseNumber?: string;
+  logoUrl?: string | null;
 }
 
 function ensureSpace(doc: jsPDF, y: { value: number }, needed: number) {
@@ -107,12 +109,8 @@ function addParagraphBlock(
   const maxWidth = pageWidth - MARGIN * 2;
   const cleaned = cleanDocumentBody(body);
   ensureSpace(doc, y, 16);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(90, 90, 90);
-  doc.text('SECTION', MARGIN, y.value);
-  y.value += 5;
   doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
   doc.text(title, MARGIN, y.value);
   y.value += 6;
@@ -180,12 +178,22 @@ export async function exportContractDraftPdf(
       phone: company.phone,
       email: company.email,
       licenseNumber: company.licenseNumber,
-      logoUrl: null,
+      logoUrl: company.logoUrl ?? null,
     },
     selectedProject: null,
   });
 
   // Company header (left)
+  if (context.company.logoUrl) {
+    try {
+      const { width, height } = DOCUMENT_HEADER_LOGO_PDF_MM;
+      doc.addImage(context.company.logoUrl, 'PNG', MARGIN, y.value, width, height);
+      y.value += height + 4;
+    } catch {
+      /* skip logo if image cannot be loaded */
+    }
+  }
+
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);

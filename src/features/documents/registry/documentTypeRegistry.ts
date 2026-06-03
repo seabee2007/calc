@@ -16,6 +16,41 @@ const DEFINITIONS: Partial<Record<DocumentType, DocumentTypeDefinition>> = {
     defaultPackKey: 'GENERIC_CHANGE_ORDER',
     defaultTemplateKey: 'GENERIC_CHANGE_ORDER_TEMPLATE',
   },
+  submittal: {
+    documentType: 'submittal',
+    label: 'Submittal Cover Sheet',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_SUBMITTAL',
+    defaultTemplateKey: 'GENERIC_SUBMITTAL_TEMPLATE',
+  },
+  daily_report: {
+    documentType: 'daily_report',
+    label: 'Daily Report',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_DAILY_REPORT',
+    defaultTemplateKey: 'GENERIC_DAILY_REPORT_TEMPLATE',
+  },
+  qc_report: {
+    documentType: 'qc_report',
+    label: 'QC Report',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_QC_REPORT',
+    defaultTemplateKey: 'GENERIC_QC_REPORT_TEMPLATE',
+  },
+  warranty_letter: {
+    documentType: 'warranty_letter',
+    label: 'Warranty / Closeout Letter',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_WARRANTY_CLOSEOUT',
+    defaultTemplateKey: 'GENERIC_WARRANTY_CLOSEOUT_TEMPLATE',
+  },
+  punch_list: {
+    documentType: 'punch_list',
+    label: 'Punch List',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_PUNCH_LIST',
+    defaultTemplateKey: 'GENERIC_PUNCH_LIST_TEMPLATE',
+  },
 };
 
 export function getDocumentTypeDefinition(

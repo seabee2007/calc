@@ -10,8 +10,8 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { projectSaveErrorMessage, useProjectStore } from '../../store';
-import { MixProfileType } from '../../types/curing';
-import { Project, QCRecord } from '../../types';
+import type { MixProfileType } from '../../types/curing';
+import type { Project, QCRecord } from '../../types';
 import { generateProjectPDF } from '../../utils/pdf';
 import { CONCRETE_MIX_DESIGNS } from '../../types';
 import { workflowNavigateState, workflowQuery } from '../../utils/workflow';

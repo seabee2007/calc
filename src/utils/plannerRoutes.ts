@@ -156,19 +156,25 @@ export function plannerAdjustmentHref(projectId: string, adjustmentId?: string):
 export function plannerDocumentsHref(
   projectId: string,
   highlight?: {
+    tab?: string;
     safetyMeetingId?: string;
     inspectionId?: string;
     contractId?: string;
     fileId?: string;
+    rfiId?: string;
+    adjustmentId?: string;
   },
 ): string {
   const base = `/projects/${projectId}/planner/documents`;
   if (!highlight) return base;
   const q = new URLSearchParams();
+  if (highlight.tab) q.set('tab', highlight.tab);
   if (highlight.safetyMeetingId) q.set('safety', highlight.safetyMeetingId);
   if (highlight.inspectionId) q.set('inspection', highlight.inspectionId);
   if (highlight.contractId) q.set('contract', highlight.contractId);
   if (highlight.fileId) q.set('file', highlight.fileId);
+  if (highlight.rfiId) q.set('rfi', highlight.rfiId);
+  if (highlight.adjustmentId) q.set('adjustment', highlight.adjustmentId);
   const s = q.toString();
   return s ? `${base}?${s}` : base;
 }
@@ -185,9 +191,20 @@ export function concreteInspectionToolHref(projectId: string, recordId?: string)
   return `/tools/concrete-inspection?${q.toString()}`;
 }
 
-export function contractBuilderToolHref(projectId: string, documentId?: string): string {
+export type ContractBuilderToolOptions = {
+  packKey?: string;
+  documentType?: string;
+};
+
+export function contractBuilderToolHref(
+  projectId: string,
+  documentId?: string,
+  options?: ContractBuilderToolOptions,
+): string {
   const q = new URLSearchParams({ project: projectId });
   if (documentId) q.set('id', documentId);
+  if (options?.packKey) q.set('packKey', options.packKey);
+  if (options?.documentType) q.set('documentType', options.documentType);
   return `/tools/contract-builder?${q.toString()}`;
 }
 

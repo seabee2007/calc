@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { optimizeLogo, validateImageFile } from '../utils/imageOptimization';
 import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
-import { UserPreferences } from '../types';
+import type { UserPreferences } from '../types';
 import { soundService } from '../services/soundService';
 import { hapticService } from '../services/hapticService';
 import { 
@@ -46,13 +46,21 @@ import {
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { isDark, toggleTheme } = useThemeStore();
-  const { companySettings, updateCompanySettings, loadCompanySettings, migrateSettings, loading: settingsLoading } = useSettingsStore();
+  const {
+    companySettings,
+    companySettingsHydrated,
+    updateCompanySettings,
+    loadCompanySettings,
+    migrateSettings,
+    loading: settingsLoading,
+  } = useSettingsStore();
   const { preferences, updatePreferences, loadPreferences, migratePreferences, loading: preferencesLoading } = usePreferencesStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isRemovingLogo, setIsRemovingLogo] = useState(false);
   
   // Local state for text inputs to prevent constant API calls
   const [localCompanySettings, setLocalCompanySettings] = useState({
@@ -91,21 +99,20 @@ const Settings: React.FC = () => {
     initializeSettings();
   }, [user]);
 
-  // Initialize local state only once when company settings are first loaded
+  // Populate local form only after Supabase (or fallback) hydration — never from pre-load defaults.
   useEffect(() => {
-    if (!isLocalStateInitialized && (companySettings.companyName !== undefined || companySettings.address !== undefined)) {
-      setLocalCompanySettings({
-        companyName: companySettings.companyName || '',
-        address: companySettings.address || '',
-        phone: companySettings.phone || '',
-        email: companySettings.email || '',
-        licenseNumber: companySettings.licenseNumber || '',
-        motto: companySettings.motto || '',
-      });
-      setBusinessAddress(parseLegacyUSAddress(companySettings.address || ''));
-      setIsLocalStateInitialized(true);
-    }
-  }, [companySettings, isLocalStateInitialized]);
+    if (!companySettingsHydrated || isLocalStateInitialized) return;
+    setLocalCompanySettings({
+      companyName: companySettings.companyName || '',
+      address: companySettings.address || '',
+      phone: companySettings.phone || '',
+      email: companySettings.email || '',
+      licenseNumber: companySettings.licenseNumber || '',
+      motto: companySettings.motto || '',
+    });
+    setBusinessAddress(parseLegacyUSAddress(companySettings.address || ''));
+    setIsLocalStateInitialized(true);
+  }, [companySettings, companySettingsHydrated, isLocalStateInitialized]);
 
   // Debounced auto-save function for text inputs
   const debouncedSave = useCallback(
@@ -122,16 +129,23 @@ const Settings: React.FC = () => {
         }
         
         timeoutId = setTimeout(async () => {
-          // Only auto-save if preferences are loaded and auto-save is enabled
+          if (!companySettingsHydrated) {
+            if (import.meta.env.DEV) {
+              console.info('[companySettings] Auto-save skipped: settings not hydrated yet');
+            }
+            return;
+          }
           if (!preferencesLoading && preferences.autoSave) {
             isCurrentlySaving = true;
             const currentSettings = {
               ...localCompanySettingsRef.current,
               address: formatUSAddress(businessAddressRef.current),
             };
-            
+
             try {
-              await updateCompanySettings(currentSettings);
+              await updateCompanySettings(currentSettings, {
+                allowEmptyTextOverwrite: false,
+              });
               setSaveMessage({ 
                 text: 'Auto-saved ✓', 
                 type: 'success' 
@@ -151,17 +165,21 @@ const Settings: React.FC = () => {
         }, 1500); // 1.5 second delay for text inputs
       };
     })(),
-    [preferences.autoSave, preferencesLoading, updateCompanySettings] // Removed localCompanySettings dependency
+    [companySettingsHydrated, preferences.autoSave, preferencesLoading, updateCompanySettings],
   );
 
   // Handle text input changes (with debouncing)
   const handleCompanyTextChange = (field: string, value: string) => {
-    setLocalCompanySettings(prev => {
-      const updated = { ...prev, [field]: value };
-      return updated;
-    });
-    
-    if (!preferencesLoading && preferences.autoSave) {
+    setLocalCompanySettings((prev) => ({ ...prev, [field]: value }));
+
+    if (companySettingsHydrated && !preferencesLoading && preferences.autoSave) {
+      debouncedSave();
+    }
+  };
+
+  const handleBusinessAddressChange = (addr: USAddress) => {
+    setBusinessAddress(addr);
+    if (companySettingsHydrated && !preferencesLoading && preferences.autoSave) {
       debouncedSave();
     }
   };
@@ -258,12 +276,18 @@ const Settings: React.FC = () => {
 
   // Force save function for manual save or when auto-save is disabled
   const forceSaveChanges = async () => {
+    if (!companySettingsHydrated) {
+      if (import.meta.env.DEV) {
+        console.info('[companySettings] Manual save skipped: settings not hydrated yet');
+      }
+      return;
+    }
     try {
       const currentSettings = {
         ...localCompanySettingsRef.current,
         address: formatUSAddress(businessAddressRef.current),
       };
-      await updateCompanySettings(currentSettings);
+      await updateCompanySettings(currentSettings, { allowEmptyTextOverwrite: true });
       setSaveMessage({ 
         text: 'Settings saved successfully! ✓', 
         type: 'success' 
@@ -315,39 +339,45 @@ const Settings: React.FC = () => {
   };
 
   const handleRemoveLogo = async () => {
+    const pathToDelete = companySettings.logoPath ?? undefined;
+    setIsRemovingLogo(true);
+    setSaveMessage(null);
+
     try {
-      // Play delete sound
       soundService.play('trash');
-      
-      // Delete from Supabase Storage if there's a path
-      if (companySettings.logoPath) {
-        await deleteLogo(companySettings.logoPath);
+
+      if (pathToDelete) {
+        try {
+          await deleteLogo(pathToDelete);
+        } catch (storageError) {
+          console.warn('Logo storage delete failed; clearing database reference:', storageError);
+        }
       }
-      
-      // Update company settings to remove logo
-      await updateCompanySettings({ 
-        logo: null, 
-        logoUrl: null, 
-        logoPath: null 
+
+      await updateCompanySettings({
+        logo: null,
+        logoUrl: null,
+        logoPath: null,
       });
-      
-      // Clear file input
+
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      
-      setSaveMessage({ 
-        text: 'Logo removed successfully', 
-        type: 'success' 
+
+      setSaveMessage({
+        text: 'Company logo removed',
+        type: 'success',
       });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error('Error removing logo:', error);
-      setSaveMessage({ 
-        text: 'Failed to remove logo. Please try again.', 
-        type: 'error' 
+      setSaveMessage({
+        text: 'Could not remove company logo',
+        type: 'error',
       });
       setTimeout(() => setSaveMessage(null), 5000);
+    } finally {
+      setIsRemovingLogo(false);
     }
   };
 
@@ -452,7 +482,7 @@ const Settings: React.FC = () => {
                     variant="danger"
                     size="sm"
                     onClick={handleRemoveLogo}
-                    disabled={settingsLoading}
+                    disabled={settingsLoading || isRemovingLogo}
                     className="absolute -top-2 -right-2 !h-7 !w-7 !min-h-0 !p-0 rounded-full"
                     aria-label="Remove logo"
                   >
@@ -513,7 +543,7 @@ const Settings: React.FC = () => {
             </label>
             <USAddressFields
               value={businessAddress}
-              onChange={setBusinessAddress}
+              onChange={handleBusinessAddressChange}
               showStreet2
               idPrefix="company"
             />

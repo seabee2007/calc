@@ -51,6 +51,8 @@ export default function ProposalPricingEditor({
     equipmentItems,
     subcontractorItems,
     pricingIndirect: indirect,
+    terms: '',
+    preparedBy: '',
   };
 
   const breakdown = computeProposalBreakdown(previewData, companyTax);

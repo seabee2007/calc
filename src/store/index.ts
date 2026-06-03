@@ -4,11 +4,19 @@ import {
   getCompanySettings,
   updateCompanySettings as updateSupabaseSettings,
   migrateFromLocalStorage,
-  getUserPreferences,
-  updateUserPreferences,
-  migratePreferencesFromLocalStorage
+  type CompanySettingsUpdateOptions,
 } from '../services/companySettingsService';
 import {
+  patchIsLogoOrTaxOnly,
+  patchTouchesProtectedText,
+} from '../services/companySettingsMerge';
+import {
+  getUserPreferences,
+  updateUserPreferences,
+  migratePreferencesFromLocalStorage,
+  DEFAULT_USER_PREFERENCES,
+} from '../services/userPreferencesService';
+import type {
   Project,
   UserPreferences,
   Calculation,
@@ -19,7 +27,7 @@ import {
 } from '../types';
 import type { LaborEstimate, LaborEstimateInputs } from '../types/laborEstimate';
 import { EMPTY_US_ADDRESS } from '../types/address';
-import { MixProfileType } from '../types/curing';
+import type { MixProfileType } from '../types/curing';
 import type { TruckTicketFormState } from '../types/concreteTruckTicket';
 import type { PlacementOrder } from '../types/placementOrder';
 import { defaultPlacementOrder } from '../types/placementOrder';
@@ -688,7 +696,7 @@ function mapProjectFromRow(row: any): Project {
     calculations: (row.calculations || []).map(mapCalculationFromDb),
     reinforcements: (row.reinforcement_sets || []).map(mapReinforcementSetFromDb),
     laborEstimates: (row.labor_estimates || []).map(mapLaborEstimateFromDb),
-    qcRecords: qcRecords.filter((r) => !isTruckTicketRecord(r)),
+    qcRecords: qcRecords.filter((r: QCRecord) => !isTruckTicketRecord(r)),
     truckTickets: mergeTruckTicketsForProject(qcRecords, truckTicketsFromDb),
     approvedChangeOrderTotal:
       row.approved_change_order_total != null
@@ -767,18 +775,9 @@ interface ProjectState {
 }
 
 interface PreferencesState {
-  preferences: {
-    autoSave: boolean;
-    notifications: {
-      projectUpdates: boolean;
-      teamChanges: boolean;
-      systemAlerts: boolean;
-    };
-    soundEnabled: boolean;
-    hapticsEnabled: boolean;
-  };
+  preferences: UserPreferences;
   loading: boolean;
-  updatePreferences: (newPreferences: Partial<PreferencesState['preferences']>) => Promise<void>;
+  updatePreferences: (newPreferences: Partial<UserPreferences>) => Promise<void>;
   loadPreferences: () => Promise<void>;
   migratePreferences: () => Promise<void>;
 }
@@ -802,30 +801,23 @@ interface CompanySettings {
 interface SettingsState {
   companySettings: CompanySettings;
   loading: boolean;
-  updateCompanySettings: (settings: Partial<CompanySettings>) => Promise<void>;
+  /** True after loadCompanySettings finishes (success, no-row, or fallback). */
+  companySettingsHydrated: boolean;
+  updateCompanySettings: (
+    settings: Partial<CompanySettings>,
+    options?: CompanySettingsUpdateOptions,
+  ) => Promise<void>;
   loadCompanySettings: () => Promise<void>;
   migrateSettings: () => Promise<void>;
 }
 
-const defaultPreferences: UserPreferences = {
-  units: 'imperial',
-  lengthUnit: 'feet',
-  volumeUnit: 'cubic_yards',
-  measurementSystem: 'imperial',
-  currency: 'USD',
-  defaultPSI: '3000',
-  autoSave: true,
-  soundEnabled: true,
-  hapticsEnabled: true,
-  notifications: {
-    projectUpdates: true,
-    teamChanges: true,
-    systemAlerts: true,
-    emailUpdates: true,
-    projectReminders: true,
-    weatherAlerts: true
+function logSkippedCompanySettingsSave(reason: string, keys: string[]): void {
+  if (import.meta.env.DEV) {
+    console.info(`[companySettings] ${reason}`, keys);
   }
-};
+}
+
+const defaultPreferences = DEFAULT_USER_PREFERENCES;
 
 const defaultCompanySettings: CompanySettings = {
   companyName: '',
@@ -1036,15 +1028,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (error) throw error;
     if (!data) throw new Error('Project created but no data was returned');
 
+    const createdRow = data as Record<string, unknown>;
     const newProj = mapProjectFromRow({
-      ...data,
-      calculations: data.calculations ?? [],
-      qc_records: data.qc_records ?? [],
-      reinforcement_sets: data.reinforcement_sets ?? [],
-      labor_estimates: data.labor_estimates ?? [],
-      truck_tickets: data.truck_tickets ?? [],
+      ...createdRow,
+      calculations: createdRow.calculations ?? [],
+      qc_records: createdRow.qc_records ?? [],
+      reinforcement_sets: createdRow.reinforcement_sets ?? [],
+      labor_estimates: createdRow.labor_estimates ?? [],
+      truck_tickets: createdRow.truck_tickets ?? [],
       custom_estimates:
-        data.custom_estimates ?? EMPTY_PROJECT_CUSTOM_ESTIMATES,
+        createdRow.custom_estimates ?? EMPTY_PROJECT_CUSTOM_ESTIMATES,
     });
   
     set((s) => ({
@@ -1629,16 +1622,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 }));
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
-  preferences: {
-    autoSave: true,
-    notifications: {
-      projectUpdates: true,
-      teamChanges: true,
-      systemAlerts: true,
-    },
-    soundEnabled: true,
-    hapticsEnabled: true,
-  },
+  preferences: DEFAULT_USER_PREFERENCES,
   loading: false,
   
   loadPreferences: async () => {
@@ -1659,18 +1643,22 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
   
   updatePreferences: async (newPreferences) => {
+    const previousPrefs = get().preferences;
+    const optimistic = { ...previousPrefs, ...newPreferences };
+    set({ preferences: optimistic });
+
     try {
-      set({ loading: true });
-      const updatedPreferences = await updateUserPreferences(newPreferences);
-      set({ preferences: updatedPreferences, loading: false });
+      const saved = await updateUserPreferences(newPreferences);
+      set({ preferences: saved, loading: false });
     } catch (error) {
-      console.error('Error updating preferences:', error);
-      set({ loading: false });
-      // Fall back to localStorage update if Supabase fails
-      const currentPrefs = get().preferences;
-      const updated = { ...currentPrefs, ...newPreferences };
+      if (import.meta.env.DEV) {
+        console.error('Error updating preferences:', error);
+      }
+      set({ preferences: previousPrefs, loading: false });
+      const updated = { ...previousPrefs, ...newPreferences };
       localStorage.setItem('concretePreferences', JSON.stringify(updated));
       set({ preferences: updated });
+      throw error;
     }
   },
   
@@ -1696,13 +1684,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
   return {
     companySettings: defaultCompanySettings,
     loading: false,
-    
+    companySettingsHydrated: false,
+
     loadCompanySettings: async () => {
+      set({ loading: true, companySettingsHydrated: false });
       try {
-        set({ loading: true });
         const settings = await getCompanySettings();
-        
-        // Map Supabase settings to the local interface
+
         const mappedSettings: CompanySettings = {
           companyName: settings.companyName,
           address: settings.address,
@@ -1717,40 +1705,62 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
           taxRatePercent: settings.taxRatePercent,
           taxApplication: settings.taxApplication,
         };
-        
-        set({ companySettings: mappedSettings, loading: false });
+
+        set({ companySettings: mappedSettings, loading: false, companySettingsHydrated: true });
       } catch (error) {
         console.error('Error loading company settings:', error);
-        set({ loading: false });
-        // Fall back to localStorage if Supabase fails
         const saved = localStorage.getItem('companySettings');
         if (saved) {
           const localSettings = JSON.parse(saved);
           set({ companySettings: { ...defaultCompanySettings, ...localSettings } });
         }
+        set({ loading: false, companySettingsHydrated: true });
       }
     },
-    
-    updateCompanySettings: async (newSettings) => {
+
+    updateCompanySettings: async (newSettings, options) => {
+      const { companySettingsHydrated } = get();
+      if (
+        !companySettingsHydrated &&
+        patchTouchesProtectedText(newSettings) &&
+        !patchIsLogoOrTaxOnly(newSettings)
+      ) {
+        logSkippedCompanySettingsSave('Save skipped: settings not hydrated yet', Object.keys(newSettings));
+        return;
+      }
+
       try {
         set({ loading: true });
-        
-        // Map local interface to Supabase interface
-        const supabaseSettings = {
-          companyName: newSettings.companyName,
-          address: newSettings.address,
-          phone: newSettings.phone,
-          email: newSettings.email,
-          licenseNumber: newSettings.licenseNumber,
-          motto: newSettings.motto,
-          logoUrl: newSettings.logoUrl || newSettings.logo,
-          logoPath: newSettings.logoPath,
-          taxSystem: newSettings.taxSystem,
-          taxRatePercent: newSettings.taxRatePercent,
-          taxApplication: newSettings.taxApplication,
-        };
-        
-        const updatedSettings = await updateSupabaseSettings(supabaseSettings);
+
+        // Only forward fields present on the patch (null is intentional for logo removal).
+        const supabaseSettings: Partial<CompanySettings> = {};
+        if (newSettings.companyName !== undefined) {
+          supabaseSettings.companyName = newSettings.companyName;
+        }
+        if (newSettings.address !== undefined) supabaseSettings.address = newSettings.address;
+        if (newSettings.phone !== undefined) supabaseSettings.phone = newSettings.phone;
+        if (newSettings.email !== undefined) supabaseSettings.email = newSettings.email;
+        if (newSettings.licenseNumber !== undefined) {
+          supabaseSettings.licenseNumber = newSettings.licenseNumber;
+        }
+        if (newSettings.motto !== undefined) supabaseSettings.motto = newSettings.motto;
+        if ('logoUrl' in newSettings || 'logo' in newSettings) {
+          supabaseSettings.logoUrl = newSettings.logoUrl ?? newSettings.logo ?? null;
+        }
+        if ('logoPath' in newSettings) {
+          supabaseSettings.logoPath = newSettings.logoPath ?? null;
+        }
+        if (newSettings.taxSystem !== undefined) {
+          supabaseSettings.taxSystem = newSettings.taxSystem;
+        }
+        if (newSettings.taxRatePercent !== undefined) {
+          supabaseSettings.taxRatePercent = newSettings.taxRatePercent;
+        }
+        if (newSettings.taxApplication !== undefined) {
+          supabaseSettings.taxApplication = newSettings.taxApplication;
+        }
+
+        const updatedSettings = await updateSupabaseSettings(supabaseSettings, options);
         
         // Map back to local interface
         const mappedSettings: CompanySettings = {

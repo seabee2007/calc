@@ -7,7 +7,7 @@ import {
   coldJointRiskClass,
   DEFAULT_TRUCK_CAPACITY_YD,
 } from '../../utils/readyMixDelivery';
-import { VolumeUnit } from '../../types';
+import type { VolumeUnit } from '../../types';
 
 interface ReadyMixDeliveryProps {
   volume: number;

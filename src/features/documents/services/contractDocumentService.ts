@@ -89,10 +89,22 @@ export async function saveContractVersion(
     p_output_hash: payload.outputHash,
     p_recommendation_decisions: payload.recommendationDecisions,
     p_risk: payload.risk,
+    p_document_number: payload.documentNumber ?? null,
+    p_template_key: payload.templateKey ?? null,
+    p_builder_workflow_status: payload.builderWorkflowStatus ?? null,
+    p_project_snapshot: payload.projectSnapshot ?? {},
+    p_company_snapshot: payload.companySnapshot ?? {},
+    p_rendered_snapshot: payload.renderedSnapshot ?? {},
   });
 
   if (error) throw new Error(error.message);
   return data as unknown as SavedContractVersionResult;
+}
+
+/** Delete a saved document and all versions (owner only via RLS). */
+export async function deleteContractDocument(documentId: string): Promise<void> {
+  const { error } = await supabase.from('contract_documents').delete().eq('id', documentId);
+  if (error) throw new Error(error.message);
 }
 
 /* -------------------------------------------------------------------------- */

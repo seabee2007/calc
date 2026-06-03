@@ -57,6 +57,7 @@ function mockEvent(overrides: Partial<ScheduleEvent> = {}): ScheduleEvent {
     comments: [],
     weatherRisk: null,
     milestoneKey: null,
+    recurrenceRule: null,
     syncMetadata: null,
     createdAt: '',
     updatedAt: '',

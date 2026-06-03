@@ -235,6 +235,27 @@ describe('change order document assembly', () => {
     expect(clauseKeys).toContain('co.signatures');
   });
 
+  it('renders pricing summary with $0.00 when totalChangeOrderAmount is absent or zero', () => {
+    const zeroResult = assembleDocument(makeCoInput({
+      changeOrderTitle: 'No-cost clarification',
+      scopeOfChange: 'Clarify existing scope language only.',
+      reasonForChange: 'Owner request',
+      totalChangeOrderAmount: 0,
+    }));
+    const pricingSection = zeroResult.sections.find((s) => s.clauseKey === 'co.pricing_summary');
+    expect(pricingSection).toBeDefined();
+    expect(pricingSection?.body).toMatch(/\$0\.00/);
+
+    const missingResult = assembleDocument(makeCoInput({
+      changeOrderTitle: 'Allowance TBD',
+      scopeOfChange: 'Allowance placeholder',
+      reasonForChange: 'Pending field verification',
+    }));
+    const missingPricing = missingResult.sections.find((s) => s.clauseKey === 'co.pricing_summary');
+    expect(missingPricing).toBeDefined();
+    expect(missingPricing?.body).toMatch(/\$0\.00/);
+  });
+
   it('residential_contract still assembles correctly', () => {
     const result = assembleDocument({
       documentType: 'residential_contract',

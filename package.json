@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "test": "vitest run",
     "preview": "vite preview",
     "serve:prod": "node csp-server.js",

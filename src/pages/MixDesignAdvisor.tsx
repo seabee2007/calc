@@ -40,7 +40,7 @@ import Select from '../components/ui/Select';
 import Input from '../components/ui/Input';
 import MixAdvisorWeatherLocation from '../components/mix/MixAdvisorWeatherLocation';
 import { type USAddress } from '../types/address';
-import { Weather } from '../types';
+import type { Weather } from '../types';
 import AdmixtureCalculator from '../components/mix/AdmixtureCalculator';
 import SpecGenerator from '../components/mix/SpecGenerator';
 import MixDesignOutputCards from '../components/mix/MixDesignOutputCards';

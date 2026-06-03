@@ -1,4 +1,5 @@
-import { LocationPricing, LOCATION_PRICING } from '../types';
+import type { LocationPricing } from '../types';
+import { LOCATION_PRICING } from '../types';
 
 export interface CostOptions {
   needsPumpTruck?: boolean;

@@ -45,6 +45,12 @@ export interface ContractDocumentRow {
   contractor_signed_at?: string | null;
   public_token_expires_at?: string | null;
   public_token_revoked_at?: string | null;
+  document_number?: string | null;
+  template_key?: string | null;
+  builder_workflow_status?: string | null;
+  project_snapshot?: Record<string, unknown>;
+  company_snapshot?: Record<string, unknown>;
+  rendered_snapshot?: Record<string, unknown>;
 }
 
 /** Safe public document view returned by `get_contract_by_public_token`. */

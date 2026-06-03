@@ -16,6 +16,7 @@ export type DocumentType =
   | 'rfi'
   | 'submittal'
   | 'daily_report'
+  | 'qc_report'
   | 'safety_meeting'
   | 'qc_inspection'
   | 'punch_list'

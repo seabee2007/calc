@@ -1,84 +1,8 @@
-import { LengthUnit, VolumeUnit } from './types';
-import type { USAddress } from './types/address';
-
-export type { USAddress } from './types/address';
-
-// Project types
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  jobsiteAddress?: USAddress;
-  createdAt: string;
-  updatedAt: string;
-  calculations: Calculation[];
-  wasteFactor?: number;
-  pourDate?: string;
-}
-
-export interface Calculation {
-  id: string;
-  type: 'slab' | 'footer' | 'column' | 'sidewalk' | 'thickened_edge_slab';
-  dimensions: Record<string, number>;
-  result: {
-    volume: number; // cubic yards
-    bags: number; // 80lb bags
-    recommendations: string[];
-  };
-  weather?: Weather;
-  createdAt: string;
-  mixDesign?: ConcreteMixDesign;
-}
-
-// Weather related types
-export interface Weather {
-  temperature: number;
-  humidity: number;
-  conditions: string;
-  windSpeed: number;
-  precipitation: number;
-  location: {
-    city: string;
-    country: string;
-  };
-  forecast: ForecastDay[];
-}
-
-export interface ForecastHour {
-  /** Local hour 0–23 */
-  hour: number;
-  temp: number;
-  windSpeed: number;
-  humidity: number;
-  chanceOfRain: number;
-  conditions: string;
-}
-
-export interface ForecastDay {
-  date: string;
-  maxTemp: number;
-  minTemp: number;
-  avgTemp: number;
-  maxWindSpeed: number;
-  chanceOfRain: number;
-  totalPrecipitation: number;
-  conditions: string;
-  avgHumidity?: number;
-  /** Hourly breakdown when available from the forecast API */
-  hourly?: ForecastHour[];
-}
-
+﻿/** Pricing catalog and unit types (moved from former src/types.ts). */
 // Units
 export type Unit = 'imperial' | 'metric';
 export type LengthUnit = 'feet' | 'inches' | 'meters' | 'centimeters';
 export type VolumeUnit = 'cubic_yards' | 'cubic_feet' | 'cubic_meters';
-
-// User preferences
-export interface UserPreferences {
-  units: Unit;
-  lengthUnit: LengthUnit;
-  volumeUnit: VolumeUnit;
-}
 
 // Concrete Mix Design types
 export interface ConcreteMixDesign {
@@ -492,8 +416,8 @@ export const LOCATION_PRICING: LocationPricing[] = [
   },
   {
     id: "hokkaido",
-    name: "Hokkaidō Concrete Co.",
-    address: "Sapporo, Hokkaidō",
+    name: "HokkaidÅ Concrete Co.",
+    address: "Sapporo, HokkaidÅ",
     latitude: 43.0621,
     longitude: 141.3544,
     pricing: {

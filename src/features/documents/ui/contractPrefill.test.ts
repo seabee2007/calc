@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildContractCompanyPrefill,
   buildContractPrefillFromProject,
+  companyPrefillFingerprint,
   jobsitePrefillFingerprint,
+  mapCompanySettingsToContractPrefillSource,
   resolveProjectJobsiteAddress,
 } from './contractPrefill';
 import type { Project } from '../../../types';
@@ -85,6 +88,35 @@ describe('buildContractPrefillFromProject', () => {
     const result = buildContractPrefillFromProject(project);
     expect(result.values.propertyAddressZip).toBe('96913');
     expect(result.values.ownerMailingAddressZip).toBe('96929');
+  });
+});
+
+describe('buildContractCompanyPrefill', () => {
+  it('maps company settings into contractor questionnaire fields', () => {
+    const result = buildContractCompanyPrefill(
+      mapCompanySettingsToContractPrefillSource({
+        companyName: 'Acme Concrete LLC',
+        email: 'office@acme.test',
+        phone: '6715551234',
+        licenseNumber: 'GU-12345',
+        address: '100 Main St, Tamuning, GU 96913',
+      }),
+    );
+    expect(result.values.contractorLegalName).toBe('Acme Concrete LLC');
+    expect(result.values.contractorEmail).toBe('office@acme.test');
+    expect(result.values.contractorPhone).toBe('(671) 555-1234');
+    expect(result.values.contractorLicenseNumber).toBe('GU-12345');
+    expect(result.values.contractorAddressCity).toBe('Tamuning');
+    expect(result.values.contractorAddressZip).toBe('96913');
+    expect(result.sources.contractorLegalName).toBe('company');
+  });
+});
+
+describe('companyPrefillFingerprint', () => {
+  it('changes when company email is updated', () => {
+    const a = companyPrefillFingerprint({ companyName: 'A', email: 'a@test.com' });
+    const b = companyPrefillFingerprint({ companyName: 'A', email: 'b@test.com' });
+    expect(a).not.toBe(b);
   });
 });
 

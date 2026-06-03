@@ -105,7 +105,7 @@ export default function FieldToolPageLayout({
             </p>
             {hasProjectJobsite(currentProject.jobsiteAddress) && (
               <p className={`mt-1 ${FIELD_TOOL_MUTED}`}>
-                Jobsite: {formatUSAddress(currentProject.jobsiteAddress)}
+                Jobsite: {formatUSAddress(currentProject.jobsiteAddress!)}
               </p>
             )}
           </>

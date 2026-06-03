@@ -5,7 +5,7 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { calculateConcreteCost, formatPrice } from '../../utils/readyMixCost';
 import { volumeToCubicYards } from '../../utils/readyMixDelivery';
-import { LocationPricing, VolumeUnit } from '../../types';
+import type { LocationPricing, VolumeUnit } from '../../types';
 import { GeocodedLocation } from '../../utils/location';
 import JobsiteLocationSection from '../address/JobsiteLocationSection';
 import { EMPTY_US_ADDRESS, type USAddress } from '../../types/address';

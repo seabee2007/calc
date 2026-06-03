@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, FileSignature, Lock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { saveProjectDocumentDraft } from '../../../services/projectDocumentService';
+import { DEFAULT_PACK_BY_DOCUMENT_TYPE } from '../../../services/projectDocumentDisplay';
 import {
   assembleDocument,
   buildQuestionnaire,
@@ -25,6 +28,8 @@ import { buildDocumentInput, type ContractAnswers } from './contractInput';
 import {
   buildContractCompanyPrefill,
   buildContractPrefillFromProject,
+  companyPrefillFingerprint,
+  mapCompanySettingsToContractPrefillSource,
   jobsitePrefillFingerprint,
   type ContractPrefillResult,
 } from './contractPrefill';
@@ -33,13 +38,24 @@ import { cleanDocumentBody, softenPreviewPlaceholders } from './previewDisplay';
 import { exportContractDraftPdf } from './contractPdf';
 import { generateChangeOrderPDF } from '../../../utils/changeOrderPdf';
 import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrderPreviewAdapter';
-import { buildSaveVersionPayload, restoreBuilderStateFromSnapshot } from './contractVersionState';
+import { buildRfiPreviewFromDocumentAnswers } from './adapters/rfiPreviewAdapter';
+import { buildSubmittalPreviewFromDocumentAnswers } from './adapters/submittalPreviewAdapter';
+import { buildDailyReportPreviewFromDocumentAnswers } from './adapters/dailyReportPreviewAdapter';
+import { buildQcReportPreviewFromDocumentAnswers } from './adapters/qcReportPreviewAdapter';
+import { buildWarrantyCloseoutPreviewFromDocumentAnswers } from './adapters/warrantyCloseoutPreviewAdapter';
+import { buildPunchListPreviewFromDocumentAnswers } from './adapters/punchListPreviewAdapter';
+import { generateRfiPDF } from './pdf/rfiPdf';
+import { generateSubmittalPDF } from './pdf/submittalPdf';
+import { generateDailyReportPDF } from './pdf/dailyReportPdf';
+import { generateQcReportPDF } from './pdf/qcReportPdf';
+import { generateWarrantyCloseoutPDF } from './pdf/warrantyCloseoutPdf';
+import { generatePunchListPDF } from './pdf/punchListPdf';
+import { restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
 import {
   getContractDocument,
   getPublicContractUrl,
   listContractDocuments,
-  saveContractVersion,
   sendContractForSignature,
 } from '../services/contractDocumentService';
 import type {
@@ -49,6 +65,11 @@ import type {
 import DocumentMetaPanel from './panels/DocumentMetaPanel';
 import ProjectSummaryPanel from './panels/ProjectSummaryPanel';
 import IntakePanel from './panels/IntakePanel';
+import PunchListItemsEditor from './panels/PunchListItemsEditor';
+import {
+  legacyAnswersToPunchItems,
+  parsePunchListItems,
+} from '../packs/punchList/punchListItemTypes';
 import SignaturePanel from './panels/SignaturePanel';
 import CompliancePanel from './panels/CompliancePanel';
 import VersionHistoryPanel from './panels/VersionHistoryPanel';
@@ -96,6 +117,13 @@ function formatCurrency(value: unknown): string | undefined {
 
 function templateLabel(packKey: string, fallback: string): string {
   const labels: Record<string, string> = {
+    GENERIC_CHANGE_ORDER: 'Generic Change Order',
+    GENERIC_RFI: 'Generic RFI Pack',
+    GENERIC_SUBMITTAL: 'Submittal Cover Sheet',
+    GENERIC_DAILY_REPORT: 'Daily Report',
+    GENERIC_QC_REPORT: 'QC Report',
+    GENERIC_WARRANTY_CLOSEOUT: 'Warranty / Closeout Letter',
+    GENERIC_PUNCH_LIST: 'Punch List',
     GENERIC_RESIDENTIAL: 'Generic Residential Contract',
     CA_RESIDENTIAL: 'California Residential Remodel Contract',
     FL_RESIDENTIAL: 'Florida Residential Remodel Contract',
@@ -114,6 +142,12 @@ function templateLabel(packKey: string, fallback: string): string {
  */
 function resolveDocumentType(pk: string): DocumentType {
   if (pk === 'GENERIC_CHANGE_ORDER') return 'change_order';
+  if (pk === 'GENERIC_RFI') return 'rfi';
+  if (pk === 'GENERIC_SUBMITTAL') return 'submittal';
+  if (pk === 'GENERIC_DAILY_REPORT') return 'daily_report';
+  if (pk === 'GENERIC_QC_REPORT') return 'qc_report';
+  if (pk === 'GENERIC_WARRANTY_CLOSEOUT') return 'warranty_letter';
+  if (pk === 'GENERIC_PUNCH_LIST') return 'punch_list';
   // All residential packs (GENERIC_RESIDENTIAL, CA_RESIDENTIAL, etc.)
   return 'residential_contract';
 }
@@ -121,6 +155,7 @@ function resolveDocumentType(pk: string): DocumentType {
 export default function DocumentBuilderPage() {
   const [searchParams] = useSearchParams();
   const companySettings = useSettingsStore((s) => s.companySettings);
+  const loadCompanySettings = useSettingsStore((s) => s.loadCompanySettings);
   const projects = useProjectStore((s) => s.projects);
   const loadProjects = useProjectStore((s) => s.loadProjects);
   const setCurrentProject = useProjectStore((s) => s.setCurrentProject);
@@ -134,6 +169,8 @@ export default function DocumentBuilderPage() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [projectProposals, setProjectProposals] = useState<SavedProposal[]>([]);
   const prefillRunKeyRef = useRef<string | null>(null);
+  const documentHydratedRef = useRef(false);
+  const exportTriggeredRef = useRef(false);
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
   const [showValidation, setShowValidation] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -175,6 +212,10 @@ export default function DocumentBuilderPage() {
   useEffect(() => {
     void loadProjects();
   }, [loadProjects]);
+
+  useEffect(() => {
+    void loadCompanySettings();
+  }, [loadCompanySettings]);
 
   useEffect(() => {
     void refreshSavedDocs(projectId);
@@ -254,16 +295,35 @@ export default function DocumentBuilderPage() {
 
   const queryProjectId = searchParams.get('project');
   const queryDocumentId = searchParams.get('id');
+  const queryPackKey = searchParams.get('packKey');
+  const queryDocumentType = searchParams.get('documentType');
+  const queryExportPdf = searchParams.get('export') === '1';
 
   useEffect(() => {
     if (queryProjectId) {
       setProjectId(queryProjectId);
       setCurrentProject(queryProjectId);
     }
-  }, [queryProjectId, setCurrentProject]);
+    if (!queryDocumentId) {
+      documentHydratedRef.current = true;
+    }
+  }, [queryProjectId, queryDocumentId, setCurrentProject]);
+
+  useEffect(() => {
+    if (queryDocumentId) return;
+    if (queryPackKey) {
+      setPackKey(queryPackKey);
+      return;
+    }
+    if (queryDocumentType) {
+      const defaultPack = DEFAULT_PACK_BY_DOCUMENT_TYPE[queryDocumentType];
+      if (defaultPack) setPackKey(defaultPack);
+    }
+  }, [queryDocumentId, queryPackKey, queryDocumentType]);
 
   useEffect(() => {
     if (!queryDocumentId) return;
+    documentHydratedRef.current = false;
     void (async () => {
       try {
         const { document, versions: docVersions } = await getContractDocument(queryDocumentId);
@@ -292,6 +352,13 @@ export default function DocumentBuilderPage() {
         }
       } catch (e) {
         console.error(e);
+        setToast({
+          title: 'Could not open document',
+          message: e instanceof Error ? e.message : 'Document not found or access denied.',
+          type: 'error',
+        });
+      } finally {
+        documentHydratedRef.current = true;
       }
     })();
   }, [queryDocumentId, setCurrentProject]);
@@ -318,13 +385,7 @@ export default function DocumentBuilderPage() {
   }, []);
 
   const company = useMemo(
-    () => ({
-      legalName: companySettings.companyName,
-      address: companySettings.address,
-      phone: companySettings.phone,
-      email: companySettings.email,
-      licenseNumber: companySettings.licenseNumber,
-    }),
+    () => mapCompanySettingsToContractPrefillSource(companySettings),
     [companySettings],
   );
 
@@ -389,8 +450,9 @@ export default function DocumentBuilderPage() {
 
   const applyPrefill = useCallback(
     (overwriteDirty = false) => {
-      if (!selectedProject) return;
-      const projectPrefill = buildContractPrefillFromProject(selectedProject, projectProposals);
+      const projectPrefill = selectedProject
+        ? buildContractPrefillFromProject(selectedProject, projectProposals)
+        : { values: {}, sources: {}, notes: {} };
       const companyPrefill = buildContractCompanyPrefill(company);
       const values = { ...companyPrefill.values, ...projectPrefill.values };
       const sources = { ...companyPrefill.sources, ...projectPrefill.sources };
@@ -438,17 +500,25 @@ export default function DocumentBuilderPage() {
   }, [projectId]);
 
   useEffect(() => {
-    if (!selectedProject) return;
+    const companyKey = companyPrefillFingerprint(companySettings);
     const latestProposalKey = projectProposals.map((proposal) => proposal.id).join('|');
-    const jobsiteKey = jobsitePrefillFingerprint(selectedProject);
-    const runKey = `${selectedProject.id}:${jobsiteKey}:${latestProposalKey}`;
+    const runKey = selectedProject
+      ? `${selectedProject.id}:${jobsitePrefillFingerprint(selectedProject)}:${latestProposalKey}:${companyKey}`
+      : `company:${companyKey}`;
     if (prefillRunKeyRef.current === runKey) return;
     prefillRunKeyRef.current = runKey;
     applyPrefill(false);
-  }, [applyPrefill, projectProposals, selectedProject]);
+  }, [applyPrefill, companySettings, projectProposals, selectedProject]);
 
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
   const isChangeOrderDocument = currentDocumentType === 'change_order';
+  const isRfiDocument = currentDocumentType === 'rfi';
+  const isSubmittalDocument = currentDocumentType === 'submittal';
+  const isDailyReportDocument = currentDocumentType === 'daily_report';
+  const isQcReportDocument = currentDocumentType === 'qc_report';
+  const isWarrantyCloseoutDocument = currentDocumentType === 'warranty_letter';
+  const isPunchListDocument = currentDocumentType === 'punch_list';
+  const punchListLegacyHydratedRef = useRef(false);
   const questionnaire = useMemo(
     () => buildQuestionnaire(currentDocumentType, mode),
     [currentDocumentType, mode],
@@ -457,6 +527,20 @@ export default function DocumentBuilderPage() {
     () => resolveVisibleQuestions(questionnaire, answers),
     [questionnaire, answers],
   );
+
+  useEffect(() => {
+    if (!isPunchListDocument) {
+      punchListLegacyHydratedRef.current = false;
+      return;
+    }
+    if (punchListLegacyHydratedRef.current) return;
+    punchListLegacyHydratedRef.current = true;
+    const existing = parsePunchListItems(answers.punchItems);
+    if (existing.length > 0) return;
+    const legacy = legacyAnswersToPunchItems(answers);
+    if (legacy.length === 0) return;
+    setAnswers((prev) => ({ ...prev, punchItems: legacy }));
+  }, [isPunchListDocument, answers.punchItems, answers.itemDescription, answers.itemNumber]);
 
   const packOptions = useMemo(
     () =>
@@ -508,15 +592,107 @@ export default function DocumentBuilderPage() {
     }));
   }, [visibleQuestions]);
 
-  // For Change Order documents the "Contract title" input is hidden.
-  // Keep the internal `title` state in sync with `answers.changeOrderTitle` so
-  // the saved-document list and Save Draft use the CO title automatically.
+  // For Change Order / RFI documents the "Contract title" input is hidden.
+  // Keep the internal `title` state in sync with questionnaire title fields.
   useEffect(() => {
-    if (!isChangeOrderDocument) return;
-    const coTitle =
-      typeof answers.changeOrderTitle === 'string' ? answers.changeOrderTitle.trim() : '';
-    if (coTitle) setTitle(coTitle);
-  }, [isChangeOrderDocument, answers.changeOrderTitle]);
+    if (isChangeOrderDocument) {
+      const coTitle =
+        typeof answers.changeOrderTitle === 'string' ? answers.changeOrderTitle.trim() : '';
+      if (coTitle) setTitle(coTitle);
+      return;
+    }
+    if (isRfiDocument) {
+      const rfiTitle = typeof answers.rfiTitle === 'string' ? answers.rfiTitle.trim() : '';
+      if (rfiTitle) setTitle(rfiTitle);
+      return;
+    }
+    if (isSubmittalDocument) {
+      const submittalTitle =
+        typeof answers.submittalTitle === 'string' ? answers.submittalTitle.trim() : '';
+      if (submittalTitle) setTitle(submittalTitle);
+      return;
+    }
+    if (isDailyReportDocument) {
+      const reportDate =
+        typeof answers.reportDate === 'string' ? answers.reportDate.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (reportDate && projectName) {
+        setTitle(`Daily Report — ${reportDate} — ${projectName}`);
+      } else if (reportDate) {
+        setTitle(`Daily Report — ${reportDate}`);
+      } else if (projectName) {
+        setTitle(`Daily Report — ${projectName}`);
+      } else {
+        setTitle('Daily Report');
+      }
+      return;
+    }
+    if (isQcReportDocument) {
+      const reportNumber =
+        typeof answers.reportNumber === 'string' ? answers.reportNumber.trim() : '';
+      const inspectionTypeRaw =
+        typeof answers.inspectionType === 'string' ? answers.inspectionType.trim() : '';
+      const reportDate =
+        typeof answers.reportDate === 'string' ? answers.reportDate.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (reportNumber && inspectionTypeRaw) {
+        setTitle(`QC Report — ${reportNumber} — ${inspectionTypeRaw}`);
+      } else if (inspectionTypeRaw && projectName) {
+        setTitle(`QC Report — ${inspectionTypeRaw} — ${projectName}`);
+      } else if (reportDate && projectName) {
+        setTitle(`QC Report — ${reportDate} — ${projectName}`);
+      } else if (reportDate) {
+        setTitle(`QC Report — ${reportDate}`);
+      } else if (projectName) {
+        setTitle(`QC Report — ${projectName}`);
+      } else {
+        setTitle('QC Report');
+      }
+      return;
+    }
+    if (isWarrantyCloseoutDocument) {
+      const docNumber =
+        typeof answers.documentNumber === 'string' ? answers.documentNumber.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (docNumber) {
+        setTitle(`Warranty / Closeout Letter — ${docNumber}`);
+      } else if (projectName) {
+        setTitle(`Warranty / Closeout Letter — ${projectName}`);
+      } else {
+        setTitle('Warranty / Closeout Letter');
+      }
+      return;
+    }
+    if (isPunchListDocument) {
+      const punchListNumber =
+        typeof answers.punchListNumber === 'string' ? answers.punchListNumber.trim() : '';
+      const projectName = selectedProject?.name?.trim() ?? '';
+      if (punchListNumber) {
+        setTitle(`Punch List — ${punchListNumber}`);
+      } else if (projectName) {
+        setTitle(`Punch List — ${projectName}`);
+      } else {
+        setTitle('Punch List');
+      }
+    }
+  }, [
+    isChangeOrderDocument,
+    isRfiDocument,
+    isSubmittalDocument,
+    isDailyReportDocument,
+    isQcReportDocument,
+    isWarrantyCloseoutDocument,
+    isPunchListDocument,
+    selectedProject,
+    answers.changeOrderTitle,
+    answers.rfiTitle,
+    answers.submittalTitle,
+    answers.reportDate,
+    answers.reportNumber,
+    answers.inspectionType,
+    answers.documentNumber,
+    answers.punchListNumber,
+  ]);
 
   useEffect(() => {
     if (answers.depositRequired !== true) return;
@@ -559,13 +735,88 @@ export default function DocumentBuilderPage() {
         });
         await generateChangeOrderPDF(preview.order, preview.context);
         setToast({ title: 'Change order exported', message: 'Your change order PDF was generated.', type: 'success' });
+      } else if (isRfiDocument) {
+        const view = buildRfiPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateRfiPDF(view);
+        setToast({ title: 'RFI exported', message: 'Your RFI PDF was generated.', type: 'success' });
+      } else if (isSubmittalDocument) {
+        const view = buildSubmittalPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateSubmittalPDF(view);
+        setToast({
+          title: 'Submittal exported',
+          message: 'Your submittal cover sheet PDF was generated.',
+          type: 'success',
+        });
+      } else if (isDailyReportDocument) {
+        const view = buildDailyReportPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateDailyReportPDF(view);
+        setToast({
+          title: 'Daily report exported',
+          message: 'Your daily report PDF was generated.',
+          type: 'success',
+        });
+      } else if (isQcReportDocument) {
+        const view = buildQcReportPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateQcReportPDF(view);
+        setToast({
+          title: 'QC report exported',
+          message: 'Your QC report PDF was generated.',
+          type: 'success',
+        });
+      } else if (isWarrantyCloseoutDocument) {
+        const view = buildWarrantyCloseoutPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateWarrantyCloseoutPDF(view);
+        setToast({
+          title: 'Warranty / closeout exported',
+          message: 'Your warranty / closeout letter PDF was generated.',
+          type: 'success',
+        });
+      } else if (isPunchListDocument) {
+        const view = buildPunchListPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generatePunchListPDF(view);
+        setToast({
+          title: 'Punch list exported',
+          message: 'Your punch list PDF was generated.',
+          type: 'success',
+        });
       } else {
         await exportContractDraftPdf(assembly, risk, {
-          companyName: company.legalName || 'Concrete Calc',
-          address: company.address || '',
-          phone: company.phone || '',
-          email: company.email,
-          licenseNumber: company.licenseNumber,
+          companyName: company.legalName || companySettings.companyName || 'Concrete Calc',
+          address: company.address || companySettings.address || '',
+          phone: company.phone || companySettings.phone || '',
+          email: company.email || companySettings.email,
+          licenseNumber: company.licenseNumber || companySettings.licenseNumber,
+          logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
         }, {
           answers,
           documentTitle: title || assembly.title,
@@ -608,27 +859,72 @@ export default function DocumentBuilderPage() {
     });
   }, [answers, accepted, company, packKey, mode, recommendationDecisions, exportPolicy]);
 
+  const requiresProjectForSave =
+    isChangeOrderDocument ||
+    isRfiDocument ||
+    isSubmittalDocument ||
+    isDailyReportDocument ||
+    isQcReportDocument ||
+    isWarrantyCloseoutDocument ||
+    isPunchListDocument;
+
+  const lastSavedLabel = useMemo(() => {
+    if (!loadedDoc?.updated_at) return null;
+    try {
+      return format(new Date(loadedDoc.updated_at), 'MMM d, yyyy h:mm a');
+    } catch {
+      return loadedDoc.updated_at;
+    }
+  }, [loadedDoc?.updated_at]);
+
   const handleSaveVersion = async () => {
-    setShowValidation(true);
-    const emailErrors = validateContractEmails(answers);
-    setFieldErrors(emailErrors);
-    if (Object.keys(emailErrors).length > 0) {
+    if (!documentHydratedRef.current) {
       setToast({
-        title: 'Check email fields',
-        message: 'Enter a valid email address before saving.',
+        title: 'Still loading',
+        message: 'Wait for the document to finish loading before saving.',
         type: 'error',
       });
       return;
     }
+
+    if (requiresProjectForSave && !projectId) {
+      setToast({
+        title: 'Project required',
+        message: 'Select a project before saving this document draft.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setShowValidation(true);
+    if (currentDocumentType === 'residential_contract') {
+      const emailErrors = validateContractEmails(answers);
+      setFieldErrors(emailErrors);
+      if (Object.keys(emailErrors).length > 0) {
+        setToast({
+          title: 'Check email fields',
+          message: 'Enter a valid email address before saving.',
+          type: 'error',
+        });
+        return;
+      }
+    }
+
     setSaving(true);
     try {
-      const payload = buildSaveVersionPayload(assembly, risk, {
+      const { document } = await saveProjectDocumentDraft({
         documentId,
-        title: title.trim() || assembly.title || 'Untitled contract',
+        title: title.trim() || assembly.title || 'Untitled document',
         projectId,
+        documentType: currentDocumentType,
+        packKey,
+        mode,
+        assembly,
+        risk,
         status: 'draft',
+        selectedProject,
+        companySettings,
       });
-      const { document } = await saveContractVersion(payload);
       setDocumentId(document.id);
       setTitle(document.title);
       setProjectId(document.project_id);
@@ -639,15 +935,15 @@ export default function DocumentBuilderPage() {
       setVersions(latestVersions);
       await refreshSavedDocs(document.project_id);
       setToast({
-        title: 'Contract saved',
+        title: 'Document draft saved',
         message: `Saved as version ${document.latest_version_number}.`,
         type: 'success',
       });
     } catch (e) {
       console.error(e);
       setToast({
-        title: 'Save failed',
-        message: e instanceof Error ? e.message : 'Could not save the contract.',
+        title: 'Could not save document draft',
+        message: e instanceof Error ? e.message : 'Save failed. Try again.',
         type: 'error',
       });
     } finally {
@@ -655,7 +951,16 @@ export default function DocumentBuilderPage() {
     }
   };
 
+  useEffect(() => {
+    if (!queryExportPdf || exportTriggeredRef.current) return;
+    if (!documentHydratedRef.current) return;
+    if (queryDocumentId && !documentId) return;
+    exportTriggeredRef.current = true;
+    void handleExport();
+  }, [queryExportPdf, queryDocumentId, documentId, handleExport]);
+
   const applySnapshot = useCallback((version: ContractDocumentVersionRow) => {
+    punchListLegacyHydratedRef.current = false;
     const state = restoreBuilderStateFromSnapshot(version.input_snapshot);
     setPackKey(state.packKey);
     setMode(state.mode);
@@ -683,17 +988,20 @@ export default function DocumentBuilderPage() {
       const current =
         docVersions.find((v) => v.id === document.current_version_id) ?? docVersions[0];
       if (current) applySnapshot(current);
+      documentHydratedRef.current = true;
     } catch (e) {
       console.error(e);
       setToast({
         title: 'Load failed',
-        message: e instanceof Error ? e.message : 'Could not open that contract.',
+        message: e instanceof Error ? e.message : 'Could not open that document.',
         type: 'error',
       });
+      documentHydratedRef.current = true;
     }
   };
 
   const handleNewContract = () => {
+    punchListLegacyHydratedRef.current = false;
     setDocumentId(null);
     setTitle('');
     setProjectId(queryProjectId ?? null);
@@ -834,7 +1142,15 @@ export default function DocumentBuilderPage() {
                   onTitleChange={setTitle}
                   onNewContract={handleNewContract}
                   onLoadDocument={handleLoadDocument}
-                  isChangeOrder={isChangeOrderDocument}
+                  isChangeOrder={
+                    isChangeOrderDocument ||
+                    isRfiDocument ||
+                    isSubmittalDocument ||
+                    isDailyReportDocument ||
+                    isQcReportDocument ||
+                    isWarrantyCloseoutDocument ||
+                    isPunchListDocument
+                  }
                 />
               </div>
               <IntakePanel
@@ -853,6 +1169,13 @@ export default function DocumentBuilderPage() {
                 onAnswerChange={setAnswer}
                 onRefreshFromProject={() => applyPrefill(true)}
               />
+              {isPunchListDocument ? (
+                <PunchListItemsEditor
+                  mode={mode}
+                  items={parsePunchListItems(answers.punchItems)}
+                  onChange={(items) => setAnswer('punchItems', items)}
+                />
+              ) : null}
               <CompliancePanel
                 packKey={packKey}
                 risk={risk}
@@ -944,6 +1267,12 @@ export default function DocumentBuilderPage() {
                 aria-hidden={!isPreviewOpen}
               >
                 <div className="sticky top-4 z-10 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 print:hidden">
+                  {lastSavedLabel ? (
+                    <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                      Last saved: {lastSavedLabel}
+                      {documentId ? ` · v${loadedDoc?.latest_version_number ?? '—'}` : null}
+                    </p>
+                  ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Button variant="accent" onClick={handleSaveVersion} isLoading={saving} fullWidth>
                       Save Draft

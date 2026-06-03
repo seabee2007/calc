@@ -33,6 +33,12 @@ export interface SaveContractVersionPayload {
   outputHash: string;
   recommendationDecisions: DocumentRecommendationDecision[];
   risk: DocumentRiskScore;
+  documentNumber?: string | null;
+  templateKey?: string | null;
+  builderWorkflowStatus?: string | null;
+  projectSnapshot?: Record<string, unknown>;
+  companySnapshot?: Record<string, unknown>;
+  renderedSnapshot?: Record<string, unknown>;
 }
 
 export interface SaveContractVersionMeta {

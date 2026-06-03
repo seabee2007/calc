@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { format, differenceInDays, parseISO } from 'date-fns';
-import { Project } from '../../types';
-import { CURE_PROFILES, MixProfileType } from '../../types/curing';
+import type { Project } from '../../types';
+import { CURE_PROFILES } from '../../types/curing';
+import type { MixProfileType } from '../../types/curing';
 import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
 

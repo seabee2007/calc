@@ -1,4 +1,4 @@
-import { Weather, ForecastDay } from '../types';
+import type { Weather, ForecastDay } from '../types';
 
 const FN_BASE = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;

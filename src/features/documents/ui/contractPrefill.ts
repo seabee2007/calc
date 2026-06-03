@@ -195,6 +195,29 @@ export function buildContractPrefillFromProject(
   return result;
 }
 
+/** Map saved company profile fields into contract prefill input. */
+export function mapCompanySettingsToContractPrefillSource(settings: {
+  companyName?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  licenseNumber?: string;
+}): {
+  legalName?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  licenseNumber?: string;
+} {
+  return {
+    legalName: settings.companyName?.trim() || undefined,
+    address: settings.address?.trim() || undefined,
+    phone: settings.phone?.trim() || undefined,
+    email: settings.email?.trim() || undefined,
+    licenseNumber: settings.licenseNumber?.trim() || undefined,
+  };
+}
+
 export function buildContractCompanyPrefill(company: {
   legalName?: string;
   address?: string;
@@ -212,4 +235,22 @@ export function buildContractCompanyPrefill(company: {
     put(result, 'contractorAddressLegacy', formatUSAddress(parseLegacyUSAddress(company.address)), 'company');
   }
   return result;
+}
+
+/** Stable key for re-running company prefill when settings load or change. */
+export function companyPrefillFingerprint(settings: {
+  companyName?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  licenseNumber?: string;
+}): string {
+  const source = mapCompanySettingsToContractPrefillSource(settings);
+  return [
+    source.legalName ?? '',
+    source.address ?? '',
+    source.phone ?? '',
+    source.email ?? '',
+    source.licenseNumber ?? '',
+  ].join('|');
 }

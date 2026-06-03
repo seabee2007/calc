@@ -40,10 +40,13 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
 
     try {
       // Update company settings
-      await updateCompanySettings({
-        ...companySettings,
-        ...formData
-      });
+      await updateCompanySettings(
+        {
+          ...companySettings,
+          ...formData,
+        },
+        { allowEmptyTextOverwrite: true },
+      );
 
       // Mark onboarding as complete with error handling
       try {

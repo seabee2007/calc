@@ -1,4 +1,4 @@
-import { ForecastDay, ForecastHour } from '../types';
+import type { ForecastDay, ForecastHour } from '../types';
 
 export type PourRating = 'excellent' | 'good' | 'fair' | 'poor' | 'avoid';
 export type ForecastConfidence = 'high' | 'medium' | 'low';

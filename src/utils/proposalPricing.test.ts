@@ -5,6 +5,7 @@ import {
   legacyPricingToLineItems,
 } from './proposalPricing';
 import type { ProposalData } from '../types/proposal';
+import { EMPTY_PROPOSAL_DOCUMENT_FIELDS } from '../types/proposal';
 
 describe('proposalPricing', () => {
   it('computes breakdown with overhead and profit on direct cost', () => {
@@ -16,6 +17,7 @@ describe('proposalPricing', () => {
       introduction: '',
       scope: '',
       timeline: [],
+      ...EMPTY_PROPOSAL_DOCUMENT_FIELDS,
       laborItems: [{ description: 'Labor', amount: 1000 }],
       materialItems: [{ description: 'Concrete', amount: 5000 }],
       equipmentItems: [],
@@ -52,6 +54,7 @@ describe('proposalPricing', () => {
       introduction: '',
       scope: '',
       timeline: [],
+      ...EMPTY_PROPOSAL_DOCUMENT_FIELDS,
       materialItems: [{ description: 'Concrete', amount: 10000 }],
       laborItems: [],
       equipmentItems: [],
@@ -82,6 +85,7 @@ describe('proposalPricing', () => {
       introduction: '',
       scope: '',
       timeline: [],
+      ...EMPTY_PROPOSAL_DOCUMENT_FIELDS,
       pricing: [
         { description: 'Placement labor', amount: '$1,000.00' },
         { description: 'Concrete 3000 PSI', amount: '$5,000.00' },
