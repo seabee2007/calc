@@ -22,8 +22,8 @@ import {
 } from '../../utils/calculations';
 import { useProjectStore } from '../../store';
 import { usePreferencesStore } from '../../store';
-import { Calculation } from '../../types';
-import { MixProfileType } from '../../types/curing';
+import type { Calculation } from '../../types';
+import type { MixProfileType } from '../../types/curing';
 
 interface CalculationFormProps {
   onSave?: (calculation: Calculation) => Promise<Calculation | undefined> | void;

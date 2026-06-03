@@ -1,6 +1,11 @@
 import { supabase } from '../lib/supabase';
-import { UserPreferences } from '../types';
 import type { TaxApplication, TaxSystem } from '../types/pricingParams';
+
+export {
+  getUserPreferences,
+  updateUserPreferences,
+  migratePreferencesFromLocalStorage,
+} from './userPreferencesService';
 
 export interface CompanySettings {
   id?: string;
@@ -236,144 +241,3 @@ export async function deleteCompanySettings(): Promise<void> {
     }
   }
 }
-
-// User Preferences functions
-export const getUserPreferences = async (): Promise<UserPreferences> => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    throw new Error('User not authenticated');
-  }
-
-  const { data, error } = await supabase
-    .from('user_preferences')
-    .select('*')
-    .eq('user_id', user.id)
-    .single();
-
-  if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-    throw error;
-  }
-
-  // Return default preferences if none found
-  if (!data) {
-    return {
-      units: 'imperial',
-      lengthUnit: 'feet',
-      volumeUnit: 'cubic_yards',
-      measurementSystem: 'imperial',
-      currency: 'USD',
-      defaultPSI: '3000',
-      autoSave: true,
-      soundEnabled: true,
-      hapticsEnabled: true,
-      notifications: {
-        projectUpdates: true,
-        teamChanges: true,
-        systemAlerts: true,
-        emailUpdates: true,
-        projectReminders: true,
-        weatherAlerts: true
-      }
-    };
-  }
-
-  return {
-    units: data.units || 'imperial',
-    lengthUnit: data.length_unit || 'feet',
-    volumeUnit: data.volume_unit || 'cubic_yards',
-    measurementSystem: data.measurement_system || 'imperial',
-    currency: data.currency || 'USD',
-    defaultPSI: data.default_psi || '3000',
-    autoSave: data.auto_save ?? true,
-    soundEnabled: data.sound_enabled ?? true,
-    hapticsEnabled: data.haptics_enabled ?? true,
-    notifications: data.notifications || {
-      projectUpdates: true,
-      teamChanges: true,
-      systemAlerts: true,
-      emailUpdates: true,
-      projectReminders: true,
-      weatherAlerts: true
-    }
-  };
-};
-
-export const updateUserPreferences = async (preferences: Partial<UserPreferences>): Promise<UserPreferences> => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    throw new Error('User not authenticated');
-  }
-
-  // First, get current preferences to merge with updates
-  const currentPreferences = await getUserPreferences();
-  const updatedPreferences = { ...currentPreferences, ...preferences };
-
-  const { data, error } = await supabase
-    .from('user_preferences')
-    .upsert({
-      user_id: user.id,
-      units: updatedPreferences.units,
-      length_unit: updatedPreferences.lengthUnit,
-      volume_unit: updatedPreferences.volumeUnit,
-      measurement_system: updatedPreferences.measurementSystem,
-      currency: updatedPreferences.currency,
-      default_psi: updatedPreferences.defaultPSI,
-      auto_save: updatedPreferences.autoSave,
-      sound_enabled: updatedPreferences.soundEnabled,
-      haptics_enabled: updatedPreferences.hapticsEnabled,
-      notifications: updatedPreferences.notifications,
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
-  return updatedPreferences;
-};
-
-export const migratePreferencesFromLocalStorage = async (): Promise<UserPreferences | null> => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    console.log('No authenticated user for preferences migration');
-    return null;
-  }
-
-  // Check if preferences already exist in database
-  const { data: existingPrefs } = await supabase
-    .from('user_preferences')
-    .select('user_id')
-    .eq('user_id', user.id)
-    .single();
-
-  if (existingPrefs) {
-    console.log('User preferences already exist in database');
-    return null;
-  }
-
-  // Get preferences from localStorage
-  const savedPrefs = localStorage.getItem('concretePreferences');
-  if (!savedPrefs) {
-    console.log('No preferences found in localStorage');
-    return null;
-  }
-
-  try {
-    const localPrefs = JSON.parse(savedPrefs);
-    console.log('Migrating user preferences from localStorage to Supabase...');
-    
-    // Migrate to database
-    const migratedPrefs = await updateUserPreferences(localPrefs);
-    
-    // Optionally remove from localStorage after successful migration
-    // localStorage.removeItem('concretePreferences');
-    
-    console.log('User preferences migration completed');
-    return migratedPrefs;
-  } catch (error) {
-    console.error('Error migrating preferences from localStorage:', error);
-    return null;
-  }
-}; 

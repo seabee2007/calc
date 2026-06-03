@@ -1,7 +1,8 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import { Project, CONCRETE_MIX_DESIGNS } from '../types';
+import type { Project } from '../types';
+import { CONCRETE_MIX_DESIGNS } from '../types';
 import { calculateMixMaterials } from './calculations';
 import { calculateConcreteCost, formatPrice } from './readyMixCost';
 import { computeProposalBreakdown } from './proposalPricing';

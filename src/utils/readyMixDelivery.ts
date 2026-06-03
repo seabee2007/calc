@@ -1,4 +1,4 @@
-import { VolumeUnit } from '../types';
+import type { VolumeUnit } from '../types';
 
 export interface ReadyMixTruckType {
   id: string;

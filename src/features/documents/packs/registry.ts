@@ -12,6 +12,7 @@ import {
   GENERIC_CHANGE_ORDER_TEMPLATE,
   changeOrderPackClauses,
 } from './changeOrder';
+import { GENERIC_RFI_PACK, GENERIC_RFI_TEMPLATE, rfiPackClauses } from './rfi';
 
 /**
  * Pack registry. Resolves a `packKey` to its full catalog (metadata + template
@@ -30,6 +31,12 @@ const PACK_CATALOGS: Record<string, PackCatalog> = {
     pack: GENERIC_CHANGE_ORDER_PACK,
     template: GENERIC_CHANGE_ORDER_TEMPLATE,
     clauses: changeOrderPackClauses,
+    addenda: [],
+  },
+  [GENERIC_RFI_PACK.packKey]: {
+    pack: GENERIC_RFI_PACK,
+    template: GENERIC_RFI_TEMPLATE,
+    clauses: rfiPackClauses,
     addenda: [],
   },
   ...Object.fromEntries(stateCatalogs.map((catalog) => [catalog.pack.packKey, catalog])),

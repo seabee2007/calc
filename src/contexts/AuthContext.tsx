@@ -7,6 +7,10 @@ import React, {
   useState,
 } from 'react';
 import { supabase } from '../lib/supabase';
+import {
+  clearStaleAuthSession,
+  isStaleRefreshTokenError,
+} from '../lib/authSession';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/fieldPlanner';
 import { ensureOwnerProfile, fetchProfile } from '../services/profileService';
@@ -57,31 +61,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loadProfile(user);
   }, [loadProfile, user]);
 
+  const handleStaleSession = useCallback(async () => {
+    await clearStaleAuthSession();
+    setUser(null);
+    setProfile(null);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     let active = true;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const applySession = (sessionUser: User | null) => {
       if (!active) return;
-      const u = session?.user ?? null;
-      setUser(u);
+      setUser(sessionUser);
       setLoading(false);
-      void loadProfile(u);
-    });
+      void loadProfile(sessionUser);
+    };
+
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session }, error }) => {
+        if (!active) return;
+
+        if (error && isStaleRefreshTokenError(error)) {
+          await handleStaleSession();
+          return;
+        }
+
+        applySession(session?.user ?? null);
+      })
+      .catch(async (error) => {
+        if (!active) return;
+        if (isStaleRefreshTokenError(error)) {
+          await handleStaleSession();
+          return;
+        }
+        if (import.meta.env.DEV) {
+          console.error('[auth] Session initialization failed:', error);
+        }
+        applySession(null);
+      });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      setLoading(false);
-      void loadProfile(u);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      applySession(session.user);
     });
 
     return () => {
       active = false;
       subscription.unsubscribe();
     };
-  }, [loadProfile]);
+  }, [loadProfile, handleStaleSession]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -95,24 +135,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        setUser(null);
-        return;
-      }
-
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
+      if (error && !isStaleRefreshTokenError(error)) {
+        throw error;
+      }
     } catch (error) {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      throw error;
+      if (!isStaleRefreshTokenError(error) && import.meta.env.DEV) {
+        console.error('[auth] Sign out error:', error);
+      }
+    } finally {
+      await clearStaleAuthSession();
+      setUser(null);
+      setProfile(null);
     }
   }, []);
 

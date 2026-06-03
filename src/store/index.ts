@@ -4,11 +4,13 @@ import {
   getCompanySettings,
   updateCompanySettings as updateSupabaseSettings,
   migrateFromLocalStorage,
-  getUserPreferences,
-  updateUserPreferences,
-  migratePreferencesFromLocalStorage
 } from '../services/companySettingsService';
 import {
+  getUserPreferences,
+  updateUserPreferences,
+  migratePreferencesFromLocalStorage,
+} from '../services/userPreferencesService';
+import type {
   Project,
   UserPreferences,
   Calculation,
@@ -19,7 +21,7 @@ import {
 } from '../types';
 import type { LaborEstimate, LaborEstimateInputs } from '../types/laborEstimate';
 import { EMPTY_US_ADDRESS } from '../types/address';
-import { MixProfileType } from '../types/curing';
+import type { MixProfileType } from '../types/curing';
 import type { TruckTicketFormState } from '../types/concreteTruckTicket';
 import type { PlacementOrder } from '../types/placementOrder';
 import { defaultPlacementOrder } from '../types/placementOrder';
@@ -1659,18 +1661,22 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   },
   
   updatePreferences: async (newPreferences) => {
+    const previousPrefs = get().preferences;
+    const optimistic = { ...previousPrefs, ...newPreferences };
+    set({ preferences: optimistic });
+
     try {
-      set({ loading: true });
-      const updatedPreferences = await updateUserPreferences(newPreferences);
-      set({ preferences: updatedPreferences, loading: false });
+      const saved = await updateUserPreferences(newPreferences);
+      set({ preferences: saved, loading: false });
     } catch (error) {
-      console.error('Error updating preferences:', error);
-      set({ loading: false });
-      // Fall back to localStorage update if Supabase fails
-      const currentPrefs = get().preferences;
-      const updated = { ...currentPrefs, ...newPreferences };
+      if (import.meta.env.DEV) {
+        console.error('Error updating preferences:', error);
+      }
+      set({ preferences: previousPrefs, loading: false });
+      const updated = { ...previousPrefs, ...newPreferences };
       localStorage.setItem('concretePreferences', JSON.stringify(updated));
       set({ preferences: updated });
+      throw error;
     }
   },
   

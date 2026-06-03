@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { optimizeLogo, validateImageFile } from '../utils/imageOptimization';
 import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
-import { UserPreferences } from '../types';
+import type { UserPreferences } from '../types';
 import { soundService } from '../services/soundService';
 import { hapticService } from '../services/hapticService';
 import { 

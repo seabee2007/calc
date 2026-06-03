@@ -33,6 +33,8 @@ import { cleanDocumentBody, softenPreviewPlaceholders } from './previewDisplay';
 import { exportContractDraftPdf } from './contractPdf';
 import { generateChangeOrderPDF } from '../../../utils/changeOrderPdf';
 import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrderPreviewAdapter';
+import { buildRfiPreviewFromDocumentAnswers } from './adapters/rfiPreviewAdapter';
+import { generateRfiPDF } from './pdf/rfiPdf';
 import { buildSaveVersionPayload, restoreBuilderStateFromSnapshot } from './contractVersionState';
 import { GROUP_ORDER } from './contractBuilderConstants';
 import {
@@ -96,6 +98,8 @@ function formatCurrency(value: unknown): string | undefined {
 
 function templateLabel(packKey: string, fallback: string): string {
   const labels: Record<string, string> = {
+    GENERIC_CHANGE_ORDER: 'Generic Change Order',
+    GENERIC_RFI: 'Generic RFI Pack',
     GENERIC_RESIDENTIAL: 'Generic Residential Contract',
     CA_RESIDENTIAL: 'California Residential Remodel Contract',
     FL_RESIDENTIAL: 'Florida Residential Remodel Contract',
@@ -114,6 +118,7 @@ function templateLabel(packKey: string, fallback: string): string {
  */
 function resolveDocumentType(pk: string): DocumentType {
   if (pk === 'GENERIC_CHANGE_ORDER') return 'change_order';
+  if (pk === 'GENERIC_RFI') return 'rfi';
   // All residential packs (GENERIC_RESIDENTIAL, CA_RESIDENTIAL, etc.)
   return 'residential_contract';
 }
@@ -449,6 +454,7 @@ export default function DocumentBuilderPage() {
 
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
   const isChangeOrderDocument = currentDocumentType === 'change_order';
+  const isRfiDocument = currentDocumentType === 'rfi';
   const questionnaire = useMemo(
     () => buildQuestionnaire(currentDocumentType, mode),
     [currentDocumentType, mode],
@@ -508,15 +514,20 @@ export default function DocumentBuilderPage() {
     }));
   }, [visibleQuestions]);
 
-  // For Change Order documents the "Contract title" input is hidden.
-  // Keep the internal `title` state in sync with `answers.changeOrderTitle` so
-  // the saved-document list and Save Draft use the CO title automatically.
+  // For Change Order / RFI documents the "Contract title" input is hidden.
+  // Keep the internal `title` state in sync with questionnaire title fields.
   useEffect(() => {
-    if (!isChangeOrderDocument) return;
-    const coTitle =
-      typeof answers.changeOrderTitle === 'string' ? answers.changeOrderTitle.trim() : '';
-    if (coTitle) setTitle(coTitle);
-  }, [isChangeOrderDocument, answers.changeOrderTitle]);
+    if (isChangeOrderDocument) {
+      const coTitle =
+        typeof answers.changeOrderTitle === 'string' ? answers.changeOrderTitle.trim() : '';
+      if (coTitle) setTitle(coTitle);
+      return;
+    }
+    if (isRfiDocument) {
+      const rfiTitle = typeof answers.rfiTitle === 'string' ? answers.rfiTitle.trim() : '';
+      if (rfiTitle) setTitle(rfiTitle);
+    }
+  }, [isChangeOrderDocument, isRfiDocument, answers.changeOrderTitle, answers.rfiTitle]);
 
   useEffect(() => {
     if (answers.depositRequired !== true) return;
@@ -559,6 +570,15 @@ export default function DocumentBuilderPage() {
         });
         await generateChangeOrderPDF(preview.order, preview.context);
         setToast({ title: 'Change order exported', message: 'Your change order PDF was generated.', type: 'success' });
+      } else if (isRfiDocument) {
+        const view = buildRfiPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateRfiPDF(view);
+        setToast({ title: 'RFI exported', message: 'Your RFI PDF was generated.', type: 'success' });
       } else {
         await exportContractDraftPdf(assembly, risk, {
           companyName: company.legalName || 'Concrete Calc',
@@ -834,7 +854,7 @@ export default function DocumentBuilderPage() {
                   onTitleChange={setTitle}
                   onNewContract={handleNewContract}
                   onLoadDocument={handleLoadDocument}
-                  isChangeOrder={isChangeOrderDocument}
+                  isChangeOrder={isChangeOrderDocument || isRfiDocument}
                 />
               </div>
               <IntakePanel

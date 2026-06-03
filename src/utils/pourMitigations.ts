@@ -1,4 +1,4 @@
-import { ForecastDay } from '../types';
+import type { ForecastDay } from '../types';
 
 type EvaporationRiskLevel = 'low' | 'moderate' | 'severe';
 

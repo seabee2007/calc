@@ -1,4 +1,4 @@
-import { MixProfileType } from './curing';
+import type { MixProfileType } from './curing';
 import type { StoredTruckTicketRecord } from './concreteTruckTicket';
 import type { USAddress } from './address';
 import type { PlacementOrder } from './placementOrder';
@@ -6,6 +6,7 @@ import type { LaborEstimate } from './laborEstimate';
 import type { ReinforcementPricing } from './laborEstimate';
 import type { MixDesignApproval } from './mixDesignApproval';
 import type { ProjectClientInfo } from './projectClient';
+import type { Weather } from './weather';
 
 export type { USAddress } from './address';
 
@@ -42,6 +43,7 @@ export interface Calculation {
   result: {
     volume: number;
     bags: number;
+    recommendations?: string[];
     pricing?: {
       concreteCost: number;
       pricePerYard: number;
@@ -65,11 +67,7 @@ export interface Calculation {
       };
     };
   };
-  weather?: {
-    temperature: number;
-    humidity: number;
-    windSpeed: number;
-  };
+  weather?: Weather;
   // Add new fields for enhanced display
   psi?: string;
   mixProfile?: MixProfileType;
@@ -241,3 +239,16 @@ export interface Project {
   baseContractValue?: number;
   currentContractValue?: number;
 }
+
+export * from './pricingCatalog';
+export type { Weather, ForecastHour, ForecastDay } from './weather';
+export type { ProposalData } from './proposal';
+export type {
+  ScheduleEvent,
+  ScheduleEventInput,
+  ScheduleEventSavePayload,
+  RecurrenceRule,
+} from './scheduleEvent';
+export type { PlacementOrder, PlacementOrderStatus } from './placementOrder';
+export type { LaborEstimate, LaborEstimateInputs } from './laborEstimate';
+export type { MixProfileType } from './curing';

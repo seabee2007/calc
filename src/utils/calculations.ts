@@ -1,4 +1,5 @@
-import { LengthUnit, VolumeUnit, ConcreteMixDesign, CONCRETE_MIX_DESIGNS } from '../types';
+import type { LengthUnit, VolumeUnit, ConcreteMixDesign } from '../types';
+import { CONCRETE_MIX_DESIGNS } from '../types';
 
 // Convert feet, inches, and fractions to decimal feet
 export function convertToDecimalFeet(feet: number, inches: number, fraction: number): number {
