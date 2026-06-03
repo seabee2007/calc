@@ -1,24 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { Download, MoreHorizontal } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
+import { useProjectTabCounts, type ProjectTabCounts } from '../../hooks/useProjectTabCounts';
 import { exportPlannerBoardJson, exportPlannerTasksCsv } from '../../utils/plannerExport';
+import { formatTabLabel } from '../../utils/formatTabLabel';
 import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import { PLANNER_MENU_PANEL } from './plannerTheme';
 import UserAvatar from './UserAvatar';
 import Button from '../ui/Button';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
 
-const TABS = [
-  { to: 'board', label: 'Board' },
+type TabCountKey = keyof ProjectTabCounts;
+
+const TABS: { to: string; label: string; countKey?: TabCountKey }[] = [
+  { to: 'board', label: 'Board', countKey: 'board' },
   { to: 'charts', label: 'Charts' },
-  { to: 'schedule', label: 'Schedule' },
-  { to: 'documents', label: 'Documents' },
-  { to: 'rfis', label: 'RFIs' },
-  { to: 'adjustments', label: 'FARs' },
-  { to: 'change-orders', label: 'Change orders' },
-  { to: 'team', label: 'Team' },
-] as const;
+  { to: 'schedule', label: 'Schedule', countKey: 'schedule' },
+  { to: 'documents', label: 'Documents', countKey: 'documents' },
+  { to: 'rfis', label: 'RFIs', countKey: 'rfis' },
+  { to: 'adjustments', label: 'FARs', countKey: 'fars' },
+  { to: 'change-orders', label: 'Change orders', countKey: 'changeOrders' },
+  { to: 'team', label: 'Team', countKey: 'team' },
+];
 
 function projectInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -30,7 +35,9 @@ function projectInitials(name: string): string {
 export default function PlannerPlanHeader() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { project, bundle, team, isOwner } = usePlannerProject();
+  const tabCounts = useProjectTabCounts(projectId, user?.id, bundle);
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (!project || !projectId) return null;
@@ -125,7 +132,7 @@ export default function PlannerPlanHeader() {
         className="flex gap-0 overflow-x-auto border-t border-slate-100 px-2 dark:border-slate-800 sm:px-4"
         aria-label="Plan views"
       >
-        {TABS.map(({ to, label }) => (
+        {TABS.map(({ to, label, countKey }) => (
           <NavLink
             key={to}
             to={`${base}/${to}`}
@@ -139,7 +146,7 @@ export default function PlannerPlanHeader() {
               ].join(' ')
             }
           >
-            {label}
+            {formatTabLabel(label, countKey ? tabCounts[countKey] : undefined)}
           </NavLink>
         ))}
       </nav>
