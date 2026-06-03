@@ -16,6 +16,20 @@ const DEFINITIONS: Partial<Record<DocumentType, DocumentTypeDefinition>> = {
     defaultPackKey: 'GENERIC_CHANGE_ORDER',
     defaultTemplateKey: 'GENERIC_CHANGE_ORDER_TEMPLATE',
   },
+  rfi: {
+    documentType: 'rfi',
+    label: 'RFI',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_RFI',
+    defaultTemplateKey: 'GENERIC_RFI_TEMPLATE',
+  },
+  far: {
+    documentType: 'far',
+    label: 'Field Adjustment Request',
+    runtimeSupported: true,
+    defaultPackKey: 'GENERIC_FAR',
+    defaultTemplateKey: 'GENERIC_FAR_TEMPLATE',
+  },
   submittal: {
     documentType: 'submittal',
     label: 'Submittal Cover Sheet',

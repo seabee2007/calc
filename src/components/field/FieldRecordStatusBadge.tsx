@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   BADGE_BASE,
   BADGE_CYAN,
@@ -23,6 +22,9 @@ const STATUS_STYLES: Record<string, string> = {
   'Convert to Change Order': BADGE_PURPLE,
   Closed: BADGE_NEUTRAL,
   Draft: BADGE_NEUTRAL,
+  Submitted: BADGE_INFO,
+  'Under Review': BADGE_WARNING,
+  Void: BADGE_NEUTRAL,
   Sent: BADGE_INFO,
   Viewed: BADGE_CYAN,
   Accepted: BADGE_SUCCESS,

@@ -74,6 +74,18 @@ describe('projectDocumentDisplay', () => {
     expect(grouped.qcReports.map((d) => d.id)).toEqual(['qc']);
   });
 
+  it('routes GENERIC_FAR pack to FAR group and excludes from documents tab', () => {
+    const doc = row({
+      document_type: 'residential_contract',
+      pack_key: 'GENERIC_FAR',
+      id: 'far1',
+    });
+    expect(resolveEffectiveDocumentType(doc)).toBe('far');
+    expect(getProjectDocumentDisplayMeta(doc).group).toBe('FARs');
+    const grouped = filterDocumentsTabBuilderDocuments([doc]);
+    expect(grouped.contracts.length + grouped.other.length).toBe(0);
+  });
+
   it('groups documents tab rows correctly', () => {
     const docs = [
       row({ document_type: 'change_order', pack_key: 'GENERIC_DAILY_REPORT', id: 'dr' }),

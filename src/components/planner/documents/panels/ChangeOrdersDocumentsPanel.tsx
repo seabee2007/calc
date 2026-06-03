@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import type { ChangeOrder } from '../../../../types/changeOrder';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
 import PlannerBuilderDocumentRow from '../../PlannerBuilderDocumentRow';
+import ProjectRecordActions from '../../ProjectRecordActions';
 import {
   changeOrderEditHref,
   contractBuilderToolHref,
@@ -116,27 +117,22 @@ export default function ChangeOrdersDocumentsPanel({
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2">
-                    {isOwner && (
-                      <div className="flex items-center gap-3">
-                        <Link
-                          to={changeOrderEditHref(projectId, co.id)}
-                          className="text-sm font-medium text-cyan-700 hover:underline dark:text-cyan-400"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-red-600 hover:underline dark:text-red-400"
-                          onClick={() => {
+                  <td className="px-3 py-2 text-right">
+                    {isOwner ? (
+                      <ProjectRecordActions
+                        primary={{
+                          label: 'Open / Edit',
+                          href: changeOrderEditHref(projectId, co.id),
+                        }}
+                        danger={{
+                          label: 'Delete',
+                          onClick: () => {
                             setDeleteError(null);
                             setDeleteConfirmId(co.id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                          },
+                        }}
+                      />
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -184,6 +180,7 @@ export default function ChangeOrdersDocumentsPanel({
                     doc={doc}
                     projectId={projectId}
                     onDeleted={onReload}
+                    primaryLabel="Open / Edit"
                   />
                 ))}
               </tbody>

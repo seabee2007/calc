@@ -14,6 +14,7 @@ export type DocumentType =
   | 'work_authorization'
   | 'time_materials_ticket'
   | 'rfi'
+  | 'far'
   | 'submittal'
   | 'daily_report'
   | 'qc_report'

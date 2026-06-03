@@ -7,6 +7,7 @@ import { listConcreteInspectionsForProject } from '../services/concreteInspectio
 import {
   listProjectDocuments,
   listProjectChangeOrderBuilderDocuments,
+  listProjectFarBuilderDocuments,
   listProjectRfiBuilderDocuments,
 } from '../services/projectDocumentService';
 import { countProjectDocumentsNavTotal } from '../services/projectTabCounts';
@@ -87,8 +88,14 @@ export function useProjectTabCounts(
           (n) => n,
         ),
         safeCount(
-          () => fetchAdjustmentsForProject(projectId),
-          (rows) => rows.length,
+          async () => {
+            const [adjustments, farDrafts] = await Promise.all([
+              fetchAdjustmentsForProject(projectId),
+              listProjectFarBuilderDocuments(projectId),
+            ]);
+            return adjustments.length + farDrafts.length;
+          },
+          (n) => n,
         ),
         safeCount(
           async () => {

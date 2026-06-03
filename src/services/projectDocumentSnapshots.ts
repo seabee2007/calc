@@ -58,6 +58,22 @@ export function buildProjectSnapshot(project: Project | null): ProjectDocumentPr
   };
 }
 
+/** Reconstruct minimal company settings from a stored document row snapshot. */
+export function companySettingsFromDocumentSnapshot(
+  snap: Record<string, unknown> | null | undefined,
+): CompanySettings {
+  const s = snap ?? {};
+  return {
+    companyName: (s.companyName as string) ?? '',
+    address: (s.address as string) ?? '',
+    phone: (s.phone as string) ?? '',
+    email: (s.email as string) ?? '',
+    licenseNumber: (s.licenseNumber as string) ?? '',
+    logoUrl: (s.logoUrl as string) ?? null,
+    logo: (s.logoUrl as string) ?? null,
+  } as CompanySettings;
+}
+
 export function buildCompanySnapshot(
   company: Pick<
     CompanySettings,
@@ -82,6 +98,7 @@ export function extractDocumentNumber(
 ): string | null {
   const keysByType: Record<string, string[]> = {
     rfi: ['rfiNumber', 'displayNumber'],
+    far: ['farNumber', 'displayNumber'],
     submittal: ['submittalNumber', 'displayNumber'],
     daily_report: ['reportNumber', 'displayNumber'],
     qc_report: ['reportNumber', 'displayNumber'],

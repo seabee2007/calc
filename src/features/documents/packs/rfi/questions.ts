@@ -104,11 +104,18 @@ export const rfiQuestions: DocumentQuestion[] = [
   {
     questionKey: 'status',
     label: 'Status',
-    type: 'text',
+    type: 'select',
     group: 'execution',
+    options: [
+      { value: 'Draft', label: 'Draft' },
+      { value: 'Submitted', label: 'Submitted' },
+      { value: 'Under Review', label: 'Under Review' },
+      { value: 'Answered', label: 'Answered' },
+      { value: 'Closed', label: 'Closed' },
+      { value: 'Void', label: 'Void' },
+    ],
     required: false,
     mode: 'quick',
-    helperText: 'e.g. Draft, Submitted, Under Review, Closed',
   },
   {
     questionKey: 'attachmentDrawings',

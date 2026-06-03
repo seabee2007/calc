@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { FieldAdjustmentRequest } from '../../../../types/fieldPlanner';
 import { FAR_STATUSES } from '../../../../types/fieldPlanner';
+import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
+import {
+  FAR_WORKFLOW_STATUSES,
+  partitionFarBuilderDocuments,
+  resolveBuilderWorkflowStatusFromDoc,
+} from '../../../../services/builderWorkflowStatus';
 import { nameFromMap } from '../../../../services/profileService';
+import BuilderDocumentTableActions from '../../BuilderDocumentTableActions';
+import ProjectRecordActions from '../../ProjectRecordActions';
+import { contractBuilderToolHref } from '../../../../utils/plannerRoutes';
 import Button from '../../../ui/Button';
-import CreateFieldAdjustmentModal from '../../../field/CreateFieldAdjustmentModal';
 import FarDetailDrawer from '../../../field/FarDetailDrawer';
 import FieldRecordStatusBadge from '../../../field/FieldRecordStatusBadge';
+import BuilderDocumentReviewDrawer from '../BuilderDocumentReviewDrawer';
 import {
   PLANNER_MUTED,
   PLANNER_TABLE,
@@ -15,52 +25,65 @@ import {
 import { DocumentsPanelFootnote, PanelActionRow } from '../documentsPanelUtils';
 import { useDocumentsSearchParams } from '../useDocumentsSearchParams';
 
-type SectionKey =
-  | 'Pending'
-  | 'Approved'
-  | 'Rejected'
-  | 'Needs More Information'
-  | 'Convert to Change Order';
-
-const SECTIONS: { key: SectionKey; label: string }[] = [
-  { key: 'Pending', label: 'Pending' },
-  { key: 'Needs More Information', label: 'Needs more info' },
-  { key: 'Approved', label: 'Approved' },
-  { key: 'Rejected', label: 'Rejected' },
-  { key: 'Convert to Change Order', label: 'Convert to change order' },
-];
-
 interface Props {
   projectId: string;
   items: FieldAdjustmentRequest[];
+  builderFarDrafts: ProjectDocumentRow[];
   nameMap: Map<string, string>;
   userId: string | undefined;
   isOwner: boolean;
   onReload: () => void;
   onProjectReload: () => void;
-  embedTab?: 'fars';
+}
+
+function matchesBuilderSearch(doc: ProjectDocumentRow, search: string): boolean {
+  if (!search) return true;
+  const q = search.toLowerCase();
+  return (
+    doc.title.toLowerCase().includes(q) ||
+    (doc.document_number ?? '').toLowerCase().includes(q)
+  );
 }
 
 export default function FarsDocumentsPanel({
   projectId,
   items,
+  builderFarDrafts,
   nameMap,
   userId,
   isOwner,
   onReload,
   onProjectReload,
-  embedTab,
 }: Props) {
-  const { searchParams, mergeParams } = useDocumentsSearchParams(embedTab);
+  const navigate = useNavigate();
+  const { searchParams, mergeParams } = useDocumentsSearchParams();
   const highlightId = searchParams.get('adjustment');
-  const [createOpen, setCreateOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(highlightId);
+  const [builderReviewDocId, setBuilderReviewDocId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     if (highlightId) setSelectedId(highlightId);
   }, [highlightId]);
+
+  const builderParts = useMemo(() => partitionFarBuilderDocuments(builderFarDrafts), [builderFarDrafts]);
+
+  const filterBuilder = (docs: ProjectDocumentRow[]) =>
+    docs.filter((doc) => {
+      if (!matchesBuilderSearch(doc, search)) return false;
+      if (statusFilter) {
+        const wf = resolveBuilderWorkflowStatusFromDoc(doc);
+        if (wf !== statusFilter) return false;
+      }
+      return true;
+    });
+
+  const openBuilder = useMemo(() => filterBuilder(builderParts.open), [builderParts.open, search, statusFilter]);
+  const closedBuilder = useMemo(
+    () => filterBuilder(builderParts.closed),
+    [builderParts.closed, search, statusFilter],
+  );
 
   const filtered = useMemo(() => {
     return items.filter((a) => {
@@ -70,7 +93,8 @@ export default function FarsDocumentsPanel({
     });
   }, [items, search, statusFilter]);
 
-  const byStatus = (status: SectionKey) => filtered.filter((a) => a.status === status);
+  const openCount = filtered.length + openBuilder.length;
+  const closedCount = closedBuilder.length;
 
   const openDrawer = (id: string) => {
     setSelectedId(id);
@@ -91,8 +115,44 @@ export default function FarsDocumentsPanel({
     return parts.length ? parts.join(', ') : '—';
   };
 
-  const renderTable = (rows: FieldAdjustmentRequest[], empty: string) => {
-    if (rows.length === 0) {
+  const renderBuilderFarRows = (docs: ProjectDocumentRow[]) =>
+    docs.map((doc) => (
+      <tr
+        key={doc.id}
+        className={`border-b border-slate-100 last:border-0 dark:border-slate-800 ${
+          builderReviewDocId === doc.id ? 'bg-cyan-50/50 dark:bg-cyan-950/20' : ''
+        }`}
+      >
+        <td className="px-3 py-2 font-mono text-xs">{doc.document_number?.trim() || '—'}</td>
+        <td className="max-w-[200px] px-3 py-2">
+          <div className="truncate font-medium">{doc.title}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Document Builder</div>
+        </td>
+        <td className="px-3 py-2 text-gray-500">—</td>
+        <td className="px-3 py-2 text-gray-500">—</td>
+        <td className="px-3 py-2 text-gray-500">—</td>
+        <td className="px-3 py-2">
+          <FieldRecordStatusBadge status={resolveBuilderWorkflowStatusFromDoc(doc)} />
+        </td>
+        <td className="px-3 py-2 text-right">
+          <BuilderDocumentTableActions
+            doc={doc}
+            projectId={projectId}
+            primaryLabel="View / Review"
+            onPrimary={setBuilderReviewDocId}
+            onDeleted={onReload}
+            showDelete
+          />
+        </td>
+      </tr>
+    ));
+
+  const renderOpenClosedTable = (
+    legacyRows: FieldAdjustmentRequest[],
+    builderRows: ProjectDocumentRow[],
+    empty: string,
+  ) => {
+    if (legacyRows.length === 0 && builderRows.length === 0) {
       return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
     }
     return (
@@ -110,7 +170,7 @@ export default function FarsDocumentsPanel({
             </tr>
           </thead>
           <tbody>
-            {rows.map((adj) => (
+            {legacyRows.map((adj) => (
               <tr
                 key={adj.id}
                 className={`border-b border-slate-100 last:border-0 dark:border-slate-800 ${
@@ -127,13 +187,14 @@ export default function FarsDocumentsPanel({
                 <td className="px-3 py-2">
                   <FieldRecordStatusBadge status={adj.status} />
                 </td>
-                <td className="px-3 py-2">
-                  <Button size="sm" variant="outline" onClick={() => openDrawer(adj.id)}>
-                    View
-                  </Button>
+                <td className="px-3 py-2 text-right">
+                  <ProjectRecordActions
+                    primary={{ label: 'View / Review', onClick: () => openDrawer(adj.id) }}
+                  />
                 </td>
               </tr>
             ))}
+            {renderBuilderFarRows(builderRows)}
           </tbody>
         </table>
       </div>
@@ -144,7 +205,18 @@ export default function FarsDocumentsPanel({
     <>
       <PanelActionRow
         action={
-          <Button variant="accent" size="sm" onClick={() => setCreateOpen(true)}>
+          <Button
+            variant="accent"
+            size="sm"
+            onClick={() =>
+              navigate(
+                contractBuilderToolHref(projectId, undefined, {
+                  packKey: 'GENERIC_FAR',
+                  documentType: 'far',
+                }),
+              )
+            }
+          >
             New FAR
           </Button>
         }
@@ -169,34 +241,38 @@ export default function FarsDocumentsPanel({
               {s}
             </option>
           ))}
+          {FAR_WORKFLOW_STATUSES.map((s) => (
+            <option key={`wf-${s}`} value={s}>
+              {s} (builder)
+            </option>
+          ))}
         </select>
       </div>
 
-      {SECTIONS.map(({ key, label }) => {
-        const rows = byStatus(key);
-        if (statusFilter && statusFilter !== key) return null;
-        return (
-          <section key={key} className="mb-6">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {label} ({rows.length})
-            </h3>
-            {renderTable(rows, `No ${label.toLowerCase()} requests.`)}
-          </section>
-        );
-      })}
+      <section className="mb-6">
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Open FARs ({openCount})
+        </h3>
+        {renderOpenClosedTable(filtered, openBuilder, 'No open FARs.')}
+      </section>
 
-      {userId && (
-        <CreateFieldAdjustmentModal
-          isOpen={createOpen}
-          onClose={() => setCreateOpen(false)}
-          projectId={projectId}
-          userId={userId}
-          onCreated={() => {
-            onReload();
-            onProjectReload();
-          }}
-        />
-      )}
+      <section className="mb-6">
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Closed FARs ({closedCount})
+        </h3>
+        {renderOpenClosedTable([], closedBuilder, 'No closed FARs.')}
+      </section>
+
+      <BuilderDocumentReviewDrawer
+        documentId={builderReviewDocId}
+        projectId={projectId}
+        kind="far"
+        onClose={() => setBuilderReviewDocId(null)}
+        onSaved={() => {
+          onReload();
+          onProjectReload();
+        }}
+      />
 
       {userId && (
         <FarDetailDrawer

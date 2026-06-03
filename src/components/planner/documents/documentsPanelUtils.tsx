@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
 import type { ProjectDocumentRow } from '../../../services/projectDocumentService';
 import PlannerBuilderDocumentRow from '../PlannerBuilderDocumentRow';
+import ProjectRecordActions from '../ProjectRecordActions';
 import {
   PLANNER_MUTED,
   PLANNER_TABLE,
@@ -110,12 +110,9 @@ export function SimpleDocumentsTable({
                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.title}</td>
                 <td className={`px-4 py-3 ${PLANNER_MUTED}`}>{row.meta}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    to={buildHref(row.id)}
-                    className="text-sm font-medium text-cyan-700 hover:text-cyan-800 dark:text-cyan-400 dark:hover:text-cyan-300"
-                  >
-                    Edit
-                  </Link>
+                  <ProjectRecordActions
+                    primary={{ label: 'Open / Edit', href: buildHref(row.id) }}
+                  />
                 </td>
               </tr>
             );

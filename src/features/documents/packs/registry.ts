@@ -13,6 +13,7 @@ import {
   changeOrderPackClauses,
 } from './changeOrder';
 import { GENERIC_RFI_PACK, GENERIC_RFI_TEMPLATE, rfiPackClauses } from './rfi';
+import { GENERIC_FAR_PACK, GENERIC_FAR_TEMPLATE, farPackClauses } from './far';
 import {
   GENERIC_SUBMITTAL_PACK,
   GENERIC_SUBMITTAL_TEMPLATE,
@@ -62,6 +63,12 @@ const PACK_CATALOGS: Record<string, PackCatalog> = {
     pack: GENERIC_RFI_PACK,
     template: GENERIC_RFI_TEMPLATE,
     clauses: rfiPackClauses,
+    addenda: [],
+  },
+  [GENERIC_FAR_PACK.packKey]: {
+    pack: GENERIC_FAR_PACK,
+    template: GENERIC_FAR_TEMPLATE,
+    clauses: farPackClauses,
     addenda: [],
   },
   [GENERIC_SUBMITTAL_PACK.packKey]: {

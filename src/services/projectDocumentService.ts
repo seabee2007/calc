@@ -3,11 +3,14 @@ import type {
   DocumentRiskScore,
   DocumentType,
 } from '../features/documents/types';
+import { assembleDocument, scoreDocumentRisk } from '../features/documents';
 import { getPackCatalog } from '../features/documents/packs/registry';
 import {
   buildSaveVersionPayload,
+  restoreBuilderStateFromSnapshot,
   type SaveContractVersionMeta,
 } from '../features/documents/ui/contractVersionState';
+import { buildDocumentInput } from '../features/documents/ui/contractInput';
 import type { ContractDocumentStatus } from '../features/documents/services/contractDocumentTypes';
 import {
   deleteContractDocument,
@@ -30,6 +33,7 @@ import {
 } from './projectDocumentSnapshots';
 import {
   isChangeOrderBuilderDocument,
+  isFarBuilderDocument,
   isRfiBuilderDocument,
   resolveEffectiveDocumentType,
 } from './projectDocumentDisplay';
@@ -42,7 +46,8 @@ export type BuilderDocumentType =
   | 'daily_report'
   | 'qc_report'
   | 'warranty_letter'
-  | 'punch_list';
+  | 'punch_list'
+  | 'far';
 
 export type ProjectDocumentRow = ContractDocumentRow;
 
@@ -92,6 +97,13 @@ export async function listProjectRfiBuilderDocuments(
 ): Promise<ProjectDocumentRow[]> {
   const rows = await listContractDocuments(projectId);
   return rows.filter(isRfiBuilderDocument);
+}
+
+export async function listProjectFarBuilderDocuments(
+  projectId: string,
+): Promise<ProjectDocumentRow[]> {
+  const rows = await listContractDocuments(projectId);
+  return rows.filter(isFarBuilderDocument);
 }
 
 export function getProjectDocument(documentId: string): Promise<ContractDocumentWithVersions> {
@@ -148,6 +160,51 @@ export async function saveProjectDocumentDraft(
   return saveContractVersion(savePayload);
 }
 
+/** Merge workflow answers from Planner review drawer; keeps contract_documents.status as draft/finalized/archived. */
+export async function saveProjectDocumentWorkflowAnswers(
+  documentId: string,
+  partialAnswers: Record<string, unknown>,
+  options: {
+    companySettings: CompanySettings;
+    selectedProject?: Project | null;
+  },
+): Promise<SavedContractVersionResult> {
+  const { document, versions } = await getContractDocument(documentId);
+  const current =
+    versions.find((v) => v.id === document.current_version_id) ?? versions[0];
+  if (!current) {
+    throw new Error('Document has no saved version');
+  }
+
+  const state = restoreBuilderStateFromSnapshot(current.input_snapshot);
+  const mergedAnswers = { ...state.answers, ...partialAnswers };
+  const documentType = resolveEffectiveDocumentType(document);
+  const packKey = document.pack_key;
+
+  const input = buildDocumentInput(mergedAnswers, [...state.accepted], {
+    packKey,
+    mode: state.mode,
+    documentType: documentType as DocumentType,
+  });
+  const assembly = assembleDocument(input);
+  const risk = scoreDocumentRisk(input);
+
+  return saveProjectDocumentDraft({
+    documentId: document.id,
+    title: document.title,
+    projectId: document.project_id,
+    documentType,
+    packKey,
+    mode: state.mode,
+    assembly,
+    risk,
+    status: document.status,
+    selectedProject: options.selectedProject ?? null,
+    companySettings: options.companySettings,
+    renderedSnapshot: document.rendered_snapshot ?? {},
+  });
+}
+
 export async function updateProjectDocumentDraft(
   id: string,
   updates: ProjectDocumentUpdatePayload,
@@ -185,6 +242,7 @@ export const BUILDER_DOCUMENT_TYPE_LABELS: Record<string, string> = {
   qc_report: 'QC Report',
   warranty_letter: 'Warranty / Closeout Letter',
   punch_list: 'Punch List',
+  far: 'FAR',
 };
 
 export function formatProjectDocumentTypeLabel(documentType: string): string {

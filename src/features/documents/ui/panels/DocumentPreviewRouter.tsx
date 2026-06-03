@@ -17,6 +17,8 @@ import QcReportDocument from '../renderers/QcReportDocument';
 import WarrantyCloseoutDocument from '../renderers/WarrantyCloseoutDocument';
 import ResidentialContractDocument from '../renderers/ResidentialContractDocument';
 import RfiDocument from '../renderers/RfiDocument';
+import FarDocument from '../renderers/FarDocument';
+import { buildFarPreviewFromDocumentAnswers } from '../adapters/farPreviewAdapter';
 import SubmittalDocument from '../renderers/SubmittalDocument';
 import PreviewPanel, { type PreviewPanelProps } from './PreviewPanel';
 
@@ -109,6 +111,7 @@ export default function DocumentPreviewRouter({
     documentType === 'change_order' || packKey === 'GENERIC_CHANGE_ORDER';
   const isResidentialContract = documentType === 'residential_contract';
   const isRfi = documentType === 'rfi' || packKey === 'GENERIC_RFI';
+  const isFar = documentType === 'far' || packKey === 'GENERIC_FAR';
   const isSubmittal = documentType === 'submittal' || packKey === 'GENERIC_SUBMITTAL';
   const isDailyReport = documentType === 'daily_report' || packKey === 'GENERIC_DAILY_REPORT';
   const isQcReport = documentType === 'qc_report' || packKey === 'GENERIC_QC_REPORT';
@@ -123,6 +126,7 @@ export default function DocumentPreviewRouter({
   }, [
     isChangeOrder,
     isRfi,
+    isFar,
     isSubmittal,
     isDailyReport,
     isQcReport,
@@ -167,6 +171,24 @@ export default function DocumentPreviewRouter({
       return null;
     }
   }, [isRfi, previewVersion, answers, selectedProject, companySettings, title]);
+
+  const farPreview = useMemo(() => {
+    if (!isFar || previewVersion) return null;
+    try {
+      return buildFarPreviewFromDocumentAnswers({
+        answers,
+        selectedProject,
+        companySettings,
+        title,
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error('[DocumentPreviewRouter] FAR adapter error:', err);
+      }
+      setTimeout(() => setAdapterError(err instanceof Error ? err.message : String(err)), 0);
+      return null;
+    }
+  }, [isFar, previewVersion, answers, selectedProject, companySettings, title]);
 
   const submittalPreview = useMemo(() => {
     if (!isSubmittal || previewVersion) return null;
@@ -285,6 +307,14 @@ export default function DocumentPreviewRouter({
     return (
       <PaperPreviewShell>
         <RfiDocument view={rfiPreview} />
+      </PaperPreviewShell>
+    );
+  }
+
+  if (farPreview) {
+    return (
+      <PaperPreviewShell>
+        <FarDocument view={farPreview} />
       </PaperPreviewShell>
     );
   }

@@ -2,6 +2,7 @@ import type { DocumentQuestion, DocumentType } from '../types';
 import { residentialQuestions } from '../engine/questionnaire/residentialQuestions';
 import { changeOrderQuestions } from '../packs/changeOrder';
 import { rfiQuestions } from '../packs/rfi';
+import { farQuestions } from '../packs/far';
 import { submittalQuestions } from '../packs/submittal';
 import { dailyReportQuestions } from '../packs/dailyReport';
 import { qcReportQuestions } from '../packs/qcReport';
@@ -12,6 +13,7 @@ const banks = new Map<DocumentType, DocumentQuestion[]>([
   ['residential_contract', residentialQuestions],
   ['change_order', changeOrderQuestions],
   ['rfi', rfiQuestions],
+  ['far', farQuestions],
   ['submittal', submittalQuestions],
   ['daily_report', dailyReportQuestions],
   ['qc_report', qcReportQuestions],

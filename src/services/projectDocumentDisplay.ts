@@ -22,6 +22,7 @@ export interface ProjectDocumentDisplayMeta {
 const PACK_TO_TYPE: Record<string, string> = {
   GENERIC_CHANGE_ORDER: 'change_order',
   GENERIC_RFI: 'rfi',
+  GENERIC_FAR: 'far',
   GENERIC_SUBMITTAL: 'submittal',
   GENERIC_DAILY_REPORT: 'daily_report',
   GENERIC_QC_REPORT: 'qc_report',
@@ -215,6 +216,7 @@ export function filterDocumentsTabBuilderDocuments(docs: ProjectDocumentRow[]): 
 export const DEFAULT_PACK_BY_DOCUMENT_TYPE: Record<string, string> = {
   change_order: 'GENERIC_CHANGE_ORDER',
   rfi: 'GENERIC_RFI',
+  far: 'GENERIC_FAR',
   submittal: 'GENERIC_SUBMITTAL',
   daily_report: 'GENERIC_DAILY_REPORT',
   qc_report: 'GENERIC_QC_REPORT',

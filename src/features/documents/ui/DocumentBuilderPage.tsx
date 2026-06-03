@@ -39,12 +39,14 @@ import { exportContractDraftPdf } from './contractPdf';
 import { generateChangeOrderPDF } from '../../../utils/changeOrderPdf';
 import { buildChangeOrderPreviewFromDocumentAnswers } from './adapters/changeOrderPreviewAdapter';
 import { buildRfiPreviewFromDocumentAnswers } from './adapters/rfiPreviewAdapter';
+import { buildFarPreviewFromDocumentAnswers } from './adapters/farPreviewAdapter';
 import { buildSubmittalPreviewFromDocumentAnswers } from './adapters/submittalPreviewAdapter';
 import { buildDailyReportPreviewFromDocumentAnswers } from './adapters/dailyReportPreviewAdapter';
 import { buildQcReportPreviewFromDocumentAnswers } from './adapters/qcReportPreviewAdapter';
 import { buildWarrantyCloseoutPreviewFromDocumentAnswers } from './adapters/warrantyCloseoutPreviewAdapter';
 import { buildPunchListPreviewFromDocumentAnswers } from './adapters/punchListPreviewAdapter';
 import { generateRfiPDF } from './pdf/rfiPdf';
+import { generateFarPDF } from './pdf/farPdf';
 import { generateSubmittalPDF } from './pdf/submittalPdf';
 import { generateDailyReportPDF } from './pdf/dailyReportPdf';
 import { generateQcReportPDF } from './pdf/qcReportPdf';
@@ -119,6 +121,7 @@ function templateLabel(packKey: string, fallback: string): string {
   const labels: Record<string, string> = {
     GENERIC_CHANGE_ORDER: 'Generic Change Order',
     GENERIC_RFI: 'Generic RFI Pack',
+    GENERIC_FAR: 'Field Adjustment Request',
     GENERIC_SUBMITTAL: 'Submittal Cover Sheet',
     GENERIC_DAILY_REPORT: 'Daily Report',
     GENERIC_QC_REPORT: 'QC Report',
@@ -143,6 +146,7 @@ function templateLabel(packKey: string, fallback: string): string {
 function resolveDocumentType(pk: string): DocumentType {
   if (pk === 'GENERIC_CHANGE_ORDER') return 'change_order';
   if (pk === 'GENERIC_RFI') return 'rfi';
+  if (pk === 'GENERIC_FAR') return 'far';
   if (pk === 'GENERIC_SUBMITTAL') return 'submittal';
   if (pk === 'GENERIC_DAILY_REPORT') return 'daily_report';
   if (pk === 'GENERIC_QC_REPORT') return 'qc_report';
@@ -513,6 +517,7 @@ export default function DocumentBuilderPage() {
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
   const isChangeOrderDocument = currentDocumentType === 'change_order';
   const isRfiDocument = currentDocumentType === 'rfi';
+  const isFarDocument = currentDocumentType === 'far';
   const isSubmittalDocument = currentDocumentType === 'submittal';
   const isDailyReportDocument = currentDocumentType === 'daily_report';
   const isQcReportDocument = currentDocumentType === 'qc_report';
@@ -606,6 +611,11 @@ export default function DocumentBuilderPage() {
       if (rfiTitle) setTitle(rfiTitle);
       return;
     }
+    if (isFarDocument) {
+      const farTitle = typeof answers.title === 'string' ? answers.title.trim() : '';
+      if (farTitle) setTitle(farTitle);
+      return;
+    }
     if (isSubmittalDocument) {
       const submittalTitle =
         typeof answers.submittalTitle === 'string' ? answers.submittalTitle.trim() : '';
@@ -678,6 +688,7 @@ export default function DocumentBuilderPage() {
   }, [
     isChangeOrderDocument,
     isRfiDocument,
+    isFarDocument,
     isSubmittalDocument,
     isDailyReportDocument,
     isQcReportDocument,
@@ -686,6 +697,7 @@ export default function DocumentBuilderPage() {
     selectedProject,
     answers.changeOrderTitle,
     answers.rfiTitle,
+    answers.title,
     answers.submittalTitle,
     answers.reportDate,
     answers.reportNumber,
@@ -744,6 +756,15 @@ export default function DocumentBuilderPage() {
         });
         await generateRfiPDF(view);
         setToast({ title: 'RFI exported', message: 'Your RFI PDF was generated.', type: 'success' });
+      } else if (isFarDocument) {
+        const view = buildFarPreviewFromDocumentAnswers({
+          answers,
+          selectedProject,
+          companySettings,
+          title,
+        });
+        await generateFarPDF(view);
+        setToast({ title: 'FAR exported', message: 'Your FAR PDF was generated.', type: 'success' });
       } else if (isSubmittalDocument) {
         const view = buildSubmittalPreviewFromDocumentAnswers({
           answers,
@@ -862,6 +883,7 @@ export default function DocumentBuilderPage() {
   const requiresProjectForSave =
     isChangeOrderDocument ||
     isRfiDocument ||
+    isFarDocument ||
     isSubmittalDocument ||
     isDailyReportDocument ||
     isQcReportDocument ||
@@ -1145,6 +1167,7 @@ export default function DocumentBuilderPage() {
                   isChangeOrder={
                     isChangeOrderDocument ||
                     isRfiDocument ||
+                    isFarDocument ||
                     isSubmittalDocument ||
                     isDailyReportDocument ||
                     isQcReportDocument ||
