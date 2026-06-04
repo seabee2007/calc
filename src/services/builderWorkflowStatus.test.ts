@@ -69,13 +69,14 @@ describe('builderWorkflowStatus', () => {
     expect(parts.closed).toHaveLength(1);
   });
 
-  it('classifies FAR builder open vs closed', () => {
-    expect(isFarBuilderWorkflowOpen('Draft')).toBe(true);
+  it('classifies FAR builder open vs closed vs drafts', () => {
+    expect(isFarBuilderWorkflowOpen('Draft')).toBe(false);
     expect(isFarBuilderWorkflowOpen('Approved')).toBe(true);
     expect(isFarBuilderWorkflowClosed('Closed')).toBe(true);
     expect(partitionFarBuilderDocument({ builder_workflow_status: 'Under Review', status: 'draft' })).toBe(
       'open',
     );
     expect(partitionFarBuilderDocument({ builder_workflow_status: 'Void', status: 'draft' })).toBe('closed');
+    expect(partitionFarBuilderDocument({ builder_workflow_status: null, status: 'draft' })).toBe('drafts');
   });
 });

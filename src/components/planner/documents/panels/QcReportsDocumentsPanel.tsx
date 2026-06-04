@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
@@ -5,6 +6,7 @@ import type { ConcreteInspectionChecklist } from '../../../../types/fieldTools';
 import Button from '../../../ui/Button';
 import { contractBuilderToolHref, concreteInspectionToolHref } from '../../../../utils/plannerRoutes';
 import { PLANNER_SECTION_TITLE } from '../../plannerTheme';
+import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import {
   BuilderDraftsTable,
   DocumentsPanelFootnote,
@@ -29,6 +31,7 @@ export default function QcReportsDocumentsPanel({
   onReload,
 }: Props) {
   const navigate = useNavigate();
+  const [drawerDocId, setDrawerDocId] = useState<string | null>(null);
 
   return (
     <>
@@ -51,13 +54,19 @@ export default function QcReportsDocumentsPanel({
           </Button>
         }
       />
-      <BuilderDraftsTable docs={qcReportDocs} projectId={projectId} empty="No QC reports saved yet." onDeleted={onReload} />
+      <BuilderDraftsTable
+        docs={qcReportDocs}
+        projectId={projectId}
+        empty="No QC reports saved yet."
+        onDeleted={onReload}
+        onOpenDrawer={setDrawerDocId}
+      />
 
       <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className={PLANNER_SECTION_TITLE}>QC checklists</h3>
           <Button
-            variant="outline"
+            variant="accent"
             size="sm"
             icon={<Plus className="h-4 w-4" />}
             onClick={() => navigate(concreteInspectionToolHref(projectId))}
@@ -78,6 +87,12 @@ export default function QcReportsDocumentsPanel({
         />
       </section>
       <DocumentsPanelFootnote />
+      <ProjectDocumentDrawer
+        documentId={drawerDocId}
+        projectId={projectId}
+        onClose={() => setDrawerDocId(null)}
+        onSaved={onReload}
+      />
     </>
   );
 }

@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
 import Button from '../../../ui/Button';
 import { contractBuilderToolHref } from '../../../../utils/plannerRoutes';
+import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import { BuilderDraftsTable, DocumentsPanelFootnote, PanelActionRow } from '../documentsPanelUtils';
 
 interface Props {
@@ -13,6 +15,7 @@ interface Props {
 
 export default function DailyReportsDocumentsPanel({ projectId, docs, onReload }: Props) {
   const navigate = useNavigate();
+  const [drawerDocId, setDrawerDocId] = useState<string | null>(null);
 
   return (
     <>
@@ -35,8 +38,20 @@ export default function DailyReportsDocumentsPanel({ projectId, docs, onReload }
           </Button>
         }
       />
-      <BuilderDraftsTable docs={docs} projectId={projectId} empty="No daily reports saved yet." onDeleted={onReload} />
+      <BuilderDraftsTable
+        docs={docs}
+        projectId={projectId}
+        empty="No daily reports saved yet."
+        onDeleted={onReload}
+        onOpenDrawer={setDrawerDocId}
+      />
       <DocumentsPanelFootnote />
+      <ProjectDocumentDrawer
+        documentId={drawerDocId}
+        projectId={projectId}
+        onClose={() => setDrawerDocId(null)}
+        onSaved={onReload}
+      />
     </>
   );
 }

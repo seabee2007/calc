@@ -91,7 +91,7 @@ export function getProjectDocumentDisplayMeta(
       return {
         label: 'Change Order Document',
         group: 'Change Orders',
-        subtitleLabel: 'Change Order Document',
+        subtitleLabel: 'Document Builder Draft',
       };
     case 'rfi':
       return {

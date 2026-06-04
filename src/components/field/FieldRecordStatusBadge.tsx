@@ -1,3 +1,4 @@
+import { formatEnumLabel } from '../../utils/formatEnumLabel';
 import {
   BADGE_BASE,
   BADGE_CYAN,
@@ -32,11 +33,13 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function FieldRecordStatusBadge({ status }: { status: string }) {
+  const label = formatEnumLabel(status);
+  const display = label === '—' ? status : label;
   return (
     <span
-      className={`${BADGE_BASE} ${STATUS_STYLES[status] ?? BADGE_NEUTRAL}`}
+      className={`${BADGE_BASE} ${STATUS_STYLES[display] ?? STATUS_STYLES[status] ?? BADGE_NEUTRAL}`}
     >
-      {status}
+      {display}
     </span>
   );
 }

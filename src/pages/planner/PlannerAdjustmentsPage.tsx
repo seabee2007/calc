@@ -33,7 +33,7 @@ export default function PlannerAdjustmentsPage() {
 
   return (
     <div className={`${PLANNER_PAGE_BG} flex-1 overflow-y-auto p-4 sm:p-6`}>
-      <h2 className={`mb-4 ${PLANNER_SECTION_TITLE}`}>Field adjustments (FARs)</h2>
+      <h2 className={`mb-4 ${PLANNER_SECTION_TITLE}`}>FARs</h2>
       <FarsDocumentsPanel
         projectId={projectId}
         items={items}

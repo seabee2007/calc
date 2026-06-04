@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { format } from 'date-fns';
 import type { ProjectDocumentRow } from '../../../services/projectDocumentService';
 import PlannerBuilderDocumentRow from '../PlannerBuilderDocumentRow';
@@ -12,12 +12,20 @@ import {
   PLANNER_TABLE_WRAPPER,
 } from '../plannerTheme';
 
+/** Friendly table date (e.g. Jun 4, 2026). Accepts ISO timestamps and yyyy-MM-dd. */
 export function formatDocDate(iso: string | undefined): string {
   if (!iso) return '—';
+  const trimmed = iso.trim();
+  if (!trimmed) return '—';
   try {
-    return format(new Date(iso + 'T12:00:00'), 'MMM d, yyyy');
+    let d = new Date(trimmed);
+    if (Number.isNaN(d.getTime()) && /^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      d = new Date(`${trimmed}T12:00:00`);
+    }
+    if (Number.isNaN(d.getTime())) return '—';
+    return format(d, 'MMM d, yyyy');
   } catch {
-    return iso;
+    return '—';
   }
 }
 
@@ -35,12 +43,16 @@ export function BuilderDraftsTable({
   projectId,
   empty,
   onDeleted,
+  onOpenDrawer,
 }: {
   docs: ProjectDocumentRow[];
   projectId: string;
   empty: string;
   onDeleted: () => void;
+  onOpenDrawer?: (documentId: string) => void;
 }) {
+  const [deleteConfirmDocId, setDeleteConfirmDocId] = useState<string | null>(null);
+
   if (docs.length === 0) {
     return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
   }
@@ -61,7 +73,16 @@ export function BuilderDraftsTable({
               key={doc.id}
               doc={doc}
               projectId={projectId}
-              onDeleted={onDeleted}
+              onDeleted={() => {
+                setDeleteConfirmDocId(null);
+                onDeleted();
+              }}
+              onOpenDrawer={onOpenDrawer}
+              deleteConfirm={{
+                deleteConfirmActive: deleteConfirmDocId === doc.id,
+                onDeleteRequest: () => setDeleteConfirmDocId(doc.id),
+                onDeleteCancel: () => setDeleteConfirmDocId(null),
+              }}
             />
           ))}
         </tbody>
@@ -75,11 +96,15 @@ export function SimpleDocumentsTable({
   empty,
   highlightId,
   buildHref,
+  onOpenDrawer,
+  primaryLabel = 'View / Update',
 }: {
   rows: { id?: string; date: string; title: string; meta: string }[];
   empty: string;
   highlightId: string | null;
   buildHref: (id: string) => string;
+  onOpenDrawer?: (id: string) => void;
+  primaryLabel?: string;
 }) {
   if (rows.length === 0) {
     return <p className={`${PLANNER_MUTED} py-2 text-sm`}>{empty}</p>;
@@ -111,7 +136,16 @@ export function SimpleDocumentsTable({
                 <td className={`px-4 py-3 ${PLANNER_MUTED}`}>{row.meta}</td>
                 <td className="px-4 py-3 text-right">
                   <ProjectRecordActions
-                    primary={{ label: 'Open / Edit', href: buildHref(row.id) }}
+                    primary={
+                      onOpenDrawer
+                        ? { label: primaryLabel, onClick: () => onOpenDrawer(row.id) }
+                        : { label: primaryLabel, href: buildHref(row.id) }
+                    }
+                    secondaries={
+                      onOpenDrawer
+                        ? [{ label: 'Open in Builder', href: buildHref(row.id) }]
+                        : undefined
+                    }
                   />
                 </td>
               </tr>

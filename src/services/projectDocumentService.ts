@@ -37,6 +37,12 @@ import {
   isRfiBuilderDocument,
   resolveEffectiveDocumentType,
 } from './projectDocumentDisplay';
+import {
+  applyFarNumberToAnswers,
+  applyRfiNumberToAnswers,
+  resolveFarNumberForSave,
+  resolveRfiNumberForSave,
+} from './projectRecordNumbering';
 
 export type BuilderDocumentType =
   | 'residential_contract'
@@ -116,11 +122,57 @@ function resolveTemplateKey(packKey: string): string | null {
   return key ?? null;
 }
 
+async function patchAssemblyRecordNumbers(
+  payload: ProjectDocumentDraftPayload,
+): Promise<{ assembly: DocumentAssemblyResult; answers: Record<string, unknown> }> {
+  let answers = { ...(payload.assembly.manifest.inputSnapshot.answers ?? {}) };
+  const effectiveType = resolveEffectiveDocumentType({
+    document_type: String(payload.documentType),
+    pack_key: payload.packKey,
+  });
+  const projectId = payload.projectId;
+
+  let existingDocumentNumber: string | null | undefined;
+  if (payload.documentId) {
+    const existing = await getContractDocument(payload.documentId);
+    existingDocumentNumber = existing.document.document_number;
+  }
+
+  if (projectId && effectiveType === 'rfi') {
+    const rfiNumber = await resolveRfiNumberForSave({
+      projectId,
+      answers,
+      existingDocumentNumber,
+    });
+    answers = applyRfiNumberToAnswers(answers, rfiNumber);
+  } else if (projectId && effectiveType === 'far') {
+    const farNumber = await resolveFarNumberForSave({
+      projectId,
+      answers,
+      existingDocumentNumber,
+    });
+    answers = applyFarNumberToAnswers(answers, farNumber);
+  }
+
+  const assembly: DocumentAssemblyResult = {
+    ...payload.assembly,
+    manifest: {
+      ...payload.assembly.manifest,
+      inputSnapshot: {
+        ...payload.assembly.manifest.inputSnapshot,
+        answers,
+      },
+    },
+  };
+
+  return { assembly, answers };
+}
+
 /** Manual save: append immutable version + update parent metadata and snapshots. */
 export async function saveProjectDocumentDraft(
   payload: ProjectDocumentDraftPayload,
 ): Promise<SavedContractVersionResult> {
-  const answers = payload.assembly.manifest.inputSnapshot.answers ?? {};
+  const { assembly, answers } = await patchAssemblyRecordNumbers(payload);
   const documentNumber = extractDocumentNumber(payload.documentType, answers);
   const builderWorkflowStatus = extractBuilderWorkflowStatus(answers);
   const templateKey = resolveTemplateKey(payload.packKey);
@@ -149,7 +201,7 @@ export async function saveProjectDocumentDraft(
     renderedSnapshot: payload.renderedSnapshot ?? {},
   };
 
-  const savePayload = buildSaveVersionPayload(payload.assembly, payload.risk, meta);
+  const savePayload = buildSaveVersionPayload(assembly, payload.risk, meta);
   savePayload.documentNumber = documentNumber;
   savePayload.templateKey = templateKey;
   savePayload.builderWorkflowStatus = builderWorkflowStatus;

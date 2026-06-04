@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
 import Button from '../../../ui/Button';
 import { contractBuilderToolHref } from '../../../../utils/plannerRoutes';
 import { PLANNER_SECTION_TITLE } from '../../plannerTheme';
+import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import { BuilderDraftsTable, DocumentsPanelFootnote, PanelActionRow } from '../documentsPanelUtils';
 
 interface Props {
@@ -20,6 +22,7 @@ export default function CloseoutDocumentsPanel({
   onReload,
 }: Props) {
   const navigate = useNavigate();
+  const [drawerDocId, setDrawerDocId] = useState<string | null>(null);
 
   return (
     <>
@@ -47,14 +50,27 @@ export default function CloseoutDocumentsPanel({
         projectId={projectId}
         empty="No closeout or warranty documents saved yet."
         onDeleted={onReload}
+        onOpenDrawer={setDrawerDocId}
       />
       {otherDocs.length > 0 ? (
         <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
           <h3 className={`mb-3 ${PLANNER_SECTION_TITLE}`}>Other documents</h3>
-          <BuilderDraftsTable docs={otherDocs} projectId={projectId} empty="" onDeleted={onReload} />
+          <BuilderDraftsTable
+            docs={otherDocs}
+            projectId={projectId}
+            empty=""
+            onDeleted={onReload}
+            onOpenDrawer={setDrawerDocId}
+          />
         </section>
       ) : null}
       <DocumentsPanelFootnote />
+      <ProjectDocumentDrawer
+        documentId={drawerDocId}
+        projectId={projectId}
+        onClose={() => setDrawerDocId(null)}
+        onSaved={onReload}
+      />
     </>
   );
 }

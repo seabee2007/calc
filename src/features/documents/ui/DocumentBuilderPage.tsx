@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, FileSignature, Lock } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { plannerChangeOrdersHref } from '../../../utils/plannerRoutes';
 import { saveProjectDocumentDraft } from '../../../services/projectDocumentService';
+import { getNextFarNumber, getNextRfiNumber } from '../../../services/projectRecordNumbering';
 import { DEFAULT_PACK_BY_DOCUMENT_TYPE } from '../../../services/projectDocumentDisplay';
 import {
   assembleDocument,
@@ -120,7 +122,7 @@ function formatCurrency(value: unknown): string | undefined {
 function templateLabel(packKey: string, fallback: string): string {
   const labels: Record<string, string> = {
     GENERIC_CHANGE_ORDER: 'Generic Change Order',
-    GENERIC_RFI: 'Generic RFI Pack',
+    GENERIC_RFI: 'Request for Information',
     GENERIC_FAR: 'Field Adjustment Request',
     GENERIC_SUBMITTAL: 'Submittal Cover Sheet',
     GENERIC_DAILY_REPORT: 'Daily Report',
@@ -524,6 +526,7 @@ export default function DocumentBuilderPage() {
   const isWarrantyCloseoutDocument = currentDocumentType === 'warranty_letter';
   const isPunchListDocument = currentDocumentType === 'punch_list';
   const punchListLegacyHydratedRef = useRef(false);
+  const recordNumberPrefillKeyRef = useRef<string | null>(null);
   const questionnaire = useMemo(
     () => buildQuestionnaire(currentDocumentType, mode),
     [currentDocumentType, mode],
@@ -546,6 +549,47 @@ export default function DocumentBuilderPage() {
     if (legacy.length === 0) return;
     setAnswers((prev) => ({ ...prev, punchItems: legacy }));
   }, [isPunchListDocument, answers.punchItems, answers.itemDescription, answers.itemNumber]);
+
+  useEffect(() => {
+    if (!projectId || documentId) return;
+    if (!documentHydratedRef.current) return;
+    if (!isRfiDocument && !isFarDocument) return;
+    const answerKey = isRfiDocument ? 'rfiNumber' : 'farNumber';
+    if (!isBlank(answers[answerKey])) return;
+    const runKey = `${projectId}:${currentDocumentType}`;
+    if (recordNumberPrefillKeyRef.current === runKey) return;
+    recordNumberPrefillKeyRef.current = runKey;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const next = isRfiDocument
+          ? await getNextRfiNumber(projectId)
+          : await getNextFarNumber(projectId);
+        if (cancelled) return;
+        setAnswers((prev) => {
+          if (!isBlank(prev[answerKey])) return prev;
+          return { ...prev, [answerKey]: next };
+        });
+      } catch (e) {
+        console.error('Failed to prefetch RFI/FAR number', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    projectId,
+    documentId,
+    isRfiDocument,
+    isFarDocument,
+    currentDocumentType,
+    answers.rfiNumber,
+    answers.farNumber,
+  ]);
+
+  useEffect(() => {
+    recordNumberPrefillKeyRef.current = null;
+  }, [projectId]);
 
   const packOptions = useMemo(
     () =>
@@ -1146,6 +1190,19 @@ export default function DocumentBuilderPage() {
             Draft document only. Have a qualified attorney review before use.
           </span>
         </div>
+
+        {isChangeOrderDocument && selectedProject ? (
+          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-900 dark:text-cyan-200">
+            For project change orders, use the{' '}
+            <Link
+              to={plannerChangeOrdersHref(selectedProject.id)}
+              className="font-semibold text-cyan-700 underline hover:text-cyan-600 dark:text-cyan-300"
+            >
+              Planner Change Orders
+            </Link>{' '}
+            workflow for CO numbering, pricing, and approvals.
+          </div>
+        ) : null}
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out motion-reduce:transition-none">
             <section

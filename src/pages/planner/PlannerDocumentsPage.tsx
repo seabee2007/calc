@@ -119,6 +119,7 @@ export default function PlannerDocumentsPage() {
             projectId={projectId}
             contracts={grouped.contracts}
             highlightContractId={highlightContract}
+            onReload={() => void load()}
           />
         );
       case 'submittals':
@@ -178,6 +179,7 @@ export default function PlannerDocumentsPage() {
             projectId={projectId}
             contracts={grouped.contracts}
             highlightContractId={highlightContract}
+            onReload={() => void load()}
           />
         );
     }

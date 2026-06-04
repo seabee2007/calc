@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import type { FieldAdjustmentRequest } from '../../../../types/fieldPlanner';
 import { FAR_STATUSES } from '../../../../types/fieldPlanner';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
@@ -8,14 +9,16 @@ import {
   partitionFarBuilderDocuments,
   resolveBuilderWorkflowStatusFromDoc,
 } from '../../../../services/builderWorkflowStatus';
-import { nameFromMap } from '../../../../services/profileService';
+import { resolveFarDisplayNumber } from '../../../../services/projectRecordNumbering';
+import PlannerBuilderDocumentRow from '../../PlannerBuilderDocumentRow';
 import BuilderDocumentTableActions from '../../BuilderDocumentTableActions';
 import ProjectRecordActions from '../../ProjectRecordActions';
 import { contractBuilderToolHref } from '../../../../utils/plannerRoutes';
+import { nameFromMap } from '../../../../services/profileService';
 import Button from '../../../ui/Button';
 import FarDetailDrawer from '../../../field/FarDetailDrawer';
 import FieldRecordStatusBadge from '../../../field/FieldRecordStatusBadge';
-import BuilderDocumentReviewDrawer from '../BuilderDocumentReviewDrawer';
+import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import {
   PLANNER_MUTED,
   PLANNER_TABLE,
@@ -24,6 +27,8 @@ import {
 } from '../../plannerTheme';
 import { DocumentsPanelFootnote, PanelActionRow } from '../documentsPanelUtils';
 import { useDocumentsSearchParams } from '../useDocumentsSearchParams';
+
+const FAR_PRIORITY_OPTIONS = ['Low', 'Normal', 'High', 'Urgent'] as const;
 
 interface Props {
   projectId: string;
@@ -36,12 +41,21 @@ interface Props {
   onProjectReload: () => void;
 }
 
+function formatBuilderDate(iso: string | undefined): string {
+  if (!iso) return '—';
+  try {
+    return format(new Date(iso), 'MMM d, yyyy');
+  } catch {
+    return iso;
+  }
+}
+
 function matchesBuilderSearch(doc: ProjectDocumentRow, search: string): boolean {
   if (!search) return true;
   const q = search.toLowerCase();
   return (
     doc.title.toLowerCase().includes(q) ||
-    (doc.document_number ?? '').toLowerCase().includes(q)
+    resolveFarDisplayNumber(doc).toLowerCase().includes(q)
   );
 }
 
@@ -60,7 +74,9 @@ export default function FarsDocumentsPanel({
   const highlightId = searchParams.get('adjustment');
   const [selectedId, setSelectedId] = useState<string | null>(highlightId);
   const [builderReviewDocId, setBuilderReviewDocId] = useState<string | null>(null);
+  const [deleteConfirmDocId, setDeleteConfirmDocId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
@@ -74,11 +90,12 @@ export default function FarsDocumentsPanel({
       if (!matchesBuilderSearch(doc, search)) return false;
       if (statusFilter) {
         const wf = resolveBuilderWorkflowStatusFromDoc(doc);
-        if (wf !== statusFilter) return false;
+        if (wf !== statusFilter && doc.status !== statusFilter) return false;
       }
       return true;
     });
 
+  const draftBuilder = useMemo(() => filterBuilder(builderParts.drafts), [builderParts.drafts, search, statusFilter]);
   const openBuilder = useMemo(() => filterBuilder(builderParts.open), [builderParts.open, search, statusFilter]);
   const closedBuilder = useMemo(
     () => filterBuilder(builderParts.closed),
@@ -106,15 +123,6 @@ export default function FarsDocumentsPanel({
     mergeParams({ adjustment: null });
   };
 
-  const impactSummary = (adj: FieldAdjustmentRequest) => {
-    const parts: string[] = [];
-    if (adj.potentialCostImpact) parts.push('Cost');
-    if (adj.potentialScheduleImpact) parts.push('Schedule');
-    if (adj.impactSafety) parts.push('Safety');
-    if (adj.impactQuality) parts.push('Quality');
-    return parts.length ? parts.join(', ') : '—';
-  };
-
   const renderBuilderFarRows = (docs: ProjectDocumentRow[]) =>
     docs.map((doc) => (
       <tr
@@ -123,14 +131,14 @@ export default function FarsDocumentsPanel({
           builderReviewDocId === doc.id ? 'bg-cyan-50/50 dark:bg-cyan-950/20' : ''
         }`}
       >
-        <td className="px-3 py-2 font-mono text-xs">{doc.document_number?.trim() || '—'}</td>
+        <td className="px-3 py-2 font-mono text-xs">{resolveFarDisplayNumber(doc)}</td>
         <td className="max-w-[200px] px-3 py-2">
           <div className="truncate font-medium">{doc.title}</div>
           <div className="text-xs text-slate-500 dark:text-slate-400">Document Builder</div>
         </td>
         <td className="px-3 py-2 text-gray-500">—</td>
         <td className="px-3 py-2 text-gray-500">—</td>
-        <td className="px-3 py-2 text-gray-500">—</td>
+        <td className="whitespace-nowrap px-3 py-2 text-gray-500">{formatBuilderDate(doc.updated_at)}</td>
         <td className="px-3 py-2">
           <FieldRecordStatusBadge status={resolveBuilderWorkflowStatusFromDoc(doc)} />
         </td>
@@ -138,10 +146,7 @@ export default function FarsDocumentsPanel({
           <BuilderDocumentTableActions
             doc={doc}
             projectId={projectId}
-            primaryLabel="View / Review"
             onPrimary={setBuilderReviewDocId}
-            onDeleted={onReload}
-            showDelete
           />
         </td>
       </tr>
@@ -160,11 +165,11 @@ export default function FarsDocumentsPanel({
         <table className={PLANNER_TABLE}>
           <thead className={PLANNER_TABLE_HEAD}>
             <tr>
-              <th className="px-3 py-2">Request #</th>
+              <th className="px-3 py-2">FAR #</th>
               <th className="px-3 py-2">Title</th>
+              <th className="px-3 py-2">Priority</th>
               <th className="px-3 py-2">Submitted by</th>
-              <th className="px-3 py-2">Impacts</th>
-              <th className="px-3 py-2">Schedule</th>
+              <th className="px-3 py-2">Date</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2" />
             </tr>
@@ -179,10 +184,10 @@ export default function FarsDocumentsPanel({
               >
                 <td className="px-3 py-2 font-mono text-xs">{adj.displayNumber ?? '—'}</td>
                 <td className="max-w-[200px] truncate px-3 py-2 font-medium">{adj.title}</td>
+                <td className="px-3 py-2 text-gray-500">—</td>
                 <td className="px-3 py-2">{nameFromMap(nameMap, adj.submittedBy, '—')}</td>
-                <td className="px-3 py-2 text-gray-600 dark:text-slate-400">{impactSummary(adj)}</td>
-                <td className="px-3 py-2 text-gray-600 dark:text-slate-400">
-                  {adj.scheduleImpact ?? '—'}
+                <td className="whitespace-nowrap px-3 py-2 text-gray-500">
+                  {new Date(adj.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-3 py-2">
                   <FieldRecordStatusBadge status={adj.status} />
@@ -231,6 +236,19 @@ export default function FarsDocumentsPanel({
           className="min-w-[160px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
         />
         <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+          aria-label="Filter by priority"
+        >
+          <option value="">All priorities</option>
+          {FAR_PRIORITY_OPTIONS.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+        <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
@@ -263,10 +281,52 @@ export default function FarsDocumentsPanel({
         {renderOpenClosedTable([], closedBuilder, 'No closed FARs.')}
       </section>
 
-      <BuilderDocumentReviewDrawer
+      <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          FAR document drafts ({draftBuilder.length})
+        </h3>
+        {draftBuilder.length === 0 ? (
+          <p className={`${PLANNER_MUTED} py-2 text-sm`}>
+            No FAR documents in Draft workflow status. Use New FAR to create one.
+          </p>
+        ) : (
+          <div className={PLANNER_TABLE_WRAPPER}>
+            <table className={PLANNER_TABLE}>
+              <thead className={PLANNER_TABLE_HEAD}>
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Updated</th>
+                  <th className="px-4 py-3 font-semibold">Title</th>
+                  <th className="px-4 py-3 font-semibold">Number / Status</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {draftBuilder.map((doc) => (
+                  <PlannerBuilderDocumentRow
+                    key={doc.id}
+                    doc={doc}
+                    projectId={projectId}
+                    onDeleted={() => {
+                      setDeleteConfirmDocId(null);
+                      onReload();
+                    }}
+                    onOpenDrawer={setBuilderReviewDocId}
+                    deleteConfirm={{
+                      deleteConfirmActive: deleteConfirmDocId === doc.id,
+                      onDeleteRequest: () => setDeleteConfirmDocId(doc.id),
+                      onDeleteCancel: () => setDeleteConfirmDocId(null),
+                    }}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <ProjectDocumentDrawer
         documentId={builderReviewDocId}
         projectId={projectId}
-        kind="far"
         onClose={() => setBuilderReviewDocId(null)}
         onSaved={() => {
           onReload();

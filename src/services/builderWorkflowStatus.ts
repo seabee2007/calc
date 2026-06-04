@@ -1,4 +1,5 @@
 import type { ContractDocumentRow } from '../features/documents/services/contractDocumentTypes';
+import { formatEnumLabel } from '../utils/formatEnumLabel';
 import type { ProjectDocumentRow } from './projectDocumentService';
 
 export const RFI_WORKFLOW_STATUSES = [
@@ -24,7 +25,7 @@ export type RfiWorkflowStatus = (typeof RFI_WORKFLOW_STATUSES)[number];
 export type FarWorkflowStatus = (typeof FAR_WORKFLOW_STATUSES)[number];
 
 export type RfiBuilderListSection = 'drafts' | 'open' | 'closed';
-export type FarBuilderListSection = 'open' | 'closed';
+export type FarBuilderListSection = 'drafts' | 'open' | 'closed';
 
 const STATUS_LABEL_MAP: Record<string, string> = {
   draft: 'Draft',
@@ -42,7 +43,6 @@ const STATUS_LABEL_MAP: Record<string, string> = {
 const RFI_OPEN_STATUSES = new Set<RfiWorkflowStatus>(['Submitted', 'Under Review', 'Answered']);
 const RFI_CLOSED_STATUSES = new Set<RfiWorkflowStatus>(['Closed', 'Void']);
 const FAR_OPEN_STATUSES = new Set<FarWorkflowStatus>([
-  'Draft',
   'Submitted',
   'Under Review',
   'Approved',
@@ -56,7 +56,7 @@ export function formatWorkflowStatusLabel(raw: string | null | undefined): strin
   const trimmed = raw.trim();
   const lower = trimmed.toLowerCase().replace(/\s+/g, '_');
   if (STATUS_LABEL_MAP[lower]) return STATUS_LABEL_MAP[lower];
-  return trimmed;
+  return formatEnumLabel(trimmed);
 }
 
 /** Alias for formatWorkflowStatusLabel — single canonical workflow label. */
@@ -95,6 +95,14 @@ export function workflowStatusesForKind(kind: 'rfi' | 'far'): readonly string[] 
   return kind === 'rfi' ? RFI_WORKFLOW_STATUSES : FAR_WORKFLOW_STATUSES;
 }
 
+/** Workflow status for planner lists and drawer (builder_workflow_status → answers.status → lifecycle). */
+export function getBuilderDocumentWorkflowStatus(
+  doc: Pick<ContractDocumentRow, 'builder_workflow_status' | 'status'>,
+  answersStatus?: string | null,
+): string {
+  return resolveBuilderWorkflowStatusDisplay(doc, answersStatus);
+}
+
 export function isRfiBuilderWorkflowDraft(status: string): boolean {
   return normalizeBuilderWorkflowStatus(status) === 'Draft';
 }
@@ -116,6 +124,10 @@ export function partitionRfiBuilderDocument(
   return 'drafts';
 }
 
+export function isFarBuilderWorkflowDraft(status: string): boolean {
+  return normalizeBuilderWorkflowStatus(status) === 'Draft';
+}
+
 export function isFarBuilderWorkflowOpen(status: string): boolean {
   return FAR_OPEN_STATUSES.has(normalizeBuilderWorkflowStatus(status) as FarWorkflowStatus);
 }
@@ -128,7 +140,9 @@ export function partitionFarBuilderDocument(
   doc: Pick<ProjectDocumentRow, 'builder_workflow_status' | 'status'>,
 ): FarBuilderListSection {
   const status = resolveBuilderWorkflowStatusFromDoc(doc);
-  return isFarBuilderWorkflowClosed(status) ? 'closed' : 'open';
+  if (isFarBuilderWorkflowClosed(status)) return 'closed';
+  if (isFarBuilderWorkflowOpen(status)) return 'open';
+  return 'drafts';
 }
 
 export function partitionRfiBuilderDocuments(
@@ -149,6 +163,7 @@ export function partitionFarBuilderDocuments(
   docs: ProjectDocumentRow[],
 ): Record<FarBuilderListSection, ProjectDocumentRow[]> {
   const result: Record<FarBuilderListSection, ProjectDocumentRow[]> = {
+    drafts: [],
     open: [],
     closed: [],
   };

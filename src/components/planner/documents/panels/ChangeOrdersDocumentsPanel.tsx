@@ -5,19 +5,17 @@ import type { ChangeOrder } from '../../../../types/changeOrder';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
 import PlannerBuilderDocumentRow from '../../PlannerBuilderDocumentRow';
 import ProjectRecordActions from '../../ProjectRecordActions';
-import {
-  changeOrderEditHref,
-  contractBuilderToolHref,
-  openNewChangeOrder,
-} from '../../../../utils/plannerRoutes';
+import { changeOrderEditHref, openNewChangeOrder } from '../../../../utils/plannerRoutes';
 import { voidChangeOrder } from '../../../../services/changeOrderService';
 import Button from '../../../ui/Button';
 import {
   PLANNER_MUTED,
+  PLANNER_SECTION_TITLE,
   PLANNER_TABLE,
   PLANNER_TABLE_HEAD,
   PLANNER_TABLE_WRAPPER,
 } from '../../plannerTheme';
+import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import { DocumentsPanelFootnote, PanelActionRow } from '../documentsPanelUtils';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -48,6 +46,8 @@ export default function ChangeOrdersDocumentsPanel({
 }: Props) {
   const navigate = useNavigate();
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [drawerDocId, setDrawerDocId] = useState<string | null>(null);
+  const [deleteConfirmDocId, setDeleteConfirmDocId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -141,28 +141,14 @@ export default function ChangeOrdersDocumentsPanel({
         </div>
       )}
 
-      <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
-        <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              navigate(
-                contractBuilderToolHref(projectId, undefined, {
-                  packKey: 'GENERIC_CHANGE_ORDER',
-                  documentType: 'change_order',
-                }),
-              )
-            }
-          >
-            New draft CO
-          </Button>
-        </div>
-        {builderCoDrafts.length === 0 ? (
-          <p className={PLANNER_MUTED}>
-            No change order documents saved from the Contract & Document Builder.
+      {builderCoDrafts.length > 0 ? (
+        <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
+          <h3 className={`mb-1 ${PLANNER_SECTION_TITLE}`}>Document Builder drafts (legacy)</h3>
+          <p className={`mb-3 text-sm ${PLANNER_MUTED}`}>
+            Standalone document drafts — not official CO-### records. Use{' '}
+            <strong className="font-medium text-gray-700 dark:text-slate-300">New change order</strong>{' '}
+            for pricing, numbering, and client workflow.
           </p>
-        ) : (
           <div className={PLANNER_TABLE_WRAPPER}>
             <table className={PLANNER_TABLE}>
               <thead className={PLANNER_TABLE_HEAD}>
@@ -179,15 +165,23 @@ export default function ChangeOrdersDocumentsPanel({
                     key={doc.id}
                     doc={doc}
                     projectId={projectId}
-                    onDeleted={onReload}
-                    primaryLabel="Open / Edit"
+                    onDeleted={() => {
+                      setDeleteConfirmDocId(null);
+                      onReload();
+                    }}
+                    onOpenDrawer={setDrawerDocId}
+                    deleteConfirm={{
+                      deleteConfirmActive: deleteConfirmDocId === doc.id,
+                      onDeleteRequest: () => setDeleteConfirmDocId(doc.id),
+                      onDeleteCancel: () => setDeleteConfirmDocId(null),
+                    }}
                   />
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
 
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -225,6 +219,12 @@ export default function ChangeOrdersDocumentsPanel({
       )}
 
       <DocumentsPanelFootnote />
+      <ProjectDocumentDrawer
+        documentId={drawerDocId}
+        projectId={projectId}
+        onClose={() => setDrawerDocId(null)}
+        onSaved={onReload}
+      />
     </>
   );
 }

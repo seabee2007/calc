@@ -10,6 +10,7 @@ import {
   resolveBuilderWorkflowStatusFromDoc,
   RFI_WORKFLOW_STATUSES,
 } from '../../../../services/builderWorkflowStatus';
+import { resolveRfiDisplayNumber } from '../../../../services/projectRecordNumbering';
 import PlannerBuilderDocumentRow from '../../PlannerBuilderDocumentRow';
 import BuilderDocumentTableActions from '../../BuilderDocumentTableActions';
 import ProjectRecordActions from '../../ProjectRecordActions';
@@ -17,7 +18,7 @@ import { contractBuilderToolHref } from '../../../../utils/plannerRoutes';
 import { nameFromMap } from '../../../../services/profileService';
 import Button from '../../../ui/Button';
 import RfiDetailDrawer from '../../../field/RfiDetailDrawer';
-import BuilderDocumentReviewDrawer from '../BuilderDocumentReviewDrawer';
+import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import FieldRecordStatusBadge from '../../../field/FieldRecordStatusBadge';
 import { TaskPriorityBadge } from '../../TaskStatusBadge';
 import {
@@ -73,6 +74,7 @@ export default function RfisDocumentsPanel({
   const highlightId = searchParams.get('rfi');
   const [selectedId, setSelectedId] = useState<string | null>(highlightId);
   const [builderReviewDocId, setBuilderReviewDocId] = useState<string | null>(null);
+  const [deleteConfirmDocId, setDeleteConfirmDocId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -133,7 +135,7 @@ export default function RfisDocumentsPanel({
           builderReviewDocId === doc.id ? 'bg-cyan-50/50 dark:bg-cyan-950/20' : ''
         }`}
       >
-        <td className="px-3 py-2 font-mono text-xs">{doc.document_number?.trim() || '—'}</td>
+        <td className="px-3 py-2 font-mono text-xs">{resolveRfiDisplayNumber(doc)}</td>
         <td className="max-w-[200px] px-3 py-2">
           <div className="truncate font-medium">{doc.title}</div>
           <div className="text-xs text-slate-500 dark:text-slate-400">Document Builder</div>
@@ -148,7 +150,6 @@ export default function RfisDocumentsPanel({
           <BuilderDocumentTableActions
             doc={doc}
             projectId={projectId}
-            primaryLabel="View / Respond"
             onPrimary={setBuilderReviewDocId}
           />
         </td>
@@ -311,9 +312,16 @@ export default function RfisDocumentsPanel({
                     key={doc.id}
                     doc={doc}
                     projectId={projectId}
-                    onDeleted={onReload}
-                    onOpenReview={setBuilderReviewDocId}
-                    reviewActionLabel="View / Respond"
+                    onDeleted={() => {
+                      setDeleteConfirmDocId(null);
+                      onReload();
+                    }}
+                    onOpenDrawer={setBuilderReviewDocId}
+                    deleteConfirm={{
+                      deleteConfirmActive: deleteConfirmDocId === doc.id,
+                      onDeleteRequest: () => setDeleteConfirmDocId(doc.id),
+                      onDeleteCancel: () => setDeleteConfirmDocId(null),
+                    }}
                   />
                 ))}
               </tbody>
@@ -322,10 +330,9 @@ export default function RfisDocumentsPanel({
         )}
       </section>
 
-      <BuilderDocumentReviewDrawer
+      <ProjectDocumentDrawer
         documentId={builderReviewDocId}
         projectId={projectId}
-        kind="rfi"
         onClose={() => setBuilderReviewDocId(null)}
         onSaved={() => {
           onReload();

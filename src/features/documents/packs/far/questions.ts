@@ -11,7 +11,15 @@ const FAR_STATUS_OPTIONS: QuestionOption[] = [
 ];
 
 export const farQuestions: DocumentQuestion[] = [
-  { questionKey: 'farNumber', label: 'FAR number', type: 'text', group: 'scope', required: false, mode: 'quick' },
+  {
+    questionKey: 'farNumber',
+    label: 'FAR Number',
+    type: 'text',
+    group: 'scope',
+    required: false,
+    mode: 'quick',
+    helperText: 'Auto-assigned on save if left blank (e.g. FAR-001). You can enter a custom number.',
+  },
   { questionKey: 'title', label: 'Title', type: 'text', group: 'scope', required: true, mode: 'quick' },
   { questionKey: 'requestedBy', label: 'Requested by', type: 'text', group: 'parties', required: false, mode: 'quick' },
   { questionKey: 'submittedTo', label: 'Submitted to', type: 'text', group: 'parties', required: false, mode: 'quick' },

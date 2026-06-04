@@ -7,11 +7,12 @@ import type { DocumentQuestion } from '../../types';
 export const rfiQuestions: DocumentQuestion[] = [
   {
     questionKey: 'rfiNumber',
-    label: 'RFI number',
+    label: 'RFI Number',
     type: 'text',
     group: 'scope',
     required: false,
     mode: 'quick',
+    helperText: 'Auto-assigned on save if left blank (e.g. RFI-001). You can enter a custom number.',
   },
   {
     questionKey: 'rfiTitle',
