@@ -1,5 +1,4 @@
 import React from 'react';
-import { ProposalData } from '../../types/proposal';
 import ProposalPricingSection from './ProposalPricingSection';
 import type { ProposalTemplateProps } from './ProposalTemplateClassic';
 

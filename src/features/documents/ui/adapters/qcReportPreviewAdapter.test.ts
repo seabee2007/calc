@@ -25,7 +25,10 @@ describe('qcReportPreviewAdapter', () => {
         phone: '555-0100',
         email: 'qc@ac.com',
         licenseNumber: 'LIC-1',
-        logoUrl: null,
+        motto: '',
+        taxSystem: 'none',
+        taxRatePercent: 0,
+        taxApplication: 'materials_only',
       },
     });
 

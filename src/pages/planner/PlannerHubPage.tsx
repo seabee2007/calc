@@ -21,10 +21,6 @@ export default function PlannerHubPage() {
   const { user, isOwner, isEmployee } = useAuth();
   const [projects, setProjects] = useState<HubProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lastProjectId, setLastProjectId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem(LAST_PROJECT_KEY);
-  });
 
   useEffect(() => {
     if (!user) return;
@@ -101,7 +97,6 @@ export default function PlannerHubPage() {
               to={plannerBoardHref(p.id)}
               onClick={() => {
                 sessionStorage.setItem(LAST_PROJECT_KEY, p.id);
-                setLastProjectId(p.id);
               }}
               className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-cyan-500/50 dark:border-slate-700 dark:bg-slate-800"
             >

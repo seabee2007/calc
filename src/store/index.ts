@@ -219,17 +219,25 @@ function isProjectsUserFkError(message: string): boolean {
     (lower.includes('foreign key') && lower.includes('user_id'))
   );
 }
+function omitPayloadKeys(
+  payload: Record<string, unknown>,
+  keys: string[],
+): Record<string, unknown> {
+  const next = { ...payload };
+  for (const key of keys) {
+    delete next[key];
+  }
+  return next;
+}
 
 function stripJobsiteFromPayload(body: Record<string, unknown>): Record<string, unknown> {
-  const {
-    jobsite_street: _s,
-    jobsite_street2: _s2,
-    jobsite_city: _c,
-    jobsite_state: _st,
-    jobsite_zip: _z,
-    ...rest
-  } = body;
-  return rest;
+  return omitPayloadKeys(body, [
+    'jobsite_street',
+    'jobsite_street2',
+    'jobsite_city',
+    'jobsite_state',
+    'jobsite_zip',
+  ]);
 }
 
 function isLaborEstimatesSchemaError(message: string): boolean {
@@ -558,8 +566,7 @@ async function insertProjectRow(
 
     const msg = insertResult.error.message ?? '';
     if (isClientInfoColumnError(msg)) {
-      const { client_info: _ci, ...withoutClient } = body;
-      body = withoutClient;
+      body = omitPayloadKeys(body, ['client_info']);
       console.warn(
         'Saved project without client_info — run migration 20260530120000_project_client_info.sql',
       );
@@ -574,18 +581,15 @@ async function insertProjectRow(
       continue;
     }
     if (isWasteFactorColumnError(msg)) {
-      const { waste_factor: _wf, ...rest } = body;
-      body = rest;
+      body = omitPayloadKeys(body, ['waste_factor']);
       continue;
     }
     if (isMixProfileColumnError(msg)) {
-      const { mix_profile: _mp, ...rest } = body;
-      body = rest;
+      body = omitPayloadKeys(body, ['mix_profile']);
       continue;
     }
     if (isPourDateColumnError(msg)) {
-      const { pour_date: _pd, ...rest } = body;
-      body = rest;
+      body = omitPayloadKeys(body, ['pour_date']);
       continue;
     }
 
@@ -612,14 +616,13 @@ async function updateProjectRow(
 
   if (result.error && isJobsiteColumnError(result.error.message ?? '')) {
     projectJobsiteColumnsAvailable = false;
-    const {
-      jobsite_street: _s,
-      jobsite_street2: _s2,
-      jobsite_city: _c,
-      jobsite_state: _st,
-      jobsite_zip: _z,
-      ...withoutJobsite
-    } = payload;
+    const withoutJobsite = omitPayloadKeys(payload, [
+      'jobsite_street',
+      'jobsite_street2',
+      'jobsite_city',
+      'jobsite_state',
+      'jobsite_zip',
+    ]);
     result = await supabase
       .from('projects')
       .update(withoutJobsite)
@@ -629,7 +632,7 @@ async function updateProjectRow(
   }
 
   if (result.error && isPlacementOrderColumnError(result.error.message ?? '')) {
-    const { placement_order: _po, ...withoutOrder } = payload;
+    const withoutOrder = omitPayloadKeys(payload, ['placement_order']);
     console.warn(
       'Saved project without placement_order — apply migration 20250525140000_project_placement_order.sql',
     );
@@ -1068,7 +1071,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     let result = await updateProjectRow(projectId, payload);
 
     if (result.error && isClientInfoColumnError(result.error.message ?? '')) {
-      const { client_info: _ci, ...withoutClient } = payload;
+      const withoutClient = omitPayloadKeys(payload, ['client_info']);
       result = await updateProjectRow(projectId, withoutClient);
     }
 
@@ -1425,7 +1428,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       .single();
 
     if (result.error && isQcRecordTypeColumnError(result.error.message ?? '')) {
-      const { record_type: _rt, record_data: _rd, ...legacyRow } = fullRow;
+      const legacyRow = omitPayloadKeys(
+        fullRow as Record<string, unknown>,
+        ['record_type', 'record_data'],
+      );
       console.warn(
         'Saved QC record without record_type/record_data — run migration 20260530000000_qc_records_record_type.sql',
       );
@@ -1476,7 +1482,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       .single();
 
     if (result.error && isQcRecordTypeColumnError(result.error.message ?? '')) {
-      const { record_type: _rt, record_data: _rd, ...legacyRow } = updateRow;
+      const legacyRow = omitPayloadKeys(
+        updateRow as Record<string, unknown>,
+        ['record_type', 'record_data'],
+      );
       result = await supabase
         .from('qc_records')
         .update(legacyRow)

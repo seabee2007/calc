@@ -1,9 +1,12 @@
 import { format } from 'date-fns';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import { formatUSAddress, type USAddress } from '../../../../types/address';
 import { formatCurrencyDisplay } from '../../../../utils/currencyInput';
 import { displayValue, isMissingDisplayValue } from '../previewDisplay';
+import {
+  normalizeCompanySettingsForDocument,
+  type DocumentCompanySettingsSource,
+} from '../documentCompanySettings';
 
 const PROJECT_TYPE_LABELS: Record<string, string> = {
   remodel: 'Remodel',
@@ -76,18 +79,16 @@ export interface ResidentialContractDisplayContext {
 
 export function buildResidentialContractDisplayContext(input: {
   answers: Record<string, unknown>;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettingsSource;
   selectedProject: Project | null;
 }): ResidentialContractDisplayContext {
   const { answers, companySettings, selectedProject } = input;
+  const normalizedCompanySettings = normalizeCompanySettingsForDocument(companySettings);
 
   const contractorName =
-    str(answers.contractorLegalName) ?? companySettings.companyName?.trim() ?? undefined;
+    str(answers.contractorLegalName) ?? normalizedCompanySettings.companyName.trim() ?? undefined;
   const contractorAddress =
-    structuredAddress(answers, 'contractorAddress') ?? companySettings.address?.trim();
+    structuredAddress(answers, 'contractorAddress') ?? normalizedCompanySettings.address.trim();
   const ownerName =
     str(answers.ownerFullName) ?? selectedProject?.clientInfo?.clientName?.trim();
   const propertyAddress =
@@ -138,13 +139,14 @@ export function buildResidentialContractDisplayContext(input: {
   return {
     documentDate: format(new Date(), 'MMMM d, yyyy'),
     company: {
-      name: companySettings.companyName?.trim() || contractorName || 'Contractor',
-      address: companySettings.address?.trim() || contractorAddress,
-      phone: companySettings.phone?.trim() || str(answers.contractorPhone),
-      email: companySettings.email?.trim() || str(answers.contractorEmail),
+      name: normalizedCompanySettings.companyName.trim() || contractorName || 'Contractor',
+      address: normalizedCompanySettings.address.trim() || contractorAddress,
+      phone: normalizedCompanySettings.phone.trim() || str(answers.contractorPhone),
+      email: normalizedCompanySettings.email.trim() || str(answers.contractorEmail),
       licenseNumber:
-        companySettings.licenseNumber?.trim() || str(answers.contractorLicenseNumber),
-      logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
+        normalizedCompanySettings.licenseNumber.trim() ||
+        str(answers.contractorLicenseNumber),
+      logoUrl: normalizedCompanySettings.logoUrl ?? null,
     },
     parties,
     summary,

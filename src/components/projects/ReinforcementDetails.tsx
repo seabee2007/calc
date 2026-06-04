@@ -72,41 +72,6 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
     }
   };
 
-  const getModeColor = (type: string) => {
-    switch (type) {
-      case 'rebar': return 'blue';
-      case 'mesh': return 'purple';
-      case 'fiber': return 'orange';
-      default: return 'gray';
-    }
-  };
-
-  const getDimensionsBgClass = (type: string) => {
-    switch (type) {
-      case 'rebar': return 'bg-blue-50 dark:bg-blue-900/70';
-      case 'mesh': return 'bg-purple-50 dark:bg-purple-900/70';
-      case 'fiber': return 'bg-orange-50 dark:bg-orange-900/70';
-      default: return 'bg-gray-50 dark:bg-gray-900/70';
-    }
-  };
-
-  const getDimensionsTextClass = (type: string) => {
-    switch (type) {
-      case 'rebar': return 'text-blue-900 dark:text-blue-100';
-      case 'mesh': return 'text-purple-900 dark:text-purple-100';
-      case 'fiber': return 'text-orange-900 dark:text-orange-100';
-      default: return 'text-gray-900 dark:text-gray-100';
-    }
-  };
-
-  const getDimensionsLabelClass = (type: string) => {
-    switch (type) {
-      case 'rebar': return 'text-blue-700 dark:text-blue-300';
-      case 'mesh': return 'text-purple-700 dark:text-purple-300';
-      case 'fiber': return 'text-orange-700 dark:text-orange-300';
-      default: return 'text-gray-700 dark:text-gray-300';
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -129,14 +94,13 @@ const ReinforcementDetails: React.FC<ReinforcementDetailsProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {reinforcements.map((reinforcement) => {
-          const color = getModeColor(reinforcement.reinforcement_type);
           const formattedDate = (() => {
             try {
               if (!reinforcement.createdAt) return '—';
               const date = parseISO(reinforcement.createdAt);
               if (isNaN(date.getTime())) return '—';
               return format(date, 'MMM d, yyyy h:mm a');
-            } catch (error) {
+            } catch {
               return '—';
             }
           })();

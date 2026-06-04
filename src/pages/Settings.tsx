@@ -1,9 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { optimizeLogo, validateImageFile } from '../utils/imageOptimization';
-import { uploadLogo, replaceLogo, deleteLogo } from '../services/storageService';
+import { replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
-import type { UserPreferences } from '../types';
 import { soundService } from '../services/soundService';
 import { hapticService } from '../services/hapticService';
 import { 
@@ -12,7 +10,6 @@ import {
   Phone, 
   Mail, 
   MapPin, 
-  FileText, 
   Quote, 
   Upload, 
   Save, 
@@ -20,11 +17,9 @@ import {
   Sun, 
   Calculator,
   Bell,
-  Globe,
   Shield,
   Trash2,
   Camera,
-  Volume2,
   Volume
 } from 'lucide-react';
 import Card from '../components/ui/Card';
@@ -50,11 +45,9 @@ const Settings: React.FC = () => {
     companySettings,
     companySettingsHydrated,
     updateCompanySettings,
-    loadCompanySettings,
-    migrateSettings,
     loading: settingsLoading,
   } = useSettingsStore();
-  const { preferences, updatePreferences, loadPreferences, migratePreferences, loading: preferencesLoading } = usePreferencesStore();
+  const { preferences, updatePreferences, loading: preferencesLoading } = usePreferencesStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isSaving, setIsSaving] = useState(false);

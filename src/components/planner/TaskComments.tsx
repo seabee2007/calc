@@ -41,7 +41,6 @@ export default function TaskComments({
   userId,
   comments,
   canComment,
-  isOwner = false,
   onChange,
   onCreateRfi,
   onCreateAdjustment,

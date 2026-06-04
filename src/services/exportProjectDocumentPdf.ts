@@ -15,6 +15,10 @@ import { buildDocumentInput } from '../features/documents/ui/contractInput';
 import { exportContractDraftPdf } from '../features/documents/ui/contractPdf';
 import { mapCompanySettingsToContractPrefillSource } from '../features/documents/ui/contractPrefill';
 import { restoreBuilderStateFromSnapshot } from '../features/documents/ui/contractVersionState';
+import {
+  normalizeCompanySettingsForDocument,
+  type DocumentCompanySettingsSource,
+} from '../features/documents/ui/documentCompanySettings';
 import { generateChangeOrderPDF } from '../utils/changeOrderPdf';
 import { generateDailyReportPDF } from '../features/documents/ui/pdf/dailyReportPdf';
 import { generateFarPDF } from '../features/documents/ui/pdf/farPdf';
@@ -23,7 +27,6 @@ import { generateQcReportPDF } from '../features/documents/ui/pdf/qcReportPdf';
 import { generateRfiPDF } from '../features/documents/ui/pdf/rfiPdf';
 import { generateSubmittalPDF } from '../features/documents/ui/pdf/submittalPdf';
 import { generateWarrantyCloseoutPDF } from '../features/documents/ui/pdf/warrantyCloseoutPdf';
-import type { CompanySettings } from './companySettingsService';
 import { normalizePlannerDocumentType } from './documentWorkflowConfig';
 import { resolveEffectiveDocumentType } from './projectDocumentDisplay';
 import { getProjectDocument } from './projectDocumentService';
@@ -34,7 +37,7 @@ export interface ExportProjectDocumentPdfParams {
   documentId: string;
   mergedAnswers?: Record<string, unknown>;
   selectedProject?: Project | null;
-  companySettings: CompanySettings;
+  companySettings: DocumentCompanySettingsSource;
 }
 
 export async function exportProjectDocumentPdf(
@@ -54,10 +57,10 @@ export async function exportProjectDocumentPdf(
   };
 
   const snapshotCompany = companySettingsFromDocumentSnapshot(document.company_snapshot);
-  const companySettings: CompanySettings = {
+  const companySettings = normalizeCompanySettingsForDocument({
     ...params.companySettings,
     ...snapshotCompany,
-  };
+  });
 
   const selectedProject = params.selectedProject ?? null;
   const title = document.title;
@@ -169,7 +172,7 @@ export async function exportProjectDocumentPdf(
           phone: company.phone || companySettings.phone || '',
           email: company.email || companySettings.email,
           licenseNumber: company.licenseNumber || companySettings.licenseNumber,
-          logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
+          logoUrl: companySettings.logoUrl ?? null,
         },
         {
           answers,

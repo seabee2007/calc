@@ -460,7 +460,7 @@ export async function countTasksByStatus(
   for (const t of tasks) {
     if (t.status === 'Submitted') counts.submitted += 1;
     else if (t.status === 'Completed' || t.status === 'Approved') counts.completed += 1;
-    else if (t.status !== 'Completed') counts.open += 1;
+    else counts.open += 1;
   }
   return counts;
 }

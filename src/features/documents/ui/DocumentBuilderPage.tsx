@@ -80,6 +80,7 @@ import VersionHistoryPanel from './panels/VersionHistoryPanel';
 import ExportPanel from './panels/ExportPanel';
 import DocumentPreviewRouter from './panels/DocumentPreviewRouter';
 import { ProposalService, type SavedProposal } from '../../../lib/proposalService';
+import { normalizeCompanySettingsForDocument } from './documentCompanySettings';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PROJECT_TYPE_LABELS: Record<string, string> = {
@@ -283,7 +284,7 @@ export default function DocumentBuilderPage() {
       typeof ResizeObserver !== 'undefined' && column
         ? new ResizeObserver(updateTogglePosition)
         : null;
-    resizeObserver?.observe(column);
+    if (column) resizeObserver?.observe(column);
     if (card && card !== column) resizeObserver?.observe(card);
 
     window.addEventListener('resize', updateTogglePosition);
@@ -390,9 +391,14 @@ export default function DocumentBuilderPage() {
     });
   }, []);
 
-  const company = useMemo(
-    () => mapCompanySettingsToContractPrefillSource(companySettings),
+  const documentCompanySettings = useMemo(
+    () => normalizeCompanySettingsForDocument(companySettings),
     [companySettings],
+  );
+
+  const company = useMemo(
+    () => mapCompanySettingsToContractPrefillSource(documentCompanySettings),
+    [documentCompanySettings],
   );
 
   const selectedProject = useMemo(
@@ -506,7 +512,7 @@ export default function DocumentBuilderPage() {
   }, [projectId]);
 
   useEffect(() => {
-    const companyKey = companyPrefillFingerprint(companySettings);
+    const companyKey = companyPrefillFingerprint(documentCompanySettings);
     const latestProposalKey = projectProposals.map((proposal) => proposal.id).join('|');
     const runKey = selectedProject
       ? `${selectedProject.id}:${jobsitePrefillFingerprint(selectedProject)}:${latestProposalKey}:${companyKey}`
@@ -514,7 +520,7 @@ export default function DocumentBuilderPage() {
     if (prefillRunKeyRef.current === runKey) return;
     prefillRunKeyRef.current = runKey;
     applyPrefill(false);
-  }, [applyPrefill, companySettings, projectProposals, selectedProject]);
+  }, [applyPrefill, documentCompanySettings, projectProposals, selectedProject]);
 
   const currentDocumentType = useMemo(() => resolveDocumentType(packKey), [packKey]);
   const isChangeOrderDocument = currentDocumentType === 'change_order';
@@ -786,7 +792,7 @@ export default function DocumentBuilderPage() {
         const preview = buildChangeOrderPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateChangeOrderPDF(preview.order, preview.context);
@@ -795,7 +801,7 @@ export default function DocumentBuilderPage() {
         const view = buildRfiPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateRfiPDF(view);
@@ -804,7 +810,7 @@ export default function DocumentBuilderPage() {
         const view = buildFarPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateFarPDF(view);
@@ -813,7 +819,7 @@ export default function DocumentBuilderPage() {
         const view = buildSubmittalPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateSubmittalPDF(view);
@@ -826,7 +832,7 @@ export default function DocumentBuilderPage() {
         const view = buildDailyReportPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateDailyReportPDF(view);
@@ -839,7 +845,7 @@ export default function DocumentBuilderPage() {
         const view = buildQcReportPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateQcReportPDF(view);
@@ -852,7 +858,7 @@ export default function DocumentBuilderPage() {
         const view = buildWarrantyCloseoutPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generateWarrantyCloseoutPDF(view);
@@ -865,7 +871,7 @@ export default function DocumentBuilderPage() {
         const view = buildPunchListPreviewFromDocumentAnswers({
           answers,
           selectedProject,
-          companySettings,
+          companySettings: documentCompanySettings,
           title,
         });
         await generatePunchListPDF(view);
@@ -876,12 +882,12 @@ export default function DocumentBuilderPage() {
         });
       } else {
         await exportContractDraftPdf(assembly, risk, {
-          companyName: company.legalName || companySettings.companyName || 'Concrete Calc',
-          address: company.address || companySettings.address || '',
-          phone: company.phone || companySettings.phone || '',
-          email: company.email || companySettings.email,
-          licenseNumber: company.licenseNumber || companySettings.licenseNumber,
-          logoUrl: companySettings.logoUrl ?? companySettings.logo ?? null,
+          companyName: company.legalName || documentCompanySettings.companyName || 'Concrete Calc',
+          address: company.address || documentCompanySettings.address || '',
+          phone: company.phone || documentCompanySettings.phone || '',
+          email: company.email || documentCompanySettings.email,
+          licenseNumber: company.licenseNumber || documentCompanySettings.licenseNumber,
+          logoUrl: documentCompanySettings.logoUrl ?? null,
         }, {
           answers,
           documentTitle: title || assembly.title,
@@ -989,7 +995,7 @@ export default function DocumentBuilderPage() {
         risk,
         status: 'draft',
         selectedProject,
-        companySettings,
+        companySettings: documentCompanySettings,
       });
       setDocumentId(document.id);
       setTitle(document.title);
@@ -1377,7 +1383,7 @@ export default function DocumentBuilderPage() {
                     packKey={packKey}
                     answers={answers}
                     selectedProject={selectedProject}
-                    companySettings={companySettings}
+                    companySettings={documentCompanySettings}
                     title={title}
                     disclaimer={assembly.disclaimer}
                     risk={risk}

@@ -148,18 +148,20 @@ export default function ProjectDetails() {
     const data = matchedProposal?.data;
     if (!data || !project) return null;
     const fin = computeProposalFinancials(data);
-    const estLabor = fin.labor_cost;
-    const estMaterial = fin.material_cost;
-    const value = fin.total_amount;
+    const estLabor = fin.labor_cost ?? 0;
+    const estMaterial = fin.material_cost ?? 0;
+    const value = fin.total_amount ?? 0;
+    const grossProfit = fin.gross_profit ?? 0;
+    const grossMarginPercent = fin.gross_margin_percent ?? 0;
     const profit =
-      fin.gross_profit > 0
-        ? fin.gross_profit
+      grossProfit > 0
+        ? grossProfit
         : value > 0
           ? value - (estLabor + estMaterial)
           : 0;
     const margin =
-      fin.gross_margin_percent > 0
-        ? fin.gross_margin_percent / 100
+      grossMarginPercent > 0
+        ? grossMarginPercent / 100
         : value > 0
           ? profit / value
           : 0;

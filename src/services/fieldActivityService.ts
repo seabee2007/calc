@@ -363,7 +363,6 @@ export async function buildProjectActivityFeed(
   }
 
   for (const row of attachments.data ?? []) {
-    const tid = row.task_id as string;
     items.push({
       id: `attachment-${row.id}`,
       type: 'attachment',

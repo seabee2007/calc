@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
-import { soundService } from '../../services/soundService';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 

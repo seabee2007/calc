@@ -72,6 +72,7 @@ export const StepEnvironmental: React.FC<StepEnvironmentalProps> = ({
   onMitigationsChange,
 }) => {
   const { form, setField, hotWeather } = planner;
+  void batchPlantLocation;
   const selectedDay = displayDays.find((d) => d.date === selectedDate);
   const bestWindow = findBestPourWindow(displayDays);
   const [mitigationsExpanded, setMitigationsExpanded] = useState(false);

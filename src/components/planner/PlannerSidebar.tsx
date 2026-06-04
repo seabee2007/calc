@@ -15,6 +15,7 @@ import { supabase } from '../../lib/supabase';
 import { fetchAssignedProjects } from '../../services/employeeService';
 import { resolveProjectWorkflow } from '../../utils/projectWorkflow';
 import { plannerProjectSwitchHref } from '../../utils/plannerRoutes';
+import type { Project } from '../../types';
 
 interface SidebarProject {
   id: string;
@@ -25,6 +26,13 @@ interface SidebarProject {
 interface PlannerSidebarProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
+}
+
+interface SidebarProjectRow {
+  id: string;
+  name: string;
+  pour_date: string | null;
+  placement_order: Project['placementOrder'] | null;
 }
 
 export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSidebarProps) {
@@ -56,11 +64,22 @@ export default function PlannerSidebar({ mobileOpen, onMobileClose }: PlannerSid
         .order('name');
 
       setProjects(
-        (data ?? []).map((row) => {
-          const workflow = resolveProjectWorkflow(row as Parameters<typeof resolveProjectWorkflow>[0]);
+        (data ?? []).map((raw) => {
+          const row = raw as SidebarProjectRow;
+          const workflowProject: Project = {
+            id: row.id,
+            name: row.name,
+            description: '',
+            createdAt: '',
+            updatedAt: '',
+            calculations: [],
+            pourDate: row.pour_date ?? undefined,
+            placementOrder: row.placement_order ?? undefined,
+          };
+          const workflow = resolveProjectWorkflow(workflowProject);
           return {
-            id: row.id as string,
-            name: row.name as string,
+            id: row.id,
+            name: row.name,
             isClosed: workflow.stage === 'closed',
           };
         }),

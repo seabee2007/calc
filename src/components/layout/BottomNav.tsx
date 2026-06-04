@@ -10,7 +10,6 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import { useMoreMenuStore } from '../../store/moreMenuStore';
-import { workflowQuery } from '../../utils/workflow';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();

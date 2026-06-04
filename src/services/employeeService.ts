@@ -144,8 +144,9 @@ export async function sendEmployeeInviteEmail(
 
 export async function acceptInviteForCurrentUser(
   inviteToken: string,
-  _userId?: string,
+  userId?: string,
 ): Promise<void> {
+  void userId;
   const { error } = await supabase.rpc('accept_employee_invite', {
     p_token: inviteToken,
   });

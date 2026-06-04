@@ -11,7 +11,17 @@ describe('buildFarPreviewFromDocumentAnswers', () => {
         status: 'Submitted',
       },
       selectedProject: null,
-      companySettings: { companyName: 'Test Co' },
+      companySettings: {
+        companyName: 'Test Co',
+        address: '',
+        phone: '',
+        email: '',
+        licenseNumber: '',
+        motto: '',
+        taxSystem: 'none',
+        taxRatePercent: 0,
+        taxApplication: 'materials_only',
+      },
       title: 'Slab adjustment',
     });
     expect(view.documentNumber).toBe('FAR-01');

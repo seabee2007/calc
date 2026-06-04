@@ -14,7 +14,6 @@ import type { ProjectClientInfo } from '../../types/projectClient';
 import {
   EMPTY_US_ADDRESS,
   copyUSAddress,
-  formatUSAddress,
   isUSAddressGeocodable,
   mergeVerifiedJobsiteAddress,
   repairJobsiteAddress,

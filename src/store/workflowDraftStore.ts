@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { PourPlannerFormState } from '../types/pourPlanner';
 import type { ProposalData } from '../types/proposal';
-import type { USAddress } from '../types/address';
 
 const STORAGE_KEY = 'workflow_drafts';
 

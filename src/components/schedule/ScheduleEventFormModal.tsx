@@ -20,6 +20,7 @@ import {
   SCHEDULE_PRIORITIES,
   SCHEDULE_PRIORITY_LABELS,
   MILESTONE_LABELS,
+  normalizeMilestoneKey,
 } from '../../types/scheduleEvent';
 import { SCHEDULE_FILTER_INPUT, SCHEDULE_MUTED } from './scheduleTheme';
 import { PLANNER_FORM_LABEL } from '../planner/plannerTheme';
@@ -110,7 +111,7 @@ export default function ScheduleEventFormModal({
       setLocation(event.location ?? '');
       setNotes(event.notes ?? '');
       setWeatherRisk(event.weatherRisk ?? '');
-      setMilestoneKey(event.milestoneKey ?? '');
+      setMilestoneKey(normalizeMilestoneKey(event.milestoneKey) ?? '');
       setAssignedToText(event.assignedTo.join(', '));
       setPriority(event.priority);
       setDocuments(

@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import WorkflowStepHeader from '../workflow/WorkflowStepHeader';
 import {
   getWorkflowProjectId,
-  isWorkflowActive,
   type WorkflowLocationState,
 } from '../../utils/workflow';
 import { projectSaveErrorMessage, useProjectStore } from '../../store';
@@ -30,7 +29,6 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
 }) => {
   const location = useLocation();
   const workflowState = location.state as WorkflowLocationState | null;
-  const inWorkflow = isWorkflowActive(location.search, workflowState);
   const workflowProjectId = getWorkflowProjectId(location.search, workflowState);
 
   const { projects, currentProject, setCurrentProject, addProject } = useProjectStore();

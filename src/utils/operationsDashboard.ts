@@ -1,6 +1,5 @@
 import type { Project, Calculation } from '../types';
 import type { PlacementOrder, PlacementOrderStatus } from '../types/placementOrder';
-import { PLACEMENT_ORDER_STATUS_LABELS } from '../types/placementOrder';
 import { MITIGATION_OPTIONS } from './pourMitigations';
 import {
   buildReadinessIssues,
@@ -400,14 +399,6 @@ export function buildDispatchTrucks(
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const isToday = pourDate ? isSameDay(pourDate, now) : false;
 
-  const statuses: DispatchTruckRow['status'][] = [
-    'loading',
-    'en_route',
-    'on_site',
-    'washing_out',
-    'scheduled',
-  ];
-
   return Array.from({ length: Math.min(trucks, 6) }, (_, i) => {
     const truckMin = startMin + i * spacing;
     let status: DispatchTruckRow['status'] = 'scheduled';
@@ -430,10 +421,6 @@ export function buildDispatchTrucks(
   });
 }
 
-function orderStatusLabel(status: PlacementOrderStatus | null): string {
-  if (!status) return 'NOT ORDERED';
-  return PLACEMENT_ORDER_STATUS_LABELS[status].split('—')[0].trim().toUpperCase();
-}
 
 function matchProposalForProject(
   project: Project,
@@ -567,16 +554,6 @@ export function buildSmartPourTips(
   return tips;
 }
 
-function projectHasTrackedProposal(
-  project: Project,
-  proposals: TrackedProposalRow[],
-): boolean {
-  return proposals.some(
-    (p) =>
-      p.data?.projectTitle === project.name ||
-      p.title.toLowerCase().includes(project.name.toLowerCase()),
-  );
-}
 
 export function buildUpcomingPlacements(
   projects: Project[],

@@ -323,7 +323,8 @@ export function parseLegacyUSAddress(raw: string): USAddress {
 /** Strip city/state/zip tokens from street; normalize state to 2-letter code. */
 export function sanitizeUSAddress(addr?: Partial<USAddress> | null): USAddress {
   const base = copyUSAddress(addr);
-  let { street, street2, city, state, zip } = base;
+  let { street, city, state } = base;
+  const { street2, zip } = base;
 
   state = resolveStateCode(state);
 

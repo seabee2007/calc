@@ -1,11 +1,14 @@
 import { format } from 'date-fns';
-import type { CompanySettings } from '../services/companySettingsService';
 import { mapChangeOrder } from '../services/changeOrderService';
 import type { ChangeOrder } from '../types/changeOrder';
 import type { Project } from '../types/index';
 import { formatUSAddress, usAddressFromFields, type USAddress } from '../types/address';
 import { parseClientInfoFromDb, resolveClientAddressForProposal } from '../types/projectClient';
 import { formatChangeOrderMoney } from './changeOrderFinancials';
+import {
+  normalizeCompanySettingsForDocument,
+  type DocumentCompanySettingsSource,
+} from '../features/documents/ui/documentCompanySettings';
 
 /**
  * Null-safe wrapper around `formatUSAddress`.
@@ -119,13 +122,11 @@ export function buildChangeOrderContractValues(
 export function buildChangeOrderDocumentContext(input: {
   order: ChangeOrder;
   project: Project | null | undefined;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettingsSource;
   thisChangeOrderTotal: number;
 }): ChangeOrderDocumentContext {
   const { order, project, companySettings, thisChangeOrderTotal } = input;
+  const normalizedCompanySettings = normalizeCompanySettingsForDocument(companySettings);
   const jobsite = project?.jobsiteAddress;
   const clientInfo = project?.clientInfo;
   const clientAddress = resolveClientAddressForProposal(clientInfo, jobsite);
@@ -136,8 +137,7 @@ export function buildChangeOrderDocumentContext(input: {
     safeFormatAddress(jobsite) ||
     '—';
 
-  const logoUrl =
-    companySettings.logoUrl ?? companySettings.logo ?? null;
+  const logoUrl = normalizedCompanySettings.logoUrl ?? null;
 
   let documentDate = format(new Date(), 'MMMM d, yyyy');
   if (order.updatedAt) {
@@ -150,12 +150,12 @@ export function buildChangeOrderDocumentContext(input: {
 
   return {
     company: {
-      name: companySettings.companyName?.trim() || 'Contractor',
+      name: normalizedCompanySettings.companyName?.trim() || 'Contractor',
       logoUrl,
-      address: companySettings.address?.trim() || '',
-      phone: companySettings.phone?.trim() || '',
-      email: companySettings.email?.trim() || '',
-      licenseNumber: companySettings.licenseNumber?.trim() || '',
+      address: normalizedCompanySettings.address?.trim() || '',
+      phone: normalizedCompanySettings.phone?.trim() || '',
+      email: normalizedCompanySettings.email?.trim() || '',
+      licenseNumber: normalizedCompanySettings.licenseNumber?.trim() || '',
     },
     project: {
       name: project?.name?.trim() || 'Project',
@@ -164,7 +164,7 @@ export function buildChangeOrderDocumentContext(input: {
       clientCompany,
       contractorName:
         order.contractorName?.trim() ||
-        companySettings.companyName?.trim() ||
+        normalizedCompanySettings.companyName?.trim() ||
         'Contractor',
       projectNumber: null,
     },

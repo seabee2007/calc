@@ -32,11 +32,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   ...props
 }, ref) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
   
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(true);
-    setHasInteracted(true);
     if (onFocus) onFocus(e);
   };
   
@@ -46,7 +44,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHasInteracted(true);
     if (onChange) onChange(e);
   };
   
@@ -73,9 +70,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   // For iOS, use a larger font size to prevent zoom, then scale it back down
   const isIOSInput = type === 'number' || type === 'password';
   const fontSize = isIOSInput ? '16px' : undefined;
-
-  // Handle the display value
-  const displayValue = hasInteracted || !props.placeholder ? value : '';
   
   return (
     <div className={containerStyles}>

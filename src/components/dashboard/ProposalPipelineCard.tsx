@@ -2,7 +2,7 @@ import React from 'react';
 import { FileStack } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
-import { OPS_MUTED, OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
+import { OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import {
   PROPOSAL_PIPELINE_STATUSES,
   PROPOSAL_STATUS_LABELS,
@@ -31,10 +31,19 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
 
   return (
     <OpsCard className="rounded-2x1 overflow-hidden">
-      <div className="flex items-center gap-2 mb-4">
-        <FileStack className="h-5 w-5 text-violet-400" />
-        <h3 className={`font-semibold ${OPS_TITLE}`}>Proposal pipeline</h3>
-      </div>
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <FileStack className="h-5 w-5 text-violet-400" />
+          <h3 className={`font-semibold ${OPS_TITLE}`}>Proposal pipeline</h3>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/proposals')}
+          className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline"
+        >
+          Manage proposals →
+        </button>
+      </header>
 
       <div className={`${OPS_PANEL_INNER} p-3 mb-4 grid grid-cols-2 gap-3`}>
         <div>
@@ -68,14 +77,6 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
           </div>
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={() => navigate('/proposals')}
-        className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline w-full text-left"
-      >
-        Manage proposals →
-      </button>
     </OpsCard>
   );
 };

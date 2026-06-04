@@ -23,8 +23,8 @@ import type {
   ContractDocumentWithVersions,
   SavedContractVersionResult,
 } from '../features/documents/services/contractDocumentTypes';
-import type { CompanySettings } from './companySettingsService';
 import type { Project } from '../types/index';
+import type { DocumentCompanySettingsSource } from '../features/documents/ui/documentCompanySettings';
 import {
   buildCompanySnapshot,
   buildProjectSnapshot,
@@ -68,7 +68,7 @@ export interface ProjectDocumentDraftPayload {
   risk: DocumentRiskScore;
   status?: ContractDocumentStatus;
   selectedProject: Project | null;
-  companySettings: CompanySettings;
+  companySettings: DocumentCompanySettingsSource;
   renderedSnapshot?: Record<string, unknown>;
 }
 
@@ -217,7 +217,7 @@ export async function saveProjectDocumentWorkflowAnswers(
   documentId: string,
   partialAnswers: Record<string, unknown>,
   options: {
-    companySettings: CompanySettings;
+    companySettings: DocumentCompanySettingsSource;
     selectedProject?: Project | null;
   },
 ): Promise<SavedContractVersionResult> {
@@ -276,7 +276,7 @@ export async function updateProjectDocumentDraft(
     risk: updates.risk,
     status: updates.status ?? existing.document.status,
     selectedProject: updates.selectedProject ?? null,
-    companySettings: updates.companySettings as CompanySettings,
+    companySettings: updates.companySettings as DocumentCompanySettingsSource,
     renderedSnapshot: updates.renderedSnapshot,
   });
 }

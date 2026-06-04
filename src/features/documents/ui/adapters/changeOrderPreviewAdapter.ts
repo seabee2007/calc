@@ -1,4 +1,3 @@
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import type { ChangeOrder, ChangeOrderStatus } from '../../../../types/changeOrder';
 import { CHANGE_ORDER_STATUSES } from '../../../../types/changeOrder';
@@ -7,6 +6,7 @@ import {
   buildChangeOrderDocumentContext,
   buildChangeOrderContractValues,
 } from '../../../../utils/changeOrderDocumentContext';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 // ─── Preview base ─────────────────────────────────────────────────────────────
 
@@ -254,10 +254,7 @@ function buildTerms(answers: Record<string, unknown>, accepted: string[]): strin
 export function buildChangeOrderPreviewFromDocumentAnswers(input: {
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   title?: string;
   /** Accepted recommendation clause keys — their language is appended to order.terms. */
   accepted?: string[];

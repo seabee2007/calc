@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type {
   RecurrenceEditScope,
-  RecurrenceRule,
   ScheduleEvent,
   ScheduleEventInput,
 } from '../types/scheduleEvent';

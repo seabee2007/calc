@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, type ReactNode } from 'react';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import type { ContractDocumentVersionRow } from '../../services/contractDocumentTypes';
 import type { DocumentComplianceIssue, DocumentRiskScore } from '../../types';
@@ -21,6 +20,7 @@ import FarDocument from '../renderers/FarDocument';
 import { buildFarPreviewFromDocumentAnswers } from '../adapters/farPreviewAdapter';
 import SubmittalDocument from '../renderers/SubmittalDocument';
 import PreviewPanel, { type PreviewPanelProps } from './PreviewPanel';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 interface DocumentPreviewRouterProps extends PreviewPanelProps {
   /** `assembly.documentType` — primary signal for renderer selection. */
@@ -29,10 +29,7 @@ interface DocumentPreviewRouterProps extends PreviewPanelProps {
   packKey: string;
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   /** Document title from the builder state — forwarded to dedicated renderers. */
   title?: string;
   disclaimer?: string;

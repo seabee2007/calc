@@ -215,7 +215,7 @@ export function buildPourOrderCallSheet(input: PourOrderSummaryInput): string[] 
   push(lines, ...sectionTitle('CONCRETE MIX INFORMATION'));
   push(
     lines,
-    labelValue('PSI Requirement:'),
+    'PSI Requirement:',
     ...psiBlock(form),
     labelValue('Aggregate Size', form.aggregateSize ? `${form.aggregateSize}"` : undefined),
     labelValue('Slump Requirement', slump ? `${slump}"` : undefined),

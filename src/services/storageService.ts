@@ -30,7 +30,7 @@ export async function uploadLogo(file: File, userId: string): Promise<UploadResu
   const filePath = `${userId}/${fileName}`;
 
   // Upload to Supabase Storage
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('logos')
     .upload(filePath, optimization.compressedFile, {
       cacheControl: '3600', // Cache for 1 hour

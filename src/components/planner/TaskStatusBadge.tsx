@@ -2,7 +2,6 @@ import React from 'react';
 import type { TaskPriority, TaskStatus } from '../../types/fieldPlanner';
 import {
   BADGE_BASE,
-  BADGE_DANGER,
   BADGE_GREEN,
   BADGE_INFO,
   BADGE_NEUTRAL,

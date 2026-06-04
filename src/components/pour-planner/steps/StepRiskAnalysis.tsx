@@ -13,7 +13,7 @@ interface StepProps {
 }
 
 export const StepRiskAnalysis: React.FC<StepProps> = ({ planner, selectedDay }) => {
-  const { deliveryWindow, hotWeather, slumpRisk, production } = planner;
+  const { deliveryWindow, hotWeather, slumpRisk } = planner;
 
   return (
     <div className="space-y-6">

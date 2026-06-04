@@ -4,7 +4,6 @@ import type {
   ScheduleEventActivityEntry,
   ScheduleEventComment,
   ScheduleEventStatus,
-  ScheduleEventType,
   ScheduleFilters,
 } from '../types/scheduleEvent';
 import {
@@ -793,7 +792,7 @@ export function resolveMilestoneForProject(
 ): MilestoneSlot[] {
   const projectEvents = events.filter((e) => e.projectId === projectId);
   return PROJECT_MILESTONE_KEYS.map((key) => {
-    let event = projectEvents.find((e) => milestoneMatchesEvent(e, key)) ?? null;
+    const event = projectEvents.find((e) => milestoneMatchesEvent(e, key)) ?? null;
     return {
       key,
       label: MILESTONE_LABELS[key],
@@ -874,7 +873,7 @@ export function getTimelineColumns(
     return cols;
   }
   if (scale === 'week') {
-    let cur = getWeekStart(new Date(dateFrom + 'T12:00:00'));
+    const cur = getWeekStart(new Date(dateFrom + 'T12:00:00'));
     const end = new Date(dateTo + 'T12:00:00');
     while (cur <= end) {
       const key = toIsoDate(cur);

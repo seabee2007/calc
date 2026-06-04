@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
@@ -51,7 +51,7 @@ const Login: React.FC = () => {
         }
       }
       navigate('/', { replace: true });
-    } catch (error) {
+    } catch {
       setError('root', {
         message: 'Invalid email or password'
       });

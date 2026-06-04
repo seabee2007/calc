@@ -1,8 +1,8 @@
-import type { CompanySettings } from './companySettingsService';
 import type { Project } from '../types/index';
 import { formatUSAddress } from '../types/address';
 import { resolveClientAddressForProposal } from '../types/projectClient';
 import type { DocumentType } from '../features/documents/types';
+import type { DocumentCompanySettingsSource } from '../features/documents/ui/documentCompanySettings';
 
 export interface ProjectDocumentProjectSnapshot {
   projectId: string | null;
@@ -61,32 +61,31 @@ export function buildProjectSnapshot(project: Project | null): ProjectDocumentPr
 /** Reconstruct minimal company settings from a stored document row snapshot. */
 export function companySettingsFromDocumentSnapshot(
   snap: Record<string, unknown> | null | undefined,
-): CompanySettings {
+): DocumentCompanySettingsSource {
   const s = snap ?? {};
+  const logoUrl = str(s.logoUrl) || null;
   return {
-    companyName: (s.companyName as string) ?? '',
-    address: (s.address as string) ?? '',
-    phone: (s.phone as string) ?? '',
-    email: (s.email as string) ?? '',
-    licenseNumber: (s.licenseNumber as string) ?? '',
-    logoUrl: (s.logoUrl as string) ?? null,
-    logo: (s.logoUrl as string) ?? null,
-  } as CompanySettings;
+    companyName: str(s.companyName),
+    address: str(s.address),
+    phone: str(s.phone),
+    email: str(s.email),
+    licenseNumber: str(s.licenseNumber),
+    logoUrl,
+    logo: logoUrl,
+  };
 }
 
 export function buildCompanySnapshot(
-  company: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null },
+  company: DocumentCompanySettingsSource,
 ): ProjectDocumentCompanySnapshot {
+  const logoUrl = str(company.logoUrl) || str(company.logo) || null;
   return {
-    companyName: company.companyName?.trim() || null,
-    address: company.address?.trim() || null,
-    phone: company.phone?.trim() || null,
-    email: company.email?.trim() || null,
-    licenseNumber: company.licenseNumber?.trim() || null,
-    logoUrl: company.logoUrl ?? company.logo ?? null,
+    companyName: str(company.companyName) || null,
+    address: str(company.address) || null,
+    phone: str(company.phone) || null,
+    email: str(company.email) || null,
+    licenseNumber: str(company.licenseNumber) || null,
+    logoUrl,
     capturedAt: new Date().toISOString(),
   };
 }

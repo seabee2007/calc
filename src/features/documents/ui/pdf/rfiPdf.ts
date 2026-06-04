@@ -42,7 +42,7 @@ function addInfoBox(
   y: { value: number },
   pageWidth: number,
   title: string,
-  rows: { label: string; value: string }[],
+  rows: Array<{ label: string; value?: string | null }>,
 ) {
   if (rows.length === 0) return;
   const boxWidth = pageWidth - MARGIN * 2;
@@ -50,7 +50,8 @@ function addInfoBox(
   const lineHeight = 5;
   let contentHeight = padding * 2 + 6;
   for (const row of rows) {
-    const valueLines = doc.splitTextToSize(row.value, boxWidth - 52);
+    const rowValue = row.value ?? '—';
+    const valueLines = doc.splitTextToSize(rowValue, boxWidth - 52);
     contentHeight += Math.max(lineHeight, valueLines.length * lineHeight);
   }
   ensureSpace(doc, y, contentHeight + 6);
@@ -63,12 +64,13 @@ function addInfoBox(
   let rowY = boxY + padding + 10;
   doc.setFontSize(9);
   for (const row of rows) {
+    const rowValue = row.value ?? '—';
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(60, 60, 60);
     doc.text(`${row.label}:`, MARGIN + padding, rowY);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    const valueLines = doc.splitTextToSize(row.value, boxWidth - 52);
+    const valueLines = doc.splitTextToSize(rowValue, boxWidth - 52);
     doc.text(valueLines, MARGIN + 48, rowY);
     rowY += Math.max(lineHeight, valueLines.length * lineHeight);
   }

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO } from 'date-fns';
 import type { Project } from '../../types';
 import { CURE_PROFILES } from '../../types/curing';
 import type { MixProfileType } from '../../types/curing';
@@ -20,6 +20,15 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
   onPourDateChange
 }) => {
   const pourDateISO = project?.pourDate;
+  const pourDate = useMemo(() => {
+    if (!pourDateISO) return null;
+    try {
+      const d = parseISO(pourDateISO);
+      return isNaN(d.getTime()) ? null : d;
+    } catch {
+      return null;
+    }
+  }, [pourDateISO]);
   if (!pourDateISO) {
     return (
       <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 mb-6">
@@ -30,15 +39,6 @@ const StrengthProgress: React.FC<StrengthProgressProps> = ({
       </div>
     );
   }
-
-  const pourDate = useMemo(() => {
-    try {
-      const d = parseISO(pourDateISO);
-      return isNaN(d.getTime()) ? null : d;
-    } catch {
-      return null;
-    }
-  }, [pourDateISO]);
 
   if (!pourDate) {
     return (

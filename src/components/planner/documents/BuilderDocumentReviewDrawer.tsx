@@ -9,6 +9,7 @@ interface Props {
 }
 
 /** @deprecated Prefer ProjectDocumentDrawer directly. */
-export default function BuilderDocumentReviewDrawer({ kind: _kind, ...rest }: Props) {
+export default function BuilderDocumentReviewDrawer({ kind, ...rest }: Props) {
+  void kind;
   return <ProjectDocumentDrawer {...rest} />;
 }

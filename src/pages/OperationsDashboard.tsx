@@ -36,7 +36,6 @@ import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import {
   OPS_EMPTY_STATE,
-  OPS_MUTED,
   OPS_SHELL,
 } from '../components/dashboard/opsTheme';
 import { formatPlacementPourDateTime } from '../utils/placementPourDate';

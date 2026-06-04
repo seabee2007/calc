@@ -152,8 +152,6 @@ const MixDesignAdvisor: React.FC = () => {
     mixContext?.nextPendingCalculationId ??
     placementCalcs[0]?.id;
 
-  const activeCalculation = placementCalcs.find((c) => c.id === activeCalculationId);
-
   useEffect(() => {
     if (workflowProjectId) {
       setCurrentProject(workflowProjectId);
@@ -353,10 +351,6 @@ const MixDesignAdvisor: React.FC = () => {
       ? `${(speed * 1.60934).toFixed(1)} km/h`
       : `${speed} mph`;
 
-  const aeDosageRange = () => {
-    if (!recommendation) return [0.5, 1.0];
-    return [0.5, 1.0].map((d) => d * recommendation.aeFactor);
-  };
 
   const recommendedTargetAir = recommendation
     ? (recommendation.targetAir[0] + recommendation.targetAir[1]) / 2
@@ -378,7 +372,6 @@ const MixDesignAdvisor: React.FC = () => {
 
   const step = MIX_ADVISOR_STEPS[stepIndex];
   const totalSteps = MIX_ADVISOR_STEPS.length;
-  const isLastStep = stepIndex === totalSteps - 1;
   const weatherStepIndex = MIX_ADVISOR_STEPS.findIndex((s) => s.id === 'weather');
   const isWeatherStep = stepIndex === weatherStepIndex;
 

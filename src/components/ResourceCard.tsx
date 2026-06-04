@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Card from '../ui/Card';
+import Card from './ui/Card';
 
 interface ResourceCardProps {
   title: string;

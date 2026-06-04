@@ -433,6 +433,7 @@ export function applyScheduleFilters(
   return filterScheduleEvents(events, filters);
 }
 
-export function exportScheduleToICS(_events: ScheduleEvent[]): string {
+export function exportScheduleToICS(events: ScheduleEvent[]): string {
+  void events;
   throw new Error('ICS export is not available yet');
 }

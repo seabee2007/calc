@@ -56,9 +56,9 @@ const LaborCalculatorPanel: React.FC<LaborCalculatorPanelProps> = ({
 
   useEffect(() => {
     if (savedEstimate?.inputs) {
-      const { burdenedHourlyRate: _removed, ...rest } = savedEstimate.inputs as LaborEstimate['inputs'] & {
-        burdenedHourlyRate?: string;
-      };
+      const rest = Object.fromEntries(
+        Object.entries(savedEstimate.inputs).filter(([key]) => key !== 'burdenedHourlyRate'),
+      ) as LaborEstimate['inputs'];
       setInputs((prev) => ({ ...prev, ...rest }));
     }
   }, [savedEstimate?.id, setInputs]);

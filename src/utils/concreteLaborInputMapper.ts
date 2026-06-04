@@ -13,7 +13,6 @@ import { LABOR_RATES_2026 } from '../data/nationalLaborRates2026';
 import {
   getCalculationAreaSqFt,
   parseSlabAreaSqFt,
-  resolveSlabAreaSqFt,
   resolveSlabThicknessFt,
 } from './placementProduction';
 import type { PlacementMethod } from '../types/pourPlanner';

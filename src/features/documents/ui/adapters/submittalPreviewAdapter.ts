@@ -1,10 +1,10 @@
 import { format } from 'date-fns';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
 import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 const DEFAULT_CONTRACTOR_STATEMENT =
   'Contractor has reviewed this submittal for general conformance with the contract documents. Approval of this submittal does not relieve Contractor from responsibility for errors, omissions, dimensions, field verification, or compliance with project requirements.';
@@ -111,7 +111,7 @@ function projectClientName(project: Project | null): string {
   return '—';
 }
 
-function projectContractor(companySettings: Pick<CompanySettings, 'companyName'>): string {
+function projectContractor(companySettings: DocumentCompanySettings): string {
   return companySettings.companyName?.trim() || '—';
 }
 
@@ -132,10 +132,7 @@ function combineReferences(answers: Record<string, unknown>): string {
 export function buildSubmittalPreviewFromDocumentAnswers(input: {
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   title?: string;
 }): SubmittalDocumentView {
   const { answers, selectedProject, companySettings, title } = input;
@@ -161,7 +158,7 @@ export function buildSubmittalPreviewFromDocumentAnswers(input: {
     }
   }
 
-  const logoUrl = companySettings.logoUrl ?? companySettings.logo ?? null;
+  const logoUrl = companySettings.logoUrl ?? null;
 
   const company: DocumentCompany = {
     name: companySettings.companyName?.trim() || 'Contractor',

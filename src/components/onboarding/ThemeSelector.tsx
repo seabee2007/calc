@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Moon, Sun, ArrowLeft, ArrowRight } from 'lucide-react';
-import Button from '../ui/Button';
+import { Moon, Sun, ArrowLeft } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 
 interface ThemeSelectorProps {

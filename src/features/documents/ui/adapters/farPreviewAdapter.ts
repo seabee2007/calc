@@ -1,10 +1,10 @@
 import { format } from 'date-fns';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
 import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 export interface FarDocumentView {
   documentTitle: string;
@@ -72,10 +72,7 @@ function projectAddress(project: Project | null): string {
 export function buildFarPreviewFromDocumentAnswers(input: {
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   title?: string;
 }): FarDocumentView {
   const { answers, selectedProject, companySettings, title } = input;
@@ -94,7 +91,7 @@ export function buildFarPreviewFromDocumentAnswers(input: {
     }
   }
 
-  const logoUrl = companySettings.logoUrl ?? companySettings.logo ?? null;
+  const logoUrl = companySettings.logoUrl ?? null;
   const company: DocumentCompany = {
     name: companySettings.companyName?.trim() || 'Contractor',
     logoUrl,

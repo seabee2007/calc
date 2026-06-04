@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, MapPin, Factory } from 'lucide-react';
+import { MapPin, Factory } from 'lucide-react';
 import OpsCard from './OpsCard';
 import { OPS_LIST_ROW, OPS_MUTED, OPS_OUTLINE_BTN, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import type { DashboardProjectCard } from '../../utils/operationsDashboard';
@@ -12,7 +12,6 @@ import {
   PROJECT_LIFECYCLE_LABELS,
   PROJECT_LIFECYCLE_STAGE_ORDER,
   normalizeWorkflowStageForDisplay,
-  type ProjectWorkflowStage,
 } from '../../utils/projectWorkflow';
 
 interface ActiveProjectsPanelProps {
@@ -71,7 +70,20 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
 
   return (
     <OpsCard>
-      <h3 className={`font-semibold mb-4 ${OPS_TITLE}`}>Active projects</h3>
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h3 className={`font-semibold ${OPS_TITLE}`}>Active projects</h3>
+        </div>
+        {projects.length > 0 && (
+          <button
+            type="button"
+            onClick={() => navigate('/projects')}
+            className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline"
+          >
+            All projects →
+          </button>
+        )}
+      </header>
       {projects.length === 0 ? (
         <div className="text-center py-4">
           <p className={`text-sm mb-3 ${OPS_MUTED}`}>No active projects</p>
@@ -157,15 +169,6 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
             </li>
           ))}
         </ul>
-      )}
-      {projects.length > 0 && (
-        <button
-          type="button"
-          onClick={() => navigate('/projects')}
-          className="mt-3 text-sm text-cyan-700 dark:text-cyan-400 flex items-center gap-1 hover:underline"
-        >
-          All projects <ChevronRight className="h-4 w-4" />
-        </button>
       )}
     </OpsCard>
   );

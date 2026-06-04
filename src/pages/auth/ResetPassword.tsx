@@ -29,7 +29,7 @@ const ResetPassword: React.FC = () => {
 
       setIsSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
-    } catch (error) {
+    } catch {
       setError('root', {
         message: 'Error resetting password. Please try again.'
       });

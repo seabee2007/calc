@@ -11,7 +11,7 @@ import Button from '../../components/ui/Button';
 import FarDetailDrawer from '../../components/field/FarDetailDrawer';
 import FieldRecordStatusBadge from '../../components/field/FieldRecordStatusBadge';
 import PlannerHubRecordsLayout from '../../components/planner/PlannerHubRecordsLayout';
-import { PLANNER_LINK, PLANNER_MUTED, PLANNER_TABLE, PLANNER_TABLE_HEAD, PLANNER_TABLE_ROW, PLANNER_TABLE_ROW_HIGHLIGHT, PLANNER_TABLE_WRAPPER } from '../../components/planner/plannerTheme';
+import { PLANNER_LINK, PLANNER_MUTED, PLANNER_TABLE, PLANNER_TABLE_HEAD, PLANNER_TABLE_WRAPPER } from '../../components/planner/plannerTheme';
 
 type SectionKey =
   | 'Pending'

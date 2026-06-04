@@ -1,6 +1,5 @@
 import React from 'react';
 import type { ScheduleEvent } from '../../types/scheduleEvent';
-import { SCHEDULE_EVENT_TYPE_LABELS } from '../../types/scheduleEvent';
 import { SCHEDULE_EVENT_TYPE_STYLES } from './scheduleTheme';
 import ScheduleStatusBadge from './ScheduleStatusBadge';
 import { statusAccentClass } from '../../utils/scheduleEventUtils';

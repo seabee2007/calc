@@ -4,7 +4,7 @@ import type {
   RecurrenceRule,
   ScheduleEvent,
 } from '../types/scheduleEvent';
-import { addDays, eventIntersectsRange, getEventEndDate, toIsoDate } from './scheduleEventUtils';
+import { addDays, eventIntersectsRange, toIsoDate } from './scheduleEventUtils';
 
 export const RECURRENCE_INSTANCE_ID_SEP = '::';
 
@@ -111,22 +111,6 @@ function seriesHardEnd(rule: RecurrenceRule, seriesStart: string, rangeEnd: stri
   return cap;
 }
 
-function addMonthsClamped(iso: string, months: number): string {
-  const d = new Date(iso + 'T12:00:00');
-  const day = d.getDate();
-  d.setMonth(d.getMonth() + months);
-  if (d.getDate() !== day) d.setDate(0);
-  return toIsoDate(d);
-}
-
-function addYearsClamped(iso: string, years: number): string {
-  const d = new Date(iso + 'T12:00:00');
-  const month = d.getMonth();
-  const day = d.getDate();
-  d.setFullYear(d.getFullYear() + years);
-  if (d.getMonth() !== month || d.getDate() !== day) d.setDate(0);
-  return toIsoDate(d);
-}
 
 function weeksSinceStart(seriesStart: string, iso: string): number {
   const a = new Date(seriesStart + 'T12:00:00').getTime();
@@ -145,7 +129,6 @@ function occursOnDate(
   rule: RecurrenceRule,
   iso: string,
   seriesStart: string,
-  occurrenceIndex: number,
 ): boolean {
   if (iso < seriesStart) return false;
   switch (rule.frequency) {
@@ -218,7 +201,7 @@ export function generateRecurrenceOccurrenceDates(
 
   while (cursor <= hardEnd && totalGenerated < maxCount && safety < 4000) {
     safety++;
-    if (occursOnDate(rule, cursor, seriesStartDate, totalGenerated)) {
+    if (occursOnDate(rule, cursor, seriesStartDate)) {
       totalGenerated++;
       if (cursor >= rangeStart && cursor <= rangeEnd) {
         dates.push(cursor);

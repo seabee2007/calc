@@ -11,7 +11,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { projectSaveErrorMessage, useProjectStore } from '../../store';
 import type { MixProfileType } from '../../types/curing';
-import type { Project, QCRecord } from '../../types';
+import type { QCRecord } from '../../types';
 import { generateProjectPDF } from '../../utils/pdf';
 import { CONCRETE_MIX_DESIGNS } from '../../types';
 import { workflowNavigateState, workflowQuery } from '../../utils/workflow';
@@ -338,7 +338,7 @@ function useProjectsState() {
         try {
           await updateProject(currentProject.id, { wasteFactor: parseInt(ui.wasteFactor) });
           toast('Waste factor updated successfully', 'success');
-        } catch (error) {
+        } catch {
           toast('Error saving waste factor', 'error');
         } finally {
           setUi(s => ({ ...s, isSaving: false }));

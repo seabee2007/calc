@@ -1,6 +1,4 @@
-import React, { useEffect } from 'react';
-import { MapPin } from 'lucide-react';
-import Button from '../ui/Button';
+import React from 'react';
 import Modal from '../ui/Modal';
 import LocationPermissionAlert from '../ui/LocationPermissionAlert';
 

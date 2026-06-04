@@ -10,8 +10,8 @@ import {
   filterVisibleRows,
 } from './residentialContractContext';
 import { DOCUMENT_HEADER_LOGO_CLASS } from '../components/documentHeaderTheme';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 const RISK_LABEL: Record<string, string> = {
   low: 'Low',
@@ -102,10 +102,7 @@ export interface ResidentialContractDocumentProps {
   documentTitle: string;
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   disclaimer: string;
   risk?: DocumentRiskScore;
   complianceIssues?: DocumentComplianceIssue[];

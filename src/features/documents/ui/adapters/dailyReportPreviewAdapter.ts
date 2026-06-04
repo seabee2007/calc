@@ -1,10 +1,10 @@
 import { format } from 'date-fns';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
 import type { DocumentCompany, DocumentProject } from '../components/professionalDocumentTypes';
 import { cleanDocumentBody, displayValue } from '../previewDisplay';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 // ─── View model ───────────────────────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ function projectClientName(project: Project | null): string {
   return '—';
 }
 
-function projectContractor(companySettings: Pick<CompanySettings, 'companyName'>): string {
+function projectContractor(companySettings: DocumentCompanySettings): string {
   return companySettings.companyName?.trim() || '—';
 }
 
@@ -168,10 +168,7 @@ function buildDocumentTitle(
 export function buildDailyReportPreviewFromDocumentAnswers(input: {
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   title?: string;
 }): DailyReportDocumentView {
   const { answers, selectedProject, companySettings, title } = input;
@@ -195,7 +192,7 @@ export function buildDailyReportPreviewFromDocumentAnswers(input: {
     }
   }
 
-  const logoUrl = companySettings.logoUrl ?? companySettings.logo ?? null;
+  const logoUrl = companySettings.logoUrl ?? null;
 
   const company: DocumentCompany = {
     name: companySettings.companyName?.trim() || 'Contractor',

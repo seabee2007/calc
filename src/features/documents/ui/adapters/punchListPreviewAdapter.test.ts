@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { buildPunchListPreviewFromDocumentAnswers } from './punchListPreviewAdapter';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
-const baseInput = {
+const baseInput: {
+  selectedProject: never;
+  companySettings: DocumentCompanySettings;
+} = {
   selectedProject: {
     id: 'p1',
     name: 'Main Street TI',
@@ -14,7 +18,10 @@ const baseInput = {
     phone: '555-0100',
     email: 'pl@ac.com',
     licenseNumber: 'LIC-1',
-    logoUrl: null,
+    motto: '',
+    taxSystem: 'none',
+    taxRatePercent: 0,
+    taxApplication: 'materials_only',
   },
 };
 

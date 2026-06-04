@@ -1,8 +1,6 @@
 import type {
   DocumentInput,
-  DocumentQuestion,
   DocumentRiskFactor,
-  DocumentTemplate,
   DocumentType,
   QuestionnaireMode,
 } from '../types';

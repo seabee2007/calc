@@ -6,7 +6,6 @@ import type { ProposalStatus } from '../types/proposalTracking';
 import type { OpsRiskLevel } from './operationsDashboard';
 import {
   getMixDesignWorkflowContext,
-  projectRequiresMixDesignApproval,
   type MixDesignWorkflowContext,
 } from './mixDesignWorkflow';
 import { formatPlacementCalculationLabel } from './placementCalculations';
@@ -73,6 +72,11 @@ const LEGACY_IN_PROGRESS_STAGES: ProjectWorkflowStage[] = [
   'ordered',
 ];
 
+type PlacementOrderStatusWithLegacyTerminal =
+  | PlacementOrderStatus
+  | 'completed'
+  | 'cancelled';
+
 /** Map granular / legacy workflow stages to the PM lifecycle bar. */
 export function normalizeWorkflowStageForDisplay(
   stage: ProjectWorkflowStage,
@@ -129,7 +133,9 @@ export function shouldShowConfigurePlacement(stage: ProjectWorkflowStage): boole
 /** Archived jobs — exclude from dashboard placement queues and schedules. */
 export function isProjectClosedOut(project: Project): boolean {
   if (project.placementOrder?.lifecycleStage === 'closed') return true;
-  const status = project.placementOrder?.status;
+  const status = project.placementOrder?.status as
+    | PlacementOrderStatusWithLegacyTerminal
+    | undefined;
   return status === 'completed' || status === 'cancelled';
 }
 
@@ -399,7 +405,7 @@ function inferStage(
   now = new Date(),
 ): ProjectWorkflowStage {
   const pourDate = parsePourDate(project.pourDate);
-  const status = order?.status ?? null;
+  const status = (order?.status ?? null) as PlacementOrderStatusWithLegacyTerminal | null;
   if (status === 'completed' || status === 'cancelled') return 'closed';
 
   if (pourDate && pourDate < now && !isSameDay(pourDate, now)) {
@@ -731,7 +737,9 @@ export function buildProposalPipeline(
 
   for (const p of projects) {
     const draft = proposalDrafts[p.id]?.proposalData;
-    const order = p.placementOrder?.status;
+    const order = p.placementOrder?.status as
+      | PlacementOrderStatusWithLegacyTerminal
+      | undefined;
     const volume = projectVolumeYd(p);
 
     if (draft?.clientName?.trim() && draft.pricing?.length) {

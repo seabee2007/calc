@@ -7,7 +7,6 @@ import DeliveryClock from '../DeliveryClock';
 import PlannerStepLocationsCard from '../PlannerStepLocationsCard';
 import type { PourPlannerContext } from '../../../hooks/usePourPlannerState';
 import { getMapboxTravelTime } from '../../../services/mapboxTravelService';
-import { isShortLoad } from '../../../utils/readyMixDelivery';
 import {
   batchPlantDisplayLine,
   jobsiteDisplayAddress,
@@ -26,10 +25,7 @@ export const StepDeliveryLogistics: React.FC<StepProps> = ({ planner }) => {
     preferences,
     deliveryWindow,
     production,
-    deliveryPlan,
     plannedTruckCount,
-    truckCapacityYd,
-    isShortLoadPour,
     suggestedTruckTypeId,
   } = planner;
 

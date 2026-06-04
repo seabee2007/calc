@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Download, BarChart3, Layers, Zap, X, Save } from 'lucide-react';
 import {
@@ -652,9 +652,6 @@ const ReinforcementOptimizer: React.FC<ReinforcementOptimizerProps> = ({
                     result={result as RebarResult | ColumnRebarResult}
                     calculatorData={calculatorData}
                     coverIn={coverIn}
-                    spacingXIn={getSpacingValue(spacingXIn)}
-                    spacingYIn={getSpacingValue(spacingYIn)}
-                    verticalBars={verticalBars}
                     isColumn={isColumn}
                   />
                   {rebarPricing && <RebarCostEstimateSummary pricing={rebarPricing} />}
@@ -690,11 +687,8 @@ const RebarResults: React.FC<{
   result: RebarResult | ColumnRebarResult; 
   calculatorData: any; 
   coverIn: number; 
-  spacingXIn: number; 
-  spacingYIn: number; 
-  verticalBars: number;
   isColumn?: boolean;
-}> = ({ result, calculatorData, coverIn, spacingXIn, spacingYIn, verticalBars, isColumn = false }) => {
+}> = ({ result, calculatorData, coverIn, isColumn = false }) => {
   
   if (isColumn) {
     // Column rebar results

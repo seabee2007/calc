@@ -20,6 +20,7 @@ import {
   PROJECT_LIFECYCLE_LABELS,
 } from '../utils/projectWorkflow';
 import { formatUSAddress, usAddressFromFields } from '../types/address';
+import type { Project } from '../types';
 import type { PlannerBoardBundle, Profile } from '../types/fieldPlanner';
 import type { ProjectWorkflowStage } from '../utils/projectWorkflow';
 
@@ -31,6 +32,19 @@ export interface PlannerProjectMeta {
   locationLabel: string;
   ownerId: string;
   pourDate?: string | null;
+}
+
+interface PlannerProjectRow {
+  id: string;
+  name: string;
+  user_id: string;
+  pour_date: string | null;
+  jobsite_street: string | null;
+  jobsite_street2: string | null;
+  jobsite_city: string | null;
+  jobsite_state: string | null;
+  jobsite_zip: string | null;
+  placement_order: Project['placementOrder'] | null;
 }
 
 interface PlannerProjectContextValue {
@@ -73,6 +87,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
         setAccessDenied(true);
         return;
       }
+      const projectRow = row as PlannerProjectRow;
 
       if (isEmployee) {
         const { data: assignment } = await supabase
@@ -85,32 +100,42 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
           setAccessDenied(true);
           return;
         }
-      } else if (!isOwner && row.user_id !== user.id) {
+      } else if (!isOwner && projectRow.user_id !== user.id) {
         setAccessDenied(true);
         return;
       }
 
-      const workflow = resolveProjectWorkflow(row as Parameters<typeof resolveProjectWorkflow>[0]);
+      const workflowProject: Project = {
+        id: projectRow.id,
+        name: projectRow.name,
+        description: '',
+        createdAt: '',
+        updatedAt: '',
+        calculations: [],
+        pourDate: projectRow.pour_date ?? undefined,
+        placementOrder: projectRow.placement_order ?? undefined,
+      };
+      const workflow = resolveProjectWorkflow(workflowProject);
       const addr = usAddressFromFields({
-        jobsiteStreet: row.jobsite_street as string | null,
-        jobsiteStreet2: row.jobsite_street2 as string | null,
-        jobsiteCity: row.jobsite_city as string | null,
-        jobsiteState: row.jobsite_state as string | null,
-        jobsiteZip: row.jobsite_zip as string | null,
+        jobsiteStreet: projectRow.jobsite_street ?? undefined,
+        jobsiteStreet2: projectRow.jobsite_street2 ?? undefined,
+        jobsiteCity: projectRow.jobsite_city ?? undefined,
+        jobsiteState: projectRow.jobsite_state ?? undefined,
+        jobsiteZip: projectRow.jobsite_zip ?? undefined,
       });
       const locationLabel = formatUSAddress(addr) || 'Location not set';
 
       setProject({
-        id: row.id as string,
-        name: row.name as string,
+        id: projectRow.id,
+        name: projectRow.name,
         statusLabel: PROJECT_LIFECYCLE_LABELS[workflow.stage],
         statusStage: workflow.stage,
         locationLabel,
-        ownerId: row.user_id as string,
-        pourDate: (row.pour_date as string) ?? null,
+        ownerId: projectRow.user_id,
+        pourDate: projectRow.pour_date ?? null,
       });
 
-      const ownerId = (row.user_id as string) ?? user.id;
+      const ownerId = projectRow.user_id || user.id;
       await ensurePlannerBoard(projectId, ownerId);
       const b = await fetchPlannerBoardBundle(projectId);
       setBundle(b);

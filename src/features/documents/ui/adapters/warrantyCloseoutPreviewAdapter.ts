@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import type { CompanySettings } from '../../../../services/companySettingsService';
 import type { Project } from '../../../../types/index';
 import { formatUSAddress } from '../../../../types/address';
 import { resolveClientAddressForProposal } from '../../../../types/projectClient';
@@ -11,6 +10,7 @@ import {
   STATUS_OPTIONS,
   WARRANTY_PERIOD_OPTIONS,
 } from '../../packs/warrantyCloseout/questions';
+import type { DocumentCompanySettings } from '../documentCompanySettings';
 
 export interface WarrantyCloseoutDocumentView {
   documentTitle: string;
@@ -108,7 +108,7 @@ function projectClientName(project: Project | null): string {
   return '—';
 }
 
-function projectContractor(companySettings: Pick<CompanySettings, 'companyName'>): string {
+function projectContractor(companySettings: DocumentCompanySettings): string {
   return companySettings.companyName?.trim() || '—';
 }
 
@@ -130,10 +130,7 @@ function buildDocumentTitle(
 export function buildWarrantyCloseoutPreviewFromDocumentAnswers(input: {
   answers: Record<string, unknown>;
   selectedProject: Project | null;
-  companySettings: Pick<
-    CompanySettings,
-    'companyName' | 'address' | 'phone' | 'email' | 'licenseNumber' | 'logoUrl'
-  > & { logo?: string | null };
+  companySettings: DocumentCompanySettings;
   title?: string;
 }): WarrantyCloseoutDocumentView {
   const { answers, selectedProject, companySettings, title } = input;
@@ -156,7 +153,7 @@ export function buildWarrantyCloseoutPreviewFromDocumentAnswers(input: {
     }
   }
 
-  const logoUrl = companySettings.logoUrl ?? companySettings.logo ?? null;
+  const logoUrl = companySettings.logoUrl ?? null;
 
   const company: DocumentCompany = {
     name: companySettings.companyName?.trim() || 'Contractor',

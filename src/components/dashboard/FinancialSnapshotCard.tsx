@@ -1,7 +1,7 @@
 import React from 'react';
 import { DollarSign, TrendingUp, Percent, Hammer, Package } from 'lucide-react';
 import OpsCard from './OpsCard';
-import { OPS_MUTED, OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
+import { OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import { TEXT_ACCENT, TEXT_SUCCESS, TEXT_WARNING } from '../../theme/appTheme';
 import type { ProposalFinancialKpis } from '../../utils/proposalKpis';
 import { formatProposalMoney, formatWinRate } from '../../utils/proposalKpis';

@@ -4,7 +4,6 @@ import { Check, X, Loader2 } from 'lucide-react';
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
 import ProposalTemplateModern from '../components/proposals/ProposalTemplateModern';
 import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMinimal';
-import type { ProposalData } from '../types/proposal';
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import {
   acceptProposal,
@@ -13,7 +12,7 @@ import {
   markProposalOpened,
 } from '../lib/proposalTracking';
 import Button from '../components/ui/Button';
-import { SURFACE, SURFACE_ELEVATED, TEXT_MUTED } from '../theme/appTheme';
+import { SURFACE_ELEVATED, TEXT_MUTED } from '../theme/appTheme';
 
 const PublicProposal: React.FC = () => {
   const { token } = useParams<{ token: string }>();
