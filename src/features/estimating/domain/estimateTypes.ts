@@ -30,6 +30,8 @@ export type EstimateWarningCode =
   | 'missing_line_quantity'
   | 'missing_quantity_formula_input'
   | 'missing_production_rate'
+  | 'missing_crew_size'
+  | 'missing_hours_per_day'
   | 'missing_labor_rate'
   | 'missing_material_unit_cost'
   | 'missing_equipment_rate'

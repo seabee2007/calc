@@ -152,7 +152,8 @@ export function calculateCrewDays(
 export function calculateDurationDays(crewDays: number, parallelCrews = DEFAULT_PARALLEL_CREWS): number {
   const safeCrewDays = sanitizeNonNegative(crewDays);
   const crews = sanitizeFactor(parallelCrews, DEFAULT_PARALLEL_CREWS);
-  return roundToTwo(safeDivide(safeCrewDays, crews));
+  const durationDays = safeDivide(safeCrewDays, crews);
+  return roundToTwo(Math.ceil(durationDays));
 }
 
 export function calculateBaseLaborCost(adjustedLaborHours: number, laborRate: number): number {

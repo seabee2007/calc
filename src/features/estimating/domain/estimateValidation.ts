@@ -220,6 +220,33 @@ export function validateEstimateLineItemInput(line: EstimateLineItemInput): Esti
         ),
       );
     }
+
+    if (
+      (line.labor.productionRateType === 'units_per_labor_day' ||
+        line.labor.productionRateType === 'units_per_crew_day') &&
+      !isFinitePositive(line.labor.hoursPerDay)
+    ) {
+      warnings.push(
+        createWarning(
+          'missing_hours_per_day',
+          'Labor input requires a positive hoursPerDay for day-based production rates.',
+          { lineItemId: line.id, fieldPath: 'labor.hoursPerDay' },
+        ),
+      );
+    }
+
+    if (
+      line.labor.productionRateType === 'units_per_crew_day' &&
+      !isFinitePositive(line.labor.crewSize)
+    ) {
+      warnings.push(
+        createWarning(
+          'missing_crew_size',
+          'Labor input requires a positive crewSize for units_per_crew_day rates.',
+          { lineItemId: line.id, fieldPath: 'labor.crewSize' },
+        ),
+      );
+    }
     if (!isFinitePositive(line.labor.laborRate)) {
       warnings.push(
         createWarning('missing_labor_rate', 'Labor input requires a positive laborRate.', {
