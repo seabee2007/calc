@@ -111,7 +111,7 @@ export default function EstimateWorkspacePage() {
   }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { projectId, loading: plannerLoading, accessDenied } = usePlannerProject();
+  const { projectId, project, loading: plannerLoading, accessDenied } = usePlannerProject();
   const parsedTab = parseEstimateWorkspaceTabParam(estimateTab);
   const activeTab: EstimateWorkspaceTabId = parsedTab ?? 'overview';
   const [dataLoading, setDataLoading] = useState(true);
@@ -481,6 +481,7 @@ export default function EstimateWorkspacePage() {
                     saving={saving}
                     draft={lineItemDraft}
                     setup={estimateSetup}
+                    projectLocationLabel={project?.locationLabel}
                     onSave={handleSaveEstimate}
                   />
                 ) : (

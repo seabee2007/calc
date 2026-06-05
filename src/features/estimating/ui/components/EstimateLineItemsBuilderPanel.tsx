@@ -62,6 +62,7 @@ interface Props {
   saving: boolean;
   draft: UseEstimateLineItemDraftResult;
   setup: UseEstimateSetupSessionResult;
+  projectLocationLabel?: string;
   onSave: () => void;
 }
 
@@ -75,6 +76,7 @@ export default function EstimateLineItemsBuilderPanel({
   saving,
   draft,
   setup,
+  projectLocationLabel,
   onSave,
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
@@ -265,6 +267,7 @@ export default function EstimateLineItemsBuilderPanel({
           <EstimateQuickFeasibilityPanel
             key={quickPanelResetKey}
             disabled={!canEdit}
+            projectContext={{ locationLabel: projectLocationLabel }}
           />
         </div>
       ) : null}

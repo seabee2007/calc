@@ -2,16 +2,32 @@ import { useMemo, useState } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import {
-  computeQuickFeasibility,
-  DEFAULT_QUICK_FEASIBILITY_INPUTS,
+  calculateQuickFeasibilityEstimate,
+  createInitialQuickFeasibilityInputs,
+  createQuickFeasibilityInputsForLocation,
+  getDefaultContingencyPercent,
+  getSquareFootPricingImportantLimitations,
+  getSquareFootPricingLocations,
+  QUICK_FEASIBILITY_BUDGET_WARNING,
+  QUICK_FEASIBILITY_COMPLEXITY_OPTIONS,
+  QUICK_FEASIBILITY_FINISH_OPTIONS,
+  QUICK_FEASIBILITY_LOW_CONFIDENCE_WARNING,
+  QUICK_FEASIBILITY_MEP_OPTIONS,
   QUICK_FEASIBILITY_PROJECT_TYPE_OPTIONS,
-  QUICK_FEASIBILITY_QUALITY_OPTIONS,
+  QUICK_FEASIBILITY_SITE_CONDITION_OPTIONS,
+  QUICK_FEASIBILITY_TERRITORY_WARNING,
+  QUICK_FEASIBILITY_WORK_BREAKDOWN_WARNING,
+  type QuickFeasibilityComplexityLevel,
+  type QuickFeasibilityFinishLevel,
   type QuickFeasibilityInputs,
-  type QuickFeasibilityQualityLevel,
+  type QuickFeasibilityMepIntensity,
+  type QuickFeasibilityProjectContext,
+  type QuickFeasibilityProjectType,
+  type QuickFeasibilitySiteCondition,
 } from '../../application/estimateQuickFeasibility';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import EstimateSummaryCard from './EstimateSummaryCard';
-import { formatEstimateCurrency } from '../estimateFormatters';
+import { formatEstimateCurrency, formatEstimateNumber } from '../estimateFormatters';
 import {
   PLANNER_FORM_LABEL,
   PLANNER_INPUT,
@@ -25,16 +41,11 @@ import {
 
 interface Props {
   disabled?: boolean;
+  projectContext?: QuickFeasibilityProjectContext | null;
 }
 
 function FieldGrid({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>;
-}
-
-function confidenceLabel(level: string): string {
-  if (level === 'high') return 'High';
-  if (level === 'medium') return 'Medium';
-  return 'Low';
 }
 
 function formatPreviewCurrency(value: number, isValid: boolean): string {
@@ -42,13 +53,68 @@ function formatPreviewCurrency(value: number, isValid: boolean): string {
   return formatEstimateCurrency(value);
 }
 
-export default function EstimateQuickFeasibilityPanel({ disabled = false }: Props) {
-  const [inputs, setInputs] = useState<QuickFeasibilityInputs>(DEFAULT_QUICK_FEASIBILITY_INPUTS);
+function formatConfidenceLabel(confidence: string | null): string {
+  if (!confidence) return '—';
+  if (confidence === 'very_low') return 'Very low';
+  if (confidence === 'low') return 'Low';
+  if (confidence === 'medium') return 'Medium';
+  if (confidence === 'high') return 'High';
+  return confidence;
+}
 
-  const result = useMemo(() => computeQuickFeasibility(inputs), [inputs]);
+function formatLocationOptionLabel(code: string, name: string): string {
+  return `${code} - ${name}`;
+}
+
+export default function EstimateQuickFeasibilityPanel({
+  disabled = false,
+  projectContext = null,
+}: Props) {
+  const [inputs, setInputs] = useState<QuickFeasibilityInputs>(() =>
+    createInitialQuickFeasibilityInputs(projectContext),
+  );
+
+  const locationOptions = useMemo(
+    () =>
+      getSquareFootPricingLocations().map((location) => ({
+        value: location.code,
+        label: formatLocationOptionLabel(location.code, location.name),
+      })),
+    [],
+  );
+
+  const result = useMemo(() => calculateQuickFeasibilityEstimate(inputs), [inputs]);
+  const datasetLimitations = useMemo(() => getSquareFootPricingImportantLimitations(), []);
 
   const patchInputs = (patch: Partial<QuickFeasibilityInputs>) => {
     setInputs((prev) => ({ ...prev, ...patch }));
+  };
+
+  const handleLocationChange = (locationCode: string) => {
+    if (!locationCode) {
+      patchInputs({
+        locationCode: '',
+        basePricePerSf: 0,
+        basePricePerSfOverridden: false,
+      });
+      return;
+    }
+
+    setInputs((prev) => {
+      const next = createQuickFeasibilityInputsForLocation(locationCode, {
+        ...prev,
+        locationCode,
+        basePricePerSfOverridden: false,
+      });
+      return next;
+    });
+  };
+
+  const handleProjectTypeChange = (projectType: QuickFeasibilityProjectType) => {
+    patchInputs({
+      projectType,
+      contingencyPercent: getDefaultContingencyPercent(projectType),
+    });
   };
 
   return (
@@ -57,12 +123,29 @@ export default function EstimateQuickFeasibilityPanel({ disabled = false }: Prop
         <div>
           <h3 className={`text-base font-semibold ${TEXT_FOREGROUND}`}>Quick Feasibility</h3>
           <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-            Enter rough project parameters for a local SF-based feasibility preview. Results are not
-            saved to estimate versions.
+            Location-based square-foot pricing for early budget planning. Results are not saved to
+            estimate versions.
           </p>
         </div>
 
         <FieldGrid>
+          <div>
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-location-market">
+              Location / Market
+            </label>
+            <Select
+              id="quick-location-market"
+              className={PLANNER_INPUT}
+              value={inputs.locationCode}
+              disabled={disabled}
+              options={[
+                { value: '', label: 'Select a location' },
+                ...locationOptions,
+              ]}
+              onChange={handleLocationChange}
+            />
+          </div>
+
           <div>
             <label className={PLANNER_FORM_LABEL} htmlFor="quick-project-type">
               Project type
@@ -76,21 +159,7 @@ export default function EstimateQuickFeasibilityPanel({ disabled = false }: Prop
                 value: option.value,
                 label: option.label,
               }))}
-              onChange={(value) => patchInputs({ projectType: value })}
-            />
-          </div>
-
-          <div>
-            <label className={PLANNER_FORM_LABEL} htmlFor="quick-location">
-              Location
-            </label>
-            <Input
-              id="quick-location"
-              className={PLANNER_INPUT}
-              value={inputs.location}
-              disabled={disabled}
-              placeholder="City, state or region"
-              onChange={(event) => patchInputs({ location: event.target.value })}
+              onChange={(value) => handleProjectTypeChange(value as QuickFeasibilityProjectType)}
             />
           </div>
 
@@ -113,42 +182,104 @@ export default function EstimateQuickFeasibilityPanel({ disabled = false }: Prop
           </div>
 
           <div>
-            <label className={PLANNER_FORM_LABEL} htmlFor="quick-cost-per-sf">
-              Cost per SF ($)
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-base-price-per-sf">
+              Base price per SF ($)
             </label>
             <Input
-              id="quick-cost-per-sf"
+              id="quick-base-price-per-sf"
               className={PLANNER_INPUT}
               type="number"
               min={0}
               step="any"
-              value={inputs.costPerSF || ''}
+              value={inputs.basePricePerSf || ''}
               disabled={disabled}
               onChange={(event) =>
-                patchInputs({ costPerSF: parseEstimateFormNumber(event.target.value) })
+                patchInputs({
+                  basePricePerSf: parseEstimateFormNumber(event.target.value),
+                  basePricePerSfOverridden: true,
+                })
+              }
+            />
+            <p className={`mt-1 text-xs ${PLANNER_MUTED}`}>
+              Auto-filled from selected location but editable.
+            </p>
+          </div>
+
+          <div>
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-finish-level">
+              Finish level
+            </label>
+            <Select
+              id="quick-finish-level"
+              className={PLANNER_INPUT}
+              value={inputs.finishLevel}
+              disabled={disabled}
+              options={QUICK_FEASIBILITY_FINISH_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+              onChange={(value) =>
+                patchInputs({ finishLevel: value as QuickFeasibilityFinishLevel })
               }
             />
           </div>
 
           <div>
-            <label className={PLANNER_FORM_LABEL} htmlFor="quick-quality-level">
-              Quality level
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-complexity-level">
+              Complexity
             </label>
             <Select
-              id="quick-quality-level"
+              id="quick-complexity-level"
               className={PLANNER_INPUT}
-              value={inputs.qualityLevel}
+              value={inputs.complexityLevel}
               disabled={disabled}
-              options={QUICK_FEASIBILITY_QUALITY_OPTIONS.map((option) => ({
+              options={QUICK_FEASIBILITY_COMPLEXITY_OPTIONS.map((option) => ({
                 value: option.value,
                 label: option.label,
               }))}
               onChange={(value) =>
-                patchInputs({
-                  qualityLevel: value as QuickFeasibilityQualityLevel,
-                })
+                patchInputs({ complexityLevel: value as QuickFeasibilityComplexityLevel })
               }
             />
+          </div>
+
+          <div>
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-site-condition">
+              Site condition
+            </label>
+            <Select
+              id="quick-site-condition"
+              className={PLANNER_INPUT}
+              value={inputs.siteCondition}
+              disabled={disabled}
+              options={QUICK_FEASIBILITY_SITE_CONDITION_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+              onChange={(value) =>
+                patchInputs({ siteCondition: value as QuickFeasibilitySiteCondition })
+              }
+            />
+          </div>
+
+          <div>
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-mep-intensity">
+              MEP intensity
+            </label>
+            <Select
+              id="quick-mep-intensity"
+              className={PLANNER_INPUT}
+              value={inputs.mepIntensity}
+              disabled={disabled}
+              options={QUICK_FEASIBILITY_MEP_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+              onChange={(value) =>
+                patchInputs({ mepIntensity: value as QuickFeasibilityMepIntensity })
+              }
+            />
+            <p className={`mt-1 text-xs ${PLANNER_MUTED}`}>App-level multiplier, not dataset data.</p>
           </div>
 
           <div>
@@ -173,46 +304,86 @@ export default function EstimateQuickFeasibilityPanel({ disabled = false }: Prop
           </div>
 
           <div>
-            <label className={PLANNER_FORM_LABEL} htmlFor="quick-location-factor">
-              Location factor
+            <label className={PLANNER_FORM_LABEL} htmlFor="quick-location-adjustment">
+              Location adjustment factor
             </label>
             <Input
-              id="quick-location-factor"
+              id="quick-location-adjustment"
               className={PLANNER_INPUT}
               type="number"
               min={0}
               step="any"
-              value={inputs.locationFactor || ''}
+              value={inputs.locationAdjustmentFactor || ''}
               disabled={disabled}
               onChange={(event) =>
                 patchInputs({
-                  locationFactor: parseEstimateFormNumber(event.target.value) || 1,
+                  locationAdjustmentFactor: parseEstimateFormNumber(event.target.value) || 1,
                 })
               }
             />
-          </div>
-
-          <div>
-            <label className={PLANNER_FORM_LABEL} htmlFor="quick-complexity-factor">
-              Complexity factor
-            </label>
-            <Input
-              id="quick-complexity-factor"
-              className={PLANNER_INPUT}
-              type="number"
-              min={0}
-              step="any"
-              value={inputs.complexityFactor || ''}
-              disabled={disabled}
-              onChange={(event) =>
-                patchInputs({
-                  complexityFactor: parseEstimateFormNumber(event.target.value) || 1,
-                })
-              }
-            />
+            <p className={`mt-1 text-xs ${PLANNER_MUTED}`}>
+              Optional manual adjustment. Dataset location factor is display-only.
+            </p>
           </div>
         </FieldGrid>
       </div>
+
+      {inputs.locationCode ? (
+        <div className={`${PLANNER_FORM_PANEL} space-y-2`}>
+          <p className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Location benchmark</p>
+          <p className={`text-sm ${PLANNER_MUTED}`}>
+            Confidence: {formatConfidenceLabel(result.locationConfidence)}
+          </p>
+          {result.planningLowPerSf != null && result.planningHighPerSf != null ? (
+            <p className={`text-sm ${PLANNER_MUTED}`}>
+              Location benchmark range: {formatEstimateCurrency(result.planningLowPerSf)}–
+              {formatEstimateCurrency(result.planningHighPerSf)}/SF
+            </p>
+          ) : null}
+          {result.locationFactorVsNational195 != null ? (
+            <p className={`text-sm ${PLANNER_MUTED}`}>
+              Location factor vs national baseline: {result.locationFactorVsNational195}
+            </p>
+          ) : null}
+          {result.locationNotes ? (
+            <p className={`text-sm ${PLANNER_MUTED}`}>{result.locationNotes}</p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className={`${PLANNER_FORM_PANEL} space-y-2`}>
+        <p className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Important</p>
+        <ul className={`list-disc space-y-1 pl-5 text-sm ${PLANNER_MUTED}`}>
+          <li>{QUICK_FEASIBILITY_BUDGET_WARNING}</li>
+          <li>{QUICK_FEASIBILITY_WORK_BREAKDOWN_WARNING}</li>
+          {datasetLimitations.map((limitation) => (
+            <li key={limitation}>{limitation}</li>
+          ))}
+        </ul>
+      </div>
+
+      {result.warnings.some(
+        (warning) =>
+          warning === QUICK_FEASIBILITY_LOW_CONFIDENCE_WARNING ||
+          warning === QUICK_FEASIBILITY_TERRITORY_WARNING,
+      ) ? (
+        <div
+          className={`rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200 ${TEXT_BODY}`}
+          role="status"
+        >
+          <ul className="list-disc space-y-1 pl-4">
+            {result.warnings
+              .filter(
+                (warning) =>
+                  warning === QUICK_FEASIBILITY_LOW_CONFIDENCE_WARNING ||
+                  warning === QUICK_FEASIBILITY_TERRITORY_WARNING,
+              )
+              .map((warning) => (
+                <li key={warning}>{warning}</li>
+              ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="space-y-3">
         <h4 className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Preview</h4>
@@ -228,34 +399,45 @@ export default function EstimateQuickFeasibilityPanel({ disabled = false }: Prop
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <EstimateSummaryCard
-            label="Likely total"
+            label="Low budget"
+            value={formatPreviewCurrency(result.lowTotal, result.isValid)}
+          />
+          <EstimateSummaryCard
+            label="Likely budget"
             value={formatPreviewCurrency(result.likelyTotal, result.isValid)}
             emphasis
           />
           <EstimateSummaryCard
-            label="Low range"
-            value={formatPreviewCurrency(result.lowTotal, result.isValid)}
-          />
-          <EstimateSummaryCard
-            label="High range"
+            label="High budget"
             value={formatPreviewCurrency(result.highTotal, result.isValid)}
           />
           <EstimateSummaryCard
-            label="Effective cost / SF"
-            value={formatPreviewCurrency(result.effectiveCostPerSF, result.isValid)}
+            label="Adjusted cost / SF"
+            value={formatPreviewCurrency(result.adjustedCostPerSF, result.isValid)}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <EstimateSummaryCard
-            label="Base cost (before contingency)"
+            label="Base cost (area × base/SF)"
             value={formatPreviewCurrency(result.baseCost, result.isValid)}
           />
           <EstimateSummaryCard
-            label="Confidence level"
-            value={confidenceLabel(result.confidenceLevel)}
+            label="Adjusted cost (before contingency)"
+            value={formatPreviewCurrency(result.adjustedCost, result.isValid)}
           />
         </div>
+
+        {result.isValid ? (
+          <p className={`text-xs ${PLANNER_MUTED}`}>
+            Resolved base price: {formatEstimateCurrency(result.resolvedBasePricePerSf)}/SF ·
+            Multipliers: project {formatEstimateNumber(result.multipliers.projectType, { decimals: 2 })},
+            finish {formatEstimateNumber(result.multipliers.finish, { decimals: 2 })}, complexity{' '}
+            {formatEstimateNumber(result.multipliers.complexity, { decimals: 2 })}, site{' '}
+            {formatEstimateNumber(result.multipliers.siteCondition, { decimals: 2 })}, MEP{' '}
+            {formatEstimateNumber(result.multipliers.mep, { decimals: 2 })}
+          </p>
+        ) : null}
 
         <div className={`${PLANNER_FORM_PANEL} space-y-2`}>
           <p className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Assumptions</p>
