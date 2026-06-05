@@ -6,6 +6,7 @@ import {
   rollupTaskSlices,
 } from './estimateGroupRollups';
 import { roundToTwo } from '../domain/estimateMath';
+import { getCsiDivisionLabel } from '../domain/csiDivisions';
 import {
   GENERAL_SCOPE_KEY,
   GENERAL_SCOPE_LABEL,
@@ -29,7 +30,9 @@ export function normalizeScopeKey(scopeName?: string | null): string {
 }
 
 export function divisionLabelFromKey(key: string): string {
-  return key === UNASSIGNED_DIVISION_KEY ? UNASSIGNED_DIVISION_LABEL : key;
+  if (key === UNASSIGNED_DIVISION_KEY) return UNASSIGNED_DIVISION_LABEL;
+  const catalogLabel = getCsiDivisionLabel(key);
+  return catalogLabel || key;
 }
 
 export function scopeLabelFromKey(key: string): string {

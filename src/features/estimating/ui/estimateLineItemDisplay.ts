@@ -1,9 +1,23 @@
+import { getCsiDivisionLabel } from '../domain/csiDivisions';
 import type { EstimateGroupRollup } from '../domain/estimateLineItemTree';
+import { UNASSIGNED_DIVISION_LABEL } from '../domain/estimateLineItemTree';
 import {
   formatEstimateCurrency,
   formatEstimateHours,
   formatEstimateNumber,
 } from './estimateFormatters';
+
+/** Display CSI division for line items and group headers. */
+export function formatCsiDivisionDisplay(code?: string | null): string {
+  const trimmed = code?.trim();
+  if (!trimmed) return UNASSIGNED_DIVISION_LABEL;
+  return getCsiDivisionLabel(trimmed) || trimmed;
+}
+
+export function formatDivisionGroupTitle(label: string): string {
+  if (!label || label === UNASSIGNED_DIVISION_LABEL) return UNASSIGNED_DIVISION_LABEL;
+  return label;
+}
 
 export function formatGroupRollupSummary(rollup: EstimateGroupRollup): string {
   const parts = [

@@ -1,7 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import type { EstimateDraftLine } from '../../application/estimateDraftLine';
+import {
+  getCsiDivisionLabel,
+  getCsiDivisionOptions,
+  isKnownCsiDivision,
+  normalizeCsiDivisionCode,
+} from '../../domain/csiDivisions';
 import type { ProductionRateType } from '../../domain/estimateTypes';
 import {
   parseEstimateFormNumber,
@@ -44,9 +50,43 @@ function CheckboxField({
   );
 }
 
+const UNASSIGNED_DIVISION_VALUE = '';
+
 export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
   const { task } = draft;
   const labor = task.lineItem.labor ?? {};
+
+  const storedDivision = task.lineItem.csiDivision ?? '';
+  const normalizedDivision = normalizeCsiDivisionCode(storedDivision);
+  const selectedDivisionValue =
+    storedDivision.trim() === ''
+      ? UNASSIGNED_DIVISION_VALUE
+      : isKnownCsiDivision(storedDivision)
+        ? normalizedDivision
+        : storedDivision.trim();
+
+  const csiDivisionSelectOptions = useMemo(() => {
+    const options = getCsiDivisionOptions().map((division) => ({
+      value: division.code,
+      label: division.label,
+    }));
+
+    if (
+      selectedDivisionValue &&
+      selectedDivisionValue !== UNASSIGNED_DIVISION_VALUE &&
+      !isKnownCsiDivision(selectedDivisionValue)
+    ) {
+      options.push({
+        value: selectedDivisionValue,
+        label: getCsiDivisionLabel(selectedDivisionValue) || selectedDivisionValue,
+      });
+    }
+
+    return [
+      { value: UNASSIGNED_DIVISION_VALUE, label: 'Unassigned Division' },
+      ...options,
+    ];
+  }, [selectedDivisionValue]);
 
   const patchTask = (patch: Partial<EstimateDraftLine['task']>) => {
     onChange({
@@ -96,11 +136,15 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
       <section className="space-y-3">
         <h3 className={PLANNER_SECTION_TITLE}>Identity</h3>
         <FieldGrid>
-          <Input
+          <Select
             label="CSI Division"
-            value={task.lineItem.csiDivision ?? ''}
-            onChange={(event) =>
-              patchLineItem({ csiDivision: event.target.value, csiSection: task.lineItem.csiSection })
+            value={selectedDivisionValue}
+            options={csiDivisionSelectOptions}
+            onChange={(value) =>
+              patchLineItem({
+                csiDivision: value,
+                csiSection: task.lineItem.csiSection,
+              })
             }
             fullWidth
           />
