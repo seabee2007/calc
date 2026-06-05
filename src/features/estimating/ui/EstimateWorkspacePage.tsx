@@ -316,7 +316,7 @@ export default function EstimateWorkspacePage() {
 
     setSuccessTitle('Estimate saved');
     setSuccessMessage(
-      `Saved version ${result.data.versionNumber} with ${result.data.lineItemCount} line item(s).`,
+      `Saved version ${result.data.versionNumber} with ${result.data.lineItemCount} activit${result.data.lineItemCount === 1 ? 'y' : 'ies'}.`,
     );
 
     const listResult = await listEstimatesForProject(resolvedProjectId);
@@ -472,10 +472,10 @@ export default function EstimateWorkspacePage() {
                   />
                 ) : (
                   <>
-                    <h2 className={PLANNER_SECTION_TITLE}>Line items</h2>
+                    <h2 className={PLANNER_SECTION_TITLE}>Activities</h2>
                     <EstimateWorkspaceEmptyState
                       title={NO_VERSION_MESSAGE}
-                      body="Line items are stored on estimate versions and will display here once a version exists."
+                      body="Activities are stored on estimate versions and will display here once a version exists."
                     />
                   </>
                 )}

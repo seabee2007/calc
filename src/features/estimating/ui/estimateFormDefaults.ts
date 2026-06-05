@@ -56,7 +56,7 @@ export function collectDraftFormWarnings(draft: EstimateDraftLine): DraftFormWar
   const labor = task.lineItem.labor;
 
   if (!task.title?.trim()) {
-    warnings.push({ code: 'missing_task_title', message: 'Task title is required.' });
+    warnings.push({ code: 'missing_task_title', message: 'Activity name is required.' });
   }
 
   const quantity = task.lineItem.quantity.quantity ?? 0;

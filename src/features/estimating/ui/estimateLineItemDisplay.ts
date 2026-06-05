@@ -21,19 +21,19 @@ export function formatDivisionGroupTitle(label: string): string {
 
 export function formatGroupRollupSummary(rollup: EstimateGroupRollup): string {
   const parts = [
-    `${rollup.itemCount} task${rollup.itemCount === 1 ? '' : 's'}`,
+    `${rollup.itemCount} activit${rollup.itemCount === 1 ? 'y' : 'ies'}`,
     rollup.laborHours > 0 ? formatEstimateHours(rollup.laborHours) : null,
     rollup.directCost > 0 ? formatEstimateCurrency(rollup.directCost) : null,
     rollup.sellPrice > 0 ? formatEstimateCurrency(rollup.sellPrice) : null,
   ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(' · ') : '0 tasks';
+  return parts.length > 0 ? parts.join(' · ') : '0 activities';
 }
 
 /** Division header: task count, sell price, labor hours. */
 export function formatDivisionRollupHeader(rollup: EstimateGroupRollup): string {
   const parts: string[] = [
-    `${rollup.itemCount} task${rollup.itemCount === 1 ? '' : 's'}`,
+    `${rollup.itemCount} activit${rollup.itemCount === 1 ? 'y' : 'ies'}`,
   ];
 
   if (rollup.sellPrice > 0) {
@@ -48,7 +48,7 @@ export function formatDivisionRollupHeader(rollup: EstimateGroupRollup): string 
 
 /** Scope header: task count; subtotal when multiple tasks in scope. */
 export function formatScopeRollupHeader(rollup: EstimateGroupRollup): string {
-  const count = `${rollup.itemCount} task${rollup.itemCount === 1 ? '' : 's'}`;
+  const count = `${rollup.itemCount} activit${rollup.itemCount === 1 ? 'y' : 'ies'}`;
 
   if (rollup.itemCount > 1 && rollup.sellPrice > 0) {
     return `${count} · ${formatEstimateCurrency(rollup.sellPrice)}`;
@@ -62,7 +62,7 @@ export function formatRollupStripCounts(counts: {
   scopeCount: number;
   taskCount: number;
 }): string {
-  return `${counts.divisionCount} division${counts.divisionCount === 1 ? '' : 's'} · ${counts.scopeCount} scope${counts.scopeCount === 1 ? '' : 's'} · ${counts.taskCount} task${counts.taskCount === 1 ? '' : 's'}`;
+  return `${counts.divisionCount} division${counts.divisionCount === 1 ? '' : 's'} · ${counts.scopeCount} work package${counts.scopeCount === 1 ? '' : 's'} · ${counts.taskCount} activit${counts.taskCount === 1 ? 'y' : 'ies'}`;
 }
 
 export function formatRollupStripTotals(rollup: EstimateGroupRollup): string {
@@ -81,12 +81,12 @@ export function formatDraftSummaryStrip(totals: {
   sellPrice: number;
 }): string {
   const parts = [
-    `${totals.lineCount} draft line${totals.lineCount === 1 ? '' : 's'}`,
+    `${totals.lineCount} draft activit${totals.lineCount === 1 ? 'y' : 'ies'}`,
     totals.laborHours > 0 ? formatEstimateHours(totals.laborHours) : null,
     totals.manDays > 0 ? `${formatManDays(totals.manDays)} man-days` : null,
     totals.crewDays > 0 ? `${formatManDays(totals.crewDays)} crew-days` : null,
     totals.sellPrice > 0 ? formatEstimateCurrency(totals.sellPrice) : null,
   ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(' · ') : '0 draft lines';
+  return parts.length > 0 ? parts.join(' · ') : '0 draft activities';
 }

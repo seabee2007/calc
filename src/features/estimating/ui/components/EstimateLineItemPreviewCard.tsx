@@ -65,7 +65,7 @@ export default function EstimateLineItemPreviewCard({ draft }: Props) {
 
   return (
     <Card variant="panel" className={`${PLANNER_FORM_PANEL} mt-4`}>
-      <h3 className={PLANNER_SECTION_TITLE}>Live preview</h3>
+      <h3 className={PLANNER_SECTION_TITLE}>Activity preview</h3>
       <p className={`mt-1 text-xs ${PLANNER_MUTED}`}>
         Calculated from the estimating engine using current form values.
       </p>

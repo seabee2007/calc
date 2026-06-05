@@ -66,8 +66,8 @@ function DraftLineActions({
           size="sm"
           icon={<ArrowUp className="h-3.5 w-3.5" />}
           disabled={!canMoveUp}
-          aria-label="Move line up"
-          title="Move line up"
+          aria-label="Move activity up"
+          title="Move activity up"
           className={ICON_BUTTON_CLASS}
           onClick={onMoveUp}
         />
@@ -79,8 +79,8 @@ function DraftLineActions({
           size="sm"
           icon={<ArrowDown className="h-3.5 w-3.5" />}
           disabled={!canMoveDown}
-          aria-label="Move line down"
-          title="Move line down"
+          aria-label="Move activity down"
+          title="Move activity down"
           className={ICON_BUTTON_CLASS}
           onClick={onMoveDown}
         />
@@ -91,8 +91,8 @@ function DraftLineActions({
           variant="outline"
           size="sm"
           icon={<Copy className="h-3.5 w-3.5" />}
-          aria-label="Duplicate line item"
-          title="Duplicate line item"
+          aria-label="Duplicate activity"
+          title="Duplicate activity"
           className={ICON_BUTTON_CLASS}
           onClick={onDuplicate}
         />
@@ -102,8 +102,8 @@ function DraftLineActions({
         variant="outline"
         size="sm"
         icon={<Pencil className="h-3.5 w-3.5" />}
-        aria-label="Edit line item"
-        title="Edit line item"
+        aria-label="Edit activity"
+        title="Edit activity"
         className={ICON_BUTTON_CLASS}
         onClick={onEdit}
       />
@@ -112,8 +112,8 @@ function DraftLineActions({
         variant="outline"
         size="sm"
         icon={<Trash2 className="h-3.5 w-3.5" />}
-        aria-label="Remove line item"
-        title="Remove line item"
+        aria-label="Remove activity"
+        title="Remove activity"
         className={ICON_BUTTON_CLASS}
         onClick={onRemove}
       />
@@ -151,19 +151,19 @@ export default function EstimateDraftLineRow({
       >
         <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4 lg:grid-cols-6">
           <div className="min-w-0">
-            <p className={`text-xs ${PLANNER_MUTED}`}>CSI</p>
+            <p className={`text-xs ${PLANNER_MUTED}`}>Division of Work</p>
             <p className={`truncate ${TEXT_FOREGROUND}`}>
               {formatEstimateBlank(task.lineItem.csiDivision)}
             </p>
           </div>
           <div className="min-w-0">
-            <p className={`text-xs ${PLANNER_MUTED}`}>Scope</p>
+            <p className={`text-xs ${PLANNER_MUTED}`}>Work Package / Scope</p>
             <p className={`truncate ${TEXT_FOREGROUND}`}>
               {formatEstimateBlank(task.scopeName)}
             </p>
           </div>
           <div className="col-span-2 min-w-0 sm:col-span-1 lg:col-span-2">
-            <p className={`text-xs ${PLANNER_MUTED}`}>Task</p>
+            <p className={`text-xs ${PLANNER_MUTED}`}>Activity</p>
             <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</p>
           </div>
           <div>

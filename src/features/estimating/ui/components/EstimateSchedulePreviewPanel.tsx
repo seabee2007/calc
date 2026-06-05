@@ -30,7 +30,7 @@ import EstimateDependencyPreviewPanel from './EstimateDependencyPreviewPanel';
 const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
 
 const NO_SCHEDULABLE_MESSAGE =
-  'No schedulable estimate line items yet. Enable scheduling on line items to build a schedule preview.';
+  'No schedulable activities yet. Enable scheduling on activities to build a schedule preview.';
 
 const PREVIEW_NOTE =
   'This is a schedule preview only. It has not been published to the Planner schedule.';
@@ -45,8 +45,8 @@ interface Props {
 }
 
 const LABOR_SUMMARY_CARDS = [
-  { key: 'schedulableTasksDisplay', label: 'Schedulable tasks' },
-  { key: 'excludedTasksDisplay', label: 'Excluded tasks' },
+  { key: 'schedulableTasksDisplay', label: 'Schedulable activities' },
+  { key: 'excludedTasksDisplay', label: 'Excluded activities' },
   { key: 'totalLaborHoursDisplay', label: 'Total labor hours' },
   { key: 'totalManDaysDisplay', label: 'Total man-days' },
   { key: 'totalCrewDaysDisplay', label: 'Total crew-days' },
@@ -79,7 +79,7 @@ export default function EstimateSchedulePreviewPanel({
     return (
       <EstimateWorkspaceEmptyState
         title={NO_VERSION_MESSAGE}
-        body="Save an estimate version with line items to preview a draft schedule."
+        body="Save an estimate version with activities to preview a draft schedule."
       />
     );
   }
@@ -87,7 +87,7 @@ export default function EstimateSchedulePreviewPanel({
   if (!loading && plan && !hasSchedulableSchedulePreview(plan)) {
     return (
       <EstimateWorkspaceEmptyState
-        title="No schedulable tasks"
+        title="No schedulable activities"
         body={NO_SCHEDULABLE_MESSAGE}
       />
     );
@@ -99,7 +99,7 @@ export default function EstimateSchedulePreviewPanel({
         <h2 className={PLANNER_SECTION_TITLE}>Schedule preview</h2>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
           Planned dates from the current saved version
-          {version ? ` (v${version.versionNumber})` : ''}. Dates update automatically from line items
+          {version ? ` (v${version.versionNumber})` : ''}. Dates update automatically from activities
           and planning controls below.
         </p>
       </div>

@@ -46,7 +46,7 @@ export default function EstimateCostBreakdownCard({ costGroups, percentBreakdown
       <div>
         <h3 className={PLANNER_SECTION_TITLE}>Cost breakdown</h3>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Direct costs roll up from line items; markup fields come from the saved version totals.
+          Direct costs roll up from activities; markup fields come from the saved version totals.
         </p>
       </div>
 

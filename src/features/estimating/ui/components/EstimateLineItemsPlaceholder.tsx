@@ -6,9 +6,9 @@ import {
 } from '../estimateWorkspaceTheme';
 
 const COLUMNS = [
-  'CSI Division',
-  'Scope',
-  'Task',
+  'Division of Work',
+  'Work Package / Scope',
+  'Activity',
   'Quantity',
   'Unit',
   'Labor Hours',
@@ -35,14 +35,14 @@ export default function EstimateLineItemsPlaceholder() {
                 colSpan={COLUMNS.length}
                 className={`px-4 py-8 text-center text-sm ${PLANNER_MUTED}`}
               >
-                Line items will appear here after estimate creation is enabled.
+                Activities will appear here after estimate creation is enabled.
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <p className={`text-xs ${PLANNER_MUTED}`}>
-        Columns support CSI division, scope, task detail, quantities, labor hours, and line totals.
+        Columns support division of work, work package / scope, activity detail, quantities, labor hours, and totals.
       </p>
     </div>
   );

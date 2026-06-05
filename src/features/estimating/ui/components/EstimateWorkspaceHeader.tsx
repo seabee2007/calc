@@ -39,7 +39,7 @@ function VersionMetaLine({ version }: { version: EstimateDomainVersion }) {
       <span className="font-medium">{version.lineItems.length}</span>
       <span className={PLANNER_MUTED}>
         {' '}
-        line item{version.lineItems.length === 1 ? '' : 's'}
+        activit{version.lineItems.length === 1 ? 'y' : 'ies'}
       </span>
     </p>
   );
@@ -127,7 +127,7 @@ export default function EstimateWorkspaceHeader({
             </span>
           ) : null}
           {draftDirty ? (
-            <span className={`text-xs ${PLANNER_MUTED}`}>Unsaved draft line items</span>
+            <span className={`text-xs ${PLANNER_MUTED}`}>Unsaved draft activities</span>
           ) : null}
         </div>
 
@@ -150,7 +150,7 @@ export default function EstimateWorkspaceHeader({
         </dl>
       ) : (
         <p className={`mt-2 text-xs ${PLANNER_MUTED}`}>
-          No saved version yet. Add line items and save from the Line items tab.
+          No saved version yet. Add activities and save from the Activities tab.
         </p>
       )}
     </div>

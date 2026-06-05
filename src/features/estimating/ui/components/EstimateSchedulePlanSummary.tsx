@@ -10,8 +10,8 @@ const SUMMARY_CARDS = [
   { key: 'plannedProjectStartDisplay', label: 'Planned project start' },
   { key: 'plannedProjectFinishDisplay', label: 'Planned project finish' },
   { key: 'totalPlannedDurationDaysDisplay', label: 'Total planned duration' },
-  { key: 'scheduledTaskCountDisplay', label: 'Scheduled tasks' },
-  { key: 'excludedTaskCountDisplay', label: 'Excluded tasks' },
+  { key: 'scheduledTaskCountDisplay', label: 'Scheduled activities' },
+  { key: 'excludedTaskCountDisplay', label: 'Excluded activities' },
 ] as const;
 
 export default function EstimateSchedulePlanSummary({ summary, loading = false }: Props) {

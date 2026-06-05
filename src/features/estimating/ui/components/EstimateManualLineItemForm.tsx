@@ -94,7 +94,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
     }
 
     return [
-      { value: UNASSIGNED_DIVISION_VALUE, label: 'Unassigned Division' },
+      { value: UNASSIGNED_DIVISION_VALUE, label: 'Unassigned division of work' },
       ...options,
     ];
   }, [selectedDivisionValue]);
@@ -201,7 +201,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
         <h3 className={PLANNER_SECTION_TITLE}>Identity</h3>
         <FieldGrid>
           <Select
-            label="CSI Division"
+            label="Division of Work"
             value={selectedDivisionValue}
             options={csiDivisionSelectOptions}
             onChange={(value) =>
@@ -221,7 +221,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
           {hasKnownScopeTemplates ? (
             <>
               <Select
-                label="Scope"
+                label="Work Package / Scope"
                 value={selectedScopeValue}
                 options={scopeSelectOptions}
                 onChange={(value) => {
@@ -235,7 +235,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
               />
               {showCustomScopeInput ? (
                 <Input
-                  label="Custom scope name"
+                  label="Custom work package name"
                   value={task.scopeName ?? ''}
                   onChange={(event) =>
                     patchTask({ scopeName: normalizeScopeName(event.target.value) })
@@ -246,7 +246,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             </>
           ) : (
             <Input
-              label="Scope"
+              label="Work Package / Scope"
               value={task.scopeName ?? ''}
               onChange={(event) =>
                 patchTask({ scopeName: normalizeScopeName(event.target.value) })
@@ -255,7 +255,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             />
           )}
           <Input
-            label="Task title"
+            label="Activity name"
             value={task.title}
             onChange={(event) => patchTask({ title: event.target.value })}
             fullWidth
@@ -267,14 +267,14 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             fullWidth
           />
           <Input
-            label="Activity"
+            label="Activity type"
             value={task.activity ?? ''}
             onChange={(event) => patchTask({ activity: event.target.value })}
             fullWidth
           />
         </FieldGrid>
         <div>
-          <label className={PLANNER_FORM_LABEL}>Description</label>
+          <label className={PLANNER_FORM_LABEL}>Activity notes</label>
           <textarea
             className={`mt-1 min-h-[72px] w-full ${PLANNER_INPUT}`}
             value={task.description ?? ''}
@@ -509,12 +509,12 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
         <h3 className={PLANNER_SECTION_TITLE}>Schedule flags</h3>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
           <CheckboxField
-            label="Schedule enabled"
+            label="Include in schedule"
             checked={task.scheduleEnabled}
             onChange={(checked) => patchTask({ scheduleEnabled: checked })}
           />
           <CheckboxField
-            label="Weather sensitive"
+            label="Weather-sensitive activity"
             checked={task.weatherSensitive}
             onChange={(checked) => patchTask({ weatherSensitive: checked })}
           />

@@ -95,7 +95,7 @@ export default function EstimateLineItemsBuilderPanel({
     };
   }, [draftSummaryTotals]);
 
-  const drawerTitle = draft.editingClientId ? 'Edit line item' : 'Add line item';
+  const drawerTitle = draft.editingClientId ? 'Edit activity' : 'Add activity';
   const hasAnyLineItems = draft.draftLines.length > 0 || version.lineItems.length > 0;
   const showFirstLineEmptyState =
     draft.draftLines.length === 0 && version.lineItems.length === 0;
@@ -112,39 +112,48 @@ export default function EstimateLineItemsBuilderPanel({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className={PLANNER_SECTION_TITLE}>Line items</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Plus className="h-4 w-4" />}
-            disabled={!canEdit}
-            onClick={draft.openAddDrawer}
-          >
-            Add line item
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Save className="h-4 w-4" />}
-            disabled={!canSave || saving}
-            isLoading={saving}
-            title={
-              canSave
-                ? 'Save draft line items as a new estimate version'
-                : 'Add draft line items and make changes to enable save'
-            }
-            onClick={onSave}
-          >
-            {saving ? 'Saving...' : 'Save estimate'}
-          </Button>
+      <div className="space-y-1">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className={PLANNER_SECTION_TITLE}>Activities</h2>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Plus className="h-4 w-4" />}
+              disabled={!canEdit}
+              onClick={draft.openAddDrawer}
+            >
+              Add activity
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Save className="h-4 w-4" />}
+              disabled={!canSave || saving}
+              isLoading={saving}
+              title={
+                canSave
+                  ? 'Save draft activities as a new estimate version'
+                  : 'Add draft activities and make changes to enable save'
+              }
+              onClick={onSave}
+            >
+              {saving ? 'Saving...' : 'Save estimate'}
+            </Button>
+          </div>
         </div>
+        <p className={`text-sm ${PLANNER_MUTED}`}>
+          Build your project work breakdown. Each activity can carry cost, labor, materials,
+          equipment, and schedule data.
+        </p>
       </div>
 
       {showFirstLineEmptyState ? (
         <div className={`${PLANNER_FORM_PANEL} space-y-3 text-sm ${PLANNER_MUTED}`}>
-          <p>Start by adding your first estimate line item.</p>
+          <p>
+            Start by adding your first work activity. Activities become the foundation for
+            estimate totals, schedule preview, and Gantt planning.
+          </p>
           <Button
             variant="accent"
             size="sm"
@@ -152,7 +161,7 @@ export default function EstimateLineItemsBuilderPanel({
             disabled={!canEdit}
             onClick={draft.openAddDrawer}
           >
-            Add line item
+            Add activity
           </Button>
         </div>
       ) : null}
@@ -176,19 +185,19 @@ export default function EstimateLineItemsBuilderPanel({
       ) : null}
 
       <div className="space-y-2">
-        <h3 className={PLANNER_SECTION_TITLE}>Draft line items</h3>
+        <h3 className={PLANNER_SECTION_TITLE}>Draft activities</h3>
         {draft.draftLines.length === 0 ? (
           <div className={`${PLANNER_FORM_PANEL} text-sm ${PLANNER_MUTED}`}>
             {showFirstLineEmptyState
-              ? 'Draft line items will appear here after you add your first line.'
-              : 'No draft line items yet. Add a line item to build your estimate locally.'}
+              ? 'Draft activities will appear here after you add your first activity.'
+              : 'No draft activities yet. Add an activity to build your estimate locally.'}
           </div>
         ) : (
           <EstimateLineItemsGroupedView
             mode="draft"
             groups={filteredDraftGroups}
             allDraftLines={draft.draftLines}
-            emptyMessage="No draft line items match the current filters."
+            emptyMessage="No draft activities match the current filters."
             onEditDraft={draft.openEditDrawer}
             onRemoveDraft={draft.removeDraftLine}
             onDuplicateDraft={draft.duplicateDraftLine}
@@ -200,7 +209,7 @@ export default function EstimateLineItemsBuilderPanel({
 
       {draft.draftLines.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <EstimateSummaryCard label="Total draft lines" value={draftSummary.lineCount} />
+          <EstimateSummaryCard label="Total draft activities" value={draftSummary.lineCount} />
           <EstimateSummaryCard label="Total labor hours" value={draftSummary.laborHours} />
           <EstimateSummaryCard label="Total man-days" value={draftSummary.manDays} />
           <EstimateSummaryCard label="Total crew-days" value={draftSummary.crewDays} />
@@ -212,7 +221,7 @@ export default function EstimateLineItemsBuilderPanel({
         <EstimateReadOnlyLineItemsTable
           lineItems={version.lineItems}
           groups={filteredSavedGroups}
-          caption="Saved line items"
+          caption="Saved activities"
         />
       </div>
 
@@ -237,7 +246,7 @@ export default function EstimateLineItemsBuilderPanel({
                   Cancel
                 </Button>
                 <Button type="button" variant="accent" onClick={draft.commitFormDraft}>
-                  {draft.editingClientId ? 'Update draft line' : 'Add to draft'}
+                  {draft.editingClientId ? 'Update draft activity' : 'Add to draft'}
                 </Button>
               </div>
             </div>

@@ -134,7 +134,7 @@ export default function EstimateVersionHistoryRow({ item, layout }: Props) {
         </span>
         <span>
           {item.metrics.lineItemCount != null
-            ? `${lineItems} line item${item.metrics.lineItemCount === 1 ? '' : 's'}`
+            ? `${lineItems} activit${item.metrics.lineItemCount === 1 ? 'y' : 'ies'}`
             : '—'}
         </span>
       </p>

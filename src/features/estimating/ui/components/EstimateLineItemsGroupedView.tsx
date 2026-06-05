@@ -62,7 +62,7 @@ function LineItemColumnHeader({ showActions }: { showActions: boolean }) {
 
   return (
     <div className={`${gridClass} ${ESTIMATE_LINE_ITEM_COLUMN_HEADER}`}>
-      <span className={ESTIMATE_LINE_ITEM_COL_TASK}>Task</span>
+      <span className={ESTIMATE_LINE_ITEM_COL_TASK}>Activity</span>
       <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Qty</span>
       <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Labor</span>
       <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Sell</span>
@@ -115,8 +115,8 @@ export default function EstimateLineItemsGroupedView(props: Props) {
   const emptyMessage =
     props.emptyMessage ??
     (props.mode === 'draft'
-      ? 'No draft line items match the current filters.'
-      : 'No saved line items match the current filters.');
+      ? 'No draft activities match the current filters.'
+      : 'No saved activities match the current filters.');
 
   if (props.groups.length === 0) {
     return (
@@ -138,7 +138,7 @@ export default function EstimateLineItemsGroupedView(props: Props) {
         <EstimateGroupTotalsRow
           key={division.key}
           level="division"
-          title={`Division ${division.label}`}
+          title={`Division of Work · ${division.label}`}
           rollup={division.rollup}
           defaultOpen={defaultOpen}
         >

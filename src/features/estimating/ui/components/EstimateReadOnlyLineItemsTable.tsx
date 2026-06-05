@@ -15,7 +15,7 @@ interface Props {
 export default function EstimateReadOnlyLineItemsTable({
   lineItems,
   groups,
-  emptyMessage = 'No line items in this version.',
+  emptyMessage = 'No activities in this version.',
   caption,
 }: Props) {
   const displayGroups = groups ?? groupEstimateTasks(lineItems);
@@ -34,7 +34,7 @@ export default function EstimateReadOnlyLineItemsTable({
           mode="saved"
           groups={displayGroups}
           defaultCollapsed
-          emptyMessage="No saved line items match the current filters."
+          emptyMessage="No saved activities match the current filters."
         />
       )}
     </div>

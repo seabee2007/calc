@@ -167,7 +167,7 @@ export default function EstimateGanttRow({
               </span>
             ) : (
               <span className="sr-only">
-                {row.task ? formatGanttDurationLabel(row.task.durationDays) : 'Task bar'}
+                {row.task ? formatGanttDurationLabel(row.task.durationDays) : 'Activity bar'}
               </span>
             )}
           </div>

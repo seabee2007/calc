@@ -24,9 +24,13 @@ export default function EstimateNextAvailableActions({ onNavigate }: Props) {
             className="font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-400"
             onClick={() => onNavigate('line-items')}
           >
-            Line Items
+            Activities
           </button>
-          <span className={PLANNER_MUTED}> — add or adjust estimate tasks.</span>
+          <span className={PLANNER_MUTED}>
+            {' '}
+            — add or adjust project activities. They become the foundation for estimate totals,
+            schedule preview, and Gantt planning.
+          </span>
         </li>
         <li>
           <button

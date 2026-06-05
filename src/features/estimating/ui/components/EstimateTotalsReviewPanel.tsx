@@ -9,7 +9,7 @@ import EstimateCostBreakdownCard from './EstimateCostBreakdownCard';
 import EstimateLaborSummaryCard from './EstimateLaborSummaryCard';
 
 const EMPTY_TOTALS_MESSAGE =
-  'No estimate totals yet. Add line items and save a version to build the totals summary.';
+  'No estimate totals yet. Add activities and save a version to build the totals summary.';
 
 interface Props {
   version: EstimateDomainVersion | null;

@@ -32,7 +32,7 @@ const TABLE_COLUMNS = [
   'Created',
   'Sell price',
   'Labor hrs',
-  'Line items',
+  'Activities',
 ] as const;
 
 export default function EstimateVersionHistoryList({
@@ -57,7 +57,7 @@ export default function EstimateVersionHistoryList({
     return (
       <EstimateWorkspaceEmptyState
         title="No estimate versions yet"
-        body="Saved versions will appear here after you save line items from the builder."
+        body="Saved versions will appear here after you save activities from the builder."
       />
     );
   }
@@ -91,8 +91,8 @@ export default function EstimateVersionHistoryList({
             ·{' '}
           </span>
           <span>
-            {currentVersion.lineItemCount} line item
-            {currentVersion.lineItemCount === 1 ? '' : 's'}
+            {currentVersion.lineItemCount} activit
+            {currentVersion.lineItemCount === 1 ? 'y' : 'ies'}
           </span>
         </p>
       ) : null}

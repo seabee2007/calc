@@ -28,7 +28,7 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
       <div>
         <h3 className={PLANNER_SECTION_TITLE}>Labor planning</h3>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Rolled up from line item metrics on the current saved version.
+          Rolled up from activity metrics on the current saved version.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
 
       {metrics.durationDays == null ? (
         <p className={`text-xs ${TEXT_BODY} ${PLANNER_MUTED}`}>
-          Duration days appear when line items include schedule duration metrics.
+          Duration days appear when activities include schedule duration metrics.
         </p>
       ) : null}
     </div>

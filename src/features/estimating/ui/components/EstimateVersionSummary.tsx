@@ -58,7 +58,7 @@ export default function EstimateVersionSummary({
             </dd>
           </div>
           <div>
-            <dt className={PLANNER_MUTED}>Line items</dt>
+            <dt className={PLANNER_MUTED}>Activities</dt>
             <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
               {version.lineItems.length}
             </dd>
@@ -113,7 +113,7 @@ export default function EstimateVersionSummary({
             </dd>
           </div>
           <div>
-            <dt className={PLANNER_MUTED}>Line items</dt>
+            <dt className={PLANNER_MUTED}>Activities</dt>
             <dd className={`mt-0.5 font-medium ${TEXT_BODY}`}>{version.lineItems.length}</dd>
           </div>
           <div>

@@ -18,7 +18,7 @@ export interface EstimateWorkspaceTab {
 
 export const ESTIMATE_WORKSPACE_TABS: EstimateWorkspaceTab[] = [
   { id: 'overview', label: 'Overview' },
-  { id: 'line-items', label: 'Line items' },
+  { id: 'line-items', label: 'Activities' },
   { id: 'schedule-preview', label: 'Schedule Preview' },
   { id: 'gantt-preview', label: 'Gantt Preview' },
   { id: 'versions', label: 'Versions' },

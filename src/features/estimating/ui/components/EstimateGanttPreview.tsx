@@ -41,7 +41,7 @@ import EstimateGanttScaleControls from './EstimateGanttScaleControls';
 import EstimateGanttTimelineHeader from './EstimateGanttTimelineHeader';
 
 const GANTT_PREVIEW_NOTE =
-  'This Gantt is a preview generated from the estimate schedule plan. It has not been published to the Planner schedule.';
+  'This Gantt is a preview generated from estimate activities. It has not been published to the Planner schedule.';
 
 const NO_PLANNED_DATES_MESSAGE =
   'Choose a project start date in Schedule Preview to build a Gantt preview.';
@@ -175,7 +175,7 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
               <div className="flex">
                 <div className="sticky left-0 z-20 flex h-10 w-44 shrink-0 items-end border-b border-r border-slate-200 bg-slate-50/95 px-2 pb-1 dark:border-slate-700 dark:bg-slate-800/95 sm:w-56">
                   <span className={`text-xs font-semibold uppercase tracking-wide ${PLANNER_MUTED}`}>
-                    Tasks
+                    Activities
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">

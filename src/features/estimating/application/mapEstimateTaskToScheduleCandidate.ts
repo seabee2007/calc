@@ -56,14 +56,14 @@ function buildWarnings(
   if (task.inspectionRequired) {
     warnings.push({
       code: 'inspection_required',
-      message: 'Inspection is required for this line item.',
+      message: 'Inspection is required for this activity.',
     });
   }
 
   if (task.weatherSensitive) {
     warnings.push({
       code: 'weather_sensitive',
-      message: 'This line item is marked weather sensitive.',
+      message: 'This activity is marked weather sensitive.',
     });
   }
 
