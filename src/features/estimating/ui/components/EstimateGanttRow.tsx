@@ -3,6 +3,8 @@ import {
   calculateGanttBarPosition,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   formatGanttDurationLabel,
+  getGanttCriticalBarClassName,
+  isGanttTaskOnCriticalPath,
   type GanttRow,
   type GanttTimelineRange,
 } from '../estimateGanttDisplay';
@@ -15,6 +17,8 @@ interface Props {
   range: GanttTimelineRange;
   columnWidth?: number;
   todayMarkerLeft?: number | null;
+  criticalTaskIds?: string[];
+  showCriticalPath?: boolean;
 }
 
 const ROW_HEIGHT_BY_KIND = {
@@ -28,11 +32,18 @@ export default function EstimateGanttRow({
   range,
   columnWidth = DEFAULT_GANTT_COLUMN_WIDTH_PX,
   todayMarkerLeft = null,
+  criticalTaskIds = [],
+  showCriticalPath = false,
 }: Props) {
   const barPosition =
     row.kind === 'task' && row.task
       ? calculateGanttBarPosition(row.task, range.startDate, columnWidth)
       : null;
+  const isCritical = isGanttTaskOnCriticalPath(
+    row.task?.candidateId,
+    criticalTaskIds,
+    showCriticalPath,
+  );
 
   const indentClass =
     row.indentLevel === 0 ? 'pl-2' : row.indentLevel === 1 ? 'pl-4' : 'pl-6';
@@ -113,7 +124,7 @@ export default function EstimateGanttRow({
 
         {barPosition ? (
           <div
-            className="absolute top-1.5 z-[1] rounded-md border border-cyan-700/40 bg-cyan-500/85 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm dark:border-cyan-400/40 dark:bg-cyan-600/90"
+            className={`absolute top-1.5 z-[1] rounded-md border px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm ${getGanttCriticalBarClassName(isCritical)}`}
             style={{
               left: barPosition.leftPx,
               width: Math.max(barPosition.widthPx - 2, columnWidth - 2),

@@ -352,3 +352,20 @@ export function formatGanttDurationLabel(durationDays: number): string {
   const safe = Math.max(1, Math.ceil(toFiniteNumber(durationDays)));
   return `${safe}d`;
 }
+
+export function isGanttTaskOnCriticalPath(
+  candidateId: string | undefined,
+  criticalTaskIds: string[],
+  enabled: boolean,
+): boolean {
+  if (!enabled || !candidateId) return false;
+  return criticalTaskIds.includes(candidateId);
+}
+
+export function getGanttCriticalBarClassName(isCritical: boolean): string {
+  if (!isCritical) {
+    return 'border-cyan-700/40 bg-cyan-500/85 dark:border-cyan-400/40 dark:bg-cyan-600/90';
+  }
+
+  return 'border-rose-700/70 bg-rose-500/90 shadow-md ring-1 ring-rose-400/40 dark:border-rose-400/70 dark:bg-rose-600/90 dark:ring-rose-300/30';
+}

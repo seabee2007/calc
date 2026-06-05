@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { calculateEstimateCriticalPath } from '../../application/estimateCriticalPath';
 import {
   applyDependencyPreviewToPlan,
   inferDependencyPreviewModeFromPlannedPlan,
@@ -25,6 +26,7 @@ import {
   TEXT_BODY,
 } from '../estimateWorkspaceTheme';
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
+import EstimateCriticalPathSummary from './EstimateCriticalPathSummary';
 import EstimateGanttDependencyLayer from './EstimateGanttDependencyLayer';
 import EstimateGanttRow from './EstimateGanttRow';
 import EstimateGanttTimelineHeader from './EstimateGanttTimelineHeader';
@@ -41,7 +43,6 @@ interface Props {
 }
 
 export default function EstimateGanttPreview({ datePlanResult, loading = false }: Props) {
-  const [showDependencyLines, setShowDependencyLines] = useState(true);
   const plannedPlan = datePlanResult?.plan ?? null;
   const dependencyPreview = useMemo(() => {
     if (!plannedPlan) return null;
@@ -49,12 +50,18 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
     return applyDependencyPreviewToPlan(plannedPlan, mode);
   }, [plannedPlan]);
   const dependencies = dependencyPreview?.dependencies ?? [];
+  const [showDependencyLines, setShowDependencyLines] = useState(true);
+  const [showCriticalPath, setShowCriticalPath] = useState(() => dependencies.length > 0);
   const tasks = useMemo(() => extractGanttTasksFromPlan(plannedPlan), [plannedPlan]);
   const rows = useMemo(
     () => getGanttTaskRows(plannedPlan, dependencies),
     [plannedPlan, dependencies],
   );
   const range = useMemo(() => buildGanttTimelineRange(tasks), [tasks]);
+  const criticalPathResult = useMemo(
+    () => calculateEstimateCriticalPath(plannedPlan, dependencies),
+    [plannedPlan, dependencies],
+  );
   const dependencyConnectors = useMemo(
     () => buildGanttDependencyConnectors(dependencies, rows, range, DEFAULT_GANTT_COLUMN_WIDTH_PX),
     [dependencies, rows, range],
@@ -100,7 +107,18 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
           />
           Show dependency lines
         </label>
+        <label className={`flex items-center gap-2 text-sm ${TEXT_BODY}`}>
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600"
+            checked={showCriticalPath}
+            onChange={(event) => setShowCriticalPath(event.target.checked)}
+          />
+          Show critical path
+        </label>
       </div>
+
+      <EstimateCriticalPathSummary result={criticalPathResult} loading={loading} />
 
       {loading ? (
         <div className="h-64 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60" />
@@ -144,6 +162,8 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
                     row={row}
                     range={range}
                     todayMarkerLeft={showTodayMarker ? todayMarkerLeft : null}
+                    criticalTaskIds={criticalPathResult.criticalTaskIds}
+                    showCriticalPath={showCriticalPath}
                   />
                 ))}
               </div>

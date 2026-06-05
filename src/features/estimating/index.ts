@@ -9,6 +9,7 @@ export * from './application/estimateLineItemGrouping';
 export * from './application/buildEstimateSchedulePlan';
 export * from './application/estimateScheduleDatePlanner';
 export * from './application/estimateScheduleDependencies';
+export * from './application/estimateCriticalPath';
 export * from './application/estimateScheduleCandidateId';
 export * from './application/extractScheduleLaborPlan';
 export * from './application/mapEstimateTaskToScheduleCandidate';
