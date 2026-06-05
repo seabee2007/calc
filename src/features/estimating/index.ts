@@ -1,6 +1,7 @@
 export * from './application/buildEstimateSnapshot';
 export * from './application/buildEstimateDraftSnapshot';
 export * from './application/estimateDraftLine';
+export * from './application/saveEstimateVersionWithLineItems';
 export * from './domain/estimateMath';
 export * from './domain/estimateSnapshot';
 export * from './domain/estimateTypes';

@@ -5,6 +5,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import Button from '../../../components/ui/Button';
 import { createDraftEstimate } from '../application/createDraftEstimate';
+import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
 import type { EstimateDomainVersion, EstimateSummary } from '../infrastructure/estimateDbTypes';
 import {
   getEstimateVersionWithLineItems,
@@ -109,13 +110,16 @@ function selectEstimate(estimates: EstimateSummary[]): EstimateSummary | null {
 export default function EstimateWorkspacePage() {
   const { projectId: routeProjectId } = useParams<{ projectId: string }>();
   const { user } = useAuth();
-  const { projectId, project, loading: plannerLoading, accessDenied } = usePlannerProject();
+  const { projectId, loading: plannerLoading, accessDenied } = usePlannerProject();
   const [activeTab, setActiveTab] = useState<EstimateWorkspaceTabId>('overview');
   const [dataLoading, setDataLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successTitle, setSuccessTitle] = useState('Estimate created');
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
   const [version, setVersion] = useState<EstimateDomainVersion | null>(null);
   const lineItemDraft = useEstimateLineItemDraft(version);
@@ -177,7 +181,9 @@ export default function EstimateWorkspacePage() {
 
     setCreating(true);
     setCreateError(null);
+    setSaveError(null);
     setSuccessMessage(null);
+    setSuccessTitle('Estimate created');
 
     const result = await createDraftEstimate({
       projectId: resolvedProjectId,
@@ -194,6 +200,69 @@ export default function EstimateWorkspacePage() {
     await loadEstimateData(true);
     setCreating(false);
   }, [resolvedProjectId, creating, estimate, user?.id, loadEstimateData]);
+
+  const canSave =
+    estimate != null &&
+    version != null &&
+    lineItemDraft.dirty &&
+    lineItemDraft.draftLines.length > 0 &&
+    !saving;
+
+  const handleSaveEstimate = useCallback(async () => {
+    if (!estimate || !version || !canSave || saving) return;
+
+    setSaving(true);
+    setSaveError(null);
+    setSuccessMessage(null);
+
+    const result = await saveEstimateVersionWithLineItems({
+      estimateId: estimate.id,
+      projectId: estimate.projectId,
+      currentVersion: {
+        estimateType: version.estimateType,
+        status: version.status,
+        snapshot: version.snapshot,
+      },
+      draftLines: lineItemDraft.draftLines,
+      createdBy: user?.id ?? null,
+    });
+
+    if (result.error || !result.data) {
+      setSaveError(result.error ?? 'Failed to save estimate version.');
+      setSaving(false);
+      return;
+    }
+
+    setSuccessTitle('Estimate saved');
+    setSuccessMessage(
+      `Saved version ${result.data.versionNumber} with ${result.data.lineItemCount} line item(s).`,
+    );
+
+    const listResult = await listEstimatesForProject(resolvedProjectId);
+    if (!listResult.error && listResult.data) {
+      const selected = selectEstimate(listResult.data);
+      if (selected) {
+        setEstimate(selected);
+        if (selected.currentVersionId) {
+          const versionResult = await getEstimateVersionWithLineItems(selected.currentVersionId);
+          if (!versionResult.error && versionResult.data) {
+            setVersion(versionResult.data);
+            lineItemDraft.rehydrateFromVersion(versionResult.data);
+          }
+        }
+      }
+    }
+
+    setSaving(false);
+  }, [
+    estimate,
+    version,
+    canSave,
+    saving,
+    lineItemDraft,
+    user?.id,
+    resolvedProjectId,
+  ]);
 
   if (plannerLoading) {
     return (
@@ -216,22 +285,22 @@ export default function EstimateWorkspacePage() {
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         <EstimateWorkspaceHeader
-          projectId={resolvedProjectId}
-          projectName={project?.name}
-          estimateName={estimate?.name}
           estimateStatus={estimate?.status}
           hasEstimate={hasEstimate}
           creating={creating}
           dataLoading={dataLoading}
           draftDirty={lineItemDraft.dirty}
+          canSave={canSave}
+          saving={saving}
           onCreateEstimate={handleCreateEstimate}
+          onSaveEstimate={handleSaveEstimate}
         />
 
         {successMessage ? (
           <div className="mb-4">
             <EstimateWorkspaceEmptyState
               variant="success"
-              title="Estimate created"
+              title={successTitle}
               body={successMessage}
             />
           </div>
@@ -253,6 +322,16 @@ export default function EstimateWorkspacePage() {
               variant="error"
               title="Could not create estimate"
               body={createError}
+            />
+          </div>
+        ) : null}
+
+        {saveError ? (
+          <div className="mb-4">
+            <EstimateWorkspaceEmptyState
+              variant="error"
+              title="Could not save estimate"
+              body={saveError}
             />
           </div>
         ) : null}
@@ -295,7 +374,10 @@ export default function EstimateWorkspacePage() {
                     estimate={estimate}
                     version={version}
                     canEdit={hasEstimate && hasVersion}
+                    canSave={canSave}
+                    saving={saving}
                     draft={lineItemDraft}
+                    onSave={handleSaveEstimate}
                   />
                 ) : (
                   <>

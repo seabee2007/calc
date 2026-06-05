@@ -489,3 +489,54 @@ export function mapCalculatedLineSnapshotToInsert(
     },
   });
 }
+
+export interface MapDraftLineToLineItemInsertParams {
+  task: EstimateDomainTask;
+  unit: string;
+  indirectCost: number;
+  calculatedLine: EstimateLineSnapshot;
+  estimateVersionId: string;
+  projectId: string;
+  position: number;
+}
+
+/** Maps a draft task plus calculated snapshot into a line-item insert row. */
+export function mapDraftLineToLineItemInsert(
+  params: MapDraftLineToLineItemInsertParams,
+): EstimateLineItemInsert {
+  const { task, unit, indirectCost, calculatedLine, estimateVersionId, projectId, position } =
+    params;
+  const trimmedUnit = unit.trim();
+
+  const base = mapCalculatedLineSnapshotToInsert({
+    task: { ...task, position, lineType: 'task' },
+    estimateVersionId,
+    projectId,
+    calculatedLine,
+  });
+
+  const baseCalculated = parseJsonObject(base.calculated_values);
+  const baseCosts = parseJsonObject(baseCalculated.costs);
+
+  return {
+    ...base,
+    line_type: 'task',
+    position,
+    unit: trimmedUnit || null,
+    indirect_cost: toNumber(indirectCost),
+    material_cost: calculatedLine.costs.materialCost,
+    equipment_cost: calculatedLine.costs.equipmentCost,
+    subcontractor_cost: calculatedLine.costs.subcontractorCost,
+    calculated_values: {
+      ...baseCalculated,
+      unit: trimmedUnit || undefined,
+      quantityFormula: calculatedLine.quantityFormula,
+      metrics: calculatedLine.metrics,
+      costs: {
+        ...baseCosts,
+        ...calculatedLine.costs,
+        indirectCost: toNumber(indirectCost),
+      },
+    },
+  };
+}

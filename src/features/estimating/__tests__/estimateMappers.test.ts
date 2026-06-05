@@ -4,6 +4,7 @@ import { sampleEstimateVersion } from '../__fixtures__/sampleEstimateVersion';
 import type { EstimateLineItemRow, EstimateVersionRow } from '../infrastructure/estimateDbTypes';
 import {
   mapCalculatedLineSnapshotToInsert,
+  mapDraftLineToLineItemInsert,
   mapCalculatedTaskToLineItemInsert,
   mapDomainTaskToLineItemInsert,
   mapEstimateSnapshotToVersionInsert,
@@ -289,5 +290,28 @@ describe('estimateMappers', () => {
     });
 
     expect(viaRecord.material_cost).toBe(calculatedLine.costs.materialCost);
+  });
+
+  it('maps draft line unit and indirect cost into insert row and calculated_values', () => {
+    const task = buildDomainTaskFromFixture();
+    const snapshot = buildEstimateSnapshot(sampleEstimateVersion);
+    const calculatedLine = snapshot.lineItems[0];
+
+    const insert = mapDraftLineToLineItemInsert({
+      task,
+      unit: 'CY',
+      indirectCost: 75,
+      calculatedLine,
+      estimateVersionId: 'ver-001',
+      projectId: 'proj-001',
+      position: 4,
+    });
+
+    expect(insert.unit).toBe('CY');
+    expect(insert.indirect_cost).toBe(75);
+    expect(insert.position).toBe(4);
+    expect(insert.line_type).toBe('task');
+    expect(insert.calculated_values?.unit).toBe('CY');
+    expect((insert.calculated_values?.costs as { indirectCost?: number })?.indirectCost).toBe(75);
   });
 });

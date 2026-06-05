@@ -26,14 +26,20 @@ interface Props {
   estimate: EstimateSummary;
   version: EstimateDomainVersion;
   canEdit: boolean;
+  canSave: boolean;
+  saving: boolean;
   draft: UseEstimateLineItemDraftResult;
+  onSave: () => void;
 }
 
 export default function EstimateLineItemsBuilderPanel({
   estimate,
   version,
   canEdit,
+  canSave,
+  saving,
   draft,
+  onSave,
 }: Props) {
 
   const draftSnapshot = useMemo(() => {
@@ -80,7 +86,7 @@ export default function EstimateLineItemsBuilderPanel({
           role="status"
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <p>Unsaved changes — draft line items have not been saved to a new estimate version yet.</p>
+          <p>Unsaved changes — save to create a new estimate version without changing prior versions.</p>
         </div>
       ) : null}
 
@@ -100,10 +106,16 @@ export default function EstimateLineItemsBuilderPanel({
             variant="outline"
             size="sm"
             icon={<Save className="h-4 w-4" />}
-            disabled
-            title="Save will be added in the next phase"
+            disabled={!canSave || saving}
+            isLoading={saving}
+            title={
+              canSave
+                ? 'Save draft line items as a new estimate version'
+                : 'Add draft line items and make changes to enable save'
+            }
+            onClick={onSave}
           >
-            Save coming next phase
+            {saving ? 'Saving...' : 'Save estimate'}
           </Button>
         </div>
       </div>
@@ -137,7 +149,7 @@ export default function EstimateLineItemsBuilderPanel({
         <h3 className={PLANNER_SECTION_TITLE}>Current saved version</h3>
         <p className={`text-sm ${PLANNER_MUTED}`}>
           Read-only snapshot from version {version.versionNumber}. Draft edits above do not change
-          saved data until a future save phase.
+          saved data until you save a new version.
         </p>
         <EstimateReadOnlyLineItemsTable
           lineItems={version.lineItems}

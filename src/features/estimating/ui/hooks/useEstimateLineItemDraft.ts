@@ -22,6 +22,8 @@ export interface UseEstimateLineItemDraftResult {
   updateFormDraft: (draft: EstimateDraftLine) => void;
   commitFormDraft: () => void;
   removeDraftLine: (clientId: string) => void;
+  /** Rehydrate draft from a saved version and clear dirty state. */
+  rehydrateFromVersion: (nextVersion: EstimateDomainVersion) => void;
 }
 
 export function useEstimateLineItemDraft(
@@ -101,6 +103,15 @@ export function useEstimateLineItemDraft(
     setDirty(true);
   }, []);
 
+  const rehydrateFromVersion = useCallback((nextVersion: EstimateDomainVersion) => {
+    setDraftLines(draftLinesFromVersion(nextVersion.lineItems));
+    setDirty(false);
+    hydratedVersionIdRef.current = nextVersion.id;
+    setDrawerOpen(false);
+    setEditingClientId(null);
+    setFormDraft(null);
+  }, []);
+
   const sortedDraftLines = useMemo(
     () => sortDraftLinesByPosition(draftLines),
     [draftLines],
@@ -118,5 +129,6 @@ export function useEstimateLineItemDraft(
     updateFormDraft,
     commitFormDraft,
     removeDraftLine,
+    rehydrateFromVersion,
   };
 }
