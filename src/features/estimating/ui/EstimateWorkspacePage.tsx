@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { buildEstimateSchedulePlan } from '../application/buildEstimateSchedulePlan';
+import {
+  planEstimateScheduleDates,
+  type EstimateScheduleDependencyMode,
+} from '../application/estimateScheduleDatePlanner';
 import { useParams } from 'react-router-dom';
 import { Calendar, FileOutput, Layers, ListPlus } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
@@ -32,7 +37,9 @@ import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilder
 import EstimateVersionSummary from './components/EstimateVersionSummary';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
+import EstimateGanttPreview from './components/EstimateGanttPreview';
 import EstimateMethodSelector from './components/EstimateMethodSelector';
+import type { EstimateSchedulePlanControlValues } from './components/EstimateSchedulePlanControls';
 import {
   ROUGH_SCHEDULE_PREVIEW_NOTE,
   shouldShowRoughSchedulePreviewNote,
@@ -64,6 +71,14 @@ const COMING_SOON_ACTIONS = [
 ] as const;
 
 const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
+
+function getTodayScheduleDateYmd(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 interface SummaryCardsGridProps {
   version: EstimateDomainVersion | null;
@@ -143,6 +158,38 @@ export default function EstimateWorkspacePage() {
     DEFAULT_ESTIMATE_METHOD,
   );
   const lineItemDraft = useEstimateLineItemDraft(version);
+  const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
+    () => ({
+      projectStartDate: getTodayScheduleDateYmd(),
+      dependencyMode: 'sequential_by_project' satisfies EstimateScheduleDependencyMode,
+      includeWeekends: false,
+    }),
+  );
+
+  const schedulePlan = useMemo(() => {
+    if (!version || !estimate) return null;
+    return buildEstimateSchedulePlan({
+      version,
+      estimateId: estimate.id,
+      projectId: estimate.projectId,
+    });
+  }, [version, estimate]);
+
+  const scheduleDatePlanResult = useMemo(() => {
+    if (!schedulePlan) return null;
+    return planEstimateScheduleDates(schedulePlan, {
+      projectStartDate: schedulePlanControls.projectStartDate,
+      dependencyMode: schedulePlanControls.dependencyMode,
+      includeWeekends: schedulePlanControls.includeWeekends,
+    });
+  }, [schedulePlan, schedulePlanControls]);
+
+  const handleSchedulePlanControlsChange = useCallback(
+    (patch: Partial<EstimateSchedulePlanControlValues>) => {
+      setSchedulePlanControls((current) => ({ ...current, ...patch }));
+    },
+    [],
+  );
 
   const versionHistoryItems = useMemo(
     () => buildEstimateVersionHistoryItems(versionHistory, estimate?.currentVersionId),
@@ -447,11 +494,20 @@ export default function EstimateWorkspacePage() {
                 ) : null}
                 <EstimateSchedulePreviewPanel
                   version={hasVersion ? version : null}
-                  estimateId={estimate.id}
-                  projectId={estimate.projectId}
+                  plan={schedulePlan}
+                  datePlanResult={scheduleDatePlanResult}
+                  planControls={schedulePlanControls}
+                  onPlanControlsChange={handleSchedulePlanControlsChange}
                   loading={dataLoading}
                 />
               </div>
+            ) : null}
+
+            {activeTab === 'gantt-preview' && estimate ? (
+              <EstimateGanttPreview
+                datePlanResult={scheduleDatePlanResult}
+                loading={dataLoading}
+              />
             ) : null}
 
             {activeTab === 'versions' && (

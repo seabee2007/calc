@@ -1,11 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Calendar } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
-import { buildEstimateSchedulePlan } from '../../application/buildEstimateSchedulePlan';
-import {
-  planEstimateScheduleDates,
-  type EstimateScheduleDependencyMode,
-} from '../../application/estimateScheduleDatePlanner';
+import type { EstimateSchedulePlan } from '../../domain/estimateScheduleTypes';
+import type { EstimateScheduleDatePlanResult } from '../../application/estimateScheduleDatePlanner';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import {
   extractScheduleDatePlanSummary,
@@ -34,18 +31,12 @@ const NO_SCHEDULABLE_MESSAGE =
 const PREVIEW_NOTE =
   'This is a schedule preview only. It has not been published to the Planner schedule.';
 
-function getTodayScheduleDateYmd(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 interface Props {
   version: EstimateDomainVersion | null;
-  estimateId: string;
-  projectId: string;
+  plan: EstimateSchedulePlan | null;
+  datePlanResult: EstimateScheduleDatePlanResult | null;
+  planControls: EstimateSchedulePlanControlValues;
+  onPlanControlsChange: (patch: Partial<EstimateSchedulePlanControlValues>) => void;
   loading?: boolean;
 }
 
@@ -60,43 +51,17 @@ const LABOR_SUMMARY_CARDS = [
 
 export default function EstimateSchedulePreviewPanel({
   version,
-  estimateId,
-  projectId,
+  plan,
+  datePlanResult,
+  planControls,
+  onPlanControlsChange,
   loading = false,
 }: Props) {
-  const [planControls, setPlanControls] = useState<EstimateSchedulePlanControlValues>(() => ({
-    projectStartDate: getTodayScheduleDateYmd(),
-    dependencyMode: 'sequential_by_project' satisfies EstimateScheduleDependencyMode,
-    includeWeekends: false,
-  }));
-
-  const plan = useMemo(() => {
-    if (!version) return null;
-    return buildEstimateSchedulePlan({
-      version,
-      estimateId,
-      projectId,
-    });
-  }, [version, estimateId, projectId]);
-
-  const datePlanResult = useMemo(() => {
-    if (!plan) return null;
-    return planEstimateScheduleDates(plan, {
-      projectStartDate: planControls.projectStartDate,
-      dependencyMode: planControls.dependencyMode,
-      includeWeekends: planControls.includeWeekends,
-    });
-  }, [plan, planControls]);
-
   const laborSummary = useMemo(() => extractSchedulePreviewSummary(plan), [plan]);
   const datePlanSummary = useMemo(
     () => extractScheduleDatePlanSummary(datePlanResult, plan),
     [datePlanResult, plan],
   );
-
-  const handlePlanControlsChange = (patch: Partial<EstimateSchedulePlanControlValues>) => {
-    setPlanControls((current) => ({ ...current, ...patch }));
-  };
 
   if (!loading && !version) {
     return (
@@ -143,7 +108,7 @@ export default function EstimateSchedulePreviewPanel({
 
       <EstimateSchedulePlanControls
         values={planControls}
-        onChange={handlePlanControlsChange}
+        onChange={onPlanControlsChange}
         disabled={loading}
       />
 
