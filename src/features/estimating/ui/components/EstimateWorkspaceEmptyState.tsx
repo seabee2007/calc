@@ -3,7 +3,7 @@ import { TEXT_BODY, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
 interface Props {
   title?: string;
   body?: string;
-  variant?: 'default' | 'error';
+  variant?: 'default' | 'error' | 'success';
 }
 
 export default function EstimateWorkspaceEmptyState({
@@ -14,7 +14,9 @@ export default function EstimateWorkspaceEmptyState({
   const panelClass =
     variant === 'error'
       ? 'rounded-xl border border-red-200 bg-red-50/90 px-4 py-6 dark:border-red-900 dark:bg-red-950/40 sm:px-6'
-      : 'rounded-xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-6 dark:border-slate-600 dark:bg-slate-800/40 sm:px-6';
+      : variant === 'success'
+        ? 'rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-6 dark:border-emerald-900 dark:bg-emerald-950/40 sm:px-6'
+        : 'rounded-xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-6 dark:border-slate-600 dark:bg-slate-800/40 sm:px-6';
 
   return (
     <div className={panelClass}>

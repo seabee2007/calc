@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Calendar, FileOutput, Layers, ListPlus, Plus } from 'lucide-react';
+import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import Button from '../../../components/ui/Button';
+import { createDraftEstimate } from '../application/createDraftEstimate';
 import type { EstimateDomainVersion, EstimateSummary } from '../infrastructure/estimateDbTypes';
 import {
   getEstimateVersionWithLineItems,
@@ -105,25 +107,31 @@ function selectEstimate(estimates: EstimateSummary[]): EstimateSummary | null {
 
 export default function EstimateWorkspacePage() {
   const { projectId: routeProjectId } = useParams<{ projectId: string }>();
+  const { user } = useAuth();
   const { projectId, project, loading: plannerLoading, accessDenied } = usePlannerProject();
   const [activeTab, setActiveTab] = useState<EstimateWorkspaceTabId>('overview');
   const [dataLoading, setDataLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
   const [version, setVersion] = useState<EstimateDomainVersion | null>(null);
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
 
-  const loadEstimateData = useCallback(async () => {
+  const loadEstimateData = useCallback(async (silent = false) => {
     if (!resolvedProjectId) {
       setDataLoading(false);
       return;
     }
 
-    setDataLoading(true);
+    if (!silent) {
+      setDataLoading(true);
+      setEstimate(null);
+      setVersion(null);
+    }
     setLoadError(null);
-    setEstimate(null);
-    setVersion(null);
 
     const listResult = await listEstimatesForProject(resolvedProjectId);
     if (listResult.error) {
@@ -162,6 +170,29 @@ export default function EstimateWorkspacePage() {
     void loadEstimateData();
   }, [plannerLoading, accessDenied, resolvedProjectId, loadEstimateData]);
 
+  const handleCreateEstimate = useCallback(async () => {
+    if (!resolvedProjectId || creating || estimate != null) return;
+
+    setCreating(true);
+    setCreateError(null);
+    setSuccessMessage(null);
+
+    const result = await createDraftEstimate({
+      projectId: resolvedProjectId,
+      createdBy: user?.id ?? null,
+    });
+
+    if (result.error) {
+      setCreateError(result.error);
+      setCreating(false);
+      return;
+    }
+
+    setSuccessMessage('Draft estimate and initial version created successfully.');
+    await loadEstimateData(true);
+    setCreating(false);
+  }, [resolvedProjectId, creating, estimate, user?.id, loadEstimateData]);
+
   if (plannerLoading) {
     return (
       <div className={PLANNER_PAGE_BG}>
@@ -187,7 +218,21 @@ export default function EstimateWorkspacePage() {
           projectName={project?.name}
           estimateName={estimate?.name}
           estimateStatus={estimate?.status}
+          hasEstimate={hasEstimate}
+          creating={creating}
+          dataLoading={dataLoading}
+          onCreateEstimate={handleCreateEstimate}
         />
+
+        {successMessage ? (
+          <div className="mb-4">
+            <EstimateWorkspaceEmptyState
+              variant="success"
+              title="Estimate created"
+              body={successMessage}
+            />
+          </div>
+        ) : null}
 
         {loadError ? (
           <div className="mb-4">
@@ -195,6 +240,16 @@ export default function EstimateWorkspacePage() {
               variant="error"
               title="Could not load estimate data"
               body={loadError}
+            />
+          </div>
+        ) : null}
+
+        {createError ? (
+          <div className="mb-4">
+            <EstimateWorkspaceEmptyState
+              variant="error"
+              title="Could not create estimate"
+              body={createError}
             />
           </div>
         ) : null}
@@ -261,7 +316,7 @@ export default function EstimateWorkspacePage() {
                 {!hasVersion ? (
                   <EstimateWorkspaceEmptyState
                     title="No estimate versions yet"
-                    body="Version snapshots will be listed here once estimate save workflows are connected."
+                    body="Additional versions will appear here when save workflows are added."
                   />
                 ) : null}
               </div>

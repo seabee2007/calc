@@ -3,6 +3,10 @@ import type { EstimateLineCosts, EstimateLineMetrics } from '../domain/estimateT
 
 export const ESTIMATE_BLANK = '—';
 
+/** Safe empty JSON payloads for new draft estimate versions. */
+export const EMPTY_ESTIMATE_SNAPSHOT_JSON: Record<string, unknown> = {};
+export const EMPTY_ESTIMATE_TOTALS_JSON: Record<string, unknown> = {};
+
 function toFiniteNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string' && value.trim() !== '') {

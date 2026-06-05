@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
 import {
+  EMPTY_ESTIMATE_SNAPSHOT_JSON,
+  EMPTY_ESTIMATE_TOTALS_JSON,
   ESTIMATE_BLANK,
   buildWorkspaceSummaryValues,
   formatEstimateBlank,
@@ -114,5 +116,10 @@ describe('estimateFormatters', () => {
     const summary = buildWorkspaceSummaryValues(null);
     expect(summary.totalEstimate).toBe(ESTIMATE_BLANK);
     expect(summary.profit).toBe(ESTIMATE_BLANK);
+  });
+
+  it('exposes empty draft JSON payloads', () => {
+    expect(EMPTY_ESTIMATE_SNAPSHOT_JSON).toEqual({});
+    expect(EMPTY_ESTIMATE_TOTALS_JSON).toEqual({});
   });
 });

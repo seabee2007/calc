@@ -19,6 +19,10 @@ interface Props {
   projectName?: string;
   estimateName?: string | null;
   estimateStatus?: EstimateStatus | null;
+  hasEstimate?: boolean;
+  creating?: boolean;
+  dataLoading?: boolean;
+  onCreateEstimate?: () => void;
 }
 
 export default function EstimateWorkspaceHeader({
@@ -26,7 +30,13 @@ export default function EstimateWorkspaceHeader({
   projectName,
   estimateName,
   estimateStatus,
+  hasEstimate = false,
+  creating = false,
+  dataLoading = false,
+  onCreateEstimate,
 }: Props) {
+  const createLabel = creating ? 'Creating...' : hasEstimate ? 'Estimate exists' : 'Create estimate';
+
   return (
     <header className="mb-4 space-y-3">
       <Link to={plannerBoardHref(projectId)} className={PLANNER_LINK}>
@@ -59,11 +69,19 @@ export default function EstimateWorkspaceHeader({
           variant="accent"
           size="sm"
           icon={<Plus className="h-4 w-4" />}
-          disabled
+          disabled={hasEstimate || creating || dataLoading || !onCreateEstimate}
+          isLoading={creating}
           className="w-full shrink-0 sm:w-auto"
-          title="Coming in a future phase"
+          title={
+            hasEstimate
+              ? 'An estimate already exists for this project'
+              : creating
+                ? 'Creating draft estimate'
+                : undefined
+          }
+          onClick={onCreateEstimate}
         >
-          Create estimate
+          {createLabel}
         </Button>
       </div>
     </header>
