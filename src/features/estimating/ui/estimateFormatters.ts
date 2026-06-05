@@ -1,5 +1,5 @@
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
-import type { EstimateLineCosts, EstimateLineMetrics } from '../domain/estimateTypes';
+import type { EstimateLineCosts, EstimateLineMetrics, EstimateType } from '../domain/estimateTypes';
 
 export const ESTIMATE_BLANK = '—';
 
@@ -14,6 +14,10 @@ function toFiniteNumber(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+export function formatEstimateTypeLabel(type: EstimateType): string {
+  return type.replace(/_/g, ' ');
 }
 
 export function formatEstimateBlank(value: string | null | undefined): string {

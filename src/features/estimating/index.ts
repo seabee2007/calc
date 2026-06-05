@@ -18,5 +18,6 @@ export * from './infrastructure/estimateDbTypes';
 export * from './infrastructure/estimateMappers';
 export * from './infrastructure/estimateRepository';
 export { default as EstimateWorkspacePage } from './ui/EstimateWorkspacePage';
+export * from './ui/estimateVersionDisplay';
 export * from './utils/estimateRoutes';
 

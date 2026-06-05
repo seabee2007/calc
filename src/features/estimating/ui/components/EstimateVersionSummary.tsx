@@ -2,7 +2,11 @@ import { format } from 'date-fns';
 import FieldRecordStatusBadge from '../../../../components/field/FieldRecordStatusBadge';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import type { EstimateSummary } from '../../infrastructure/estimateDbTypes';
-import { formatEstimateBlank, formatEstimateCurrency } from '../estimateFormatters';
+import {
+  formatEstimateBlank,
+  formatEstimateCurrency,
+  formatEstimateTypeLabel,
+} from '../estimateFormatters';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -16,6 +20,8 @@ interface Props {
   version: EstimateDomainVersion | null;
   /** Compact layout for embedded panels (e.g. line items tab). */
   compact?: boolean;
+  /** Versions tab: emphasize the active saved version. */
+  highlightCurrent?: boolean;
 }
 
 function savedVersionSellPrice(version: EstimateDomainVersion): string {
@@ -26,7 +32,12 @@ function savedVersionSellPrice(version: EstimateDomainVersion): string {
   return formatEstimateCurrency(sell);
 }
 
-export default function EstimateVersionSummary({ estimate, version, compact = false }: Props) {
+export default function EstimateVersionSummary({
+  estimate,
+  version,
+  compact = false,
+  highlightCurrent = false,
+}: Props) {
   if (compact && version) {
     return (
       <div className={`${PLANNER_FORM_PANEL} space-y-3`}>
@@ -66,11 +77,17 @@ export default function EstimateVersionSummary({ estimate, version, compact = fa
     );
   }
 
+  const panelClass = highlightCurrent && version
+    ? `${PLANNER_FORM_PANEL} border border-blue-500/40 dark:border-blue-400/40`
+    : PLANNER_FORM_PANEL;
+
   return (
-    <div className={`${PLANNER_FORM_PANEL} space-y-3`}>
+    <div className={`${panelClass} space-y-3`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className={PLANNER_SECTION_TITLE}>Estimate record</p>
+          <p className={PLANNER_SECTION_TITLE}>
+            {highlightCurrent ? 'Current saved version' : 'Estimate record'}
+          </p>
           <p className={`mt-1 text-base font-semibold ${TEXT_FOREGROUND}`}>
             {formatEstimateBlank(estimate.name)}
           </p>
@@ -89,7 +106,7 @@ export default function EstimateVersionSummary({ estimate, version, compact = fa
           <div>
             <dt className={PLANNER_MUTED}>Estimate type</dt>
             <dd className={`mt-0.5 font-medium capitalize ${TEXT_BODY}`}>
-              {version.estimateType.replace(/_/g, ' ')}
+              {formatEstimateTypeLabel(version.estimateType)}
             </dd>
           </div>
           <div>

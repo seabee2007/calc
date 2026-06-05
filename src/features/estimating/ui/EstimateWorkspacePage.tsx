@@ -6,11 +6,18 @@ import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import Button from '../../../components/ui/Button';
 import { createDraftEstimate } from '../application/createDraftEstimate';
 import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
-import type { EstimateDomainVersion, EstimateSummary } from '../infrastructure/estimateDbTypes';
+import type {
+  EstimateDomainVersion,
+  EstimateSummary,
+  EstimateVersionRow,
+} from '../infrastructure/estimateDbTypes';
 import {
   getEstimateVersionWithLineItems,
+  listEstimateVersions,
   listEstimatesForProject,
 } from '../infrastructure/estimateRepository';
+import { buildEstimateVersionHistoryItems } from './estimateVersionDisplay';
+import EstimateVersionHistoryList from './components/EstimateVersionHistoryList';
 import { buildWorkspaceSummaryValues } from './estimateFormatters';
 import EstimateWorkspaceHeader from './components/EstimateWorkspaceHeader';
 import EstimateWorkspaceTabBar, {
@@ -122,7 +129,13 @@ export default function EstimateWorkspacePage() {
   const [saving, setSaving] = useState(false);
   const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
   const [version, setVersion] = useState<EstimateDomainVersion | null>(null);
+  const [versionHistory, setVersionHistory] = useState<EstimateVersionRow[]>([]);
   const lineItemDraft = useEstimateLineItemDraft(version);
+
+  const versionHistoryItems = useMemo(
+    () => buildEstimateVersionHistoryItems(versionHistory, estimate?.currentVersionId),
+    [versionHistory, estimate?.currentVersionId],
+  );
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
 
@@ -136,6 +149,7 @@ export default function EstimateWorkspacePage() {
       setDataLoading(true);
       setEstimate(null);
       setVersion(null);
+      setVersionHistory([]);
     }
     setLoadError(null);
 
@@ -154,6 +168,14 @@ export default function EstimateWorkspacePage() {
     }
 
     setEstimate(selected);
+
+    const versionsResult = await listEstimateVersions(selected.id);
+    if (versionsResult.error) {
+      setLoadError(versionsResult.error);
+      setDataLoading(false);
+      return;
+    }
+    setVersionHistory(versionsResult.data ?? []);
 
     if (!selected.currentVersionId) {
       setDataLoading(false);
@@ -243,6 +265,10 @@ export default function EstimateWorkspacePage() {
       const selected = selectEstimate(listResult.data);
       if (selected) {
         setEstimate(selected);
+        const versionsResult = await listEstimateVersions(selected.id);
+        if (!versionsResult.error && versionsResult.data) {
+          setVersionHistory(versionsResult.data);
+        }
         if (selected.currentVersionId) {
           const versionResult = await getEstimateVersionWithLineItems(selected.currentVersionId);
           if (!versionResult.error && versionResult.data) {
@@ -393,13 +419,15 @@ export default function EstimateWorkspacePage() {
 
             {activeTab === 'versions' && (
               <div className="space-y-4">
-                <EstimateVersionSummary estimate={estimate} version={version} />
-                {!hasVersion ? (
-                  <EstimateWorkspaceEmptyState
-                    title="No estimate versions yet"
-                    body="Additional versions will appear here when save workflows are added."
-                  />
-                ) : null}
+                <EstimateVersionSummary
+                  estimate={estimate}
+                  version={version}
+                  highlightCurrent={hasVersion}
+                />
+                <EstimateVersionHistoryList
+                  items={versionHistoryItems}
+                  loading={dataLoading}
+                />
               </div>
             )}
 
