@@ -9,6 +9,7 @@ export * from './application/estimateLineItemGrouping';
 export * from './application/estimateWorkBreakdown';
 export * from './application/estimateStartFlow';
 export * from './application/estimateQuickFeasibility';
+export * from './application/saveQuickFeasibilityEstimate';
 export * from './application/buildEstimateSchedulePlan';
 export * from './application/estimateScheduleDatePlanner';
 export * from './application/estimateScheduleDependencies';

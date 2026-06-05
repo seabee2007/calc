@@ -15,6 +15,11 @@ import { createDraftEstimate } from '../application/createDraftEstimate';
 import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
 import type { EstimateType } from '../domain/estimateTypes';
 import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
+import { saveQuickFeasibilityEstimate } from '../application/saveQuickFeasibilityEstimate';
+import type {
+  QuickFeasibilityInputs,
+  QuickFeasibilityResult,
+} from '../application/estimateQuickFeasibility';
 import type {
   EstimateDomainVersion,
   EstimateSummary,
@@ -359,6 +364,57 @@ export default function EstimateWorkspacePage() {
     resolvedProjectId,
   ]);
 
+  const refreshEstimateAfterSave = useCallback(async () => {
+    const listResult = await listEstimatesForProject(resolvedProjectId);
+    if (listResult.error || !listResult.data) return;
+
+    const selected = selectEstimate(listResult.data);
+    if (!selected) return;
+
+    setEstimate(selected);
+    const versionsResult = await listEstimateVersions(selected.id);
+    if (!versionsResult.error && versionsResult.data) {
+      setVersionHistory(versionsResult.data);
+    }
+    if (selected.currentVersionId) {
+      const versionResult = await getEstimateVersionWithLineItems(selected.currentVersionId);
+      if (!versionResult.error && versionResult.data) {
+        setVersion(versionResult.data);
+        lineItemDraft.rehydrateFromVersion(versionResult.data);
+      }
+    }
+  }, [lineItemDraft, resolvedProjectId]);
+
+  const handleSaveQuickEstimate = useCallback(
+    async (payload: { inputs: QuickFeasibilityInputs; result: QuickFeasibilityResult }) => {
+      if (!estimate || saving) return;
+
+      setSaving(true);
+      setSaveError(null);
+      setSuccessMessage(null);
+
+      const result = await saveQuickFeasibilityEstimate({
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        inputs: payload.inputs,
+        result: payload.result,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        setSaveError(result.error ?? 'Failed to save quick feasibility estimate.');
+        setSaving(false);
+        return;
+      }
+
+      setSuccessTitle('Quick estimate saved');
+      setSuccessMessage(`Saved Quick Feasibility v${result.data.versionNumber}.`);
+      await refreshEstimateAfterSave();
+      setSaving(false);
+    },
+    [estimate, refreshEstimateAfterSave, saving, user?.id],
+  );
+
   if (plannerLoading) {
     return (
       <div className={PLANNER_PAGE_BG}>
@@ -483,6 +539,7 @@ export default function EstimateWorkspacePage() {
                     setup={estimateSetup}
                     projectLocationLabel={project?.locationLabel}
                     onSave={handleSaveEstimate}
+                    onSaveQuick={handleSaveQuickEstimate}
                   />
                 ) : (
                   <>

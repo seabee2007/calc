@@ -58,12 +58,13 @@ export interface QuickFeasibilityInputs {
   siteCondition: QuickFeasibilitySiteCondition;
   mepIntensity: QuickFeasibilityMepIntensity;
   contingencyPercent: number;
-  locationAdjustmentFactor: number;
+  manualLocationAdjustmentFactor: number;
 }
 
 export interface QuickFeasibilityResult {
   baseCost: number;
   adjustedCost: number;
+  contingencyAmount: number;
   likelyTotal: number;
   lowTotal: number;
   highTotal: number;
@@ -85,7 +86,7 @@ export interface QuickFeasibilityResult {
     complexity: number;
     siteCondition: number;
     mep: number;
-    locationAdjustment: number;
+    manualLocationAdjustment: number;
   };
 }
 
@@ -174,9 +175,9 @@ export const DEFAULT_QUICK_FEASIBILITY_INPUTS: QuickFeasibilityInputs = {
   finishLevel: 'standard',
   complexityLevel: 'average',
   siteCondition: 'easyFlatAccess',
-  mepIntensity: 'none',
+  mepIntensity: 'moderate',
   contingencyPercent: QUICK_FEASIBILITY_CONTINGENCY_DEFAULTS.newConstruction,
-  locationAdjustmentFactor: 1,
+  manualLocationAdjustmentFactor: 1,
 };
 
 function ensureFiniteOutput(value: number): number {
@@ -310,7 +311,7 @@ function resolveMultipliers(inputs: QuickFeasibilityInputs): QuickFeasibilityRes
       squareFootPricingData.siteConditionMultipliers[inputs.siteCondition] ?? 1,
     ),
     mep: sanitizeFactor(QUICK_FEASIBILITY_MEP_MULTIPLIERS[inputs.mepIntensity] ?? 1),
-    locationAdjustment: sanitizeFactor(inputs.locationAdjustmentFactor),
+    manualLocationAdjustment: sanitizeFactor(inputs.manualLocationAdjustmentFactor),
   };
 }
 
@@ -367,8 +368,8 @@ function buildAssumptions(
     );
   }
 
-  if (multipliers.locationAdjustment !== 1) {
-    assumptions.push(`Manual location adjustment factor: ${multipliers.locationAdjustment}.`);
+  if (multipliers.manualLocationAdjustment !== 1) {
+    assumptions.push(`Manual location adjustment factor: ${multipliers.manualLocationAdjustment}.`);
   }
 
   assumptions.push(`MEP intensity uses app-level multiplier (${inputs.mepIntensity}).`);
@@ -409,11 +410,11 @@ export function calculateQuickFeasibilityEstimate(
       multipliers.complexity *
       multipliers.siteCondition *
       multipliers.mep *
-      multipliers.locationAdjustment,
+      multipliers.manualLocationAdjustment,
   );
 
-  const contingencyMultiplier = 1 + contingencyPercent / 100;
-  const likelyTotal = ensureFiniteOutput(adjustedCost * contingencyMultiplier);
+  const contingencyAmount = ensureFiniteOutput((adjustedCost * contingencyPercent) / 100);
+  const likelyTotal = ensureFiniteOutput(adjustedCost + contingencyAmount);
 
   const spread = getRiskSpread(inputs.projectType);
   const lowTotal = ensureFiniteOutput(likelyTotal * spread.low);
@@ -424,6 +425,7 @@ export function calculateQuickFeasibilityEstimate(
   return {
     baseCost,
     adjustedCost,
+    contingencyAmount,
     likelyTotal,
     lowTotal,
     highTotal,

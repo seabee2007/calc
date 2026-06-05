@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import {
@@ -23,6 +23,7 @@ import {
   type QuickFeasibilityMepIntensity,
   type QuickFeasibilityProjectContext,
   type QuickFeasibilityProjectType,
+  type QuickFeasibilityResult,
   type QuickFeasibilitySiteCondition,
 } from '../../application/estimateQuickFeasibility';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
@@ -42,6 +43,7 @@ import {
 interface Props {
   disabled?: boolean;
   projectContext?: QuickFeasibilityProjectContext | null;
+  onPreviewChange?: (input: QuickFeasibilityInputs, result: QuickFeasibilityResult) => void;
 }
 
 function FieldGrid({ children }: { children: React.ReactNode }) {
@@ -69,6 +71,7 @@ function formatLocationOptionLabel(code: string, name: string): string {
 export default function EstimateQuickFeasibilityPanel({
   disabled = false,
   projectContext = null,
+  onPreviewChange,
 }: Props) {
   const [inputs, setInputs] = useState<QuickFeasibilityInputs>(() =>
     createInitialQuickFeasibilityInputs(projectContext),
@@ -85,6 +88,10 @@ export default function EstimateQuickFeasibilityPanel({
 
   const result = useMemo(() => calculateQuickFeasibilityEstimate(inputs), [inputs]);
   const datasetLimitations = useMemo(() => getSquareFootPricingImportantLimitations(), []);
+
+  useEffect(() => {
+    onPreviewChange?.(inputs, result);
+  }, [inputs, result, onPreviewChange]);
 
   const patchInputs = (patch: Partial<QuickFeasibilityInputs>) => {
     setInputs((prev) => ({ ...prev, ...patch }));
@@ -123,8 +130,8 @@ export default function EstimateQuickFeasibilityPanel({
         <div>
           <h3 className={`text-base font-semibold ${TEXT_FOREGROUND}`}>Quick Feasibility</h3>
           <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-            Location-based square-foot pricing for early budget planning. Results are not saved to
-            estimate versions.
+            Location-based square-foot pricing for early budget planning. Save the quick estimate
+            to preserve this high-level preview as a version.
           </p>
         </div>
 
@@ -305,7 +312,7 @@ export default function EstimateQuickFeasibilityPanel({
 
           <div>
             <label className={PLANNER_FORM_LABEL} htmlFor="quick-location-adjustment">
-              Location adjustment factor
+              Manual location adjustment
             </label>
             <Input
               id="quick-location-adjustment"
@@ -313,16 +320,16 @@ export default function EstimateQuickFeasibilityPanel({
               type="number"
               min={0}
               step="any"
-              value={inputs.locationAdjustmentFactor || ''}
+              value={inputs.manualLocationAdjustmentFactor || ''}
               disabled={disabled}
               onChange={(event) =>
                 patchInputs({
-                  locationAdjustmentFactor: parseEstimateFormNumber(event.target.value) || 1,
+                  manualLocationAdjustmentFactor: parseEstimateFormNumber(event.target.value) || 1,
                 })
               }
             />
             <p className={`mt-1 text-xs ${PLANNER_MUTED}`}>
-              Optional manual adjustment. Dataset location factor is display-only.
+              The selected market rate already includes location pricing. Use this only for extra local adjustment.
             </p>
           </div>
         </FieldGrid>
@@ -425,6 +432,10 @@ export default function EstimateQuickFeasibilityPanel({
           <EstimateSummaryCard
             label="Adjusted cost (before contingency)"
             value={formatPreviewCurrency(result.adjustedCost, result.isValid)}
+          />
+          <EstimateSummaryCard
+            label="Contingency"
+            value={formatPreviewCurrency(result.contingencyAmount, result.isValid)}
           />
         </div>
 

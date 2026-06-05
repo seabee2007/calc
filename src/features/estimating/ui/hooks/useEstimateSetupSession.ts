@@ -29,13 +29,28 @@ export function useEstimateSetupSession(
 ): UseEstimateSetupSessionResult {
   const normalizedSavedType = normalizeEstimateMethod(savedEstimateType ?? DEFAULT_ESTIMATE_METHOD);
   const hydratedVersionKeyRef = useRef<string | null>(null);
+  const hydratedProjectIdRef = useRef<string | null>(null);
+  const hasUserStartedSetupRef = useRef(false);
+  const hasUserResetSetupRef = useRef(false);
   const [session, setSession] = useState<EstimateSetupSessionState>(() =>
     createInitialEstimateSetupSession(normalizedSavedType),
   );
   const [quickPanelResetKey, setQuickPanelResetKey] = useState(0);
 
   useEffect(() => {
-    if (!projectId || !versionId) return;
+    if (!projectId) return;
+
+    const projectChanged = hydratedProjectIdRef.current !== projectId;
+    if (projectChanged) {
+      hydratedProjectIdRef.current = projectId;
+      hydratedVersionKeyRef.current = null;
+      hasUserStartedSetupRef.current = false;
+      hasUserResetSetupRef.current = false;
+      setSession(createInitialEstimateSetupSession(normalizedSavedType));
+      setQuickPanelResetKey(0);
+    }
+
+    if (!versionId) return;
 
     const versionKey = buildEstimateSetupVersionKey(projectId, versionId);
     if (
@@ -45,8 +60,10 @@ export function useEstimateSetupSession(
     }
 
     hydratedVersionKeyRef.current = versionKey;
-    setSession(createInitialEstimateSetupSession(normalizedSavedType));
-    setQuickPanelResetKey(0);
+    if (!hasUserStartedSetupRef.current && !hasUserResetSetupRef.current) {
+      setSession(createInitialEstimateSetupSession(normalizedSavedType));
+      setQuickPanelResetKey(0);
+    }
   }, [projectId, versionId, normalizedSavedType]);
 
   const setSelectedEstimateType = useCallback((type: EstimateType) => {
@@ -54,10 +71,13 @@ export function useEstimateSetupSession(
   }, []);
 
   const startSetup = useCallback((type: EstimateType) => {
+    hasUserStartedSetupRef.current = true;
     setSession(createEstimateSetupStartState(type));
   }, []);
 
   const resetSetup = useCallback((savedType: EstimateType) => {
+    hasUserResetSetupRef.current = true;
+    hasUserStartedSetupRef.current = false;
     setSession(createEstimateSetupResetState(savedType));
     setQuickPanelResetKey((key) => key + 1);
   }, []);

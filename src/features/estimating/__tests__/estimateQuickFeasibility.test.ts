@@ -31,7 +31,7 @@ function guamInputs() {
     siteCondition: 'easyFlatAccess',
     mepIntensity: 'none',
     contingencyPercent: 0,
-    locationAdjustmentFactor: 1,
+    manualLocationAdjustmentFactor: 1,
   });
 }
 
@@ -69,6 +69,16 @@ describe('estimateQuickFeasibility dataset pricing', () => {
     expect(result.baseCost).toBe(588_000);
     expect(result.locationFactorVsNational195).toBe(1.508);
     expect(result.adjustedCost).toBe(588_000);
+  });
+
+  it('selecting Guam sets base rate and display factor while manual adjustment remains 1', () => {
+    const inputs = createQuickFeasibilityInputsForLocation('GU', { areaSF: 2_000 });
+    const result = calculateQuickFeasibilityEstimate(inputs);
+
+    expect(inputs.basePricePerSf).toBe(294);
+    expect(inputs.manualLocationAdjustmentFactor).toBe(1);
+    expect(result.locationFactorVsNational195).toBe(1.508);
+    expect(result.multipliers.manualLocationAdjustment).toBe(1);
   });
 
   it('computes 2,000 SF x Guam $294/SF = $588,000 base cost before other multipliers', () => {
@@ -140,7 +150,7 @@ describe('estimateQuickFeasibility dataset pricing', () => {
       ...DEFAULT_QUICK_FEASIBILITY_INPUTS,
       areaSF: Number.NaN,
       basePricePerSf: Number.POSITIVE_INFINITY,
-      locationAdjustmentFactor: -5,
+      manualLocationAdjustmentFactor: -5,
       contingencyPercent: 500,
     });
 
@@ -176,6 +186,32 @@ describe('estimateQuickFeasibility dataset pricing', () => {
     const remodelSpread = (remodel.highTotal - remodel.lowTotal) / remodel.likelyTotal;
 
     expect(remodelSpread).toBeGreaterThan(newSpread);
+  });
+
+  it('project type multiplier changes likely total', () => {
+    const newConstruction = calculateQuickFeasibilityEstimate(guamInputs());
+    const additionBuildOut = calculateQuickFeasibilityEstimate({
+      ...guamInputs(),
+      projectType: 'additionBuildOut',
+      contingencyPercent: 0,
+    });
+
+    expect(additionBuildOut.multipliers.projectType).toBe(
+      squareFootPricingData.projectTypeMultipliers.additionBuildOut.factor,
+    );
+    expect(additionBuildOut.likelyTotal).toBeGreaterThan(newConstruction.likelyTotal);
+  });
+
+  it('manual location adjustment multiplies only when user changes it', () => {
+    const baseline = calculateQuickFeasibilityEstimate(guamInputs());
+    const adjusted = calculateQuickFeasibilityEstimate({
+      ...guamInputs(),
+      manualLocationAdjustmentFactor: 1.1,
+    });
+
+    expect(baseline.multipliers.manualLocationAdjustment).toBe(1);
+    expect(adjusted.multipliers.manualLocationAdjustment).toBe(1.1);
+    expect(adjusted.adjustedCost).toBe(646_800);
   });
 
   it('validateQuickFeasibilityInputs returns preview hint when area or base rate missing', () => {

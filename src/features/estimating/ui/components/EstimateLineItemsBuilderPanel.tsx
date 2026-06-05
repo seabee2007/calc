@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Play, RotateCcw, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import DrawerPanel from '../../../../components/ui/DrawerPanel';
@@ -41,6 +41,10 @@ import EstimateQuickFeasibilityPanel from './EstimateQuickFeasibilityPanel';
 import EstimateMethodSelector from './EstimateMethodSelector';
 import { formatEstimateMethodLabel } from '../estimateMethodDisplay';
 import { formatDraftSummaryStrip } from '../estimateLineItemDisplay';
+import type {
+  QuickFeasibilityInputs,
+  QuickFeasibilityResult,
+} from '../../application/estimateQuickFeasibility';
 import {
   formatEstimateCurrency,
   formatEstimateHours,
@@ -64,6 +68,10 @@ interface Props {
   setup: UseEstimateSetupSessionResult;
   projectLocationLabel?: string;
   onSave: () => void;
+  onSaveQuick: (payload: {
+    inputs: QuickFeasibilityInputs;
+    result: QuickFeasibilityResult;
+  }) => void;
 }
 
 const EMPTY_FILTER: EstimateLineItemsFilter = { divisionKey: null, scopeKey: null };
@@ -78,10 +86,15 @@ export default function EstimateLineItemsBuilderPanel({
   setup,
   projectLocationLabel,
   onSave,
+  onSaveQuick,
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
   const [scopeModalOpen, setScopeModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [quickPreview, setQuickPreview] = useState<{
+    inputs: QuickFeasibilityInputs;
+    result: QuickFeasibilityResult;
+  } | null>(null);
 
   const hydratedVersionIdRef = useRef(version.id);
   const { session, quickPanelResetKey } = setup;
@@ -155,6 +168,7 @@ export default function EstimateLineItemsBuilderPanel({
   const showBucketPanel = shouldShowDivisionBucketPanel(session);
   const showSavedActivitiesSection = shouldShowSavedActivities(session) && hasSavedActivities;
   const showResetButton = canEdit && canResetEstimateSetup(session);
+  const canSaveQuick = showQuickFeasibilityPanel && quickPreview?.result.isValid && !saving;
 
   const handleCreateWorkBreakdown = (codes: string[]) => {
     setup.setSelectedDivisionCodes(normalizeSelectedDivisionCodes(codes));
@@ -170,9 +184,17 @@ export default function EstimateLineItemsBuilderPanel({
 
   const handleConfirmResetSetup = () => {
     setup.resetSetup(normalizeEstimateMethod(version.estimateType));
+    setQuickPreview(null);
     draft.resetDraftSetup();
     setResetModalOpen(false);
   };
+
+  const handleQuickPreviewChange = useCallback(
+    (inputs: QuickFeasibilityInputs, result: QuickFeasibilityResult) => {
+      setQuickPreview({ inputs, result });
+    },
+    [],
+  );
 
   return (
     <div className="space-y-4">
@@ -200,6 +222,26 @@ export default function EstimateLineItemsBuilderPanel({
                 onClick={() => setResetModalOpen(true)}
               >
                 Reset estimate setup
+              </Button>
+            ) : null}
+            {showQuickFeasibilityPanel ? (
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Save className="h-4 w-4" />}
+                disabled={!canEdit || !canSaveQuick}
+                isLoading={saving}
+                title={
+                  quickPreview?.result.isValid
+                    ? 'Save quick feasibility result as a new estimate version'
+                    : 'Enter valid quick feasibility inputs before saving'
+                }
+                onClick={() => {
+                  if (!quickPreview) return;
+                  onSaveQuick(quickPreview);
+                }}
+              >
+                {saving ? 'Saving...' : 'Save quick estimate'}
               </Button>
             ) : null}
             {showBucketPanel ? (
@@ -268,6 +310,7 @@ export default function EstimateLineItemsBuilderPanel({
             key={quickPanelResetKey}
             disabled={!canEdit}
             projectContext={{ locationLabel: projectLocationLabel }}
+            onPreviewChange={handleQuickPreviewChange}
           />
         </div>
       ) : null}
