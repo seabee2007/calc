@@ -369,3 +369,10 @@ export function getGanttCriticalBarClassName(isCritical: boolean): string {
 
   return 'border-rose-700/70 bg-rose-500/90 shadow-md ring-1 ring-rose-400/40 dark:border-rose-400/70 dark:bg-rose-600/90 dark:ring-rose-300/30';
 }
+
+export const GANTT_BASELINE_PREVIEW_NOTE =
+  'Baseline is preview-only. It will become the locked comparison schedule after publishing or accepting a schedule.';
+
+export function getGanttBaselineBarClassName(): string {
+  return 'border border-dashed border-slate-400/70 bg-slate-300/35 dark:border-slate-500/70 dark:bg-slate-600/25';
+}

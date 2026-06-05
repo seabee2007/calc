@@ -1,8 +1,10 @@
 import { ArrowLeft, ClipboardCheck, CloudRain } from 'lucide-react';
+import type { EstimateScheduleTaskBaseline } from '../../application/estimateScheduleBaseline';
 import {
   calculateGanttBarPosition,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   formatGanttDurationLabel,
+  getGanttBaselineBarClassName,
   getGanttCriticalBarClassName,
   isGanttTaskOnCriticalPath,
   type GanttRow,
@@ -19,6 +21,8 @@ interface Props {
   todayMarkerLeft?: number | null;
   criticalTaskIds?: string[];
   showCriticalPath?: boolean;
+  baselineTask?: EstimateScheduleTaskBaseline;
+  showBaseline?: boolean;
 }
 
 const ROW_HEIGHT_BY_KIND = {
@@ -34,10 +38,24 @@ export default function EstimateGanttRow({
   todayMarkerLeft = null,
   criticalTaskIds = [],
   showCriticalPath = false,
+  baselineTask,
+  showBaseline = false,
 }: Props) {
   const barPosition =
     row.kind === 'task' && row.task
       ? calculateGanttBarPosition(row.task, range.startDate, columnWidth)
+      : null;
+  const baselineBarPosition =
+    showBaseline && baselineTask
+      ? calculateGanttBarPosition(
+          {
+            plannedStartDate: baselineTask.baselineStartDate,
+            plannedEndDate: baselineTask.baselineEndDate,
+            durationDays: baselineTask.durationDays,
+          },
+          range.startDate,
+          columnWidth,
+        )
       : null;
   const isCritical = isGanttTaskOnCriticalPath(
     row.task?.candidateId,
@@ -118,6 +136,20 @@ export default function EstimateGanttRow({
           <div
             className="pointer-events-none absolute bottom-0 top-0 z-10 w-0.5 bg-rose-500/80 dark:bg-rose-400/80"
             style={{ left: todayMarkerLeft }}
+            aria-hidden
+          />
+        ) : null}
+
+        {baselineBarPosition ? (
+          <div
+            className={`absolute top-7 z-0 rounded-md px-1 py-0.5 ${getGanttBaselineBarClassName()}`}
+            style={{
+              left: baselineBarPosition.leftPx,
+              width: Math.max(baselineBarPosition.widthPx - 2, columnWidth - 2),
+              minWidth: columnWidth - 2,
+              height: '0.75rem',
+            }}
+            title={`Baseline ${baselineTask?.baselineStartDate} – ${baselineTask?.baselineEndDate}`}
             aria-hidden
           />
         ) : null}

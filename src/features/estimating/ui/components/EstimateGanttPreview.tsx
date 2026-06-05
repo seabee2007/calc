@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { calculateEstimateCriticalPath } from '../../application/estimateCriticalPath';
 import {
+  buildEstimateScheduleBaseline,
+  buildEstimateScheduleBaselineTaskMap,
+} from '../../application/estimateScheduleBaseline';
+import {
   applyDependencyPreviewToPlan,
   inferDependencyPreviewModeFromPlannedPlan,
 } from '../../application/estimateScheduleDependencies';
@@ -12,6 +16,7 @@ import {
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   extractGanttTasksFromPlan,
   formatGanttDependencyPreviewNote,
+  GANTT_BASELINE_PREVIEW_NOTE,
   GANTT_DEPENDENCY_LINES_NOTE,
   getGanttTaskRows,
   getGanttTodayDateYmd,
@@ -26,6 +31,7 @@ import {
   TEXT_BODY,
 } from '../estimateWorkspaceTheme';
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
+import EstimateBaselineSummary from './EstimateBaselineSummary';
 import EstimateCriticalPathSummary from './EstimateCriticalPathSummary';
 import EstimateGanttDependencyLayer from './EstimateGanttDependencyLayer';
 import EstimateGanttRow from './EstimateGanttRow';
@@ -52,6 +58,15 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
   const dependencies = dependencyPreview?.dependencies ?? [];
   const [showDependencyLines, setShowDependencyLines] = useState(true);
   const [showCriticalPath, setShowCriticalPath] = useState(() => dependencies.length > 0);
+  const [showBaseline, setShowBaseline] = useState(false);
+  const scheduleBaseline = useMemo(
+    () => buildEstimateScheduleBaseline(plannedPlan),
+    [plannedPlan],
+  );
+  const baselineTaskMap = useMemo(
+    () => buildEstimateScheduleBaselineTaskMap(scheduleBaseline),
+    [scheduleBaseline],
+  );
   const tasks = useMemo(() => extractGanttTasksFromPlan(plannedPlan), [plannedPlan]);
   const rows = useMemo(
     () => getGanttTaskRows(plannedPlan, dependencies),
@@ -116,7 +131,21 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
           />
           Show critical path
         </label>
+        <p className={PLANNER_MUTED}>{GANTT_BASELINE_PREVIEW_NOTE}</p>
+        <label className={`flex items-center gap-2 text-sm ${TEXT_BODY}`}>
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600"
+            checked={showBaseline}
+            onChange={(event) => setShowBaseline(event.target.checked)}
+          />
+          Show baseline
+        </label>
       </div>
+
+      {showBaseline ? (
+        <EstimateBaselineSummary baseline={scheduleBaseline} loading={loading} />
+      ) : null}
 
       <EstimateCriticalPathSummary result={criticalPathResult} loading={loading} />
 
@@ -164,6 +193,10 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
                     todayMarkerLeft={showTodayMarker ? todayMarkerLeft : null}
                     criticalTaskIds={criticalPathResult.criticalTaskIds}
                     showCriticalPath={showCriticalPath}
+                    baselineTask={
+                      row.task ? baselineTaskMap.get(row.task.candidateId) : undefined
+                    }
+                    showBaseline={showBaseline}
                   />
                 ))}
               </div>
