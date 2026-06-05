@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import { plannerBoardHref } from '../../../../utils/plannerRoutes';
 import FieldRecordStatusBadge from '../../../../components/field/FieldRecordStatusBadge';
@@ -22,6 +22,7 @@ interface Props {
   hasEstimate?: boolean;
   creating?: boolean;
   dataLoading?: boolean;
+  draftDirty?: boolean;
   onCreateEstimate?: () => void;
 }
 
@@ -33,6 +34,7 @@ export default function EstimateWorkspaceHeader({
   hasEstimate = false,
   creating = false,
   dataLoading = false,
+  draftDirty = false,
   onCreateEstimate,
 }: Props) {
   const createLabel = creating ? 'Creating...' : hasEstimate ? 'Estimate exists' : 'Create estimate';
@@ -65,24 +67,41 @@ export default function EstimateWorkspaceHeader({
           </div>
         </div>
 
-        <Button
-          variant="accent"
-          size="sm"
-          icon={<Plus className="h-4 w-4" />}
-          disabled={hasEstimate || creating || dataLoading || !onCreateEstimate}
-          isLoading={creating}
-          className="w-full shrink-0 sm:w-auto"
-          title={
-            hasEstimate
-              ? 'An estimate already exists for this project'
-              : creating
-                ? 'Creating draft estimate'
-                : undefined
-          }
-          onClick={onCreateEstimate}
-        >
-          {createLabel}
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+          <Button
+            variant="accent"
+            size="sm"
+            icon={<Plus className="h-4 w-4" />}
+            disabled={hasEstimate || creating || dataLoading || !onCreateEstimate}
+            isLoading={creating}
+            className="w-full shrink-0 sm:w-auto"
+            title={
+              hasEstimate
+                ? 'An estimate already exists for this project'
+                : creating
+                  ? 'Creating draft estimate'
+                  : undefined
+            }
+            onClick={onCreateEstimate}
+          >
+            {createLabel}
+          </Button>
+          {hasEstimate ? (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Save className="h-4 w-4" />}
+              disabled
+              className="w-full shrink-0 sm:w-auto"
+              title="Save will be added in the next phase"
+            >
+              Save coming next phase
+            </Button>
+          ) : null}
+          {draftDirty ? (
+            <span className={`text-xs ${PLANNER_MUTED}`}>Unsaved draft line items</span>
+          ) : null}
+        </div>
       </div>
     </header>
   );

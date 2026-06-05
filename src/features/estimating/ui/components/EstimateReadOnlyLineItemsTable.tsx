@@ -20,6 +20,7 @@ import {
 interface Props {
   lineItems: EstimateDomainTask[];
   emptyMessage?: string;
+  caption?: string;
 }
 
 const COLUMNS = [
@@ -35,9 +36,14 @@ const COLUMNS = [
 export default function EstimateReadOnlyLineItemsTable({
   lineItems,
   emptyMessage = 'No line items in this version.',
+  caption,
 }: Props) {
   return (
-    <div className={PLANNER_TABLE_WRAPPER}>
+    <div className="space-y-2">
+      {caption ? (
+        <p className={`text-xs font-semibold uppercase tracking-wide ${PLANNER_MUTED}`}>{caption}</p>
+      ) : null}
+      <div className={PLANNER_TABLE_WRAPPER}>
       <table className={PLANNER_TABLE}>
         <thead className={PLANNER_TABLE_HEAD}>
           <tr>
@@ -84,6 +90,7 @@ export default function EstimateReadOnlyLineItemsTable({
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

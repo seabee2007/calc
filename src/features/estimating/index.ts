@@ -1,4 +1,6 @@
 export * from './application/buildEstimateSnapshot';
+export * from './application/buildEstimateDraftSnapshot';
+export * from './application/estimateDraftLine';
 export * from './domain/estimateMath';
 export * from './domain/estimateSnapshot';
 export * from './domain/estimateTypes';

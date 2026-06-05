@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar, FileOutput, Layers, ListPlus, Plus } from 'lucide-react';
+import { Calendar, FileOutput, Layers, ListPlus } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import Button from '../../../components/ui/Button';
@@ -18,8 +18,9 @@ import EstimateWorkspaceTabBar, {
 import EstimateWorkspaceLoading from './components/EstimateWorkspaceLoading';
 import EstimateWorkspaceEmptyState from './components/EstimateWorkspaceEmptyState';
 import EstimateSummaryCard from './components/EstimateSummaryCard';
-import EstimateReadOnlyLineItemsTable from './components/EstimateReadOnlyLineItemsTable';
+import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateVersionSummary from './components/EstimateVersionSummary';
+import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -117,6 +118,7 @@ export default function EstimateWorkspacePage() {
   const [creating, setCreating] = useState(false);
   const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
   const [version, setVersion] = useState<EstimateDomainVersion | null>(null);
+  const lineItemDraft = useEstimateLineItemDraft(version);
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
 
@@ -221,6 +223,7 @@ export default function EstimateWorkspacePage() {
           hasEstimate={hasEstimate}
           creating={creating}
           dataLoading={dataLoading}
+          draftDirty={lineItemDraft.dirty}
           onCreateEstimate={handleCreateEstimate}
         />
 
@@ -287,25 +290,21 @@ export default function EstimateWorkspacePage() {
 
             {activeTab === 'line-items' && (
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className={PLANNER_SECTION_TITLE}>Line items</h2>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<Plus className="h-4 w-4" />}
-                    disabled
-                    title="Coming in a future phase"
-                  >
-                    Add line item
-                  </Button>
-                </div>
-                {hasVersion ? (
-                  <EstimateReadOnlyLineItemsTable lineItems={version.lineItems} />
-                ) : (
-                  <EstimateWorkspaceEmptyState
-                    title={NO_VERSION_MESSAGE}
-                    body="Line items are stored on estimate versions and will display here once a version exists."
+                {hasVersion && estimate ? (
+                  <EstimateLineItemsBuilderPanel
+                    estimate={estimate}
+                    version={version}
+                    canEdit={hasEstimate && hasVersion}
+                    draft={lineItemDraft}
                   />
+                ) : (
+                  <>
+                    <h2 className={PLANNER_SECTION_TITLE}>Line items</h2>
+                    <EstimateWorkspaceEmptyState
+                      title={NO_VERSION_MESSAGE}
+                      body="Line items are stored on estimate versions and will display here once a version exists."
+                    />
+                  </>
                 )}
               </div>
             )}
