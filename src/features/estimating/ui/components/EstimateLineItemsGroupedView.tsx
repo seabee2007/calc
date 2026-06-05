@@ -1,5 +1,8 @@
 import type { EstimateDomainTask } from '../../infrastructure/estimateDbTypes';
-import type { EstimateDraftLine } from '../../application/estimateDraftLine';
+import {
+  getDraftLineMoveState,
+  type EstimateDraftLine,
+} from '../../application/estimateDraftLine';
 import type { EstimateGroupedDivision } from '../../domain/estimateLineItemTree';
 import EstimateGroupTotalsRow from './EstimateGroupTotalsRow';
 import EstimateDraftLineRow from './EstimateDraftLineRow';
@@ -21,9 +24,13 @@ import {
 interface DraftProps {
   mode: 'draft';
   groups: EstimateGroupedDivision<EstimateDraftLine>[];
+  allDraftLines?: EstimateDraftLine[];
   emptyMessage?: string;
   onEditDraft: (clientId: string) => void;
   onRemoveDraft: (clientId: string) => void;
+  onDuplicateDraft?: (clientId: string) => void;
+  onMoveDraftUp?: (clientId: string) => void;
+  onMoveDraftDown?: (clientId: string) => void;
 }
 
 interface SavedProps {
@@ -105,15 +112,38 @@ export default function EstimateLineItemsGroupedView(props: Props) {
               >
                 <div className="space-y-2">
                   {props.mode === 'draft'
-                    ? scope.items.map((draft) => (
-                        <EstimateDraftLineRow
-                          key={draft.clientId}
-                          draft={draft}
-                          nested
-                          onEdit={() => props.onEditDraft(draft.clientId)}
-                          onRemove={() => props.onRemoveDraft(draft.clientId)}
-                        />
-                      ))
+                    ? scope.items.map((draft) => {
+                        const moveState = props.allDraftLines
+                          ? getDraftLineMoveState(props.allDraftLines, draft.clientId)
+                          : { canMoveUp: false, canMoveDown: false };
+
+                        return (
+                          <EstimateDraftLineRow
+                            key={draft.clientId}
+                            draft={draft}
+                            nested
+                            canMoveUp={moveState.canMoveUp}
+                            canMoveDown={moveState.canMoveDown}
+                            onEdit={() => props.onEditDraft(draft.clientId)}
+                            onRemove={() => props.onRemoveDraft(draft.clientId)}
+                            onDuplicate={
+                              props.onDuplicateDraft
+                                ? () => props.onDuplicateDraft?.(draft.clientId)
+                                : undefined
+                            }
+                            onMoveUp={
+                              props.onMoveDraftUp
+                                ? () => props.onMoveDraftUp?.(draft.clientId)
+                                : undefined
+                            }
+                            onMoveDown={
+                              props.onMoveDraftDown
+                                ? () => props.onMoveDraftDown?.(draft.clientId)
+                                : undefined
+                            }
+                          />
+                        );
+                      })
                     : scope.items.map((task) => (
                         <SavedTaskRow key={task.id} task={task} />
                       ))}

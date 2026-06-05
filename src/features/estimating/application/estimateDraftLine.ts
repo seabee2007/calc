@@ -1,3 +1,5 @@
+import { normalizeCsiDivisionCode, isKnownCsiDivision } from '../domain/csiDivisions';
+import { getDefaultScopeForDivision, normalizeScopeName } from '../domain/csiScopeTemplates';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import type { EstimateLineItemInput } from '../domain/estimateTypes';
 
@@ -156,7 +158,19 @@ export function draftLineToLineItemInput(draft: EstimateDraftLine): EstimateLine
 }
 
 export function reindexDraftLines(lines: EstimateDraftLine[]): EstimateDraftLine[] {
-  return sortDraftLinesByPosition(lines).map((line, index) => ({
+  const ordered = sortDraftLinesByPosition(lines);
+  return ordered.map((line, index) => ({
+    ...line,
+    task: {
+      ...line.task,
+      position: index,
+    },
+  }));
+}
+
+/** Reindex using the current array order (after manual reorder). */
+function reindexDraftLinesInPlace(lines: EstimateDraftLine[]): EstimateDraftLine[] {
+  return lines.map((line, index) => ({
     ...line,
     task: {
       ...line.task,
@@ -181,4 +195,112 @@ export function syncDraftLineDescription(draft: EstimateDraftLine): EstimateDraf
 
 export function cloneDraftLine(draft: EstimateDraftLine): EstimateDraftLine {
   return JSON.parse(JSON.stringify(draft)) as EstimateDraftLine;
+}
+
+function copyTitleLabel(title: string): string {
+  const trimmed = title.trim();
+  if (!trimmed) return 'copy';
+  return trimmed.toLowerCase().endsWith(' copy') ? trimmed : `${trimmed} copy`;
+}
+
+/** Apply default scope when division is known and scope is empty. */
+export function applyDivisionScopeDefaults(draft: EstimateDraftLine): EstimateDraftLine {
+  const divisionCode = normalizeCsiDivisionCode(draft.task.lineItem.csiDivision);
+  if (!divisionCode || !isKnownCsiDivision(divisionCode)) return draft;
+  if (normalizeScopeName(draft.task.scopeName)) return draft;
+
+  const defaultScope = getDefaultScopeForDivision(divisionCode);
+  if (!defaultScope) return draft;
+
+  return {
+    ...draft,
+    task: {
+      ...draft.task,
+      scopeName: defaultScope,
+    },
+  };
+}
+
+/** Ensure standard labor defaults on draft lines. */
+export function applyDraftLaborDefaults(draft: EstimateDraftLine): EstimateDraftLine {
+  const labor = draft.task.lineItem.labor;
+  return {
+    ...draft,
+    task: {
+      ...draft.task,
+      lineItem: {
+        ...draft.task.lineItem,
+        labor: {
+          ...labor,
+          hoursPerDay: labor.hoursPerDay > 0 ? labor.hoursPerDay : 8,
+          difficultyFactor: labor.difficultyFactor > 0 ? labor.difficultyFactor : 1,
+          locationFactor: labor.locationFactor > 0 ? labor.locationFactor : 1,
+        },
+      },
+    },
+  };
+}
+
+export function duplicateDraftLine(
+  lines: EstimateDraftLine[],
+  clientId: string,
+): EstimateDraftLine[] {
+  const sorted = sortDraftLinesByPosition(lines);
+  const index = sorted.findIndex((line) => line.clientId === clientId);
+  if (index < 0) return reindexDraftLines(lines);
+
+  const source = sorted[index];
+  const copy = cloneDraftLine(source);
+  const newTaskId = newLineItemId();
+
+  copy.clientId = newClientId();
+  copy.task.id = newTaskId;
+  copy.task.lineItem.id = newTaskId;
+  copy.task.title = copyTitleLabel(source.task.title);
+  copy.task.description = copy.task.title;
+  copy.task.lineItem.description = copy.task.title;
+
+  const next = [...sorted.slice(0, index + 1), copy, ...sorted.slice(index + 1)];
+  return reindexDraftLines(next);
+}
+
+export function moveDraftLineUp(
+  lines: EstimateDraftLine[],
+  clientId: string,
+): EstimateDraftLine[] {
+  const sorted = sortDraftLinesByPosition(lines);
+  const index = sorted.findIndex((line) => line.clientId === clientId);
+  if (index <= 0) return reindexDraftLines(lines);
+
+  const next = [...sorted];
+  [next[index - 1], next[index]] = [next[index], next[index - 1]];
+  return reindexDraftLinesInPlace(next);
+}
+
+export function moveDraftLineDown(
+  lines: EstimateDraftLine[],
+  clientId: string,
+): EstimateDraftLine[] {
+  const sorted = sortDraftLinesByPosition(lines);
+  const index = sorted.findIndex((line) => line.clientId === clientId);
+  if (index < 0 || index >= sorted.length - 1) return reindexDraftLines(lines);
+
+  const next = [...sorted];
+  [next[index], next[index + 1]] = [next[index + 1], next[index]];
+  return reindexDraftLinesInPlace(next);
+}
+
+export function getDraftLineMoveState(
+  lines: EstimateDraftLine[],
+  clientId: string,
+): { canMoveUp: boolean; canMoveDown: boolean } {
+  const sorted = sortDraftLinesByPosition(lines);
+  const index = sorted.findIndex((line) => line.clientId === clientId);
+  if (index < 0) {
+    return { canMoveUp: false, canMoveDown: false };
+  }
+  return {
+    canMoveUp: index > 0,
+    canMoveDown: index < sorted.length - 1,
+  };
 }

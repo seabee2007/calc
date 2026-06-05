@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import {
+  applyDraftLaborDefaults,
+  applyDivisionScopeDefaults,
   cloneDraftLine,
   createEmptyDraftLine,
   draftLinesFromVersion,
+  duplicateDraftLine,
+  moveDraftLineDown,
+  moveDraftLineUp,
   reindexDraftLines,
   sortDraftLinesByPosition,
   syncDraftLineDescription,
@@ -22,6 +27,9 @@ export interface UseEstimateLineItemDraftResult {
   updateFormDraft: (draft: EstimateDraftLine) => void;
   commitFormDraft: () => void;
   removeDraftLine: (clientId: string) => void;
+  duplicateDraftLine: (clientId: string) => void;
+  moveDraftLineUp: (clientId: string) => void;
+  moveDraftLineDown: (clientId: string) => void;
   /** Rehydrate draft from a saved version and clear dirty state. */
   rehydrateFromVersion: (nextVersion: EstimateDomainVersion) => void;
 }
@@ -54,7 +62,7 @@ export function useEstimateLineItemDraft(
   const openAddDrawer = useCallback(() => {
     const nextPosition = draftLines.length;
     setEditingClientId(null);
-    setFormDraft(createEmptyDraftLine(nextPosition));
+    setFormDraft(applyDraftLaborDefaults(createEmptyDraftLine(nextPosition)));
     setDrawerOpen(true);
   }, [draftLines.length]);
 
@@ -82,7 +90,9 @@ export function useEstimateLineItemDraft(
   const commitFormDraft = useCallback(() => {
     if (!formDraft) return;
 
-    const normalized = syncDraftLineDescription(formDraft);
+    const normalized = syncDraftLineDescription(
+      applyDivisionScopeDefaults(applyDraftLaborDefaults(formDraft)),
+    );
 
     setDraftLines((prev) => {
       if (editingClientId) {
@@ -100,6 +110,21 @@ export function useEstimateLineItemDraft(
 
   const removeDraftLine = useCallback((clientId: string) => {
     setDraftLines((prev) => reindexDraftLines(prev.filter((line) => line.clientId !== clientId)));
+    setDirty(true);
+  }, []);
+
+  const duplicateDraftLineById = useCallback((clientId: string) => {
+    setDraftLines((prev) => duplicateDraftLine(prev, clientId));
+    setDirty(true);
+  }, []);
+
+  const moveDraftLineUpById = useCallback((clientId: string) => {
+    setDraftLines((prev) => moveDraftLineUp(prev, clientId));
+    setDirty(true);
+  }, []);
+
+  const moveDraftLineDownById = useCallback((clientId: string) => {
+    setDraftLines((prev) => moveDraftLineDown(prev, clientId));
     setDirty(true);
   }, []);
 
@@ -129,6 +154,9 @@ export function useEstimateLineItemDraft(
     updateFormDraft,
     commitFormDraft,
     removeDraftLine,
+    duplicateDraftLine: duplicateDraftLineById,
+    moveDraftLineUp: moveDraftLineUpById,
+    moveDraftLineDown: moveDraftLineDownById,
     rehydrateFromVersion,
   };
 }

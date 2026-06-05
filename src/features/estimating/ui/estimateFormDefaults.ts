@@ -79,6 +79,41 @@ export function collectDraftFormWarnings(draft: EstimateDraftLine): DraftFormWar
   return warnings;
 }
 
+export interface DraftSummaryTotals {
+  lineCount: number;
+  laborHours: number;
+  manDays: number;
+  crewDays: number;
+  sellPrice: number;
+}
+
+function safeTotal(value: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+export function computeDraftSummaryTotals(draftLines: EstimateDraftLine[]): DraftSummaryTotals {
+  let laborHours = 0;
+  let manDays = 0;
+  let crewDays = 0;
+  let sellPrice = 0;
+
+  for (const draft of draftLines) {
+    const totals = computeLinePreviewTotals(draft);
+    laborHours += safeTotal(totals.laborHours);
+    manDays += safeTotal(totals.manDays);
+    crewDays += safeTotal(totals.crewDays);
+    sellPrice += safeTotal(totals.sellPrice);
+  }
+
+  return {
+    lineCount: draftLines.length,
+    laborHours,
+    manDays,
+    crewDays,
+    sellPrice,
+  };
+}
+
 export function computeLinePreviewTotals(draft: EstimateDraftLine): LinePreviewTotals {
   const { task } = draft;
   const lineSnapshot = buildEstimateLineSnapshot(task.lineItem);

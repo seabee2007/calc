@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyDivisionScopeDefaults,
   createEmptyDraftLine,
   draftLineFromDomainTask,
   draftLinesFromVersion,
+  duplicateDraftLine,
+  getDraftLineMoveState,
+  moveDraftLineDown,
+  moveDraftLineUp,
   reindexDraftLines,
   sortDraftLinesByPosition,
   syncDraftLineDescription,
@@ -116,5 +121,75 @@ describe('estimateDraftLine', () => {
 
     const synced = syncDraftLineDescription(draft);
     expect(synced.task.lineItem.description).toBe('Pour slab');
+  });
+
+  it('duplicateDraftLine copies fields with new ids and copy title', () => {
+    const lines = [
+      draftLineFromDomainTask(sampleTask({ id: 'a', position: 0, title: 'Pour slab' }), 'a'),
+      draftLineFromDomainTask(sampleTask({ id: 'b', position: 1, title: 'Finish slab' }), 'b'),
+    ];
+
+    const duplicated = duplicateDraftLine(lines, 'a');
+    expect(duplicated).toHaveLength(3);
+    expect(duplicated[0].clientId).toBe('a');
+    expect(duplicated[1].task.title).toBe('Pour slab copy');
+    expect(duplicated[1].clientId).not.toBe('a');
+    expect(duplicated[1].task.id).not.toBe('a');
+    expect(duplicated[1].task.position).toBe(1);
+    expect(duplicated[2].task.position).toBe(2);
+  });
+
+  it('moveDraftLineUp and moveDraftLineDown reorder and reindex positions', () => {
+    const lines = [
+      draftLineFromDomainTask(sampleTask({ id: 'a', position: 0, title: 'First' }), 'a'),
+      draftLineFromDomainTask(sampleTask({ id: 'b', position: 1, title: 'Second' }), 'b'),
+      draftLineFromDomainTask(sampleTask({ id: 'c', position: 2, title: 'Third' }), 'c'),
+    ];
+
+    const movedUp = moveDraftLineUp(lines, 'b');
+    expect(movedUp.map((line) => line.task.title)).toEqual(['Second', 'First', 'Third']);
+    expect(movedUp.map((line) => line.task.position)).toEqual([0, 1, 2]);
+
+    const movedDown = moveDraftLineDown(movedUp, 'b');
+    expect(movedDown.map((line) => line.task.title)).toEqual(['First', 'Second', 'Third']);
+  });
+
+  it('getDraftLineMoveState disables ends of the list', () => {
+    const lines = [
+      draftLineFromDomainTask(sampleTask({ id: 'a', position: 0 }), 'a'),
+      draftLineFromDomainTask(sampleTask({ id: 'b', position: 1 }), 'b'),
+    ];
+
+    expect(getDraftLineMoveState(lines, 'a')).toEqual({ canMoveUp: false, canMoveDown: true });
+    expect(getDraftLineMoveState(lines, 'b')).toEqual({ canMoveUp: true, canMoveDown: false });
+  });
+
+  it('reindexDraftLines normalizes positions after duplicate and remove', () => {
+    const lines = [
+      draftLineFromDomainTask(sampleTask({ id: 'a', position: 0 }), 'a'),
+      draftLineFromDomainTask(sampleTask({ id: 'b', position: 1 }), 'b'),
+    ];
+
+    const duplicated = duplicateDraftLine(lines, 'a');
+    const removed = reindexDraftLines(duplicated.filter((line) => line.clientId !== 'b'));
+    expect(removed.map((line) => line.task.position)).toEqual([0, 1]);
+  });
+
+  it('applyDivisionScopeDefaults sets Cast-in-Place Concrete for division 03', () => {
+    const draft = createEmptyDraftLine();
+    draft.task.lineItem.csiDivision = '03';
+    draft.task.scopeName = '';
+
+    const updated = applyDivisionScopeDefaults(draft);
+    expect(updated.task.scopeName).toBe('Cast-in-Place Concrete');
+  });
+
+  it('applyDivisionScopeDefaults preserves existing custom scope', () => {
+    const draft = createEmptyDraftLine();
+    draft.task.lineItem.csiDivision = '03';
+    draft.task.scopeName = 'Custom pour scope';
+
+    const updated = applyDivisionScopeDefaults(draft);
+    expect(updated.task.scopeName).toBe('Custom pour scope');
   });
 });

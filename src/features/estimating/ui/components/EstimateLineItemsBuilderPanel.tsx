@@ -4,28 +4,26 @@ import Button from '../../../../components/ui/Button';
 import DrawerPanel from '../../../../components/ui/DrawerPanel';
 import { PLANNER_DRAWER_FOOTER } from '../../../../components/planner/plannerTheme';
 import type { EstimateDomainVersion, EstimateSummary } from '../../infrastructure/estimateDbTypes';
-import { buildEstimateDraftSnapshot } from '../../application/buildEstimateDraftSnapshot';
+import { computeDraftSummaryTotals } from '../estimateFormDefaults';
+import type { EstimateLineItemsFilter } from '../../domain/estimateLineItemTree';
 import {
   filterGroupedEstimateLines,
   groupEstimateDraftLines,
   groupEstimateTasks,
 } from '../../application/estimateLineItemGrouping';
-import { rollupEstimateDraftLines, rollupEstimateTasks } from '../../application/estimateGroupRollups';
-import type { EstimateLineItemsFilter } from '../../domain/estimateLineItemTree';
 import type { UseEstimateLineItemDraftResult } from '../hooks/useEstimateLineItemDraft';
 import EstimateManualLineItemForm from './EstimateManualLineItemForm';
 import EstimateLineItemPreviewCard from './EstimateLineItemPreviewCard';
 import EstimateReadOnlyLineItemsTable from './EstimateReadOnlyLineItemsTable';
 import EstimateSummaryCard from './EstimateSummaryCard';
+import EstimateVersionSummary from './EstimateVersionSummary';
 import EstimateLineItemsFilterBar from './EstimateLineItemsFilterBar';
 import EstimateLineItemsGroupedView from './EstimateLineItemsGroupedView';
-import {
-  formatRollupStripCounts,
-  formatRollupStripTotals,
-} from '../estimateLineItemDisplay';
+import { formatDraftSummaryStrip } from '../estimateLineItemDisplay';
 import {
   formatEstimateCurrency,
   formatEstimateHours,
+  formatEstimateNumber,
 } from '../estimateFormatters';
 import {
   PLANNER_FORM_PANEL,
@@ -81,76 +79,27 @@ export default function EstimateLineItemsBuilderPanel({
     [draftGroups, savedGroups],
   );
 
-  const rollupStrip = useMemo(() => {
-    const draftTasks = filteredDraftGroups.flatMap((division) =>
-      division.scopes.flatMap((scope) => scope.items),
-    );
-    const savedTasks = filteredSavedGroups.flatMap((division) =>
-      division.scopes.flatMap((scope) => scope.items),
-    );
-
-    const draftRollup = rollupEstimateDraftLines(draftTasks);
-    const savedRollup = rollupEstimateTasks(savedTasks);
-
-    const divisionKeys = new Set<string>();
-    const scopeKeys = new Set<string>();
-    for (const division of [...filteredDraftGroups, ...filteredSavedGroups]) {
-      divisionKeys.add(division.key);
-      for (const scope of division.scopes) {
-        scopeKeys.add(`${division.key}::${scope.key}`);
-      }
-    }
-
-    return {
-      counts: {
-        divisionCount: divisionKeys.size,
-        scopeCount: scopeKeys.size,
-        taskCount: draftRollup.itemCount + savedRollup.itemCount,
-      },
-      totals: {
-        directCost: draftRollup.directCost + savedRollup.directCost,
-        sellPrice: draftRollup.sellPrice + savedRollup.sellPrice,
-        laborHours: draftRollup.laborHours + savedRollup.laborHours,
-      },
-    };
-  }, [filteredDraftGroups, filteredSavedGroups]);
-
-  const draftSnapshot = useMemo(() => {
-    if (draft.draftLines.length === 0) return null;
-    return buildEstimateDraftSnapshot({
-      estimateId: estimate.id,
-      projectId: estimate.projectId,
-      versionNumber: version.versionNumber,
-      estimateType: version.estimateType,
-      status: version.status,
-      draftLines: draft.draftLines,
-      pricing: version.snapshot.pricing,
-    });
-  }, [draft.draftLines, estimate.id, estimate.projectId, version]);
+  const draftSummaryTotals = useMemo(
+    () => computeDraftSummaryTotals(draft.draftLines),
+    [draft.draftLines],
+  );
 
   const draftSummary = useMemo(() => {
-    if (!draftSnapshot) {
-      return {
-        laborHours: '—',
-        directCost: '—',
-        sellPrice: '—',
-      };
-    }
-
-    let laborHours = 0;
-    for (const line of draftSnapshot.lineItems) {
-      laborHours += line.metrics.adjustedLaborHours;
-    }
-
+    const totals = draftSummaryTotals;
     return {
-      laborHours: laborHours > 0 ? formatEstimateHours(laborHours) : '—',
-      directCost: formatEstimateCurrency(draftSnapshot.totals.directCost),
-      sellPrice: formatEstimateCurrency(draftSnapshot.totals.finalSellPrice),
+      lineCount: String(totals.lineCount),
+      laborHours:
+        totals.laborHours > 0 ? formatEstimateHours(totals.laborHours) : '—',
+      manDays: totals.manDays > 0 ? formatEstimateNumber(totals.manDays, { decimals: 2 }) : '—',
+      crewDays: totals.crewDays > 0 ? formatEstimateNumber(totals.crewDays, { decimals: 2 }) : '—',
+      sellPrice: totals.sellPrice > 0 ? formatEstimateCurrency(totals.sellPrice) : '—',
     };
-  }, [draftSnapshot]);
+  }, [draftSummaryTotals]);
 
   const drawerTitle = draft.editingClientId ? 'Edit line item' : 'Add line item';
   const hasAnyLineItems = draft.draftLines.length > 0 || version.lineItems.length > 0;
+  const showFirstLineEmptyState =
+    draft.draftLines.length === 0 && version.lineItems.length === 0;
 
   return (
     <div className="space-y-4">
@@ -194,6 +143,21 @@ export default function EstimateLineItemsBuilderPanel({
         </div>
       </div>
 
+      {showFirstLineEmptyState ? (
+        <div className={`${PLANNER_FORM_PANEL} space-y-3 text-sm ${PLANNER_MUTED}`}>
+          <p>Start by adding your first estimate line item.</p>
+          <Button
+            variant="accent"
+            size="sm"
+            icon={<Plus className="h-4 w-4" />}
+            disabled={!canEdit}
+            onClick={draft.openAddDrawer}
+          >
+            Add line item
+          </Button>
+        </div>
+      ) : null}
+
       {hasAnyLineItems ? (
         <>
           <EstimateLineItemsFilterBar
@@ -201,62 +165,55 @@ export default function EstimateLineItemsBuilderPanel({
             filter={filter}
             onFilterChange={setFilter}
           />
-          <div
-            className={`rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/50 ${TEXT_FOREGROUND}`}
-          >
-            <p className="font-medium">{formatRollupStripCounts(rollupStrip.counts)}</p>
-            <p className={`text-xs tabular-nums ${PLANNER_MUTED}`}>
-              {formatRollupStripTotals({
-                directCost: rollupStrip.totals.directCost,
-                sellPrice: rollupStrip.totals.sellPrice,
-                itemCount: rollupStrip.counts.taskCount,
-                laborHours: rollupStrip.totals.laborHours,
-                manDays: 0,
-                crewDays: 0,
-                durationDays: 0,
-                materialCost: 0,
-                equipmentCost: 0,
-                subcontractorCost: 0,
-                indirectCost: 0,
-                scheduleEnabledCount: 0,
-                weatherSensitiveCount: 0,
-                inspectionRequiredCount: 0,
-              })}
-            </p>
-          </div>
         </>
+      ) : null}
+
+      {draft.draftLines.length > 0 ? (
+        <div
+          className={`rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/50 ${TEXT_FOREGROUND}`}
+        >
+          <p className="font-medium">{formatDraftSummaryStrip(draftSummaryTotals)}</p>
+        </div>
       ) : null}
 
       <div className="space-y-2">
         <h3 className={PLANNER_SECTION_TITLE}>Draft line items</h3>
         {draft.draftLines.length === 0 ? (
           <div className={`${PLANNER_FORM_PANEL} text-sm ${PLANNER_MUTED}`}>
-            No draft line items yet. Add a line item to build your estimate locally.
+            {showFirstLineEmptyState
+              ? 'Draft line items will appear here after you add your first line.'
+              : 'No draft line items yet. Add a line item to build your estimate locally.'}
           </div>
         ) : (
           <EstimateLineItemsGroupedView
             mode="draft"
             groups={filteredDraftGroups}
+            allDraftLines={draft.draftLines}
             emptyMessage="No draft line items match the current filters."
             onEditDraft={draft.openEditDrawer}
             onRemoveDraft={draft.removeDraftLine}
+            onDuplicateDraft={draft.duplicateDraftLine}
+            onMoveDraftUp={draft.moveDraftLineUp}
+            onMoveDraftDown={draft.moveDraftLineDown}
           />
         )}
       </div>
 
       {draft.draftLines.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <EstimateSummaryCard label="Draft labor hours" value={draftSummary.laborHours} />
-          <EstimateSummaryCard label="Draft direct cost" value={draftSummary.directCost} />
-          <EstimateSummaryCard label="Draft sell price" value={draftSummary.sellPrice} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <EstimateSummaryCard label="Total draft lines" value={draftSummary.lineCount} />
+          <EstimateSummaryCard label="Total labor hours" value={draftSummary.laborHours} />
+          <EstimateSummaryCard label="Total man-days" value={draftSummary.manDays} />
+          <EstimateSummaryCard label="Total crew-days" value={draftSummary.crewDays} />
+          <EstimateSummaryCard label="Total sell price" value={draftSummary.sellPrice} />
         </div>
       ) : null}
 
-      <div className="space-y-2 pt-2">
+      <div className="space-y-3 pt-2">
         <h3 className={PLANNER_SECTION_TITLE}>Current saved version</h3>
+        <EstimateVersionSummary estimate={estimate} version={version} compact />
         <p className={`text-sm ${PLANNER_MUTED}`}>
-          Read-only snapshot from version {version.versionNumber}. Draft edits above do not change
-          saved data until you save a new version.
+          Draft edits above do not change saved data until you save a new version.
         </p>
         <EstimateReadOnlyLineItemsTable
           lineItems={version.lineItems}

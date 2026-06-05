@@ -52,3 +52,21 @@ export function formatRollupStripTotals(rollup: EstimateGroupRollup): string {
 export function formatManDays(value: number): string {
   return value > 0 ? formatEstimateNumber(value, { decimals: 2 }) : '0';
 }
+
+export function formatDraftSummaryStrip(totals: {
+  lineCount: number;
+  laborHours: number;
+  manDays: number;
+  crewDays: number;
+  sellPrice: number;
+}): string {
+  const parts = [
+    `${totals.lineCount} draft line${totals.lineCount === 1 ? '' : 's'}`,
+    totals.laborHours > 0 ? formatEstimateHours(totals.laborHours) : null,
+    totals.manDays > 0 ? `${formatManDays(totals.manDays)} man-days` : null,
+    totals.crewDays > 0 ? `${formatManDays(totals.crewDays)} crew-days` : null,
+    totals.sellPrice > 0 ? formatEstimateCurrency(totals.sellPrice) : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' · ') : '0 draft lines';
+}

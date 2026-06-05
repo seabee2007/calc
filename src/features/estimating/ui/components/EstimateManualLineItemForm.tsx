@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
-import type { EstimateDraftLine } from '../../application/estimateDraftLine';
+import {
+  applyDivisionScopeDefaults,
+  applyDraftLaborDefaults,
+  type EstimateDraftLine,
+} from '../../application/estimateDraftLine';
 import {
   getCsiDivisionLabel,
   getCsiDivisionOptions,
@@ -139,21 +143,30 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
       (storedScope !== '' &&
         !isKnownScopeTemplate(divisionForScopeTemplates, storedScope)));
 
+  const emitChange = (next: EstimateDraftLine) => {
+    onChange(applyDivisionScopeDefaults(applyDraftLaborDefaults(next)));
+  };
+
   const patchTask = (patch: Partial<EstimateDraftLine['task']>) => {
-    onChange({
+    emitChange({
       ...draft,
       task: { ...task, ...patch },
     });
   };
 
   const patchLineItem = (patch: Partial<EstimateDraftLine['task']['lineItem']>) => {
-    onChange({
+    const next = {
       ...draft,
       task: {
         ...task,
         lineItem: { ...task.lineItem, ...patch },
       },
-    });
+    };
+    emitChange(
+      patch.csiDivision !== undefined
+        ? applyDivisionScopeDefaults(next)
+        : next,
+    );
   };
 
   const patchQuantity = (patch: Partial<EstimateDraftLine['task']['lineItem']['quantity']>) => {

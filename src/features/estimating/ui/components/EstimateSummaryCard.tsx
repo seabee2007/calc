@@ -15,12 +15,14 @@ export default function EstimateSummaryCard({
   loading = false,
 }: Props) {
   return (
-    <Card variant="panel" shadow="sm" className="p-4">
+    <Card variant="panel" shadow="sm" className="min-w-0 p-4">
       <p className={`text-xs font-semibold uppercase tracking-wide ${PLANNER_MUTED}`}>{label}</p>
       {loading ? (
         <div className="mt-3 h-6 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
       ) : (
-        <p className={`mt-2 text-lg font-semibold tabular-nums ${TEXT_FOREGROUND}`}>{value}</p>
+        <p className={`mt-2 truncate text-lg font-semibold tabular-nums ${TEXT_FOREGROUND}`}>
+          {value}
+        </p>
       )}
     </Card>
   );

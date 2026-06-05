@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Pencil, Trash2 } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import { computeLinePreviewTotals } from '../estimateFormDefaults';
 import {
@@ -18,6 +18,11 @@ interface Props {
   draft: EstimateDraftLine;
   onEdit: () => void;
   onRemove: () => void;
+  onDuplicate?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
   /** When true, hide CSI/scope columns (shown on parent group headers). */
   nested?: boolean;
 }
@@ -26,6 +31,11 @@ export default function EstimateDraftLineRow({
   draft,
   onEdit,
   onRemove,
+  onDuplicate,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
   nested = false,
 }: Props) {
   const { task } = draft;
@@ -37,24 +47,32 @@ export default function EstimateDraftLineRow({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 sm:flex-row sm:items-center sm:justify-between ${PLANNER_TABLE_ROW}`}
+      className={`flex min-w-0 flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 sm:flex-row sm:items-center sm:justify-between ${PLANNER_TABLE_ROW}`}
     >
-      <div className={`min-w-0 flex-1 ${gridClass}`}>
+      <div className={`min-w-0 flex-1 overflow-hidden ${gridClass}`}>
         {!nested ? (
           <>
-            <div>
+            <div className="min-w-0">
               <p className={`text-xs ${PLANNER_MUTED}`}>CSI</p>
-              <p className={TEXT_FOREGROUND}>{formatEstimateBlank(task.lineItem.csiDivision)}</p>
+              <p className={`truncate ${TEXT_FOREGROUND}`}>
+                {formatEstimateBlank(task.lineItem.csiDivision)}
+              </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className={`text-xs ${PLANNER_MUTED}`}>Scope</p>
-              <p className={TEXT_FOREGROUND}>{formatEstimateBlank(task.scopeName)}</p>
+              <p className={`truncate ${TEXT_FOREGROUND}`}>
+                {formatEstimateBlank(task.scopeName)}
+              </p>
             </div>
           </>
         ) : null}
-        <div className={nested ? 'col-span-2 sm:col-span-1' : 'col-span-2 sm:col-span-1 lg:col-span-2'}>
+        <div
+          className={
+            nested ? 'col-span-2 min-w-0 sm:col-span-1' : 'col-span-2 min-w-0 sm:col-span-1 lg:col-span-2'
+          }
+        >
           <p className={`text-xs ${PLANNER_MUTED}`}>Task</p>
-          <p className={`font-medium ${TEXT_FOREGROUND}`}>
+          <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>
             {formatEstimateBlank(task.title || task.lineItem.description)}
           </p>
         </div>
@@ -79,7 +97,45 @@ export default function EstimateDraftLineRow({
         </div>
       </div>
 
-      <div className="flex shrink-0 gap-2">
+      <div className="flex min-w-0 shrink-0 flex-wrap gap-2">
+        {onMoveUp ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            icon={<ArrowUp className="h-4 w-4" />}
+            disabled={!canMoveUp}
+            title="Move line up"
+            onClick={onMoveUp}
+          >
+            Up
+          </Button>
+        ) : null}
+        {onMoveDown ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            icon={<ArrowDown className="h-4 w-4" />}
+            disabled={!canMoveDown}
+            title="Move line down"
+            onClick={onMoveDown}
+          >
+            Down
+          </Button>
+        ) : null}
+        {onDuplicate ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            icon={<Copy className="h-4 w-4" />}
+            title="Duplicate line item"
+            onClick={onDuplicate}
+          >
+            Duplicate
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="outline"

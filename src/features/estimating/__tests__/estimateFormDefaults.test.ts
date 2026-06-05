@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createEmptyDraftLine, draftLineFromDomainTask } from '../application/estimateDraftLine';
 import {
   collectDraftFormWarnings,
+  computeDraftSummaryTotals,
   computeLinePreviewTotals,
   parseEstimateFormNumber,
   PRODUCTION_RATE_TYPE_OPTIONS,
@@ -101,5 +102,55 @@ describe('estimateFormDefaults', () => {
     const totals = computeLinePreviewTotals(draft);
     expect(totals.laborHours).toBe(10);
     expect(totals.laborCost).toBe(400);
+  });
+
+  it('computeDraftSummaryTotals aggregates draft lines safely', () => {
+    const first = createEmptyDraftLine(0, 'line-a');
+    first.task.title = 'Line A';
+    first.task.lineItem.quantity.quantity = 10;
+    first.task.lineItem.labor = {
+      productionRate: 5,
+      productionRateType: 'units_per_labor_hour',
+      hoursPerDay: 8,
+      crewSize: 2,
+      laborRate: 40,
+      burdenPercent: 0,
+      difficultyFactor: 1,
+      locationFactor: 1,
+    };
+
+    const second = createEmptyDraftLine(1, 'line-b');
+    second.task.title = 'Line B';
+    second.task.lineItem.quantity.quantity = 20;
+    second.task.lineItem.labor = {
+      productionRate: 10,
+      productionRateType: 'units_per_labor_hour',
+      hoursPerDay: 8,
+      crewSize: 1,
+      laborRate: 35,
+      burdenPercent: 0,
+      difficultyFactor: 1,
+      locationFactor: 1,
+    };
+
+    const summary = computeDraftSummaryTotals([first, second]);
+
+    expect(summary.lineCount).toBe(2);
+    expect(summary.laborHours).toBeGreaterThan(0);
+    expect(Number.isFinite(summary.manDays)).toBe(true);
+    expect(Number.isFinite(summary.crewDays)).toBe(true);
+    expect(Number.isFinite(summary.sellPrice)).toBe(true);
+    expect(summary.sellPrice).toBeGreaterThan(0);
+  });
+
+  it('computeDraftSummaryTotals returns zeros for empty draft list', () => {
+    const summary = computeDraftSummaryTotals([]);
+    expect(summary).toEqual({
+      lineCount: 0,
+      laborHours: 0,
+      manDays: 0,
+      crewDays: 0,
+      sellPrice: 0,
+    });
   });
 });
