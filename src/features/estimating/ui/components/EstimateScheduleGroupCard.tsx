@@ -1,4 +1,4 @@
-import type { EstimateScheduleGroup } from '../../domain/estimateScheduleTypes';
+import type { PlannedEstimateScheduleGroup } from '../../application/estimateScheduleDatePlanner';
 import { formatScheduleGroupLabel } from '../estimateScheduleDisplay';
 import { formatEstimateNumber } from '../estimateFormatters';
 import {
@@ -10,7 +10,7 @@ import {
 import EstimateScheduleTaskCandidateCard from './EstimateScheduleTaskCandidateCard';
 
 interface Props {
-  division: EstimateScheduleGroup;
+  division: PlannedEstimateScheduleGroup;
 }
 
 export default function EstimateScheduleGroupCard({ division }: Props) {

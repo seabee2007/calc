@@ -4,6 +4,7 @@ import {
   formatScheduleDays,
   formatScheduleDurationDays,
   formatScheduleLaborHours,
+  formatSchedulePlannedDate,
   formatScheduleTradeActivity,
   formatScheduleWarningList,
 } from '../estimateScheduleDisplay';
@@ -15,8 +16,16 @@ import {
   TEXT_FOREGROUND,
 } from '../estimateWorkspaceTheme';
 
+type ScheduleTaskCandidateForDisplay = Omit<
+  EstimateScheduleTaskCandidate,
+  'plannedStartDate' | 'plannedEndDate'
+> & {
+  plannedStartDate: string | null;
+  plannedEndDate: string | null;
+};
+
 interface Props {
-  candidate: EstimateScheduleTaskCandidate;
+  candidate: ScheduleTaskCandidateForDisplay;
 }
 
 export default function EstimateScheduleTaskCandidateCard({ candidate }: Props) {
@@ -45,7 +54,25 @@ export default function EstimateScheduleTaskCandidateCard({ candidate }: Props) 
         </div>
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+        <div>
+          <dt className={PLANNER_MUTED}>Planned start</dt>
+          <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
+            {formatSchedulePlannedDate(candidate.plannedStartDate)}
+          </dd>
+        </div>
+        <div>
+          <dt className={PLANNER_MUTED}>Planned end</dt>
+          <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
+            {formatSchedulePlannedDate(candidate.plannedEndDate)}
+          </dd>
+        </div>
+        <div>
+          <dt className={PLANNER_MUTED}>Duration</dt>
+          <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
+            {formatScheduleDurationDays(candidate.labor.durationDays)}
+          </dd>
+        </div>
         <div>
           <dt className={PLANNER_MUTED}>Labor hours</dt>
           <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
@@ -64,12 +91,6 @@ export default function EstimateScheduleTaskCandidateCard({ candidate }: Props) 
           <dt className={PLANNER_MUTED}>Crew-days</dt>
           <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
             {formatScheduleDays(candidate.labor.crewDays)}
-          </dd>
-        </div>
-        <div>
-          <dt className={PLANNER_MUTED}>Duration</dt>
-          <dd className={`mt-0.5 font-medium tabular-nums ${TEXT_BODY}`}>
-            {formatScheduleDurationDays(candidate.labor.durationDays)}
           </dd>
         </div>
       </dl>

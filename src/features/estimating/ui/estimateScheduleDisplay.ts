@@ -1,4 +1,8 @@
 import type {
+  EstimateScheduleDatePlanResult,
+  EstimateScheduleDependencyMode,
+} from '../application/estimateScheduleDatePlanner';
+import type {
   EstimateSchedulePlan,
   EstimateScheduleTaskCandidate,
   EstimateScheduleWarning,
@@ -154,4 +158,113 @@ export function formatScheduleTradeActivity(
   const parts = [trade?.trim(), activity?.trim()].filter((part) => part && part.length > 0);
   if (parts.length === 0) return ESTIMATE_BLANK;
   return parts.join(' · ');
+}
+
+export interface ScheduleDependencyModeOption {
+  value: EstimateScheduleDependencyMode;
+  label: string;
+  description: string;
+}
+
+export function listScheduleDependencyModeOptions(): ScheduleDependencyModeOption[] {
+  return [
+    {
+      value: 'sequential_by_project',
+      label: 'Sequential across project',
+      description: 'Chain every schedulable task finish-to-start across divisions and scopes.',
+    },
+    {
+      value: 'sequential_by_scope',
+      label: 'Sequential by scope',
+      description: 'Chain tasks within each scope; each scope starts on the project start date.',
+    },
+    {
+      value: 'none',
+      label: 'All tasks start together',
+      description: 'Every schedulable task begins on the project start date.',
+    },
+  ];
+}
+
+export function formatSchedulePlannedDate(value: string | null | undefined): string {
+  if (value == null) return ESTIMATE_BLANK;
+  const trimmed = value.trim();
+  if (!trimmed) return ESTIMATE_BLANK;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (!match) return ESTIMATE_BLANK;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const parsed = new Date(Date.UTC(year, month, day));
+
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month ||
+    parsed.getUTCDate() !== day
+  ) {
+    return ESTIMATE_BLANK;
+  }
+
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+export interface EstimateScheduleDatePlanSummary {
+  plannedProjectStart: string | null;
+  plannedProjectFinish: string | null;
+  totalPlannedDurationDays: number;
+  scheduledTaskCount: number;
+  excludedTaskCount: number;
+  plannedProjectStartDisplay: string;
+  plannedProjectFinishDisplay: string;
+  totalPlannedDurationDaysDisplay: string;
+  scheduledTaskCountDisplay: string;
+  excludedTaskCountDisplay: string;
+}
+
+export function extractScheduleDatePlanSummary(
+  datePlanResult: EstimateScheduleDatePlanResult | null,
+  basePlan: EstimateSchedulePlan | null,
+): EstimateScheduleDatePlanSummary {
+  const scheduledTaskCount = basePlan?.meta.scheduleEnabledTaskCount ?? 0;
+  const excludedTaskCount = basePlan?.meta.excludedTaskCount ?? 0;
+
+  if (!datePlanResult) {
+    return {
+      plannedProjectStart: null,
+      plannedProjectFinish: null,
+      totalPlannedDurationDays: 0,
+      scheduledTaskCount,
+      excludedTaskCount,
+      plannedProjectStartDisplay: ESTIMATE_BLANK,
+      plannedProjectFinishDisplay: ESTIMATE_BLANK,
+      totalPlannedDurationDaysDisplay: ESTIMATE_BLANK,
+      scheduledTaskCountDisplay: formatEstimateNumber(scheduledTaskCount, { decimals: 0 }),
+      excludedTaskCountDisplay: formatEstimateNumber(excludedTaskCount, { decimals: 0 }),
+    };
+  }
+
+  const totalPlannedDurationDays = toFiniteNumber(datePlanResult.totalPlannedDurationDays);
+
+  return {
+    plannedProjectStart: datePlanResult.plannedProjectStart,
+    plannedProjectFinish: datePlanResult.plannedProjectFinish,
+    totalPlannedDurationDays,
+    scheduledTaskCount,
+    excludedTaskCount,
+    plannedProjectStartDisplay: formatSchedulePlannedDate(datePlanResult.plannedProjectStart),
+    plannedProjectFinishDisplay: formatSchedulePlannedDate(datePlanResult.plannedProjectFinish),
+    totalPlannedDurationDaysDisplay:
+      totalPlannedDurationDays > 0
+        ? `${formatEstimateNumber(totalPlannedDurationDays, { decimals: 0 })} days`
+        : ESTIMATE_BLANK,
+    scheduledTaskCountDisplay: formatEstimateNumber(scheduledTaskCount, { decimals: 0 }),
+    excludedTaskCountDisplay: formatEstimateNumber(excludedTaskCount, { decimals: 0 }),
+  };
 }

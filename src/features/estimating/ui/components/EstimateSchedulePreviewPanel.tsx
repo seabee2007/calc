@@ -1,9 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import { buildEstimateSchedulePlan } from '../../application/buildEstimateSchedulePlan';
+import {
+  planEstimateScheduleDates,
+  type EstimateScheduleDependencyMode,
+} from '../../application/estimateScheduleDatePlanner';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import {
+  extractScheduleDatePlanSummary,
   extractSchedulePreviewSummary,
   hasSchedulableSchedulePreview,
 } from '../estimateScheduleDisplay';
@@ -16,6 +21,10 @@ import {
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
 import EstimateSummaryCard from './EstimateSummaryCard';
 import EstimateScheduleGroupCard from './EstimateScheduleGroupCard';
+import EstimateSchedulePlanControls, {
+  type EstimateSchedulePlanControlValues,
+} from './EstimateSchedulePlanControls';
+import EstimateSchedulePlanSummary from './EstimateSchedulePlanSummary';
 
 const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
 
@@ -25,6 +34,14 @@ const NO_SCHEDULABLE_MESSAGE =
 const PREVIEW_NOTE =
   'This is a schedule preview only. It has not been published to the Planner schedule.';
 
+function getTodayScheduleDateYmd(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 interface Props {
   version: EstimateDomainVersion | null;
   estimateId: string;
@@ -32,7 +49,7 @@ interface Props {
   loading?: boolean;
 }
 
-const SUMMARY_CARDS = [
+const LABOR_SUMMARY_CARDS = [
   { key: 'schedulableTasksDisplay', label: 'Schedulable tasks' },
   { key: 'excludedTasksDisplay', label: 'Excluded tasks' },
   { key: 'totalLaborHoursDisplay', label: 'Total labor hours' },
@@ -47,6 +64,12 @@ export default function EstimateSchedulePreviewPanel({
   projectId,
   loading = false,
 }: Props) {
+  const [planControls, setPlanControls] = useState<EstimateSchedulePlanControlValues>(() => ({
+    projectStartDate: getTodayScheduleDateYmd(),
+    dependencyMode: 'sequential_by_project' satisfies EstimateScheduleDependencyMode,
+    includeWeekends: false,
+  }));
+
   const plan = useMemo(() => {
     if (!version) return null;
     return buildEstimateSchedulePlan({
@@ -56,7 +79,24 @@ export default function EstimateSchedulePreviewPanel({
     });
   }, [version, estimateId, projectId]);
 
-  const summary = useMemo(() => extractSchedulePreviewSummary(plan), [plan]);
+  const datePlanResult = useMemo(() => {
+    if (!plan) return null;
+    return planEstimateScheduleDates(plan, {
+      projectStartDate: planControls.projectStartDate,
+      dependencyMode: planControls.dependencyMode,
+      includeWeekends: planControls.includeWeekends,
+    });
+  }, [plan, planControls]);
+
+  const laborSummary = useMemo(() => extractSchedulePreviewSummary(plan), [plan]);
+  const datePlanSummary = useMemo(
+    () => extractScheduleDatePlanSummary(datePlanResult, plan),
+    [datePlanResult, plan],
+  );
+
+  const handlePlanControlsChange = (patch: Partial<EstimateSchedulePlanControlValues>) => {
+    setPlanControls((current) => ({ ...current, ...patch }));
+  };
 
   if (!loading && !version) {
     return (
@@ -101,15 +141,29 @@ export default function EstimateSchedulePreviewPanel({
         <p className={PLANNER_MUTED}>{PREVIEW_NOTE}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {SUMMARY_CARDS.map((card) => (
-          <EstimateSummaryCard
-            key={card.key}
-            label={card.label}
-            value={summary[card.key]}
-            loading={loading}
-          />
-        ))}
+      <EstimateSchedulePlanControls
+        values={planControls}
+        onChange={handlePlanControlsChange}
+        disabled={loading}
+      />
+
+      <div className="space-y-2">
+        <h3 className={PLANNER_SECTION_TITLE}>Planned schedule summary</h3>
+        <EstimateSchedulePlanSummary summary={datePlanSummary} loading={loading} />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className={PLANNER_SECTION_TITLE}>Labor rollup summary</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {LABOR_SUMMARY_CARDS.map((card) => (
+            <EstimateSummaryCard
+              key={card.key}
+              label={card.label}
+              value={laborSummary[card.key]}
+              loading={loading}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -124,7 +178,7 @@ export default function EstimateSchedulePreviewPanel({
             ))}
           </div>
         ) : (
-          plan?.divisions.map((division) => (
+          datePlanResult?.plan.divisions.map((division) => (
             <EstimateScheduleGroupCard key={division.key} division={division} />
           ))
         )}
