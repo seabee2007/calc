@@ -5,6 +5,8 @@ import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import Button from '../../../components/ui/Button';
 import { createDraftEstimate } from '../application/createDraftEstimate';
+import { DEFAULT_ESTIMATE_METHOD } from '../domain/estimateMethods';
+import type { EstimateType } from '../domain/estimateTypes';
 import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
 import type {
   EstimateDomainVersion,
@@ -30,6 +32,11 @@ import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilder
 import EstimateVersionSummary from './components/EstimateVersionSummary';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
+import EstimateMethodSelector from './components/EstimateMethodSelector';
+import {
+  ROUGH_SCHEDULE_PREVIEW_NOTE,
+  shouldShowRoughSchedulePreviewNote,
+} from './estimateMethodDisplay';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import {
   PLANNER_FORM_PANEL,
@@ -132,6 +139,9 @@ export default function EstimateWorkspacePage() {
   const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
   const [version, setVersion] = useState<EstimateDomainVersion | null>(null);
   const [versionHistory, setVersionHistory] = useState<EstimateVersionRow[]>([]);
+  const [selectedEstimateMethod, setSelectedEstimateMethod] = useState<EstimateType>(
+    DEFAULT_ESTIMATE_METHOD,
+  );
   const lineItemDraft = useEstimateLineItemDraft(version);
 
   const versionHistoryItems = useMemo(
@@ -212,6 +222,7 @@ export default function EstimateWorkspacePage() {
     const result = await createDraftEstimate({
       projectId: resolvedProjectId,
       createdBy: user?.id ?? null,
+      estimateType: selectedEstimateMethod,
     });
 
     if (result.error) {
@@ -223,7 +234,7 @@ export default function EstimateWorkspacePage() {
     setSuccessMessage('Draft estimate and initial version created successfully.');
     await loadEstimateData(true);
     setCreating(false);
-  }, [resolvedProjectId, creating, estimate, user?.id, loadEstimateData]);
+  }, [resolvedProjectId, creating, estimate, user?.id, loadEstimateData, selectedEstimateMethod]);
 
   const canSave =
     estimate != null &&
@@ -314,6 +325,7 @@ export default function EstimateWorkspacePage() {
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         <EstimateWorkspaceHeader
           estimateStatus={estimate?.status}
+          estimateType={version?.estimateType ?? null}
           hasEstimate={hasEstimate}
           creating={creating}
           dataLoading={dataLoading}
@@ -373,7 +385,14 @@ export default function EstimateWorkspacePage() {
         ) : null}
 
         {!dataLoading && !hasEstimate && !loadError ? (
-          <EstimateWorkspaceEmptyState />
+          <div className="space-y-4">
+            <EstimateMethodSelector
+              value={selectedEstimateMethod}
+              onChange={setSelectedEstimateMethod}
+              disabled={creating}
+            />
+            <EstimateWorkspaceEmptyState />
+          </div>
         ) : null}
 
         {!dataLoading && hasEstimate ? (
@@ -420,12 +439,19 @@ export default function EstimateWorkspacePage() {
             )}
 
             {activeTab === 'schedule-preview' && estimate ? (
-              <EstimateSchedulePreviewPanel
-                version={hasVersion ? version : null}
-                estimateId={estimate.id}
-                projectId={estimate.projectId}
-                loading={dataLoading}
-              />
+              <div className="space-y-4">
+                {version && shouldShowRoughSchedulePreviewNote(version.estimateType) ? (
+                  <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
+                    <p className={PLANNER_MUTED}>{ROUGH_SCHEDULE_PREVIEW_NOTE}</p>
+                  </div>
+                ) : null}
+                <EstimateSchedulePreviewPanel
+                  version={hasVersion ? version : null}
+                  estimateId={estimate.id}
+                  projectId={estimate.projectId}
+                  loading={dataLoading}
+                />
+              </div>
             ) : null}
 
             {activeTab === 'versions' && (

@@ -1,15 +1,18 @@
 import { Plus, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import FieldRecordStatusBadge from '../../../../components/field/FieldRecordStatusBadge';
-import type { EstimateStatus } from '../../domain/estimateTypes';
+import type { EstimateStatus, EstimateType } from '../../domain/estimateTypes';
+import { formatEstimateMethodLabel } from '../estimateMethodDisplay';
 import {
   BADGE_BASE,
   BADGE_INFO,
   PLANNER_MUTED,
+  TEXT_BODY,
 } from '../estimateWorkspaceTheme';
 
 interface Props {
   estimateStatus?: EstimateStatus | null;
+  estimateType?: EstimateType | null;
   hasEstimate?: boolean;
   creating?: boolean;
   dataLoading?: boolean;
@@ -22,6 +25,7 @@ interface Props {
 
 export default function EstimateWorkspaceHeader({
   estimateStatus,
+  estimateType = null,
   hasEstimate = false,
   creating = false,
   dataLoading = false,
@@ -41,8 +45,18 @@ export default function EstimateWorkspaceHeader({
         ) : (
           <span className={`${BADGE_BASE} ${BADGE_INFO}`}>Draft</span>
         )}
+        {hasEstimate && estimateType ? (
+          <span className={`${BADGE_BASE} ${BADGE_INFO}`}>
+            {formatEstimateMethodLabel(estimateType)}
+          </span>
+        ) : null}
         {draftDirty ? (
           <span className={`text-xs ${PLANNER_MUTED}`}>Unsaved draft line items</span>
+        ) : null}
+        {!hasEstimate ? (
+          <span className={`text-xs ${TEXT_BODY} ${PLANNER_MUTED}`}>
+            Select an estimate method below, then create the draft.
+          </span>
         ) : null}
       </div>
 

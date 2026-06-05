@@ -1,3 +1,5 @@
+import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
+import type { EstimateType } from '../domain/estimateTypes';
 import type { EstimateSummary, EstimateVersionRow, RepositoryResult } from '../infrastructure/estimateDbTypes';
 import {
   createEstimate,
@@ -9,6 +11,7 @@ import { EMPTY_ESTIMATE_SNAPSHOT_JSON, EMPTY_ESTIMATE_TOTALS_JSON } from '../ui/
 export interface CreateDraftEstimateParams {
   projectId: string;
   createdBy?: string | null;
+  estimateType?: EstimateType;
 }
 
 export interface CreateDraftEstimateResult {
@@ -48,13 +51,14 @@ export async function createDraftEstimate(
   }
 
   const estimate = estimateResult.data;
+  const estimateType = normalizeEstimateMethod(params.estimateType ?? DEFAULT_ESTIMATE_METHOD);
 
   const versionResult = await deps.createEstimateVersion({
     estimateId: estimate.id,
     projectId: params.projectId,
     versionNumber: 1,
     versionName: 'Initial Draft',
-    estimateType: 'detailed',
+    estimateType,
     status: 'draft',
     snapshot: EMPTY_ESTIMATE_SNAPSHOT_JSON,
     totals: EMPTY_ESTIMATE_TOTALS_JSON,

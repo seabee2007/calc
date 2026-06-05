@@ -5,8 +5,12 @@ import type { EstimateSummary } from '../../infrastructure/estimateDbTypes';
 import {
   formatEstimateBlank,
   formatEstimateCurrency,
-  formatEstimateTypeLabel,
 } from '../estimateFormatters';
+import {
+  formatEstimateMethodLabel,
+  formatEstimateMethodShortDescription,
+  getEstimateMethodWorkflowNote,
+} from '../estimateMethodDisplay';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -103,10 +107,16 @@ export default function EstimateVersionSummary({
               {version.versionName} (v{version.versionNumber})
             </dd>
           </div>
-          <div>
-            <dt className={PLANNER_MUTED}>Estimate type</dt>
-            <dd className={`mt-0.5 font-medium capitalize ${TEXT_BODY}`}>
-              {formatEstimateTypeLabel(version.estimateType)}
+          <div className="sm:col-span-2">
+            <dt className={PLANNER_MUTED}>Estimate method</dt>
+            <dd className={`mt-0.5 font-medium ${TEXT_BODY}`}>
+              {formatEstimateMethodLabel(version.estimateType)}
+            </dd>
+            <dd className={`mt-1 text-xs ${PLANNER_MUTED}`}>
+              {formatEstimateMethodShortDescription(version.estimateType)}
+            </dd>
+            <dd className={`mt-1 text-xs ${TEXT_BODY}`}>
+              {getEstimateMethodWorkflowNote(version.estimateType)}
             </dd>
           </div>
           <div>

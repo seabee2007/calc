@@ -1,3 +1,4 @@
+import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
 import { buildEstimateDraftSnapshot } from './buildEstimateDraftSnapshot';
 import type { EstimateDraftLine } from './estimateDraftLine';
 import { sortDraftLinesByPosition } from './estimateDraftLine';
@@ -95,12 +96,15 @@ export async function saveEstimateVersionWithLineItems(
   const nextVersionNumber = computeNextVersionNumber(versionsResult.data);
   const versionName = `Draft v${nextVersionNumber}`;
   const sortedDraftLines = sortDraftLinesByPosition(params.draftLines);
+  const estimateType = normalizeEstimateMethod(
+    params.currentVersion.estimateType ?? DEFAULT_ESTIMATE_METHOD,
+  );
 
   const snapshot = buildEstimateDraftSnapshot({
     estimateId: params.estimateId,
     projectId: params.projectId,
     versionNumber: nextVersionNumber,
-    estimateType: params.currentVersion.estimateType ?? 'detailed',
+    estimateType,
     status: 'draft',
     draftLines: sortedDraftLines,
     pricing: params.currentVersion.snapshot?.pricing,
@@ -127,7 +131,7 @@ export async function saveEstimateVersionWithLineItems(
     projectId: params.projectId,
     versionNumber: nextVersionNumber,
     versionName,
-    estimateType: params.currentVersion.estimateType ?? snapshot.meta.estimateType ?? 'detailed',
+    estimateType: estimateType ?? snapshot.meta.estimateType ?? DEFAULT_ESTIMATE_METHOD,
     status: 'draft',
     snapshot: versionPayload.snapshot ?? {},
     totals: versionPayload.totals ?? {},
