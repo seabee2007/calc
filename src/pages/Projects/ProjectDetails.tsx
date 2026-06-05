@@ -74,7 +74,8 @@ import { getQcBreakStatus } from '../../utils/projectFolders';
 import ClientPortalActions from '../../components/projects/ClientPortalActions';
 import ProjectFieldActivityStrip from '../../components/owner/ProjectFieldActivityStrip';
 import { useAuth } from '../../hooks/useAuth';
-import { ClipboardList } from 'lucide-react';
+import { estimateWorkspaceHref } from '../../features/estimating/utils/estimateRoutes';
+import { ClipboardList, FileSpreadsheet } from 'lucide-react';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
@@ -493,14 +494,24 @@ export default function ProjectDetails() {
 
         {isOwner && (
           <div className="mt-4 space-y-3">
-            <Button
-              variant="accent"
-              className="w-full sm:w-auto"
-              icon={<ClipboardList className="h-4 w-4" />}
-              onClick={() => navigate(`/projects/${project.id}/planner/board`)}
-            >
-              Open Field Planner
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="accent"
+                className="w-full sm:w-auto"
+                icon={<ClipboardList className="h-4 w-4" />}
+                onClick={() => navigate(`/projects/${project.id}/planner/board`)}
+              >
+                Open Field Planner
+              </Button>
+              <Button
+                variant="accent"
+                className="w-full sm:w-auto"
+                icon={<FileSpreadsheet className="h-4 w-4" />}
+                onClick={() => navigate(estimateWorkspaceHref(project.id))}
+              >
+                Open Estimate Workspace
+              </Button>
+            </div>
             <ProjectFieldActivityStrip projectId={project.id} />
           </div>
         )}

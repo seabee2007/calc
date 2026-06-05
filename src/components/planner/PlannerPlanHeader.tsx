@@ -15,6 +15,7 @@ import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTh
 type TabCountKey = keyof ProjectTabCounts;
 
 const TABS: { to: string; label: string; countKey?: TabCountKey }[] = [
+  { to: 'estimate', label: 'Estimate' },
   { to: 'board', label: 'Board', countKey: 'board' },
   { to: 'charts', label: 'Charts' },
   { to: 'schedule', label: 'Schedule', countKey: 'schedule' },
@@ -136,7 +137,7 @@ export default function PlannerPlanHeader() {
           <NavLink
             key={to}
             to={`${base}/${to}`}
-            end={to === 'board'}
+            end={to === 'board' || to === 'estimate'}
             className={({ isActive }) =>
               [
                 'shrink-0 border-b-2 px-4 py-2.5 transition-colors',

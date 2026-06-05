@@ -3,6 +3,7 @@ import { NavLink, useParams } from 'react-router-dom';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
 
 const TABS = [
+  { to: 'estimate', label: 'Estimate' },
   { to: 'board', label: 'Board' },
   { to: 'schedule', label: 'Schedule' },
   { to: 'documents', label: 'Documents' },
@@ -25,7 +26,7 @@ export default function PlannerTabNav() {
         <NavLink
           key={to}
           to={`${base}/${to}`}
-          end={to === 'board'}
+          end={to === 'board' || to === 'estimate'}
           className={({ isActive }) =>
             [
               'shrink-0 border-b-2 px-4 py-3 transition-colors',

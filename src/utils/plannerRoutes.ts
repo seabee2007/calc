@@ -43,6 +43,10 @@ export function plannerBoardHref(projectId: string, taskId?: string): string {
   return `${base}?task=${taskId}`;
 }
 
+export function plannerEstimateHref(projectId: string): string {
+  return `/projects/${projectId}/planner/estimate`;
+}
+
 const SAFE_PROJECT_PLANNER_SEGMENTS = new Set([
   'board',
   'charts',
