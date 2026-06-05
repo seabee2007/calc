@@ -132,6 +132,9 @@ export const LazyPlannerChangeOrdersPage = lazyPage(
 export const LazyChangeOrderBuilderPage = lazyPage(
   () => import('../pages/planner/ChangeOrderBuilderPage'),
 );
+export const LazyEstimateWorkspacePage = lazyPage(
+  () => import('../pages/planner/EstimateWorkspacePage'),
+);
 export const LazyPlannerTeamPage = lazyPage(() => import('../pages/planner/PlannerTeamPage'));
 export const LazyEmployeeTaskPlannerRedirect = lazyPage(
   () => import('../pages/employee/EmployeeTaskPlannerRedirect'),

@@ -52,6 +52,7 @@ const SAFE_PROJECT_PLANNER_SEGMENTS = new Set([
   'adjustments',
   'team',
   'change-orders',
+  'estimate',
 ]);
 
 const PROJECT_ENTITY_QUERY_KEYS = [
