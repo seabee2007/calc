@@ -8,6 +8,12 @@ import {
   isKnownCsiDivision,
   normalizeCsiDivisionCode,
 } from '../../domain/csiDivisions';
+import {
+  CUSTOM_UNASSIGNED_SCOPE_LABEL,
+  getScopeTemplateOptions,
+  isKnownScopeTemplate,
+  normalizeScopeName,
+} from '../../domain/csiScopeTemplates';
 import type { ProductionRateType } from '../../domain/estimateTypes';
 import {
   parseEstimateFormNumber,
@@ -51,6 +57,7 @@ function CheckboxField({
 }
 
 const UNASSIGNED_DIVISION_VALUE = '';
+const CUSTOM_UNASSIGNED_SCOPE_VALUE = '';
 
 export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
   const { task } = draft;
@@ -87,6 +94,50 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
       ...options,
     ];
   }, [selectedDivisionValue]);
+
+  const divisionForScopeTemplates = isKnownCsiDivision(selectedDivisionValue)
+    ? normalizedDivision
+    : '';
+  const storedScope = normalizeScopeName(task.scopeName);
+  const hasKnownScopeTemplates = divisionForScopeTemplates.length > 0;
+
+  const scopeSelectOptions = useMemo(() => {
+    if (!hasKnownScopeTemplates) return [];
+
+    const options = getScopeTemplateOptions(divisionForScopeTemplates).map((scope) => ({
+      value: scope.scopeName,
+      label: scope.label,
+    }));
+
+    if (
+      storedScope &&
+      !isKnownScopeTemplate(divisionForScopeTemplates, storedScope)
+    ) {
+      options.push({
+        value: storedScope,
+        label: storedScope,
+      });
+    }
+
+    return [
+      { value: CUSTOM_UNASSIGNED_SCOPE_VALUE, label: CUSTOM_UNASSIGNED_SCOPE_LABEL },
+      ...options,
+    ];
+  }, [divisionForScopeTemplates, hasKnownScopeTemplates, storedScope]);
+
+  const selectedScopeValue = !hasKnownScopeTemplates
+    ? storedScope
+    : storedScope === ''
+      ? CUSTOM_UNASSIGNED_SCOPE_VALUE
+      : isKnownScopeTemplate(divisionForScopeTemplates, storedScope)
+        ? storedScope
+        : storedScope;
+
+  const showCustomScopeInput =
+    hasKnownScopeTemplates &&
+    (selectedScopeValue === CUSTOM_UNASSIGNED_SCOPE_VALUE ||
+      (storedScope !== '' &&
+        !isKnownScopeTemplate(divisionForScopeTemplates, storedScope)));
 
   const patchTask = (patch: Partial<EstimateDraftLine['task']>) => {
     onChange({
@@ -154,12 +205,42 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             onChange={(event) => patchLineItem({ csiSection: event.target.value })}
             fullWidth
           />
-          <Input
-            label="Scope"
-            value={task.scopeName ?? ''}
-            onChange={(event) => patchTask({ scopeName: event.target.value })}
-            fullWidth
-          />
+          {hasKnownScopeTemplates ? (
+            <>
+              <Select
+                label="Scope"
+                value={selectedScopeValue}
+                options={scopeSelectOptions}
+                onChange={(value) => {
+                  if (value === CUSTOM_UNASSIGNED_SCOPE_VALUE) {
+                    patchTask({ scopeName: '' });
+                    return;
+                  }
+                  patchTask({ scopeName: value });
+                }}
+                fullWidth
+              />
+              {showCustomScopeInput ? (
+                <Input
+                  label="Custom scope name"
+                  value={task.scopeName ?? ''}
+                  onChange={(event) =>
+                    patchTask({ scopeName: normalizeScopeName(event.target.value) })
+                  }
+                  fullWidth
+                />
+              ) : null}
+            </>
+          ) : (
+            <Input
+              label="Scope"
+              value={task.scopeName ?? ''}
+              onChange={(event) =>
+                patchTask({ scopeName: normalizeScopeName(event.target.value) })
+              }
+              fullWidth
+            />
+          )}
           <Input
             label="Task title"
             value={task.title}

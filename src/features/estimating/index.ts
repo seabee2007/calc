@@ -8,6 +8,7 @@ export * from './application/estimateGroupRollups';
 export * from './application/estimateLineItemGrouping';
 export * from './application/saveEstimateVersionWithLineItems';
 export * from './domain/csiDivisions';
+export * from './domain/csiScopeTemplates';
 export * from './domain/estimateLineItemTree';
 export * from './domain/estimateMath';
 export * from './domain/estimateSnapshot';
