@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { createDraftEstimate } from '../application/createDraftEstimate';
-import { DEFAULT_ESTIMATE_METHOD } from '../domain/estimateMethods';
+import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
 import type { EstimateType } from '../domain/estimateTypes';
 import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
 import type {
@@ -48,6 +48,7 @@ import {
 } from './estimateMethodDisplay';
 import { extractScheduleDatePlanSummary } from './estimateScheduleDisplay';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
+import { useEstimateSetupSession } from './hooks/useEstimateSetupSession';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -182,6 +183,11 @@ export default function EstimateWorkspacePage() {
   );
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
+  const estimateSetup = useEstimateSetupSession(
+    resolvedProjectId,
+    version?.id,
+    version?.estimateType,
+  );
 
   useEffect(() => {
     if (estimateTab && parsedTab == null && resolvedProjectId) {
@@ -247,7 +253,11 @@ export default function EstimateWorkspacePage() {
       return;
     }
 
-    setVersion(versionResult.data);
+    const loadedVersion = versionResult.data;
+    setVersion(loadedVersion);
+    if (loadedVersion?.estimateType) {
+      setSelectedEstimateMethod(normalizeEstimateMethod(loadedVersion.estimateType));
+    }
     setDataLoading(false);
   }, [resolvedProjectId]);
 
@@ -426,7 +436,9 @@ export default function EstimateWorkspacePage() {
               onChange={setSelectedEstimateMethod}
               disabled={creating}
             />
-            <EstimateWorkspaceEmptyState />
+            <EstimateWorkspaceEmptyState
+              body="Create the draft estimate record, then open the Estimate tab to choose your estimate type and start building scope."
+            />
           </div>
         ) : null}
 
@@ -468,14 +480,15 @@ export default function EstimateWorkspacePage() {
                     canSave={canSave}
                     saving={saving}
                     draft={lineItemDraft}
+                    setup={estimateSetup}
                     onSave={handleSaveEstimate}
                   />
                 ) : (
                   <>
-                    <h2 className={PLANNER_SECTION_TITLE}>Activities</h2>
+                    <h2 className={PLANNER_SECTION_TITLE}>Estimate</h2>
                     <EstimateWorkspaceEmptyState
                       title={NO_VERSION_MESSAGE}
-                      body="Activities are stored on estimate versions and will display here once a version exists."
+                      body="Work breakdown divisions and activities are stored on estimate versions and will display here once a version exists."
                     />
                   </>
                 )}

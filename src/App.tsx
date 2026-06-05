@@ -461,6 +461,7 @@ function App() {
                 path="change-orders/:changeOrderId"
                 element={<LazyRoute Page={LazyChangeOrderBuilderPage} />}
               />
+              <Route path="estimate/:estimateTab" element={<LazyRoute Page={LazyEstimateWorkspacePage} />} />
               <Route path="estimate" element={<LazyRoute Page={LazyEstimateWorkspacePage} />} />
               <Route path="team" element={<LazyRoute Page={LazyPlannerTeamPage} />} />
             </Route>

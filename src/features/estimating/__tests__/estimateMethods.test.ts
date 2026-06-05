@@ -28,16 +28,16 @@ describe('estimateMethods', () => {
 
   it('includes workflow notes for each method', () => {
     expect(getEstimateMethod('quick_feasibility').workflowNote).toBe(
-      'Best for early ballpark planning.',
+      'Fast rough number for early planning.',
     );
     expect(getEstimateMethod('budget').workflowNote).toBe(
-      'Best for rough project budgeting by division or scope.',
+      'Rough budget by division or scope.',
     );
     expect(getEstimateMethod('detailed').workflowNote).toBe(
-      'Best for task-level estimating with labor and production rates.',
+      'Activity-based estimating with schedule support.',
     );
     expect(getEstimateMethod('bid').workflowNote).toBe(
-      'Best for proposal-ready pricing and contract scope.',
+      'Proposal-ready scope, pricing, and contract support.',
     );
   });
 

@@ -39,7 +39,7 @@ describe('estimateMethodDisplay', () => {
   it('falls back safely for unknown methods', () => {
     expect(safeEstimateMethodLabel('not_a_method')).toBe('Detailed Estimate');
     expect(safeEstimateMethodNote('not_a_method')).toBe(
-      'Best for task-level estimating with labor and production rates.',
+      'Activity-based estimating with schedule support.',
     );
     expect(formatEstimateMethodLabel(null)).toBe('Detailed Estimate');
     expect(formatEstimateMethodSummary(undefined)).toContain('Detailed Estimate');

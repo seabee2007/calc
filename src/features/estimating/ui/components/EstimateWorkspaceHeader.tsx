@@ -150,7 +150,7 @@ export default function EstimateWorkspaceHeader({
         </dl>
       ) : (
         <p className={`mt-2 text-xs ${PLANNER_MUTED}`}>
-          No saved version yet. Add activities and save from the Activities tab.
+          No saved version yet. Start your estimate and save from the Estimate tab.
         </p>
       )}
     </div>

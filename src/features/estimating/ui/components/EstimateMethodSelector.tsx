@@ -28,7 +28,7 @@ export default function EstimateMethodSelector({
   if (readOnly) {
     return (
       <div className={`${PLANNER_FORM_PANEL} space-y-2`}>
-        <p className={PLANNER_SECTION_TITLE}>Estimate method</p>
+        <p className={PLANNER_SECTION_TITLE}>Estimate type</p>
         <p className={`text-base font-semibold ${TEXT_FOREGROUND}`}>{selected.label}</p>
         <p className={`text-sm ${TEXT_BODY}`}>{selected.workflowNote}</p>
         <p className={`text-xs ${PLANNER_MUTED}`}>{selected.description}</p>
@@ -39,9 +39,9 @@ export default function EstimateMethodSelector({
   return (
     <div className={`${PLANNER_FORM_PANEL} space-y-3`}>
       <div>
-        <p className={PLANNER_SECTION_TITLE}>Estimate method</p>
+        <p className={PLANNER_SECTION_TITLE}>Estimate type</p>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Choose the workflow before creating the draft estimate. Default is Detailed Estimate.
+          Choose how deep this estimate should go before you start. Default is Detailed Estimate.
         </p>
       </div>
 

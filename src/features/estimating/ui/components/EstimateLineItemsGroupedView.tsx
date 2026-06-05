@@ -38,6 +38,8 @@ interface DraftProps {
   emptyMessage?: string;
   /** When true, division and scope groups start collapsed. Draft defaults to expanded. */
   defaultCollapsed?: boolean;
+  /** Render scope/activity rows only (omit outer division wrappers). */
+  scopesOnly?: boolean;
   onEditDraft: (clientId: string) => void;
   onRemoveDraft: (clientId: string) => void;
   onDuplicateDraft?: (clientId: string) => void;
@@ -51,6 +53,7 @@ interface SavedProps {
   emptyMessage?: string;
   /** When true, division and scope groups start collapsed. Saved defaults to collapsed. */
   defaultCollapsed?: boolean;
+  scopesOnly?: boolean;
 }
 
 type Props = DraftProps | SavedProps;
@@ -111,6 +114,68 @@ function SavedTaskRow({ task }: { task: EstimateDomainTask }) {
   );
 }
 
+function renderScopeGroups(props: Props, defaultOpen: boolean) {
+  const showActions = props.mode === 'draft';
+  const scopes = props.groups.flatMap((division) =>
+    division.scopes.map((scope) => ({
+      key: `${division.key}-${scope.key}`,
+      scope,
+    })),
+  );
+
+  return (
+    <div className="space-y-0.5">
+      {scopes.map(({ key, scope }) => (
+        <EstimateGroupTotalsRow
+          key={key}
+          level="scope"
+          title={scope.label}
+          rollup={scope.rollup}
+          defaultOpen={defaultOpen}
+        >
+          {scope.items.length > 0 ? <LineItemColumnHeader showActions={showActions} /> : null}
+          <div className="space-y-1.5 sm:space-y-0">
+            {props.mode === 'draft'
+              ? scope.items.map((draft) => {
+                  const moveState = props.allDraftLines
+                    ? getDraftLineMoveState(props.allDraftLines, draft.clientId)
+                    : { canMoveUp: false, canMoveDown: false };
+
+                  return (
+                    <EstimateDraftLineRow
+                      key={draft.clientId}
+                      draft={draft}
+                      nested
+                      canMoveUp={moveState.canMoveUp}
+                      canMoveDown={moveState.canMoveDown}
+                      onEdit={() => props.onEditDraft(draft.clientId)}
+                      onRemove={() => props.onRemoveDraft(draft.clientId)}
+                      onDuplicate={
+                        props.onDuplicateDraft
+                          ? () => props.onDuplicateDraft?.(draft.clientId)
+                          : undefined
+                      }
+                      onMoveUp={
+                        props.onMoveDraftUp
+                          ? () => props.onMoveDraftUp?.(draft.clientId)
+                          : undefined
+                      }
+                      onMoveDown={
+                        props.onMoveDraftDown
+                          ? () => props.onMoveDraftDown?.(draft.clientId)
+                          : undefined
+                      }
+                    />
+                  );
+                })
+              : scope.items.map((task) => <SavedTaskRow key={task.id} task={task} />)}
+          </div>
+        </EstimateGroupTotalsRow>
+      ))}
+    </div>
+  );
+}
+
 export default function EstimateLineItemsGroupedView(props: Props) {
   const emptyMessage =
     props.emptyMessage ??
@@ -128,9 +193,13 @@ export default function EstimateLineItemsGroupedView(props: Props) {
     );
   }
 
-  const showActions = props.mode === 'draft';
   const defaultCollapsed = props.defaultCollapsed ?? props.mode === 'saved';
   const defaultOpen = !defaultCollapsed;
+  const scopesOnly = props.scopesOnly ?? false;
+
+  if (scopesOnly) {
+    return renderScopeGroups(props, defaultOpen);
+  }
 
   return (
     <div className={ESTIMATE_LINE_ITEMS_PANEL}>
@@ -142,57 +211,13 @@ export default function EstimateLineItemsGroupedView(props: Props) {
           rollup={division.rollup}
           defaultOpen={defaultOpen}
         >
-          <div className="space-y-0.5">
-            {division.scopes.map((scope) => (
-              <EstimateGroupTotalsRow
-                key={`${division.key}-${scope.key}`}
-                level="scope"
-                title={scope.label}
-                rollup={scope.rollup}
-                defaultOpen={defaultOpen}
-              >
-                {scope.items.length > 0 ? (
-                  <LineItemColumnHeader showActions={showActions} />
-                ) : null}
-                <div className="space-y-1.5 sm:space-y-0">
-                  {props.mode === 'draft'
-                    ? scope.items.map((draft) => {
-                        const moveState = props.allDraftLines
-                          ? getDraftLineMoveState(props.allDraftLines, draft.clientId)
-                          : { canMoveUp: false, canMoveDown: false };
-
-                        return (
-                          <EstimateDraftLineRow
-                            key={draft.clientId}
-                            draft={draft}
-                            nested
-                            canMoveUp={moveState.canMoveUp}
-                            canMoveDown={moveState.canMoveDown}
-                            onEdit={() => props.onEditDraft(draft.clientId)}
-                            onRemove={() => props.onRemoveDraft(draft.clientId)}
-                            onDuplicate={
-                              props.onDuplicateDraft
-                                ? () => props.onDuplicateDraft?.(draft.clientId)
-                                : undefined
-                            }
-                            onMoveUp={
-                              props.onMoveDraftUp
-                                ? () => props.onMoveDraftUp?.(draft.clientId)
-                                : undefined
-                            }
-                            onMoveDown={
-                              props.onMoveDraftDown
-                                ? () => props.onMoveDraftDown?.(draft.clientId)
-                                : undefined
-                            }
-                          />
-                        );
-                      })
-                    : scope.items.map((task) => <SavedTaskRow key={task.id} task={task} />)}
-                </div>
-              </EstimateGroupTotalsRow>
-            ))}
-          </div>
+          {renderScopeGroups(
+            {
+              ...props,
+              groups: [division],
+            },
+            defaultOpen,
+          )}
         </EstimateGroupTotalsRow>
       ))}
     </div>

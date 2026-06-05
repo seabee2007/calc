@@ -1,4 +1,9 @@
 import type { NavigateFunction } from 'react-router-dom';
+import type { EstimateWorkspaceTabId } from '../features/estimating/ui/components/EstimateWorkspaceTabBar';
+import {
+  estimateWorkspaceHref,
+  isEstimateWorkspaceTabId,
+} from '../features/estimating/utils/estimateRoutes';
 
 /** True when the route should use PlannerWorkspaceLayout (no photo bg, footer, bottom nav). */
 export function isPlannerWorkspacePath(pathname: string): boolean {
@@ -43,8 +48,8 @@ export function plannerBoardHref(projectId: string, taskId?: string): string {
   return `${base}?task=${taskId}`;
 }
 
-export function plannerEstimateHref(projectId: string): string {
-  return `/projects/${projectId}/planner/estimate`;
+export function plannerEstimateHref(projectId: string, tabId?: EstimateWorkspaceTabId): string {
+  return estimateWorkspaceHref(projectId, tabId ?? 'overview');
 }
 
 const SAFE_PROJECT_PLANNER_SEGMENTS = new Set([
@@ -102,6 +107,26 @@ function isSafeChangeOrdersSubPath(subPath: string): boolean {
   return subPath === 'change-orders' || subPath === 'change-orders/new';
 }
 
+function isSafeEstimateSubPath(subPath: string): boolean {
+  const segments = subPath.split('/');
+  if (segments[0] !== 'estimate') return true;
+  if (segments.length === 1) return true;
+  if (segments.length === 2) return isEstimateWorkspaceTabId(segments[1]);
+  return false;
+}
+
+/**
+ * Build the URL when switching projects from the planner sidebar.
+ * Preserves the current planner sub-route (including estimate tabs) when safe.
+ */
+export function buildProjectSwitchHref(
+  currentPathname: string,
+  nextProjectId: string,
+  search = '',
+): string {
+  return plannerProjectSwitchHref(nextProjectId, { pathname: currentPathname, search });
+}
+
 /**
  * Build the URL when switching projects from the planner sidebar.
  * Preserves the current planner sub-route and schedule view when safe.
@@ -131,6 +156,10 @@ export function plannerProjectSwitchHref(
 
   if (firstSegment === 'change-orders') {
     if (!isSafeChangeOrdersSubPath(subPath)) {
+      return plannerBoardHref(targetProjectId);
+    }
+  } else if (firstSegment === 'estimate') {
+    if (!isSafeEstimateSubPath(subPath)) {
       return plannerBoardHref(targetProjectId);
     }
   } else if (!SAFE_PROJECT_PLANNER_SEGMENTS.has(firstSegment)) {

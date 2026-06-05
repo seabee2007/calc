@@ -22,6 +22,7 @@ export interface UseEstimateLineItemDraftResult {
   editingClientId: string | null;
   formDraft: EstimateDraftLine | null;
   openAddDrawer: () => void;
+  openAddDrawerForDivision: (divisionCode: string) => void;
   openEditDrawer: (clientId: string) => void;
   closeDrawer: () => void;
   updateFormDraft: (draft: EstimateDraftLine) => void;
@@ -32,6 +33,8 @@ export interface UseEstimateLineItemDraftResult {
   moveDraftLineDown: (clientId: string) => void;
   /** Rehydrate draft from a saved version and clear dirty state. */
   rehydrateFromVersion: (nextVersion: EstimateDomainVersion) => void;
+  /** Discard unsaved draft edits and restore the saved version baseline locally. */
+  resetDraftSetup: () => void;
 }
 
 export function useEstimateLineItemDraft(
@@ -65,6 +68,18 @@ export function useEstimateLineItemDraft(
     setFormDraft(applyDraftLaborDefaults(createEmptyDraftLine(nextPosition)));
     setDrawerOpen(true);
   }, [draftLines.length]);
+
+  const openAddDrawerForDivision = useCallback(
+    (divisionCode: string) => {
+      const nextPosition = draftLines.length;
+      const line = applyDraftLaborDefaults(createEmptyDraftLine(nextPosition));
+      line.task.lineItem.csiDivision = divisionCode;
+      setEditingClientId(null);
+      setFormDraft(applyDivisionScopeDefaults(line));
+      setDrawerOpen(true);
+    },
+    [draftLines.length],
+  );
 
   const openEditDrawer = useCallback(
     (clientId: string) => {
@@ -137,6 +152,19 @@ export function useEstimateLineItemDraft(
     setFormDraft(null);
   }, []);
 
+  const resetDraftSetup = useCallback(() => {
+    if (version) {
+      setDraftLines(draftLinesFromVersion(version.lineItems));
+      setDirty(false);
+    } else {
+      setDraftLines([]);
+      setDirty(false);
+    }
+    setDrawerOpen(false);
+    setEditingClientId(null);
+    setFormDraft(null);
+  }, [version]);
+
   const sortedDraftLines = useMemo(
     () => sortDraftLinesByPosition(draftLines),
     [draftLines],
@@ -149,6 +177,7 @@ export function useEstimateLineItemDraft(
     editingClientId,
     formDraft,
     openAddDrawer,
+    openAddDrawerForDivision,
     openEditDrawer,
     closeDrawer,
     updateFormDraft,
@@ -158,5 +187,6 @@ export function useEstimateLineItemDraft(
     moveDraftLineUp: moveDraftLineUpById,
     moveDraftLineDown: moveDraftLineDownById,
     rehydrateFromVersion,
+    resetDraftSetup,
   };
 }

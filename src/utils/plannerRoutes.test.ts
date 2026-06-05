@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { plannerProjectSwitchHref } from './plannerRoutes';
+import { buildProjectSwitchHref, plannerProjectSwitchHref } from './plannerRoutes';
 
 const PROJECT_B = 'project-b';
 
@@ -107,5 +107,65 @@ describe('plannerProjectSwitchHref', () => {
         loc('/projects/project-a/planner/change-orders/new', 'far=f1&rfi=r1&task=t1'),
       ),
     ).toBe('/projects/project-b/planner/change-orders/new');
+  });
+
+  it('preserves estimate line-items tab when switching projects', () => {
+    expect(
+      plannerProjectSwitchHref(
+        PROJECT_B,
+        loc('/projects/project-a/planner/estimate/line-items'),
+      ),
+    ).toBe('/projects/project-b/planner/estimate/line-items');
+  });
+
+  it('preserves estimate gantt-preview tab when switching projects', () => {
+    expect(
+      plannerProjectSwitchHref(
+        PROJECT_B,
+        loc('/projects/project-a/planner/estimate/gantt-preview'),
+      ),
+    ).toBe('/projects/project-b/planner/estimate/gantt-preview');
+  });
+
+  it('preserves estimate schedule-preview tab when switching projects', () => {
+    expect(
+      plannerProjectSwitchHref(
+        PROJECT_B,
+        loc('/projects/project-a/planner/estimate/schedule-preview'),
+      ),
+    ).toBe('/projects/project-b/planner/estimate/schedule-preview');
+  });
+
+  it('preserves estimate versions tab when switching projects', () => {
+    expect(
+      plannerProjectSwitchHref(PROJECT_B, loc('/projects/project-a/planner/estimate/versions')),
+    ).toBe('/projects/project-b/planner/estimate/versions');
+  });
+
+  it('preserves bare estimate route (overview) when switching projects', () => {
+    expect(
+      plannerProjectSwitchHref(PROJECT_B, loc('/projects/project-a/planner/estimate')),
+    ).toBe('/projects/project-b/planner/estimate');
+  });
+
+  it('preserves planner documents route when switching projects', () => {
+    expect(
+      plannerProjectSwitchHref(PROJECT_B, loc('/projects/project-a/planner/documents')),
+    ).toBe('/projects/project-b/planner/documents');
+  });
+
+  it('falls back to board for invalid estimate tab segments', () => {
+    expect(
+      plannerProjectSwitchHref(
+        PROJECT_B,
+        loc('/projects/project-a/planner/estimate/not-a-tab'),
+      ),
+    ).toBe('/projects/project-b/planner/board');
+  });
+
+  it('buildProjectSwitchHref matches plannerProjectSwitchHref', () => {
+    expect(
+      buildProjectSwitchHref('/projects/project-a/planner/estimate/totals', PROJECT_B),
+    ).toBe('/projects/project-b/planner/estimate/totals');
   });
 });

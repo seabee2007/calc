@@ -107,3 +107,9 @@ export function getCsiDivisionOptions(): CsiDivisionOption[] {
     a.code.localeCompare(b.code, undefined, { numeric: true }),
   );
 }
+
+/** Short display description for division pickers (catalog name). */
+export function getCsiDivisionDescription(code?: string | null): string {
+  const division = getCsiDivisionByCode(code);
+  return division?.name ?? '';
+}
