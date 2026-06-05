@@ -9,8 +9,16 @@ import { ESTIMATE_BLANK } from './estimateFormatters';
 
 export const DEFAULT_GANTT_COLUMN_WIDTH_PX = 36;
 export const MIN_GANTT_BAR_WIDTH_FOR_LABEL_PX = 56;
+export const GANTT_LABEL_COLUMN_WIDTH_PX = 176;
+export const GANTT_LABEL_COLUMN_WIDTH_SM_PX = 224;
 
 export type GanttRowKind = 'division' | 'scope' | 'task';
+
+export const GANTT_ROW_HEIGHT_PX: Record<GanttRowKind, number> = {
+  division: 36,
+  scope: 32,
+  task: 44,
+};
 
 export interface GanttTaskInput {
   candidateId: string;
@@ -166,7 +174,14 @@ export function buildGanttSuccessorCandidateIds(
 export function formatGanttDependencyPreviewNote(dependencyCount: number): string {
   const safeCount = Number.isFinite(dependencyCount) ? Math.max(0, Math.floor(dependencyCount)) : 0;
   const linkLabel = safeCount === 1 ? 'link' : 'links';
-  return `${safeCount} finish-to-start dependency ${linkLabel} in preview. Dependency lines are preview-only and will be drawn in a later phase.`;
+  return `${safeCount} finish-to-start dependency ${linkLabel} in preview.`;
+}
+
+export const GANTT_DEPENDENCY_LINES_NOTE =
+  'Dependency lines are preview-only and are not saved to the Planner schedule.';
+
+export function calculateGanttBodyHeight(rows: GanttRow[]): number {
+  return rows.reduce((sum, row) => sum + GANTT_ROW_HEIGHT_PX[row.kind], 0);
 }
 
 export function getGanttTaskRows(

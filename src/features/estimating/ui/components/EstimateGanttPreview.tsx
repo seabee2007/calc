@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   applyDependencyPreviewToPlan,
   inferDependencyPreviewModeFromPlannedPlan,
@@ -6,15 +6,18 @@ import {
 import type { EstimateScheduleDatePlanResult } from '../../application/estimateScheduleDatePlanner';
 import {
   buildGanttTimelineRange,
+  calculateGanttBodyHeight,
   calculateGanttTodayMarkerPosition,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   extractGanttTasksFromPlan,
   formatGanttDependencyPreviewNote,
+  GANTT_DEPENDENCY_LINES_NOTE,
   getGanttTaskRows,
   getGanttTodayDateYmd,
   hasPlannedGanttTasks,
   isTodayWithinGanttRange,
 } from '../estimateGanttDisplay';
+import { buildGanttDependencyConnectors } from '../estimateGanttDependenciesDisplay';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -22,6 +25,7 @@ import {
   TEXT_BODY,
 } from '../estimateWorkspaceTheme';
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
+import EstimateGanttDependencyLayer from './EstimateGanttDependencyLayer';
 import EstimateGanttRow from './EstimateGanttRow';
 import EstimateGanttTimelineHeader from './EstimateGanttTimelineHeader';
 
@@ -37,6 +41,7 @@ interface Props {
 }
 
 export default function EstimateGanttPreview({ datePlanResult, loading = false }: Props) {
+  const [showDependencyLines, setShowDependencyLines] = useState(true);
   const plannedPlan = datePlanResult?.plan ?? null;
   const dependencyPreview = useMemo(() => {
     if (!plannedPlan) return null;
@@ -50,6 +55,12 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
     [plannedPlan, dependencies],
   );
   const range = useMemo(() => buildGanttTimelineRange(tasks), [tasks]);
+  const dependencyConnectors = useMemo(
+    () => buildGanttDependencyConnectors(dependencies, rows, range, DEFAULT_GANTT_COLUMN_WIDTH_PX),
+    [dependencies, rows, range],
+  );
+  const bodyHeight = useMemo(() => calculateGanttBodyHeight(rows), [rows]);
+  const timelineWidth = range.totalDays * DEFAULT_GANTT_COLUMN_WIDTH_PX;
   const todayYmd = useMemo(() => getGanttTodayDateYmd(), []);
   const showTodayMarker = isTodayWithinGanttRange(range, todayYmd);
   const todayMarkerLeft = calculateGanttTodayMarkerPosition(
@@ -76,9 +87,19 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
         </p>
       </div>
 
-      <div className={`${PLANNER_FORM_PANEL} space-y-2 text-sm ${TEXT_BODY}`}>
+      <div className={`${PLANNER_FORM_PANEL} space-y-3 text-sm ${TEXT_BODY}`}>
         <p className={PLANNER_MUTED}>{GANTT_PREVIEW_NOTE}</p>
         <p className={PLANNER_MUTED}>{formatGanttDependencyPreviewNote(dependencies.length)}</p>
+        <p className={PLANNER_MUTED}>{GANTT_DEPENDENCY_LINES_NOTE}</p>
+        <label className={`flex items-center gap-2 text-sm ${TEXT_BODY}`}>
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600"
+            checked={showDependencyLines}
+            onChange={(event) => setShowDependencyLines(event.target.checked)}
+          />
+          Show dependency lines
+        </label>
       </div>
 
       {loading ? (
@@ -98,7 +119,25 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
                 </div>
               </div>
 
-              <div>
+              <div className="relative">
+                {showDependencyLines ? (
+                  <div
+                    className="pointer-events-none absolute top-0 z-0 w-44 sm:w-56"
+                    aria-hidden
+                  >
+                    <div
+                      className="relative left-full"
+                      style={{ width: timelineWidth, height: bodyHeight }}
+                    >
+                      <EstimateGanttDependencyLayer
+                        connectors={dependencyConnectors}
+                        width={timelineWidth}
+                        height={bodyHeight}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
                 {rows.map((row) => (
                   <EstimateGanttRow
                     key={row.id}

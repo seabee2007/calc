@@ -113,7 +113,7 @@ export default function EstimateGanttRow({
 
         {barPosition ? (
           <div
-            className="absolute top-1.5 rounded-md border border-cyan-700/40 bg-cyan-500/85 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm dark:border-cyan-400/40 dark:bg-cyan-600/90"
+            className="absolute top-1.5 z-[1] rounded-md border border-cyan-700/40 bg-cyan-500/85 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm dark:border-cyan-400/40 dark:bg-cyan-600/90"
             style={{
               left: barPosition.leftPx,
               width: Math.max(barPosition.widthPx - 2, columnWidth - 2),

@@ -32,6 +32,7 @@ export * from './ui/estimateVersionDisplay';
 export * from './ui/estimateTotalsDisplay';
 export * from './ui/estimateScheduleDisplay';
 export * from './ui/estimateGanttDisplay';
+export * from './ui/estimateGanttDependenciesDisplay';
 export * from './ui/estimateMethodDisplay';
 export * from './utils/estimateRoutes';
 
