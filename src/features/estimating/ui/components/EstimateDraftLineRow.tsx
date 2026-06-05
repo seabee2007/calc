@@ -18,26 +18,41 @@ interface Props {
   draft: EstimateDraftLine;
   onEdit: () => void;
   onRemove: () => void;
+  /** When true, hide CSI/scope columns (shown on parent group headers). */
+  nested?: boolean;
 }
 
-export default function EstimateDraftLineRow({ draft, onEdit, onRemove }: Props) {
+export default function EstimateDraftLineRow({
+  draft,
+  onEdit,
+  onRemove,
+  nested = false,
+}: Props) {
   const { task } = draft;
   const preview = computeLinePreviewTotals(draft);
+
+  const gridClass = nested
+    ? 'grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3'
+    : 'grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4 lg:grid-cols-6';
 
   return (
     <div
       className={`flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 sm:flex-row sm:items-center sm:justify-between ${PLANNER_TABLE_ROW}`}
     >
-      <div className="min-w-0 flex-1 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4 lg:grid-cols-6">
-        <div>
-          <p className={`text-xs ${PLANNER_MUTED}`}>CSI</p>
-          <p className={TEXT_FOREGROUND}>{formatEstimateBlank(task.lineItem.csiDivision)}</p>
-        </div>
-        <div>
-          <p className={`text-xs ${PLANNER_MUTED}`}>Scope</p>
-          <p className={TEXT_FOREGROUND}>{formatEstimateBlank(task.scopeName)}</p>
-        </div>
-        <div className="col-span-2 sm:col-span-1 lg:col-span-2">
+      <div className={`min-w-0 flex-1 ${gridClass}`}>
+        {!nested ? (
+          <>
+            <div>
+              <p className={`text-xs ${PLANNER_MUTED}`}>CSI</p>
+              <p className={TEXT_FOREGROUND}>{formatEstimateBlank(task.lineItem.csiDivision)}</p>
+            </div>
+            <div>
+              <p className={`text-xs ${PLANNER_MUTED}`}>Scope</p>
+              <p className={TEXT_FOREGROUND}>{formatEstimateBlank(task.scopeName)}</p>
+            </div>
+          </>
+        ) : null}
+        <div className={nested ? 'col-span-2 sm:col-span-1' : 'col-span-2 sm:col-span-1 lg:col-span-2'}>
           <p className={`text-xs ${PLANNER_MUTED}`}>Task</p>
           <p className={`font-medium ${TEXT_FOREGROUND}`}>
             {formatEstimateBlank(task.title || task.lineItem.description)}

@@ -1,16 +1,28 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertTriangle, Plus, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import DrawerPanel from '../../../../components/ui/DrawerPanel';
 import { PLANNER_DRAWER_FOOTER } from '../../../../components/planner/plannerTheme';
 import type { EstimateDomainVersion, EstimateSummary } from '../../infrastructure/estimateDbTypes';
 import { buildEstimateDraftSnapshot } from '../../application/buildEstimateDraftSnapshot';
+import {
+  filterGroupedEstimateLines,
+  groupEstimateDraftLines,
+  groupEstimateTasks,
+} from '../../application/estimateLineItemGrouping';
+import { rollupEstimateDraftLines, rollupEstimateTasks } from '../../application/estimateGroupRollups';
+import type { EstimateLineItemsFilter } from '../../domain/estimateLineItemTree';
 import type { UseEstimateLineItemDraftResult } from '../hooks/useEstimateLineItemDraft';
-import EstimateDraftLineRow from './EstimateDraftLineRow';
 import EstimateManualLineItemForm from './EstimateManualLineItemForm';
 import EstimateLineItemPreviewCard from './EstimateLineItemPreviewCard';
 import EstimateReadOnlyLineItemsTable from './EstimateReadOnlyLineItemsTable';
 import EstimateSummaryCard from './EstimateSummaryCard';
+import EstimateLineItemsFilterBar from './EstimateLineItemsFilterBar';
+import EstimateLineItemsGroupedView from './EstimateLineItemsGroupedView';
+import {
+  formatRollupStripCounts,
+  formatRollupStripTotals,
+} from '../estimateLineItemDisplay';
 import {
   formatEstimateCurrency,
   formatEstimateHours,
@@ -20,6 +32,7 @@ import {
   PLANNER_MUTED,
   PLANNER_SECTION_TITLE,
   TEXT_BODY,
+  TEXT_FOREGROUND,
 } from '../estimateWorkspaceTheme';
 
 interface Props {
@@ -32,6 +45,8 @@ interface Props {
   onSave: () => void;
 }
 
+const EMPTY_FILTER: EstimateLineItemsFilter = { divisionKey: null, scopeKey: null };
+
 export default function EstimateLineItemsBuilderPanel({
   estimate,
   version,
@@ -41,6 +56,64 @@ export default function EstimateLineItemsBuilderPanel({
   draft,
   onSave,
 }: Props) {
+  const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
+
+  const draftGroups = useMemo(
+    () => groupEstimateDraftLines(draft.draftLines),
+    [draft.draftLines],
+  );
+  const savedGroups = useMemo(
+    () => groupEstimateTasks(version.lineItems),
+    [version.lineItems],
+  );
+
+  const filteredDraftGroups = useMemo(
+    () => filterGroupedEstimateLines(draftGroups, filter),
+    [draftGroups, filter],
+  );
+  const filteredSavedGroups = useMemo(
+    () => filterGroupedEstimateLines(savedGroups, filter),
+    [savedGroups, filter],
+  );
+
+  const filterSourceGroups = useMemo(
+    () => [...draftGroups, ...savedGroups],
+    [draftGroups, savedGroups],
+  );
+
+  const rollupStrip = useMemo(() => {
+    const draftTasks = filteredDraftGroups.flatMap((division) =>
+      division.scopes.flatMap((scope) => scope.items),
+    );
+    const savedTasks = filteredSavedGroups.flatMap((division) =>
+      division.scopes.flatMap((scope) => scope.items),
+    );
+
+    const draftRollup = rollupEstimateDraftLines(draftTasks);
+    const savedRollup = rollupEstimateTasks(savedTasks);
+
+    const divisionKeys = new Set<string>();
+    const scopeKeys = new Set<string>();
+    for (const division of [...filteredDraftGroups, ...filteredSavedGroups]) {
+      divisionKeys.add(division.key);
+      for (const scope of division.scopes) {
+        scopeKeys.add(`${division.key}::${scope.key}`);
+      }
+    }
+
+    return {
+      counts: {
+        divisionCount: divisionKeys.size,
+        scopeCount: scopeKeys.size,
+        taskCount: draftRollup.itemCount + savedRollup.itemCount,
+      },
+      totals: {
+        directCost: draftRollup.directCost + savedRollup.directCost,
+        sellPrice: draftRollup.sellPrice + savedRollup.sellPrice,
+        laborHours: draftRollup.laborHours + savedRollup.laborHours,
+      },
+    };
+  }, [filteredDraftGroups, filteredSavedGroups]);
 
   const draftSnapshot = useMemo(() => {
     if (draft.draftLines.length === 0) return null;
@@ -77,6 +150,7 @@ export default function EstimateLineItemsBuilderPanel({
   }, [draftSnapshot]);
 
   const drawerTitle = draft.editingClientId ? 'Edit line item' : 'Add line item';
+  const hasAnyLineItems = draft.draftLines.length > 0 || version.lineItems.length > 0;
 
   return (
     <div className="space-y-4">
@@ -91,7 +165,7 @@ export default function EstimateLineItemsBuilderPanel({
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className={PLANNER_SECTION_TITLE}>Draft line items</h2>
+        <h2 className={PLANNER_SECTION_TITLE}>Line items</h2>
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -120,22 +194,55 @@ export default function EstimateLineItemsBuilderPanel({
         </div>
       </div>
 
-      {draft.draftLines.length === 0 ? (
-        <div className={`${PLANNER_FORM_PANEL} text-sm ${PLANNER_MUTED}`}>
-          No draft line items yet. Add a line item to build your estimate locally.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {draft.draftLines.map((line) => (
-            <EstimateDraftLineRow
-              key={line.clientId}
-              draft={line}
-              onEdit={() => draft.openEditDrawer(line.clientId)}
-              onRemove={() => draft.removeDraftLine(line.clientId)}
-            />
-          ))}
-        </div>
-      )}
+      {hasAnyLineItems ? (
+        <>
+          <EstimateLineItemsFilterBar
+            groups={filterSourceGroups}
+            filter={filter}
+            onFilterChange={setFilter}
+          />
+          <div
+            className={`rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/50 ${TEXT_FOREGROUND}`}
+          >
+            <p className="font-medium">{formatRollupStripCounts(rollupStrip.counts)}</p>
+            <p className={`text-xs tabular-nums ${PLANNER_MUTED}`}>
+              {formatRollupStripTotals({
+                directCost: rollupStrip.totals.directCost,
+                sellPrice: rollupStrip.totals.sellPrice,
+                itemCount: rollupStrip.counts.taskCount,
+                laborHours: rollupStrip.totals.laborHours,
+                manDays: 0,
+                crewDays: 0,
+                durationDays: 0,
+                materialCost: 0,
+                equipmentCost: 0,
+                subcontractorCost: 0,
+                indirectCost: 0,
+                scheduleEnabledCount: 0,
+                weatherSensitiveCount: 0,
+                inspectionRequiredCount: 0,
+              })}
+            </p>
+          </div>
+        </>
+      ) : null}
+
+      <div className="space-y-2">
+        <h3 className={PLANNER_SECTION_TITLE}>Draft line items</h3>
+        {draft.draftLines.length === 0 ? (
+          <div className={`${PLANNER_FORM_PANEL} text-sm ${PLANNER_MUTED}`}>
+            No draft line items yet. Add a line item to build your estimate locally.
+          </div>
+        ) : (
+          <EstimateLineItemsGroupedView
+            mode="draft"
+            groups={filteredDraftGroups}
+            emptyMessage="No draft line items match the current filters."
+            onEditDraft={draft.openEditDrawer}
+            onRemoveDraft={draft.removeDraftLine}
+          />
+        )}
+      </div>
 
       {draft.draftLines.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -153,6 +260,7 @@ export default function EstimateLineItemsBuilderPanel({
         </p>
         <EstimateReadOnlyLineItemsTable
           lineItems={version.lineItems}
+          groups={filteredSavedGroups}
           caption="Saved line items"
         />
       </div>
