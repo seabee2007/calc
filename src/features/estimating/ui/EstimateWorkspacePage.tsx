@@ -4,7 +4,11 @@ import {
   planEstimateScheduleDates,
   type EstimateScheduleDependencyMode,
 } from '../application/estimateScheduleDatePlanner';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  estimateWorkspaceHref,
+  parseEstimateWorkspaceTabParam,
+} from '../utils/estimateRoutes';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { createDraftEstimate } from '../application/createDraftEstimate';
@@ -100,10 +104,15 @@ function selectEstimate(estimates: EstimateSummary[]): EstimateSummary | null {
 }
 
 export default function EstimateWorkspacePage() {
-  const { projectId: routeProjectId } = useParams<{ projectId: string }>();
+  const { projectId: routeProjectId, estimateTab } = useParams<{
+    projectId: string;
+    estimateTab?: string;
+  }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { projectId, loading: plannerLoading, accessDenied } = usePlannerProject();
-  const [activeTab, setActiveTab] = useState<EstimateWorkspaceTabId>('overview');
+  const parsedTab = parseEstimateWorkspaceTabParam(estimateTab);
+  const activeTab: EstimateWorkspaceTabId = parsedTab ?? 'overview';
   const [dataLoading, setDataLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -173,6 +182,20 @@ export default function EstimateWorkspacePage() {
   );
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
+
+  useEffect(() => {
+    if (estimateTab && parsedTab == null && resolvedProjectId) {
+      navigate(estimateWorkspaceHref(resolvedProjectId, 'overview'), { replace: true });
+    }
+  }, [estimateTab, parsedTab, resolvedProjectId, navigate]);
+
+  const handleTabChange = useCallback(
+    (tabId: EstimateWorkspaceTabId) => {
+      if (!resolvedProjectId) return;
+      navigate(estimateWorkspaceHref(resolvedProjectId, tabId));
+    },
+    [navigate, resolvedProjectId],
+  );
 
   const loadEstimateData = useCallback(async (silent = false) => {
     if (!resolvedProjectId) {
@@ -343,7 +366,7 @@ export default function EstimateWorkspacePage() {
 
   return (
     <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
-      <EstimateWorkspaceTabBar activeTabId={activeTab} onTabChange={setActiveTab} />
+      <EstimateWorkspaceTabBar activeTabId={activeTab} onTabChange={handleTabChange} />
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         {successMessage ? (
@@ -420,7 +443,7 @@ export default function EstimateWorkspacePage() {
                   hasEstimate={hasEstimate}
                   draftDirty={lineItemDraft.dirty}
                 />
-                <EstimateNextAvailableActions onNavigate={setActiveTab} />
+                <EstimateNextAvailableActions onNavigate={handleTabChange} />
                 {!hasVersion ? (
                   <EstimateWorkspaceEmptyState
                     title={NO_VERSION_MESSAGE}
