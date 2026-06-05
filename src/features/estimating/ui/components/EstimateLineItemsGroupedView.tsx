@@ -16,9 +16,19 @@ import {
   unitFromTask,
 } from '../estimateFormatters';
 import {
+  ESTIMATE_LINE_ITEMS_PANEL,
+  ESTIMATE_LINE_ITEM_COLUMN_HEADER,
+  ESTIMATE_LINE_ITEM_COL_NUM,
+  ESTIMATE_LINE_ITEM_COL_SELL,
+  ESTIMATE_LINE_ITEM_COL_TASK,
+  ESTIMATE_LINE_ITEM_ROW_GRID,
+  ESTIMATE_LINE_ITEM_ROW_GRID_WITH_ACTIONS,
+  ESTIMATE_TASK_ROW,
+  ESTIMATE_TASK_ROW_MOBILE,
   PLANNER_MUTED,
-  PLANNER_TABLE_ROW,
+  TEXT_BODY,
   TEXT_FOREGROUND,
+  TEXT_MUTED,
 } from '../estimateWorkspaceTheme';
 
 interface DraftProps {
@@ -45,23 +55,20 @@ interface SavedProps {
 
 type Props = DraftProps | SavedProps;
 
-const DESKTOP_ROW_GRID =
-  'hidden sm:grid sm:grid-cols-[minmax(0,1fr)_6.5rem_5rem_6.5rem] sm:items-center sm:gap-x-3';
-
 function LineItemColumnHeader({ showActions }: { showActions: boolean }) {
   const gridClass = showActions
-    ? 'hidden sm:grid sm:grid-cols-[minmax(0,1fr)_6.5rem_5rem_6.5rem_auto] sm:items-center sm:gap-x-3'
-    : DESKTOP_ROW_GRID;
+    ? ESTIMATE_LINE_ITEM_ROW_GRID_WITH_ACTIONS
+    : ESTIMATE_LINE_ITEM_ROW_GRID;
 
   return (
-    <div
-      className={`${gridClass} border-b border-slate-200/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide dark:border-slate-700/80 ${PLANNER_MUTED}`}
-    >
-      <span>Task</span>
-      <span>Qty</span>
-      <span>Labor</span>
-      <span>Sell</span>
-      {showActions ? <span className="text-right">Actions</span> : null}
+    <div className={`${gridClass} ${ESTIMATE_LINE_ITEM_COLUMN_HEADER}`}>
+      <span className={ESTIMATE_LINE_ITEM_COL_TASK}>Task</span>
+      <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Qty</span>
+      <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Labor</span>
+      <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Sell</span>
+      {showActions ? (
+        <span className={`${ESTIMATE_LINE_ITEM_COL_NUM} font-semibold`}>Actions</span>
+      ) : null}
     </div>
   );
 }
@@ -81,20 +88,18 @@ function SavedTaskRow({ task }: { task: EstimateDomainTask }) {
 
   return (
     <>
-      <div
-        className={`${DESKTOP_ROW_GRID} border-b border-slate-100 px-2 py-1.5 text-sm last:border-b-0 dark:border-slate-800/80 ${PLANNER_TABLE_ROW}`}
-      >
-        <span className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</span>
-        <span className={`tabular-nums text-xs ${TEXT_FOREGROUND}`}>{quantityLabel}</span>
-        <span className={`tabular-nums text-xs ${TEXT_FOREGROUND}`}>{laborLabel}</span>
-        <span className={`tabular-nums text-xs font-medium ${TEXT_FOREGROUND}`}>{sellLabel}</span>
+      <div className={`${ESTIMATE_LINE_ITEM_ROW_GRID} text-sm ${ESTIMATE_TASK_ROW}`}>
+        <span className={`font-medium ${TEXT_FOREGROUND} ${ESTIMATE_LINE_ITEM_COL_TASK}`}>
+          {title}
+        </span>
+        <span className={`${TEXT_BODY} ${ESTIMATE_LINE_ITEM_COL_NUM}`}>{quantityLabel}</span>
+        <span className={`${TEXT_BODY} ${ESTIMATE_LINE_ITEM_COL_NUM}`}>{laborLabel}</span>
+        <span className={`${TEXT_FOREGROUND} ${ESTIMATE_LINE_ITEM_COL_SELL}`}>{sellLabel}</span>
       </div>
 
-      <div
-        className={`sm:hidden rounded-md border border-slate-200/80 bg-slate-50/80 px-2.5 py-2 text-sm dark:border-slate-700/60 dark:bg-slate-900/40 ${PLANNER_TABLE_ROW}`}
-      >
+      <div className={`sm:hidden text-sm ${ESTIMATE_TASK_ROW_MOBILE}`}>
         <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</p>
-        <p className={`mt-0.5 text-xs tabular-nums ${PLANNER_MUTED}`}>
+        <p className={`mt-0.5 text-xs tabular-nums ${TEXT_MUTED}`}>
           {quantityLabel}
           <span aria-hidden> · </span>
           {laborLabel}
@@ -128,7 +133,7 @@ export default function EstimateLineItemsGroupedView(props: Props) {
   const defaultOpen = !defaultCollapsed;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200/90 bg-white dark:border-slate-700/80 dark:bg-slate-900/20">
+    <div className={ESTIMATE_LINE_ITEMS_PANEL}>
       {props.groups.map((division) => (
         <EstimateGroupTotalsRow
           key={division.key}
@@ -137,7 +142,7 @@ export default function EstimateLineItemsGroupedView(props: Props) {
           rollup={division.rollup}
           defaultOpen={defaultOpen}
         >
-          <div className="space-y-0.5 px-1 sm:px-2">
+          <div className="space-y-0.5">
             {division.scopes.map((scope) => (
               <EstimateGroupTotalsRow
                 key={`${division.key}-${scope.key}`}

@@ -9,9 +9,19 @@ import {
 } from '../estimateFormatters';
 import type { EstimateDraftLine } from '../../application/estimateDraftLine';
 import {
+  ESTIMATE_LINE_ITEM_COL_ACTIONS,
+  ESTIMATE_LINE_ITEM_COL_NUM,
+  ESTIMATE_LINE_ITEM_COL_SELL,
+  ESTIMATE_LINE_ITEM_COL_TASK,
+  ESTIMATE_LINE_ITEM_ROW_GRID_WITH_ACTIONS,
+  ESTIMATE_TASK_ROW,
+  ESTIMATE_TASK_ROW_ACTION,
+  ESTIMATE_TASK_ROW_MOBILE,
   PLANNER_MUTED,
   PLANNER_TABLE_ROW,
+  TEXT_BODY,
   TEXT_FOREGROUND,
+  TEXT_MUTED,
 } from '../estimateWorkspaceTheme';
 
 interface Props {
@@ -27,7 +37,7 @@ interface Props {
   nested?: boolean;
 }
 
-const ICON_BUTTON_CLASS = '!h-7 !w-7 !px-0';
+const ICON_BUTTON_CLASS = ESTIMATE_TASK_ROW_ACTION;
 
 function DraftLineActions({
   onEdit,
@@ -48,7 +58,7 @@ function DraftLineActions({
   | 'canMoveDown'
 >) {
   return (
-    <div className="flex shrink-0 items-center gap-0.5">
+    <div className={`${ESTIMATE_LINE_ITEM_COL_ACTIONS} gap-0.5`}>
       {onMoveUp ? (
         <Button
           type="button"
@@ -185,12 +195,14 @@ export default function EstimateDraftLineRow({
   return (
     <>
       <div
-        className={`hidden sm:grid sm:grid-cols-[minmax(0,1fr)_6.5rem_5rem_6.5rem_auto] sm:items-center sm:gap-x-3 border-b border-slate-100 px-2 py-1.5 text-sm last:border-b-0 dark:border-slate-800/80 ${PLANNER_TABLE_ROW}`}
+        className={`${ESTIMATE_LINE_ITEM_ROW_GRID_WITH_ACTIONS} text-sm ${ESTIMATE_TASK_ROW}`}
       >
-        <span className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</span>
-        <span className={`tabular-nums text-xs ${TEXT_FOREGROUND}`}>{quantityLabel}</span>
-        <span className={`tabular-nums text-xs ${TEXT_FOREGROUND}`}>{laborLabel}</span>
-        <span className={`tabular-nums text-xs font-medium ${TEXT_FOREGROUND}`}>{sellLabel}</span>
+        <span className={`font-medium ${TEXT_FOREGROUND} ${ESTIMATE_LINE_ITEM_COL_TASK}`}>
+          {title}
+        </span>
+        <span className={`${TEXT_BODY} ${ESTIMATE_LINE_ITEM_COL_NUM}`}>{quantityLabel}</span>
+        <span className={`${TEXT_BODY} ${ESTIMATE_LINE_ITEM_COL_NUM}`}>{laborLabel}</span>
+        <span className={`${TEXT_FOREGROUND} ${ESTIMATE_LINE_ITEM_COL_SELL}`}>{sellLabel}</span>
         <DraftLineActions
           onEdit={onEdit}
           onRemove={onRemove}
@@ -203,12 +215,12 @@ export default function EstimateDraftLineRow({
       </div>
 
       <div
-        className={`sm:hidden rounded-md border border-slate-200/80 bg-white px-2.5 py-2 text-sm dark:border-slate-700/80 dark:bg-slate-800/60 ${PLANNER_TABLE_ROW}`}
+        className={`sm:hidden text-sm ${ESTIMATE_TASK_ROW_MOBILE}`}
       >
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</p>
-            <p className={`mt-0.5 text-xs tabular-nums ${PLANNER_MUTED}`}>
+            <p className={`mt-0.5 text-xs tabular-nums ${TEXT_MUTED}`}>
               {quantityLabel}
               <span aria-hidden> · </span>
               {laborLabel}
