@@ -28,6 +28,7 @@ import EstimateWorkspaceEmptyState from './components/EstimateWorkspaceEmptyStat
 import EstimateSummaryCard from './components/EstimateSummaryCard';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateVersionSummary from './components/EstimateVersionSummary';
+import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import {
   PLANNER_FORM_PANEL,
@@ -432,22 +433,7 @@ export default function EstimateWorkspacePage() {
             )}
 
             {activeTab === 'totals' && (
-              <div className="space-y-4">
-                <h2 className={PLANNER_SECTION_TITLE}>Cost totals</h2>
-                {hasVersion ? (
-                  <>
-                    <SummaryCardsGrid version={version} />
-                    <p className={`text-sm ${PLANNER_MUTED}`}>
-                      Totals are read from the current estimate version snapshot.
-                    </p>
-                  </>
-                ) : (
-                  <EstimateWorkspaceEmptyState
-                    title={NO_VERSION_MESSAGE}
-                    body="Cost totals require a saved estimate version."
-                  />
-                )}
-              </div>
+              <EstimateTotalsReviewPanel version={hasVersion ? version : null} loading={dataLoading} />
             )}
           </>
         ) : null}
