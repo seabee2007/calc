@@ -16,7 +16,6 @@ import EstimateManualLineItemForm from './EstimateManualLineItemForm';
 import EstimateLineItemPreviewCard from './EstimateLineItemPreviewCard';
 import EstimateReadOnlyLineItemsTable from './EstimateReadOnlyLineItemsTable';
 import EstimateSummaryCard from './EstimateSummaryCard';
-import EstimateVersionSummary from './EstimateVersionSummary';
 import EstimateLineItemsFilterBar from './EstimateLineItemsFilterBar';
 import EstimateLineItemsGroupedView from './EstimateLineItemsGroupedView';
 import { formatDraftSummaryStrip } from '../estimateLineItemDisplay';
@@ -210,11 +209,6 @@ export default function EstimateLineItemsBuilderPanel({
       ) : null}
 
       <div className="space-y-3 pt-2">
-        <h3 className={PLANNER_SECTION_TITLE}>Current saved version</h3>
-        <EstimateVersionSummary estimate={estimate} version={version} compact />
-        <p className={`text-sm ${PLANNER_MUTED}`}>
-          Draft edits above do not change saved data until you save a new version.
-        </p>
         <EstimateReadOnlyLineItemsTable
           lineItems={version.lineItems}
           groups={filteredSavedGroups}

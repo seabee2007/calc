@@ -1,10 +1,11 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { EstimateGroupRollup } from '../../domain/estimateLineItemTree';
 import {
   formatDivisionRollupHeader,
   formatScopeRollupHeader,
 } from '../estimateLineItemDisplay';
-import { PLANNER_MUTED, PLANNER_SECTION_TITLE, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
+import { PLANNER_MUTED, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
 
 interface Props {
   title: string;
@@ -26,32 +27,33 @@ export default function EstimateGroupTotalsRow({
       ? formatDivisionRollupHeader(rollup)
       : formatScopeRollupHeader(rollup);
 
+  const containerClass =
+    level === 'division'
+      ? 'group border-b border-slate-200/90 last:border-b-0 dark:border-slate-700/80'
+      : 'group ml-2 border-l border-slate-200/80 pl-2 dark:border-slate-700/70 sm:ml-3 sm:pl-3';
+
+  const titleClass =
+    level === 'division'
+      ? `min-w-0 truncate text-sm font-semibold ${TEXT_FOREGROUND}`
+      : `min-w-0 truncate text-sm font-medium ${TEXT_FOREGROUND}`;
+
   return (
-    <details
-      open={defaultOpen}
-      className="group rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/80"
-    >
+    <details open={defaultOpen} className={containerClass}>
       <summary
-        className={`flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 sm:px-4 [&::-webkit-details-marker]:hidden ${TEXT_FOREGROUND}`}
+        className={`flex cursor-pointer list-none items-center gap-2 px-1 py-1.5 sm:px-2 sm:py-2 [&::-webkit-details-marker]:hidden ${TEXT_FOREGROUND}`}
       >
-        <p
-          className={
-            level === 'division'
-              ? `min-w-0 truncate ${PLANNER_SECTION_TITLE}`
-              : `min-w-0 truncate text-sm font-semibold ${TEXT_FOREGROUND}`
-          }
-        >
-          {title}
-        </p>
-        <span className={`shrink-0 text-xs tabular-nums sm:text-sm ${PLANNER_MUTED}`}>
-          {rollupLabel}
-        </span>
+        <ChevronRight
+          className="h-3.5 w-3.5 shrink-0 text-slate-400 group-open:hidden dark:text-slate-500"
+          aria-hidden
+        />
+        <ChevronDown
+          className="hidden h-3.5 w-3.5 shrink-0 text-slate-400 group-open:block dark:text-slate-500"
+          aria-hidden
+        />
+        <span className={`min-w-0 flex-1 truncate ${titleClass}`}>{title}</span>
+        <span className={`shrink-0 text-xs tabular-nums ${PLANNER_MUTED}`}>{rollupLabel}</span>
       </summary>
-      {children ? (
-        <div className="space-y-2 border-t border-slate-100 p-2 dark:border-slate-700/80 sm:p-3">
-          {children}
-        </div>
-      ) : null}
+      {children ? <div className="pb-1">{children}</div> : null}
     </details>
   );
 }

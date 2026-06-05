@@ -33,6 +33,7 @@ export default function EstimateReadOnlyLineItemsTable({
         <EstimateLineItemsGroupedView
           mode="saved"
           groups={displayGroups}
+          defaultCollapsed
           emptyMessage="No saved line items match the current filters."
         />
       )}
