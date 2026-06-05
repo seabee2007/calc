@@ -1,21 +1,52 @@
 import type { EstimateVersionHistoryItem } from '../estimateVersionDisplay';
-import { PLANNER_MUTED, PLANNER_SECTION_TITLE, TEXT_BODY } from '../estimateWorkspaceTheme';
-import EstimateVersionHistoryCard from './EstimateVersionHistoryCard';
+import { formatEstimateVersionLabel } from '../estimateVersionDisplay';
+import {
+  PLANNER_MUTED,
+  PLANNER_SECTION_TITLE,
+  PLANNER_TABLE,
+  PLANNER_TABLE_HEAD,
+  PLANNER_TABLE_WRAPPER,
+  TEXT_BODY,
+  TEXT_FOREGROUND,
+} from '../estimateWorkspaceTheme';
+import EstimateVersionHistoryRow from './EstimateVersionHistoryRow';
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
+
+export interface EstimateCurrentVersionSummary {
+  versionName: string;
+  versionNumber: number;
+  lineItemCount: number;
+  totalSellPrice: string;
+}
 
 interface Props {
   items: EstimateVersionHistoryItem[];
   loading?: boolean;
+  currentVersion?: EstimateCurrentVersionSummary | null;
 }
 
-export default function EstimateVersionHistoryList({ items, loading = false }: Props) {
+const TABLE_COLUMNS = [
+  'Version',
+  'Status',
+  'Type',
+  'Created',
+  'Sell price',
+  'Labor hrs',
+  'Line items',
+] as const;
+
+export default function EstimateVersionHistoryList({
+  items,
+  loading = false,
+  currentVersion = null,
+}: Props) {
   if (loading) {
     return (
-      <div className="space-y-3">
-        {[0, 1].map((key) => (
+      <div className="space-y-2">
+        {[0, 1, 2].map((key) => (
           <div
             key={key}
-            className="h-32 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60"
+            className="h-10 animate-pulse rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 sm:h-9"
           />
         ))}
       </div>
@@ -41,10 +72,54 @@ export default function EstimateVersionHistoryList({ items, loading = false }: P
         </p>
       </div>
 
-      <ul className="space-y-3" role="list">
+      {currentVersion ? (
+        <p className={`text-sm ${TEXT_BODY}`}>
+          <span className={`font-medium ${TEXT_FOREGROUND}`}>Current version: </span>
+          <span>
+            {formatEstimateVersionLabel(
+              currentVersion.versionName,
+              currentVersion.versionNumber,
+            )}
+          </span>
+          <span className={PLANNER_MUTED} aria-hidden>
+            {' '}
+            ·{' '}
+          </span>
+          <span className="font-medium tabular-nums">{currentVersion.totalSellPrice}</span>
+          <span className={PLANNER_MUTED} aria-hidden>
+            {' '}
+            ·{' '}
+          </span>
+          <span>
+            {currentVersion.lineItemCount} line item
+            {currentVersion.lineItemCount === 1 ? '' : 's'}
+          </span>
+        </p>
+      ) : null}
+
+      <div className={`hidden sm:block ${PLANNER_TABLE_WRAPPER}`}>
+        <table className={PLANNER_TABLE}>
+          <thead className={PLANNER_TABLE_HEAD}>
+            <tr>
+              {TABLE_COLUMNS.map((col) => (
+                <th key={col} className="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <EstimateVersionHistoryRow key={item.id} item={item} layout="table" />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ul className="space-y-2 sm:hidden" role="list">
         {items.map((item) => (
           <li key={item.id}>
-            <EstimateVersionHistoryCard item={item} />
+            <EstimateVersionHistoryRow item={item} layout="mobile" />
           </li>
         ))}
       </ul>

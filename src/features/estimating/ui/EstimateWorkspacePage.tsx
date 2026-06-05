@@ -346,19 +346,6 @@ export default function EstimateWorkspacePage() {
       <EstimateWorkspaceTabBar activeTabId={activeTab} onTabChange={setActiveTab} />
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-        <EstimateWorkspaceHeader
-          estimate={estimate}
-          version={version}
-          totalPriceDisplay={workspaceSummaryValues.totalEstimate}
-          laborHoursDisplay={workspaceSummaryValues.laborHours}
-          plannedDurationDisplay={plannedDurationDisplay}
-          hasEstimate={hasEstimate}
-          creating={creating}
-          dataLoading={dataLoading}
-          draftDirty={lineItemDraft.dirty}
-          onCreateEstimate={handleCreateEstimate}
-        />
-
         {successMessage ? (
           <div className="mb-4">
             <EstimateWorkspaceEmptyState
@@ -405,6 +392,12 @@ export default function EstimateWorkspacePage() {
 
         {!dataLoading && !hasEstimate && !loadError ? (
           <div className="space-y-4">
+            <EstimateWorkspaceHeader
+              hasEstimate={false}
+              creating={creating}
+              dataLoading={dataLoading}
+              onCreateEstimate={handleCreateEstimate}
+            />
             <EstimateMethodSelector
               value={selectedEstimateMethod}
               onChange={setSelectedEstimateMethod}
@@ -418,6 +411,15 @@ export default function EstimateWorkspacePage() {
           <>
             {activeTab === 'overview' && (
               <div className="space-y-4">
+                <EstimateWorkspaceHeader
+                  estimate={estimate}
+                  version={version}
+                  totalPriceDisplay={workspaceSummaryValues.totalEstimate}
+                  laborHoursDisplay={workspaceSummaryValues.laborHours}
+                  plannedDurationDisplay={plannedDurationDisplay}
+                  hasEstimate={hasEstimate}
+                  draftDirty={lineItemDraft.dirty}
+                />
                 <EstimateNextAvailableActions onNavigate={setActiveTab} />
                 {!hasVersion ? (
                   <EstimateWorkspaceEmptyState
@@ -486,6 +488,16 @@ export default function EstimateWorkspacePage() {
               <EstimateVersionHistoryList
                 items={versionHistoryItems}
                 loading={dataLoading}
+                currentVersion={
+                  version
+                    ? {
+                        versionName: version.versionName,
+                        versionNumber: version.versionNumber,
+                        lineItemCount: version.lineItems.length,
+                        totalSellPrice: workspaceSummaryValues.totalEstimate,
+                      }
+                    : null
+                }
               />
             )}
 

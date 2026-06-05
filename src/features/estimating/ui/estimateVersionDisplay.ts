@@ -100,6 +100,47 @@ export function extractVersionDisplayMetrics(
   };
 }
 
+const GENERIC_ESTIMATE_VERSION_NAME = /^(draft|version)$/i;
+
+/** True when version_name already embeds this version number (e.g. "Draft v4"). */
+export function estimateVersionNameIncludesNumber(
+  versionName: string,
+  versionNumber: number,
+): boolean {
+  const trimmed = versionName.trim();
+  if (!trimmed) return false;
+
+  return (
+    new RegExp(`\\bv${versionNumber}\\b`, 'i').test(trimmed) ||
+    new RegExp(`\\bversion\\s+${versionNumber}\\b`, 'i').test(trimmed)
+  );
+}
+
+export function isGenericEstimateVersionName(
+  versionName: string | null | undefined,
+): boolean {
+  const trimmed = (versionName ?? '').trim();
+  if (trimmed.length === 0) return true;
+  return GENERIC_ESTIMATE_VERSION_NAME.test(trimmed);
+}
+
+/** Single display label for a saved estimate version row. */
+export function formatEstimateVersionLabel(
+  versionName: string | null | undefined,
+  versionNumber: number,
+): string {
+  if (isGenericEstimateVersionName(versionName)) {
+    return `Version v${versionNumber}`;
+  }
+
+  const trimmed = (versionName ?? '').trim();
+  if (estimateVersionNameIncludesNumber(trimmed, versionNumber)) {
+    return trimmed;
+  }
+
+  return `${trimmed} v${versionNumber}`;
+}
+
 export interface EstimateVersionHistoryItem {
   id: string;
   versionNumber: number;

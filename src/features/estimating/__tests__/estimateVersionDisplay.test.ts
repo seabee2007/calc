@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import type { EstimateVersionRow } from '../infrastructure/estimateDbTypes';
 import {
   buildEstimateVersionHistoryItems,
+  estimateVersionNameIncludesNumber,
   extractLaborHoursFromSnapshot,
   extractLineItemCountFromSnapshot,
   extractSellPriceFromTotalsJson,
   extractVersionDisplayMetrics,
+  formatEstimateVersionLabel,
   isCurrentEstimateVersion,
+  isGenericEstimateVersionName,
   sortEstimateVersionsNewestFirst,
 } from '../ui/estimateVersionDisplay';
 
@@ -139,6 +142,39 @@ describe('extractVersionDisplayMetrics', () => {
       laborHours: null,
       lineItemCount: null,
     });
+  });
+});
+
+describe('formatEstimateVersionLabel', () => {
+  it('returns version name when it already includes the version number', () => {
+    expect(formatEstimateVersionLabel('Draft v4', 4)).toBe('Draft v4');
+    expect(formatEstimateVersionLabel('Version 2', 2)).toBe('Version 2');
+  });
+
+  it('appends version number when name does not include it', () => {
+    expect(formatEstimateVersionLabel('Initial Draft', 1)).toBe('Initial Draft v1');
+  });
+
+  it('uses fallback when version name is missing or generic', () => {
+    expect(formatEstimateVersionLabel(null, 3)).toBe('Version v3');
+    expect(formatEstimateVersionLabel('', 3)).toBe('Version v3');
+    expect(formatEstimateVersionLabel('Draft', 3)).toBe('Version v3');
+    expect(formatEstimateVersionLabel('Version', 5)).toBe('Version v5');
+  });
+});
+
+describe('estimateVersionNameIncludesNumber', () => {
+  it('detects embedded version numbers', () => {
+    expect(estimateVersionNameIncludesNumber('Draft v4', 4)).toBe(true);
+    expect(estimateVersionNameIncludesNumber('Initial Draft', 1)).toBe(false);
+  });
+});
+
+describe('isGenericEstimateVersionName', () => {
+  it('treats blank and generic names as generic', () => {
+    expect(isGenericEstimateVersionName(null)).toBe(true);
+    expect(isGenericEstimateVersionName('Draft')).toBe(true);
+    expect(isGenericEstimateVersionName('Initial Draft')).toBe(false);
   });
 });
 
