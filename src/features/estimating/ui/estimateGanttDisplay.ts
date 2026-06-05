@@ -1,3 +1,4 @@
+import type { EstimateScheduleDependencyPreview } from '../application/estimateScheduleDependencies';
 import type {
   PlannedEstimateSchedulePlan,
   PlannedEstimateScheduleTaskCandidate,
@@ -31,6 +32,7 @@ export interface GanttRow {
   label: string;
   indentLevel: number;
   task?: GanttTaskInput;
+  hasFinishToStartPredecessor?: boolean;
 }
 
 export interface GanttTimelineRange {
@@ -155,9 +157,25 @@ export function extractGanttTasksFromPlan(
   );
 }
 
-export function getGanttTaskRows(plan: PlannedEstimateSchedulePlan | null): GanttRow[] {
+export function buildGanttSuccessorCandidateIds(
+  dependencies: EstimateScheduleDependencyPreview[],
+): Set<string> {
+  return new Set(dependencies.map((dependency) => dependency.successorCandidateId));
+}
+
+export function formatGanttDependencyPreviewNote(dependencyCount: number): string {
+  const safeCount = Number.isFinite(dependencyCount) ? Math.max(0, Math.floor(dependencyCount)) : 0;
+  const linkLabel = safeCount === 1 ? 'link' : 'links';
+  return `${safeCount} finish-to-start dependency ${linkLabel} in preview. Dependency lines are preview-only and will be drawn in a later phase.`;
+}
+
+export function getGanttTaskRows(
+  plan: PlannedEstimateSchedulePlan | null,
+  dependencies: EstimateScheduleDependencyPreview[] = [],
+): GanttRow[] {
   if (!plan) return [];
 
+  const successorIds = buildGanttSuccessorCandidateIds(dependencies);
   const rows: GanttRow[] = [];
 
   for (const division of plan.divisions) {
@@ -184,6 +202,7 @@ export function getGanttTaskRows(plan: PlannedEstimateSchedulePlan | null): Gant
           kind: 'task',
           label: task.title.trim() || ESTIMATE_BLANK,
           indentLevel: 2,
+          hasFinishToStartPredecessor: successorIds.has(task.candidateId),
           task: mapTaskToGanttInput(
             task,
             division.key,

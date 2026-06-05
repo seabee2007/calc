@@ -1,8 +1,12 @@
 import { useMemo } from 'react';
 import { Calendar } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
-import type { EstimateSchedulePlan } from '../../domain/estimateScheduleTypes';
+import {
+  applyDependencyPreviewToPlan,
+  mapScheduleControlToDependencyPreviewMode,
+} from '../../application/estimateScheduleDependencies';
 import type { EstimateScheduleDatePlanResult } from '../../application/estimateScheduleDatePlanner';
+import type { EstimateSchedulePlan } from '../../domain/estimateScheduleTypes';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import {
   extractScheduleDatePlanSummary,
@@ -22,6 +26,7 @@ import EstimateSchedulePlanControls, {
   type EstimateSchedulePlanControlValues,
 } from './EstimateSchedulePlanControls';
 import EstimateSchedulePlanSummary from './EstimateSchedulePlanSummary';
+import EstimateDependencyPreviewPanel from './EstimateDependencyPreviewPanel';
 
 const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
 
@@ -62,6 +67,14 @@ export default function EstimateSchedulePreviewPanel({
     () => extractScheduleDatePlanSummary(datePlanResult, plan),
     [datePlanResult, plan],
   );
+  const dependencyPreview = useMemo(() => {
+    const previewPlan = datePlanResult?.plan ?? plan;
+    if (!previewPlan) return null;
+    return applyDependencyPreviewToPlan(
+      previewPlan,
+      mapScheduleControlToDependencyPreviewMode(planControls.dependencyMode),
+    );
+  }, [datePlanResult, plan, planControls.dependencyMode]);
 
   if (!loading && !version) {
     return (
@@ -116,6 +129,12 @@ export default function EstimateSchedulePreviewPanel({
         <h3 className={PLANNER_SECTION_TITLE}>Planned schedule summary</h3>
         <EstimateSchedulePlanSummary summary={datePlanSummary} loading={loading} />
       </div>
+
+      <EstimateDependencyPreviewPanel
+        dependencies={dependencyPreview?.dependencies ?? []}
+        plan={dependencyPreview?.plan ?? datePlanResult?.plan ?? plan}
+        loading={loading}
+      />
 
       <div className="space-y-2">
         <h3 className={PLANNER_SECTION_TITLE}>Labor rollup summary</h3>

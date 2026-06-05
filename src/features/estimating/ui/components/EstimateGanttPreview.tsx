@@ -1,10 +1,15 @@
 import { useMemo } from 'react';
+import {
+  applyDependencyPreviewToPlan,
+  inferDependencyPreviewModeFromPlannedPlan,
+} from '../../application/estimateScheduleDependencies';
 import type { EstimateScheduleDatePlanResult } from '../../application/estimateScheduleDatePlanner';
 import {
   buildGanttTimelineRange,
   calculateGanttTodayMarkerPosition,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   extractGanttTasksFromPlan,
+  formatGanttDependencyPreviewNote,
   getGanttTaskRows,
   getGanttTodayDateYmd,
   hasPlannedGanttTasks,
@@ -33,8 +38,17 @@ interface Props {
 
 export default function EstimateGanttPreview({ datePlanResult, loading = false }: Props) {
   const plannedPlan = datePlanResult?.plan ?? null;
+  const dependencyPreview = useMemo(() => {
+    if (!plannedPlan) return null;
+    const mode = inferDependencyPreviewModeFromPlannedPlan(plannedPlan);
+    return applyDependencyPreviewToPlan(plannedPlan, mode);
+  }, [plannedPlan]);
+  const dependencies = dependencyPreview?.dependencies ?? [];
   const tasks = useMemo(() => extractGanttTasksFromPlan(plannedPlan), [plannedPlan]);
-  const rows = useMemo(() => getGanttTaskRows(plannedPlan), [plannedPlan]);
+  const rows = useMemo(
+    () => getGanttTaskRows(plannedPlan, dependencies),
+    [plannedPlan, dependencies],
+  );
   const range = useMemo(() => buildGanttTimelineRange(tasks), [tasks]);
   const todayYmd = useMemo(() => getGanttTodayDateYmd(), []);
   const showTodayMarker = isTodayWithinGanttRange(range, todayYmd);
@@ -62,8 +76,9 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
         </p>
       </div>
 
-      <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
+      <div className={`${PLANNER_FORM_PANEL} space-y-2 text-sm ${TEXT_BODY}`}>
         <p className={PLANNER_MUTED}>{GANTT_PREVIEW_NOTE}</p>
+        <p className={PLANNER_MUTED}>{formatGanttDependencyPreviewNote(dependencies.length)}</p>
       </div>
 
       {loading ? (

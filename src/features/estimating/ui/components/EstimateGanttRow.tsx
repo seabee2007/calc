@@ -1,4 +1,4 @@
-import { ClipboardCheck, CloudRain } from 'lucide-react';
+import { ArrowLeft, ClipboardCheck, CloudRain } from 'lucide-react';
 import {
   calculateGanttBarPosition,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
@@ -55,6 +55,15 @@ export default function EstimateGanttRow({
         </div>
         {row.kind === 'task' && row.task ? (
           <div className="ml-1 flex shrink-0 items-center gap-1">
+            {row.hasFinishToStartPredecessor ? (
+              <span
+                className={`${BADGE_BASE} border border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300`}
+                title="Has finish-to-start predecessor in preview"
+                aria-label="Has finish-to-start predecessor in preview"
+              >
+                <ArrowLeft className="h-3 w-3" />
+              </span>
+            ) : null}
             {row.task.weatherSensitive ? (
               <span
                 className={`${BADGE_BASE} ${BADGE_WARNING}`}
