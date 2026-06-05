@@ -10,6 +10,7 @@ export {
   PLANNER_SECTION_TITLE,
   PLANNER_TABLE,
   PLANNER_TABLE_HEAD,
+  PLANNER_TABLE_ROW,
   PLANNER_TABLE_WRAPPER,
 } from '../../../components/planner/plannerTheme';
 

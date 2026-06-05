@@ -2,11 +2,14 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import { plannerBoardHref } from '../../../../utils/plannerRoutes';
+import FieldRecordStatusBadge from '../../../../components/field/FieldRecordStatusBadge';
+import type { EstimateStatus } from '../../domain/estimateTypes';
 import {
   BADGE_BASE,
   BADGE_INFO,
   PLANNER_EYEBROW,
   PLANNER_LINK,
+  PLANNER_MUTED,
   PLANNER_SECTION_TITLE,
   TEXT_FOREGROUND,
 } from '../estimateWorkspaceTheme';
@@ -14,9 +17,16 @@ import {
 interface Props {
   projectId: string;
   projectName?: string;
+  estimateName?: string | null;
+  estimateStatus?: EstimateStatus | null;
 }
 
-export default function EstimateWorkspaceHeader({ projectId, projectName }: Props) {
+export default function EstimateWorkspaceHeader({
+  projectId,
+  projectName,
+  estimateName,
+  estimateStatus,
+}: Props) {
   return (
     <header className="mb-4 space-y-3">
       <Link to={plannerBoardHref(projectId)} className={PLANNER_LINK}>
@@ -28,13 +38,20 @@ export default function EstimateWorkspaceHeader({ projectId, projectName }: Prop
         <div className="min-w-0">
           <p className={PLANNER_EYEBROW}>Project estimate</p>
           <h1 className={`mt-1 text-xl font-semibold sm:text-2xl ${TEXT_FOREGROUND}`}>
-            Estimate Workspace
+            {estimateName ?? 'Estimate Workspace'}
           </h1>
           {projectName ? (
-            <p className={`mt-1 truncate text-sm ${PLANNER_SECTION_TITLE}`}>{projectName}</p>
+            <p className={`mt-1 truncate text-sm ${PLANNER_MUTED}`}>{projectName}</p>
           ) : null}
-          <div className="mt-2">
-            <span className={`${BADGE_BASE} ${BADGE_INFO}`}>Foundation Preview</span>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {estimateStatus ? (
+              <FieldRecordStatusBadge status={estimateStatus} />
+            ) : (
+              <span className={`${BADGE_BASE} ${BADGE_INFO}`}>Foundation Preview</span>
+            )}
+            {!estimateName ? (
+              <span className={`text-xs ${PLANNER_SECTION_TITLE}`}>Read-only workspace</span>
+            ) : null}
           </div>
         </div>
 
