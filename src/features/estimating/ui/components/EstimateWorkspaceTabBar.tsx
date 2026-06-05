@@ -3,7 +3,12 @@ import {
   PLANNER_NAV_TAB_LABEL_ACTIVE,
 } from '../../../../components/planner/plannerTheme';
 
-export type EstimateWorkspaceTabId = 'overview' | 'line-items' | 'versions' | 'totals';
+export type EstimateWorkspaceTabId =
+  | 'overview'
+  | 'line-items'
+  | 'schedule-preview'
+  | 'versions'
+  | 'totals';
 
 export interface EstimateWorkspaceTab {
   id: EstimateWorkspaceTabId;
@@ -13,6 +18,7 @@ export interface EstimateWorkspaceTab {
 export const ESTIMATE_WORKSPACE_TABS: EstimateWorkspaceTab[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'line-items', label: 'Line items' },
+  { id: 'schedule-preview', label: 'Schedule Preview' },
   { id: 'versions', label: 'Versions' },
   { id: 'totals', label: 'Totals' },
 ];

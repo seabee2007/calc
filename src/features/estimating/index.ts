@@ -26,5 +26,6 @@ export * from './infrastructure/estimateRepository';
 export { default as EstimateWorkspacePage } from './ui/EstimateWorkspacePage';
 export * from './ui/estimateVersionDisplay';
 export * from './ui/estimateTotalsDisplay';
+export * from './ui/estimateScheduleDisplay';
 export * from './utils/estimateRoutes';
 

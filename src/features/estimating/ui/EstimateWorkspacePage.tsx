@@ -29,6 +29,7 @@ import EstimateSummaryCard from './components/EstimateSummaryCard';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateVersionSummary from './components/EstimateVersionSummary';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
+import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import {
   PLANNER_FORM_PANEL,
@@ -417,6 +418,15 @@ export default function EstimateWorkspacePage() {
                 )}
               </div>
             )}
+
+            {activeTab === 'schedule-preview' && estimate ? (
+              <EstimateSchedulePreviewPanel
+                version={hasVersion ? version : null}
+                estimateId={estimate.id}
+                projectId={estimate.projectId}
+                loading={dataLoading}
+              />
+            ) : null}
 
             {activeTab === 'versions' && (
               <div className="space-y-4">
