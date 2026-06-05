@@ -1,14 +1,13 @@
 import { ArrowLeft, ClipboardCheck, CloudRain } from 'lucide-react';
 import type { EstimateScheduleTaskBaseline } from '../../application/estimateScheduleBaseline';
 import {
-  calculateGanttBarPosition,
-  DEFAULT_GANTT_COLUMN_WIDTH_PX,
+  calculateGanttBarPositionForScale,
   formatGanttDurationLabel,
   getGanttBaselineBarClassName,
   getGanttCriticalBarClassName,
   isGanttTaskOnCriticalPath,
   type GanttRow,
-  type GanttTimelineRange,
+  type GanttScaledTimeline,
 } from '../estimateGanttDisplay';
 import { formatEstimateBlank } from '../estimateFormatters';
 import { BADGE_BASE, BADGE_INFO, BADGE_WARNING } from '../../../../theme/statusColors';
@@ -16,8 +15,7 @@ import { PLANNER_MUTED, TEXT_BODY, TEXT_FOREGROUND } from '../estimateWorkspaceT
 
 interface Props {
   row: GanttRow;
-  range: GanttTimelineRange;
-  columnWidth?: number;
+  timeline: GanttScaledTimeline;
   todayMarkerLeft?: number | null;
   criticalTaskIds?: string[];
   showCriticalPath?: boolean;
@@ -33,28 +31,27 @@ const ROW_HEIGHT_BY_KIND = {
 
 export default function EstimateGanttRow({
   row,
-  range,
-  columnWidth = DEFAULT_GANTT_COLUMN_WIDTH_PX,
+  timeline,
   todayMarkerLeft = null,
   criticalTaskIds = [],
   showCriticalPath = false,
   baselineTask,
   showBaseline = false,
 }: Props) {
+  const columnWidth = timeline.columnWidth;
   const barPosition =
     row.kind === 'task' && row.task
-      ? calculateGanttBarPosition(row.task, range.startDate, columnWidth)
+      ? calculateGanttBarPositionForScale(row.task, timeline)
       : null;
   const baselineBarPosition =
     showBaseline && baselineTask
-      ? calculateGanttBarPosition(
+      ? calculateGanttBarPositionForScale(
           {
             plannedStartDate: baselineTask.baselineStartDate,
             plannedEndDate: baselineTask.baselineEndDate,
             durationDays: baselineTask.durationDays,
           },
-          range.startDate,
-          columnWidth,
+          timeline,
         )
       : null;
   const isCritical = isGanttTaskOnCriticalPath(
@@ -117,12 +114,12 @@ export default function EstimateGanttRow({
 
       <div
         className={`relative flex-1 border-b border-slate-200 dark:border-slate-700 ${ROW_HEIGHT_BY_KIND[row.kind]}`}
-        style={{ width: range.totalDays * columnWidth }}
+        style={{ width: timeline.totalWidthPx }}
         role="gridcell"
       >
-        {range.dayDates.map((date, index) => (
+        {timeline.buckets.map((bucket, index) => (
           <div
-            key={`${row.id}:${date}`}
+            key={`${row.id}:${bucket.key}`}
             className="absolute top-0 h-full border-r border-slate-100 dark:border-slate-800/80"
             style={{
               left: index * columnWidth,

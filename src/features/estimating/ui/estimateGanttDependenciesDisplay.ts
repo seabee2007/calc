@@ -1,11 +1,11 @@
 import type { EstimateScheduleDependencyPreview } from '../application/estimateScheduleDependencies';
 import {
-  calculateGanttBarPosition,
+  calculateGanttBarPositionForScale,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   GANTT_ROW_HEIGHT_PX,
   hasValidGanttTaskDates,
   type GanttRow,
-  type GanttTimelineRange,
+  type GanttScaledTimeline,
 } from './estimateGanttDisplay';
 
 export interface GanttTaskBarAnchors {
@@ -63,15 +63,15 @@ export function getRenderedGanttBarWidth(
 export function getTaskBarAnchorPoints(
   row: GanttRow,
   rowCenterY: number,
-  range: GanttTimelineRange,
-  columnWidth: number = DEFAULT_GANTT_COLUMN_WIDTH_PX,
+  timeline: GanttScaledTimeline,
 ): GanttTaskBarAnchors | null {
-  if (row.kind !== 'task' || !row.task || range.isEmpty) return null;
+  if (row.kind !== 'task' || !row.task || timeline.isEmpty) return null;
   if (!hasValidGanttTaskDates(row.task)) return null;
 
-  const barPosition = calculateGanttBarPosition(row.task, range.startDate, columnWidth);
+  const barPosition = calculateGanttBarPositionForScale(row.task, timeline);
   if (!barPosition) return null;
 
+  const columnWidth = timeline.columnWidth;
   const renderedWidth = getRenderedGanttBarWidth(barPosition.widthPx, columnWidth);
   const barLeftPx = barPosition.leftPx;
   const barRightPx = barPosition.leftPx + renderedWidth;
@@ -130,10 +130,9 @@ export function buildElbowConnectorPath(
 export function buildGanttDependencyConnectors(
   dependencies: EstimateScheduleDependencyPreview[],
   rows: GanttRow[],
-  range: GanttTimelineRange,
-  columnWidth: number = DEFAULT_GANTT_COLUMN_WIDTH_PX,
+  timeline: GanttScaledTimeline,
 ): GanttDependencyConnector[] {
-  if (!dependencies.length || range.isEmpty || rows.length === 0) return [];
+  if (!dependencies.length || timeline.isEmpty || rows.length === 0) return [];
 
   const centerYByCandidateId = buildGanttRowCenterYMap(rows);
   const anchorsByCandidateId = new Map<string, GanttTaskBarAnchors>();
@@ -144,7 +143,7 @@ export function buildGanttDependencyConnectors(
     const centerY = centerYByCandidateId.get(row.task.candidateId);
     if (centerY == null) continue;
 
-    const anchors = getTaskBarAnchorPoints(row, centerY, range, columnWidth);
+    const anchors = getTaskBarAnchorPoints(row, centerY, timeline);
     if (anchors) {
       anchorsByCandidateId.set(anchors.candidateId, anchors);
     }

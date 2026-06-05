@@ -5,10 +5,8 @@ import {
   type EstimateScheduleDependencyMode,
 } from '../application/estimateScheduleDatePlanner';
 import { useParams } from 'react-router-dom';
-import { Calendar, FileOutput, Layers, ListPlus } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
-import Button from '../../../components/ui/Button';
 import { createDraftEstimate } from '../application/createDraftEstimate';
 import { DEFAULT_ESTIMATE_METHOD } from '../domain/estimateMethods';
 import type { EstimateType } from '../domain/estimateTypes';
@@ -34,7 +32,7 @@ import EstimateWorkspaceLoading from './components/EstimateWorkspaceLoading';
 import EstimateWorkspaceEmptyState from './components/EstimateWorkspaceEmptyState';
 import EstimateSummaryCard from './components/EstimateSummaryCard';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
-import EstimateVersionSummary from './components/EstimateVersionSummary';
+import EstimateNextAvailableActions from './components/EstimateNextAvailableActions';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
 import EstimateGanttPreview from './components/EstimateGanttPreview';
@@ -44,6 +42,7 @@ import {
   ROUGH_SCHEDULE_PREVIEW_NOTE,
   shouldShowRoughSchedulePreviewNote,
 } from './estimateMethodDisplay';
+import { extractScheduleDatePlanSummary } from './estimateScheduleDisplay';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import {
   PLANNER_FORM_PANEL,
@@ -61,13 +60,6 @@ const SUMMARY_CARD_KEYS = [
   { key: 'materialCost', label: 'Material Cost' },
   { key: 'equipmentCost', label: 'Equipment Cost' },
   { key: 'profit', label: 'Profit' },
-] as const;
-
-const COMING_SOON_ACTIONS = [
-  { label: 'Add scope', icon: Layers },
-  { label: 'Add line item', icon: ListPlus },
-  { label: 'Generate schedule', icon: Calendar },
-  { label: 'Export proposal', icon: FileOutput },
 ] as const;
 
 const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
@@ -98,37 +90,6 @@ function SummaryCardsGrid({ version, loading = false }: SummaryCardsGridProps) {
           loading={loading}
         />
       ))}
-    </div>
-  );
-}
-
-function ComingSoonActions() {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {COMING_SOON_ACTIONS.map(({ label, icon: Icon }) => (
-        <Button
-          key={label}
-          variant="outline"
-          size="sm"
-          icon={<Icon className="h-4 w-4" />}
-          disabled
-          title="Coming in a future phase"
-        >
-          {label}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-function ScheduleNote() {
-  return (
-    <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
-      <p className={PLANNER_SECTION_TITLE}>Schedule &amp; Gantt</p>
-      <p className={`mt-2 ${PLANNER_MUTED}`}>
-        Estimate-driven scheduling and Gantt generation will be added after estimate creation and
-        versioning are working.
-      </p>
     </div>
   );
 }
@@ -183,6 +144,21 @@ export default function EstimateWorkspacePage() {
       includeWeekends: schedulePlanControls.includeWeekends,
     });
   }, [schedulePlan, schedulePlanControls]);
+
+  const workspaceSummaryValues = useMemo(
+    () => buildWorkspaceSummaryValues(version),
+    [version],
+  );
+
+  const scheduleDatePlanSummary = useMemo(
+    () => extractScheduleDatePlanSummary(scheduleDatePlanResult, schedulePlan),
+    [scheduleDatePlanResult, schedulePlan],
+  );
+
+  const plannedDurationDisplay =
+    scheduleDatePlanSummary.totalPlannedDurationDaysDisplay !== '—'
+      ? scheduleDatePlanSummary.totalPlannedDurationDaysDisplay
+      : null;
 
   const handleSchedulePlanControlsChange = useCallback(
     (patch: Partial<EstimateSchedulePlanControlValues>) => {
@@ -371,16 +347,16 @@ export default function EstimateWorkspacePage() {
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         <EstimateWorkspaceHeader
-          estimateStatus={estimate?.status}
-          estimateType={version?.estimateType ?? null}
+          estimate={estimate}
+          version={version}
+          totalPriceDisplay={workspaceSummaryValues.totalEstimate}
+          laborHoursDisplay={workspaceSummaryValues.laborHours}
+          plannedDurationDisplay={plannedDurationDisplay}
           hasEstimate={hasEstimate}
           creating={creating}
           dataLoading={dataLoading}
           draftDirty={lineItemDraft.dirty}
-          canSave={canSave}
-          saving={saving}
           onCreateEstimate={handleCreateEstimate}
-          onSaveEstimate={handleSaveEstimate}
         />
 
         {successMessage ? (
@@ -423,10 +399,6 @@ export default function EstimateWorkspacePage() {
           </div>
         ) : null}
 
-        <div className="mb-4">
-          <ComingSoonActions />
-        </div>
-
         {dataLoading ? (
           <EstimateWorkspaceLoading />
         ) : null}
@@ -445,19 +417,19 @@ export default function EstimateWorkspacePage() {
         {!dataLoading && hasEstimate ? (
           <>
             {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <EstimateVersionSummary estimate={estimate} version={version} />
+              <div className="space-y-4">
+                <EstimateNextAvailableActions onNavigate={setActiveTab} />
                 {!hasVersion ? (
                   <EstimateWorkspaceEmptyState
                     title={NO_VERSION_MESSAGE}
-                    body="When a version is saved, summary totals and line items will appear here."
+                    body="When a version is saved, summary totals will appear here."
                   />
-                ) : null}
-                <div>
-                  <h2 className={`mb-3 ${PLANNER_SECTION_TITLE}`}>Summary</h2>
-                  <SummaryCardsGrid version={version} />
-                </div>
-                <ScheduleNote />
+                ) : (
+                  <div>
+                    <h2 className={`mb-3 ${PLANNER_SECTION_TITLE}`}>Summary</h2>
+                    <SummaryCardsGrid version={version} />
+                  </div>
+                )}
               </div>
             )}
 
@@ -511,17 +483,10 @@ export default function EstimateWorkspacePage() {
             ) : null}
 
             {activeTab === 'versions' && (
-              <div className="space-y-4">
-                <EstimateVersionSummary
-                  estimate={estimate}
-                  version={version}
-                  highlightCurrent={hasVersion}
-                />
-                <EstimateVersionHistoryList
-                  items={versionHistoryItems}
-                  loading={dataLoading}
-                />
-              </div>
+              <EstimateVersionHistoryList
+                items={versionHistoryItems}
+                loading={dataLoading}
+              />
             )}
 
             {activeTab === 'totals' && (

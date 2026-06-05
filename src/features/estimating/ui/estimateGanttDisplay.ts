@@ -3,7 +3,6 @@ import type {
   PlannedEstimateSchedulePlan,
   PlannedEstimateScheduleTaskCandidate,
 } from '../application/estimateScheduleDatePlanner';
-import { addDaysToScheduleDate } from '../application/mapScheduleCandidateToScheduleEventInput';
 import { formatScheduleGroupLabel } from './estimateScheduleDisplay';
 import { ESTIMATE_BLANK } from './estimateFormatters';
 
@@ -11,6 +10,34 @@ export const DEFAULT_GANTT_COLUMN_WIDTH_PX = 36;
 export const MIN_GANTT_BAR_WIDTH_FOR_LABEL_PX = 56;
 export const GANTT_LABEL_COLUMN_WIDTH_PX = 176;
 export const GANTT_LABEL_COLUMN_WIDTH_SM_PX = 224;
+
+export type GanttTimelineScale = 'day' | 'week' | 'month';
+
+export const DEFAULT_GANTT_TIMELINE_SCALE: GanttTimelineScale = 'day';
+
+export const GANTT_COLUMN_WIDTH_BY_SCALE: Record<GanttTimelineScale, number> = {
+  day: DEFAULT_GANTT_COLUMN_WIDTH_PX,
+  week: 72,
+  month: 96,
+};
+
+export interface GanttTimelineScaleOption {
+  value: GanttTimelineScale;
+  label: string;
+}
+
+export const GANTT_TIMELINE_SCALE_OPTIONS: GanttTimelineScaleOption[] = [
+  { value: 'day', label: 'Day' },
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' },
+];
+
+export interface GanttTimelineBucket {
+  key: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+}
 
 export type GanttRowKind = 'division' | 'scope' | 'task';
 
@@ -49,6 +76,14 @@ export interface GanttTimelineRange {
   totalDays: number;
   dayDates: string[];
   isEmpty: boolean;
+}
+
+export interface GanttScaledTimeline extends GanttTimelineRange {
+  scale: GanttTimelineScale;
+  buckets: GanttTimelineBucket[];
+  columnWidth: number;
+  totalColumns: number;
+  totalWidthPx: number;
 }
 
 export interface GanttBarPosition {
@@ -121,6 +156,198 @@ function inclusiveDaySpan(startDate: string, endDate: string): number {
   const offset = offsetDaysFromStart(startDate, endDate);
   if (offset < 0) return 0;
   return offset + 1;
+}
+
+function formatYmdFromDate(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDaysToYmd(date: string, daysToAdd: number): string {
+  const safeDays = Number.isFinite(daysToAdd) ? Math.floor(daysToAdd) : 0;
+  const parsed = parseYmd(date);
+  if (!parsed) return date;
+
+  parsed.setUTCDate(parsed.getUTCDate() + safeDays);
+  return formatYmdFromDate(parsed);
+}
+
+function getWeekStartMonday(date: string): string {
+  const parsed = parseYmd(date);
+  if (!parsed) return date;
+
+  const weekday = parsed.getUTCDay();
+  const daysToSubtract = weekday === 0 ? 6 : weekday - 1;
+  return addDaysToYmd(date, -daysToSubtract);
+}
+
+function getWeekEndSunday(date: string): string {
+  return addDaysToYmd(getWeekStartMonday(date), 6);
+}
+
+function getMonthStart(date: string): string {
+  const match = /^(\d{4})-(\d{2})/.exec(date.trim());
+  if (!match) return date;
+  return `${match[1]}-${match[2]}-01`;
+}
+
+function getMonthEnd(date: string): string {
+  const monthStart = getMonthStart(date);
+  const parsed = parseYmd(monthStart);
+  if (!parsed) return date;
+
+  parsed.setUTCMonth(parsed.getUTCMonth() + 1);
+  parsed.setUTCDate(0);
+  return formatYmdFromDate(parsed);
+}
+
+function addMonthsToYmd(date: string, months: number): string {
+  const parsed = parseYmd(date);
+  if (!parsed) return date;
+
+  parsed.setUTCMonth(parsed.getUTCMonth() + months);
+  return formatYmdFromDate(parsed);
+}
+
+function buildDayDates(startDate: string, endDate: string): string[] {
+  const totalDays = inclusiveDaySpan(startDate, endDate);
+  const dayDates: string[] = [];
+  let current = startDate;
+
+  for (let index = 0; index < totalDays; index += 1) {
+    dayDates.push(current);
+    current = addDaysToYmd(current, 1);
+  }
+
+  return dayDates;
+}
+
+function buildDayBuckets(startDate: string, endDate: string): GanttTimelineBucket[] {
+  return buildDayDates(startDate, endDate).map((date) => ({
+    key: date,
+    label: formatGanttDateLabel(date),
+    startDate: date,
+    endDate: date,
+  }));
+}
+
+function buildWeekBuckets(startDate: string, endDate: string): GanttTimelineBucket[] {
+  const buckets: GanttTimelineBucket[] = [];
+  let current = startDate;
+
+  while (current <= endDate) {
+    const weekEnd = addDaysToYmd(current, 6);
+    buckets.push({
+      key: current,
+      label: formatGanttWeekLabel(current),
+      startDate: current,
+      endDate: weekEnd <= endDate ? weekEnd : endDate,
+    });
+    current = addDaysToYmd(current, 7);
+  }
+
+  return buckets;
+}
+
+function buildMonthBuckets(startDate: string, endDate: string): GanttTimelineBucket[] {
+  const buckets: GanttTimelineBucket[] = [];
+  let current = getMonthStart(startDate);
+
+  while (current <= endDate) {
+    const monthEnd = getMonthEnd(current);
+    buckets.push({
+      key: current.slice(0, 7),
+      label: formatGanttMonthLabel(current),
+      startDate: current,
+      endDate: monthEnd <= endDate ? monthEnd : endDate,
+    });
+    current = addMonthsToYmd(current, 1);
+  }
+
+  return buckets;
+}
+
+function buildEmptyScaledTimeline(scale: GanttTimelineScale): GanttScaledTimeline {
+  const columnWidth = GANTT_COLUMN_WIDTH_BY_SCALE[scale];
+  return {
+    scale,
+    startDate: '',
+    endDate: '',
+    totalDays: 0,
+    dayDates: [],
+    buckets: [],
+    isEmpty: true,
+    columnWidth,
+    totalColumns: 0,
+    totalWidthPx: 0,
+  };
+}
+
+function alignTimelineBoundsForScale(
+  startDate: string,
+  endDate: string,
+  scale: GanttTimelineScale,
+): { startDate: string; endDate: string } {
+  if (scale === 'week') {
+    return {
+      startDate: getWeekStartMonday(startDate),
+      endDate: getWeekEndSunday(endDate),
+    };
+  }
+
+  if (scale === 'month') {
+    return {
+      startDate: getMonthStart(startDate),
+      endDate: getMonthEnd(endDate),
+    };
+  }
+
+  return { startDate, endDate };
+}
+
+function buildBucketsForScale(
+  startDate: string,
+  endDate: string,
+  scale: GanttTimelineScale,
+): GanttTimelineBucket[] {
+  if (scale === 'week') return buildWeekBuckets(startDate, endDate);
+  if (scale === 'month') return buildMonthBuckets(startDate, endDate);
+  return buildDayBuckets(startDate, endDate);
+}
+
+function getScaledTimelineWidth(timeline: Pick<GanttScaledTimeline, 'totalColumns' | 'columnWidth'>): number {
+  const columns = Math.max(0, Math.floor(toFiniteNumber(timeline.totalColumns)));
+  const width = safeColumnWidth(timeline.columnWidth);
+  const totalWidth = columns * width;
+  return Number.isFinite(totalWidth) ? totalWidth : 0;
+}
+
+function calculateDateOffsetPx(date: string, timeline: GanttScaledTimeline): number | null {
+  if (!isValidYmd(date) || timeline.isEmpty || timeline.totalDays < 1) return null;
+
+  const dayOffset = offsetDaysFromStart(timeline.startDate, date);
+  if (dayOffset < 0) return null;
+
+  const totalWidth = getScaledTimelineWidth(timeline);
+  if (totalWidth <= 0) return null;
+
+  const position = (dayOffset / timeline.totalDays) * totalWidth;
+  return Number.isFinite(position) ? position : null;
+}
+
+function calculateInclusiveEndOffsetPx(date: string, timeline: GanttScaledTimeline): number | null {
+  if (!isValidYmd(date) || timeline.isEmpty || timeline.totalDays < 1) return null;
+
+  const dayOffset = offsetDaysFromStart(timeline.startDate, date);
+  if (dayOffset < 0) return null;
+
+  const totalWidth = getScaledTimelineWidth(timeline);
+  if (totalWidth <= 0) return null;
+
+  const position = ((dayOffset + 1) / timeline.totalDays) * totalWidth;
+  return Number.isFinite(position) ? position : null;
 }
 
 function mapTaskToGanttInput(
@@ -234,42 +461,49 @@ export function getGanttTaskRows(
 }
 
 export function buildGanttTimelineRange(tasks: GanttTaskInput[]): GanttTimelineRange {
+  return buildGanttScaledTimeline(tasks, 'day');
+}
+
+export function buildGanttScaledTimeline(
+  tasks: GanttTaskInput[],
+  scale: GanttTimelineScale = DEFAULT_GANTT_TIMELINE_SCALE,
+): GanttScaledTimeline {
   const datedTasks = tasks.filter(hasValidGanttTaskDates);
   if (datedTasks.length === 0) {
-    return {
-      startDate: '',
-      endDate: '',
-      totalDays: 0,
-      dayDates: [],
-      isEmpty: true,
-    };
+    return buildEmptyScaledTimeline(scale);
   }
 
-  let startDate = datedTasks[0].plannedStartDate!.trim();
-  let endDate = datedTasks[0].plannedEndDate!.trim();
+  let taskStartDate = datedTasks[0].plannedStartDate!.trim();
+  let taskEndDate = datedTasks[0].plannedEndDate!.trim();
 
   for (const task of datedTasks) {
-    const taskStart = task.plannedStartDate!.trim();
-    const taskEnd = task.plannedEndDate!.trim();
-    if (taskStart < startDate) startDate = taskStart;
-    if (taskEnd > endDate) endDate = taskEnd;
+    const start = task.plannedStartDate!.trim();
+    const end = task.plannedEndDate!.trim();
+    if (start < taskStartDate) taskStartDate = start;
+    if (end > taskEndDate) taskEndDate = end;
   }
 
+  const alignedBounds = alignTimelineBoundsForScale(taskStartDate, taskEndDate, scale);
+  const startDate = alignedBounds.startDate;
+  const endDate = alignedBounds.endDate;
   const totalDays = inclusiveDaySpan(startDate, endDate);
-  const dayDates: string[] = [];
-  let current = startDate;
-
-  for (let index = 0; index < totalDays; index += 1) {
-    dayDates.push(current);
-    current = addDaysToScheduleDate(current, 1);
-  }
+  const dayDates = buildDayDates(startDate, endDate);
+  const buckets = buildBucketsForScale(startDate, endDate, scale);
+  const columnWidth = GANTT_COLUMN_WIDTH_BY_SCALE[scale];
+  const totalColumns = buckets.length;
+  const totalWidthPx = getScaledTimelineWidth({ totalColumns, columnWidth });
 
   return {
+    scale,
     startDate,
     endDate,
     totalDays,
     dayDates,
+    buckets,
     isEmpty: false,
+    columnWidth,
+    totalColumns,
+    totalWidthPx,
   };
 }
 
@@ -302,6 +536,40 @@ export function calculateGanttBarPosition(
   };
 }
 
+export function calculateGanttBarPositionForScale(
+  task: Pick<GanttTaskInput, 'plannedStartDate' | 'plannedEndDate' | 'durationDays'>,
+  timeline: GanttScaledTimeline,
+): GanttBarPosition | null {
+  if (timeline.isEmpty || !hasValidGanttTaskDates(task)) return null;
+
+  if (timeline.scale === 'day') {
+    return calculateGanttBarPosition(task, timeline.startDate, timeline.columnWidth);
+  }
+
+  const startDate = task.plannedStartDate!.trim();
+  const endDate = task.plannedEndDate!.trim();
+  const dayOffset = offsetDaysFromStart(timeline.startDate, startDate);
+  const spanDays = inclusiveDaySpan(startDate, endDate);
+
+  if (dayOffset < 0 || spanDays < 1) return null;
+
+  const leftPx = calculateDateOffsetPx(startDate, timeline);
+  const rightPx = calculateInclusiveEndOffsetPx(endDate, timeline);
+
+  if (leftPx == null || rightPx == null || rightPx <= leftPx) return null;
+
+  const widthPx = rightPx - leftPx;
+  if (!Number.isFinite(leftPx) || !Number.isFinite(widthPx)) return null;
+
+  return {
+    leftPx,
+    widthPx,
+    dayOffset,
+    spanDays,
+    showDurationLabel: widthPx >= MIN_GANTT_BAR_WIDTH_FOR_LABEL_PX,
+  };
+}
+
 export function formatGanttDateLabel(date: string): string {
   if (!isValidYmd(date)) return ESTIMATE_BLANK;
 
@@ -313,6 +581,25 @@ export function formatGanttDateLabel(date: string): string {
   });
 }
 
+export function formatGanttWeekLabel(date: string): string {
+  return formatGanttDateLabel(date);
+}
+
+export function formatGanttMonthLabel(date: string): string {
+  if (!isValidYmd(date)) return ESTIMATE_BLANK;
+
+  const parsed = parseYmd(date)!;
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+export function listGanttTimelineScaleOptions(): GanttTimelineScaleOption[] {
+  return GANTT_TIMELINE_SCALE_OPTIONS;
+}
+
 export function getGanttTodayDateYmd(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -322,7 +609,7 @@ export function getGanttTodayDateYmd(): string {
 }
 
 export function isTodayWithinGanttRange(
-  range: GanttTimelineRange,
+  range: Pick<GanttTimelineRange, 'startDate' | 'endDate' | 'isEmpty'>,
   todayYmd: string,
 ): boolean {
   if (range.isEmpty || !isValidYmd(todayYmd)) return false;
@@ -341,6 +628,30 @@ export function calculateGanttTodayMarkerPosition(
 
   const width = safeColumnWidth(columnWidth);
   const position = dayOffset * width + width / 2;
+  return Number.isFinite(position) ? position : null;
+}
+
+export function calculateGanttTodayMarkerPositionForScale(
+  timeline: GanttScaledTimeline,
+  todayYmd: string,
+): number | null {
+  if (timeline.isEmpty || !isValidYmd(todayYmd)) return null;
+
+  if (timeline.scale === 'day') {
+    return calculateGanttTodayMarkerPosition(
+      timeline.startDate,
+      timeline.columnWidth,
+      todayYmd,
+    );
+  }
+
+  const dayOffset = offsetDaysFromStart(timeline.startDate, todayYmd);
+  if (dayOffset < 0 || timeline.totalDays < 1) return null;
+
+  const totalWidth = getScaledTimelineWidth(timeline);
+  if (totalWidth <= 0) return null;
+
+  const position = ((dayOffset + 0.5) / timeline.totalDays) * totalWidth;
   return Number.isFinite(position) ? position : null;
 }
 

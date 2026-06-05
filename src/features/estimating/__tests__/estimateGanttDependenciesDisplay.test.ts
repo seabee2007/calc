@@ -7,12 +7,11 @@ import { sampleEstimateVersion } from '../__fixtures__/sampleEstimateVersion';
 import type { EstimateScheduleDependencyPreview } from '../application/estimateScheduleDependencies';
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
 import {
-  buildGanttTimelineRange,
-  DEFAULT_GANTT_COLUMN_WIDTH_PX,
+  buildGanttScaledTimeline,
   extractGanttTasksFromPlan,
   getGanttTaskRows,
   type GanttRow,
-  type GanttTimelineRange,
+  type GanttScaledTimeline,
 } from '../ui/estimateGanttDisplay';
 import {
   buildGanttDependencyConnectors,
@@ -100,9 +99,9 @@ function buildPlannedPreview(taskCount = 2) {
   const dependencies = buildFinishToStartDependenciesByProject(plan);
   const rows = getGanttTaskRows(datePlanResult.plan, dependencies);
   const tasks = extractGanttTasksFromPlan(datePlanResult.plan);
-  const range = buildGanttTimelineRange(tasks);
+  const timeline = buildGanttScaledTimeline(tasks, 'day');
 
-  return { datePlanResult, dependencies, rows, range };
+  return { datePlanResult, dependencies, rows, timeline };
 }
 
 function buildDependency(
@@ -121,8 +120,8 @@ function buildDependency(
 
 describe('buildGanttDependencyConnectors', () => {
   it('builds a connector from predecessor right edge to successor left edge', () => {
-    const { dependencies, rows, range } = buildPlannedPreview(2);
-    const connectors = buildGanttDependencyConnectors(dependencies, rows, range);
+    const { dependencies, rows, timeline } = buildPlannedPreview(2);
+    const connectors = buildGanttDependencyConnectors(dependencies, rows, timeline);
 
     expect(connectors).toHaveLength(1);
     expect(connectors[0]?.startX).toBeLessThan(connectors[0]?.endX ?? 0);
@@ -133,18 +132,18 @@ describe('buildGanttDependencyConnectors', () => {
   });
 
   it('skips safely when predecessor row is missing', () => {
-    const { dependencies, rows, range } = buildPlannedPreview(2);
+    const { dependencies, rows, timeline } = buildPlannedPreview(2);
     const missingPredecessor = buildDependency('missing-predecessor', dependencies[0]!.successorCandidateId);
 
-    const connectors = buildGanttDependencyConnectors([missingPredecessor], rows, range);
+    const connectors = buildGanttDependencyConnectors([missingPredecessor], rows, timeline);
     expect(connectors).toEqual([]);
   });
 
   it('skips safely when successor row is missing', () => {
-    const { dependencies, rows, range } = buildPlannedPreview(2);
+    const { dependencies, rows, timeline } = buildPlannedPreview(2);
     const missingSuccessor = buildDependency(dependencies[0]!.predecessorCandidateId, 'missing-successor');
 
-    const connectors = buildGanttDependencyConnectors([missingSuccessor], rows, range);
+    const connectors = buildGanttDependencyConnectors([missingSuccessor], rows, timeline);
     expect(connectors).toEqual([]);
   });
 
@@ -169,23 +168,31 @@ describe('buildGanttDependencyConnectors', () => {
       },
     };
 
-    const range: GanttTimelineRange = {
+    const timeline: GanttScaledTimeline = {
+      scale: 'day',
       startDate: '2026-06-09',
       endDate: '2026-06-10',
       totalDays: 2,
       dayDates: ['2026-06-09', '2026-06-10'],
+      buckets: [
+        { key: '2026-06-09', label: 'Jun 9', startDate: '2026-06-09', endDate: '2026-06-09' },
+        { key: '2026-06-10', label: 'Jun 10', startDate: '2026-06-10', endDate: '2026-06-10' },
+      ],
       isEmpty: false,
+      columnWidth: 36,
+      totalColumns: 2,
+      totalWidthPx: 72,
     };
 
     const dependency = buildDependency('task-1', 'task-2');
-    const connectors = buildGanttDependencyConnectors([dependency], [row], range);
+    const connectors = buildGanttDependencyConnectors([dependency], [row], timeline);
 
     expect(connectors).toEqual([]);
   });
 
   it('returns finite coordinates only', () => {
-    const { dependencies, rows, range } = buildPlannedPreview(2);
-    const connectors = buildGanttDependencyConnectors(dependencies, rows, range);
+    const { dependencies, rows, timeline } = buildPlannedPreview(2);
+    const connectors = buildGanttDependencyConnectors(dependencies, rows, timeline);
 
     for (const connector of connectors) {
       expect(Number.isFinite(connector.startX)).toBe(true);
@@ -198,18 +205,18 @@ describe('buildGanttDependencyConnectors', () => {
   });
 
   it('returns empty connectors for empty dependencies', () => {
-    const { rows, range } = buildPlannedPreview(2);
-    expect(buildGanttDependencyConnectors([], rows, range)).toEqual([]);
+    const { rows, timeline } = buildPlannedPreview(2);
+    expect(buildGanttDependencyConnectors([], rows, timeline)).toEqual([]);
   });
 });
 
 describe('getTaskBarAnchorPoints', () => {
   it('returns predecessor right and successor left anchor positions', () => {
-    const { rows, range } = buildPlannedPreview(2);
+    const { rows, timeline } = buildPlannedPreview(2);
     const taskRow = rows.find((row) => row.kind === 'task' && row.task);
     expect(taskRow).toBeTruthy();
 
-    const anchors = getTaskBarAnchorPoints(taskRow!, 22, range, DEFAULT_GANTT_COLUMN_WIDTH_PX);
+    const anchors = getTaskBarAnchorPoints(taskRow!, 22, timeline);
     expect(anchors).not.toBeNull();
     expect(anchors!.barRightPx).toBeGreaterThan(anchors!.barLeftPx);
     expect(Number.isFinite(anchors!.centerY)).toBe(true);

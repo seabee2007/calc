@@ -3,6 +3,7 @@ import {
   getDraftLineMoveState,
   type EstimateDraftLine,
 } from '../../application/estimateDraftLine';
+import { computeTaskRollupSlice } from '../../application/estimateGroupRollups';
 import type { EstimateGroupedDivision } from '../../domain/estimateLineItemTree';
 import EstimateGroupTotalsRow from './EstimateGroupTotalsRow';
 import EstimateDraftLineRow from './EstimateDraftLineRow';
@@ -12,7 +13,6 @@ import {
   formatEstimateHours,
   formatEstimateNumber,
   laborHoursFromTask,
-  lineDirectCostFromTask,
   unitFromTask,
 } from '../estimateFormatters';
 import {
@@ -42,36 +42,32 @@ interface SavedProps {
 type Props = DraftProps | SavedProps;
 
 function SavedTaskRow({ task }: { task: EstimateDomainTask }) {
+  const rollup = computeTaskRollupSlice(task);
+  const unit = unitFromTask(task);
+  const quantityLabel = [
+    formatEstimateNumber(task.lineItem.quantity.quantity, { decimals: 2 }),
+    unit,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div
       className={`rounded-md border border-slate-100 bg-slate-50/80 px-3 py-2 text-sm dark:border-slate-700/60 dark:bg-slate-900/40 ${PLANNER_TABLE_ROW}`}
     >
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4">
-        <div className="col-span-2 sm:col-span-1">
-          <p className={`text-xs ${PLANNER_MUTED}`}>Task</p>
-          <p className={`font-medium ${TEXT_FOREGROUND}`}>
-            {formatEstimateBlank(task.title || task.lineItem.description)}
-          </p>
-        </div>
-        <div>
-          <p className={`text-xs ${PLANNER_MUTED}`}>Qty</p>
-          <p className={`tabular-nums ${TEXT_FOREGROUND}`}>
-            {formatEstimateNumber(task.lineItem.quantity.quantity, { decimals: 2 })}
-            {unitFromTask(task) ? ` ${unitFromTask(task)}` : ''}
-          </p>
-        </div>
-        <div>
-          <p className={`text-xs ${PLANNER_MUTED}`}>Labor</p>
-          <p className={`tabular-nums ${TEXT_FOREGROUND}`}>
-            {formatEstimateHours(laborHoursFromTask(task))}
-          </p>
-        </div>
-        <div>
-          <p className={`text-xs ${PLANNER_MUTED}`}>Direct</p>
-          <p className={`tabular-nums font-medium ${TEXT_FOREGROUND}`}>
-            {formatEstimateCurrency(lineDirectCostFromTask(task))}
-          </p>
-        </div>
+      <div className="min-w-0">
+        <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>
+          {formatEstimateBlank(task.title || task.lineItem.description)}
+        </p>
+        <p className={`mt-0.5 text-xs tabular-nums ${PLANNER_MUTED}`}>
+          {quantityLabel}
+          <span aria-hidden> · </span>
+          {formatEstimateHours(laborHoursFromTask(task))}
+          <span aria-hidden> · </span>
+          <span className={`font-medium ${TEXT_FOREGROUND}`}>
+            {formatEstimateCurrency(rollup.sellPrice)}
+          </span>
+        </p>
       </div>
     </div>
   );
@@ -107,7 +103,6 @@ export default function EstimateLineItemsGroupedView(props: Props) {
                 key={`${division.key}-${scope.key}`}
                 level="scope"
                 title={scope.label}
-                subtitle={`${scope.rollup.itemCount} task${scope.rollup.itemCount === 1 ? '' : 's'}`}
                 rollup={scope.rollup}
               >
                 <div className="space-y-2">

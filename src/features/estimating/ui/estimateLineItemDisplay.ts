@@ -30,11 +30,31 @@ export function formatGroupRollupSummary(rollup: EstimateGroupRollup): string {
   return parts.length > 0 ? parts.join(' · ') : '0 tasks';
 }
 
-export function formatGroupRollupCompact(rollup: EstimateGroupRollup): string {
-  return [
-    formatEstimateCurrency(rollup.directCost),
-    rollup.laborHours > 0 ? formatEstimateHours(rollup.laborHours) : '0 hr',
-  ].join(' · ');
+/** Division header: task count, sell price, labor hours. */
+export function formatDivisionRollupHeader(rollup: EstimateGroupRollup): string {
+  const parts: string[] = [
+    `${rollup.itemCount} task${rollup.itemCount === 1 ? '' : 's'}`,
+  ];
+
+  if (rollup.sellPrice > 0) {
+    parts.push(formatEstimateCurrency(rollup.sellPrice));
+  }
+  if (rollup.laborHours > 0) {
+    parts.push(formatEstimateHours(rollup.laborHours));
+  }
+
+  return parts.join(' · ');
+}
+
+/** Scope header: task count; subtotal when multiple tasks in scope. */
+export function formatScopeRollupHeader(rollup: EstimateGroupRollup): string {
+  const count = `${rollup.itemCount} task${rollup.itemCount === 1 ? '' : 's'}`;
+
+  if (rollup.itemCount > 1 && rollup.sellPrice > 0) {
+    return `${count} · ${formatEstimateCurrency(rollup.sellPrice)}`;
+  }
+
+  return count;
 }
 
 export function formatRollupStripCounts(counts: {

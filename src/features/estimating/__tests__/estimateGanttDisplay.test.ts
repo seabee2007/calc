@@ -5,13 +5,19 @@ import { planEstimateScheduleDates } from '../application/estimateScheduleDatePl
 import { sampleEstimateVersion } from '../__fixtures__/sampleEstimateVersion';
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
 import {
+  buildGanttScaledTimeline,
   buildGanttTimelineRange,
   calculateGanttBarPosition,
+  calculateGanttBarPositionForScale,
   calculateGanttTodayMarkerPosition,
+  calculateGanttTodayMarkerPositionForScale,
   DEFAULT_GANTT_COLUMN_WIDTH_PX,
   extractGanttTasksFromPlan,
   formatGanttDateLabel,
+  formatGanttMonthLabel,
+  formatGanttWeekLabel,
   getGanttTaskRows,
+  GANTT_COLUMN_WIDTH_BY_SCALE,
   hasPlannedGanttTasks,
   isTodayWithinGanttRange,
   type GanttTaskInput,
@@ -293,5 +299,208 @@ describe('calculateGanttBarPosition numeric safety', () => {
     expect(position).not.toBeNull();
     expect(Number.isFinite(position?.leftPx)).toBe(true);
     expect(Number.isFinite(position?.widthPx)).toBe(true);
+  });
+});
+
+const sampleTasks: GanttTaskInput[] = [
+  {
+    candidateId: 'a',
+    title: 'Task A',
+    plannedStartDate: '2026-06-10',
+    plannedEndDate: '2026-06-12',
+    durationDays: 3,
+    weatherSensitive: false,
+    inspectionRequired: false,
+    divisionKey: '03',
+    divisionLabel: 'Concrete',
+    scopeKey: 'scope-a',
+    scopeLabel: 'Scope A',
+  },
+  {
+    candidateId: 'b',
+    title: 'Task B',
+    plannedStartDate: '2026-06-09',
+    plannedEndDate: '2026-06-15',
+    durationDays: 5,
+    weatherSensitive: false,
+    inspectionRequired: false,
+    divisionKey: '03',
+    divisionLabel: 'Concrete',
+    scopeKey: 'scope-a',
+    scopeLabel: 'Scope A',
+  },
+];
+
+describe('buildGanttScaledTimeline', () => {
+  it('keeps day scale behavior as one column per day', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'day');
+
+    expect(timeline.scale).toBe('day');
+    expect(timeline.startDate).toBe('2026-06-09');
+    expect(timeline.endDate).toBe('2026-06-15');
+    expect(timeline.totalColumns).toBe(7);
+    expect(timeline.buckets).toHaveLength(7);
+    expect(timeline.columnWidth).toBe(GANTT_COLUMN_WIDTH_BY_SCALE.day);
+    expect(timeline.totalWidthPx).toBe(7 * GANTT_COLUMN_WIDTH_BY_SCALE.day);
+    expect(timeline.buckets[0]?.label).toBe(formatGanttDateLabel('2026-06-09'));
+  });
+
+  it('builds week scale buckets from week start dates', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'week');
+
+    expect(timeline.scale).toBe('week');
+    expect(timeline.startDate).toBe('2026-06-08');
+    expect(timeline.endDate).toBe('2026-06-21');
+    expect(timeline.totalColumns).toBe(2);
+    expect(timeline.buckets).toHaveLength(2);
+    expect(timeline.buckets[0]?.startDate).toBe('2026-06-08');
+    expect(timeline.buckets[0]?.label).toBe(formatGanttWeekLabel('2026-06-08'));
+    expect(timeline.buckets[1]?.startDate).toBe('2026-06-15');
+    expect(timeline.columnWidth).toBe(GANTT_COLUMN_WIDTH_BY_SCALE.week);
+    expect(timeline.totalWidthPx).toBe(2 * GANTT_COLUMN_WIDTH_BY_SCALE.week);
+  });
+
+  it('builds month scale buckets with month labels', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'month');
+
+    expect(timeline.scale).toBe('month');
+    expect(timeline.startDate).toBe('2026-06-01');
+    expect(timeline.endDate).toBe('2026-06-30');
+    expect(timeline.totalColumns).toBe(1);
+    expect(timeline.buckets).toHaveLength(1);
+    expect(timeline.buckets[0]?.key).toBe('2026-06');
+    expect(timeline.buckets[0]?.label).toBe(formatGanttMonthLabel('2026-06-01'));
+    expect(timeline.columnWidth).toBe(GANTT_COLUMN_WIDTH_BY_SCALE.month);
+  });
+
+  it('returns safe empty output when input has no dated tasks', () => {
+    const timeline = buildGanttScaledTimeline(
+      [
+        {
+          candidateId: 'a',
+          title: 'Task A',
+          plannedStartDate: null,
+          plannedEndDate: null,
+          durationDays: 1,
+          weatherSensitive: false,
+          inspectionRequired: false,
+          divisionKey: '03',
+          divisionLabel: 'Concrete',
+          scopeKey: 'scope-a',
+          scopeLabel: 'Scope A',
+        },
+      ],
+      'week',
+    );
+
+    expect(timeline.isEmpty).toBe(true);
+    expect(timeline.buckets).toEqual([]);
+    expect(timeline.totalWidthPx).toBe(0);
+    expect(timeline.totalColumns).toBe(0);
+  });
+});
+
+describe('calculateGanttBarPositionForScale', () => {
+  it('calculates bar position and width on week scale', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'week');
+    const position = calculateGanttBarPositionForScale(
+      {
+        plannedStartDate: '2026-06-10',
+        plannedEndDate: '2026-06-12',
+        durationDays: 3,
+      },
+      timeline,
+    );
+
+    expect(position).not.toBeNull();
+    expect(position!.leftPx).toBeGreaterThan(0);
+    expect(position!.widthPx).toBeGreaterThan(0);
+    expect(position!.leftPx).toBeLessThan(timeline.totalWidthPx);
+    expect(position!.leftPx + position!.widthPx).toBeLessThanOrEqual(timeline.totalWidthPx + 1);
+    expect(Number.isFinite(position!.leftPx)).toBe(true);
+    expect(Number.isFinite(position!.widthPx)).toBe(true);
+  });
+
+  it('calculates bar position and width on month scale', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'month');
+    const position = calculateGanttBarPositionForScale(
+      {
+        plannedStartDate: '2026-06-09',
+        plannedEndDate: '2026-06-15',
+        durationDays: 5,
+      },
+      timeline,
+    );
+
+    expect(position).not.toBeNull();
+    expect(position!.leftPx).toBeGreaterThanOrEqual(0);
+    expect(position!.widthPx).toBeGreaterThan(0);
+    expect(Number.isFinite(position!.leftPx)).toBe(true);
+    expect(Number.isFinite(position!.widthPx)).toBe(true);
+  });
+
+  it('skips tasks with missing dates safely on scaled timelines', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'week');
+    const position = calculateGanttBarPositionForScale(
+      {
+        plannedStartDate: null,
+        plannedEndDate: '2026-06-12',
+        durationDays: 1,
+      },
+      timeline,
+    );
+
+    expect(position).toBeNull();
+  });
+});
+
+describe('today marker on scaled timelines', () => {
+  it('calculates today marker on week and month scales without NaN', () => {
+    const weekTimeline = buildGanttScaledTimeline(sampleTasks, 'week');
+    const monthTimeline = buildGanttScaledTimeline(sampleTasks, 'month');
+
+    expect(isTodayWithinGanttRange(weekTimeline, '2026-06-10')).toBe(true);
+    expect(isTodayWithinGanttRange(weekTimeline, '2026-06-01')).toBe(false);
+
+    const weekMarker = calculateGanttTodayMarkerPositionForScale(weekTimeline, '2026-06-10');
+    const monthMarker = calculateGanttTodayMarkerPositionForScale(monthTimeline, '2026-06-10');
+
+    expect(weekMarker).not.toBeNull();
+    expect(monthMarker).not.toBeNull();
+    expect(Number.isFinite(weekMarker)).toBe(true);
+    expect(Number.isFinite(monthMarker)).toBe(true);
+    expect(weekMarker).toBeGreaterThan(0);
+    expect(monthMarker).toBeGreaterThan(0);
+  });
+
+  it('returns null for today outside scaled timeline range', () => {
+    const timeline = buildGanttScaledTimeline(sampleTasks, 'week');
+    expect(calculateGanttTodayMarkerPositionForScale(timeline, '2026-05-01')).toBeNull();
+  });
+});
+
+describe('scaled timeline numeric safety', () => {
+  it('does not produce NaN or Infinity across scale helpers', () => {
+    const scales = ['day', 'week', 'month'] as const;
+
+    for (const scale of scales) {
+      const timeline = buildGanttScaledTimeline(sampleTasks, scale);
+
+      expect(Number.isFinite(timeline.totalWidthPx)).toBe(true);
+      expect(timeline.totalWidthPx).not.toBe(Number.POSITIVE_INFINITY);
+
+      for (const task of sampleTasks) {
+        const position = calculateGanttBarPositionForScale(task, timeline);
+        if (position) {
+          expect(Number.isFinite(position.leftPx)).toBe(true);
+          expect(Number.isFinite(position.widthPx)).toBe(true);
+        }
+      }
+
+      const marker = calculateGanttTodayMarkerPositionForScale(timeline, '2026-06-10');
+      if (marker != null) {
+        expect(Number.isFinite(marker)).toBe(true);
+      }
+    }
   });
 });

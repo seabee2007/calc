@@ -1,6 +1,4 @@
 import { useMemo } from 'react';
-import { Calendar } from 'lucide-react';
-import Button from '../../../../components/ui/Button';
 import {
   applyDependencyPreviewToPlan,
   mapScheduleControlToDependencyPreviewMode,
@@ -14,6 +12,7 @@ import {
   hasSchedulableSchedulePreview,
 } from '../estimateScheduleDisplay';
 import {
+  BADGE_BASE,
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
   PLANNER_SECTION_TITLE,
@@ -96,27 +95,25 @@ export default function EstimateSchedulePreviewPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className={PLANNER_SECTION_TITLE}>Schedule preview</h2>
-          <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-            Draft schedule candidates from the current saved version
-            {version ? ` (v${version.versionNumber})` : ''}.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          icon={<Calendar className="h-4 w-4" />}
-          disabled
-          title="Coming in a future phase"
-        >
-          Publish to Planner coming soon
-        </Button>
+      <div>
+        <h2 className={PLANNER_SECTION_TITLE}>Schedule preview</h2>
+        <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
+          Planned dates from the current saved version
+          {version ? ` (v${version.versionNumber})` : ''}. Dates update automatically from line items
+          and planning controls below.
+        </p>
       </div>
 
-      <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
+      <div className={`${PLANNER_FORM_PANEL} space-y-2 text-sm ${TEXT_BODY}`}>
         <p className={PLANNER_MUTED}>{PREVIEW_NOTE}</p>
+        <p className={`flex flex-wrap items-center gap-2 ${PLANNER_MUTED}`}>
+          <span
+            className={`${BADGE_BASE} border border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300`}
+          >
+            Preview only
+          </span>
+          Publishing to Planner will be added later.
+        </p>
       </div>
 
       <EstimateSchedulePlanControls
