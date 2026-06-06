@@ -24,6 +24,12 @@ export function shouldRenderEstimateBuilderSummaryCards(): boolean {
   return false;
 }
 
+export const REMOVED_ESTIMATE_SAVED_ACTIVITIES_SECTION_LABEL = 'Saved activities' as const;
+
+export function shouldRenderEstimateSavedActivitiesSection(): boolean {
+  return false;
+}
+
 export function shouldShowEstimateBuilderHelperText(options: {
   showQuickFeasibilityPanel: boolean;
   showBucketPanel: boolean;

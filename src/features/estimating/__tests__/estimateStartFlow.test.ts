@@ -55,10 +55,10 @@ describe('estimateStartFlow', () => {
     expect(shouldShowSavedActivities(session)).toBe(false);
   });
 
-  it('detailed active mode enables activity workflow and saved activities', () => {
+  it('detailed active mode enables activity workflow without a separate saved activities section', () => {
     const session = createEstimateSetupStartState('detailed');
     expect(shouldShowActivityWorkflow(session)).toBe(true);
-    expect(shouldShowSavedActivities(session)).toBe(true);
+    expect(shouldShowSavedActivities(session)).toBe(false);
   });
 
   it('hides selector and activates budget scope workflow after budget start', () => {
@@ -96,7 +96,7 @@ describe('estimateStartFlow', () => {
     expect(session.selectedDivisionCodes).toEqual(['01', '03']);
     expect(shouldShowEstimateTypeSelector(session)).toBe(false);
     expect(shouldShowActivityWorkflow(session)).toBe(true);
-    expect(shouldShowSavedActivities(session)).toBe(true);
+    expect(shouldShowSavedActivities(session)).toBe(false);
     expect(shouldShowDivisionBucketPanel(session)).toBe(true);
   });
 

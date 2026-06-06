@@ -9,7 +9,9 @@ import {
   REMOVED_ESTIMATE_BUILDER_LABELS,
   REMOVED_ESTIMATE_BUILDER_SUMMARY_CARD_LABELS,
   REMOVED_ESTIMATE_FILTER_LABELS,
+  REMOVED_ESTIMATE_SAVED_ACTIVITIES_SECTION_LABEL,
   shouldRenderEstimateBuilderSummaryCards,
+  shouldRenderEstimateSavedActivitiesSection,
   shouldRenderInlineEstimateSuccessBanner,
   shouldShowEstimateBuilderHelperText,
 } from '../ui/estimateBuilderUi';
@@ -121,6 +123,45 @@ describe('estimateBuilderUi', () => {
       'Crew-Days',
       'Total',
     ]);
+  });
+
+  it('does not render a separate saved activities section on the estimate tab', () => {
+    expect(shouldRenderEstimateSavedActivitiesSection()).toBe(false);
+    expect(REMOVED_ESTIMATE_SAVED_ACTIVITIES_SECTION_LABEL).toBe('Saved activities');
+  });
+
+  it('still loads saved line items inside division groups', () => {
+    const savedTask = {
+      id: 'line-1',
+      lineType: 'task' as const,
+      title: 'Mobilize',
+      lineItem: {
+        id: 'line-1',
+        description: 'Mobilize',
+        csiDivision: '01',
+        quantity: { quantity: 1 },
+      },
+      position: 0,
+      overheadPercent: 0,
+      profitPercent: 0,
+      contingencyPercent: 0,
+      taxPercent: 0,
+      wastePercent: 0,
+      scheduleEnabled: false,
+      weatherSensitive: false,
+      inspectionRequired: false,
+      calculatedValues: {
+        metrics: { adjustedLaborHours: 4 },
+        costs: { directCost: 500 },
+      },
+    };
+
+    const breakdown = mergeDivisionBucketsWithActivities(['01', '31'], [], [savedTask]);
+    const division01 = breakdown.divisions.find((division) => division.code === '01');
+
+    expect(division01?.activityCount).toBe(1);
+    expect(division01?.hasActivities).toBe(true);
+    expect(breakdown.divisions.find((division) => division.code === '31')?.activityCount).toBe(0);
   });
 
   it('still builds collapsed division groups from selected divisions without line items', () => {

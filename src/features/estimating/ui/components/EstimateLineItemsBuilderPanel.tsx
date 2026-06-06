@@ -12,10 +12,6 @@ import {
   getVisibleBreakdownDivisions,
 } from '../../application/estimateBuilderFilters';
 import {
-  filterGroupedEstimateLines,
-  groupEstimateTasks,
-} from '../../application/estimateLineItemGrouping';
-import {
   buildSelectedDivisionsFromCodes,
   inferDivisionCodesFromItems,
   mergeDivisionBucketsWithActivities,
@@ -28,7 +24,6 @@ import {
   shouldOpenBuildScopeModal,
   shouldShowActivityWorkflow,
   shouldShowQuickFeasibilityPanel,
-  shouldShowSavedActivities,
   supportsActivityWorkflow,
 } from '../../application/estimateStartFlow';
 import { shouldShowEstimateBuilderHelperText } from '../estimateBuilderUi';
@@ -40,7 +35,6 @@ import type { UseEstimateSetupSessionResult } from '../hooks/useEstimateSetupSes
 import type { UseEstimateLineItemDraftResult } from '../hooks/useEstimateLineItemDraft';
 import EstimateManualLineItemForm from './EstimateManualLineItemForm';
 import EstimateLineItemPreviewCard from './EstimateLineItemPreviewCard';
-import EstimateReadOnlyLineItemsTable from './EstimateReadOnlyLineItemsTable';
 import EstimateLineItemsFilterBar from './EstimateLineItemsFilterBar';
 import EstimateDivisionBucketList from './EstimateDivisionBucketList';
 import EstimateStartScopeModal, {
@@ -177,16 +171,6 @@ export default function EstimateLineItemsBuilderPanel({
     [selectedDivisionCodes, draft.draftLines, version.lineItems],
   );
 
-  const savedGroups = useMemo(
-    () => groupEstimateTasks(version.lineItems),
-    [version.lineItems],
-  );
-
-  const filteredSavedGroups = useMemo(
-    () => filterGroupedEstimateLines(savedGroups, filter),
-    [savedGroups, filter],
-  );
-
   const filterSourceGroups = useMemo(
     () => buildBuilderFilterGroups(workBreakdown, draft.draftLines),
     [workBreakdown, draft.draftLines],
@@ -206,7 +190,6 @@ export default function EstimateLineItemsBuilderPanel({
   );
 
   const drawerTitle = draft.editingClientId ? 'Edit activity' : 'Add activity';
-  const hasSavedActivities = version.lineItems.length > 0;
   const showQuickFeasibilityPanel = shouldShowQuickFeasibilityPanel(session);
   const showActivityWorkflow = shouldShowActivityWorkflow(session);
   const showBucketPanel = shouldShowBuilderDivisionBuckets(
@@ -214,7 +197,6 @@ export default function EstimateLineItemsBuilderPanel({
     persistedSelectedDivisions,
     session.selectedDivisionCodes,
   );
-  const showSavedActivitiesSection = shouldShowSavedActivities(session) && hasSavedActivities;
   const canSaveQuick = showQuickFeasibilityPanel && quickPreview?.result.isValid && !saving;
   const showBuildScopePrompt =
     showActivityWorkflow &&
@@ -396,16 +378,6 @@ export default function EstimateLineItemsBuilderPanel({
             onMoveDraftDown={draft.moveDraftLineDown}
           />
         </>
-      ) : null}
-
-      {showSavedActivitiesSection ? (
-        <div className="space-y-3 pt-2">
-          <EstimateReadOnlyLineItemsTable
-            lineItems={version.lineItems}
-            groups={filteredSavedGroups}
-            caption="Saved activities"
-          />
-        </div>
       ) : null}
 
       <EstimateStartScopeModal

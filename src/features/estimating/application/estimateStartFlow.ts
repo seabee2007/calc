@@ -106,8 +106,9 @@ export function shouldShowActivityWorkflow(state: EstimateSetupSessionState): bo
   return supportsActivityWorkflow(state.selectedEstimateType);
 }
 
-export function shouldShowSavedActivities(state: EstimateSetupSessionState): boolean {
-  return shouldShowActivityWorkflow(state);
+/** Saved line items render inside division groups; no separate saved-activities section. */
+export function shouldShowSavedActivities(_state: EstimateSetupSessionState): boolean {
+  return false;
 }
 
 export function shouldShowDivisionBucketPanel(state: EstimateSetupSessionState): boolean {
