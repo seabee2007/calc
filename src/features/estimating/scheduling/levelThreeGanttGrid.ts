@@ -72,15 +72,57 @@ export function monthSegmentWidthPx(dayCount: number): number {
   return dayCount * DAY_WIDTH;
 }
 
+/** Strip time — use local calendar year/month/day only. */
+export function toLocalDateOnly(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/** Parse YYYY-MM-DD as local midnight (no UTC shift). */
+export function parseLocalDateYmd(ymd: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const parsed = new Date(year, month, day);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
+/** Local calendar date as YYYY-MM-DD (not UTC). */
+export function getLocalDateYmd(date = new Date()): string {
+  const local = toLocalDateOnly(date);
+  const year = local.getFullYear();
+  const month = String(local.getMonth() + 1).padStart(2, '0');
+  const day = String(local.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/** Whole calendar days between two local date-only values. */
+export function differenceInCalendarDays(later: Date, earlier: Date): number {
+  const msPerDay = 86_400_000;
+  return Math.round((later.getTime() - earlier.getTime()) / msPerDay);
+}
+
 export function computeTodayDayOffset(
   projectStartDate: string,
   todayYmd: string,
   projectDurationDays: number,
 ): number | null {
-  const startMs = Date.parse(`${projectStartDate}T00:00:00Z`);
-  const todayMs = Date.parse(`${todayYmd}T00:00:00Z`);
-  if (!Number.isFinite(startMs) || !Number.isFinite(todayMs)) return null;
-  const offset = Math.round((todayMs - startMs) / 86_400_000);
+  const projectStart = parseLocalDateYmd(projectStartDate);
+  const today = parseLocalDateYmd(todayYmd);
+  if (!projectStart || !today) return null;
+
+  const offset = differenceInCalendarDays(today, projectStart);
   if (offset < 0 || offset >= projectDurationDays) return null;
   return offset;
 }

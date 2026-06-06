@@ -3,7 +3,7 @@ import { saveAs } from 'file-saver';
 import { sanitizeEstimateExportFileStem } from '../importExport/estimateExportBuilder';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import type { CpmLogicLink, CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
-import { computeTodayDayOffset } from '../scheduling/levelThreeGanttGrid';
+import { computeTodayDayOffset, getLocalDateYmd } from '../scheduling/levelThreeGanttGrid';
 import {
   buildTimelineDays,
   buildTimelineMonthSegments,
@@ -159,8 +159,7 @@ function addLevelThreeGanttSheet(
   workbook: ExcelJS.Workbook,
   params: BuildGanttWorkbookParams,
 ): void {
-  const projectStartDate =
-    params.projectStartDate ?? new Date().toISOString().slice(0, 10);
+  const projectStartDate = params.projectStartDate ?? getLocalDateYmd();
   const projectDuration = Math.max(params.cpmResult!.projectDurationDays, 1);
   const timelineDays = buildTimelineDays(projectStartDate, projectDuration);
   const monthSegments = buildTimelineMonthSegments(timelineDays);
@@ -172,7 +171,7 @@ function addLevelThreeGanttSheet(
   );
   const todayOffset = computeTodayDayOffset(
     projectStartDate,
-    new Date().toISOString().slice(0, 10),
+    getLocalDateYmd(),
     projectDuration,
   );
 

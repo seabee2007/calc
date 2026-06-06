@@ -17,6 +17,9 @@ import {
   computeActivityBarLayout,
   computeTodayDayOffset,
   dayCellLeftPx,
+  differenceInCalendarDays,
+  getLocalDateYmd,
+  parseLocalDateYmd,
   dayCellWidthPx,
   dayOffsetToX,
   formatEstimatedFloat,
@@ -121,16 +124,57 @@ describe('levelThreeGanttGrid', () => {
     expect(timelineWidthPx(10)).toBe(10 * DAY_WIDTH);
   });
 
-  it('today/start line equals 0 when first visible day is project start', () => {
+  it('today line equals 0 when today is the project start date', () => {
     const offset = computeTodayDayOffset('2026-06-06', '2026-06-06', 10);
     expect(offset).toBe(0);
     expect(todayLineLeftPx(offset!)).toBe(0);
   });
 
-  it('blue vertical line position equals dayOffset * DAY_WIDTH', () => {
-    const offset = computeTodayDayOffset('2026-06-06', '2026-06-08', 10);
-    expect(offset).toBe(2);
-    expect(todayLineLeftPx(offset!)).toBe(offset! * DAY_WIDTH);
+  it('today line sits on the left boundary of the today column (offset * DAY_WIDTH)', () => {
+    const offsetDay1 = computeTodayDayOffset('2026-06-06', '2026-06-07', 10);
+    expect(offsetDay1).toBe(1);
+    expect(todayLineLeftPx(offsetDay1!)).toBe(DAY_WIDTH);
+
+    const offsetDay2 = computeTodayDayOffset('2026-06-06', '2026-06-08', 10);
+    expect(offsetDay2).toBe(2);
+    expect(todayLineLeftPx(offsetDay2!)).toBe(DAY_WIDTH * 2);
+  });
+
+  it('does not render today line when today is before project start', () => {
+    expect(computeTodayDayOffset('2026-06-06', '2026-06-05', 10)).toBeNull();
+  });
+
+  it('does not render today line when today is after the gantt duration', () => {
+    expect(computeTodayDayOffset('2026-06-06', '2026-06-16', 10)).toBeNull();
+    expect(computeTodayDayOffset('2026-06-06', '2026-06-06', 0)).toBeNull();
+  });
+
+  it('aligns today line x with the matching day header cell', () => {
+    const projectStartDate = '2026-06-06';
+    const todayYmd = '2026-06-07';
+    const days = buildTimelineDays(projectStartDate, 5, todayYmd);
+    const todayDay = days.find((day) => day.isToday);
+
+    expect(todayDay?.dayOfMonth).toBe(7);
+    expect(todayDay?.dayOffset).toBe(1);
+
+    const offset = computeTodayDayOffset(projectStartDate, todayYmd, 5);
+    expect(dayCellLeftPx(todayDay!.dayOffset)).toBe(todayLineLeftPx(offset!));
+    expect(todayLineLeftPx(offset!)).toBe(DAY_WIDTH);
+  });
+
+  it('uses local calendar-day difference, not loose millisecond division', () => {
+    const start = parseLocalDateYmd('2026-06-06');
+    const today = parseLocalDateYmd('2026-06-07');
+    expect(start).not.toBeNull();
+    expect(today).not.toBeNull();
+    expect(differenceInCalendarDays(today!, start!)).toBe(1);
+    expect(computeTodayDayOffset('2026-06-06', '2026-06-07', 10)).toBe(1);
+  });
+
+  it('getLocalDateYmd returns local YYYY-MM-DD without UTC shift', () => {
+    const local = getLocalDateYmd(new Date(2026, 5, 7, 23, 30, 0));
+    expect(local).toBe('2026-06-07');
   });
 
   it('day cell width equals DAY_WIDTH', () => {
@@ -200,6 +244,16 @@ describe('levelThreeGanttGrid', () => {
 
   it('ROW_HEIGHT is shared constant for schedule grid', () => {
     expect(ROW_HEIGHT).toBe(42);
+  });
+
+  it('Level III Gantt uses local today date for the Today line, not UTC toISOString', () => {
+    expect(levelThreeGanttSource).toContain('getLocalDateYmd');
+    expect(levelThreeGanttSource).not.toContain("toISOString().slice(0, 10)");
+  });
+
+  it('legend labels the blue line as Today', () => {
+    expect(levelThreeGanttSource).toContain('Today');
+    expect(levelThreeGanttSource).toContain('title="Today"');
   });
 
   it('timeline gridline elements render only inside the timeline container', () => {

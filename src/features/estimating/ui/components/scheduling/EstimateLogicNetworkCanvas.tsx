@@ -121,6 +121,8 @@ interface Props {
   saving?: boolean;
   /** Changes only when project/estimate context changes — resets initial fit once. */
   canvasKey: string;
+  /** Changes when scheduled activities change — clears stale auto-layout snapshots. */
+  activitySignature?: string;
   fullscreen?: boolean;
   chromeless?: boolean;
   viewport?: Viewport;
@@ -167,6 +169,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     onLayoutChange,
     saving = false,
     canvasKey,
+    activitySignature = '',
     fullscreen = false,
     chromeless = false,
     viewport: controlledViewport,
@@ -190,6 +193,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   const internalHasFitInitialViewRef = useRef(false);
   const hasFitInitialViewRef = externalHasFitInitialViewRef ?? internalHasFitInitialViewRef;
   const previousCanvasKeyRef = useRef<string | null>(null);
+  const previousActivitySignatureRef = useRef<string | null>(null);
   const autoLayoutSnapshotRef = useRef<LogicNetworkLayout[] | null>(null);
   const persistedAutoLayoutRef = useRef(false);
 
@@ -201,6 +205,13 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     persistedAutoLayoutRef.current = false;
     setViewport(INITIAL_LOGIC_NETWORK_VIEWPORT);
   }, [canvasKey]);
+
+  useEffect(() => {
+    if (previousActivitySignatureRef.current === activitySignature) return;
+    previousActivitySignatureRef.current = activitySignature;
+    autoLayoutSnapshotRef.current = null;
+    persistedAutoLayoutRef.current = false;
+  }, [activitySignature]);
 
   const effectiveLayout = useMemo(() => {
     if (layout.length > 0) {

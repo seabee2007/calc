@@ -51,10 +51,13 @@ interface Props {
   onIgnoreLogicWarning: (warningId: string) => Promise<void>;
   saving?: boolean;
   canvasKey: string;
+  /** Changes when the scheduled activity set changes — prunes stale canvas nodes. */
+  activitySignature?: string;
 }
 
 export default function LogicNetworkWorkspace({
   canvasKey,
+  activitySignature = '',
   activities,
   onSaveLayout,
   ...canvasProps
@@ -262,6 +265,7 @@ export default function LogicNetworkWorkspace({
       <EstimateLogicNetworkCanvas
         ref={canvasRef}
         canvasKey={canvasKey}
+        activitySignature={activitySignature}
         activities={activities}
         fullscreen={isFullscreen}
         chromeless
@@ -300,6 +304,9 @@ export default function LogicNetworkWorkspace({
           } finally {
             setLogicReviewBusy(false);
           }
+        }}
+        onNotify={(message, variant = 'success') => {
+          setLayoutSaveToast({ message, variant });
         }}
       />
     </div>

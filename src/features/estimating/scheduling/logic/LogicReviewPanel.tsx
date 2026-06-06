@@ -9,10 +9,17 @@ import {
   requestAiLogicReview,
   type AiLogicSuggestion,
 } from './aiLogicReviewService';
+import LogicReviewAcceptAllConfirmModal from './LogicReviewAcceptAllConfirmModal';
 import LogicReviewWarningCard from './LogicReviewWarningCard';
 import type { LogicReviewWarning, LogicWarningCategory, SuggestedLogicLink } from './logicTypes';
 import { LOGIC_WARNING_CATEGORY_LABELS } from './logicTypes';
 import { dedupeLogicWarnings } from './checkLogicNetwork';
+import {
+  applyLogicSuggestions,
+  buildAcceptAllToastMessage,
+  collectVisibleAutoFixLinks,
+  filterResolvedAiWarnings,
+} from './logicReviewUtils';
 
 const CATEGORY_ORDER: LogicWarningCategory[] = [
   'missingLikelyPredecessor',
@@ -34,6 +41,7 @@ interface Props {
   ignoredWarningIds: string[];
   onAddSuggestedLinks: (links: SuggestedLogicLink[]) => Promise<void>;
   onIgnoreWarning: (warningId: string) => Promise<void>;
+  onNotify?: (message: string, variant?: 'success' | 'error') => void;
   busy?: boolean;
 }
 
@@ -45,6 +53,7 @@ export default function LogicReviewPanel({
   ignoredWarningIds,
   onAddSuggestedLinks,
   onIgnoreWarning,
+  onNotify,
   busy = false,
 }: Props) {
   const [showIgnored, setShowIgnored] = useState(false);
@@ -52,6 +61,8 @@ export default function LogicReviewPanel({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiRan, setAiRan] = useState(false);
+  const [acceptAllConfirmOpen, setAcceptAllConfirmOpen] = useState(false);
+  const [acceptingAll, setAcceptingAll] = useState(false);
 
   const reviewInput = useMemo(
     () => ({
@@ -89,6 +100,42 @@ export default function LogicReviewPanel({
     }
     return groups;
   }, [allWarnings]);
+
+  const visibleAutoFixLinks = useMemo(
+    () => collectVisibleAutoFixLinks(allWarnings),
+    [allWarnings],
+  );
+  const canAcceptAll = visibleAutoFixLinks.length > 0;
+
+  const handleAcceptAllConfirmed = async () => {
+    if (!canAcceptAll || acceptingAll || busy) return;
+
+    const preview = applyLogicSuggestions({
+      suggestions: visibleAutoFixLinks,
+      existingLinks: logicLinks,
+      activities,
+    });
+
+    setAcceptingAll(true);
+    try {
+      if (preview.added.length === 0) {
+        const toast = buildAcceptAllToastMessage(0, preview.skipped.length);
+        onNotify?.(toast.message, toast.variant);
+        setAcceptAllConfirmOpen(false);
+        return;
+      }
+
+      await onAddSuggestedLinks(preview.added);
+      setAiWarnings((current) => filterResolvedAiWarnings(current, logicLinks, preview.added));
+      const toast = buildAcceptAllToastMessage(preview.added.length, preview.skipped.length);
+      onNotify?.(toast.message, toast.variant);
+      setAcceptAllConfirmOpen(false);
+    } catch {
+      onNotify?.('Could not accept logic suggestions', 'error');
+    } finally {
+      setAcceptingAll(false);
+    }
+  };
 
   const handleSuggestWithAi = async () => {
     setAiLoading(true);
@@ -171,10 +218,18 @@ export default function LogicReviewPanel({
             <button
               type="button"
               className="rounded-md border border-cyan-700 bg-cyan-950 px-3 py-1.5 text-xs font-medium text-cyan-100 hover:bg-cyan-900 disabled:opacity-60"
-              disabled={aiLoading || busy}
+              disabled={aiLoading || busy || acceptingAll}
               onClick={() => void handleSuggestWithAi()}
             >
               {aiLoading ? 'Reviewing with AI…' : 'Suggest logic with AI'}
+            </button>
+            <button
+              type="button"
+              className="rounded-md border border-emerald-700 bg-emerald-950 px-3 py-1.5 text-xs font-medium text-emerald-100 hover:bg-emerald-900 disabled:opacity-60"
+              disabled={!canAcceptAll || busy || acceptingAll}
+              onClick={() => setAcceptAllConfirmOpen(true)}
+            >
+              {acceptingAll ? 'Accepting…' : 'Accept all'}
             </button>
             <button
               type="button"
@@ -223,7 +278,7 @@ export default function LogicReviewPanel({
                         <LogicReviewWarningCard
                           key={warning.id}
                           warning={warning}
-                          busy={busy}
+                          busy={busy || acceptingAll}
                           onAddSuggestedLink={(link) => void onAddSuggestedLinks([link])}
                           onAddAllSuggestedLinks={(links) => void onAddSuggestedLinks(links)}
                           onIgnore={(warningId) => void onIgnoreWarning(warningId)}
@@ -237,6 +292,15 @@ export default function LogicReviewPanel({
           )}
         </div>
       </div>
+      <LogicReviewAcceptAllConfirmModal
+        isOpen={acceptAllConfirmOpen}
+        suggestionCount={visibleAutoFixLinks.length}
+        accepting={acceptingAll}
+        onClose={() => {
+          if (!acceptingAll) setAcceptAllConfirmOpen(false);
+        }}
+        onConfirm={() => void handleAcceptAllConfirmed()}
+      />
     </div>,
     document.body,
   );

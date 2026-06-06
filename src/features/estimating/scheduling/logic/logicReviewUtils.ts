@@ -195,3 +195,141 @@ export function summarizeLogicWarnings(warnings: LogicReviewWarning[]): {
     total: warnings.length,
   };
 }
+
+export type ApplyLogicSuggestionSkipReason =
+  | 'missing-link'
+  | 'duplicate'
+  | 'cycle'
+  | 'invalid-activity';
+
+export type ApplyLogicSuggestionSkip = {
+  link: SuggestedLogicLink;
+  reason: ApplyLogicSuggestionSkipReason;
+};
+
+export type ApplyLogicSuggestionsResult = {
+  nextLinks: CpmLogicLink[];
+  added: SuggestedLogicLink[];
+  skipped: ApplyLogicSuggestionSkip[];
+};
+
+function isDuplicateLogicLink(
+  existingLinks: readonly CpmLogicLink[],
+  link: SuggestedLogicLink,
+): boolean {
+  return existingLinks.some(
+    (existing) =>
+      existing.predecessorActivityCode === link.predecessorActivityCode &&
+      existing.successorActivityCode === link.successorActivityCode &&
+      existing.relationshipType === link.relationshipType &&
+      existing.lagDays === link.lagDays,
+  );
+}
+
+function isGraphDuplicateLogicLink(
+  existingLinks: readonly CpmLogicLink[],
+  link: SuggestedLogicLink,
+): boolean {
+  return existingLinks.some(
+    (existing) =>
+      existing.predecessorActivityCode === link.predecessorActivityCode &&
+      existing.successorActivityCode === link.successorActivityCode,
+  );
+}
+
+export function collectVisibleAutoFixLinks(warnings: LogicReviewWarning[]): SuggestedLogicLink[] {
+  const links: SuggestedLogicLink[] = [];
+  for (const warning of warnings) {
+    if (!warning.canAutoFix) continue;
+    for (const link of warning.suggestedLinks ?? []) {
+      links.push(link);
+    }
+  }
+  return links;
+}
+
+export function applyLogicSuggestions({
+  suggestions,
+  existingLinks,
+  activities,
+}: {
+  suggestions: SuggestedLogicLink[];
+  existingLinks: CpmLogicLink[];
+  activities: readonly { activityCode: string }[];
+}): ApplyLogicSuggestionsResult {
+  const activityCodes = new Set(activities.map((activity) => activity.activityCode));
+  const nextLinks = [...existingLinks];
+  const added: SuggestedLogicLink[] = [];
+  const skipped: ApplyLogicSuggestionSkip[] = [];
+
+  for (const link of suggestions) {
+    if (!link?.predecessorActivityCode?.trim() || !link?.successorActivityCode?.trim()) {
+      skipped.push({ link, reason: 'missing-link' });
+      continue;
+    }
+
+    if (
+      !activityCodes.has(link.predecessorActivityCode) ||
+      !activityCodes.has(link.successorActivityCode)
+    ) {
+      skipped.push({ link, reason: 'invalid-activity' });
+      continue;
+    }
+
+    if (isDuplicateLogicLink(nextLinks, link) || isGraphDuplicateLogicLink(nextLinks, link)) {
+      skipped.push({ link, reason: 'duplicate' });
+      continue;
+    }
+
+    if (wouldCreateCircularDependency(nextLinks, [link])) {
+      skipped.push({ link, reason: 'cycle' });
+      continue;
+    }
+
+    nextLinks.push({
+      predecessorActivityCode: link.predecessorActivityCode,
+      successorActivityCode: link.successorActivityCode,
+      relationshipType: link.relationshipType,
+      lagDays: link.lagDays,
+    });
+    added.push(link);
+  }
+
+  return { nextLinks, added, skipped };
+}
+
+export function filterResolvedAiWarnings(
+  aiWarnings: LogicReviewWarning[],
+  existingLinks: CpmLogicLink[],
+  added: SuggestedLogicLink[],
+): LogicReviewWarning[] {
+  const mergedLinks = appendSuggestedLogicLinks(existingLinks, added);
+  return aiWarnings.filter((warning) => {
+    const suggested = warning.suggestedLinks ?? [];
+    if (suggested.length === 0) return true;
+    return suggested.some(
+      (link) =>
+        !mergedLinks.some(
+          (existing) =>
+            existing.predecessorActivityCode === link.predecessorActivityCode &&
+            existing.successorActivityCode === link.successorActivityCode,
+        ),
+    );
+  });
+}
+
+export function buildAcceptAllToastMessage(
+  addedCount: number,
+  skippedCount: number,
+): { message: string; variant: 'success' | 'error' } {
+  if (addedCount === 0) {
+    return { message: 'Could not accept logic suggestions', variant: 'error' };
+  }
+  if (skippedCount === 0) {
+    return { message: 'Logic suggestions accepted', variant: 'success' };
+  }
+  return {
+    message: `Accepted ${addedCount} suggestions. ${skippedCount} could not be added.`,
+    variant: 'success',
+  };
+}

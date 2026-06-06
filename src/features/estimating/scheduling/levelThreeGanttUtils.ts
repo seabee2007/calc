@@ -1,7 +1,7 @@
 import { addDaysToScheduleDate } from '../application/mapScheduleCandidateToScheduleEventInput';
 import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
 import type { CpmActivityResult, CpmResult } from './cpmTypes';
-import { DAY_WIDTH } from './levelThreeGanttGrid';
+import { DAY_WIDTH, getLocalDateYmd } from './levelThreeGanttGrid';
 
 /** @deprecated Use DAY_WIDTH from levelThreeGanttGrid */
 export const LEVEL_THREE_DAY_COL_WIDTH_PX = DAY_WIDTH;
@@ -34,7 +34,7 @@ export function buildTimelineDays(
   projectDurationDays: number,
   todayYmd?: string,
 ): TimelineDay[] {
-  const today = todayYmd ?? new Date().toISOString().slice(0, 10);
+  const today = todayYmd ?? getLocalDateYmd();
   const days: TimelineDay[] = [];
 
   for (let dayOffset = 0; dayOffset < projectDurationDays; dayOffset += 1) {

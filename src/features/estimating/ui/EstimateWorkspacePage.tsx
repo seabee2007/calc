@@ -14,6 +14,7 @@ import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
 import type { EstimateSelectedDivision, EstimateType } from '../domain/estimateTypes';
 import {
+  buildDomainTasksFromDraftLines,
   createCurrentEstimate,
   currentEstimateToDomainVersion,
   currentEstimateToSummary,
@@ -94,10 +95,15 @@ import {
 import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
 import { estimateLineItemsToScheduleActivities } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import { calculateCpm } from '../scheduling/cpm/calculateCpm';
-import type { CpmLogicLink, LogicNetworkLayout } from '../scheduling/cpmTypes';
+import type { CpmLogicLink, LogicNetworkLayout, ScheduleSettings } from '../scheduling/cpmTypes';
 import { appendSuggestedLogicLinks } from '../scheduling/logic/logicReviewUtils';
 import type { SuggestedLogicLink } from '../scheduling/logic/logicTypes';
-import { mergeScheduleAssumptions } from '../scheduling/scheduleAssumptions';
+import {
+  buildScheduleActivitySignature,
+  mergeScheduleAssumptions,
+  mergeScheduleAssumptionsForAddImport,
+  resetScheduleAssumptionsForReplacement,
+} from '../scheduling/scheduleAssumptions';
 import { useScheduleSettings } from './hooks/useScheduleSettings';
 import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
 import LevelThreeGantt from './components/scheduling/LevelThreeGantt';
@@ -223,6 +229,14 @@ export default function EstimateWorkspacePage() {
     [scheduleActivitiesResult.activities, scheduleSettingsHook.logicLinks],
   );
 
+  const scheduleActivitySignature = useMemo(
+    () =>
+      estimateAdapter
+        ? buildScheduleActivitySignature(estimateAdapter.lineItems)
+        : '',
+    [estimateAdapter],
+  );
+
   const resourceHistogram = useMemo(() => {
     if (!cpmResult || scheduleActivitiesResult.activities.length === 0) return [];
     return calculateResourceHistogram({
@@ -266,9 +280,30 @@ export default function EstimateWorkspacePage() {
   const handleSchedulePlanControlsChange = useCallback(
     (patch: Partial<EstimateSchedulePlanControlValues>) => {
       setSchedulePlanControls((current) => ({ ...current, ...patch }));
+
+      const settingsPatch: Partial<ScheduleSettings> = {};
+      if (patch.projectStartDate !== undefined) {
+        settingsPatch.projectStartDate = patch.projectStartDate;
+      }
+      if (patch.includeWeekends !== undefined) {
+        settingsPatch.includeWeekends = patch.includeWeekends;
+      }
+      if (Object.keys(settingsPatch).length > 0) {
+        scheduleSettingsHook.updateScheduleSettings(settingsPatch);
+      }
     },
-    [],
+    [scheduleSettingsHook],
   );
+
+  useEffect(() => {
+    const loaded = scheduleSettingsHook.scheduleSettings.projectStartDate;
+    if (!loaded) return;
+    setSchedulePlanControls((current) =>
+      current.projectStartDate === loaded
+        ? current
+        : { ...current, projectStartDate: loaded },
+    );
+  }, [scheduleSettingsHook.scheduleSettings.projectStartDate]);
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
   const estimateSetup = useEstimateSetupSession(
@@ -415,6 +450,7 @@ export default function EstimateWorkspacePage() {
     estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
     lineItemDraftRef.current.resetDraftSetup();
     estimateSettingsRef.current.rehydrateFromEstimate(null);
+    scheduleSettingsRef.current.rehydrateFromEstimate(null, []);
 
     try {
       const loadedEstimate = await loadCurrentEstimateForProject(projectId);
@@ -422,6 +458,10 @@ export default function EstimateWorkspacePage() {
 
       setCurrentEstimate(loadedEstimate);
       estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
+      scheduleSettingsRef.current.rehydrateFromEstimate(
+        loadedEstimate,
+        (loadedEstimate?.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
+      );
       if (loadedEstimate) {
         const loadedType = loadedEstimate.estimateType
           ? normalizeEstimateMethod(loadedEstimate.estimateType)
@@ -474,6 +514,11 @@ export default function EstimateWorkspacePage() {
       estimateSetup.startSetup(selectedEstimateMethod);
       setAutoOpenScopeModalKey(result.data.id);
       lineItemDraft.rehydrateFromVersion(nextVersion);
+      scheduleSettingsHook.rehydrateFromEstimate(
+        result.data,
+        (result.data.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
+      );
+      setLevelingModalResult(null);
     }
     setSaveToastMessage('Estimate started');
     navigate(estimateWorkspaceHref(resolvedProjectId, 'line-items'));
@@ -486,6 +531,7 @@ export default function EstimateWorkspacePage() {
     selectedEstimateMethod,
     estimateSetup,
     lineItemDraft,
+    scheduleSettingsHook,
     navigate,
   ]);
 
@@ -552,6 +598,11 @@ export default function EstimateWorkspacePage() {
     setSaveError(null);
     setSaveToastMessage(null);
 
+    const saveAssumptions = mergeScheduleAssumptions(
+      { scheduleSettings: scheduleSettingsHook.scheduleSettings },
+      (currentEstimate?.assumptions as Record<string, unknown>) ?? {},
+    );
+
     const result = await saveCurrentEstimateWithLineItems({
       estimateId: estimate.id,
       projectId: estimate.projectId,
@@ -562,7 +613,7 @@ export default function EstimateWorkspacePage() {
         ...estimateSetup.session.selectedDivisions,
       ],
       estimateSettings: estimateSettings.settings,
-      existingAssumptions: currentEstimate?.assumptions,
+      existingAssumptions: saveAssumptions,
       createdBy: user?.id ?? null,
     });
 
@@ -576,6 +627,10 @@ export default function EstimateWorkspacePage() {
     setCurrentEstimate(result.data);
     lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
     estimateSettings.rehydrateFromEstimate(result.data);
+    scheduleSettingsHook.rehydrateFromEstimate(
+      result.data,
+      (result.data.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
+    );
 
     setSaving(false);
   }, [
@@ -585,6 +640,7 @@ export default function EstimateWorkspacePage() {
     saving,
     lineItemDraft,
     estimateSettings,
+    scheduleSettingsHook,
     currentEstimate?.assumptions,
     currentEstimate?.selectedDivisions,
     estimateSetup.session.selectedDivisions,
@@ -638,13 +694,23 @@ export default function EstimateWorkspacePage() {
 
     lineItemDraft.resetDraftSetup();
     estimateSettings.rehydrateFromEstimate(null);
+    scheduleSettingsHook.rehydrateFromEstimate(null, []);
     estimateSetup.resetSetup(selectedEstimateMethod);
+    setLevelingModalResult(null);
     setCurrentEstimate(null);
     setActiveEstimateType(null);
     setSaveToastMessage('Estimate reset');
     setSaving(false);
     return true;
-  }, [estimate, estimateSetup, estimateSettings, lineItemDraft, saving, selectedEstimateMethod]);
+  }, [
+    estimate,
+    estimateSetup,
+    estimateSettings,
+    lineItemDraft,
+    saving,
+    scheduleSettingsHook,
+    selectedEstimateMethod,
+  ]);
 
   const handleConfirmResetSetup = useCallback(async () => {
     const didReset = await handleResetEstimate();
@@ -682,6 +748,35 @@ export default function EstimateWorkspacePage() {
         estimateSettings.replaceSettings(importedData.estimateSettings);
       }
 
+      const mergedLineItems = buildDomainTasksFromDraftLines({
+        draftLines: applied.draftLines,
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        selectedDivisions: applied.selectedDivisions,
+        estimateSettings: importedData.estimateSettings ?? estimateSettings.settings,
+      });
+      const importedLineItems = buildDomainTasksFromDraftLines({
+        draftLines: importedData.draftLines,
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        selectedDivisions: importedData.selectedDivisions,
+        estimateSettings: importedData.estimateSettings ?? estimateSettings.settings,
+      });
+
+      const importAssumptions =
+        mode === 'replace'
+          ? resetScheduleAssumptionsForReplacement(
+              currentEstimate?.assumptions as Record<string, unknown> | undefined,
+              mergedLineItems,
+            )
+          : mergeScheduleAssumptionsForAddImport(
+              currentEstimate?.assumptions as Record<string, unknown> | undefined,
+              mergedLineItems,
+              importedLineItems,
+            );
+
       const result = await saveCurrentEstimateWithLineItems({
         estimateId: estimate.id,
         projectId: estimate.projectId,
@@ -689,7 +784,7 @@ export default function EstimateWorkspacePage() {
         draftLines: applied.draftLines,
         selectedDivisions: applied.selectedDivisions,
         estimateSettings: importedData.estimateSettings ?? estimateSettings.settings,
-        existingAssumptions: currentEstimate?.assumptions,
+        existingAssumptions: importAssumptions,
         createdBy: user?.id ?? null,
       });
 
@@ -707,6 +802,11 @@ export default function EstimateWorkspacePage() {
       );
       lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
       estimateSettings.rehydrateFromEstimate(result.data);
+      scheduleSettingsHook.rehydrateFromEstimate(
+        result.data,
+        (result.data.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
+      );
+      setLevelingModalResult(null);
       setImportCollapseDivisionCodesKey(
         `import-${Date.now()}-${applied.importedDivisionCodes.join(',')}`,
       );
@@ -723,6 +823,7 @@ export default function EstimateWorkspacePage() {
       estimateSettings,
       lineItemDraft,
       currentEstimate?.assumptions,
+      scheduleSettingsHook,
       user?.id,
     ],
   );
@@ -982,7 +1083,8 @@ export default function EstimateWorkspacePage() {
       try {
         const prepared = prepareGanttExport({
           lineItems: estimateAdapter.lineItems,
-          projectStartDate: schedulePlanControls.projectStartDate,
+          projectStartDate:
+            scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
           includeWeekends: schedulePlanControls.includeWeekends,
           estimateSettings: estimateSettings.settings,
         });
@@ -1015,7 +1117,7 @@ export default function EstimateWorkspacePage() {
       estimateSettings.settings,
       project?.name,
       schedulePlanControls.includeWeekends,
-      schedulePlanControls.projectStartDate,
+      scheduleSettingsHook.scheduleSettings.projectStartDate,
     ],
   );
 
@@ -1318,6 +1420,7 @@ export default function EstimateWorkspacePage() {
               )}
               <LogicNetworkWorkspace
                 canvasKey={resolvedProjectId ?? 'no-project'}
+                activitySignature={scheduleActivitySignature}
                 activities={scheduleActivitiesResult.activities}
                 logicLinks={scheduleSettingsHook.logicLinks}
                 cpmResult={cpmResult}

@@ -17,6 +17,7 @@ import {
   assertGanttGridInvariants,
   computeActivityBarLayout,
   computeTodayDayOffset,
+  getLocalDateYmd,
   dayCellLeftPx,
   formatEstimatedFloat,
   leftTableGridTemplateColumns,
@@ -150,7 +151,7 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
   ref,
 ) {
   const [selectedActivityCode, setSelectedActivityCode] = useState<string | null>(null);
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => getLocalDateYmd(), []);
   const projectStartDate = scheduleSettings.projectStartDate || today;
 
   const rows = useMemo(() => {

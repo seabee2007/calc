@@ -272,6 +272,31 @@ function mapEstimateRowToCurrentEstimate(row: Record<string, unknown>): CurrentE
   };
 }
 
+export function buildDomainTasksFromDraftLines(params: {
+  draftLines: EstimateDraftLine[];
+  estimateId: string;
+  projectId: string;
+  estimateType: EstimateType;
+  selectedDivisions?: readonly EstimateSelectedDivision[];
+  estimateSettings?: Partial<EstimateSettings> | null;
+}): EstimateDomainTask[] {
+  const estimateSettings = normalizeEstimateSettings(
+    params.estimateSettings ??
+      parseEstimateSettingsFromAssumptions({}),
+  );
+  const snapshot = buildEstimateDraftSnapshot({
+    estimateId: params.estimateId,
+    projectId: params.projectId,
+    versionNumber: 1,
+    estimateType: params.estimateType,
+    status: 'draft',
+    draftLines: [...params.draftLines],
+    selectedDivisions: [...(params.selectedDivisions ?? [])],
+    estimateSettings,
+  });
+  return lineItemsFromDraftSnapshot(params.draftLines, snapshot);
+}
+
 function lineItemsFromDraftSnapshot(
   draftLines: EstimateDraftLine[],
   snapshot: EstimateSnapshot,

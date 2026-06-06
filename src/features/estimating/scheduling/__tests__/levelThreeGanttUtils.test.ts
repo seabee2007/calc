@@ -65,6 +65,13 @@ describe('levelThreeGanttUtils', () => {
     expect(typeof days[0].isWeekend).toBe('boolean');
   });
 
+  it('marks the correct day column as today when today is one day after project start', () => {
+    const days = buildTimelineDays('2026-06-06', 5, '2026-06-07');
+    expect(days[0].isToday).toBe(false);
+    expect(days[1].isToday).toBe(true);
+    expect(days[1].dayOfMonth).toBe(7);
+  });
+
   it('buildTimelineMonthSegments groups days by month', () => {
     const days = buildTimelineDays('2026-06-28', 6);
     const segments = buildTimelineMonthSegments(days);

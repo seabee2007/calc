@@ -9,11 +9,13 @@ import {
 import {
   parseLogicLinksFromAssumptions,
   parseLogicNetworkLayoutFromAssumptions,
+  parseLeveledOffsetsFromAssumptions,
   parseLogicReviewIgnoredFromAssumptions,
   parseScheduleSettingsFromAssumptions,
+  sanitizeScheduleAssumptionsForLineItems,
+  seedLogicLinksFromLineItems,
 } from '../../scheduling/scheduleAssumptions';
 import type { EstimateDomainTask } from '../../infrastructure/estimateDbTypes';
-import { seedLogicLinksFromLineItems } from '../../scheduling/scheduleAssumptions';
 
 export interface UseScheduleSettingsResult {
   scheduleSettings: ScheduleSettings;
@@ -48,16 +50,17 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
         return;
       }
 
-      const parsedSettings = parseScheduleSettingsFromAssumptions(estimate.assumptions);
-      // Use estimate settings hoursPerDay as default if schedule settings not yet set
-      const assumptions = estimate.assumptions as Record<string, unknown>;
+      const sanitizedAssumptions = sanitizeScheduleAssumptionsForLineItems(
+        estimate.assumptions,
+        lineItems,
+      );
+      const parsedSettings = parseScheduleSettingsFromAssumptions(sanitizedAssumptions);
       const hasExplicitScheduleSettings =
-        assumptions.scheduleSettings != null &&
-        typeof assumptions.scheduleSettings === 'object';
+        sanitizedAssumptions.scheduleSettings != null &&
+        typeof sanitizedAssumptions.scheduleSettings === 'object';
 
       if (!hasExplicitScheduleSettings) {
-        // Copy hoursPerDay and defaultCrewSize from estimateSettings as defaults
-        const estimateSettingsRaw = assumptions.estimateSettings as
+        const estimateSettingsRaw = sanitizedAssumptions.estimateSettings as
           | Record<string, unknown>
           | undefined;
         parsedSettings.hoursPerDay =
@@ -72,29 +75,17 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
 
       setScheduleSettings(parsedSettings);
 
-      const existingLinks = parseLogicLinksFromAssumptions(estimate.assumptions);
+      const existingLinks = parseLogicLinksFromAssumptions(sanitizedAssumptions);
       if (existingLinks.length > 0) {
         setLogicLinksState(existingLinks);
       } else {
-        // Seed from line items on first open
         const seeded = seedLogicLinksFromLineItems(lineItems);
         setLogicLinksState(seeded);
       }
 
-      setLogicNetworkLayoutState(parseLogicNetworkLayoutFromAssumptions(estimate.assumptions));
-
-      const rawOffsets = (estimate.assumptions as Record<string, unknown>).leveledActivityOffsets;
-      if (rawOffsets && typeof rawOffsets === 'object' && !Array.isArray(rawOffsets)) {
-        const offsets: Record<string, number> = {};
-        for (const [key, value] of Object.entries(rawOffsets as Record<string, unknown>)) {
-          if (typeof value === 'number' && Number.isFinite(value)) offsets[key] = value;
-        }
-        setLeveledOffsetsState(offsets);
-      } else {
-        setLeveledOffsetsState({});
-      }
-
-      setLogicReviewIgnoredState(parseLogicReviewIgnoredFromAssumptions(estimate.assumptions));
+      setLogicNetworkLayoutState(parseLogicNetworkLayoutFromAssumptions(sanitizedAssumptions));
+      setLeveledOffsetsState(parseLeveledOffsetsFromAssumptions(sanitizedAssumptions));
+      setLogicReviewIgnoredState(parseLogicReviewIgnoredFromAssumptions(sanitizedAssumptions));
     },
     [],
   );

@@ -206,3 +206,192 @@ export function mergeScheduleAssumptions(
       : {}),
   };
 }
+
+/** Schedule-only keys that must reset when the activity set is replaced. */
+export const SCHEDULE_LAYER_ASSUMPTION_KEYS = [
+  'logicLinks',
+  'logicNetworkLayout',
+  'leveledActivityOffsets',
+  'resourceLevelingResults',
+  'logicReviewIgnored',
+  'logicReviewAiSuggestions',
+  'cpmWarnings',
+  'cpmResultCache',
+  'levelThreeGanttBaseline',
+] as const;
+
+export function stripScheduleLayerKeys(
+  assumptions: Record<string, unknown>,
+): Record<string, unknown> {
+  const next = { ...assumptions };
+  for (const key of SCHEDULE_LAYER_ASSUMPTION_KEYS) {
+    delete next[key];
+  }
+  return next;
+}
+
+export function getValidScheduleActivityCodes(
+  lineItems: readonly EstimateDomainTask[],
+): Set<string> {
+  const codes = new Set<string>();
+  for (const task of lineItems) {
+    if (task.lineType && task.lineType !== 'task') continue;
+    if (task.scheduleEnabled === false) continue;
+    const code = task.activityCode?.trim();
+    if (code) codes.add(code);
+  }
+  return codes;
+}
+
+function filterLogicLinksForActivityCodes(
+  links: CpmLogicLink[],
+  validActivityCodes: Set<string>,
+): CpmLogicLink[] {
+  return links.filter(
+    (link) =>
+      validActivityCodes.has(link.predecessorActivityCode) &&
+      validActivityCodes.has(link.successorActivityCode),
+  );
+}
+
+function filterLogicNetworkLayoutForActivityCodes(
+  layout: LogicNetworkLayout[],
+  validActivityCodes: Set<string>,
+): LogicNetworkLayout[] {
+  return layout.filter((entry) => validActivityCodes.has(entry.activityCode));
+}
+
+function filterLeveledOffsetsForActivityCodes(
+  offsets: Record<string, number>,
+  validActivityCodes: Set<string>,
+): Record<string, number> {
+  const next: Record<string, number> = {};
+  for (const [activityCode, offset] of Object.entries(offsets)) {
+    if (validActivityCodes.has(activityCode)) {
+      next[activityCode] = offset;
+    }
+  }
+  return next;
+}
+
+function filterLogicReviewIgnoredForActivityCodes(
+  ignoredWarningIds: string[],
+  validActivityCodes: Set<string>,
+): string[] {
+  return ignoredWarningIds.filter((warningId) => {
+    const parts = warningId.split('|');
+    const referencedCodes = [parts[1], parts[2], parts[3]].filter(
+      (code): code is string => typeof code === 'string' && code.trim().length > 0,
+    );
+    if (referencedCodes.length === 0) return true;
+    return referencedCodes.every((code) => validActivityCodes.has(code));
+  });
+}
+
+/** Remove schedule-layer data that no longer matches the current line items. */
+export function sanitizeScheduleAssumptionsForLineItems(
+  assumptions: Record<string, unknown> | undefined | null,
+  lineItems: readonly EstimateDomainTask[],
+): Record<string, unknown> {
+  const base = assumptions && typeof assumptions === 'object' ? { ...assumptions } : {};
+  const validActivityCodes = getValidScheduleActivityCodes(lineItems);
+
+  const logicLinks = filterLogicLinksForActivityCodes(
+    parseLogicLinksFromAssumptions(base),
+    validActivityCodes,
+  );
+  const logicNetworkLayout = filterLogicNetworkLayoutForActivityCodes(
+    parseLogicNetworkLayoutFromAssumptions(base),
+    validActivityCodes,
+  );
+  const leveledActivityOffsets = filterLeveledOffsetsForActivityCodes(
+    parseLeveledOffsetsFromAssumptions(base),
+    validActivityCodes,
+  );
+  const logicReviewIgnored = filterLogicReviewIgnoredForActivityCodes(
+    parseLogicReviewIgnoredFromAssumptions(base),
+    validActivityCodes,
+  );
+
+  const stripped = stripScheduleLayerKeys(base);
+  return mergeScheduleAssumptions(
+    {
+      scheduleSettings: parseScheduleSettingsFromAssumptions(base),
+      logicLinks,
+      logicNetworkLayout,
+      leveledActivityOffsets,
+      logicReviewIgnored,
+    },
+    stripped,
+  );
+}
+
+/** Replace import: keep project schedule settings, clear old network state, seed links from items. */
+export function resetScheduleAssumptionsForReplacement(
+  assumptions: Record<string, unknown> | undefined | null,
+  importedLineItems: readonly EstimateDomainTask[],
+): Record<string, unknown> {
+  const base = assumptions && typeof assumptions === 'object' ? assumptions : {};
+  const scheduleSettings = parseScheduleSettingsFromAssumptions(base);
+  const stripped = stripScheduleLayerKeys(base);
+  const seededLinks = seedLogicLinksFromLineItems([...importedLineItems]);
+
+  return mergeScheduleAssumptions(
+    {
+      scheduleSettings,
+      logicLinks: seededLinks,
+      logicNetworkLayout: [],
+      leveledActivityOffsets: {},
+      logicReviewIgnored: [],
+    },
+    stripped,
+  );
+}
+
+function appendUniqueLogicLinks(
+  existingLinks: CpmLogicLink[],
+  additionalLinks: CpmLogicLink[],
+): CpmLogicLink[] {
+  const merged = [...existingLinks];
+  for (const link of additionalLinks) {
+    const duplicate = merged.some(
+      (existing) =>
+        existing.predecessorActivityCode === link.predecessorActivityCode &&
+        existing.successorActivityCode === link.successorActivityCode,
+    );
+    if (!duplicate) merged.push(link);
+  }
+  return merged;
+}
+
+/** Add import: keep valid old links, drop missing-code links, seed from newly imported items. */
+export function mergeScheduleAssumptionsForAddImport(
+  assumptions: Record<string, unknown> | undefined | null,
+  allLineItems: readonly EstimateDomainTask[],
+  newlyImportedLineItems: readonly EstimateDomainTask[],
+): Record<string, unknown> {
+  const sanitized = sanitizeScheduleAssumptionsForLineItems(assumptions, allLineItems);
+  const validActivityCodes = getValidScheduleActivityCodes(allLineItems);
+  const existingLinks = parseLogicLinksFromAssumptions(sanitized);
+  const importedSeeds = seedLogicLinksFromLineItems([...newlyImportedLineItems]).filter(
+    (link) =>
+      validActivityCodes.has(link.predecessorActivityCode) &&
+      validActivityCodes.has(link.successorActivityCode),
+  );
+
+  return mergeScheduleAssumptions(
+    { logicLinks: appendUniqueLogicLinks(existingLinks, importedSeeds) },
+    sanitized,
+  );
+}
+
+export function buildScheduleActivitySignature(
+  lineItems: readonly Pick<EstimateDomainTask, 'activityCode' | 'scheduleEnabled' | 'lineType'>[],
+): string {
+  return lineItems
+    .filter((item) => (!item.lineType || item.lineType === 'task') && item.scheduleEnabled !== false)
+    .map((item) => item.activityCode?.trim())
+    .filter((code): code is string => Boolean(code))
+    .sort()
+    .join('|');
+}
