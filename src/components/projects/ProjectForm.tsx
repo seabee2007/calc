@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Save, X, Calendar, MapPin, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  ProfessionalizeScopeEmptyError,
+  ProfessionalizeScopeFailedError,
+  PROFESSIONALIZE_SCOPE_EMPTY_MESSAGE,
+  PROFESSIONALIZE_SCOPE_ERROR_MESSAGE,
+  PROFESSIONALIZE_SCOPE_SUCCESS_MESSAGE,
+  professionalizeProjectScope,
+} from '../../features/projects/application/professionalizeProjectScope';
+import EstimateWorkspaceToast, {
+  type EstimateWorkspaceToastVariant,
+} from '../../features/estimating/ui/components/EstimateWorkspaceToast';
 import { useProjectStore } from '../../store';
 import { generateProjectName } from '../../services/projectNamingService';
 import { resolveStateCode } from '../../types/address';
@@ -75,6 +86,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const [nameGenerating, setNameGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generatedNamePreview, setGeneratedNamePreview] = useState<string | null>(null);
+  const [scopeImproving, setScopeImproving] = useState(false);
+  const [scopeToast, setScopeToast] = useState<{
+    message: string;
+    variant: EstimateWorkspaceToastVariant;
+  } | null>(null);
   const { user } = useAuth();
   const storeProjects = useProjectStore((s) => s.projects);
 
@@ -122,6 +138,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const clientInfoName = watch('clientInfo.clientName');
   const clientInfoEmail = watch('clientInfo.clientEmail');
   const clientInfoPhone = watch('clientInfo.clientPhone');
+  const projectNameValue = watch('name');
 
   const syncPortalAccessFromClientInfo = () => {
     const values = getValues();
@@ -212,6 +229,51 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const handleVerifyClick = () => {
     void runVerify(getValues('jobsiteAddress'));
   };
+
+  const handleProfessionalizeScope = useCallback(async () => {
+    if (scopeImproving) return;
+
+    const currentScope = getValues('description') ?? '';
+    setScopeToast(null);
+
+    setScopeImproving(true);
+    try {
+      const improvedScope = await professionalizeProjectScope({
+        scopeText: currentScope,
+        projectName: projectNameValue?.trim() || undefined,
+      });
+      setValue('description', improvedScope, { shouldDirty: true, shouldValidate: true });
+      setScopeToast({
+        message: PROFESSIONALIZE_SCOPE_SUCCESS_MESSAGE,
+        variant: 'success',
+      });
+    } catch (error) {
+      if (error instanceof ProfessionalizeScopeEmptyError) {
+        setScopeToast({
+          message: PROFESSIONALIZE_SCOPE_EMPTY_MESSAGE,
+          variant: 'error',
+        });
+        return;
+      }
+
+      if (error instanceof ProfessionalizeScopeFailedError) {
+        console.error('[ProjectForm] Professionalize scope failed', error);
+        setScopeToast({
+          message: PROFESSIONALIZE_SCOPE_ERROR_MESSAGE,
+          variant: 'error',
+        });
+        return;
+      }
+
+      console.error('[ProjectForm] Professionalize scope failed', error);
+      setScopeToast({
+        message: PROFESSIONALIZE_SCOPE_ERROR_MESSAGE,
+        variant: 'error',
+      });
+    } finally {
+      setScopeImproving(false);
+    }
+  }, [getValues, projectNameValue, scopeImproving, setValue]);
 
   const onFormSubmit = async (data: ProjectFormData) => {
     setGenerateError(null);
@@ -529,15 +591,33 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       </div>
 
       <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-        >
-          Scope / description
-        </label>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Scope / description
+          </label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={scopeImproving}
+            icon={
+              scopeImproving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )
+            }
+            onClick={() => void handleProfessionalizeScope()}
+          >
+            {scopeImproving ? 'Improving…' : 'Professionalize scope'}
+          </Button>
+        </div>
         <textarea
           id="description"
-          rows={3}
+          rows={5}
           placeholder="Brief scope of work — carries into the proposal scope section."
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
           {...register('description', {
@@ -650,8 +730,18 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     </form>
   );
 
+  const scopeToastElement = (
+    <EstimateWorkspaceToast
+      message={scopeToast?.message ?? null}
+      variant={scopeToast?.variant ?? 'success'}
+      zIndexClass="z-[10060]"
+      onDismiss={() => setScopeToast(null)}
+    />
+  );
+
   if (isModal) {
     return (
+      <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
           <div className="p-6">
@@ -671,16 +761,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
           </div>
         </div>
       </div>
+      {scopeToastElement}
+      </>
     );
   }
 
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-        {isEditing ? 'Edit Project' : 'Create New Project'}
-      </h2>
-      {formBody}
-    </Card>
+    <>
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          {isEditing ? 'Edit Project' : 'Create New Project'}
+        </h2>
+        {formBody}
+      </Card>
+      {scopeToastElement}
+    </>
   );
 };
 

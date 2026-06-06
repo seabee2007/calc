@@ -9,6 +9,7 @@ import {
   type MutableRefObject,
 } from 'react';
 import '@xyflow/react/dist/style.css';
+import './logicNetworkControls.css';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -107,7 +108,7 @@ export function buildLogicNetworkNodes(
 export interface LogicNetworkCanvasHandle {
   autoLayout: () => void;
   fitView: () => void;
-  saveLayout: () => void;
+  collectCurrentLayout: () => LogicNetworkLayout[];
 }
 
 interface Props {
@@ -299,30 +300,26 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     void fitView({ padding: 0.2, duration: 300 });
   }, [fitView]);
 
-  const handleSaveLayout = useCallback(() => {
+  const collectCurrentLayout = useCallback((): LogicNetworkLayout[] => {
     if (layoutDebounceRef.current) {
       clearTimeout(layoutDebounceRef.current);
       layoutDebounceRef.current = null;
     }
-    setNodes((currentNodes) => {
-      const newLayout: LogicNetworkLayout[] = currentNodes.map((n) => ({
-        activityCode: n.data.activity.activityCode,
-        x: n.position.x,
-        y: n.position.y,
-      }));
-      onLayoutChange(newLayout);
-      return currentNodes;
-    });
-  }, [onLayoutChange, setNodes]);
+    return nodes.map((n) => ({
+      activityCode: n.data.activity.activityCode,
+      x: n.position.x,
+      y: n.position.y,
+    }));
+  }, [nodes]);
 
   useImperativeHandle(
     ref,
     () => ({
       autoLayout: handleAutoLayout,
       fitView: handleFitView,
-      saveLayout: handleSaveLayout,
+      collectCurrentLayout,
     }),
-    [handleAutoLayout, handleFitView, handleSaveLayout],
+    [handleAutoLayout, handleFitView, collectCurrentLayout],
   );
 
   const onConnect: OnConnect = useCallback(
@@ -480,7 +477,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
           maxZoom={2}
         >
           <Background gap={16} />
-          <Controls />
+          <Controls className="logic-network-controls" position="bottom-left" />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
         </ReactFlow>
     </div>

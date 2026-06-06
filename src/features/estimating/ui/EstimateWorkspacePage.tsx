@@ -761,9 +761,11 @@ export default function EstimateWorkspacePage() {
     ],
   );
 
-  const handleLogicNetworkLayoutChange = useCallback(
+  const persistLogicNetworkLayout = useCallback(
     async (layout: LogicNetworkLayout[]) => {
-      if (!currentEstimate || !estimateAdapter) return;
+      if (!currentEstimate || !estimateAdapter) {
+        throw new Error('No estimate available');
+      }
       scheduleSettingsHook.setLogicNetworkLayout(layout);
       const updatedAssumptions = mergeScheduleAssumptions(
         {
@@ -774,7 +776,7 @@ export default function EstimateWorkspacePage() {
         },
         currentEstimate.assumptions as Record<string, unknown>,
       );
-      await saveCurrentEstimateWithLineItems({
+      const result = await saveCurrentEstimateWithLineItems({
         estimateId: currentEstimate.id,
         projectId: currentEstimate.projectId,
         estimateType: estimateAdapter.estimateType,
@@ -784,6 +786,9 @@ export default function EstimateWorkspacePage() {
         existingAssumptions: updatedAssumptions,
         createdBy: user?.id ?? null,
       });
+      if (result.error || !result.data) {
+        throw new Error(result.error ?? 'Failed to save logic layout');
+      }
     },
     [
       currentEstimate,
@@ -793,6 +798,24 @@ export default function EstimateWorkspacePage() {
       scheduleSettingsHook,
       user?.id,
     ],
+  );
+
+  const handleLogicNetworkLayoutChange = useCallback(
+    async (layout: LogicNetworkLayout[]) => {
+      try {
+        await persistLogicNetworkLayout(layout);
+      } catch (error) {
+        console.error('[Logic Network] Layout auto-save failed', error);
+      }
+    },
+    [persistLogicNetworkLayout],
+  );
+
+  const handleSaveLogicNetworkLayout = useCallback(
+    async (layout: LogicNetworkLayout[]) => {
+      await persistLogicNetworkLayout(layout);
+    },
+    [persistLogicNetworkLayout],
   );
 
   const handleApplyResourceLeveling = useCallback(async () => {
@@ -1232,6 +1255,7 @@ export default function EstimateWorkspacePage() {
                 layout={scheduleSettingsHook.logicNetworkLayout}
                 onLinksChange={handleLogicLinksChange}
                 onLayoutChange={handleLogicNetworkLayoutChange}
+                onSaveLayout={handleSaveLogicNetworkLayout}
               />
             </div>
           ) : (

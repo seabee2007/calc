@@ -1,0 +1,7 @@
+export const LOGIC_NETWORK_LAYOUT_SAVE_SUCCESS_MESSAGE = 'Logic layout saved';
+
+export const LOGIC_NETWORK_LAYOUT_SAVE_ERROR_MESSAGE = 'Could not save logic layout';
+
+export const LOGIC_NETWORK_LAYOUT_SAVE_TOAST_DURATION_MS = 2500;
+
+export const LOGIC_NETWORK_LAYOUT_SAVE_TOAST_Z_INDEX_CLASS = 'z-[10000]';

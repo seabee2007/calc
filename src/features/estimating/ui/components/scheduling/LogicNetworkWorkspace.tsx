@@ -15,7 +15,16 @@ import {
   requestBrowserFullscreen,
   setLogicNetworkFullscreenTipDismissed,
 } from '../../../scheduling/logicNetworkFullscreen';
+import {
+  LOGIC_NETWORK_LAYOUT_SAVE_ERROR_MESSAGE,
+  LOGIC_NETWORK_LAYOUT_SAVE_SUCCESS_MESSAGE,
+  LOGIC_NETWORK_LAYOUT_SAVE_TOAST_DURATION_MS,
+  LOGIC_NETWORK_LAYOUT_SAVE_TOAST_Z_INDEX_CLASS,
+} from '../../../scheduling/logicNetworkSaveLayout';
 import { INITIAL_LOGIC_NETWORK_VIEWPORT } from '../../../scheduling/logicNetworkViewportPolicy';
+import EstimateWorkspaceToast, {
+  type EstimateWorkspaceToastVariant,
+} from '../EstimateWorkspaceToast';
 import EstimateLogicNetworkCanvas, {
   type LogicNetworkCanvasHandle,
 } from './EstimateLogicNetworkCanvas';
@@ -34,6 +43,7 @@ interface Props {
   layout: LogicNetworkLayout[];
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
+  onSaveLayout: (layout: LogicNetworkLayout[]) => Promise<void>;
   saving?: boolean;
   canvasKey: string;
 }
@@ -41,12 +51,18 @@ interface Props {
 export default function LogicNetworkWorkspace({
   canvasKey,
   activities,
+  onSaveLayout,
   ...canvasProps
 }: Props) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !isLogicNetworkFullscreenTipDismissed(),
   );
+  const [isSavingLayout, setIsSavingLayout] = useState(false);
+  const [layoutSaveToast, setLayoutSaveToast] = useState<{
+    message: string;
+    variant: EstimateWorkspaceToastVariant;
+  } | null>(null);
   const [viewport, setViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
   const shellRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<LogicNetworkCanvasHandle>(null);
@@ -119,7 +135,46 @@ export default function LogicNetworkWorkspace({
     };
   }, [isFullscreen]);
 
+  const handleSaveLayout = useCallback(async () => {
+    if (isSavingLayout) return;
+
+    setIsSavingLayout(true);
+    setLayoutSaveToast(null);
+
+    try {
+      const layout = canvasRef.current?.collectCurrentLayout() ?? [];
+      await onSaveLayout(layout);
+      setLayoutSaveToast({
+        message: LOGIC_NETWORK_LAYOUT_SAVE_SUCCESS_MESSAGE,
+        variant: 'success',
+      });
+    } catch (error) {
+      console.error('[Logic Network] Save layout failed', error);
+      setLayoutSaveToast({
+        message: LOGIC_NETWORK_LAYOUT_SAVE_ERROR_MESSAGE,
+        variant: 'error',
+      });
+    } finally {
+      setIsSavingLayout(false);
+    }
+  }, [isSavingLayout, onSaveLayout]);
+
   const toolbarButtonClass = isFullscreen ? FULLSCREEN_TOOLBAR_BUTTON_CLASS : TOOLBAR_BUTTON_CLASS;
+  const disabledToolbarButtonClass = `${toolbarButtonClass} cursor-not-allowed opacity-60`;
+
+  const layoutSaveToastPortal =
+    layoutSaveToast && typeof document !== 'undefined'
+      ? createPortal(
+          <EstimateWorkspaceToast
+            message={layoutSaveToast.message}
+            variant={layoutSaveToast.variant}
+            zIndexClass={LOGIC_NETWORK_LAYOUT_SAVE_TOAST_Z_INDEX_CLASS}
+            durationMs={LOGIC_NETWORK_LAYOUT_SAVE_TOAST_DURATION_MS}
+            onDismiss={() => setLayoutSaveToast(null)}
+          />,
+          document.body,
+        )
+      : null;
 
   const shell = (
     <div
@@ -170,10 +225,11 @@ export default function LogicNetworkWorkspace({
           </button>
           <button
             type="button"
-            className={toolbarButtonClass}
-            onClick={() => canvasRef.current?.saveLayout()}
+            className={isSavingLayout ? disabledToolbarButtonClass : toolbarButtonClass}
+            disabled={isSavingLayout}
+            onClick={() => void handleSaveLayout()}
           >
-            Save layout
+            {isSavingLayout ? 'Saving...' : 'Save layout'}
           </button>
           {isFullscreen ? (
             <button type="button" className={toolbarButtonClass} onClick={() => void exitFullscreen()}>
@@ -211,8 +267,18 @@ export default function LogicNetworkWorkspace({
   );
 
   if (isFullscreen && typeof document !== 'undefined') {
-    return createPortal(shell, document.body);
+    return (
+      <>
+        {createPortal(shell, document.body)}
+        {layoutSaveToastPortal}
+      </>
+    );
   }
 
-  return shell;
+  return (
+    <>
+      {shell}
+      {layoutSaveToastPortal}
+    </>
+  );
 }

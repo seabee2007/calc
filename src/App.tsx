@@ -18,6 +18,7 @@ import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
 import RouteFallback from './routes/RouteFallback';
+import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
 import {
   LazyRoute,
   LazyConcreteCalculatorPage,
@@ -521,6 +522,8 @@ function App() {
               <LazyConcreteChat />
             </Suspense>
           )}
+
+        <FullscreenExperienceTipHost />
       </Suspense>
     </AppErrorBoundary>
   );
