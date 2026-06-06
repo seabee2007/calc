@@ -7,6 +7,8 @@ export const ESTIMATE_WORKSPACE_TAB_IDS = [
   'line-items',
   'schedule-preview',
   'gantt-preview',
+  'logic-network',
+  'level-iii-gantt',
 ] as const satisfies readonly EstimateWorkspaceTabId[];
 
 const ESTIMATE_WORKSPACE_TAB_ID_SET = new Set<string>(ESTIMATE_WORKSPACE_TAB_IDS);
@@ -21,6 +23,8 @@ export function parseEstimateWorkspaceTabParam(
 ): EstimateWorkspaceTabId | null {
   if (!tabSegment) return 'overview';
   if (tabSegment === 'totals') return 'overview';
+  // Redirect old gantt-preview links to level-iii-gantt
+  if (tabSegment === 'gantt-preview') return 'level-iii-gantt';
   if (!isEstimateWorkspaceTabId(tabSegment)) return null;
   return tabSegment;
 }

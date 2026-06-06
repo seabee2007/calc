@@ -27,7 +27,8 @@ describe('estimate workspace overview tab', () => {
       'settings',
       'line-items',
       'schedule-preview',
-      'gantt-preview',
+      'logic-network',
+      'level-iii-gantt',
     ]);
     expect(ESTIMATE_WORKSPACE_TAB_IDS).not.toContain('totals');
   });

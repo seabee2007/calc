@@ -3,6 +3,8 @@ import 'jspdf-autotable';
 import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import { sanitizeEstimateExportFileStem } from '../importExport/estimateExportBuilder';
 import type { BuildGanttScheduleResult, GanttActivity } from '../schedule/buildGanttSchedule';
+import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import type { CpmResult, ResourceHistogramDay, ScheduleSettings } from '../scheduling/cpmTypes';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -19,10 +21,16 @@ const CHART_META_WIDTH = 48;
 const CHART_BAR_AREA_WIDTH = 145;
 
 export interface BuildGanttPdfDocumentParams {
-  schedule: BuildGanttScheduleResult;
+  schedule: BuildGanttScheduleResult | null;
   projectName: string;
   estimateType: string;
   exportedAt?: Date;
+  /** Optional CPM data for Level III Gantt export. */
+  cpmResult?: CpmResult | null;
+  activities?: ScheduleActivity[];
+  scheduleSettings?: ScheduleSettings;
+  leveledOffsets?: Record<string, number>;
+  resourceHistogram?: ResourceHistogramDay[];
 }
 
 function formatExportDate(date: Date): string {
@@ -66,8 +74,17 @@ function drawHeader(
     `Project: ${params.projectName}`,
     `Estimate type: ${params.estimateType}`,
     `Export date: ${formatExportDate(exportedAt)}`,
-    `Activities: ${params.schedule.activities.length}`,
-    `Planned duration: ${params.schedule.plannedDurationDays} days`,
+    ...(params.schedule
+      ? [
+          `Activities: ${params.schedule.activities.length}`,
+          `Planned duration: ${params.schedule.plannedDurationDays} days`,
+        ]
+      : params.cpmResult
+        ? [
+            `Activities: ${params.cpmResult.activities.length}`,
+            `Project duration: ${params.cpmResult.projectDurationDays} days`,
+          ]
+        : []),
   ];
   if (subtitle) lines.push(subtitle);
 
@@ -216,10 +233,67 @@ function drawLogicTable(doc: jsPDF, params: BuildGanttPdfDocumentParams): void {
   });
 }
 
+function drawCpmTable(doc: jsPDF, params: BuildGanttPdfDocumentParams): void {
+  if (!params.cpmResult || !params.activities) return;
+  const cpmByCode = new Map(params.cpmResult.activities.map((a) => [a.activityCode, a]));
+  const actByCode = new Map(params.activities.map((a) => [a.activityCode, a]));
+  const sorted = [...params.cpmResult.activities].sort(
+    (left, right) => left.earlyStart - right.earlyStart,
+  );
+
+  doc.addPage();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CPM Schedule Table', MARGIN, 20);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Project: ${params.projectName}`, MARGIN, 27);
+
+  doc.autoTable({
+    startY: 32,
+    head: [['Code', 'Description', 'Dur', 'ES', 'EF', 'LS', 'LF', 'TF', 'FF', 'Critical']],
+    body: sorted.map((cpm) => {
+      const act = actByCode.get(cpm.activityCode);
+      return [
+        cpm.activityCode,
+        act?.activityDescription ?? '',
+        String(act?.durationDays ?? ''),
+        String(cpm.earlyStart),
+        String(cpm.earlyFinish),
+        String(cpm.lateStart),
+        String(cpm.lateFinish),
+        String(cpm.totalFloat),
+        String(cpm.freeFloat),
+        cpm.isCritical ? 'Yes' : '',
+      ];
+    }),
+    margin: { left: MARGIN, right: MARGIN },
+    styles: { fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [70, 70, 70], textColor: 255 },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+    didParseCell: (data: { section: string; column: { index: number }; cell: { styles: { fillColor: number[] | string; textColor: number | number[] } } }) => {
+      if (data.section === 'body' && data.column.index === 9) {
+        const val = sorted[data.cell.styles.textColor as unknown as number];
+        if (val?.isCritical) {
+          data.cell.styles.fillColor = [255, 220, 220];
+          data.cell.styles.textColor = [200, 0, 0];
+        }
+      }
+    },
+  });
+  void pageWidth;
+}
+
 export function buildGanttPdfDocument(params: BuildGanttPdfDocumentParams): jsPDF {
   const doc = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'landscape' });
-  drawGanttChart(doc, params);
-  drawLogicTable(doc, params);
+  if (params.schedule) {
+    drawGanttChart(doc, params as BuildGanttPdfDocumentParams & { schedule: BuildGanttScheduleResult });
+    drawLogicTable(doc, params as BuildGanttPdfDocumentParams & { schedule: BuildGanttScheduleResult });
+  }
+  if (params.cpmResult) {
+    drawCpmTable(doc, params);
+  }
   addFooter(doc);
   return doc;
 }

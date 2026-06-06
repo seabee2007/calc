@@ -4,6 +4,8 @@ import {
   sanitizeEstimateExportFileStem,
 } from '../importExport/estimateExportBuilder';
 import type { BuildGanttScheduleResult, GanttActivity } from '../schedule/buildGanttSchedule';
+import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import type { CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
 
 export const GANTT_SCHEDULE_SHEET_NAME = 'Gantt Schedule';
 export const GANTT_LOGIC_NETWORK_SHEET_NAME = 'Logic Network';
@@ -113,63 +115,144 @@ function buildDivisionSummaryRows(activities: GanttActivity[]): (string | number
 }
 
 export interface BuildGanttWorkbookParams {
-  schedule: BuildGanttScheduleResult;
+  schedule: BuildGanttScheduleResult | null;
   projectName: string;
   estimateType: string;
   exportedAt?: Date;
+  /** Optional CPM data for Level III Gantt export. */
+  cpmResult?: CpmResult | null;
+  activities?: ScheduleActivity[];
+  leveledOffsets?: Record<string, number>;
+  resourceHistogram?: ResourceHistogramDay[];
 }
 
 export function buildGanttWorkbook(params: BuildGanttWorkbookParams): XLSX.WorkBook {
   const exportedAt = params.exportedAt ?? new Date();
   const exportedAtIso = exportedAt.toISOString();
+  const workbook = XLSX.utils.book_new();
 
-  const scheduleRows = [
-    [...GANTT_SCHEDULE_HEADERS],
-    ...params.schedule.activities.map(activityToScheduleRow),
-  ];
+  if (params.schedule) {
+    const scheduleRows = [
+      [...GANTT_SCHEDULE_HEADERS],
+      ...params.schedule.activities.map(activityToScheduleRow),
+    ];
+    const logicRows = [
+      [...LOGIC_NETWORK_HEADERS],
+      ...params.schedule.logicLinks.map((link) => [
+        link.predecessorActivityCode,
+        link.predecessorTitle,
+        link.relationshipType,
+        link.lagDays,
+        link.successorActivityCode,
+        link.successorTitle,
+      ]),
+    ];
+    const divisionRows = [
+      [...DIVISION_SUMMARY_HEADERS],
+      ...buildDivisionSummaryRows(params.schedule.activities),
+    ];
 
-  const logicRows = [
-    [...LOGIC_NETWORK_HEADERS],
-    ...params.schedule.logicLinks.map((link) => [
-      link.predecessorActivityCode,
-      link.predecessorTitle,
-      link.relationshipType,
-      link.lagDays,
-      link.successorActivityCode,
-      link.successorTitle,
-    ]),
-  ];
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet(scheduleRows),
+      GANTT_SCHEDULE_SHEET_NAME,
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet(logicRows),
+      GANTT_LOGIC_NETWORK_SHEET_NAME,
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet(divisionRows),
+      GANTT_DIVISION_SUMMARY_SHEET_NAME,
+    );
+  }
 
-  const divisionRows = [
-    [...DIVISION_SUMMARY_HEADERS],
-    ...buildDivisionSummaryRows(params.schedule.activities),
-  ];
+  if (params.cpmResult && params.activities) {
+    const cpmByCode = new Map(params.cpmResult.activities.map((a) => [a.activityCode, a]));
+    const actByCode = new Map(params.activities.map((a) => [a.activityCode, a]));
+    const sorted = [...params.cpmResult.activities].sort(
+      (left, right) => left.earlyStart - right.earlyStart,
+    );
+
+    const cpmRows = [
+      ['code', 'description', 'duration', 'es', 'ef', 'ls', 'lf', 'tf', 'ff', 'critical'],
+      ...sorted.map((cpm) => {
+        const act = actByCode.get(cpm.activityCode);
+        return [
+          cpm.activityCode,
+          act?.activityDescription ?? '',
+          act?.durationDays ?? '',
+          cpm.earlyStart,
+          cpm.earlyFinish,
+          cpm.lateStart,
+          cpm.lateFinish,
+          cpm.totalFloat,
+          cpm.freeFloat,
+          cpm.isCritical ? 'Yes' : 'No',
+        ];
+      }),
+    ];
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(cpmRows), 'CPM Table');
+
+    if (params.resourceHistogram && params.resourceHistogram.length > 0) {
+      const histogramRows = [
+        ['day_offset', 'date', 'required_crew', 'available_crew', 'over_allocated'],
+        ...params.resourceHistogram.map((d) => [
+          d.dayOffset,
+          d.date,
+          d.requiredCrew,
+          d.availableCrew,
+          d.isOverallocated ? 'Yes' : 'No',
+        ]),
+      ];
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.aoa_to_sheet(histogramRows),
+        'Resource Histogram',
+      );
+    }
+
+    if (params.leveledOffsets && Object.keys(params.leveledOffsets).length > 0) {
+      const levelingRows = [
+        ['activity_code', 'days_moved', 'original_start', 'leveled_start'],
+        ...Object.entries(params.leveledOffsets).map(([code, offset]) => {
+          const cpm = cpmByCode.get(code);
+          return [
+            code,
+            offset,
+            cpm ? cpm.earlyStart : '',
+            cpm ? cpm.earlyStart + offset : '',
+          ];
+        }),
+      ];
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.aoa_to_sheet(levelingRows),
+        'Resource Leveling Changes',
+      );
+    }
+  }
 
   const infoRows = [
     ['field', 'value'],
     ['project_name', params.projectName],
     ['estimate_type', params.estimateType],
     ['exported_at', exportedAtIso],
-    ['activity_count', params.schedule.activities.length],
-    ['planned_duration_days', params.schedule.plannedDurationDays],
+    ...(params.schedule
+      ? [
+          ['activity_count', params.schedule.activities.length],
+          ['planned_duration_days', params.schedule.plannedDurationDays],
+        ]
+      : params.cpmResult
+        ? [
+            ['activity_count', params.cpmResult.activities.length],
+            ['project_duration_days', params.cpmResult.projectDurationDays],
+          ]
+        : []),
   ];
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.aoa_to_sheet(scheduleRows),
-    GANTT_SCHEDULE_SHEET_NAME,
-  );
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.aoa_to_sheet(logicRows),
-    GANTT_LOGIC_NETWORK_SHEET_NAME,
-  );
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.aoa_to_sheet(divisionRows),
-    GANTT_DIVISION_SUMMARY_SHEET_NAME,
-  );
   XLSX.utils.book_append_sheet(
     workbook,
     XLSX.utils.aoa_to_sheet(infoRows),
