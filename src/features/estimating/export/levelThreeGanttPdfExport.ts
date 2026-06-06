@@ -3,10 +3,24 @@ import jsPDF from 'jspdf';
 import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import { sanitizeEstimateExportFileStem } from '../importExport/estimateExportBuilder';
 
+export const LEVEL_THREE_GANTT_PDF_TITLE = 'Level III Gantt';
+
 export interface DownloadLevelThreeGanttPdfParams {
   chartElement: HTMLElement;
   projectName: string;
   fileName?: string;
+}
+
+export function createLevelThreeGanttPdf(): jsPDF {
+  return new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'legal',
+  });
+}
+
+export function isLandscapePdf(doc: jsPDF): boolean {
+  return doc.internal.pageSize.getWidth() > doc.internal.pageSize.getHeight();
 }
 
 export function buildLevelThreeGanttPdfFileName(projectName: string, date = new Date()): string {
@@ -33,31 +47,44 @@ export async function downloadLevelThreeGanttPdfFromElement(
   });
 
   const imgData = canvas.toDataURL('image/png');
-  const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation });
+  const doc = createLevelThreeGanttPdf();
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 10;
+  const headerHeight = 12;
   const usableWidth = pageWidth - margin * 2;
-  const usableHeight = pageHeight - margin * 2;
+  const usableHeight = pageHeight - margin * 2 - headerHeight;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(20, 20, 20);
+  doc.text(LEVEL_THREE_GANTT_PDF_TITLE, margin, margin + 4);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 60);
+  doc.text(`Project: ${params.projectName}`, margin, margin + 10);
 
   const imgWidth = usableWidth;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const imageTop = margin + headerHeight;
 
   let heightLeft = imgHeight;
-  let position = margin;
+  let position = imageTop;
 
   doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
   heightLeft -= usableHeight;
 
   while (heightLeft > 0) {
-    position = margin - (imgHeight - heightLeft);
+    position = imageTop - (imgHeight - heightLeft);
     doc.addPage();
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(LEVEL_THREE_GANTT_PDF_TITLE, margin, margin + 4);
     doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
     heightLeft -= usableHeight;
   }
 
   const fileName = params.fileName ?? buildLevelThreeGanttPdfFileName(params.projectName);
-  await savePDFWithPlatformSupport(doc, fileName, 'Level III Gantt');
+  await savePDFWithPlatformSupport(doc, fileName, LEVEL_THREE_GANTT_PDF_TITLE);
 }

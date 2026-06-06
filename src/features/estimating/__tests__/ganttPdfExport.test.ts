@@ -58,4 +58,14 @@ describe('ganttPdfExport', () => {
 
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
   });
+
+  it('buildGanttPdfDocument uses landscape orientation', () => {
+    const doc = buildGanttPdfDocument({
+      schedule: sampleSchedule,
+      projectName: 'Sample Project',
+      estimateType: 'detailed',
+    });
+
+    expect(doc.internal.pageSize.getWidth()).toBeGreaterThan(doc.internal.pageSize.getHeight());
+  });
 });

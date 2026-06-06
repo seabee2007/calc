@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import {
   ReactFlow,
@@ -16,6 +16,7 @@ import {
   type OnConnect,
   type NodeChange,
   type EdgeChange,
+  type Viewport,
 } from '@xyflow/react';
 import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import type {
@@ -28,6 +29,10 @@ import {
   buildAutoLayoutFromActivities,
   resolveLogicNetworkNodePosition,
 } from '../../../scheduling/logicNetworkLayout';
+import {
+  INITIAL_LOGIC_NETWORK_VIEWPORT,
+  shouldAutoFitOnInitialLoad,
+} from '../../../scheduling/logicNetworkViewportPolicy';
 import { CpmActivityNode, type CpmActivityNodeData } from './CpmActivityNode';
 import LogicLinkEditorPanel from './LogicLinkEditorPanel';
 import { calculateCpm } from '../../../scheduling/cpm/calculateCpm';
@@ -97,6 +102,8 @@ interface Props {
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
   saving?: boolean;
+  /** Changes only when project/estimate context changes — resets initial fit once. */
+  canvasKey: string;
 }
 
 function hasCycleWithNewLink(
@@ -136,33 +143,78 @@ function CanvasInner({
   onLinksChange,
   onLayoutChange,
   saving = false,
+  canvasKey,
 }: Props) {
   const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<CpmActivityNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [viewport, setViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
   const [editingLink, setEditingLink] = useState<{
     link: CpmLogicLink;
     edgeId: string;
   } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const layoutDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fitViewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasFitInitialViewRef = useRef(false);
+  const previousCanvasKeyRef = useRef<string | null>(null);
+  const autoLayoutSnapshotRef = useRef<LogicNetworkLayout[] | null>(null);
+  const persistedAutoLayoutRef = useRef(false);
 
-  // Rebuild nodes whenever activities, layout, or CPM changes
   useEffect(() => {
-    setNodes(buildLogicNetworkNodes(activities, cpmResult, layout));
-    if (fitViewTimerRef.current) clearTimeout(fitViewTimerRef.current);
-    fitViewTimerRef.current = setTimeout(() => {
+    if (previousCanvasKeyRef.current === canvasKey) return;
+    previousCanvasKeyRef.current = canvasKey;
+    hasFitInitialViewRef.current = false;
+    autoLayoutSnapshotRef.current = null;
+    persistedAutoLayoutRef.current = false;
+    setViewport(INITIAL_LOGIC_NETWORK_VIEWPORT);
+  }, [canvasKey]);
+
+  const effectiveLayout = useMemo(() => {
+    if (layout.length > 0) {
+      autoLayoutSnapshotRef.current = null;
+      return layout;
+    }
+    if (activities.length === 0) return [];
+    if (!autoLayoutSnapshotRef.current) {
+      autoLayoutSnapshotRef.current = buildAutoLayoutFromActivities(activities, cpmResult);
+    }
+    return autoLayoutSnapshotRef.current;
+  }, [layout, activities, cpmResult]);
+
+  useEffect(() => {
+    if (layout.length > 0) {
+      persistedAutoLayoutRef.current = false;
+      return;
+    }
+    const generated = autoLayoutSnapshotRef.current;
+    if (!generated || generated.length === 0 || persistedAutoLayoutRef.current) return;
+    persistedAutoLayoutRef.current = true;
+    onLayoutChange(generated);
+  }, [layout, onLayoutChange]);
+
+  const mappedNodes = useMemo(
+    () => buildLogicNetworkNodes(activities, cpmResult, effectiveLayout),
+    [activities, cpmResult, effectiveLayout],
+  );
+
+  const mappedEdges = useMemo(() => logicLinks.map(linkToEdge), [logicLinks]);
+
+  useEffect(() => {
+    setNodes(mappedNodes);
+  }, [mappedNodes, setNodes]);
+
+  useEffect(() => {
+    setEdges(mappedEdges);
+  }, [mappedEdges, setEdges]);
+
+  useEffect(() => {
+    if (!shouldAutoFitOnInitialLoad(hasFitInitialViewRef.current, nodes.length)) return;
+    hasFitInitialViewRef.current = true;
+    const frame = requestAnimationFrame(() => {
       void fitView({ padding: 0.2, duration: 200 });
-    }, 100);
-    return () => {
-      if (fitViewTimerRef.current) clearTimeout(fitViewTimerRef.current);
-    };
-  }, [activities, cpmResult, layout, setNodes, fitView]);
-
-  useEffect(() => {
-    setEdges(logicLinks.map(linkToEdge));
-  }, [logicLinks, setEdges]);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [nodes.length, fitView]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -203,11 +255,12 @@ function CanvasInner({
 
   const handleAutoLayout = useCallback(() => {
     const autoLayout = buildAutoLayoutFromActivities(activities, cpmResult);
+    autoLayoutSnapshotRef.current = autoLayout;
     setNodes(buildLogicNetworkNodes(activities, cpmResult, autoLayout));
     onLayoutChange(autoLayout);
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       void fitView({ padding: 0.2, duration: 300 });
-    }, 50);
+    });
   }, [activities, cpmResult, onLayoutChange, setNodes, fitView]);
 
   const handleFitView = useCallback(() => {
@@ -375,6 +428,8 @@ function CanvasInner({
           nodes={nodes}
           edges={edges}
           nodeTypes={NODE_TYPES}
+          viewport={viewport}
+          onViewportChange={setViewport}
           onNodesChange={handleNodesChange}
           onEdgesChange={handleEdgesChange}
           onConnect={onConnect}
@@ -394,7 +449,7 @@ function CanvasInner({
 
 export default function EstimateLogicNetworkCanvas(props: Props) {
   return (
-    <ReactFlowProvider>
+    <ReactFlowProvider key={props.canvasKey}>
       <CanvasInner {...props} />
     </ReactFlowProvider>
   );

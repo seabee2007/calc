@@ -1225,6 +1225,7 @@ export default function EstimateWorkspacePage() {
                 </div>
               )}
               <EstimateLogicNetworkCanvas
+                canvasKey={resolvedProjectId ?? 'no-project'}
                 activities={scheduleActivitiesResult.activities}
                 logicLinks={scheduleSettingsHook.logicLinks}
                 cpmResult={cpmResult}

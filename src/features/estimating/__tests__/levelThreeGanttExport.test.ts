@@ -15,7 +15,12 @@ vi.mock('html2canvas', () => ({
 }));
 
 import { buildGanttWorkbook, LEVEL_THREE_GANTT_SHEET_NAME } from '../export/ganttExcelExport';
-import { downloadLevelThreeGanttPdfFromElement } from '../export/levelThreeGanttPdfExport';
+import {
+  createLevelThreeGanttPdf,
+  downloadLevelThreeGanttPdfFromElement,
+  isLandscapePdf,
+  LEVEL_THREE_GANTT_PDF_TITLE,
+} from '../export/levelThreeGanttPdfExport';
 import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import html2canvas from 'html2canvas';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
@@ -121,6 +126,12 @@ describe('Level III Gantt export', () => {
     expect(criticalCell?.s?.fill?.fgColor?.rgb).toBe('FFEF4444');
   });
 
+  it('Gantt PDF export creates landscape PDF and does not use portrait mode', () => {
+    const doc = createLevelThreeGanttPdf();
+    expect(isLandscapePdf(doc)).toBe(true);
+    expect(doc.internal.pageSize.getWidth()).toBeGreaterThan(doc.internal.pageSize.getHeight());
+  });
+
   it('PDF export captures chart DOM element via html2canvas', async () => {
     const element = {
       scrollWidth: 800,
@@ -133,6 +144,21 @@ describe('Level III Gantt export', () => {
     });
 
     expect(html2canvas).toHaveBeenCalledWith(element, expect.objectContaining({ scale: 2 }));
-    expect(savePDFWithPlatformSupport).toHaveBeenCalled();
+    expect(savePDFWithPlatformSupport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        internal: expect.objectContaining({
+          pageSize: expect.objectContaining({
+            getWidth: expect.any(Function),
+            getHeight: expect.any(Function),
+          }),
+        }),
+      }),
+      expect.any(String),
+      LEVEL_THREE_GANTT_PDF_TITLE,
+    );
+
+    const savedDoc = vi.mocked(savePDFWithPlatformSupport).mock.calls[0]?.[0];
+    expect(savedDoc).toBeDefined();
+    expect(isLandscapePdf(savedDoc!)).toBe(true);
   });
 });
