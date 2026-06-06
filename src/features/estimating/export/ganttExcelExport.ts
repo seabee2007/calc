@@ -6,11 +6,7 @@ import {
 import type { BuildGanttScheduleResult, GanttActivity } from '../schedule/buildGanttSchedule';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import type { CpmLogicLink, CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
-import {
-  buildTimelineDays,
-  getLevelThreeGanttRows,
-  resolveGanttCellKind,
-} from '../scheduling/levelThreeGanttUtils';
+export const LEVEL_THREE_GANTT_SHEET_NAME = 'Level III Gantt';
 
 export const GANTT_SCHEDULE_SHEET_NAME = 'Gantt Schedule';
 export const GANTT_LOGIC_NETWORK_SHEET_NAME = 'Logic Network';
@@ -133,76 +129,10 @@ export interface BuildGanttWorkbookParams {
   resourceHistogram?: ResourceHistogramDay[];
 }
 
-export const LEVEL_THREE_GANTT_SHEET_NAME = 'Level III Gantt Chart';
-
-const GANTT_CELL_FILL: Record<string, string> = {
-  critical: 'FFEF4444',
-  noncritical: 'FF06B6D4',
-  float: 'FFD1D5DB',
-};
-
-function buildLevelThreeVisualGanttSheet(
+export function isLevelThreeGanttExcelExport(
   params: BuildGanttWorkbookParams,
-): XLSX.WorkSheet | null {
-  if (!params.cpmResult || !params.activities?.length) return null;
-
-  const projectStartDate =
-    params.projectStartDate ?? new Date().toISOString().slice(0, 10);
-  const projectDuration = Math.max(params.cpmResult.projectDurationDays, 1);
-  const timelineDays = buildTimelineDays(projectStartDate, projectDuration);
-  const rows = getLevelThreeGanttRows(
-    params.activities,
-    params.cpmResult,
-    projectStartDate,
-    params.leveledOffsets ?? {},
-  );
-
-  const header = [
-    'Activity Code',
-    'Description',
-    'Estimated Float',
-    'Duration',
-    'Start',
-    'Finish',
-    ...timelineDays.map((d) => String(d.dayOfMonth)),
-  ];
-
-  const body = rows.map((row) => {
-    const dayCells = timelineDays.map((day) => {
-      const kind = resolveGanttCellKind(day.dayOffset, row);
-      if (kind === 'critical') return '■';
-      if (kind === 'noncritical') return '■';
-      if (kind === 'float') return '·';
-      return '';
-    });
-    return [
-      row.activity.activityCode,
-      row.activity.activityDescription,
-      row.cpm.totalFloat,
-      row.activity.durationDays,
-      row.plannedStart,
-      row.plannedFinish,
-      ...dayCells,
-    ];
-  });
-
-  const sheet = XLSX.utils.aoa_to_sheet([header, ...body]);
-
-  rows.forEach((row, rowIndex) => {
-    timelineDays.forEach((day, colIndex) => {
-      const kind = resolveGanttCellKind(day.dayOffset, row);
-      if (kind === 'empty') return;
-      const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: 6 + colIndex });
-      const cell = sheet[cellRef];
-      if (!cell) return;
-      cell.s = {
-        fill: { fgColor: { rgb: GANTT_CELL_FILL[kind] } },
-        alignment: { horizontal: 'center' },
-      };
-    });
-  });
-
-  return sheet;
+): boolean {
+  return Boolean(params.cpmResult && params.activities && params.activities.length > 0);
 }
 
 export function buildGanttWorkbook(params: BuildGanttWorkbookParams): XLSX.WorkBook {
@@ -248,96 +178,6 @@ export function buildGanttWorkbook(params: BuildGanttWorkbookParams): XLSX.WorkB
     );
   }
 
-  if (params.cpmResult && params.activities) {
-    const visualGanttSheet = buildLevelThreeVisualGanttSheet(params);
-    if (visualGanttSheet) {
-      XLSX.utils.book_append_sheet(workbook, visualGanttSheet, LEVEL_THREE_GANTT_SHEET_NAME);
-    }
-
-    const cpmByCode = new Map(params.cpmResult.activities.map((a) => [a.activityCode, a]));
-    const actByCode = new Map(params.activities.map((a) => [a.activityCode, a]));
-    const sorted = [...params.cpmResult.activities].sort(
-      (left, right) => left.earlyStart - right.earlyStart,
-    );
-
-    if (params.logicLinks && params.logicLinks.length > 0) {
-      const logicRows = [
-        [...LOGIC_NETWORK_HEADERS],
-        ...params.logicLinks.map((link) => [
-          link.predecessorActivityCode,
-          actByCode.get(link.predecessorActivityCode)?.activityDescription ?? '',
-          link.relationshipType,
-          link.lagDays,
-          link.successorActivityCode,
-          actByCode.get(link.successorActivityCode)?.activityDescription ?? '',
-        ]),
-      ];
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.aoa_to_sheet(logicRows),
-        GANTT_LOGIC_NETWORK_SHEET_NAME,
-      );
-    }
-
-    const cpmRows = [
-      ['code', 'description', 'duration', 'es', 'ef', 'ls', 'lf', 'tf', 'ff', 'critical'],
-      ...sorted.map((cpm) => {
-        const act = actByCode.get(cpm.activityCode);
-        return [
-          cpm.activityCode,
-          act?.activityDescription ?? '',
-          act?.durationDays ?? '',
-          cpm.earlyStart,
-          cpm.earlyFinish,
-          cpm.lateStart,
-          cpm.lateFinish,
-          cpm.totalFloat,
-          cpm.freeFloat,
-          cpm.isCritical ? 'Yes' : 'No',
-        ];
-      }),
-    ];
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(cpmRows), 'CPM Table');
-
-    if (params.resourceHistogram && params.resourceHistogram.length > 0) {
-      const histogramRows = [
-        ['day_offset', 'date', 'required_crew', 'available_crew', 'over_allocated'],
-        ...params.resourceHistogram.map((d) => [
-          d.dayOffset,
-          d.date,
-          d.requiredCrew,
-          d.availableCrew,
-          d.isOverallocated ? 'Yes' : 'No',
-        ]),
-      ];
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.aoa_to_sheet(histogramRows),
-        'Resource Histogram',
-      );
-    }
-
-    if (params.leveledOffsets && Object.keys(params.leveledOffsets).length > 0) {
-      const levelingRows = [
-        ['activity_code', 'days_moved', 'original_start', 'leveled_start'],
-        ...Object.entries(params.leveledOffsets).map(([code, offset]) => {
-          const cpm = cpmByCode.get(code);
-          return [
-            code,
-            offset,
-            cpm ? cpm.earlyStart : '',
-            cpm ? cpm.earlyStart + offset : '',
-          ];
-        }),
-      ];
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.aoa_to_sheet(levelingRows),
-        'Resource Leveling Changes',
-      );
-    }
-  }
-
   const infoRows = [
     ['field', 'value'],
     ['project_name', params.projectName],
@@ -373,7 +213,19 @@ export function buildGanttExportFileName(projectName: string, date = new Date())
   return `${stem}-gantt-${year}-${month}-${day}.xlsx`;
 }
 
-export function downloadGanttExcel(params: BuildGanttWorkbookParams & { fileName?: string }): void {
+export async function downloadGanttExcel(
+  params: BuildGanttWorkbookParams & { fileName?: string },
+): Promise<void> {
+  if (isLevelThreeGanttExcelExport(params)) {
+    const levelThreeExport = await import('./levelThreeGanttExcelExport');
+    await levelThreeExport.downloadLevelThreeGanttExcel({
+      ...params,
+      fileName:
+        params.fileName ?? levelThreeExport.buildLevelThreeGanttExcelFileName(params.projectName),
+    });
+    return;
+  }
+
   const workbook = buildGanttWorkbook(params);
   const fileName = params.fileName ?? buildGanttExportFileName(params.projectName);
   downloadWorkbook(workbook, fileName);

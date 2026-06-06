@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from 'react';
 import '@xyflow/react/dist/style.css';
 import {
   ReactFlow,
@@ -24,6 +33,7 @@ import type {
   CpmResult,
   LogicNetworkLayout,
 } from '../../../scheduling/cpmTypes';
+import { LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS } from '../../../scheduling/logicNetworkFullscreen';
 import {
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
   buildAutoLayoutFromActivities,
@@ -94,6 +104,12 @@ export function buildLogicNetworkNodes(
   });
 }
 
+export interface LogicNetworkCanvasHandle {
+  autoLayout: () => void;
+  fitView: () => void;
+  saveLayout: () => void;
+}
+
 interface Props {
   activities: ScheduleActivity[];
   logicLinks: CpmLogicLink[];
@@ -104,6 +120,11 @@ interface Props {
   saving?: boolean;
   /** Changes only when project/estimate context changes — resets initial fit once. */
   canvasKey: string;
+  fullscreen?: boolean;
+  chromeless?: boolean;
+  viewport?: Viewport;
+  onViewportChange?: (viewport: Viewport) => void;
+  hasFitInitialViewRef?: MutableRefObject<boolean>;
 }
 
 function hasCycleWithNewLink(
@@ -135,27 +156,38 @@ function hasCycleWithNewLink(
   return result.warnings.some((w) => w.includes('Circular'));
 }
 
-function CanvasInner({
-  activities,
-  logicLinks,
-  cpmResult,
-  layout,
-  onLinksChange,
-  onLayoutChange,
-  saving = false,
-  canvasKey,
-}: Props) {
+const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasInner(
+  {
+    activities,
+    logicLinks,
+    cpmResult,
+    layout,
+    onLinksChange,
+    onLayoutChange,
+    saving = false,
+    canvasKey,
+    fullscreen = false,
+    chromeless = false,
+    viewport: controlledViewport,
+    onViewportChange,
+    hasFitInitialViewRef: externalHasFitInitialViewRef,
+  },
+  ref,
+) {
   const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<CpmActivityNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const [viewport, setViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
+  const [internalViewport, setInternalViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
+  const viewport = controlledViewport ?? internalViewport;
+  const setViewport = onViewportChange ?? setInternalViewport;
   const [editingLink, setEditingLink] = useState<{
     link: CpmLogicLink;
     edgeId: string;
   } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const layoutDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasFitInitialViewRef = useRef(false);
+  const internalHasFitInitialViewRef = useRef(false);
+  const hasFitInitialViewRef = externalHasFitInitialViewRef ?? internalHasFitInitialViewRef;
   const previousCanvasKeyRef = useRef<string | null>(null);
   const autoLayoutSnapshotRef = useRef<LogicNetworkLayout[] | null>(null);
   const persistedAutoLayoutRef = useRef(false);
@@ -267,6 +299,32 @@ function CanvasInner({
     void fitView({ padding: 0.2, duration: 300 });
   }, [fitView]);
 
+  const handleSaveLayout = useCallback(() => {
+    if (layoutDebounceRef.current) {
+      clearTimeout(layoutDebounceRef.current);
+      layoutDebounceRef.current = null;
+    }
+    setNodes((currentNodes) => {
+      const newLayout: LogicNetworkLayout[] = currentNodes.map((n) => ({
+        activityCode: n.data.activity.activityCode,
+        x: n.position.x,
+        y: n.position.y,
+      }));
+      onLayoutChange(newLayout);
+      return currentNodes;
+    });
+  }, [onLayoutChange, setNodes]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      autoLayout: handleAutoLayout,
+      fitView: handleFitView,
+      saveLayout: handleSaveLayout,
+    }),
+    [handleAutoLayout, handleFitView, handleSaveLayout],
+  );
+
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
       const { source, target } = connection;
@@ -358,43 +416,26 @@ function CanvasInner({
 
   const hasWarnings = activities.some((a) => a.durationDays < 1 || a.crewSize < 1);
 
+  const canvasWrapperClass = fullscreen
+    ? `relative overflow-hidden bg-slate-900 ${LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS}`
+    : `relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`;
+
   if (activities.length === 0) {
     return (
       <div
-        className={`flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`}
+        className={`flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 ${
+          fullscreen
+            ? LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS
+            : `rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`
+        }`}
       >
         No schedule-enabled activities yet.
       </div>
     );
   }
 
-  return (
-    <div className="flex w-full flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {activities.length} activities · drag blocks to reposition · connect handles to wire logic
-        </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            onClick={handleAutoLayout}
-          >
-            Auto layout
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            onClick={handleFitView}
-          >
-            Fit view
-          </button>
-        </div>
-      </div>
-
-      <div
-        className={`relative w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`}
-      >
+  const canvasBody = (
+    <div className={canvasWrapperClass} data-logic-network-canvas-wrapper>
         {hasWarnings && (
           <div className="absolute left-0 right-0 top-0 z-10 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
             Some activities are missing crew size or duration. Check line items for completeness.
@@ -442,15 +483,49 @@ function CanvasInner({
           <Controls />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
         </ReactFlow>
-      </div>
     </div>
   );
-}
 
-export default function EstimateLogicNetworkCanvas(props: Props) {
+  if (chromeless) {
+    return canvasBody;
+  }
+
   return (
-    <ReactFlowProvider key={props.canvasKey}>
-      <CanvasInner {...props} />
-    </ReactFlowProvider>
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {activities.length} activities · drag blocks to reposition · connect handles to wire logic
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            onClick={handleAutoLayout}
+          >
+            Auto layout
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            onClick={handleFitView}
+          >
+            Fit view
+          </button>
+        </div>
+      </div>
+      {canvasBody}
+    </div>
   );
-}
+});
+
+const EstimateLogicNetworkCanvas = forwardRef<LogicNetworkCanvasHandle, Props>(
+  function EstimateLogicNetworkCanvas(props, ref) {
+    return (
+      <ReactFlowProvider key={props.canvasKey}>
+        <CanvasInner {...props} ref={ref} />
+      </ReactFlowProvider>
+    );
+  },
+);
+
+export default EstimateLogicNetworkCanvas;

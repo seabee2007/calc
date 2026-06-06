@@ -55,6 +55,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
+          if (id.includes('exceljs') || id.includes('file-saver')) return 'vendor-exceljs';
           if (id.includes('jspdf')) return 'vendor-pdf';
           if (id.includes('html2canvas')) return 'vendor-html2canvas';
           if (id.includes('framer-motion')) return 'vendor-motion';

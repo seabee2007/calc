@@ -96,7 +96,7 @@ import { calculateCpm } from '../scheduling/cpm/calculateCpm';
 import type { CpmLogicLink, LogicNetworkLayout } from '../scheduling/cpmTypes';
 import { mergeScheduleAssumptions } from '../scheduling/scheduleAssumptions';
 import { useScheduleSettings } from './hooks/useScheduleSettings';
-import EstimateLogicNetworkCanvas from './components/scheduling/EstimateLogicNetworkCanvas';
+import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
 import LevelThreeGantt from './components/scheduling/LevelThreeGantt';
 import ResourceHistogram from './components/scheduling/ResourceHistogram';
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
@@ -874,7 +874,7 @@ export default function EstimateWorkspacePage() {
           });
           setSaveToastMessage('Gantt PDF exported');
         } else {
-          downloadGanttExcel(exportParams as Parameters<typeof downloadGanttExcel>[0]);
+          await downloadGanttExcel(exportParams as Parameters<typeof downloadGanttExcel>[0]);
           setSaveToastMessage('Gantt Excel exported');
         }
       } catch {
@@ -926,7 +926,7 @@ export default function EstimateWorkspacePage() {
           return;
         }
 
-        downloadGanttExcel(exportParams);
+        await downloadGanttExcel(exportParams);
         setSaveToastMessage('Gantt Excel exported');
       } catch {
         setSaveToastMessage('Could not export Gantt');
@@ -1224,7 +1224,7 @@ export default function EstimateWorkspacePage() {
                   ))}
                 </div>
               )}
-              <EstimateLogicNetworkCanvas
+              <LogicNetworkWorkspace
                 canvasKey={resolvedProjectId ?? 'no-project'}
                 activities={scheduleActivitiesResult.activities}
                 logicLinks={scheduleSettingsHook.logicLinks}

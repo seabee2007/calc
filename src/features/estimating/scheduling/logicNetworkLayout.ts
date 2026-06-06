@@ -1,7 +1,7 @@
 import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
 import type { CpmActivityResult, CpmResult, LogicNetworkLayout } from './cpmTypes';
 
-export const LOGIC_NETWORK_CANVAS_HEIGHT_CLASS = 'h-[calc(100vh-260px)] min-h-[640px]';
+export const LOGIC_NETWORK_CANVAS_HEIGHT_CLASS = 'h-[calc(100vh-300px)] min-h-[640px] w-full';
 
 export const LOGIC_NETWORK_AUTO_LAYOUT_X_SPACING = 160;
 export const LOGIC_NETWORK_AUTO_LAYOUT_Y_GAP = 120;

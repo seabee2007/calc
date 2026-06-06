@@ -28,7 +28,8 @@ function makeActivity(code: string): ScheduleActivity {
 describe('logicNetworkLayout', () => {
   it('canvas wrapper class includes explicit min height', () => {
     expect(LOGIC_NETWORK_CANVAS_HEIGHT_CLASS).toContain('min-h-[640px]');
-    expect(LOGIC_NETWORK_CANVAS_HEIGHT_CLASS).toContain('h-[calc(100vh-260px)]');
+    expect(LOGIC_NETWORK_CANVAS_HEIGHT_CLASS).toContain('h-[calc(100vh-300px)]');
+    expect(LOGIC_NETWORK_CANVAS_HEIGHT_CLASS).toContain('w-full');
   });
 
   it('auto-layout uses CPM earlyStart when no saved layout', () => {

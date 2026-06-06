@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import * as XLSX from 'xlsx';
+import type ExcelJS from 'exceljs';
 
 vi.mock('../../../utils/pdf', () => ({
   savePDFWithPlatformSupport: vi.fn(async () => true),
@@ -14,17 +14,33 @@ vi.mock('html2canvas', () => ({
   })),
 }));
 
-import { buildGanttWorkbook, LEVEL_THREE_GANTT_SHEET_NAME } from '../export/ganttExcelExport';
+vi.mock('file-saver', () => ({
+  saveAs: vi.fn(),
+}));
+
+import {
+  CPM_TABLE_SHEET_NAME,
+  LEVEL_THREE_EXCEL_COLORS,
+  LEVEL_THREE_EXCEL_DAY_ROW,
+  LEVEL_THREE_EXCEL_MONTH_ROW,
+  LEVEL_THREE_GANTT_SHEET_NAME,
+  RESOURCE_HISTOGRAM_SHEET_NAME,
+  barColumnRangeForRow,
+  buildLevelThreeGanttExcelFileName,
+  buildLevelThreeGanttExcelWorkbook,
+} from '../export/levelThreeGanttExcelExport';
 import {
   createLevelThreeGanttPdf,
   downloadLevelThreeGanttPdfFromElement,
   isLandscapePdf,
   LEVEL_THREE_GANTT_PDF_TITLE,
 } from '../export/levelThreeGanttPdfExport';
+import { GANTT_EXPORT_INFO_SHEET_NAME, GANTT_LOGIC_NETWORK_SHEET_NAME } from '../export/ganttExcelExport';
 import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import html2canvas from 'html2canvas';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import type { CpmResult } from '../scheduling/cpmTypes';
+import type { CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
+import { getLevelThreeGanttRows } from '../scheduling/levelThreeGanttUtils';
 
 function makeActivity(code: string): ScheduleActivity {
   return {
@@ -66,18 +82,38 @@ const cpmResult: CpmResult = {
       isCritical: false,
     },
   ],
-  projectDurationDays: 4,
+  projectDurationDays: 5,
   criticalPathActivityCodes: ['A'],
   warnings: [],
 };
+
+const resourceHistogram: ResourceHistogramDay[] = [
+  {
+    dayOffset: 0,
+    date: '2026-06-06',
+    requiredCrew: 3,
+    availableCrew: 2,
+    isOverallocated: true,
+  },
+];
+
+function fillArgb(cell: ExcelJS.Cell): string | undefined {
+  const fill = cell.fill as ExcelJS.FillPattern | undefined;
+  return fill?.fgColor?.argb;
+}
+
+function borderStyle(cell: ExcelJS.Cell, side: keyof ExcelJS.Borders): string | undefined {
+  const border = cell.border?.[side];
+  return border && 'style' in border ? border.style : undefined;
+}
 
 describe('Level III Gantt export', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('Excel export has Level III Gantt Chart sheet with day columns', () => {
-    const workbook = buildGanttWorkbook({
+  async function buildSampleWorkbook() {
+    return buildLevelThreeGanttExcelWorkbook({
       schedule: null,
       projectName: 'Test Project',
       estimateType: 'detailed',
@@ -92,38 +128,89 @@ describe('Level III Gantt export', () => {
           lagDays: 0,
         },
       ],
+      resourceHistogram,
     });
+  }
 
-    expect(workbook.SheetNames).toContain(LEVEL_THREE_GANTT_SHEET_NAME);
-    const sheet = workbook.Sheets[LEVEL_THREE_GANTT_SHEET_NAME];
-    const rows = XLSX.utils.sheet_to_json<(string | number)[]>(sheet, { header: 1 });
-    const header = rows[0] as (string | number)[];
-    expect(header.slice(0, 6)).toEqual([
-      'Activity Code',
-      'Description',
-      'Estimated Float',
-      'Duration',
-      'Start',
-      'Finish',
-    ]);
-    expect(header.length).toBeGreaterThan(6);
-    expect(String(header[6])).toBe('6');
-    expect(String(header[7])).toBe('7');
+  it('Excel export creates Level III Gantt sheet first', async () => {
+    const workbook = await buildSampleWorkbook();
+    expect(workbook.worksheets[0]?.name).toBe(LEVEL_THREE_GANTT_SHEET_NAME);
+    expect(buildLevelThreeGanttExcelFileName('Test Project', new Date('2026-06-06T12:00:00.000Z'))).toBe(
+      'test-project-level-iii-gantt-2026-06-06.xlsx',
+    );
   });
 
-  it('Excel export marks critical path cells with fill style', () => {
-    const workbook = buildGanttWorkbook({
-      schedule: null,
-      projectName: 'Test Project',
-      estimateType: 'detailed',
+  it('Excel export hides gridlines and freezes panes', async () => {
+    const workbook = await buildSampleWorkbook();
+    const sheet = workbook.getWorksheet(LEVEL_THREE_GANTT_SHEET_NAME)!;
+    expect(sheet.views?.[0]?.showGridLines).toBe(false);
+    expect(sheet.views?.[0]?.state).toBe('frozen');
+    expect(sheet.views?.[0]?.xSplit).toBe(3);
+    expect(sheet.views?.[0]?.ySplit).toBe(3);
+  });
+
+  it('Excel export has month row and day row with CODE/DESCRIPTION/FLOAT only', async () => {
+    const workbook = await buildSampleWorkbook();
+    const sheet = workbook.getWorksheet(LEVEL_THREE_GANTT_SHEET_NAME)!;
+
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_MONTH_ROW, 4).value).toBe('JUN');
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 1).value).toBe('CODE');
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 2).value).toBe('DESCRIPTION');
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 3).value).toBe('FLOAT');
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 4).value).toBe(6);
+    expect(sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, 5).value).toBe(7);
+
+    const dayHeaderValues = Array.from({ length: 6 }, (_, index) =>
+      sheet.getCell(LEVEL_THREE_EXCEL_DAY_ROW, index + 1).value,
+    );
+    expect(dayHeaderValues).not.toContain('DUR');
+    expect(dayHeaderValues).not.toContain('START');
+    expect(dayHeaderValues).not.toContain('FINISH');
+    expect(dayHeaderValues).not.toContain('Duration');
+  });
+
+  it('Excel export styles critical, noncritical, and float cells', async () => {
+    const workbook = await buildSampleWorkbook();
+    const sheet = workbook.getWorksheet(LEVEL_THREE_GANTT_SHEET_NAME)!;
+
+    const criticalCell = sheet.getCell(4, 4);
+    const noncriticalCell = sheet.getCell(5, 6);
+    const floatCell = sheet.getCell(5, 8);
+
+    expect(fillArgb(criticalCell)).toBe(LEVEL_THREE_EXCEL_COLORS.critical);
+    expect(fillArgb(noncriticalCell)).toBe(LEVEL_THREE_EXCEL_COLORS.noncritical);
+    expect(fillArgb(floatCell)).toBe(LEVEL_THREE_EXCEL_COLORS.floatFill);
+    expect(borderStyle(floatCell, 'left')).toBe('dashed');
+  });
+
+  it('Excel export includes Resource Histogram, CPM Table, Logic Network, and Export Info sheets', async () => {
+    const workbook = await buildSampleWorkbook();
+    const names = workbook.worksheets.map((sheet) => sheet.name);
+    expect(names).toEqual([
+      LEVEL_THREE_GANTT_SHEET_NAME,
+      RESOURCE_HISTOGRAM_SHEET_NAME,
+      CPM_TABLE_SHEET_NAME,
+      GANTT_LOGIC_NETWORK_SHEET_NAME,
+      GANTT_EXPORT_INFO_SHEET_NAME,
+    ]);
+  });
+
+  it('bar column math uses CPM day offsets', () => {
+    const rows = getLevelThreeGanttRows(
+      [makeActivity('A'), makeActivity('B')],
       cpmResult,
-      activities: [makeActivity('A'), makeActivity('B')],
-      projectStartDate: '2026-06-06',
-    });
-    const sheet = workbook.Sheets[LEVEL_THREE_GANTT_SHEET_NAME];
-    const criticalCell = sheet.G2;
-    expect(criticalCell?.v).toBe('■');
-    expect(criticalCell?.s?.fill?.fgColor?.rgb).toBe('FFEF4444');
+      '2026-06-06',
+    );
+    const critical = barColumnRangeForRow(rows[0]);
+    const noncritical = barColumnRangeForRow(rows[1]);
+
+    expect(critical.barStartCol).toBe(4);
+    expect(critical.barEndCol).toBe(5);
+    expect(critical.floatStartCol).toBeNull();
+    expect(noncritical.barStartCol).toBe(6);
+    expect(noncritical.barEndCol).toBe(7);
+    expect(noncritical.floatStartCol).toBe(8);
+    expect(noncritical.floatEndCol).toBe(8);
   });
 
   it('Gantt PDF export creates landscape PDF and does not use portrait mode', () => {
