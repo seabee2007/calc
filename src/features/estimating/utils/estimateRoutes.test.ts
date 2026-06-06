@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ESTIMATE_WORKSPACE_TAB_IDS,
   estimateWorkspaceHref,
   isEstimateWorkspaceTabId,
   parseEstimateWorkspaceTabParam,
@@ -34,7 +35,12 @@ describe('parseEstimateWorkspaceTabParam', () => {
 
   it('returns tab id for valid segments', () => {
     expect(parseEstimateWorkspaceTabParam('line-items')).toBe('line-items');
-    expect(parseEstimateWorkspaceTabParam('totals')).toBe('totals');
+    expect(parseEstimateWorkspaceTabParam('schedule-preview')).toBe('schedule-preview');
+  });
+
+  it('maps legacy totals segment to overview', () => {
+    expect(parseEstimateWorkspaceTabParam('totals')).toBe('overview');
+    expect(ESTIMATE_WORKSPACE_TAB_IDS).not.toContain('totals');
   });
 
   it('returns null for invalid segments', () => {
@@ -47,7 +53,8 @@ describe('isEstimateWorkspaceTabId', () => {
     expect(isEstimateWorkspaceTabId('gantt-preview')).toBe(true);
   });
 
-  it('rejects unknown tab ids', () => {
+  it('rejects unknown and removed tab ids', () => {
     expect(isEstimateWorkspaceTabId('board')).toBe(false);
+    expect(isEstimateWorkspaceTabId('totals')).toBe(false);
   });
 });

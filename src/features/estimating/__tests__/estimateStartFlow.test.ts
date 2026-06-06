@@ -3,6 +3,7 @@ import {
   buildEstimateSetupVersionKey,
   canResetEstimateSetup,
   createEstimateSetupResetState,
+  createEstimateSetupRestoredState,
   createEstimateSetupStartState,
   createInitialEstimateSetupSession,
   getBuildScopeModalDescription,
@@ -69,6 +70,36 @@ describe('estimateStartFlow', () => {
     expect(shouldOpenBuildScopeModal('budget')).toBe(true);
   });
 
+  it('restores saved bid estimate workspace instead of showing type selection', () => {
+    const session = createEstimateSetupRestoredState('bid', [
+      {
+        code: '01',
+        name: 'General Requirements',
+        source: 'ai',
+        confidence: 0.9,
+        reason: 'General requirements are needed.',
+        createdAt: '2026-06-06T00:00:00.000Z',
+      },
+      {
+        code: '03',
+        name: 'Concrete',
+        source: 'ai',
+        confidence: 0.95,
+        reason: 'Concrete slab is named.',
+        createdAt: '2026-06-06T00:00:00.000Z',
+      },
+    ]);
+
+    expect(session.estimateSetupStarted).toBe(true);
+    expect(session.selectedEstimateType).toBe('bid');
+    expect(session.activeStartMode).toBe('bid');
+    expect(session.selectedDivisionCodes).toEqual(['01', '03']);
+    expect(shouldShowEstimateTypeSelector(session)).toBe(false);
+    expect(shouldShowActivityWorkflow(session)).toBe(true);
+    expect(shouldShowSavedActivities(session)).toBe(true);
+    expect(shouldShowDivisionBucketPanel(session)).toBe(true);
+  });
+
   it('shows division buckets after budget start once divisions are selected', () => {
     const session = {
       ...createEstimateSetupStartState('detailed'),
@@ -83,6 +114,7 @@ describe('estimateStartFlow', () => {
     expect(resetState.estimateSetupStarted).toBe(false);
     expect(resetState.activeStartMode).toBeNull();
     expect(resetState.selectedDivisionCodes).toEqual([]);
+    expect(resetState.selectedDivisions).toEqual([]);
     expect(shouldShowEstimateTypeSelector(resetState)).toBe(true);
     expect(shouldShowActivityWorkflow(resetState)).toBe(false);
     expect(shouldShowSavedActivities(resetState)).toBe(false);

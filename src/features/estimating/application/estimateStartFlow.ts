@@ -1,4 +1,9 @@
 import { normalizeSelectedDivisionCodes } from './estimateWorkBreakdown';
+import {
+  buildSelectedDivisionsFromCodes,
+  normalizeSelectedDivisions,
+} from './estimateWorkBreakdown';
+import type { EstimateSelectedDivision } from '../domain/estimateTypes';
 import type { EstimateType } from '../domain/estimateTypes';
 
 export type EstimateActiveStartMode = 'quick' | 'budget' | 'detailed' | 'bid';
@@ -8,6 +13,7 @@ export interface EstimateSetupSessionState {
   selectedEstimateType: EstimateType;
   activeStartMode: EstimateActiveStartMode | null;
   selectedDivisionCodes: readonly string[];
+  selectedDivisions: readonly EstimateSelectedDivision[];
 }
 
 export function resolveActiveStartMode(type: EstimateType): EstimateActiveStartMode {
@@ -25,6 +31,7 @@ export function createInitialEstimateSetupSession(
     selectedEstimateType: savedEstimateType,
     activeStartMode: null,
     selectedDivisionCodes: [],
+    selectedDivisions: [],
   };
 }
 
@@ -36,6 +43,21 @@ export function createEstimateSetupStartState(
     selectedEstimateType,
     activeStartMode: resolveActiveStartMode(selectedEstimateType),
     selectedDivisionCodes: [],
+    selectedDivisions: [],
+  };
+}
+
+export function createEstimateSetupRestoredState(
+  selectedEstimateType: EstimateType,
+  selectedDivisionInputs: readonly Partial<EstimateSelectedDivision>[] = [],
+): EstimateSetupSessionState {
+  const selectedDivisions = normalizeSelectedDivisions(selectedDivisionInputs);
+  return {
+    estimateSetupStarted: true,
+    selectedEstimateType,
+    activeStartMode: resolveActiveStartMode(selectedEstimateType),
+    selectedDivisionCodes: selectedDivisions.map((division) => division.code),
+    selectedDivisions,
   };
 }
 
@@ -49,12 +71,15 @@ export function appendEstimateSetupDivisionCodes(
   state: EstimateSetupSessionState,
   codes: readonly string[],
 ): EstimateSetupSessionState {
+  const selectedDivisions = normalizeSelectedDivisions([
+    ...state.selectedDivisions,
+    ...buildSelectedDivisionsFromCodes([...codes]),
+  ]);
+
   return {
     ...state,
-    selectedDivisionCodes: normalizeSelectedDivisionCodes([
-      ...state.selectedDivisionCodes,
-      ...codes,
-    ]),
+    selectedDivisions,
+    selectedDivisionCodes: selectedDivisions.map((division) => division.code),
   };
 }
 
@@ -133,10 +158,10 @@ export const ACTIVITY_WORKFLOW_TAB_HELPER =
   'Build your estimate by division of work, work package, and activity.';
 
 export const ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE =
-  'Saved versions remain in history. Reset only clears the current setup view and draft selections.';
+  'The current estimate row is the active source of truth for this project.';
 
 export const ESTIMATE_SETUP_RESET_REPLACE_NOTE =
-  'To fully replace a saved estimate, create a new version after changing the estimate type. Existing versions remain read-only.';
+  'Resetting removes the current estimate so you can start again with a different estimate type.';
 
 export function getWorkBreakdownHelperText(type: EstimateType): string {
   if (type === 'budget') {

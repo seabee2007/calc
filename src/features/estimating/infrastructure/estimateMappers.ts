@@ -205,6 +205,7 @@ export function mapEstimateSnapshotToVersionInsert(
     snapshot: {
       meta: snapshot.meta,
       pricing: snapshot.pricing,
+      selectedDivisions: snapshot.selectedDivisions ?? [],
       lineItems: snapshot.lineItems,
       warnings: snapshot.warnings,
     },

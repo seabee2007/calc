@@ -2,6 +2,7 @@ import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/esti
 import { buildEstimateDraftSnapshot } from './buildEstimateDraftSnapshot';
 import type { EstimateDraftLine } from './estimateDraftLine';
 import { sortDraftLinesByPosition } from './estimateDraftLine';
+import type { EstimateSelectedDivision } from '../domain/estimateTypes';
 import type {
   EstimateDomainVersion,
   EstimateLineItemRow,
@@ -13,6 +14,12 @@ import {
   mapDraftLineToLineItemInsert,
   mapEstimateSnapshotToVersionInsert,
 } from '../infrastructure/estimateMappers';
+import {
+  buildSelectedDivisionsFromCodes,
+  inferDivisionCodesFromItems,
+  normalizeSelectedDivisions,
+  selectedDivisionsFromSnapshot,
+} from './estimateWorkBreakdown';
 import {
   createEstimateVersion,
   insertEstimateLineItems,
@@ -28,6 +35,7 @@ export interface SaveEstimateVersionWithLineItemsParams {
   projectId: string;
   currentVersion: Pick<EstimateDomainVersion, 'estimateType' | 'status' | 'snapshot'>;
   draftLines: EstimateDraftLine[];
+  selectedDivisions?: EstimateSelectedDivision[];
   createdBy?: string | null;
 }
 
@@ -99,6 +107,13 @@ export async function saveEstimateVersionWithLineItems(
   const estimateType = normalizeEstimateMethod(
     params.currentVersion.estimateType ?? DEFAULT_ESTIMATE_METHOD,
   );
+  const selectedDivisions = normalizeSelectedDivisions([
+    ...selectedDivisionsFromSnapshot(params.currentVersion.snapshot),
+    ...(params.selectedDivisions ?? []),
+    ...buildSelectedDivisionsFromCodes(inferDivisionCodesFromItems(sortedDraftLines, []), {
+      source: 'inferred',
+    }),
+  ]);
 
   const snapshot = buildEstimateDraftSnapshot({
     estimateId: params.estimateId,
@@ -107,6 +122,7 @@ export async function saveEstimateVersionWithLineItems(
     estimateType,
     status: 'draft',
     draftLines: sortedDraftLines,
+    selectedDivisions,
     pricing: params.currentVersion.snapshot?.pricing,
   });
 

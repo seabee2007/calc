@@ -6,7 +6,10 @@ import {
   hasEstimateWorkBreakdown,
   inferDivisionCodesFromItems,
   mergeDivisionBucketsWithActivities,
+  normalizeSelectedDivisions,
   normalizeSelectedDivisionCodes,
+  selectedDivisionCodesFromSnapshot,
+  selectedDivisionsFromSnapshot,
 } from '../application/estimateWorkBreakdown';
 import { createEmptyDraftLine } from '../application/estimateDraftLine';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
@@ -88,6 +91,67 @@ describe('estimateWorkBreakdown', () => {
     expect(concrete?.rollup.itemCount).toBe(0);
     expect(concrete?.rollup.laborHours).toBe(0);
     expect(concrete?.rollup.sellPrice).toBe(0);
+  });
+
+  it('extracts selected divisions from snapshot so empty groups render after reload', () => {
+    const snapshot = {
+      selectedDivisions: [
+        {
+          code: '01',
+          name: 'General Requirements',
+          source: 'ai',
+          confidence: 0.9,
+          reason: 'General requirements are needed.',
+          createdAt: '2026-06-06T00:00:00.000Z',
+        },
+        {
+          code: '03',
+          name: 'Concrete',
+          source: 'ai',
+          confidence: 0.95,
+          reason: 'Concrete slab is named.',
+          createdAt: '2026-06-06T00:00:00.000Z',
+        },
+        {
+          code: '09',
+          name: 'Finishes',
+          source: 'ai',
+          confidence: 0.78,
+          reason: 'Building scope implies finishes.',
+          createdAt: '2026-06-06T00:00:00.000Z',
+        },
+      ],
+    };
+
+    expect(selectedDivisionCodesFromSnapshot(snapshot)).toEqual(['01', '03', '09']);
+
+    const savedTasks = [taskWithDivision('03', 'Saved concrete')];
+    const breakdown = mergeDivisionBucketsWithActivities(
+      selectedDivisionCodesFromSnapshot(snapshot),
+      [],
+      savedTasks,
+    );
+
+    expect(breakdown.divisions.map((division) => division.code)).toEqual(['01', '03', '09']);
+    expect(breakdown.divisions.find((division) => division.code === '01')?.activityCount).toBe(0);
+    expect(breakdown.divisions.find((division) => division.code === '09')?.activityCount).toBe(0);
+    expect(breakdown.divisions.find((division) => division.code === '03')?.activityCount).toBe(1);
+  });
+
+  it('normalizing selected divisions respects manual removal', () => {
+    const selected = selectedDivisionsFromSnapshot({
+      selectedDivisions: [
+        { code: '01', name: 'General Requirements', source: 'ai', createdAt: '2026-06-06' },
+        { code: '03', name: 'Concrete', source: 'ai', createdAt: '2026-06-06' },
+        { code: '09', name: 'Finishes', source: 'ai', createdAt: '2026-06-06' },
+      ],
+    });
+    const afterManualRemoval = selected.filter((division) => division.code !== '09');
+
+    expect(normalizeSelectedDivisions(afterManualRemoval).map((division) => division.code)).toEqual([
+      '01',
+      '03',
+    ]);
   });
 
   it('existing activities map into division buckets correctly', () => {

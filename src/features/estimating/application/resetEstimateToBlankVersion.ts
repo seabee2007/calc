@@ -72,6 +72,7 @@ function buildBlankSnapshot(
       version: versionNumber,
       reset: true,
     },
+    selectedDivisions: [],
     lineItems: [],
     totals: BLANK_ESTIMATE_TOTALS,
   };

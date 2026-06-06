@@ -3,22 +3,29 @@ import {
   appendEstimateSetupDivisionCodes,
   buildEstimateSetupVersionKey,
   createEstimateSetupResetState,
+  createEstimateSetupRestoredState,
   createEstimateSetupStartState,
   createInitialEstimateSetupSession,
   shouldReinitializeSetupSessionFromVersion,
   type EstimateSetupSessionState,
 } from '../../application/estimateStartFlow';
-import { normalizeSelectedDivisionCodes } from '../../application/estimateWorkBreakdown';
+import {
+  buildSelectedDivisionsFromCodes,
+  normalizeSelectedDivisions,
+  normalizeSelectedDivisionCodes,
+} from '../../application/estimateWorkBreakdown';
 import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../../domain/estimateMethods';
-import type { EstimateType } from '../../domain/estimateTypes';
+import type { EstimateSelectedDivision, EstimateType } from '../../domain/estimateTypes';
 
 export interface UseEstimateSetupSessionResult {
   session: EstimateSetupSessionState;
   quickPanelResetKey: number;
   setSelectedEstimateType: (type: EstimateType) => void;
   startSetup: (type: EstimateType) => void;
+  restoreSavedSetup: (type: EstimateType, divisions?: EstimateSelectedDivision[]) => void;
   resetSetup: (savedEstimateType: EstimateType) => void;
   setSelectedDivisionCodes: (codes: string[]) => void;
+  setSelectedDivisions: (divisions: EstimateSelectedDivision[]) => void;
   mergeDivisionCodes: (codes: readonly string[]) => void;
 }
 
@@ -75,6 +82,14 @@ export function useEstimateSetupSession(
     setSession(createEstimateSetupStartState(type));
   }, []);
 
+  const restoreSavedSetup = useCallback(
+    (type: EstimateType, divisions: EstimateSelectedDivision[] = []) => {
+      hasUserStartedSetupRef.current = false;
+      setSession(createEstimateSetupRestoredState(type, divisions));
+    },
+    [],
+  );
+
   const resetSetup = useCallback((savedType: EstimateType) => {
     hasUserResetSetupRef.current = true;
     hasUserStartedSetupRef.current = false;
@@ -83,9 +98,22 @@ export function useEstimateSetupSession(
   }, []);
 
   const setSelectedDivisionCodes = useCallback((codes: string[]) => {
+    const selectedDivisions = buildSelectedDivisionsFromCodes(codes);
     setSession((prev) => ({
       ...prev,
-      selectedDivisionCodes: normalizeSelectedDivisionCodes(codes),
+      selectedDivisions,
+      selectedDivisionCodes: selectedDivisions.map((division) => division.code),
+    }));
+  }, []);
+
+  const setSelectedDivisions = useCallback((divisions: EstimateSelectedDivision[]) => {
+    const selectedDivisions = normalizeSelectedDivisions(divisions);
+    setSession((prev) => ({
+      ...prev,
+      selectedDivisions,
+      selectedDivisionCodes: normalizeSelectedDivisionCodes(
+        selectedDivisions.map((division) => division.code),
+      ),
     }));
   }, []);
 
@@ -98,8 +126,10 @@ export function useEstimateSetupSession(
     quickPanelResetKey,
     setSelectedEstimateType,
     startSetup,
+    restoreSavedSetup,
     resetSetup,
     setSelectedDivisionCodes,
+    setSelectedDivisions,
     mergeDivisionCodes,
   };
 }

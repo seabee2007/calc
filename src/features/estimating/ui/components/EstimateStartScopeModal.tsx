@@ -9,6 +9,7 @@ import {
 } from '../../application/estimateStartFlow';
 import {
   getCsiDivisionDescription,
+  getCsiDivisionByCode,
   getCsiDivisionOptions,
 } from '../../domain/csiDivisions';
 import { normalizeSelectedDivisionCodes } from '../../application/estimateWorkBreakdown';
@@ -18,6 +19,7 @@ import {
   RECOMMEND_DIVISIONS_ERROR_MESSAGE,
   type RecommendEstimateDivisionsResponse,
 } from '../../application/recommendEstimateDivisions';
+import type { EstimateSelectedDivision } from '../../domain/estimateTypes';
 import { PLANNER_MUTED, TEXT_BODY, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
 
 export interface EstimateStartScopeProjectContext {
@@ -32,7 +34,7 @@ interface Props {
   estimateType: EstimateType;
   projectContext?: EstimateStartScopeProjectContext | null;
   onClose: () => void;
-  onCreate: (divisionCodes: string[]) => void;
+  onCreate: (divisions: EstimateSelectedDivision[]) => void;
 }
 
 function formatConfidence(value: number): string {
@@ -76,7 +78,23 @@ export default function EstimateStartScopeModal({
   const handleCreate = () => {
     const normalized = normalizeSelectedDivisionCodes(selectedCodes);
     if (normalized.length === 0) return;
-    onCreate(normalized);
+    const now = new Date().toISOString();
+    const recommendationsByCode = new Map(
+      recommendationResult?.recommendations.map((item) => [item.code, item]) ?? [],
+    );
+    const selectedDivisions = normalized.map((code) => {
+      const recommendation = recommendationsByCode.get(code);
+      const division = getCsiDivisionByCode(code);
+      return {
+        code,
+        name: division?.name ?? recommendation?.name ?? code,
+        source: recommendation ? 'ai' : 'manual',
+        confidence: recommendation?.confidence,
+        reason: recommendation?.reason,
+        createdAt: now,
+      } satisfies EstimateSelectedDivision;
+    });
+    onCreate(selectedDivisions);
     onClose();
   };
 

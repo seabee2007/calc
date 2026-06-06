@@ -16,6 +16,7 @@ export function buildEstimateSnapshot(input: EstimateSnapshotInput): EstimateSna
     meta: input.meta,
     pricing,
     lineItems,
+    selectedDivisions: input.selectedDivisions,
     totals,
     warnings,
   };

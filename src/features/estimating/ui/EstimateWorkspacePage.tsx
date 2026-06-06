@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildEstimateSchedulePlan } from '../application/buildEstimateSchedulePlan';
 import {
   planEstimateScheduleDates,
@@ -11,44 +11,41 @@ import {
 } from '../utils/estimateRoutes';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
-import { createDraftEstimate } from '../application/createDraftEstimate';
 import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
-import type { EstimateType } from '../domain/estimateTypes';
-import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
-import { saveQuickFeasibilityEstimate } from '../application/saveQuickFeasibilityEstimate';
+import type { EstimateSelectedDivision, EstimateType } from '../domain/estimateTypes';
 import {
-  BLANK_ESTIMATE_TOTALS,
-  resetEstimateToBlankVersion,
-} from '../application/resetEstimateToBlankVersion';
+  createCurrentEstimate,
+  currentEstimateToDomainVersion,
+  currentEstimateToSummary,
+  resetCurrentEstimate,
+  saveCurrentEstimate,
+  saveCurrentEstimateWithLineItems,
+  saveCurrentQuickFeasibilityEstimate,
+  type CurrentEstimate,
+} from '../application/currentEstimateService';
+import {
+  buildOptimisticEstimateWithDivisions,
+  loadCurrentEstimateForProject,
+} from './estimateWorkspaceLoad';
 import type {
   QuickFeasibilityInputs,
   QuickFeasibilityResult,
 } from '../application/estimateQuickFeasibility';
 import type {
   EstimateDomainVersion,
-  EstimateSummary,
-  EstimateVersionRow,
 } from '../infrastructure/estimateDbTypes';
-import {
-  getEstimateVersionWithLineItems,
-  listEstimateVersions,
-  listEstimatesForProject,
-} from '../infrastructure/estimateRepository';
-import { buildEstimateVersionHistoryItems } from './estimateVersionDisplay';
-import EstimateVersionHistoryList from './components/EstimateVersionHistoryList';
-import {
-  buildWorkspaceSummaryValues,
-  quickFeasibilityPlannedDurationDaysFromVersion,
-} from './estimateFormatters';
-import EstimateWorkspaceHeader from './components/EstimateWorkspaceHeader';
+import { Play } from 'lucide-react';
+import Button from '../../../components/ui/Button';
 import EstimateWorkspaceTabBar, {
   type EstimateWorkspaceTabId,
 } from './components/EstimateWorkspaceTabBar';
 import EstimateWorkspaceLoading from './components/EstimateWorkspaceLoading';
 import EstimateWorkspaceEmptyState from './components/EstimateWorkspaceEmptyState';
-import EstimateSummaryCard from './components/EstimateSummaryCard';
+import EstimateWorkspaceToast from './components/EstimateWorkspaceToast';
+import { createEstimateSaveSuccessToast } from './estimateBuilderUi';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
-import EstimateNextAvailableActions from './components/EstimateNextAvailableActions';
+import EstimateResetSetupConfirmModal from './components/EstimateResetSetupConfirmModal';
+import EstimateWorkspaceToolbarActions from './components/EstimateWorkspaceToolbarActions';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
 import EstimateGanttPreview from './components/EstimateGanttPreview';
@@ -58,28 +55,32 @@ import {
   ROUGH_SCHEDULE_PREVIEW_NOTE,
   shouldShowRoughSchedulePreviewNote,
 } from './estimateMethodDisplay';
-import { extractScheduleDatePlanSummary } from './estimateScheduleDisplay';
 import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import { useEstimateSetupSession } from './hooks/useEstimateSetupSession';
+import {
+  shouldShowEstimateBuilderPanel,
+  shouldShowEstimateTypeSelectionOnTab,
+  shouldShowOverviewFinancialSummary,
+  shouldShowOverviewNoEstimateMessage,
+} from './estimateWorkspaceRenderRules';
+import {
+  shouldShowBucketSaveAction,
+  shouldShowCollapseAllAction,
+  shouldShowQuickSaveAction,
+  shouldShowResetFormAction,
+  type EstimateBuilderToolbarHandlers,
+} from './estimateWorkspaceToolbar';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
   PLANNER_PAGE_BG,
-  PLANNER_SECTION_TITLE,
   TEXT_BODY,
 } from './estimateWorkspaceTheme';
 
-const SUMMARY_CARD_KEYS = [
-  { key: 'totalEstimate', label: 'Total Estimate' },
-  { key: 'laborHours', label: 'Labor Hours' },
-  { key: 'manDays', label: 'Man-Days' },
-  { key: 'crewDays', label: 'Crew-Days' },
-  { key: 'materialCost', label: 'Material Cost' },
-  { key: 'equipmentCost', label: 'Equipment Cost' },
-  { key: 'profit', label: 'Profit' },
-] as const;
-
-const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
+const OVERVIEW_NO_ESTIMATE_MESSAGE =
+  'No estimate started yet. Go to the Estimate tab to start one.';
+const TAB_NO_ESTIMATE_MESSAGE = 'This project does not have a saved estimate yet.';
+const LOADING_ESTIMATE_MESSAGE = 'Loading estimate...';
 
 function getTodayScheduleDateYmd(): string {
   const now = new Date();
@@ -87,33 +88,6 @@ function getTodayScheduleDateYmd(): string {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
-
-interface SummaryCardsGridProps {
-  version: EstimateDomainVersion | null;
-  loading?: boolean;
-}
-
-function SummaryCardsGrid({ version, loading = false }: SummaryCardsGridProps) {
-  const values = useMemo(() => buildWorkspaceSummaryValues(version), [version]);
-
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {SUMMARY_CARD_KEYS.map((card) => (
-        <EstimateSummaryCard
-          key={card.key}
-          label={card.label}
-          value={values[card.key]}
-          loading={loading}
-        />
-      ))}
-    </div>
-  );
-}
-
-function selectEstimate(estimates: EstimateSummary[]): EstimateSummary | null {
-  if (estimates.length === 0) return null;
-  return estimates.find((row) => row.currentVersionId) ?? estimates[0];
 }
 
 export default function EstimateWorkspacePage() {
@@ -129,18 +103,19 @@ export default function EstimateWorkspacePage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [successTitle, setSuccessTitle] = useState('Estimate created');
+  const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
-  const [version, setVersion] = useState<EstimateDomainVersion | null>(null);
-  const [versionHistory, setVersionHistory] = useState<EstimateVersionRow[]>([]);
+  const [currentEstimate, setCurrentEstimate] = useState<CurrentEstimate | null>(null);
+  const [autoOpenScopeModalKey, setAutoOpenScopeModalKey] = useState<string | null>(null);
   const [selectedEstimateMethod, setSelectedEstimateMethod] = useState<EstimateType>(
     DEFAULT_ESTIMATE_METHOD,
   );
-  const lineItemDraft = useEstimateLineItemDraft(version);
+  const [activeEstimateType, setActiveEstimateType] = useState<EstimateType | null>(null);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [builderToolbarHandlers, setBuilderToolbarHandlers] =
+    useState<EstimateBuilderToolbarHandlers | null>(null);
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
     () => ({
       projectStartDate: getTodayScheduleDateYmd(),
@@ -148,15 +123,25 @@ export default function EstimateWorkspacePage() {
       includeWeekends: false,
     }),
   );
+  const loadTokenRef = useRef(0);
+  const estimate = useMemo(
+    () => (currentEstimate ? currentEstimateToSummary(currentEstimate) : null),
+    [currentEstimate],
+  );
+  const estimateAdapter = useMemo(
+    () => (currentEstimate ? currentEstimateToDomainVersion(currentEstimate) : null),
+    [currentEstimate],
+  );
+  const lineItemDraft = useEstimateLineItemDraft(estimateAdapter);
 
   const schedulePlan = useMemo(() => {
-    if (!version || !estimate) return null;
+    if (!estimateAdapter || !estimate) return null;
     return buildEstimateSchedulePlan({
-      version,
+      version: estimateAdapter,
       estimateId: estimate.id,
       projectId: estimate.projectId,
     });
-  }, [version, estimate]);
+  }, [estimateAdapter, estimate]);
 
   const scheduleDatePlanResult = useMemo(() => {
     if (!schedulePlan) return null;
@@ -166,16 +151,6 @@ export default function EstimateWorkspacePage() {
       includeWeekends: schedulePlanControls.includeWeekends,
     });
   }, [schedulePlan, schedulePlanControls]);
-
-  const workspaceSummaryValues = useMemo(
-    () => buildWorkspaceSummaryValues(version),
-    [version],
-  );
-
-  const scheduleDatePlanSummary = useMemo(
-    () => extractScheduleDatePlanSummary(scheduleDatePlanResult, schedulePlan),
-    [scheduleDatePlanResult, schedulePlan],
-  );
 
   const projectScopeContext = useMemo(
     () =>
@@ -190,16 +165,6 @@ export default function EstimateWorkspacePage() {
     [project],
   );
 
-  const quickPlannedDurationDays = quickFeasibilityPlannedDurationDaysFromVersion(version);
-  const plannedDurationDisplay =
-    version && version.lineItems.length === 0
-      ? quickPlannedDurationDays != null
-        ? `${quickPlannedDurationDays} days`
-        : '0 days'
-      : scheduleDatePlanSummary.totalPlannedDurationDaysDisplay !== '—'
-      ? scheduleDatePlanSummary.totalPlannedDurationDaysDisplay
-      : null;
-
   const handleSchedulePlanControlsChange = useCallback(
     (patch: Partial<EstimateSchedulePlanControlValues>) => {
       setSchedulePlanControls((current) => ({ ...current, ...patch }));
@@ -207,20 +172,24 @@ export default function EstimateWorkspacePage() {
     [],
   );
 
-  const versionHistoryItems = useMemo(
-    () => buildEstimateVersionHistoryItems(versionHistory, estimate?.currentVersionId),
-    [versionHistory, estimate?.currentVersionId],
-  );
-
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
   const estimateSetup = useEstimateSetupSession(
     resolvedProjectId,
-    version?.id,
-    version?.estimateType,
+    estimateAdapter?.id,
+    estimateAdapter?.estimateType,
   );
+  const estimateSetupRef = useRef(estimateSetup);
+  const lineItemDraftRef = useRef(lineItemDraft);
+  estimateSetupRef.current = estimateSetup;
+  lineItemDraftRef.current = lineItemDraft;
 
   useEffect(() => {
-    if (estimateTab && parsedTab == null && resolvedProjectId) {
+    if (!resolvedProjectId) return;
+    if (estimateTab === 'totals') {
+      navigate(estimateWorkspaceHref(resolvedProjectId, 'overview'), { replace: true });
+      return;
+    }
+    if (estimateTab && parsedTab == null) {
       navigate(estimateWorkspaceHref(resolvedProjectId, 'overview'), { replace: true });
     }
   }, [estimateTab, parsedTab, resolvedProjectId, navigate]);
@@ -233,79 +202,138 @@ export default function EstimateWorkspacePage() {
     [navigate, resolvedProjectId],
   );
 
-  const loadEstimateData = useCallback(async (silent = false) => {
+  useEffect(() => {
     if (!resolvedProjectId) {
       setDataLoading(false);
       return;
     }
 
-    if (!silent) {
-      setDataLoading(true);
-      setEstimate(null);
-      setVersion(null);
-      setVersionHistory([]);
+    let cancelled = false;
+    const projectId = resolvedProjectId;
+    const token = ++loadTokenRef.current;
+    const isStale = () => cancelled || token !== loadTokenRef.current;
+
+    if (import.meta.env.DEV) {
+      console.log('[Estimate Page] load start', { projectId, token });
     }
+
+    setDataLoading(true);
     setLoadError(null);
+    setCreateError(null);
+    setSaveError(null);
+    setSaveToastMessage(null);
+    setCurrentEstimate(null);
+    setActiveEstimateType(null);
+    setAutoOpenScopeModalKey(null);
+    setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
+    estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
+    lineItemDraftRef.current.resetDraftSetup();
 
-    const listResult = await listEstimatesForProject(resolvedProjectId);
-    if (listResult.error) {
-      setLoadError(listResult.error);
-      setDataLoading(false);
-      return;
-    }
+    void (async () => {
+      try {
+        const loadedEstimate = await loadCurrentEstimateForProject(projectId);
 
-    const estimates = listResult.data ?? [];
-    const selected = selectEstimate(estimates);
-    if (!selected) {
-      setDataLoading(false);
-      return;
-    }
+        if (isStale()) return;
 
-    setEstimate(selected);
+        if (import.meta.env.DEV) {
+          console.log('[Estimate Load] complete', {
+            projectId,
+            token,
+            hasEstimate: Boolean(loadedEstimate?.id),
+            selectedDivisionCount: loadedEstimate?.selectedDivisions.length ?? 0,
+          });
+        }
 
-    const versionsResult = await listEstimateVersions(selected.id);
-    if (versionsResult.error) {
-      setLoadError(versionsResult.error);
-      setDataLoading(false);
-      return;
-    }
-    setVersionHistory(versionsResult.data ?? []);
+        if (loadedEstimate) {
+          setCurrentEstimate(loadedEstimate);
+          const loadedType = loadedEstimate.estimateType
+            ? normalizeEstimateMethod(loadedEstimate.estimateType)
+            : DEFAULT_ESTIMATE_METHOD;
+          setActiveEstimateType(loadedEstimate.estimateType);
+          setSelectedEstimateMethod(loadedType);
+          if (loadedEstimate.estimateType) {
+            estimateSetupRef.current.restoreSavedSetup(
+              loadedType,
+              loadedEstimate.selectedDivisions,
+            );
+            lineItemDraftRef.current.rehydrateFromVersion(
+              currentEstimateToDomainVersion(loadedEstimate),
+            );
+          }
+        } else {
+          setActiveEstimateType(null);
+        }
+      } catch (error) {
+        if (!isStale()) {
+          setLoadError(error instanceof Error ? error.message : 'Could not load estimate');
+        }
+      } finally {
+        if (!isStale()) {
+          setDataLoading(false);
+        }
+      }
+    })();
 
-    if (!selected.currentVersionId) {
-      setDataLoading(false);
-      return;
-    }
-
-    const versionResult = await getEstimateVersionWithLineItems(selected.currentVersionId);
-    if (versionResult.error) {
-      setLoadError(versionResult.error);
-      setDataLoading(false);
-      return;
-    }
-
-    const loadedVersion = versionResult.data;
-    setVersion(loadedVersion);
-    if (loadedVersion?.estimateType) {
-      setSelectedEstimateMethod(normalizeEstimateMethod(loadedVersion.estimateType));
-    }
-    setDataLoading(false);
+    return () => {
+      cancelled = true;
+    };
   }, [resolvedProjectId]);
 
-  useEffect(() => {
-    if (plannerLoading || accessDenied || !resolvedProjectId) return;
-    void loadEstimateData();
-  }, [plannerLoading, accessDenied, resolvedProjectId, loadEstimateData]);
+  const handleRetryLoadEstimate = useCallback(async () => {
+    if (!resolvedProjectId) return;
 
-  const handleCreateEstimate = useCallback(async () => {
+    const projectId = resolvedProjectId;
+    const token = ++loadTokenRef.current;
+
+    setDataLoading(true);
+    setLoadError(null);
+    setCreateError(null);
+    setSaveError(null);
+    setCurrentEstimate(null);
+    setActiveEstimateType(null);
+    setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
+    estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
+    lineItemDraftRef.current.resetDraftSetup();
+
+    try {
+      const loadedEstimate = await loadCurrentEstimateForProject(projectId);
+      if (token !== loadTokenRef.current) return;
+
+      setCurrentEstimate(loadedEstimate);
+      if (loadedEstimate) {
+        const loadedType = loadedEstimate.estimateType
+          ? normalizeEstimateMethod(loadedEstimate.estimateType)
+          : DEFAULT_ESTIMATE_METHOD;
+        setActiveEstimateType(loadedEstimate.estimateType);
+        setSelectedEstimateMethod(loadedType);
+        if (loadedEstimate.estimateType) {
+          estimateSetupRef.current.restoreSavedSetup(loadedType, loadedEstimate.selectedDivisions);
+          lineItemDraftRef.current.rehydrateFromVersion(
+            currentEstimateToDomainVersion(loadedEstimate),
+          );
+        }
+      } else {
+        setActiveEstimateType(null);
+      }
+    } catch (error) {
+      if (token === loadTokenRef.current) {
+        setLoadError(error instanceof Error ? error.message : 'Could not load estimate');
+      }
+    } finally {
+      if (token === loadTokenRef.current) {
+        setDataLoading(false);
+      }
+    }
+  }, [resolvedProjectId]);
+
+  const handleStartEstimate = useCallback(async () => {
     if (!resolvedProjectId || creating || estimate != null) return;
 
     setCreating(true);
     setCreateError(null);
     setSaveError(null);
-    setSuccessMessage(null);
-    setSuccessTitle('Estimate created');
-
-    const result = await createDraftEstimate({
+    setSaveToastMessage(null);
+    const result = await createCurrentEstimate({
       projectId: resolvedProjectId,
       createdBy: user?.id ?? null,
       estimateType: selectedEstimateMethod,
@@ -317,98 +345,123 @@ export default function EstimateWorkspacePage() {
       return;
     }
 
-    setSuccessMessage('Draft estimate and initial version created successfully.');
-    await loadEstimateData(true);
+    if (result.data) {
+      const nextVersion = currentEstimateToDomainVersion(result.data);
+      setCurrentEstimate(result.data);
+      setActiveEstimateType(result.data.estimateType);
+      estimateSetup.startSetup(selectedEstimateMethod);
+      setAutoOpenScopeModalKey(result.data.id);
+      lineItemDraft.rehydrateFromVersion(nextVersion);
+    }
+    setSaveToastMessage('Estimate started');
+    navigate(estimateWorkspaceHref(resolvedProjectId, 'line-items'));
     setCreating(false);
-  }, [resolvedProjectId, creating, estimate, user?.id, loadEstimateData, selectedEstimateMethod]);
+  }, [
+    resolvedProjectId,
+    creating,
+    estimate,
+    user?.id,
+    selectedEstimateMethod,
+    estimateSetup,
+    lineItemDraft,
+    navigate,
+  ]);
 
   const canSave =
     estimate != null &&
-    version != null &&
-    lineItemDraft.dirty &&
-    lineItemDraft.draftLines.length > 0 &&
+    estimateAdapter != null &&
+    (lineItemDraft.dirty ||
+      estimateSetup.session.selectedDivisions.length > 0 ||
+      (currentEstimate?.selectedDivisions.length ?? 0) > 0) &&
     !saving;
 
+  const handleSaveSelectedDivisions = useCallback(
+    async (divisions: EstimateSelectedDivision[]) => {
+      if (!currentEstimate || !estimateAdapter) return;
+
+      const optimisticEstimate = buildOptimisticEstimateWithDivisions(currentEstimate, divisions);
+      const optimisticType = normalizeEstimateMethod(estimateAdapter.estimateType);
+
+      setCurrentEstimate(optimisticEstimate);
+      setActiveEstimateType(optimisticEstimate.estimateType);
+      estimateSetup.restoreSavedSetup(optimisticType, divisions);
+      lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(optimisticEstimate));
+      setSaveError(null);
+
+      setSaving(true);
+
+      const result = await saveCurrentEstimate({
+        estimateId: currentEstimate.id,
+        projectId: currentEstimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        selectedDivisions: divisions,
+        lineItems: currentEstimate.lineItems,
+        totals: currentEstimate.totals,
+        summary: currentEstimate.summary,
+        assumptions: currentEstimate.assumptions,
+        status: currentEstimate.status,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        setSaveError(result.error ?? 'Failed to save selected divisions.');
+        setSaving(false);
+        return;
+      }
+
+      setCurrentEstimate(result.data);
+      setActiveEstimateType(result.data.estimateType);
+      const adapter = currentEstimateToDomainVersion(result.data);
+      estimateSetup.restoreSavedSetup(
+        normalizeEstimateMethod(result.data.estimateType ?? estimateAdapter.estimateType),
+        result.data.selectedDivisions,
+      );
+      lineItemDraft.rehydrateFromVersion(adapter);
+      setSaving(false);
+    },
+    [currentEstimate, estimateAdapter, user?.id, estimateSetup, lineItemDraft],
+  );
+
   const handleSaveEstimate = useCallback(async () => {
-    if (!estimate || !version || !canSave || saving) return;
+    if (!estimate || !estimateAdapter || !canSave || saving) return;
 
     setSaving(true);
     setSaveError(null);
-    setSuccessMessage(null);
+    setSaveToastMessage(null);
 
-    const result = await saveEstimateVersionWithLineItems({
+    const result = await saveCurrentEstimateWithLineItems({
       estimateId: estimate.id,
       projectId: estimate.projectId,
-      currentVersion: {
-        estimateType: version.estimateType,
-        status: version.status,
-        snapshot: version.snapshot,
-      },
+      estimateType: estimateAdapter.estimateType,
       draftLines: lineItemDraft.draftLines,
+      selectedDivisions: [
+        ...(currentEstimate?.selectedDivisions ?? []),
+        ...estimateSetup.session.selectedDivisions,
+      ],
       createdBy: user?.id ?? null,
     });
 
     if (result.error || !result.data) {
-      setSaveError(result.error ?? 'Failed to save estimate version.');
+      setSaveError(result.error ?? 'Failed to save estimate.');
       setSaving(false);
       return;
     }
 
-    setSuccessTitle('Estimate saved');
-    setSuccessMessage(
-      `Saved version ${result.data.versionNumber} with ${result.data.lineItemCount} activit${result.data.lineItemCount === 1 ? 'y' : 'ies'}.`,
-    );
-
-    const listResult = await listEstimatesForProject(resolvedProjectId);
-    if (!listResult.error && listResult.data) {
-      const selected = selectEstimate(listResult.data);
-      if (selected) {
-        setEstimate(selected);
-        const versionsResult = await listEstimateVersions(selected.id);
-        if (!versionsResult.error && versionsResult.data) {
-          setVersionHistory(versionsResult.data);
-        }
-        if (selected.currentVersionId) {
-          const versionResult = await getEstimateVersionWithLineItems(selected.currentVersionId);
-          if (!versionResult.error && versionResult.data) {
-            setVersion(versionResult.data);
-            lineItemDraft.rehydrateFromVersion(versionResult.data);
-          }
-        }
-      }
-    }
+    setSaveToastMessage(createEstimateSaveSuccessToast().message);
+    setCurrentEstimate(result.data);
+    lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
 
     setSaving(false);
   }, [
     estimate,
-    version,
+    estimateAdapter,
     canSave,
     saving,
     lineItemDraft,
+    currentEstimate?.selectedDivisions,
+    estimateSetup.session.selectedDivisions,
     user?.id,
-    resolvedProjectId,
   ]);
-
-  const refreshEstimateAfterSave = useCallback(async () => {
-    const listResult = await listEstimatesForProject(resolvedProjectId);
-    if (listResult.error || !listResult.data) return;
-
-    const selected = selectEstimate(listResult.data);
-    if (!selected) return;
-
-    setEstimate(selected);
-    const versionsResult = await listEstimateVersions(selected.id);
-    if (!versionsResult.error && versionsResult.data) {
-      setVersionHistory(versionsResult.data);
-    }
-    if (selected.currentVersionId) {
-      const versionResult = await getEstimateVersionWithLineItems(selected.currentVersionId);
-      if (!versionResult.error && versionResult.data) {
-        setVersion(versionResult.data);
-        lineItemDraft.rehydrateFromVersion(versionResult.data);
-      }
-    }
-  }, [lineItemDraft, resolvedProjectId]);
 
   const handleSaveQuickEstimate = useCallback(
     async (payload: { inputs: QuickFeasibilityInputs; result: QuickFeasibilityResult }) => {
@@ -416,9 +469,9 @@ export default function EstimateWorkspacePage() {
 
       setSaving(true);
       setSaveError(null);
-      setSuccessMessage(null);
+      setSaveToastMessage(null);
 
-      const result = await saveQuickFeasibilityEstimate({
+      const result = await saveCurrentQuickFeasibilityEstimate({
         estimateId: estimate.id,
         projectId: estimate.projectId,
         inputs: payload.inputs,
@@ -432,61 +485,43 @@ export default function EstimateWorkspacePage() {
         return;
       }
 
-      setSuccessTitle('Quick estimate saved');
-      setSuccessMessage(`Saved Quick Feasibility v${result.data.versionNumber}.`);
-      await refreshEstimateAfterSave();
+      setSaveToastMessage(createEstimateSaveSuccessToast().message);
+      setCurrentEstimate(result.data);
+      lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
       setSaving(false);
     },
-    [estimate, refreshEstimateAfterSave, saving, user?.id],
+    [estimate, lineItemDraft, saving, user?.id],
   );
 
   const handleResetEstimate = useCallback(async (): Promise<boolean> => {
-    if (!estimate || !version || saving) return false;
+    if (!estimate || saving) return false;
 
     setSaving(true);
     setSaveError(null);
-    setSuccessMessage(null);
+    setSaveToastMessage(null);
 
-    const result = await resetEstimateToBlankVersion({
-      estimateId: estimate.id,
-      projectId: estimate.projectId,
-      estimateType: version.estimateType,
-      createdBy: user?.id ?? null,
-    });
+    const result = await resetCurrentEstimate(estimate.projectId);
 
-    if (result.error || !result.data) {
+    if (result.error) {
       setSaveError(result.error ?? 'Failed to reset estimate.');
       setSaving(false);
       return false;
     }
 
     lineItemDraft.resetDraftSetup();
-    setVersion((current) =>
-      current
-        ? {
-            ...current,
-            versionNumber: result.data!.versionNumber,
-            versionName: `Reset Draft v${result.data!.versionNumber}`,
-            snapshot: {
-              ...current.snapshot,
-              lineItems: [],
-              totals: BLANK_ESTIMATE_TOTALS,
-              meta: {
-                ...current.snapshot.meta,
-                reset: true,
-              },
-            },
-            totals: BLANK_ESTIMATE_TOTALS,
-            lineItems: [],
-          }
-        : current,
-    );
-    setSuccessTitle('Estimate reset');
-    setSuccessMessage(`Reset estimate to blank version ${result.data.versionNumber}.`);
-    await refreshEstimateAfterSave();
+    estimateSetup.resetSetup(selectedEstimateMethod);
+    setCurrentEstimate(null);
+    setActiveEstimateType(null);
+    setSaveToastMessage('Estimate reset');
     setSaving(false);
     return true;
-  }, [estimate, lineItemDraft, refreshEstimateAfterSave, saving, user?.id, version]);
+  }, [estimate, estimateSetup, lineItemDraft, saving, selectedEstimateMethod]);
+
+  const handleConfirmResetSetup = useCallback(async () => {
+    const didReset = await handleResetEstimate();
+    if (!didReset) return;
+    setResetModalOpen(false);
+  }, [handleResetEstimate]);
 
   if (plannerLoading) {
     return (
@@ -501,30 +536,95 @@ export default function EstimateWorkspacePage() {
   }
 
   const hasEstimate = estimate != null;
-  const hasVersion = version != null;
+  const hasEstimateAdapter = estimateAdapter != null;
+  const selectedDivisionCount = currentEstimate?.selectedDivisions.length ?? 0;
+  const lineItemCount = currentEstimate?.lineItems.length ?? 0;
+  const tabRenderOptions = { isLoading: dataLoading, hasEstimate };
+  const showOverviewLoading = activeTab === 'overview' && dataLoading;
+  const showEstimateTabLoading = activeTab === 'line-items' && dataLoading;
+  const showEstimateTypeSelection = shouldShowEstimateTypeSelectionOnTab(activeTab, tabRenderOptions);
+  const showOverviewNoEstimate = shouldShowOverviewNoEstimateMessage(activeTab, tabRenderOptions);
+  const showOverviewFinancialSummary = shouldShowOverviewFinancialSummary(
+    activeTab,
+    tabRenderOptions,
+  );
+  const showEstimateBuilder = shouldShowEstimateBuilderPanel(activeTab, tabRenderOptions);
+  const isQuickFeasibilityEstimate =
+    estimateAdapter?.estimateType === 'quick_feasibility' ||
+    activeEstimateType === 'quick_feasibility';
+  const canEditEstimate = hasEstimate && hasEstimateAdapter;
+  const showCollapseAll = shouldShowCollapseAllAction(
+    activeTab,
+    builderToolbarHandlers?.showCollapseAll ?? false,
+  );
+  const showResetForm = shouldShowResetFormAction(
+    hasEstimate,
+    activeEstimateType,
+    estimateSetup,
+    canEditEstimate || activeEstimateType != null,
+  );
+  const showSaveBucket = shouldShowBucketSaveAction(
+    activeTab,
+    hasEstimate,
+    activeEstimateType,
+    isQuickFeasibilityEstimate,
+    builderToolbarHandlers?.showCollapseAll ?? false,
+  );
+  const showSaveQuick = shouldShowQuickSaveAction(
+    activeTab,
+    builderToolbarHandlers?.showSaveQuick ?? false,
+  );
+
+  console.log('[Estimate Render]', {
+    projectId: resolvedProjectId,
+    isLoadingEstimate: dataLoading,
+    hasCurrentEstimate: Boolean(currentEstimate?.id),
+    activeEstimateType: currentEstimate?.estimateType ?? activeEstimateType,
+    selectedDivisionCount,
+    lineItemCount,
+  });
 
   return (
-    <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
-      <EstimateWorkspaceTabBar activeTabId={activeTab} onTabChange={handleTabChange} />
-
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-        {successMessage ? (
-          <div className="mb-4">
-            <EstimateWorkspaceEmptyState
-              variant="success"
-              title={successTitle}
-              body={successMessage}
+    <>
+      <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+        <EstimateWorkspaceTabBar
+          activeTabId={activeTab}
+          onTabChange={handleTabChange}
+          rightActions={
+            <EstimateWorkspaceToolbarActions
+              showCollapseAll={showCollapseAll}
+              showReset={showResetForm}
+              showSaveBucket={showSaveBucket}
+              showSaveQuick={showSaveQuick}
+              canEdit={canEditEstimate || activeEstimateType != null}
+              canSave={canSave}
+              canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
+              saving={saving}
+              handlers={builderToolbarHandlers}
+              onReset={() => setResetModalOpen(true)}
+              onSave={handleSaveEstimate}
             />
-          </div>
-        ) : null}
+          }
+        />
 
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         {loadError ? (
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
             <EstimateWorkspaceEmptyState
               variant="error"
               title="Could not load estimate data"
               body={loadError}
             />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={dataLoading}
+              isLoading={dataLoading}
+              onClick={handleRetryLoadEstimate}
+            >
+              Retry
+            </Button>
           </div>
         ) : null}
 
@@ -532,7 +632,7 @@ export default function EstimateWorkspacePage() {
           <div className="mb-4">
             <EstimateWorkspaceEmptyState
               variant="error"
-              title="Could not create estimate"
+              title="Could not start estimate"
               body={createError}
             />
           </div>
@@ -548,134 +648,117 @@ export default function EstimateWorkspacePage() {
           </div>
         ) : null}
 
-        {dataLoading ? (
-          <EstimateWorkspaceLoading />
+        {!loadError && showOverviewLoading ? (
+          <p className={`py-12 text-center text-sm ${PLANNER_MUTED}`}>{LOADING_ESTIMATE_MESSAGE}</p>
         ) : null}
 
-        {!dataLoading && !hasEstimate && !loadError ? (
+        {!loadError && showEstimateTabLoading ? (
+          <p className={`py-12 text-center text-sm ${PLANNER_MUTED}`}>{LOADING_ESTIMATE_MESSAGE}</p>
+        ) : null}
+
+        {!loadError && showOverviewNoEstimate ? (
+          <EstimateWorkspaceEmptyState
+            title="No estimate started"
+            body={OVERVIEW_NO_ESTIMATE_MESSAGE}
+          />
+        ) : null}
+
+        {!loadError && showOverviewFinancialSummary && hasEstimateAdapter ? (
+          <EstimateTotalsReviewPanel version={estimateAdapter} loading={dataLoading} />
+        ) : null}
+
+        {!loadError && showEstimateTypeSelection ? (
           <div className="space-y-4">
-            <EstimateWorkspaceHeader
-              hasEstimate={false}
-              creating={creating}
-              dataLoading={dataLoading}
-              onCreateEstimate={handleCreateEstimate}
-            />
             <EstimateMethodSelector
               value={selectedEstimateMethod}
               onChange={setSelectedEstimateMethod}
               disabled={creating}
             />
             <EstimateWorkspaceEmptyState
-              body="Create the draft estimate record, then open the Estimate tab to choose your estimate type and start building scope."
+              title="No estimate has been started for this project yet"
+              body="Choose an estimate type and click Start Estimate."
             />
+            <Button
+              variant="accent"
+              size="sm"
+              icon={<Play className="h-4 w-4" />}
+              disabled={creating}
+              isLoading={creating}
+              className="w-full sm:w-auto"
+              onClick={handleStartEstimate}
+            >
+              {creating ? 'Starting...' : 'Start Estimate'}
+            </Button>
           </div>
         ) : null}
 
-        {!dataLoading && hasEstimate ? (
-          <>
-            {activeTab === 'overview' && (
-              <div className="space-y-4">
-                <EstimateWorkspaceHeader
-                  estimate={estimate}
-                  version={version}
-                  totalPriceDisplay={workspaceSummaryValues.totalEstimate}
-                  laborHoursDisplay={workspaceSummaryValues.laborHours}
-                  plannedDurationDisplay={plannedDurationDisplay}
-                  hasEstimate={hasEstimate}
-                  draftDirty={lineItemDraft.dirty}
-                />
-                <EstimateNextAvailableActions onNavigate={handleTabChange} />
-                {!hasVersion ? (
-                  <EstimateWorkspaceEmptyState
-                    title={NO_VERSION_MESSAGE}
-                    body="When a version is saved, summary totals will appear here."
-                  />
-                ) : (
-                  <div>
-                    <h2 className={`mb-3 ${PLANNER_SECTION_TITLE}`}>Summary</h2>
-                    <SummaryCardsGrid version={version} />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'line-items' && (
-              <div className="space-y-4">
-                {hasVersion && estimate ? (
-                  <EstimateLineItemsBuilderPanel
-                    estimate={estimate}
-                    version={version}
-                    canEdit={hasEstimate && hasVersion}
-                    canSave={canSave}
-                    saving={saving}
-                    draft={lineItemDraft}
-                    setup={estimateSetup}
-                    projectLocationLabel={project?.locationLabel}
-                    projectScopeContext={projectScopeContext}
-                    onSave={handleSaveEstimate}
-                    onResetEstimate={handleResetEstimate}
-                    onSaveQuick={handleSaveQuickEstimate}
-                  />
-                ) : (
-                  <>
-                    <h2 className={PLANNER_SECTION_TITLE}>Estimate</h2>
-                    <EstimateWorkspaceEmptyState
-                      title={NO_VERSION_MESSAGE}
-                      body="Work breakdown divisions and activities are stored on estimate versions and will display here once a version exists."
-                    />
-                  </>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'schedule-preview' && estimate ? (
-              <div className="space-y-4">
-                {version && shouldShowRoughSchedulePreviewNote(version.estimateType) ? (
-                  <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
-                    <p className={PLANNER_MUTED}>{ROUGH_SCHEDULE_PREVIEW_NOTE}</p>
-                  </div>
-                ) : null}
-                <EstimateSchedulePreviewPanel
-                  version={hasVersion ? version : null}
-                  plan={schedulePlan}
-                  datePlanResult={scheduleDatePlanResult}
-                  planControls={schedulePlanControls}
-                  onPlanControlsChange={handleSchedulePlanControlsChange}
-                  loading={dataLoading}
-                />
-              </div>
-            ) : null}
-
-            {activeTab === 'gantt-preview' && estimate ? (
-              <EstimateGanttPreview
-                datePlanResult={scheduleDatePlanResult}
-                loading={dataLoading}
-              />
-            ) : null}
-
-            {activeTab === 'versions' && (
-              <EstimateVersionHistoryList
-                items={versionHistoryItems}
-                loading={dataLoading}
-                currentVersion={
-                  version
-                    ? {
-                        versionName: version.versionName,
-                        versionNumber: version.versionNumber,
-                        lineItemCount: version.lineItems.length,
-                        totalSellPrice: workspaceSummaryValues.totalEstimate,
-                      }
-                    : null
-                }
-              />
-            )}
-
-            {activeTab === 'totals' && (
-              <EstimateTotalsReviewPanel version={hasVersion ? version : null} loading={dataLoading} />
-            )}
-          </>
+        {!loadError && showEstimateBuilder && estimate && hasEstimateAdapter ? (
+          <EstimateLineItemsBuilderPanel
+            estimate={estimate}
+            version={estimateAdapter}
+            canEdit={hasEstimate && hasEstimateAdapter}
+            saving={saving}
+            draft={lineItemDraft}
+            setup={estimateSetup}
+            projectLocationLabel={project?.locationLabel}
+            projectScopeContext={projectScopeContext}
+            autoOpenScopeModalKey={autoOpenScopeModalKey}
+            onAutoOpenScopeModalConsumed={() => setAutoOpenScopeModalKey(null)}
+            onSaveQuick={handleSaveQuickEstimate}
+            persistedSelectedDivisions={currentEstimate?.selectedDivisions ?? []}
+            onSaveSelectedDivisions={handleSaveSelectedDivisions}
+            onToolbarHandlersChange={setBuilderToolbarHandlers}
+          />
         ) : null}
+
+        {!loadError && !dataLoading && activeTab === 'schedule-preview' ? (
+          hasEstimate && estimate ? (
+            <div className="space-y-4">
+              {estimateAdapter && shouldShowRoughSchedulePreviewNote(estimateAdapter.estimateType) ? (
+                <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
+                  <p className={PLANNER_MUTED}>{ROUGH_SCHEDULE_PREVIEW_NOTE}</p>
+                </div>
+              ) : null}
+              <EstimateSchedulePreviewPanel
+                version={hasEstimateAdapter ? estimateAdapter : null}
+                plan={schedulePlan}
+                datePlanResult={scheduleDatePlanResult}
+                planControls={schedulePlanControls}
+                onPlanControlsChange={handleSchedulePlanControlsChange}
+                loading={dataLoading}
+              />
+            </div>
+          ) : (
+            <EstimateWorkspaceEmptyState
+              title="No estimate started"
+              body={TAB_NO_ESTIMATE_MESSAGE}
+            />
+          )
+        ) : null}
+
+        {!loadError && !dataLoading && activeTab === 'gantt-preview' ? (
+          hasEstimate ? (
+            <EstimateGanttPreview datePlanResult={scheduleDatePlanResult} loading={dataLoading} />
+          ) : (
+            <EstimateWorkspaceEmptyState
+              title="No estimate started"
+              body={TAB_NO_ESTIMATE_MESSAGE}
+            />
+          )
+        ) : null}
+
+        </div>
       </div>
-    </div>
+      <EstimateResetSetupConfirmModal
+        isOpen={resetModalOpen}
+        hasSavedActivities={(estimateAdapter?.lineItems.length ?? 0) > 0}
+        onClose={() => setResetModalOpen(false)}
+        onConfirm={handleConfirmResetSetup}
+      />
+      <EstimateWorkspaceToast
+        message={saveToastMessage}
+        onDismiss={() => setSaveToastMessage(null)}
+      />
+    </>
   );
 }

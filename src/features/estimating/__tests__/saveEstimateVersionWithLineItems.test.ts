@@ -139,6 +139,116 @@ describe('saveEstimateVersionWithLineItems', () => {
     });
   });
 
+  it('preserves selected divisions with no line items in the saved snapshot', async () => {
+    const listEstimateVersions = vi.fn(async () =>
+      success([versionRow(1), versionRow(2)]),
+    );
+    const createEstimateVersion = vi.fn(async () => success(versionRow(3, 'ver-new')));
+    const insertEstimateLineItems = vi.fn(async () =>
+      success([{ id: 'line-1' } as EstimateLineItemRow]),
+    );
+    const updateEstimateCurrentVersion = vi.fn(async () =>
+      success({ id: 'est-1', currentVersionId: 'ver-new' } as EstimateSummary),
+    );
+
+    const result = await saveEstimateVersionWithLineItems(
+      {
+        estimateId: 'est-1',
+        projectId: 'proj-1',
+        currentVersion,
+        draftLines: [buildPopulatedDraft()],
+        selectedDivisions: [
+          {
+            code: '01',
+            name: 'General Requirements',
+            source: 'ai',
+            confidence: 0.9,
+            reason: 'The scope describes a construction project.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '02',
+            name: 'Existing Conditions',
+            source: 'ai',
+            confidence: 0.9,
+            reason: 'Existing conditions are implied.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '03',
+            name: 'Concrete',
+            source: 'ai',
+            confidence: 0.95,
+            reason: 'Concrete slab is directly named.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '06',
+            name: 'Wood, Plastics, and Composites',
+            source: 'ai',
+            confidence: 0.78,
+            reason: 'Building work implies this division.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '09',
+            name: 'Finishes',
+            source: 'ai',
+            confidence: 0.78,
+            reason: 'Finishes are implied.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '22',
+            name: 'Plumbing',
+            source: 'ai',
+            confidence: 0.88,
+            reason: 'Plumbing is directly named.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '23',
+            name: 'HVAC',
+            source: 'ai',
+            confidence: 0.86,
+            reason: 'HVAC is directly named.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+          {
+            code: '32',
+            name: 'Exterior Improvements',
+            source: 'ai',
+            confidence: 0.74,
+            reason: 'Site paving is directly named.',
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      },
+      {
+        listEstimateVersions,
+        createEstimateVersion,
+        insertEstimateLineItems,
+        updateEstimateCurrentVersion,
+      },
+    );
+
+    expect(result.error).toBeNull();
+    const createArg = createEstimateVersion.mock.calls[0][0];
+    expect(createArg.snapshot.selectedDivisions.map((division: { code: string }) => division.code)).toEqual([
+      '01',
+      '02',
+      '03',
+      '06',
+      '09',
+      '22',
+      '23',
+      '32',
+    ]);
+    expect(createArg.snapshot.lineItems.map((line: { csiDivision?: string }) => line.csiDivision)).toEqual([
+      '03',
+    ]);
+  });
+
   it('returns error and does not create version when draftLines is empty', async () => {
     const createEstimateVersion = vi.fn();
 

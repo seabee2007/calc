@@ -18,6 +18,8 @@ interface Props {
   onDuplicateDraft?: (clientId: string) => void;
   onMoveDraftUp?: (clientId: string) => void;
   onMoveDraftDown?: (clientId: string) => void;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
   defaultOpen?: boolean;
 }
 
@@ -31,6 +33,8 @@ export default function EstimateDivisionBucketRow({
   onDuplicateDraft,
   onMoveDraftUp,
   onMoveDraftDown,
+  isOpen,
+  onOpenChange,
   defaultOpen = true,
 }: Props) {
   const divisionDraftLines = filterDraftLinesForDivision(draftLines, bucket.code);
@@ -41,6 +45,8 @@ export default function EstimateDivisionBucketRow({
       level="division"
       title={bucket.label}
       rollup={bucket.rollup}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
       defaultOpen={defaultOpen}
     >
       <div className="space-y-3">

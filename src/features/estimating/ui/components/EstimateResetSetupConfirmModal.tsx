@@ -2,7 +2,6 @@ import Modal from '../../../../components/ui/Modal';
 import Button from '../../../../components/ui/Button';
 import {
   ESTIMATE_SETUP_RESET_REPLACE_NOTE,
-  ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE,
 } from '../../application/estimateStartFlow';
 import { PLANNER_MUTED, TEXT_BODY } from '../estimateWorkspaceTheme';
 
@@ -23,11 +22,9 @@ export default function EstimateResetSetupConfirmModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Reset estimate setup?" size="md">
       <div className="space-y-4">
         <p className={`text-sm ${TEXT_BODY}`}>
-          This will clear the current estimate setup for this project so you can choose a different
-          estimate type. Saved estimate versions will remain in version history.
+          This will clear the current estimate for this project so you can choose a different
+          estimate type.
         </p>
-
-        <p className={`text-xs ${PLANNER_MUTED}`}>{ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE}</p>
 
         {hasSavedActivities ? (
           <p className={`text-xs ${PLANNER_MUTED}`}>{ESTIMATE_SETUP_RESET_REPLACE_NOTE}</p>

@@ -1,62 +1,63 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Play, RotateCcw, Save } from 'lucide-react';
+import { AlertTriangle, Play } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import DrawerPanel from '../../../../components/ui/DrawerPanel';
 import { PLANNER_DRAWER_FOOTER } from '../../../../components/planner/plannerTheme';
 import type { EstimateDomainVersion, EstimateSummary } from '../../infrastructure/estimateDbTypes';
 import { normalizeEstimateMethod } from '../../domain/estimateMethods';
-import { computeDraftSummaryTotals } from '../estimateFormDefaults';
 import type { EstimateLineItemsFilter } from '../../domain/estimateLineItemTree';
+import {
+  buildBuilderFilterGroups,
+  buildCollapsedDivisionCodes,
+  getVisibleBreakdownDivisions,
+} from '../../application/estimateBuilderFilters';
 import {
   filterGroupedEstimateLines,
   groupEstimateTasks,
 } from '../../application/estimateLineItemGrouping';
 import {
+  buildSelectedDivisionsFromCodes,
   inferDivisionCodesFromItems,
   mergeDivisionBucketsWithActivities,
-  normalizeSelectedDivisionCodes,
+  normalizeSelectedDivisions,
+  selectedDivisionsFromSnapshot,
 } from '../../application/estimateWorkBreakdown';
 import {
-  canResetEstimateSetup,
   ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE,
   getEstimateTabHelperText,
   shouldOpenBuildScopeModal,
   shouldShowActivityWorkflow,
-  shouldShowDivisionBucketPanel,
-  shouldShowEstimateTypeSelector,
   shouldShowQuickFeasibilityPanel,
   shouldShowSavedActivities,
+  supportsActivityWorkflow,
 } from '../../application/estimateStartFlow';
+import { shouldShowEstimateBuilderHelperText } from '../estimateBuilderUi';
+import {
+  mergePersistedAndSessionDivisionCodes,
+  shouldShowBuilderDivisionBuckets,
+} from '../estimateWorkspaceRenderRules';
 import type { UseEstimateSetupSessionResult } from '../hooks/useEstimateSetupSession';
 import type { UseEstimateLineItemDraftResult } from '../hooks/useEstimateLineItemDraft';
 import EstimateManualLineItemForm from './EstimateManualLineItemForm';
 import EstimateLineItemPreviewCard from './EstimateLineItemPreviewCard';
 import EstimateReadOnlyLineItemsTable from './EstimateReadOnlyLineItemsTable';
-import EstimateSummaryCard from './EstimateSummaryCard';
 import EstimateLineItemsFilterBar from './EstimateLineItemsFilterBar';
 import EstimateDivisionBucketList from './EstimateDivisionBucketList';
 import EstimateStartScopeModal, {
   type EstimateStartScopeProjectContext,
 } from './EstimateStartScopeModal';
-import EstimateResetSetupConfirmModal from './EstimateResetSetupConfirmModal';
 import EstimateQuickFeasibilityPanel from './EstimateQuickFeasibilityPanel';
-import EstimateMethodSelector from './EstimateMethodSelector';
+import type { EstimateBuilderToolbarHandlers } from '../estimateWorkspaceToolbar';
 import { formatEstimateMethodLabel } from '../estimateMethodDisplay';
-import { formatDraftSummaryStrip } from '../estimateLineItemDisplay';
+import type { EstimateSelectedDivision } from '../../domain/estimateTypes';
 import type {
   QuickFeasibilityInputs,
   QuickFeasibilityResult,
 } from '../../application/estimateQuickFeasibility';
 import { quickFeasibilityInputsFromSnapshot } from '../../application/estimateQuickFeasibility';
 import {
-  formatEstimateCurrency,
-  formatEstimateHours,
-  formatEstimateNumber,
-} from '../estimateFormatters';
-import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
-  PLANNER_SECTION_TITLE,
   TEXT_BODY,
   TEXT_FOREGROUND,
 } from '../estimateWorkspaceTheme';
@@ -65,18 +66,20 @@ interface Props {
   estimate: EstimateSummary;
   version: EstimateDomainVersion;
   canEdit: boolean;
-  canSave: boolean;
   saving: boolean;
   draft: UseEstimateLineItemDraftResult;
   setup: UseEstimateSetupSessionResult;
   projectLocationLabel?: string;
   projectScopeContext?: EstimateStartScopeProjectContext | null;
-  onSave: () => void;
-  onResetEstimate: () => Promise<boolean>;
+  autoOpenScopeModalKey?: string | null;
+  onAutoOpenScopeModalConsumed?: () => void;
   onSaveQuick: (payload: {
     inputs: QuickFeasibilityInputs;
     result: QuickFeasibilityResult;
   }) => void;
+  persistedSelectedDivisions?: readonly EstimateSelectedDivision[];
+  onSaveSelectedDivisions?: (divisions: EstimateSelectedDivision[]) => Promise<void>;
+  onToolbarHandlersChange?: (handlers: EstimateBuilderToolbarHandlers | null) => void;
 }
 
 const EMPTY_FILTER: EstimateLineItemsFilter = { divisionKey: null, scopeKey: null };
@@ -85,56 +88,93 @@ export default function EstimateLineItemsBuilderPanel({
   estimate: _estimate,
   version,
   canEdit,
-  canSave,
   saving,
   draft,
   setup,
   projectLocationLabel,
   projectScopeContext = null,
-  onSave,
-  onResetEstimate,
+  autoOpenScopeModalKey = null,
+  onAutoOpenScopeModalConsumed,
   onSaveQuick,
+  persistedSelectedDivisions = [],
+  onSaveSelectedDivisions,
+  onToolbarHandlersChange,
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
   const [scopeModalOpen, setScopeModalOpen] = useState(false);
-  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [collapsedDivisionCodes, setCollapsedDivisionCodes] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [quickPreview, setQuickPreview] = useState<{
     inputs: QuickFeasibilityInputs;
     result: QuickFeasibilityResult;
   } | null>(null);
 
-  const hydratedVersionIdRef = useRef(version.id);
+  const hydratedVersionIdRef = useRef<string | null>(null);
+  const consumedAutoOpenScopeKeyRef = useRef<string | null>(null);
   const { session, quickPanelResetKey } = setup;
 
   useEffect(() => {
-    if (!shouldShowActivityWorkflow(session)) return;
-
     const inferred = inferDivisionCodesFromItems(draft.draftLines, version.lineItems);
+    const selectedFromSnapshot = selectedDivisionsFromSnapshot(version.snapshot);
+    const selectedForVersion = normalizeSelectedDivisions([
+      ...selectedFromSnapshot,
+      ...buildSelectedDivisionsFromCodes(inferred, { source: 'inferred' }),
+    ]);
+    const savedType = normalizeEstimateMethod(version.estimateType);
 
     if (hydratedVersionIdRef.current !== version.id) {
       hydratedVersionIdRef.current = version.id;
-      setup.setSelectedDivisionCodes(inferred);
+      setup.restoreSavedSetup(savedType, selectedForVersion);
+      setCollapsedDivisionCodes(new Set(selectedForVersion.map((division) => division.code)));
+      setFilter(EMPTY_FILTER);
       return;
     }
 
-    setup.mergeDivisionCodes(inferred);
+    const sessionSupportsActivityWorkflow =
+      session.estimateSetupStarted &&
+      session.activeStartMode !== 'quick' &&
+      supportsActivityWorkflow(session.selectedEstimateType);
+    if (!sessionSupportsActivityWorkflow) return;
+    const missingInferredCodes = inferred.filter(
+      (code) => !session.selectedDivisionCodes.includes(code),
+    );
+    if (missingInferredCodes.length > 0) {
+      setup.mergeDivisionCodes(missingInferredCodes);
+    }
   }, [
     version.id,
     draft.draftLines,
     version.lineItems,
-    session,
-    setup.setSelectedDivisionCodes,
+    version.snapshot,
+    version.estimateType,
+    version.totals.quickFeasibility,
+    session.estimateSetupStarted,
+    session.activeStartMode,
+    session.selectedEstimateType,
+    session.selectedDivisionCodes,
+    setup.restoreSavedSetup,
+    setup.setSelectedDivisions,
     setup.mergeDivisionCodes,
   ]);
+
+  const selectedDivisionCodes = useMemo(
+    () =>
+      mergePersistedAndSessionDivisionCodes(
+        persistedSelectedDivisions,
+        session.selectedDivisionCodes,
+      ),
+    [persistedSelectedDivisions, session.selectedDivisionCodes],
+  );
 
   const workBreakdown = useMemo(
     () =>
       mergeDivisionBucketsWithActivities(
-        [...session.selectedDivisionCodes],
+        selectedDivisionCodes,
         draft.draftLines,
         version.lineItems,
       ),
-    [session.selectedDivisionCodes, draft.draftLines, version.lineItems],
+    [selectedDivisionCodes, draft.draftLines, version.lineItems],
   );
 
   const savedGroups = useMemo(
@@ -147,12 +187,16 @@ export default function EstimateLineItemsBuilderPanel({
     [savedGroups, filter],
   );
 
-  const filterSourceGroups = useMemo(() => [...savedGroups], [savedGroups]);
-
-  const draftSummaryTotals = useMemo(
-    () => computeDraftSummaryTotals(draft.draftLines),
-    [draft.draftLines],
+  const filterSourceGroups = useMemo(
+    () => buildBuilderFilterGroups(workBreakdown, draft.draftLines),
+    [workBreakdown, draft.draftLines],
   );
+
+  const visibleBreakdownDivisions = useMemo(
+    () => getVisibleBreakdownDivisions(workBreakdown, draft.draftLines, filter),
+    [workBreakdown, draft.draftLines, filter],
+  );
+
   const savedQuickInputs = useMemo(
     () =>
       version.estimateType === 'quick_feasibility'
@@ -161,49 +205,73 @@ export default function EstimateLineItemsBuilderPanel({
     [version.estimateType, version.snapshot],
   );
 
-  const draftSummary = useMemo(() => {
-    const totals = draftSummaryTotals;
-    return {
-      lineCount: String(totals.lineCount),
-      laborHours:
-        totals.laborHours > 0 ? formatEstimateHours(totals.laborHours) : '—',
-      manDays: totals.manDays > 0 ? formatEstimateNumber(totals.manDays, { decimals: 2 }) : '—',
-      crewDays: totals.crewDays > 0 ? formatEstimateNumber(totals.crewDays, { decimals: 2 }) : '—',
-      sellPrice: totals.sellPrice > 0 ? formatEstimateCurrency(totals.sellPrice) : '—',
-    };
-  }, [draftSummaryTotals]);
-
   const drawerTitle = draft.editingClientId ? 'Edit activity' : 'Add activity';
   const hasSavedActivities = version.lineItems.length > 0;
-  const hasDraftActivities = draft.draftLines.length > 0;
-  const showTypeSelector = shouldShowEstimateTypeSelector(session);
   const showQuickFeasibilityPanel = shouldShowQuickFeasibilityPanel(session);
   const showActivityWorkflow = shouldShowActivityWorkflow(session);
-  const showBucketPanel = shouldShowDivisionBucketPanel(session);
+  const showBucketPanel = shouldShowBuilderDivisionBuckets(
+    showActivityWorkflow,
+    persistedSelectedDivisions,
+    session.selectedDivisionCodes,
+  );
   const showSavedActivitiesSection = shouldShowSavedActivities(session) && hasSavedActivities;
-  const showResetButton = canEdit && canResetEstimateSetup(session);
   const canSaveQuick = showQuickFeasibilityPanel && quickPreview?.result.isValid && !saving;
+  const showBuildScopePrompt =
+    showActivityWorkflow &&
+    !showBucketPanel &&
+    shouldOpenBuildScopeModal(session.selectedEstimateType);
 
-  const handleCreateWorkBreakdown = (codes: string[]) => {
-    setup.setSelectedDivisionCodes(normalizeSelectedDivisionCodes(codes));
-  };
+  useEffect(() => {
+    if (!autoOpenScopeModalKey) return;
+    if (consumedAutoOpenScopeKeyRef.current === autoOpenScopeModalKey) return;
+    if (!showBuildScopePrompt) return;
 
-  const handleStartEstimate = () => {
-    const type = session.selectedEstimateType;
-    setup.startSetup(type);
-    if (shouldOpenBuildScopeModal(type)) {
-      setScopeModalOpen(true);
+    consumedAutoOpenScopeKeyRef.current = autoOpenScopeModalKey;
+    setScopeModalOpen(true);
+    onAutoOpenScopeModalConsumed?.();
+  }, [autoOpenScopeModalKey, onAutoOpenScopeModalConsumed, showBuildScopePrompt]);
+
+  const handleCreateWorkBreakdown = async (divisions: EstimateSelectedDivision[]) => {
+    const selectedDivisions = normalizeSelectedDivisions(divisions);
+    setup.setSelectedDivisions(selectedDivisions);
+    setCollapsedDivisionCodes(new Set(selectedDivisions.map((division) => division.code)));
+    setScopeModalOpen(false);
+    if (onSaveSelectedDivisions) {
+      await onSaveSelectedDivisions(selectedDivisions);
     }
   };
 
-  const handleConfirmResetSetup = async () => {
-    const didReset = await onResetEstimate();
-    if (!didReset) return;
-    setup.resetSetup(normalizeEstimateMethod(version.estimateType));
-    setQuickPreview(null);
-    draft.resetDraftSetup();
-    setResetModalOpen(false);
-  };
+  const handleDivisionCollapsedChange = useCallback((code: string, collapsed: boolean) => {
+    setCollapsedDivisionCodes((current) => {
+      const next = new Set(current);
+      if (collapsed) {
+        next.add(code);
+      } else {
+        next.delete(code);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleAddActivityForDivision = useCallback(
+    (divisionCode: string) => {
+      handleDivisionCollapsedChange(divisionCode, false);
+      draft.openAddDrawerForDivision(divisionCode);
+    },
+    [draft, handleDivisionCollapsedChange],
+  );
+
+  const handleEditDraft = useCallback(
+    (clientId: string) => {
+      const line = draft.draftLines.find((draftLine) => draftLine.clientId === clientId);
+      const divisionCode = line?.task.lineItem.csiDivision;
+      if (divisionCode) {
+        handleDivisionCollapsedChange(divisionCode, false);
+      }
+      draft.openEditDrawer(clientId);
+    },
+    [draft, handleDivisionCollapsedChange],
+  );
 
   const handleQuickPreviewChange = useCallback(
     (inputs: QuickFeasibilityInputs, result: QuickFeasibilityResult) => {
@@ -211,6 +279,38 @@ export default function EstimateLineItemsBuilderPanel({
     },
     [],
   );
+
+  const handleCollapseAll = useCallback(() => {
+    setCollapsedDivisionCodes(
+      buildCollapsedDivisionCodes(workBreakdown.divisions.map((division) => division.code)),
+    );
+  }, [workBreakdown.divisions]);
+
+  const handleSaveQuickFromToolbar = useCallback(() => {
+    if (!quickPreview) return;
+    onSaveQuick(quickPreview);
+  }, [onSaveQuick, quickPreview]);
+
+  useEffect(() => {
+    if (!onToolbarHandlersChange) return;
+
+    onToolbarHandlersChange({
+      showCollapseAll: showBucketPanel,
+      showSaveQuick: showQuickFeasibilityPanel,
+      canSaveQuick,
+      collapseAll: handleCollapseAll,
+      saveQuick: handleSaveQuickFromToolbar,
+    });
+
+    return () => onToolbarHandlersChange(null);
+  }, [
+    onToolbarHandlersChange,
+    showBucketPanel,
+    showQuickFeasibilityPanel,
+    canSaveQuick,
+    handleCollapseAll,
+    handleSaveQuickFromToolbar,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -220,95 +320,34 @@ export default function EstimateLineItemsBuilderPanel({
           role="status"
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <p>Unsaved changes — save to create a new estimate version without changing prior versions.</p>
+          <p>Unsaved changes. Save to update the current project estimate.</p>
         </div>
       ) : null}
 
-      <div className="space-y-1">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className={PLANNER_SECTION_TITLE}>Estimate</h2>
-          <div className="flex flex-wrap gap-2">
-            {showResetButton ? (
-              <Button
-                variant="outline"
-                size="sm"
-                icon={<RotateCcw className="h-4 w-4" />}
-                disabled={!canEdit}
-                className="border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50 dark:border-red-900/60 dark:text-red-300 dark:hover:bg-red-950/40"
-                onClick={() => setResetModalOpen(true)}
-              >
-                Reset estimate setup
-              </Button>
-            ) : null}
-            {showQuickFeasibilityPanel ? (
-              <Button
-                variant="outline"
-                size="sm"
-                icon={<Save className="h-4 w-4" />}
-                disabled={!canEdit || !canSaveQuick}
-                isLoading={saving}
-                title={
-                  quickPreview?.result.isValid
-                    ? 'Save quick feasibility result as a new estimate version'
-                    : 'Enter valid quick feasibility inputs before saving'
-                }
-                onClick={() => {
-                  if (!quickPreview) return;
-                  onSaveQuick(quickPreview);
-                }}
-              >
-                {saving ? 'Saving...' : 'Save quick estimate'}
-              </Button>
-            ) : null}
-            {showBucketPanel ? (
-              <Button
-                variant="outline"
-                size="sm"
-                icon={<Save className="h-4 w-4" />}
-                disabled={!canSave || saving}
-                isLoading={saving}
-                title={
-                  canSave
-                    ? 'Save draft activities as a new estimate version'
-                    : 'Add draft activities and make changes to enable save'
-                }
-                onClick={onSave}
-              >
-                {saving ? 'Saving...' : 'Save estimate'}
-              </Button>
-            ) : null}
-          </div>
-        </div>
+      {shouldShowEstimateBuilderHelperText({
+        showQuickFeasibilityPanel,
+        showBucketPanel,
+      }) ? (
         <p className={`text-sm ${PLANNER_MUTED}`}>{getEstimateTabHelperText(session)}</p>
-      </div>
+      ) : null}
 
-      {showTypeSelector ? (
-        <div className="space-y-4">
-          <div className={`${PLANNER_FORM_PANEL} space-y-2`}>
-            <h3 className={`text-base font-semibold ${TEXT_FOREGROUND}`}>Start your estimate</h3>
-            <p className={`text-sm ${PLANNER_MUTED}`}>
-              Choose the estimate type first. You can start with a quick rough number or build a
-              detailed work breakdown for bid-level estimating.
+      {showBuildScopePrompt ? (
+        <div className={`${PLANNER_FORM_PANEL} space-y-3`}>
+          <div>
+            <h3 className={`text-base font-semibold ${TEXT_FOREGROUND}`}>Build project scope</h3>
+            <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
+              Choose the divisions of work for this estimate. Empty selected divisions will be saved
+              even before activities are added.
             </p>
-            {hasSavedActivities ? (
-              <p className={`text-xs ${PLANNER_MUTED}`}>{ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE}</p>
-            ) : null}
           </div>
-
-          <EstimateMethodSelector
-            value={session.selectedEstimateType}
-            onChange={setup.setSelectedEstimateType}
-            disabled={!canEdit}
-          />
-
           <Button
             variant="accent"
             size="sm"
             icon={<Play className="h-4 w-4" />}
             disabled={!canEdit}
-            onClick={handleStartEstimate}
+            onClick={() => setScopeModalOpen(true)}
           >
-            Start Estimate
+            Build Project Scope
           </Button>
         </div>
       ) : null}
@@ -335,7 +374,7 @@ export default function EstimateLineItemsBuilderPanel({
 
       {showBucketPanel ? (
         <>
-          {(hasDraftActivities || hasSavedActivities) && filterSourceGroups.length > 0 ? (
+          {filterSourceGroups.length > 0 ? (
             <EstimateLineItemsFilterBar
               groups={filterSourceGroups}
               filter={filter}
@@ -343,35 +382,19 @@ export default function EstimateLineItemsBuilderPanel({
             />
           ) : null}
 
-          {draft.draftLines.length > 0 ? (
-            <div
-              className={`rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/50 ${TEXT_FOREGROUND}`}
-            >
-              <p className="font-medium">{formatDraftSummaryStrip(draftSummaryTotals)}</p>
-            </div>
-          ) : null}
-
           <EstimateDivisionBucketList
-            breakdown={workBreakdown}
+            divisions={visibleBreakdownDivisions}
             draftLines={draft.draftLines}
+            collapsedDivisionCodes={collapsedDivisionCodes}
             canEdit={canEdit}
-            onAddActivity={draft.openAddDrawerForDivision}
-            onEditDraft={draft.openEditDrawer}
+            onDivisionCollapsedChange={handleDivisionCollapsedChange}
+            onAddActivity={handleAddActivityForDivision}
+            onEditDraft={handleEditDraft}
             onRemoveDraft={draft.removeDraftLine}
             onDuplicateDraft={draft.duplicateDraftLine}
             onMoveDraftUp={draft.moveDraftLineUp}
             onMoveDraftDown={draft.moveDraftLineDown}
           />
-
-          {draft.draftLines.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              <EstimateSummaryCard label="Total draft activities" value={draftSummary.lineCount} />
-              <EstimateSummaryCard label="Total labor hours" value={draftSummary.laborHours} />
-              <EstimateSummaryCard label="Total man-days" value={draftSummary.manDays} />
-              <EstimateSummaryCard label="Total crew-days" value={draftSummary.crewDays} />
-              <EstimateSummaryCard label="Total sell price" value={draftSummary.sellPrice} />
-            </div>
-          ) : null}
         </>
       ) : null}
 
@@ -391,13 +414,6 @@ export default function EstimateLineItemsBuilderPanel({
         projectContext={projectScopeContext}
         onClose={() => setScopeModalOpen(false)}
         onCreate={handleCreateWorkBreakdown}
-      />
-
-      <EstimateResetSetupConfirmModal
-        isOpen={resetModalOpen}
-        hasSavedActivities={hasSavedActivities}
-        onClose={() => setResetModalOpen(false)}
-        onConfirm={handleConfirmResetSetup}
       />
 
       <DrawerPanel

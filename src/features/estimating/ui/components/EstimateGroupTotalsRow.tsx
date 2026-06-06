@@ -20,6 +20,8 @@ interface Props {
   title: string;
   rollup: EstimateGroupRollup;
   level: 'division' | 'scope';
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
   defaultOpen?: boolean;
   children?: ReactNode;
 }
@@ -28,10 +30,13 @@ export default function EstimateGroupTotalsRow({
   title,
   rollup,
   level,
+  isOpen,
+  onOpenChange,
   defaultOpen = true,
   children,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(defaultOpen);
+  const expanded = isOpen ?? isExpanded;
 
   const rollupLabel =
     level === 'division'
@@ -49,16 +54,20 @@ export default function EstimateGroupTotalsRow({
 
   return (
     <details
-      open={isExpanded}
+      open={expanded}
       className={detailsClass}
       onToggle={(event) => {
-        setIsExpanded(event.currentTarget.open);
+        const nextOpen = event.currentTarget.open;
+        if (isOpen == null) {
+          setIsExpanded(nextOpen);
+        }
+        onOpenChange?.(nextOpen);
       }}
     >
       <summary
         className={`flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden ${summarySurfaceClass} ${TEXT_FOREGROUND}`}
       >
-        {isExpanded ? (
+        {expanded ? (
           <ChevronDown
             className="h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-slate-300"
             aria-hidden

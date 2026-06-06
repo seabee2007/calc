@@ -1,6 +1,4 @@
 import { format } from 'date-fns';
-import { Plus } from 'lucide-react';
-import Button from '../../../../components/ui/Button';
 import FieldRecordStatusBadge from '../../../../components/field/FieldRecordStatusBadge';
 import type { EstimateDomainVersion, EstimateSummary } from '../../infrastructure/estimateDbTypes';
 import { ESTIMATE_BLANK, formatEstimateBlank, formatEstimateCurrency } from '../estimateFormatters';
@@ -21,10 +19,7 @@ interface Props {
   laborHoursDisplay?: string;
   plannedDurationDisplay?: string | null;
   hasEstimate?: boolean;
-  creating?: boolean;
-  dataLoading?: boolean;
   draftDirty?: boolean;
-  onCreateEstimate?: () => void;
 }
 
 function VersionMetaLine({ version }: { version: EstimateDomainVersion }) {
@@ -73,12 +68,8 @@ export default function EstimateWorkspaceHeader({
   laborHoursDisplay,
   plannedDurationDisplay = null,
   hasEstimate = false,
-  creating = false,
-  dataLoading = false,
   draftDirty = false,
-  onCreateEstimate,
 }: Props) {
-  const createLabel = creating ? 'Creating...' : hasEstimate ? 'Estimate exists' : 'Create estimate';
   const estimateType = version?.estimateType ?? null;
   const resolvedTotalPrice =
     totalPriceDisplay ??
@@ -90,21 +81,10 @@ export default function EstimateWorkspaceHeader({
 
   if (!hasEstimate) {
     return (
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4">
         <p className={`text-sm ${PLANNER_MUTED}`}>
-          Select an estimate method below, then create the draft.
+          No estimate has been started for this project yet.
         </p>
-        <Button
-          variant="accent"
-          size="sm"
-          icon={<Plus className="h-4 w-4" />}
-          disabled={creating || dataLoading || !onCreateEstimate}
-          isLoading={creating}
-          className="w-full shrink-0 sm:w-auto"
-          onClick={onCreateEstimate}
-        >
-          {createLabel}
-        </Button>
       </div>
     );
   }
@@ -150,7 +130,7 @@ export default function EstimateWorkspaceHeader({
         </dl>
       ) : (
         <p className={`mt-2 text-xs ${PLANNER_MUTED}`}>
-          No saved version yet. Start your estimate and save from the Estimate tab.
+          No saved estimate details yet. Start your estimate from the Estimate tab.
         </p>
       )}
     </div>

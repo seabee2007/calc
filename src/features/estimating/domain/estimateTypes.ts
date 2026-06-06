@@ -119,6 +119,17 @@ export interface EstimateSnapshotMeta {
   preparedAtIso: string;
 }
 
+export type EstimateSelectedDivisionSource = 'manual' | 'ai' | 'inferred';
+
+export interface EstimateSelectedDivision {
+  code: string;
+  name: string;
+  source: EstimateSelectedDivisionSource;
+  confidence?: number;
+  reason?: string;
+  createdAt: string;
+}
+
 export interface EstimateLineMetrics {
   baseQuantity: number;
   quantityWithWaste: number;
@@ -163,12 +174,14 @@ export interface EstimateSnapshotInput {
   meta: EstimateSnapshotMeta;
   pricing?: EstimatePricingInput;
   lineItems: EstimateLineItemInput[];
+  selectedDivisions?: EstimateSelectedDivision[];
 }
 
 export interface EstimateSnapshot {
   meta: EstimateSnapshotMeta;
   pricing: Required<EstimatePricingInput>;
   lineItems: EstimateLineSnapshot[];
+  selectedDivisions?: EstimateSelectedDivision[];
   totals: EstimateCostTotals;
   warnings: EstimateWarning[];
 }

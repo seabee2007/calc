@@ -28,7 +28,7 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
       <div>
         <h3 className={PLANNER_SECTION_TITLE}>Labor planning</h3>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Rolled up from activity metrics on the current saved version.
+          Rolled up from activity metrics on the current estimate.
         </p>
       </div>
 

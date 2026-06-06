@@ -7,8 +7,8 @@ interface Props {
 }
 
 export default function EstimateWorkspaceEmptyState({
-  title = 'No estimate saved for this project yet',
-  body = 'The estimating engine foundation is ready. The next phase will add estimate creation, work packages, activities, and version snapshots.',
+  title = 'No estimate has been started for this project yet',
+  body = 'Choose an estimate type and click Start Estimate.',
   variant = 'default',
 }: Props) {
   const panelClass =

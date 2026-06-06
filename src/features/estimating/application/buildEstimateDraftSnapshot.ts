@@ -7,6 +7,7 @@ import {
 import { normalizeEstimatePricingInput } from '../domain/estimateSnapshot';
 import type {
   EstimatePricingInput,
+  EstimateSelectedDivision,
   EstimateSnapshot,
   EstimateStatus,
   EstimateType,
@@ -19,6 +20,7 @@ export interface BuildEstimateDraftSnapshotParams {
   estimateType?: EstimateType;
   status?: EstimateStatus;
   draftLines: EstimateDraftLine[];
+  selectedDivisions?: EstimateSelectedDivision[];
   pricing?: EstimatePricingInput;
   currencyCode?: string;
 }
@@ -42,5 +44,6 @@ export function buildEstimateDraftSnapshot(
     },
     pricing,
     lineItems,
+    selectedDivisions: params.selectedDivisions,
   });
 }

@@ -70,6 +70,7 @@ describe('resetEstimateToBlankVersion', () => {
     const createArg = createEstimateVersion.mock.calls[0][0];
     expect(createArg.snapshot).toEqual(
       expect.objectContaining({
+        selectedDivisions: [],
         lineItems: [],
         totals: BLANK_ESTIMATE_TOTALS,
       }),

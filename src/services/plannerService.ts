@@ -58,17 +58,27 @@ function mapTask(row: Record<string, unknown>): PlannerTask {
   };
 }
 
-export async function ensurePlannerBoard(
-  projectId: string,
-  ownerId: string,
-): Promise<PlannerBoard> {
-  const { data: existing } = await supabase
+export function isPlannerBoardUniqueViolation(error: { code?: string } | null | undefined): boolean {
+  return error?.code === '23505';
+}
+
+export async function fetchPlannerBoardByProject(projectId: string): Promise<PlannerBoard | null> {
+  const { data, error } = await supabase
     .from('planner_boards')
     .select('*')
     .eq('project_id', projectId)
     .maybeSingle();
 
-  if (existing) return mapBoard(existing);
+  if (error) throw error;
+  return data ? mapBoard(data as Record<string, unknown>) : null;
+}
+
+export async function ensurePlannerBoard(
+  projectId: string,
+  ownerId: string,
+): Promise<PlannerBoard> {
+  const existing = await fetchPlannerBoardByProject(projectId);
+  if (existing) return existing;
 
   const { data: board, error: boardError } = await supabase
     .from('planner_boards')
@@ -80,7 +90,13 @@ export async function ensurePlannerBoard(
     .select('*')
     .single();
 
-  if (boardError) throw boardError;
+  if (boardError) {
+    if (isPlannerBoardUniqueViolation(boardError)) {
+      const racedBoard = await fetchPlannerBoardByProject(projectId);
+      if (racedBoard) return racedBoard;
+    }
+    throw boardError;
+  }
 
   const buckets = DEFAULT_BUCKET_TITLES.map((title, index) => ({
     board_id: board.id,
@@ -91,7 +107,7 @@ export async function ensurePlannerBoard(
   const { error: bucketError } = await supabase.from('planner_buckets').insert(buckets);
   if (bucketError) throw bucketError;
 
-  return mapBoard(board);
+  return mapBoard(board as Record<string, unknown>);
 }
 
 async function enrichTasks(tasks: PlannerTask[]): Promise<PlannerTask[]> {

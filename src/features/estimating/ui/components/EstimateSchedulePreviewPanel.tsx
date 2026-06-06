@@ -27,7 +27,7 @@ import EstimateSchedulePlanControls, {
 import EstimateSchedulePlanSummary from './EstimateSchedulePlanSummary';
 import EstimateDependencyPreviewPanel from './EstimateDependencyPreviewPanel';
 
-const NO_VERSION_MESSAGE = 'This estimate does not have a saved version yet.';
+const NO_VERSION_MESSAGE = 'This estimate does not have saved activity details yet.';
 
 const NO_SCHEDULABLE_MESSAGE =
   'No schedulable activities yet. Enable scheduling on activities to build a schedule preview.';
@@ -79,7 +79,7 @@ export default function EstimateSchedulePreviewPanel({
     return (
       <EstimateWorkspaceEmptyState
         title={NO_VERSION_MESSAGE}
-        body="Save an estimate version with activities to preview a draft schedule."
+        body="Save the current estimate with activities to preview a draft schedule."
       />
     );
   }
@@ -98,9 +98,8 @@ export default function EstimateSchedulePreviewPanel({
       <div>
         <h2 className={PLANNER_SECTION_TITLE}>Schedule preview</h2>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Planned dates from the current saved version
-          {version ? ` (v${version.versionNumber})` : ''}. Dates update automatically from activities
-          and planning controls below.
+          Planned dates from the current saved estimate. Dates update automatically from
+          activities and planning controls below.
         </p>
       </div>
 
