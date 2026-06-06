@@ -91,11 +91,45 @@ describe('saveQuickFeasibilityEstimate', () => {
         likelyTotal: payload.result.likelyTotal,
       }),
     );
+    expect(createArg.snapshot).toEqual(
+      expect.objectContaining({
+        type: 'quick_feasibility',
+        totals: expect.objectContaining({
+          totalEstimate: payload.result.breakdown.totals.totalEstimate,
+          laborCost: payload.result.breakdown.totals.laborCost,
+          materialCost: payload.result.breakdown.totals.materialCost,
+          equipmentCost: payload.result.breakdown.totals.equipmentCost,
+          profit: payload.result.breakdown.totals.profit,
+        }),
+        labor: expect.objectContaining({
+          laborHours: payload.result.breakdown.labor.laborHours,
+          manDays: payload.result.breakdown.labor.manDays,
+          crewDays: payload.result.breakdown.labor.crewDays,
+          estimatedCrewSize: payload.result.breakdown.labor.estimatedCrewSize,
+        }),
+        schedule: expect.objectContaining({
+          plannedDurationDays: payload.result.breakdown.schedule.plannedDurationDays,
+        }),
+        assumptions: expect.objectContaining({
+          materialPercent: 0.45,
+          laborPercent: 0.35,
+          equipmentPercent: 0.05,
+          overheadPercent: 0.1,
+          profitPercent: 0.1,
+        }),
+      }),
+    );
     expect(createArg.totals).toEqual(
       expect.objectContaining({
         finalSellPrice: payload.result.likelyTotal,
-        directCost: payload.result.adjustedCost,
-        contingency: payload.result.contingencyAmount,
+        laborCost: payload.result.breakdown.totals.laborCost,
+        materialCost: payload.result.breakdown.totals.materialCost,
+        equipmentCost: payload.result.breakdown.totals.equipmentCost,
+        profit: payload.result.breakdown.totals.profit,
+        laborHours: payload.result.breakdown.labor.laborHours,
+        manDays: payload.result.breakdown.labor.manDays,
+        crewDays: payload.result.breakdown.labor.crewDays,
+        plannedDurationDays: payload.result.breakdown.schedule.plannedDurationDays,
         quickFeasibility: true,
       }),
     );

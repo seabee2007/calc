@@ -12,6 +12,7 @@ import {
   formatEstimatePercent,
   laborHoursFromTask,
   lineDirectCostFromTask,
+  quickFeasibilityPlannedDurationDaysFromVersion,
 } from '../ui/estimateFormatters';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 
@@ -154,7 +155,7 @@ describe('estimateFormatters', () => {
     expect(summary.profit).toBe('$0.00');
   });
 
-  it('uses saved quick feasibility totals even though quick versions have no activities', () => {
+  it('uses saved quick feasibility breakdown even though quick versions have no activities', () => {
     const version: EstimateDomainVersion = {
       id: 'ver-quick',
       estimateId: 'est-1',
@@ -176,6 +177,25 @@ describe('estimateFormatters', () => {
         quickFeasibility: {
           likelyTotal: 125000,
         },
+        totals: {
+          totalEstimate: 125000,
+          materialCost: 52941.18,
+          laborCost: 41176.47,
+          equipmentCost: 5882.35,
+          overhead: 12500,
+          profit: 12500,
+        },
+        labor: {
+          laborHours: 633.48,
+          manDays: 79.19,
+          crewDays: 9.9,
+          estimatedCrewSize: 8,
+          hoursPerDay: 8,
+          fullyBurdenedLaborRate: 65,
+        },
+        schedule: {
+          plannedDurationDays: 10,
+        },
       },
       totals: {
         directCost: 110000,
@@ -195,9 +215,51 @@ describe('estimateFormatters', () => {
 
     const summary = buildWorkspaceSummaryValues(version);
     expect(summary.totalEstimate).toBe('$125,000.00');
+    expect(summary.laborHours).toBe('633.5 hr');
+    expect(summary.manDays).toBe('79.19');
+    expect(summary.crewDays).toBe('9.90');
+    expect(summary.materialCost).toBe('$52,941.18');
+    expect(summary.equipmentCost).toBe('$5,882.35');
+    expect(summary.profit).toBe('$12,500.00');
+    expect(quickFeasibilityPlannedDurationDaysFromVersion(version)).toBe(10);
+  });
+
+  it('clears quick feasibility summary values after reset', () => {
+    const version: EstimateDomainVersion = {
+      id: 'ver-reset-quick',
+      estimateId: 'est-1',
+      projectId: 'proj-1',
+      versionNumber: 4,
+      versionName: 'Reset Quick',
+      estimateType: 'quick_feasibility',
+      status: 'draft',
+      snapshot: {
+        meta: { reset: true },
+      },
+      totals: {
+        directCost: 0,
+        indirectCost: 0,
+        overhead: 0,
+        profit: 0,
+        contingency: 0,
+        tax: 0,
+        finalSellPrice: 0,
+      },
+      notes: null,
+      createdBy: null,
+      createdAt: '2026-06-04T00:00:00.000Z',
+      lineItems: [],
+      warnings: [],
+    };
+
+    const summary = buildWorkspaceSummaryValues(version);
+    expect(summary.totalEstimate).toBe('$0.00');
     expect(summary.laborHours).toBe('0.0 hr');
     expect(summary.manDays).toBe('0');
     expect(summary.crewDays).toBe('0');
+    expect(summary.materialCost).toBe(ESTIMATE_BLANK);
+    expect(summary.equipmentCost).toBe(ESTIMATE_BLANK);
+    expect(summary.profit).toBe('$0.00');
   });
 
   it('exposes empty draft JSON payloads', () => {

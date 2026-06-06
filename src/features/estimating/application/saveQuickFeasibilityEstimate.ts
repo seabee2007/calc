@@ -60,15 +60,25 @@ function buildQuickFeasibilitySnapshot(
   versionNumber: number,
 ): Record<string, unknown> {
   const location = getSquareFootPricingLocationByCode(params.inputs.locationCode);
+  const generatedAt = new Date().toISOString();
+  const breakdown = params.result.breakdown;
 
   return {
+    type: 'quick_feasibility',
     meta: {
       estimateId: params.estimateId,
       projectId: params.projectId,
       estimateType: 'quick_feasibility',
       status: 'draft',
       version: versionNumber,
+      generatedAt,
+      estimateMode: 'quick_feasibility',
     },
+    inputs: params.inputs,
+    totals: breakdown.totals,
+    labor: breakdown.labor,
+    schedule: breakdown.schedule,
+    assumptions: breakdown.assumptions,
     quickFeasibility: {
       projectType: params.inputs.projectType,
       locationCode: params.inputs.locationCode,
@@ -88,6 +98,10 @@ function buildQuickFeasibilitySnapshot(
       lowTotal: params.result.lowTotal,
       highTotal: params.result.highTotal,
       adjustedCostPerSf: params.result.adjustedCostPerSF,
+      totals: breakdown.totals,
+      labor: breakdown.labor,
+      schedule: breakdown.schedule,
+      breakdownAssumptions: breakdown.assumptions,
       assumptions: params.result.assumptions,
       warnings: params.result.warnings,
       locationPricing: location
@@ -112,11 +126,22 @@ function buildQuickFeasibilitySnapshot(
 function buildQuickFeasibilityTotals(
   result: QuickFeasibilityResult,
 ): Record<string, unknown> {
+  const { totals, labor, schedule } = result.breakdown;
   return {
-    finalSellPrice: result.likelyTotal,
-    totalEstimate: result.likelyTotal,
-    directCost: result.adjustedCost,
-    contingency: result.contingencyAmount,
+    finalSellPrice: totals.totalEstimate,
+    totalEstimate: totals.totalEstimate,
+    directCost: totals.materialCost + totals.laborCost + totals.equipmentCost,
+    laborCost: totals.laborCost,
+    materialCost: totals.materialCost,
+    equipmentCost: totals.equipmentCost,
+    overhead: totals.overhead,
+    profit: totals.profit,
+    contingency: 0,
+    laborHours: labor.laborHours,
+    manDays: labor.manDays,
+    crewDays: labor.crewDays,
+    estimatedCrewSize: labor.estimatedCrewSize,
+    plannedDurationDays: schedule.plannedDurationDays,
     quickFeasibility: true,
   };
 }

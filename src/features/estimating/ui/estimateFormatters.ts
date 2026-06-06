@@ -16,6 +16,12 @@ function toFiniteNumber(value: unknown): number | null {
   return null;
 }
 
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 export function formatEstimateTypeLabel(type: EstimateType): string {
   return type.replace(/_/g, ' ');
 }
@@ -117,6 +123,21 @@ export interface EstimateWorkspaceSummaryValues {
   profit: string;
 }
 
+export function quickFeasibilityPlannedDurationDaysFromVersion(
+  version: EstimateDomainVersion | null,
+): number | null {
+  if (!version || version.estimateType !== 'quick_feasibility') return null;
+  const snapshot = toRecord(version.snapshot);
+  const snapshotMeta = toRecord(snapshot.meta);
+  if (snapshotMeta.reset === true) return null;
+  const snapshotSchedule = toRecord(snapshot.schedule);
+  const versionTotals = version.totals as Record<string, unknown>;
+  return (
+    toFiniteNumber(snapshotSchedule.plannedDurationDays) ??
+    toFiniteNumber(versionTotals.plannedDurationDays)
+  );
+}
+
 export function buildWorkspaceSummaryValues(
   version: EstimateDomainVersion | null,
 ): EstimateWorkspaceSummaryValues {
@@ -133,24 +154,49 @@ export function buildWorkspaceSummaryValues(
   }
 
   if (version.lineItems.length === 0) {
+    const versionTotals = version.totals as Record<string, unknown>;
+    const snapshot = toRecord(version.snapshot);
+    const snapshotMeta = toRecord(snapshot.meta);
+    const isResetSnapshot = snapshotMeta.reset === true;
+    const snapshotTotals = toRecord(snapshot.totals);
+    const snapshotLabor = toRecord(snapshot.labor);
     const quickFeasibilityTotal =
-      version.estimateType === 'quick_feasibility'
-        ? toFiniteNumber(version.totals.finalSellPrice) ??
+      version.estimateType === 'quick_feasibility' && !isResetSnapshot
+        ? toFiniteNumber(snapshotTotals.totalEstimate) ??
+          toFiniteNumber(version.totals.finalSellPrice) ??
+          toFiniteNumber(versionTotals.totalEstimate) ??
           toFiniteNumber(version.totals.directCost)
         : null;
     const isQuickFeasibilitySummary = quickFeasibilityTotal != null;
+    const quickLaborHours = isQuickFeasibilitySummary
+      ? toFiniteNumber(snapshotLabor.laborHours) ?? toFiniteNumber(versionTotals.laborHours)
+      : null;
+    const quickManDays = isQuickFeasibilitySummary
+      ? toFiniteNumber(snapshotLabor.manDays) ?? toFiniteNumber(versionTotals.manDays)
+      : null;
+    const quickCrewDays = isQuickFeasibilitySummary
+      ? toFiniteNumber(snapshotLabor.crewDays) ?? toFiniteNumber(versionTotals.crewDays)
+      : null;
+    const quickMaterialCost = isQuickFeasibilitySummary
+      ? toFiniteNumber(snapshotTotals.materialCost) ?? toFiniteNumber(versionTotals.materialCost)
+      : null;
+    const quickEquipmentCost = isQuickFeasibilitySummary
+      ? toFiniteNumber(snapshotTotals.equipmentCost) ?? toFiniteNumber(versionTotals.equipmentCost)
+      : null;
+    const quickProfit = isQuickFeasibilitySummary
+      ? toFiniteNumber(snapshotTotals.profit) ?? toFiniteNumber(version.totals.profit)
+      : null;
 
     return {
       totalEstimate: formatEstimateCurrency(quickFeasibilityTotal ?? 0),
-      laborHours: formatEstimateHours(0),
-      manDays: formatEstimateNumber(0, { decimals: 0 }),
-      crewDays: formatEstimateNumber(0, { decimals: 0 }),
-      materialCost: ESTIMATE_BLANK,
-      equipmentCost: ESTIMATE_BLANK,
-      profit:
-        isQuickFeasibilitySummary && toFiniteNumber(version.totals.profit) != null
-          ? formatEstimateCurrency(version.totals.profit)
-          : formatEstimateCurrency(0),
+      laborHours: formatEstimateHours(quickLaborHours ?? 0),
+      manDays: formatEstimateNumber(quickManDays ?? 0, { decimals: isQuickFeasibilitySummary ? 2 : 0 }),
+      crewDays: formatEstimateNumber(quickCrewDays ?? 0, { decimals: isQuickFeasibilitySummary ? 2 : 0 }),
+      materialCost:
+        quickMaterialCost != null ? formatEstimateCurrency(quickMaterialCost) : ESTIMATE_BLANK,
+      equipmentCost:
+        quickEquipmentCost != null ? formatEstimateCurrency(quickEquipmentCost) : ESTIMATE_BLANK,
+      profit: formatEstimateCurrency(quickProfit ?? 0),
     };
   }
 

@@ -36,7 +36,10 @@ import {
 } from '../infrastructure/estimateRepository';
 import { buildEstimateVersionHistoryItems } from './estimateVersionDisplay';
 import EstimateVersionHistoryList from './components/EstimateVersionHistoryList';
-import { buildWorkspaceSummaryValues } from './estimateFormatters';
+import {
+  buildWorkspaceSummaryValues,
+  quickFeasibilityPlannedDurationDaysFromVersion,
+} from './estimateFormatters';
 import EstimateWorkspaceHeader from './components/EstimateWorkspaceHeader';
 import EstimateWorkspaceTabBar, {
   type EstimateWorkspaceTabId,
@@ -174,9 +177,12 @@ export default function EstimateWorkspacePage() {
     [scheduleDatePlanResult, schedulePlan],
   );
 
+  const quickPlannedDurationDays = quickFeasibilityPlannedDurationDaysFromVersion(version);
   const plannedDurationDisplay =
     version && version.lineItems.length === 0
-      ? '0 days'
+      ? quickPlannedDurationDays != null
+        ? `${quickPlannedDurationDays} days`
+        : '0 days'
       : scheduleDatePlanSummary.totalPlannedDurationDaysDisplay !== '—'
       ? scheduleDatePlanSummary.totalPlannedDurationDaysDisplay
       : null;

@@ -136,6 +136,37 @@ describe('estimateQuickFeasibility dataset pricing', () => {
     expect(withContingency.likelyTotal).toBe(646_800);
   });
 
+  it('calculates a full rough breakdown from the final sell price', () => {
+    const result = calculateQuickFeasibilityEstimate(guamInputs());
+
+    expect(result.breakdown.totals.totalEstimate).toBe(588_000);
+    expect(result.breakdown.totals.materialCost).toBe(249_035.29);
+    expect(result.breakdown.totals.laborCost).toBe(193_694.12);
+    expect(result.breakdown.totals.equipmentCost).toBe(27_670.59);
+    expect(result.breakdown.totals.overhead).toBe(58_800);
+    expect(result.breakdown.totals.profit).toBe(58_800);
+  });
+
+  it('calculates labor hours, man-days, crew-days, and planned duration', () => {
+    const result = calculateQuickFeasibilityEstimate(guamInputs());
+
+    expect(result.breakdown.labor.laborHours).toBe(2_979.91);
+    expect(result.breakdown.labor.manDays).toBe(372.49);
+    expect(result.breakdown.labor.crewDays).toBe(37.25);
+    expect(result.breakdown.schedule.plannedDurationDays).toBe(38);
+  });
+
+  it('estimates crew size when no crew size is entered', () => {
+    const small = calculateQuickFeasibilityEstimate({
+      ...guamInputs(),
+      areaSF: 10,
+    });
+    const large = calculateQuickFeasibilityEstimate(guamInputs());
+
+    expect(small.breakdown.labor.estimatedCrewSize).toBe(2);
+    expect(large.breakdown.labor.estimatedCrewSize).toBe(10);
+  });
+
   it('returns safe zero preview for blank inputs', () => {
     const result = calculateQuickFeasibilityEstimate(DEFAULT_QUICK_FEASIBILITY_INPUTS);
 

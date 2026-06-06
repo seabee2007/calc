@@ -15,6 +15,7 @@ import {
   type SquareFootPricingProjectTypeKey,
   type SquareFootPricingSiteConditionKey,
 } from '../data/squareFootPricingData';
+import { DEFAULT_QUICK_FEASIBILITY_BREAKDOWN_PRESET } from './estimateQuickFeasibilityBreakdownConfig';
 
 export const QUICK_FEASIBILITY_PREVIEW_HINT =
   'Enter building area and select a location (or base price per SF) to preview a quick estimate.';
@@ -80,6 +81,7 @@ export interface QuickFeasibilityResult {
   assumptions: string[];
   isValid: boolean;
   validationMessages: string[];
+  breakdown: QuickFeasibilityBreakdown;
   multipliers: {
     projectType: number;
     finish: number;
@@ -87,6 +89,37 @@ export interface QuickFeasibilityResult {
     siteCondition: number;
     mep: number;
     manualLocationAdjustment: number;
+  };
+}
+
+export interface QuickFeasibilityBreakdown {
+  totals: {
+    totalEstimate: number;
+    laborCost: number;
+    materialCost: number;
+    equipmentCost: number;
+    overhead: number;
+    profit: number;
+  };
+  labor: {
+    laborHours: number;
+    manDays: number;
+    crewDays: number;
+    estimatedCrewSize: number;
+    hoursPerDay: number;
+    fullyBurdenedLaborRate: number;
+  };
+  schedule: {
+    plannedDurationDays: number;
+  };
+  assumptions: {
+    materialPercent: number;
+    laborPercent: number;
+    equipmentPercent: number;
+    overheadPercent: number;
+    profitPercent: number;
+    locationFactor: number;
+    difficultyFactor: number;
   };
 }
 
@@ -377,6 +410,73 @@ function buildAssumptions(
   return assumptions;
 }
 
+export function estimateQuickFeasibilityCrewSize(laborHours: number): number {
+  if (laborHours <= 80) return 2;
+  if (laborHours <= 200) return 4;
+  if (laborHours <= 500) return 6;
+  if (laborHours <= 1000) return 8;
+  return 10;
+}
+
+function calculateQuickFeasibilityBreakdown(
+  totalEstimate: number,
+  inputs: QuickFeasibilityInputs,
+  multipliers: QuickFeasibilityResult['multipliers'],
+): QuickFeasibilityBreakdown {
+  const preset = DEFAULT_QUICK_FEASIBILITY_BREAKDOWN_PRESET;
+  const finalSellPrice = ensureFiniteOutput(totalEstimate);
+  const overhead = ensureFiniteOutput(finalSellPrice * preset.overheadPercent);
+  const profit = ensureFiniteOutput(finalSellPrice * preset.profitPercent);
+  const directPool = Math.max(0, finalSellPrice - overhead - profit);
+  const directWeight =
+    preset.materialPercent + preset.laborPercent + preset.equipmentPercent;
+
+  const materialCost = ensureFiniteOutput((directPool * preset.materialPercent) / directWeight);
+  const laborCost = ensureFiniteOutput((directPool * preset.laborPercent) / directWeight);
+  const equipmentCost = ensureFiniteOutput((directPool * preset.equipmentPercent) / directWeight);
+  const laborHours = ensureFiniteOutput(laborCost / preset.fullyBurdenedLaborRate);
+  const manDays = ensureFiniteOutput(laborHours / preset.hoursPerDay);
+  const estimatedCrewSize = estimateQuickFeasibilityCrewSize(laborHours);
+  const crewDays = ensureFiniteOutput(
+    laborHours / (estimatedCrewSize * preset.hoursPerDay),
+  );
+  const plannedDurationDays =
+    finalSellPrice > 0 ? Math.max(1, Math.ceil(crewDays)) : 0;
+
+  return {
+    totals: {
+      totalEstimate: finalSellPrice,
+      laborCost,
+      materialCost,
+      equipmentCost,
+      overhead,
+      profit,
+    },
+    labor: {
+      laborHours,
+      manDays,
+      crewDays,
+      estimatedCrewSize,
+      hoursPerDay: preset.hoursPerDay,
+      fullyBurdenedLaborRate: preset.fullyBurdenedLaborRate,
+    },
+    schedule: {
+      plannedDurationDays,
+    },
+    assumptions: {
+      materialPercent: preset.materialPercent,
+      laborPercent: preset.laborPercent,
+      equipmentPercent: preset.equipmentPercent,
+      overheadPercent: preset.overheadPercent,
+      profitPercent: preset.profitPercent,
+      locationFactor: sanitizeFactor(inputs.manualLocationAdjustmentFactor),
+      difficultyFactor: ensureFiniteOutput(
+        multipliers.complexity * multipliers.siteCondition,
+      ),
+    },
+  };
+}
+
 export function validateQuickFeasibilityInputs(inputs: QuickFeasibilityInputs): string[] {
   const areaSF = sanitizeNonNegative(sanitizeFiniteNumber(inputs.areaSF, 0));
   const resolvedBase = resolveQuickFeasibilityBaseRate(inputs);
@@ -421,6 +521,11 @@ export function calculateQuickFeasibilityEstimate(
   const highTotal = ensureFiniteOutput(likelyTotal * spread.high);
 
   const adjustedCostPerSF = areaSF > 0 ? ensureFiniteOutput(likelyTotal / areaSF) : 0;
+  const breakdown = calculateQuickFeasibilityBreakdown(
+    likelyTotal,
+    inputs,
+    multipliers,
+  );
 
   return {
     baseCost,
@@ -441,6 +546,7 @@ export function calculateQuickFeasibilityEstimate(
     assumptions: buildAssumptions(inputs, location, resolvedBasePricePerSf, multipliers),
     isValid,
     validationMessages,
+    breakdown,
     multipliers,
   };
 }

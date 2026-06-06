@@ -28,7 +28,11 @@ import {
 } from '../../application/estimateQuickFeasibility';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import EstimateSummaryCard from './EstimateSummaryCard';
-import { formatEstimateCurrency, formatEstimateNumber } from '../estimateFormatters';
+import {
+  formatEstimateCurrency,
+  formatEstimateNumber,
+  formatEstimatePercent,
+} from '../estimateFormatters';
 import {
   PLANNER_FORM_LABEL,
   PLANNER_INPUT,
@@ -68,6 +72,10 @@ function formatConfidenceLabel(confidence: string | null): string {
 
 function formatLocationOptionLabel(code: string, name: string): string {
   return `${code} - ${name}`;
+}
+
+function formatAssumptionPercent(value: number): string {
+  return formatEstimatePercent(value * 100);
 }
 
 export default function EstimateQuickFeasibilityPanel({
@@ -463,6 +471,23 @@ export default function EstimateQuickFeasibilityPanel({
 
         <div className={`${PLANNER_FORM_PANEL} space-y-2`}>
           <p className={`text-sm font-semibold ${TEXT_FOREGROUND}`}>Assumptions</p>
+          {result.isValid ? (
+            <div className={`grid grid-cols-1 gap-1 text-sm ${PLANNER_MUTED} sm:grid-cols-2`}>
+              <p>Estimated crew size: {result.breakdown.labor.estimatedCrewSize} workers</p>
+              <p>
+                Labor rate used:{' '}
+                {formatEstimateCurrency(result.breakdown.labor.fullyBurdenedLaborRate)}/hr
+              </p>
+              <p>Hours per day: {result.breakdown.labor.hoursPerDay}</p>
+              <p>Material: {formatAssumptionPercent(result.breakdown.assumptions.materialPercent)}</p>
+              <p>Labor: {formatAssumptionPercent(result.breakdown.assumptions.laborPercent)}</p>
+              <p>
+                Equipment: {formatAssumptionPercent(result.breakdown.assumptions.equipmentPercent)}
+              </p>
+              <p>Overhead: {formatAssumptionPercent(result.breakdown.assumptions.overheadPercent)}</p>
+              <p>Profit: {formatAssumptionPercent(result.breakdown.assumptions.profitPercent)}</p>
+            </div>
+          ) : null}
           <ul className={`list-disc space-y-1 pl-5 text-sm ${PLANNER_MUTED}`}>
             {result.assumptions.map((assumption) => (
               <li key={assumption}>{assumption}</li>
