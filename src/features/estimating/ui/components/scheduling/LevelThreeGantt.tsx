@@ -1,74 +1,136 @@
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import type { CpmResult, ScheduleSettings } from '../../../scheduling/cpmTypes';
+import { resolveSelectedGanttActivityDetails } from '../../../scheduling/activityDetailsModalData';
+import type { CpmLogicLink, CpmResult, ScheduleSettings } from '../../../scheduling/cpmTypes';
 import {
-  LEVEL_THREE_DAY_COL_WIDTH_PX,
+  DAY_WIDTH,
+  GANTT_LEFT_TABLE_REGION_ATTR,
+  GANTT_TIMELINE_REGION_ATTR,
+  HEADER_DAY_HEIGHT,
+  HEADER_MONTH_HEIGHT,
+  FLOAT_COLUMN_CELL_BORDER_STYLE,
+  FLOAT_COLUMN_CLASS,
+  FLOAT_COLUMN_HEADER_BORDER_STYLE,
+  LEFT_TABLE_HEADERS,
+  LEFT_TABLE_WIDTH,
+  ROW_HEIGHT,
+  assertGanttGridInvariants,
+  computeActivityBarLayout,
+  computeTodayDayOffset,
+  dayCellLeftPx,
+  formatEstimatedFloat,
+  leftTableGridTemplateColumns,
+  monthSegmentWidthPx,
+  timelineWidthPx,
+  todayLineLeftPx,
+} from '../../../scheduling/levelThreeGanttGrid';
+import {
   buildTimelineDays,
   buildTimelineMonthSegments,
   getLevelThreeGanttRows,
-  resolveGanttCellKind,
 } from '../../../scheduling/levelThreeGanttUtils';
+import type { EstimateDomainTask } from '../../../infrastructure/estimateDbTypes';
 import Button from '../../../../../components/ui/Button';
-
-const COL_CODE = 'w-24 shrink-0';
-const COL_DESC = 'w-48 shrink-0';
-const COL_META = 'w-14 shrink-0 text-right tabular-nums';
-const ROW_HEIGHT = 36;
-
-function formatDateShort(ymd: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
-  if (!match) return ymd;
-  return `${match[2]}/${match[3]}`;
-}
+import ActivityDetailsModal from './ActivityDetailsModal';
 
 interface Props {
   activities: ScheduleActivity[];
   cpmResult: CpmResult | null;
   scheduleSettings: ScheduleSettings;
   leveledOffsets?: Record<string, number>;
+  logicLinks?: CpmLogicLink[];
+  lineItems?: EstimateDomainTask[];
+  onEditActivity?: (activityCode: string) => void;
   onExportPdf?: () => void;
   onExportExcel?: () => void;
   exportReady?: boolean;
 }
 
-function GanttBarCells({
-  row,
-  projectDuration,
-  timelineWidth,
+function TimelineGridlines({ dayCount }: { dayCount: number }) {
+  return (
+    <>
+      {Array.from({ length: dayCount + 1 }, (_, dayOffset) => (
+        <div
+          key={dayOffset}
+          className="absolute top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-700"
+          style={{ left: dayCellLeftPx(dayOffset) }}
+        />
+      ))}
+    </>
+  );
+}
+
+function TodayLine({
+  todayOffset,
+  height,
 }: {
-  row: ReturnType<typeof getLevelThreeGanttRows>[number];
-  projectDuration: number;
-  timelineWidth: number;
+  todayOffset: number;
+  height: number | '100%';
 }) {
-  const es = row.cpm.earlyStart + row.leveledOffset;
-  const duration = row.activity.durationDays;
-  const tf = Math.max(0, row.cpm.totalFloat - row.leveledOffset);
-  const barColor = row.cpm.isCritical
-    ? 'bg-red-500 dark:bg-red-600'
-    : 'bg-cyan-500 dark:bg-cyan-600';
-
-  const leftPx = es * LEVEL_THREE_DAY_COL_WIDTH_PX;
-  const widthPx = duration * LEVEL_THREE_DAY_COL_WIDTH_PX;
-  const floatWidthPx = tf * LEVEL_THREE_DAY_COL_WIDTH_PX;
-
   return (
     <div
-      className="relative h-full"
-      style={{ width: timelineWidth, minWidth: timelineWidth }}
-    >
-      <div
-        className={`absolute top-1/2 h-5 -translate-y-1/2 rounded ${barColor}`}
-        style={{ left: leftPx, width: Math.max(4, widthPx) }}
-        title={`${row.activity.activityDescription}: ${duration}d`}
+      className="pointer-events-none absolute top-0 z-20"
+      style={{
+        left: todayLineLeftPx(todayOffset),
+        width: 2,
+        height,
+        backgroundColor: 'rgba(6, 182, 212, 0.75)',
+      }}
+      title="Today"
+    />
+  );
+}
+
+function ActivityBars({
+  layout,
+  isCritical,
+  activityCode,
+  onBarClick,
+}: {
+  layout: ReturnType<typeof computeActivityBarLayout>;
+  isCritical: boolean;
+  activityCode: string;
+  onBarClick: (activityCode: string) => void;
+}) {
+  const barColor = isCritical
+    ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500'
+    : 'bg-cyan-500 hover:bg-cyan-600 dark:bg-cyan-600 dark:hover:bg-cyan-500';
+
+  const barTop = (ROW_HEIGHT - 20) / 2;
+
+  function handleActivate() {
+    onBarClick(activityCode);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`absolute cursor-pointer rounded ${barColor}`}
+        style={{
+          top: barTop,
+          height: 20,
+          left: layout.barLeft,
+          width: layout.barWidth,
+        }}
+        title={`ES ${layout.earlyStart} · ${layout.earlyFinish - layout.earlyStart}d — click for details`}
+        onClick={handleActivate}
       />
-      {tf > 0 && (
-        <div
-          className="absolute top-1/2 h-5 -translate-y-1/2 rounded border-2 border-dashed border-slate-400 bg-transparent dark:border-slate-500"
-          style={{ left: leftPx + widthPx, width: Math.max(4, floatWidthPx) }}
-          title={`Float: ${tf}d`}
+      {layout.floatWidth > 0 && (
+        <button
+          type="button"
+          className="absolute cursor-pointer rounded border-2 border-dashed border-slate-400 bg-transparent hover:border-slate-500 dark:border-slate-500 dark:hover:border-slate-400"
+          style={{
+            top: barTop,
+            height: 20,
+            left: layout.floatLeft,
+            width: layout.floatWidth,
+          }}
+          title={`Float ${layout.totalFloat}d — click for details`}
+          onClick={handleActivate}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -78,12 +140,16 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
     cpmResult,
     scheduleSettings,
     leveledOffsets = {},
+    logicLinks = [],
+    lineItems = [],
+    onEditActivity,
     onExportPdf,
     onExportExcel,
     exportReady = false,
   },
   ref,
 ) {
+  const [selectedActivityCode, setSelectedActivityCode] = useState<string | null>(null);
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const projectStartDate = scheduleSettings.projectStartDate || today;
 
@@ -93,24 +159,39 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
   }, [activities, cpmResult, projectStartDate, leveledOffsets]);
 
   const projectDuration = Math.max(cpmResult?.projectDurationDays ?? 0, 1);
+  const timelineWidth = timelineWidthPx(projectDuration);
+  const gridTemplate = leftTableGridTemplateColumns();
+
   const timelineDays = useMemo(
-    () => buildTimelineDays(projectStartDate, projectDuration),
-    [projectStartDate, projectDuration],
+    () => buildTimelineDays(projectStartDate, projectDuration, today),
+    [projectStartDate, projectDuration, today],
   );
   const monthSegments = useMemo(
     () => buildTimelineMonthSegments(timelineDays),
     [timelineDays],
   );
-  const timelineWidth = projectDuration * LEVEL_THREE_DAY_COL_WIDTH_PX;
 
-  const todayOffset = useMemo(() => {
-    if (!projectStartDate) return null;
-    const startMs = Date.parse(`${projectStartDate}T00:00:00Z`);
-    const todayMs = Date.parse(`${today}T00:00:00Z`);
-    const offset = Math.round((todayMs - startMs) / 86_400_000);
-    if (offset < 0 || offset >= projectDuration) return null;
-    return offset;
-  }, [projectStartDate, today, projectDuration]);
+  const barLayouts = useMemo(() => rows.map((row) => computeActivityBarLayout(row)), [rows]);
+
+  const todayOffset = useMemo(
+    () => computeTodayDayOffset(projectStartDate, today, projectDuration),
+    [projectStartDate, today, projectDuration],
+  );
+
+  const selectedDetails = useMemo(
+    () =>
+      resolveSelectedGanttActivityDetails(
+        selectedActivityCode,
+        rows,
+        logicLinks,
+        lineItems,
+      ),
+    [selectedActivityCode, rows, lineItems, logicLinks],
+  );
+
+  useEffect(() => {
+    assertGanttGridInvariants(projectDuration, timelineWidth, rows.length, barLayouts);
+  }, [projectDuration, timelineWidth, rows.length, barLayouts]);
 
   if (!cpmResult || rows.length === 0) {
     return (
@@ -119,6 +200,8 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
       </div>
     );
   }
+
+  const headerTimelineHeight = HEADER_MONTH_HEIGHT + HEADER_DAY_HEIGHT;
 
   return (
     <div className="space-y-3">
@@ -161,101 +244,142 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
         className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
       >
         <div className="overflow-x-auto">
-          {/* Column labels row */}
-          <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
-            <div className="flex shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <span className={COL_CODE}>Code</span>
-              <span className={`${COL_DESC} px-2`}>Description</span>
-              <span className={COL_META}>Float</span>
-              <span className={COL_META}>Dur</span>
-              <span className={COL_META}>Start</span>
-              <span className={`${COL_META} mr-2`}>Finish</span>
-            </div>
-            <div
-              className="relative shrink-0"
-              style={{ width: timelineWidth, minWidth: timelineWidth }}
-            >
-              {/* Month row */}
-              <div className="flex h-5 border-b border-slate-200 dark:border-slate-700">
-                {monthSegments.map((segment) => (
-                  <div
-                    key={`${segment.monthLabel}-${segment.startDayOffset}`}
-                    className="border-r border-slate-200 px-1 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400"
-                    style={{ width: segment.dayCount * LEVEL_THREE_DAY_COL_WIDTH_PX }}
-                  >
-                    {segment.monthLabel}
-                  </div>
-                ))}
-              </div>
-              {/* Day number row */}
-              <div className="flex h-5">
-                {timelineDays.map((day) => (
-                  <div
-                    key={day.dayOffset}
-                    className="border-r border-slate-100 text-center text-[10px] tabular-nums text-slate-400 dark:border-slate-800 dark:text-slate-500"
-                    style={{ width: LEVEL_THREE_DAY_COL_WIDTH_PX }}
-                  >
-                    {day.dayOfMonth}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Activity rows */}
-          {rows.map((row) => (
-            <div
-              key={row.activity.activityCode}
-              className="flex items-center border-b border-slate-100 px-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
-              style={{ height: ROW_HEIGHT }}
-            >
-              <span
-                className={`${COL_CODE} font-mono text-xs font-medium ${
-                  row.cpm.isCritical
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-slate-700 dark:text-slate-300'
-                }`}
+          <div style={{ minWidth: LEFT_TABLE_WIDTH + timelineWidth }}>
+            <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+              <div
+                {...{ [GANTT_LEFT_TABLE_REGION_ATTR]: true }}
+                className="sticky left-0 z-20 shrink-0 overflow-hidden bg-slate-50 dark:bg-slate-800"
+                style={{ width: LEFT_TABLE_WIDTH, height: headerTimelineHeight }}
               >
-                {row.activity.activityCode}
-              </span>
-              <span
-                className={`${COL_DESC} truncate px-2 text-xs text-slate-800 dark:text-slate-100`}
-                title={row.activity.activityDescription}
-              >
-                {row.activity.activityDescription}
-              </span>
-              <span className={`${COL_META} text-xs text-slate-600 dark:text-slate-400`}>
-                {row.cpm.totalFloat}d
-              </span>
-              <span className={`${COL_META} text-xs text-slate-600 dark:text-slate-400`}>
-                {row.activity.durationDays}d
-              </span>
-              <span className={`${COL_META} text-xs text-slate-500`}>
-                {formatDateShort(row.plannedStart)}
-              </span>
-              <span className={`${COL_META} mr-2 text-xs text-slate-500`}>
-                {formatDateShort(row.plannedFinish)}
-              </span>
+                <div
+                  className="grid h-full text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                  style={{ gridTemplateColumns: gridTemplate }}
+                >
+                  <span className="flex items-end truncate px-2 pb-2">CODE</span>
+                  <span className="flex items-end truncate px-2 pb-2">DESCRIPTION</span>
+                  <span
+                    className={`${FLOAT_COLUMN_CLASS} text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400`}
+                    style={FLOAT_COLUMN_HEADER_BORDER_STYLE}
+                  >
+                    {LEFT_TABLE_HEADERS[2]}
+                  </span>
+                </div>
+              </div>
 
               <div
-                className="relative shrink-0"
-                style={{ height: ROW_HEIGHT, width: timelineWidth, minWidth: timelineWidth }}
+                {...{ [GANTT_TIMELINE_REGION_ATTR]: true }}
+                className="relative shrink-0 overflow-hidden"
+                style={{ width: timelineWidth, height: headerTimelineHeight }}
               >
+                <div
+                  className="relative border-b border-slate-200 dark:border-slate-700"
+                  style={{ height: HEADER_MONTH_HEIGHT, width: timelineWidth }}
+                >
+                  {monthSegments.map((segment) => (
+                    <div
+                      key={`${segment.monthLabel}-${segment.startDayOffset}`}
+                      className="absolute top-0 flex items-center justify-center border-r border-slate-200 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                      style={{
+                        left: dayCellLeftPx(segment.startDayOffset),
+                        width: monthSegmentWidthPx(segment.dayCount),
+                        height: HEADER_MONTH_HEIGHT,
+                      }}
+                    >
+                      {segment.monthLabel}
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="relative"
+                  style={{ height: HEADER_DAY_HEIGHT, width: timelineWidth }}
+                >
+                  {timelineDays.map((day) => (
+                    <div
+                      key={day.dayOffset}
+                      className={`absolute top-0 flex items-center justify-center border-r border-slate-200 text-[10px] tabular-nums dark:border-slate-700 ${
+                        day.isToday
+                          ? 'font-semibold text-cyan-600 dark:text-cyan-400'
+                          : day.isWeekend
+                            ? 'text-slate-400 dark:text-slate-500'
+                            : 'text-slate-500 dark:text-slate-400'
+                      }`}
+                      style={{
+                        left: dayCellLeftPx(day.dayOffset),
+                        width: DAY_WIDTH,
+                        height: HEADER_DAY_HEIGHT,
+                      }}
+                    >
+                      {day.dayOfMonth}
+                    </div>
+                  ))}
+                </div>
                 {todayOffset !== null && (
-                  <div
-                    className="absolute top-0 bottom-0 z-10 w-px bg-blue-500 opacity-60"
-                    style={{ left: todayOffset * LEVEL_THREE_DAY_COL_WIDTH_PX }}
-                    title="Today"
-                  />
+                  <TodayLine todayOffset={todayOffset} height={headerTimelineHeight} />
                 )}
-                <GanttBarCells
-                  row={row}
-                  projectDuration={projectDuration}
-                  timelineWidth={timelineWidth}
-                />
               </div>
             </div>
-          ))}
+
+            {rows.map((row, rowIndex) => {
+              const layout = barLayouts[rowIndex]!;
+              return (
+                <div
+                  key={row.activity.activityCode}
+                  className="flex border-b border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/50"
+                  style={{ height: ROW_HEIGHT }}
+                >
+                  <div
+                    {...{ [GANTT_LEFT_TABLE_REGION_ATTR]: true }}
+                    className="sticky left-0 z-10 shrink-0 overflow-hidden bg-white dark:bg-slate-900"
+                    style={{ width: LEFT_TABLE_WIDTH, height: ROW_HEIGHT }}
+                  >
+                    <div
+                      className="grid h-full items-center text-xs"
+                      style={{ gridTemplateColumns: gridTemplate }}
+                    >
+                      <span
+                        className={`truncate px-2 font-mono font-medium ${
+                          row.cpm.isCritical
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {row.activity.activityCode}
+                      </span>
+                      <span
+                        className="truncate px-2 text-slate-800 dark:text-slate-100"
+                        title={row.activity.activityDescription}
+                      >
+                        {row.activity.activityDescription}
+                      </span>
+                      <span
+                        className={`${FLOAT_COLUMN_CLASS} h-full text-slate-600 dark:text-slate-400`}
+                        style={FLOAT_COLUMN_CELL_BORDER_STYLE}
+                      >
+                        {formatEstimatedFloat(row.cpm.totalFloat)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    {...{ [GANTT_TIMELINE_REGION_ATTR]: true }}
+                    className="relative shrink-0 overflow-hidden"
+                    style={{ width: timelineWidth, height: ROW_HEIGHT }}
+                  >
+                    <TimelineGridlines dayCount={projectDuration} />
+                    {todayOffset !== null && (
+                      <TodayLine todayOffset={todayOffset} height="100%" />
+                    )}
+                    <ActivityBars
+                      layout={layout}
+                      isCritical={row.cpm.isCritical}
+                      activityCode={row.activity.activityCode}
+                      onBarClick={setSelectedActivityCode}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -270,16 +394,28 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-8 rounded border-2 border-dashed border-slate-400" />
-          Total float
+          Estimated float
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-0.5 bg-blue-500" />
+          <span className="inline-block h-0.5 w-8 bg-cyan-400" />
           Today
         </span>
+        <span className="text-slate-400">Click a bar to view activity details</span>
       </div>
+
+      {selectedDetails && (
+        <ActivityDetailsModal
+          details={selectedDetails}
+          onClose={() => setSelectedActivityCode(null)}
+          onEdit={() => {
+            const code = selectedDetails.activityCode;
+            setSelectedActivityCode(null);
+            onEditActivity?.(code);
+          }}
+        />
+      )}
     </div>
   );
 });
 
 export default LevelThreeGantt;
-export { resolveGanttCellKind };

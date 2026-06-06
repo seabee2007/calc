@@ -75,6 +75,8 @@ interface Props {
   onSaveSelectedDivisions?: (divisions: EstimateSelectedDivision[]) => Promise<void>;
   onToolbarHandlersChange?: (handlers: EstimateBuilderToolbarHandlers | null) => void;
   importCollapseDivisionCodesKey?: string | null;
+  focusActivityCode?: string | null;
+  onFocusActivityConsumed?: () => void;
 }
 
 const EMPTY_FILTER: EstimateLineItemsFilter = { divisionKey: null, scopeKey: null };
@@ -95,6 +97,8 @@ export default function EstimateLineItemsBuilderPanel({
   onSaveSelectedDivisions,
   onToolbarHandlersChange,
   importCollapseDivisionCodesKey = null,
+  focusActivityCode = null,
+  onFocusActivityConsumed,
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
   const [scopeModalOpen, setScopeModalOpen] = useState(false);
@@ -273,6 +277,17 @@ export default function EstimateLineItemsBuilderPanel({
     },
     [draft, handleDivisionCollapsedChange],
   );
+
+  useEffect(() => {
+    if (!focusActivityCode) return;
+    const match = draft.draftLines.find(
+      (line) => line.task.activityCode?.trim() === focusActivityCode,
+    );
+    if (match) {
+      handleEditDraft(match.clientId);
+    }
+    onFocusActivityConsumed?.();
+  }, [focusActivityCode, draft.draftLines, handleEditDraft, onFocusActivityConsumed]);
 
   const handleQuickPreviewChange = useCallback(
     (inputs: QuickFeasibilityInputs, result: QuickFeasibilityResult) => {

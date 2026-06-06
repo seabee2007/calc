@@ -96,7 +96,7 @@ describe('Level III Gantt export', () => {
     expect(header.slice(0, 6)).toEqual([
       'Activity Code',
       'Description',
-      'Float',
+      'Estimated Float',
       'Duration',
       'Start',
       'Finish',

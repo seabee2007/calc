@@ -150,6 +150,7 @@ export default function EstimateWorkspacePage() {
   const [importCollapseDivisionCodesKey, setImportCollapseDivisionCodesKey] = useState<
     string | null
   >(null);
+  const [focusActivityCode, setFocusActivityCode] = useState<string | null>(null);
   const [builderToolbarHandlers, setBuilderToolbarHandlers] =
     useState<EstimateBuilderToolbarHandlers | null>(null);
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
@@ -292,6 +293,15 @@ export default function EstimateWorkspacePage() {
     (tabId: EstimateWorkspaceTabId) => {
       if (!resolvedProjectId) return;
       navigate(estimateWorkspaceHref(resolvedProjectId, tabId));
+    },
+    [navigate, resolvedProjectId],
+  );
+
+  const handleEditActivityFromGantt = useCallback(
+    (activityCode: string) => {
+      if (!resolvedProjectId) return;
+      setFocusActivityCode(activityCode);
+      navigate(estimateWorkspaceHref(resolvedProjectId, 'line-items'));
     },
     [navigate, resolvedProjectId],
   );
@@ -1157,6 +1167,8 @@ export default function EstimateWorkspacePage() {
             onSaveSelectedDivisions={handleSaveSelectedDivisions}
             onToolbarHandlersChange={setBuilderToolbarHandlers}
             importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
+            focusActivityCode={focusActivityCode}
+            onFocusActivityConsumed={() => setFocusActivityCode(null)}
           />
         ) : null}
 
@@ -1238,6 +1250,9 @@ export default function EstimateWorkspacePage() {
                   cpmResult={cpmResult}
                   scheduleSettings={scheduleSettingsHook.scheduleSettings}
                   leveledOffsets={scheduleSettingsHook.leveledOffsets}
+                  logicLinks={scheduleSettingsHook.logicLinks}
+                  lineItems={estimateAdapter?.lineItems ?? []}
+                  onEditActivity={handleEditActivityFromGantt}
                   exportReady={Boolean(cpmResult)}
                   onExportPdf={() => void runCpmGanttExport('pdf')}
                   onExportExcel={() => void runCpmGanttExport('excel')}

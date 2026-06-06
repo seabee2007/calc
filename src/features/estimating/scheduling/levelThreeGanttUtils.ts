@@ -1,14 +1,18 @@
 import { addDaysToScheduleDate } from '../application/mapScheduleCandidateToScheduleEventInput';
 import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
 import type { CpmActivityResult, CpmResult } from './cpmTypes';
+import { DAY_WIDTH } from './levelThreeGanttGrid';
 
-export const LEVEL_THREE_DAY_COL_WIDTH_PX = 24;
+/** @deprecated Use DAY_WIDTH from levelThreeGanttGrid */
+export const LEVEL_THREE_DAY_COL_WIDTH_PX = DAY_WIDTH;
 
 export interface TimelineDay {
   dayOffset: number;
   date: string;
   dayOfMonth: number;
   monthLabel: string;
+  isToday: boolean;
+  isWeekend: boolean;
 }
 
 export interface TimelineMonthSegment {
@@ -28,16 +32,29 @@ export interface LevelThreeGanttRow {
 export function buildTimelineDays(
   projectStartDate: string,
   projectDurationDays: number,
+  todayYmd?: string,
 ): TimelineDay[] {
+  const today = todayYmd ?? new Date().toISOString().slice(0, 10);
   const days: TimelineDay[] = [];
+
   for (let dayOffset = 0; dayOffset < projectDurationDays; dayOffset += 1) {
     const date = addDaysToScheduleDate(projectStartDate, dayOffset);
     const parsed = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
     const dayOfMonth = parsed ? Number(parsed[3]) : dayOffset + 1;
-    const monthLabel = parsed
-      ? new Date(`${date}T00:00:00`).toLocaleString('en-US', { month: 'short' }).toUpperCase()
+    const dateObj = new Date(`${date}T00:00:00`);
+    const monthLabel = Number.isFinite(dateObj.getTime())
+      ? dateObj.toLocaleString('en-US', { month: 'short' }).toUpperCase()
       : '';
-    days.push({ dayOffset, date, dayOfMonth, monthLabel });
+    const dayOfWeek = dateObj.getDay();
+
+    days.push({
+      dayOffset,
+      date,
+      dayOfMonth,
+      monthLabel,
+      isToday: date === today,
+      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+    });
   }
   return days;
 }

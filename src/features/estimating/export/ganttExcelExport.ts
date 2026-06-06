@@ -160,7 +160,7 @@ function buildLevelThreeVisualGanttSheet(
   const header = [
     'Activity Code',
     'Description',
-    'Float',
+    'Estimated Float',
     'Duration',
     'Start',
     'Finish',

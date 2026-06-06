@@ -54,12 +54,15 @@ const sampleCpm: CpmResult = {
 };
 
 describe('levelThreeGanttUtils', () => {
-  it('buildTimelineDays renders day numbers', () => {
-    const days = buildTimelineDays('2026-06-06', 5);
+  it('buildTimelineDays renders day numbers with isToday and isWeekend', () => {
+    const days = buildTimelineDays('2026-06-06', 5, '2026-06-06');
     expect(days).toHaveLength(5);
     expect(days[0].dayOfMonth).toBe(6);
     expect(days[1].dayOfMonth).toBe(7);
     expect(days[0].monthLabel).toBe('JUN');
+    expect(days[0].isToday).toBe(true);
+    expect(days[1].isToday).toBe(false);
+    expect(typeof days[0].isWeekend).toBe('boolean');
   });
 
   it('buildTimelineMonthSegments groups days by month', () => {
