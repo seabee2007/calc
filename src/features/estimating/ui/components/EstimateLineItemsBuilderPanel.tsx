@@ -35,7 +35,9 @@ import EstimateReadOnlyLineItemsTable from './EstimateReadOnlyLineItemsTable';
 import EstimateSummaryCard from './EstimateSummaryCard';
 import EstimateLineItemsFilterBar from './EstimateLineItemsFilterBar';
 import EstimateDivisionBucketList from './EstimateDivisionBucketList';
-import EstimateStartScopeModal from './EstimateStartScopeModal';
+import EstimateStartScopeModal, {
+  type EstimateStartScopeProjectContext,
+} from './EstimateStartScopeModal';
 import EstimateResetSetupConfirmModal from './EstimateResetSetupConfirmModal';
 import EstimateQuickFeasibilityPanel from './EstimateQuickFeasibilityPanel';
 import EstimateMethodSelector from './EstimateMethodSelector';
@@ -68,6 +70,7 @@ interface Props {
   draft: UseEstimateLineItemDraftResult;
   setup: UseEstimateSetupSessionResult;
   projectLocationLabel?: string;
+  projectScopeContext?: EstimateStartScopeProjectContext | null;
   onSave: () => void;
   onResetEstimate: () => Promise<boolean>;
   onSaveQuick: (payload: {
@@ -87,6 +90,7 @@ export default function EstimateLineItemsBuilderPanel({
   draft,
   setup,
   projectLocationLabel,
+  projectScopeContext = null,
   onSave,
   onResetEstimate,
   onSaveQuick,
@@ -384,6 +388,7 @@ export default function EstimateLineItemsBuilderPanel({
       <EstimateStartScopeModal
         isOpen={scopeModalOpen}
         estimateType={session.selectedEstimateType}
+        projectContext={projectScopeContext}
         onClose={() => setScopeModalOpen(false)}
         onCreate={handleCreateWorkBreakdown}
       />

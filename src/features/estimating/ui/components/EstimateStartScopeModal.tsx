@@ -12,29 +12,58 @@ import {
   getCsiDivisionOptions,
 } from '../../domain/csiDivisions';
 import { normalizeSelectedDivisionCodes } from '../../application/estimateWorkBreakdown';
+import {
+  mergeRecommendedDivisionCodes,
+  recommendEstimateDivisions,
+  RECOMMEND_DIVISIONS_ERROR_MESSAGE,
+  type RecommendEstimateDivisionsResponse,
+} from '../../application/recommendEstimateDivisions';
 import { PLANNER_MUTED, TEXT_BODY, TEXT_FOREGROUND } from '../estimateWorkspaceTheme';
+
+export interface EstimateStartScopeProjectContext {
+  projectId: string;
+  projectName: string;
+  projectDescription?: string;
+  locationLabel?: string;
+}
 
 interface Props {
   isOpen: boolean;
   estimateType: EstimateType;
+  projectContext?: EstimateStartScopeProjectContext | null;
   onClose: () => void;
   onCreate: (divisionCodes: string[]) => void;
+}
+
+function formatConfidence(value: number): string {
+  const percent = Math.round(value * 100);
+  if (percent >= 90) return `High confidence: ${percent}%`;
+  if (percent >= 75) return `Medium confidence: ${percent}%`;
+  return `Low confidence: ${percent}%`;
 }
 
 export default function EstimateStartScopeModal({
   isOpen,
   estimateType,
+  projectContext = null,
   onClose,
   onCreate,
 }: Props) {
   const divisionOptions = useMemo(() => getCsiDivisionOptions(), []);
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
+  const [recommending, setRecommending] = useState(false);
+  const [recommendationResult, setRecommendationResult] =
+    useState<RecommendEstimateDivisionsResponse | null>(null);
+  const [recommendationError, setRecommendationError] = useState<string | null>(null);
   const modalTitle = getBuildScopeModalTitle(estimateType);
   const modalDescription = getBuildScopeModalDescription(estimateType);
 
   useEffect(() => {
     if (!isOpen) {
       setSelectedCodes([]);
+      setRecommending(false);
+      setRecommendationResult(null);
+      setRecommendationError(null);
     }
   }, [isOpen]);
 
@@ -49,6 +78,32 @@ export default function EstimateStartScopeModal({
     if (normalized.length === 0) return;
     onCreate(normalized);
     onClose();
+  };
+
+  const handleRecommendFromScope = async () => {
+    if (!projectContext?.projectId || recommending) return;
+
+    setRecommending(true);
+    setRecommendationError(null);
+
+    try {
+      const result = await recommendEstimateDivisions({
+        projectId: projectContext.projectId,
+        projectName: projectContext.projectName,
+        projectScope: projectContext.projectDescription,
+        projectDescription: projectContext.projectDescription,
+        location: projectContext.locationLabel,
+      });
+
+      setRecommendationResult(result);
+      setSelectedCodes((prev) =>
+        mergeRecommendedDivisionCodes(prev, result.recommendedDivisionCodes),
+      );
+    } catch {
+      setRecommendationError(RECOMMEND_DIVISIONS_ERROR_MESSAGE);
+    } finally {
+      setRecommending(false);
+    }
   };
 
   return (
@@ -98,15 +153,47 @@ export default function EstimateStartScopeModal({
               variant="outline"
               size="sm"
               icon={<Sparkles className="h-3.5 w-3.5" />}
-              disabled
-              title="Coming next: AI will read the project scope and suggest divisions of work."
+              disabled={!projectContext?.projectId || recommending}
+              isLoading={recommending}
+              onClick={handleRecommendFromScope}
             >
-              Recommend from project scope
+              {recommending ? 'Reading scope…' : 'Recommend from project scope'}
             </Button>
             <span className={PLANNER_MUTED}>
-              Coming next: AI will read the project scope and suggest divisions of work.
+              AI reads the saved project scope and suggests likely CSI divisions of work.
             </span>
           </div>
+
+          {recommendationError ? (
+            <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">{recommendationError}</p>
+          ) : null}
+
+          {recommendationResult ? (
+            <div className="mt-3 space-y-2">
+              <p className={`text-sm font-medium ${TEXT_FOREGROUND}`}>
+                Recommended {recommendationResult.recommendedDivisionCodes.length} divisions from
+                project scope
+              </p>
+
+              {recommendationResult.warnings?.map((warning) => (
+                <p key={warning} className="text-sm text-amber-800 dark:text-amber-200">
+                  {warning}
+                </p>
+              ))}
+
+              <ul className={`space-y-2 text-sm ${PLANNER_MUTED}`}>
+                {recommendationResult.recommendations.map((item) => (
+                  <li key={item.code}>
+                    <span className={`font-medium ${TEXT_FOREGROUND}`}>
+                      {item.code} - {item.name}
+                    </span>
+                    <span className="ml-1">({formatConfidence(item.confidence)})</span>
+                    <span className="mt-0.5 block">{item.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

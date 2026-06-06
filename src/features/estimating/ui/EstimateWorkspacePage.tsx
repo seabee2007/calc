@@ -177,6 +177,19 @@ export default function EstimateWorkspacePage() {
     [scheduleDatePlanResult, schedulePlan],
   );
 
+  const projectScopeContext = useMemo(
+    () =>
+      project
+        ? {
+            projectId: project.id,
+            projectName: project.name,
+            projectDescription: project.description,
+            locationLabel: project.locationLabel,
+          }
+        : null,
+    [project],
+  );
+
   const quickPlannedDurationDays = quickFeasibilityPlannedDurationDaysFromVersion(version);
   const plannedDurationDisplay =
     version && version.lineItems.length === 0
@@ -598,6 +611,7 @@ export default function EstimateWorkspacePage() {
                     draft={lineItemDraft}
                     setup={estimateSetup}
                     projectLocationLabel={project?.locationLabel}
+                    projectScopeContext={projectScopeContext}
                     onSave={handleSaveEstimate}
                     onResetEstimate={handleResetEstimate}
                     onSaveQuick={handleSaveQuickEstimate}

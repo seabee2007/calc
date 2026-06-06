@@ -27,6 +27,7 @@ import type { ProjectWorkflowStage } from '../utils/projectWorkflow';
 export interface PlannerProjectMeta {
   id: string;
   name: string;
+  description: string;
   statusLabel: string;
   statusStage: ProjectWorkflowStage;
   locationLabel: string;
@@ -37,6 +38,7 @@ export interface PlannerProjectMeta {
 interface PlannerProjectRow {
   id: string;
   name: string;
+  description: string | null;
   user_id: string;
   pour_date: string | null;
   jobsite_street: string | null;
@@ -78,7 +80,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       const { data: row, error } = await supabase
         .from('projects')
         .select(
-          'id, name, user_id, pour_date, jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip, placement_order',
+          'id, name, description, user_id, pour_date, jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip, placement_order',
         )
         .eq('id', projectId)
         .maybeSingle();
@@ -108,7 +110,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       const workflowProject: Project = {
         id: projectRow.id,
         name: projectRow.name,
-        description: '',
+        description: projectRow.description ?? '',
         createdAt: '',
         updatedAt: '',
         calculations: [],
@@ -128,6 +130,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       setProject({
         id: projectRow.id,
         name: projectRow.name,
+        description: projectRow.description ?? '',
         statusLabel: PROJECT_LIFECYCLE_LABELS[workflow.stage],
         statusStage: workflow.stage,
         locationLabel,
