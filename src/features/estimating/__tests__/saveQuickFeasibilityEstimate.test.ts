@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   calculateQuickFeasibilityEstimate,
   createQuickFeasibilityInputsForLocation,
+  quickFeasibilityInputsFromSnapshot,
 } from '../application/estimateQuickFeasibility';
 import { saveQuickFeasibilityEstimate } from '../application/saveQuickFeasibilityEstimate';
 import type {
@@ -129,5 +130,44 @@ describe('saveQuickFeasibilityEstimate', () => {
     expect(saveResult.data).toBeNull();
     expect(saveResult.error).toContain('Enter building area');
     expect(createEstimateVersion).not.toHaveBeenCalled();
+  });
+
+  it('hydrates quick feasibility form inputs from a saved snapshot', async () => {
+    const payload = quickPayload();
+    const listEstimateVersions = vi.fn(async () => success([versionRow(1)]));
+    const createEstimateVersion = vi.fn(async () =>
+      success({ ...versionRow(2, 'ver-quick'), estimate_type: 'quick_feasibility' }),
+    );
+    const updateEstimateCurrentVersion = vi.fn(async () =>
+      success({ id: 'est-1', currentVersionId: 'ver-quick' } as EstimateSummary),
+    );
+
+    await saveQuickFeasibilityEstimate(
+      {
+        estimateId: 'est-1',
+        projectId: 'proj-1',
+        inputs: payload.inputs,
+        result: payload.result,
+      },
+      {
+        listEstimateVersions,
+        createEstimateVersion,
+        updateEstimateCurrentVersion,
+      },
+    );
+
+    const snapshot = createEstimateVersion.mock.calls[0][0].snapshot;
+    const hydrated = quickFeasibilityInputsFromSnapshot(snapshot);
+
+    expect(hydrated).toEqual(
+      expect.objectContaining({
+        locationCode: payload.inputs.locationCode,
+        areaSF: payload.inputs.areaSF,
+        projectType: payload.inputs.projectType,
+        basePricePerSf: payload.inputs.basePricePerSf,
+        contingencyPercent: payload.inputs.contingencyPercent,
+        mepIntensity: payload.inputs.mepIntensity,
+      }),
+    );
   });
 });

@@ -229,6 +229,46 @@ describe('estimateMappers', () => {
     expect(warnings.some((w) => w.includes('csi_division'))).toBe(true);
   });
 
+  it('preserves quick feasibility snapshot payloads when mapping a version', () => {
+    const version = mapEstimateVersionRowToDomain({
+      ...VERSION_ROW,
+      estimate_type: 'quick_feasibility',
+      snapshot: {
+        meta: {
+          estimateId: 'est-001',
+          projectId: 'proj-001',
+          version: 2,
+          estimateType: 'quick_feasibility',
+          status: 'draft',
+        },
+        quickFeasibility: {
+          locationCode: 'WV',
+          squareFeet: 48,
+          projectType: 'additionBuildUp',
+          likelyTotal: 27288.58,
+        },
+      },
+      totals: {
+        directCost: 20000,
+        indirectCost: 0,
+        overhead: 0,
+        profit: 0,
+        contingency: 7288.58,
+        tax: 0,
+        finalSellPrice: 27288.58,
+      },
+    });
+
+    expect((version.snapshot as Record<string, unknown>).quickFeasibility).toEqual(
+      expect.objectContaining({
+        locationCode: 'WV',
+        squareFeet: 48,
+        projectType: 'additionBuildUp',
+        likelyTotal: 27288.58,
+      }),
+    );
+  });
+
   it('preserves line item position sort order when mapping a version', () => {
     const rows = [
       buildLineItemRow({ id: 'line-b', position: 5, title: 'Second' }),
@@ -240,6 +280,37 @@ describe('estimateMappers', () => {
     expect(version.lineItems.map((item) => item.id)).toEqual(['line-a', 'line-b']);
     expect(version.lineItems[0].title).toBe('First');
     expect(version.lineItems[1].title).toBe('Second');
+  });
+
+  it('treats reset snapshot versions as blank even if stale line rows are supplied', () => {
+    const version = mapLineItemRowsToEstimateVersion(
+      {
+        ...VERSION_ROW,
+        snapshot: {
+          meta: {
+            estimateId: 'est-001',
+            projectId: 'proj-001',
+            version: 2,
+            estimateType: 'detailed',
+            status: 'draft',
+            reset: true,
+          },
+          lineItems: [],
+        },
+        totals: {
+          directCost: 0,
+          indirectCost: 0,
+          overhead: 0,
+          profit: 0,
+          contingency: 0,
+          tax: 0,
+          finalSellPrice: 0,
+        },
+      },
+      [buildLineItemRow({ id: 'stale-line', title: 'Stale activity' })],
+    );
+
+    expect(version.lineItems).toEqual([]);
   });
 
   it('maps an estimate snapshot into a version insert row', () => {

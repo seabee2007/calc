@@ -10,7 +10,7 @@ interface Props {
   isOpen: boolean;
   hasSavedActivities: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export default function EstimateResetSetupConfirmModal({

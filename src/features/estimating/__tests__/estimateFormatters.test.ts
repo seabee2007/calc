@@ -118,6 +118,88 @@ describe('estimateFormatters', () => {
     expect(summary.profit).toBe(ESTIMATE_BLANK);
   });
 
+  it('returns zero summary values when current version has no activities', () => {
+    const version: EstimateDomainVersion = {
+      id: 'ver-empty',
+      estimateId: 'est-1',
+      projectId: 'proj-1',
+      versionNumber: 2,
+      versionName: 'Reset Draft',
+      estimateType: 'detailed',
+      status: 'draft',
+      snapshot: {},
+      totals: {
+        directCost: 999,
+        indirectCost: 0,
+        overhead: 100,
+        profit: 50,
+        contingency: 0,
+        tax: 0,
+        finalSellPrice: 1149,
+      },
+      notes: null,
+      createdBy: null,
+      createdAt: '2026-06-04T00:00:00.000Z',
+      lineItems: [],
+      warnings: [],
+    };
+
+    const summary = buildWorkspaceSummaryValues(version);
+    expect(summary.totalEstimate).toBe('$0.00');
+    expect(summary.laborHours).toBe('0.0 hr');
+    expect(summary.manDays).toBe('0');
+    expect(summary.crewDays).toBe('0');
+    expect(summary.materialCost).toBe(ESTIMATE_BLANK);
+    expect(summary.equipmentCost).toBe(ESTIMATE_BLANK);
+    expect(summary.profit).toBe('$0.00');
+  });
+
+  it('uses saved quick feasibility totals even though quick versions have no activities', () => {
+    const version: EstimateDomainVersion = {
+      id: 'ver-quick',
+      estimateId: 'est-1',
+      projectId: 'proj-1',
+      versionNumber: 3,
+      versionName: 'Quick Feasibility v3',
+      estimateType: 'quick_feasibility',
+      status: 'draft',
+      snapshot: {
+        meta: {
+          estimateId: 'est-1',
+          projectId: 'proj-1',
+          version: 3,
+          estimateType: 'quick_feasibility',
+          status: 'draft',
+          currencyCode: 'USD',
+          preparedAtIso: '2026-06-04T00:00:00.000Z',
+        },
+        quickFeasibility: {
+          likelyTotal: 125000,
+        },
+      },
+      totals: {
+        directCost: 110000,
+        indirectCost: 0,
+        overhead: 0,
+        profit: 0,
+        contingency: 15000,
+        tax: 0,
+        finalSellPrice: 125000,
+      },
+      notes: null,
+      createdBy: null,
+      createdAt: '2026-06-04T00:00:00.000Z',
+      lineItems: [],
+      warnings: [],
+    };
+
+    const summary = buildWorkspaceSummaryValues(version);
+    expect(summary.totalEstimate).toBe('$125,000.00');
+    expect(summary.laborHours).toBe('0.0 hr');
+    expect(summary.manDays).toBe('0');
+    expect(summary.crewDays).toBe('0');
+  });
+
   it('exposes empty draft JSON payloads', () => {
     expect(EMPTY_ESTIMATE_SNAPSHOT_JSON).toEqual({});
     expect(EMPTY_ESTIMATE_TOTALS_JSON).toEqual({});

@@ -236,6 +236,7 @@ export function mapEstimateVersionRowToDomain(
     estimateType: row.estimate_type,
     status: row.status,
     snapshot: {
+      ...snapshotObj,
       meta,
       pricing: parseJsonObject(snapshotObj.pricing) as EstimateSnapshot['pricing'],
       lineItems: Array.isArray(snapshotObj.lineItems)
@@ -366,6 +367,18 @@ export function mapLineItemRowsToEstimateVersion(
 ): EstimateDomainVersion {
   const versionBase = mapEstimateVersionRowToDomain(versionRow);
   const warnings = [...versionBase.warnings];
+  const rawSnapshot = parseJsonObject(versionRow.snapshot);
+  const rawSnapshotMeta = parseJsonObject(rawSnapshot.meta);
+  const resetSnapshot = rawSnapshotMeta.reset === true;
+
+  if (resetSnapshot) {
+    return {
+      ...versionBase,
+      lineItems: [],
+      warnings,
+    };
+  }
+
   const sortedRows = [...lineItemRows].sort((a, b) => a.position - b.position);
 
   const lineItems = sortedRows.map((row) => mapLineItemRowToDomainTask(row, warnings));

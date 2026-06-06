@@ -477,3 +477,92 @@ export function createInitialQuickFeasibilityInputs(
   }
   return createQuickFeasibilityInputsForLocation(locationCode);
 }
+
+function parseSnapshotRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function snapshotNumber(value: unknown, fallback: number): number {
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function snapshotBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+function isQuickProjectType(value: unknown): value is QuickFeasibilityProjectType {
+  return QUICK_FEASIBILITY_PROJECT_TYPE_OPTIONS.some((option) => option.value === value);
+}
+
+function isQuickFinishLevel(value: unknown): value is QuickFeasibilityFinishLevel {
+  return QUICK_FEASIBILITY_FINISH_OPTIONS.some((option) => option.value === value);
+}
+
+function isQuickComplexityLevel(value: unknown): value is QuickFeasibilityComplexityLevel {
+  return QUICK_FEASIBILITY_COMPLEXITY_OPTIONS.some((option) => option.value === value);
+}
+
+function isQuickSiteCondition(value: unknown): value is QuickFeasibilitySiteCondition {
+  return QUICK_FEASIBILITY_SITE_CONDITION_OPTIONS.some((option) => option.value === value);
+}
+
+function isQuickMepIntensity(value: unknown): value is QuickFeasibilityMepIntensity {
+  return QUICK_FEASIBILITY_MEP_OPTIONS.some((option) => option.value === value);
+}
+
+export function quickFeasibilityInputsFromSnapshot(
+  snapshot: unknown,
+): QuickFeasibilityInputs | null {
+  const snapshotObj = parseSnapshotRecord(snapshot);
+  const quickFeasibility = parseSnapshotRecord(snapshotObj.quickFeasibility);
+  const locationCode =
+    typeof quickFeasibility.locationCode === 'string'
+      ? normalizeLocationCode(quickFeasibility.locationCode)
+      : '';
+
+  if (!locationCode) return null;
+
+  const projectType = isQuickProjectType(quickFeasibility.projectType)
+    ? quickFeasibility.projectType
+    : DEFAULT_QUICK_FEASIBILITY_INPUTS.projectType;
+
+  return {
+    locationCode,
+    basePricePerSf: snapshotNumber(
+      quickFeasibility.basePricePerSf,
+      DEFAULT_QUICK_FEASIBILITY_INPUTS.basePricePerSf,
+    ),
+    basePricePerSfOverridden: snapshotBoolean(
+      quickFeasibility.basePricePerSfOverridden,
+      DEFAULT_QUICK_FEASIBILITY_INPUTS.basePricePerSfOverridden,
+    ),
+    areaSF: snapshotNumber(
+      quickFeasibility.squareFeet ?? quickFeasibility.areaSF,
+      DEFAULT_QUICK_FEASIBILITY_INPUTS.areaSF,
+    ),
+    projectType,
+    finishLevel: isQuickFinishLevel(quickFeasibility.finishLevel)
+      ? quickFeasibility.finishLevel
+      : DEFAULT_QUICK_FEASIBILITY_INPUTS.finishLevel,
+    complexityLevel: isQuickComplexityLevel(quickFeasibility.complexity)
+      ? quickFeasibility.complexity
+      : DEFAULT_QUICK_FEASIBILITY_INPUTS.complexityLevel,
+    siteCondition: isQuickSiteCondition(quickFeasibility.siteCondition)
+      ? quickFeasibility.siteCondition
+      : DEFAULT_QUICK_FEASIBILITY_INPUTS.siteCondition,
+    mepIntensity: isQuickMepIntensity(quickFeasibility.mepIntensity)
+      ? quickFeasibility.mepIntensity
+      : DEFAULT_QUICK_FEASIBILITY_INPUTS.mepIntensity,
+    contingencyPercent: snapshotNumber(
+      quickFeasibility.contingencyPercent,
+      getDefaultContingencyPercent(projectType),
+    ),
+    manualLocationAdjustmentFactor: snapshotNumber(
+      quickFeasibility.manualLocationAdjustmentFactor,
+      DEFAULT_QUICK_FEASIBILITY_INPUTS.manualLocationAdjustmentFactor,
+    ),
+  };
+}

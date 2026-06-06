@@ -132,6 +132,28 @@ export function buildWorkspaceSummaryValues(
     };
   }
 
+  if (version.lineItems.length === 0) {
+    const quickFeasibilityTotal =
+      version.estimateType === 'quick_feasibility'
+        ? toFiniteNumber(version.totals.finalSellPrice) ??
+          toFiniteNumber(version.totals.directCost)
+        : null;
+    const isQuickFeasibilitySummary = quickFeasibilityTotal != null;
+
+    return {
+      totalEstimate: formatEstimateCurrency(quickFeasibilityTotal ?? 0),
+      laborHours: formatEstimateHours(0),
+      manDays: formatEstimateNumber(0, { decimals: 0 }),
+      crewDays: formatEstimateNumber(0, { decimals: 0 }),
+      materialCost: ESTIMATE_BLANK,
+      equipmentCost: ESTIMATE_BLANK,
+      profit:
+        isQuickFeasibilitySummary && toFiniteNumber(version.totals.profit) != null
+          ? formatEstimateCurrency(version.totals.profit)
+          : formatEstimateCurrency(0),
+    };
+  }
+
   let laborHours = 0;
   let manDays = 0;
   let crewDays = 0;

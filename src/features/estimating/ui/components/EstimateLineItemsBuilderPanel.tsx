@@ -45,6 +45,7 @@ import type {
   QuickFeasibilityInputs,
   QuickFeasibilityResult,
 } from '../../application/estimateQuickFeasibility';
+import { quickFeasibilityInputsFromSnapshot } from '../../application/estimateQuickFeasibility';
 import {
   formatEstimateCurrency,
   formatEstimateHours,
@@ -68,6 +69,7 @@ interface Props {
   setup: UseEstimateSetupSessionResult;
   projectLocationLabel?: string;
   onSave: () => void;
+  onResetEstimate: () => Promise<boolean>;
   onSaveQuick: (payload: {
     inputs: QuickFeasibilityInputs;
     result: QuickFeasibilityResult;
@@ -86,6 +88,7 @@ export default function EstimateLineItemsBuilderPanel({
   setup,
   projectLocationLabel,
   onSave,
+  onResetEstimate,
   onSaveQuick,
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
@@ -146,6 +149,13 @@ export default function EstimateLineItemsBuilderPanel({
     () => computeDraftSummaryTotals(draft.draftLines),
     [draft.draftLines],
   );
+  const savedQuickInputs = useMemo(
+    () =>
+      version.estimateType === 'quick_feasibility'
+        ? quickFeasibilityInputsFromSnapshot(version.snapshot)
+        : null,
+    [version.estimateType, version.snapshot],
+  );
 
   const draftSummary = useMemo(() => {
     const totals = draftSummaryTotals;
@@ -182,7 +192,9 @@ export default function EstimateLineItemsBuilderPanel({
     }
   };
 
-  const handleConfirmResetSetup = () => {
+  const handleConfirmResetSetup = async () => {
+    const didReset = await onResetEstimate();
+    if (!didReset) return;
     setup.resetSetup(normalizeEstimateMethod(version.estimateType));
     setQuickPreview(null);
     draft.resetDraftSetup();
@@ -310,6 +322,8 @@ export default function EstimateLineItemsBuilderPanel({
             key={quickPanelResetKey}
             disabled={!canEdit}
             projectContext={{ locationLabel: projectLocationLabel }}
+            initialInputs={savedQuickInputs}
+            initialInputsKey={savedQuickInputs ? version.id : null}
             onPreviewChange={handleQuickPreviewChange}
           />
         </div>

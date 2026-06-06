@@ -43,6 +43,8 @@ import {
 interface Props {
   disabled?: boolean;
   projectContext?: QuickFeasibilityProjectContext | null;
+  initialInputs?: QuickFeasibilityInputs | null;
+  initialInputsKey?: string | null;
   onPreviewChange?: (input: QuickFeasibilityInputs, result: QuickFeasibilityResult) => void;
 }
 
@@ -71,11 +73,14 @@ function formatLocationOptionLabel(code: string, name: string): string {
 export default function EstimateQuickFeasibilityPanel({
   disabled = false,
   projectContext = null,
+  initialInputs = null,
+  initialInputsKey = null,
   onPreviewChange,
 }: Props) {
   const [inputs, setInputs] = useState<QuickFeasibilityInputs>(() =>
-    createInitialQuickFeasibilityInputs(projectContext),
+    initialInputs ?? createInitialQuickFeasibilityInputs(projectContext),
   );
+  const [appliedInitialInputsKey, setAppliedInitialInputsKey] = useState(initialInputsKey);
 
   const locationOptions = useMemo(
     () =>
@@ -92,6 +97,12 @@ export default function EstimateQuickFeasibilityPanel({
   useEffect(() => {
     onPreviewChange?.(inputs, result);
   }, [inputs, result, onPreviewChange]);
+
+  useEffect(() => {
+    if (!initialInputs || !initialInputsKey || appliedInitialInputsKey === initialInputsKey) return;
+    setInputs(initialInputs);
+    setAppliedInitialInputsKey(initialInputsKey);
+  }, [appliedInitialInputsKey, initialInputs, initialInputsKey]);
 
   const patchInputs = (patch: Partial<QuickFeasibilityInputs>) => {
     setInputs((prev) => ({ ...prev, ...patch }));

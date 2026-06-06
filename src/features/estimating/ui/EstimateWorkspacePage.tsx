@@ -16,6 +16,10 @@ import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/esti
 import type { EstimateType } from '../domain/estimateTypes';
 import { saveEstimateVersionWithLineItems } from '../application/saveEstimateVersionWithLineItems';
 import { saveQuickFeasibilityEstimate } from '../application/saveQuickFeasibilityEstimate';
+import {
+  BLANK_ESTIMATE_TOTALS,
+  resetEstimateToBlankVersion,
+} from '../application/resetEstimateToBlankVersion';
 import type {
   QuickFeasibilityInputs,
   QuickFeasibilityResult,
@@ -171,7 +175,9 @@ export default function EstimateWorkspacePage() {
   );
 
   const plannedDurationDisplay =
-    scheduleDatePlanSummary.totalPlannedDurationDaysDisplay !== '—'
+    version && version.lineItems.length === 0
+      ? '0 days'
+      : scheduleDatePlanSummary.totalPlannedDurationDaysDisplay !== '—'
       ? scheduleDatePlanSummary.totalPlannedDurationDaysDisplay
       : null;
 
@@ -415,6 +421,54 @@ export default function EstimateWorkspacePage() {
     [estimate, refreshEstimateAfterSave, saving, user?.id],
   );
 
+  const handleResetEstimate = useCallback(async (): Promise<boolean> => {
+    if (!estimate || !version || saving) return false;
+
+    setSaving(true);
+    setSaveError(null);
+    setSuccessMessage(null);
+
+    const result = await resetEstimateToBlankVersion({
+      estimateId: estimate.id,
+      projectId: estimate.projectId,
+      estimateType: version.estimateType,
+      createdBy: user?.id ?? null,
+    });
+
+    if (result.error || !result.data) {
+      setSaveError(result.error ?? 'Failed to reset estimate.');
+      setSaving(false);
+      return false;
+    }
+
+    lineItemDraft.resetDraftSetup();
+    setVersion((current) =>
+      current
+        ? {
+            ...current,
+            versionNumber: result.data!.versionNumber,
+            versionName: `Reset Draft v${result.data!.versionNumber}`,
+            snapshot: {
+              ...current.snapshot,
+              lineItems: [],
+              totals: BLANK_ESTIMATE_TOTALS,
+              meta: {
+                ...current.snapshot.meta,
+                reset: true,
+              },
+            },
+            totals: BLANK_ESTIMATE_TOTALS,
+            lineItems: [],
+          }
+        : current,
+    );
+    setSuccessTitle('Estimate reset');
+    setSuccessMessage(`Reset estimate to blank version ${result.data.versionNumber}.`);
+    await refreshEstimateAfterSave();
+    setSaving(false);
+    return true;
+  }, [estimate, lineItemDraft, refreshEstimateAfterSave, saving, user?.id, version]);
+
   if (plannerLoading) {
     return (
       <div className={PLANNER_PAGE_BG}>
@@ -539,6 +593,7 @@ export default function EstimateWorkspacePage() {
                     setup={estimateSetup}
                     projectLocationLabel={project?.locationLabel}
                     onSave={handleSaveEstimate}
+                    onResetEstimate={handleResetEstimate}
                     onSaveQuick={handleSaveQuickEstimate}
                   />
                 ) : (
