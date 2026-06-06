@@ -115,6 +115,11 @@ export default function EstimateLineItemsBuilderPanel({
   const consumedImportCollapseKeyRef = useRef<string | null>(null);
   const { session, quickPanelResetKey } = setup;
 
+  // Stable ref so the hydration effect can read the latest division codes without
+  // including them in the dependency array (prevents a setState→re-run loop).
+  const sessionDivisionCodesRef = useRef(session.selectedDivisionCodes);
+  sessionDivisionCodesRef.current = session.selectedDivisionCodes;
+
   useEffect(() => {
     if (
       importCollapseDivisionCodesKey &&
@@ -153,9 +158,12 @@ export default function EstimateLineItemsBuilderPanel({
       session.activeStartMode !== 'quick' &&
       supportsActivityWorkflow(session.selectedEstimateType);
     if (!sessionSupportsActivityWorkflow) return;
-    const missingInferredCodes = inferred.filter(
-      (code) => !session.selectedDivisionCodes.includes(code),
-    );
+
+    // Read the latest codes via ref to avoid adding session.selectedDivisionCodes to
+    // the dependency array. Adding it would cause this effect to re-run every time
+    // mergeDivisionCodes is called, creating an infinite setState loop.
+    const currentCodes = sessionDivisionCodesRef.current;
+    const missingInferredCodes = inferred.filter((code) => !currentCodes.includes(code));
     if (missingInferredCodes.length > 0) {
       setup.mergeDivisionCodes(missingInferredCodes);
     }
@@ -165,13 +173,10 @@ export default function EstimateLineItemsBuilderPanel({
     version.lineItems,
     version.snapshot,
     version.estimateType,
-    version.totals.quickFeasibility,
     session.estimateSetupStarted,
     session.activeStartMode,
     session.selectedEstimateType,
-    session.selectedDivisionCodes,
     setup.restoreSavedSetup,
-    setup.setSelectedDivisions,
     setup.mergeDivisionCodes,
   ]);
 
@@ -307,9 +312,12 @@ export default function EstimateLineItemsBuilderPanel({
     onSaveQuick(quickPreview);
   }, [onSaveQuick, quickPreview]);
 
+  // Push updated toolbar handler values to the parent whenever they change.
+  // Intentionally no cleanup here — a null reset on every dep change would
+  // cause two parent setState calls per update, destabilising workBreakdown
+  // and triggering an infinite render loop via handleCollapseAll.
   useEffect(() => {
     if (!onToolbarHandlersChange) return;
-
     onToolbarHandlersChange({
       showCollapseAll: showBucketPanel,
       showSaveQuick: showQuickFeasibilityPanel,
@@ -317,8 +325,6 @@ export default function EstimateLineItemsBuilderPanel({
       collapseAll: handleCollapseAll,
       saveQuick: handleSaveQuickFromToolbar,
     });
-
-    return () => onToolbarHandlersChange(null);
   }, [
     onToolbarHandlersChange,
     showBucketPanel,
@@ -327,6 +333,11 @@ export default function EstimateLineItemsBuilderPanel({
     handleCollapseAll,
     handleSaveQuickFromToolbar,
   ]);
+
+  // Reset toolbar handlers only on unmount, not on every dep change above.
+  useEffect(() => {
+    return () => onToolbarHandlersChange?.(null);
+  }, [onToolbarHandlersChange]);
 
   return (
     <div className="space-y-4">

@@ -1,5 +1,6 @@
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
 import type { CpmActivityResult, CpmLogicLink, CpmRelationshipType, CpmResult } from '../cpmTypes';
+import { buildCriticalPathContinuityWarning } from './criticalPathContinuity';
 
 export interface CalculateCpmParams {
   activities: ScheduleActivity[];
@@ -252,10 +253,25 @@ export function calculateCpm(params: CalculateCpmParams): CpmResult {
     node.lateStart = node.lateFinish - node.durationDays;
   }
 
-  // Float + critical
+  // Float + critical (NTRP CPM: TF = LS - ES = LF - EF; critical only when TF === 0)
   for (const node of nodes.values()) {
-    node.totalFloat = node.lateStart - node.earlyStart;
-    node.isCritical = node.totalFloat <= 0;
+    const tfFromLateStart = node.lateStart - node.earlyStart;
+    const tfFromLateFinish = node.lateFinish - node.earlyFinish;
+    node.totalFloat = tfFromLateStart;
+
+    if (tfFromLateStart !== tfFromLateFinish) {
+      warnings.push(
+        `Total float mismatch for "${node.activityCode}" (LS-ES vs LF-EF). Review logic links.`,
+      );
+    }
+
+    if (node.totalFloat < 0) {
+      warnings.push(
+        `Activity "${node.activityCode}" is over-constrained (negative total float). Review logic links and lag values.`,
+      );
+    }
+
+    node.isCritical = node.totalFloat === 0;
   }
 
   // Free float: min gap to each successor minus own EF (FS only for simplicity)
@@ -291,6 +307,16 @@ export function calculateCpm(params: CalculateCpmParams): CpmResult {
   const criticalPathActivityCodes = resultActivities
     .filter((a) => a.isCritical)
     .map((a) => a.activityCode);
+
+  const continuityWarning = buildCriticalPathContinuityWarning({
+    activities: resultActivities,
+    logicLinks: validLinks,
+    projectStartDay,
+    projectFinish,
+  });
+  if (continuityWarning) {
+    warnings.push(continuityWarning);
+  }
 
   return {
     activities: resultActivities,

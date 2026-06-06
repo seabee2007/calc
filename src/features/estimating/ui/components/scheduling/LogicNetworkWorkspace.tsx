@@ -25,6 +25,8 @@ import { INITIAL_LOGIC_NETWORK_VIEWPORT } from '../../../scheduling/logicNetwork
 import EstimateWorkspaceToast, {
   type EstimateWorkspaceToastVariant,
 } from '../EstimateWorkspaceToast';
+import LogicReviewPanel from '../../../scheduling/logic/LogicReviewPanel';
+import type { SuggestedLogicLink } from '../../../scheduling/logic/logicTypes';
 import EstimateLogicNetworkCanvas, {
   type LogicNetworkCanvasHandle,
 } from './EstimateLogicNetworkCanvas';
@@ -41,9 +43,12 @@ interface Props {
   logicLinks: CpmLogicLink[];
   cpmResult: CpmResult | null;
   layout: LogicNetworkLayout[];
+  logicReviewIgnored: string[];
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
   onSaveLayout: (layout: LogicNetworkLayout[]) => Promise<void>;
+  onAddSuggestedLinks: (links: SuggestedLogicLink[]) => Promise<void>;
+  onIgnoreLogicWarning: (warningId: string) => Promise<void>;
   saving?: boolean;
   canvasKey: string;
 }
@@ -63,6 +68,8 @@ export default function LogicNetworkWorkspace({
     message: string;
     variant: EstimateWorkspaceToastVariant;
   } | null>(null);
+  const [showLogicReview, setShowLogicReview] = useState(false);
+  const [logicReviewBusy, setLogicReviewBusy] = useState(false);
   const [viewport, setViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
   const shellRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<LogicNetworkCanvasHandle>(null);
@@ -212,6 +219,13 @@ export default function LogicNetworkWorkspace({
           <button
             type="button"
             className={toolbarButtonClass}
+            onClick={() => setShowLogicReview(true)}
+          >
+            Check logic
+          </button>
+          <button
+            type="button"
+            className={toolbarButtonClass}
             onClick={() => canvasRef.current?.autoLayout()}
           >
             Auto layout
@@ -263,6 +277,31 @@ export default function LogicNetworkWorkspace({
           onEnterFullscreen={handleEnterFromModal}
         />
       ) : null}
+
+      <LogicReviewPanel
+        isOpen={showLogicReview}
+        onClose={() => setShowLogicReview(false)}
+        activities={activities}
+        logicLinks={canvasProps.logicLinks}
+        ignoredWarningIds={canvasProps.logicReviewIgnored}
+        busy={logicReviewBusy}
+        onAddSuggestedLinks={async (links) => {
+          setLogicReviewBusy(true);
+          try {
+            await canvasProps.onAddSuggestedLinks(links);
+          } finally {
+            setLogicReviewBusy(false);
+          }
+        }}
+        onIgnoreWarning={async (warningId) => {
+          setLogicReviewBusy(true);
+          try {
+            await canvasProps.onIgnoreLogicWarning(warningId);
+          } finally {
+            setLogicReviewBusy(false);
+          }
+        }}
+      />
     </div>
   );
 

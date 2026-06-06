@@ -155,4 +155,51 @@ describe('calculateCpm', () => {
     const result = calculateCpm({ activities, logicLinks: links });
     expect(result.criticalPathActivityCodes.sort()).toEqual(['A', 'B', 'C']);
   });
+
+  it('marks only totalFloat === 0 activities as critical', () => {
+    const activities = [makeActivity('A', 5), makeActivity('B', 2), makeActivity('C', 3)];
+    const links: CpmLogicLink[] = [fs('A', 'B'), fs('A', 'C')];
+    const result = calculateCpm({ activities, logicLinks: links });
+    const byCode = new Map(result.activities.map((a) => [a.activityCode, a]));
+
+    expect(byCode.get('B')!.totalFloat).toBeGreaterThan(0);
+    expect(byCode.get('B')!.isCritical).toBe(false);
+    expect(byCode.get('A')!.totalFloat).toBe(0);
+    expect(byCode.get('C')!.totalFloat).toBe(0);
+    expect(byCode.get('A')!.isCritical).toBe(true);
+    expect(byCode.get('C')!.isCritical).toBe(true);
+  });
+
+  it('computes total float as both LS - ES and LF - EF', () => {
+    const activities = [makeActivity('A', 2), makeActivity('B', 3)];
+    const links: CpmLogicLink[] = [fs('A', 'B')];
+    const result = calculateCpm({ activities, logicLinks: links });
+
+    for (const activity of result.activities) {
+      expect(activity.totalFloat).toBe(activity.lateStart - activity.earlyStart);
+      expect(activity.totalFloat).toBe(activity.lateFinish - activity.earlyFinish);
+    }
+  });
+
+  it('warns when disconnected critical activities do not connect start to finish', () => {
+    const activities = [makeActivity('A', 5), makeActivity('B', 5)];
+    const result = calculateCpm({ activities, logicLinks: [] });
+
+    expect(result.activities.every((activity) => activity.isCritical)).toBe(true);
+    expect(
+      result.warnings.some((warning) =>
+        warning.toLowerCase().includes('not connected through logic links'),
+      ),
+    ).toBe(true);
+  });
+
+  it('does not warn when critical path is a continuous linked chain', () => {
+    const activities = [makeActivity('A', 3), makeActivity('B', 4), makeActivity('C', 2)];
+    const links: CpmLogicLink[] = [fs('A', 'B'), fs('B', 'C')];
+    const result = calculateCpm({ activities, logicLinks: links });
+
+    expect(
+      result.warnings.some((warning) => warning.toLowerCase().includes('critical path')),
+    ).toBe(false);
+  });
 });

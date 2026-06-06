@@ -33,7 +33,7 @@ const NO_SCHEDULABLE_MESSAGE =
   'No schedulable activities yet. Enable scheduling on activities to build a schedule preview.';
 
 const PREVIEW_NOTE =
-  'This is a schedule preview only. It has not been published to the Planner schedule.';
+  'This is a draft schedule preview only. It has not been published to the Planner schedule. For CPM critical path, open Logic Network or Level III Gantt.';
 
 interface Props {
   version: EstimateDomainVersion | null;

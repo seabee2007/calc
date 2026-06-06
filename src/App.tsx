@@ -19,6 +19,7 @@ import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
 import RouteFallback from './routes/RouteFallback';
 import FullscreenExperienceTipHost from './components/onboarding/FullscreenExperienceTipHost';
+import DefinitionsHelpHost from './features/help/DefinitionsHelpHost';
 import {
   LazyRoute,
   LazyConcreteCalculatorPage,
@@ -524,6 +525,7 @@ function App() {
           )}
 
         <FullscreenExperienceTipHost />
+        <DefinitionsHelpHost />
       </Suspense>
     </AppErrorBoundary>
   );

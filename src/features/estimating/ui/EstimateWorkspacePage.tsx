@@ -46,6 +46,7 @@ import EstimateWorkspaceToast from './components/EstimateWorkspaceToast';
 import { createEstimateSaveSuccessToast } from './estimateBuilderUi';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateResetSetupConfirmModal from './components/EstimateResetSetupConfirmModal';
+import HelpButton from '../../help/HelpButton';
 import EstimateWorkspaceToolbarActions from './components/EstimateWorkspaceToolbarActions';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
@@ -94,6 +95,8 @@ import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
 import { estimateLineItemsToScheduleActivities } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import { calculateCpm } from '../scheduling/cpm/calculateCpm';
 import type { CpmLogicLink, LogicNetworkLayout } from '../scheduling/cpmTypes';
+import { appendSuggestedLogicLinks } from '../scheduling/logic/logicReviewUtils';
+import type { SuggestedLogicLink } from '../scheduling/logic/logicTypes';
 import { mergeScheduleAssumptions } from '../scheduling/scheduleAssumptions';
 import { useScheduleSettings } from './hooks/useScheduleSettings';
 import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
@@ -121,6 +124,10 @@ function getTodayScheduleDateYmd(): string {
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+// Stable empty fallback — avoids creating a new array reference on every render
+// which would destabilise selectedDivisionCodes → workBreakdown → handleCollapseAll.
+const EMPTY_SELECTED_DIVISIONS: EstimateSelectedDivision[] = [];
 
 export default function EstimateWorkspacePage() {
   const { projectId: routeProjectId, estimateTab } = useParams<{
@@ -737,6 +744,7 @@ export default function EstimateWorkspacePage() {
           logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
           scheduleSettings: scheduleSettingsHook.scheduleSettings,
           leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
         },
         currentEstimate.assumptions as Record<string, unknown>,
       );
@@ -756,6 +764,53 @@ export default function EstimateWorkspacePage() {
       estimateAdapter,
       lineItemDraft.draftLines,
       estimateSettings.settings,
+      scheduleSettingsHook,
+      user?.id,
+    ],
+  );
+
+  const handleAddSuggestedLogicLinks = useCallback(
+    async (suggestedLinks: SuggestedLogicLink[]) => {
+      if (!currentEstimate || !estimateAdapter || suggestedLinks.length === 0) return;
+      const nextLinks = appendSuggestedLogicLinks(scheduleSettingsHook.logicLinks, suggestedLinks);
+      await handleLogicLinksChange(nextLinks);
+    },
+    [currentEstimate, estimateAdapter, handleLogicLinksChange, scheduleSettingsHook.logicLinks],
+  );
+
+  const handleIgnoreLogicWarning = useCallback(
+    async (warningId: string) => {
+      if (!currentEstimate || !estimateAdapter) return;
+      const nextIgnored = scheduleSettingsHook.logicReviewIgnored.includes(warningId)
+        ? scheduleSettingsHook.logicReviewIgnored
+        : [...scheduleSettingsHook.logicReviewIgnored, warningId];
+      scheduleSettingsHook.setLogicReviewIgnored(nextIgnored);
+      const updatedAssumptions = mergeScheduleAssumptions(
+        {
+          logicLinks: scheduleSettingsHook.logicLinks,
+          logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
+          scheduleSettings: scheduleSettingsHook.scheduleSettings,
+          leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicReviewIgnored: nextIgnored,
+        },
+        currentEstimate.assumptions as Record<string, unknown>,
+      );
+      await saveCurrentEstimateWithLineItems({
+        estimateId: currentEstimate.id,
+        projectId: currentEstimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        draftLines: lineItemDraft.draftLines,
+        selectedDivisions: currentEstimate.selectedDivisions,
+        estimateSettings: estimateSettings.settings,
+        existingAssumptions: updatedAssumptions,
+        createdBy: user?.id ?? null,
+      });
+    },
+    [
+      currentEstimate,
+      estimateAdapter,
+      estimateSettings.settings,
+      lineItemDraft.draftLines,
       scheduleSettingsHook,
       user?.id,
     ],
@@ -1032,14 +1087,17 @@ export default function EstimateWorkspacePage() {
     resolvedEstimateType,
   );
 
-  console.log('[Estimate Render]', {
-    projectId: resolvedProjectId,
-    isLoadingEstimate: dataLoading,
-    hasCurrentEstimate: Boolean(currentEstimate?.id),
-    activeEstimateType: currentEstimate?.estimateType ?? activeEstimateType,
-    selectedDivisionCount,
-    lineItemCount,
-  });
+  // Stable callbacks for props passed to EstimateLineItemsBuilderPanel.
+  // Inline arrow functions here would create new refs on every parent render,
+  // triggering child effects that include them in their dependency arrays.
+  const handleAutoOpenScopeModalConsumed = useCallback(
+    () => setAutoOpenScopeModalKey(null),
+    [],
+  );
+  const handleFocusActivityConsumed = useCallback(
+    () => setFocusActivityCode(null),
+    [],
+  );
 
   return (
     <>
@@ -1048,29 +1106,34 @@ export default function EstimateWorkspacePage() {
           activeTabId={activeTab}
           onTabChange={handleTabChange}
           rightActions={
-            <EstimateWorkspaceToolbarActions
-              showCollapseAll={showCollapseAll}
-              showReset={showResetForm}
-              showSaveBucket={showSaveBucket}
-              showSaveQuick={showSaveQuick}
-              showImportExport={showImportExport}
-              canEdit={canEditEstimate || activeEstimateType != null}
-              canSave={canSave}
-              canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
-              saving={saving}
-              handlers={builderToolbarHandlers}
-              onReset={() => {
-                if (activeTab === 'settings') {
-                  estimateSettings.resetSettings();
-                  return;
-                }
-                setResetModalOpen(true);
-              }}
-              onSave={handleSaveEstimate}
-              onImportEstimate={() => setImportModalOpen(true)}
-              onExportEstimate={handleExportEstimate}
-              onDownloadImportTemplate={handleDownloadImportTemplate}
-            />
+            <div className="flex items-center gap-2">
+              <HelpButton
+                className="inline-flex items-center gap-1.5 rounded px-2 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              />
+              <EstimateWorkspaceToolbarActions
+                showCollapseAll={showCollapseAll}
+                showReset={showResetForm}
+                showSaveBucket={showSaveBucket}
+                showSaveQuick={showSaveQuick}
+                showImportExport={showImportExport}
+                canEdit={canEditEstimate || activeEstimateType != null}
+                canSave={canSave}
+                canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
+                saving={saving}
+                handlers={builderToolbarHandlers}
+                onReset={() => {
+                  if (activeTab === 'settings') {
+                    estimateSettings.resetSettings();
+                    return;
+                  }
+                  setResetModalOpen(true);
+                }}
+                onSave={handleSaveEstimate}
+                onImportEstimate={() => setImportModalOpen(true)}
+                onExportEstimate={handleExportEstimate}
+                onDownloadImportTemplate={handleDownloadImportTemplate}
+              />
+            </div>
           }
         />
 
@@ -1184,14 +1247,14 @@ export default function EstimateWorkspacePage() {
             projectLocationLabel={project?.locationLabel}
             projectScopeContext={projectScopeContext}
             autoOpenScopeModalKey={autoOpenScopeModalKey}
-            onAutoOpenScopeModalConsumed={() => setAutoOpenScopeModalKey(null)}
+            onAutoOpenScopeModalConsumed={handleAutoOpenScopeModalConsumed}
             onSaveQuick={handleSaveQuickEstimate}
-            persistedSelectedDivisions={currentEstimate?.selectedDivisions ?? []}
+            persistedSelectedDivisions={currentEstimate?.selectedDivisions ?? EMPTY_SELECTED_DIVISIONS}
             onSaveSelectedDivisions={handleSaveSelectedDivisions}
             onToolbarHandlersChange={setBuilderToolbarHandlers}
             importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
             focusActivityCode={focusActivityCode}
-            onFocusActivityConsumed={() => setFocusActivityCode(null)}
+            onFocusActivityConsumed={handleFocusActivityConsumed}
           />
         ) : null}
 
@@ -1224,6 +1287,8 @@ export default function EstimateWorkspacePage() {
           hasEstimate ? (
             <EstimateGanttPreview
               datePlanResult={scheduleDatePlanResult}
+              cpmResult={cpmResult}
+              projectStartDate={scheduleSettingsHook.scheduleSettings.projectStartDate}
               loading={dataLoading}
               exportReady={ganttExportReady}
               onExportPdf={handleExportGanttPdf}
@@ -1240,10 +1305,14 @@ export default function EstimateWorkspacePage() {
         {!loadError && !dataLoading && activeTab === 'logic-network' ? (
           hasEstimate ? (
             <div className="space-y-4">
-              {scheduleActivitiesResult.warnings.length > 0 && (
+              {(scheduleActivitiesResult.warnings.length > 0 ||
+                (cpmResult?.warnings.length ?? 0) > 0) && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
                   {scheduleActivitiesResult.warnings.map((w, i) => (
-                    <div key={i}>{w}</div>
+                    <div key={`schedule-${i}`}>{w}</div>
+                  ))}
+                  {cpmResult?.warnings.map((w, i) => (
+                    <div key={`cpm-${i}`}>{w}</div>
                   ))}
                 </div>
               )}
@@ -1253,9 +1322,12 @@ export default function EstimateWorkspacePage() {
                 logicLinks={scheduleSettingsHook.logicLinks}
                 cpmResult={cpmResult}
                 layout={scheduleSettingsHook.logicNetworkLayout}
+                logicReviewIgnored={scheduleSettingsHook.logicReviewIgnored}
                 onLinksChange={handleLogicLinksChange}
                 onLayoutChange={handleLogicNetworkLayoutChange}
                 onSaveLayout={handleSaveLogicNetworkLayout}
+                onAddSuggestedLinks={handleAddSuggestedLogicLinks}
+                onIgnoreLogicWarning={handleIgnoreLogicWarning}
               />
             </div>
           ) : (
@@ -1269,6 +1341,17 @@ export default function EstimateWorkspacePage() {
         {!loadError && !dataLoading && activeTab === 'level-iii-gantt' ? (
           hasEstimate ? (
             <div className="space-y-6">
+              {(scheduleActivitiesResult.warnings.length > 0 ||
+                (cpmResult?.warnings.length ?? 0) > 0) && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                  {scheduleActivitiesResult.warnings.map((w, i) => (
+                    <div key={`schedule-${i}`}>{w}</div>
+                  ))}
+                  {cpmResult?.warnings.map((w, i) => (
+                    <div key={`cpm-${i}`}>{w}</div>
+                  ))}
+                </div>
+              )}
               <div ref={ganttExportRef} className="space-y-6">
                 <LevelThreeGantt
                   activities={scheduleActivitiesResult.activities}

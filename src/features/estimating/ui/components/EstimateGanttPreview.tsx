@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { calculateEstimateCriticalPath } from '../../application/estimateCriticalPath';
+import { buildCpmCriticalPathPreview } from '../../scheduling/cpm/cpmCriticalPathPreview';
+import type { CpmResult } from '../../scheduling/cpmTypes';
 import {
   buildEstimateScheduleBaseline,
   buildEstimateScheduleBaselineTaskMap,
@@ -43,7 +44,7 @@ import Button from '../../../../components/ui/Button';
 import { GANTT_EXPORT_DISABLED_TOOLTIP } from '../../schedule/ganttExportValidation';
 
 const GANTT_PREVIEW_NOTE =
-  'This Gantt is a preview generated from estimate activities. It has not been published to the Planner schedule.';
+  'This Gantt is a draft calendar preview only. It has not been published to the Planner schedule. Critical path uses the same CPM engine as Logic Network and Level III Gantt.';
 
 const NO_PLANNED_DATES_MESSAGE =
   'Choose a project start date in Schedule Preview to build a Gantt preview.';
@@ -54,6 +55,8 @@ const PREVIEW_BADGE = `${BADGE_BASE} border border-slate-300 bg-slate-100 text-s
 
 interface Props {
   datePlanResult: EstimateScheduleDatePlanResult | null;
+  cpmResult: CpmResult | null;
+  projectStartDate?: string | null;
   loading?: boolean;
   exportReady?: boolean;
   onExportPdf?: () => void;
@@ -62,6 +65,8 @@ interface Props {
 
 export default function EstimateGanttPreview({
   datePlanResult,
+  cpmResult,
+  projectStartDate = null,
   loading = false,
   exportReady = false,
   onExportPdf,
@@ -96,8 +101,16 @@ export default function EstimateGanttPreview({
     [tasks, timelineScale],
   );
   const criticalPathResult = useMemo(
-    () => calculateEstimateCriticalPath(plannedPlan, dependencies),
-    [plannedPlan, dependencies],
+    () =>
+      buildCpmCriticalPathPreview({
+        cpmResult,
+        plan: plannedPlan,
+        projectStartDate:
+          projectStartDate?.trim() ||
+          datePlanResult?.plan?.projectStartDate ||
+          null,
+      }),
+    [cpmResult, plannedPlan, projectStartDate, datePlanResult?.plan?.projectStartDate],
   );
   const dependencyConnectors = useMemo(
     () => buildGanttDependencyConnectors(dependencies, rows, timeline),
@@ -178,7 +191,7 @@ export default function EstimateGanttPreview({
                 checked={showCriticalPath}
                 onChange={(event) => setShowCriticalPath(event.target.checked)}
               />
-              Critical path
+              Critical path (CPM)
             </label>
             <label className="flex items-center gap-2">
               <input

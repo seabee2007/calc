@@ -9,6 +9,7 @@ import {
 import {
   parseLogicLinksFromAssumptions,
   parseLogicNetworkLayoutFromAssumptions,
+  parseLogicReviewIgnoredFromAssumptions,
   parseScheduleSettingsFromAssumptions,
 } from '../../scheduling/scheduleAssumptions';
 import type { EstimateDomainTask } from '../../infrastructure/estimateDbTypes';
@@ -19,10 +20,12 @@ export interface UseScheduleSettingsResult {
   logicLinks: CpmLogicLink[];
   logicNetworkLayout: LogicNetworkLayout[];
   leveledOffsets: Record<string, number>;
+  logicReviewIgnored: string[];
   updateScheduleSettings: (patch: Partial<ScheduleSettings>) => void;
   setLogicLinks: (links: CpmLogicLink[]) => void;
   setLogicNetworkLayout: (layout: LogicNetworkLayout[]) => void;
   setLeveledOffsets: (offsets: Record<string, number>) => void;
+  setLogicReviewIgnored: (ignoredWarningIds: string[]) => void;
   rehydrateFromEstimate: (estimate: CurrentEstimate | null, lineItems: EstimateDomainTask[]) => void;
 }
 
@@ -32,6 +35,7 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
   const [logicLinks, setLogicLinksState] = useState<CpmLogicLink[]>([]);
   const [logicNetworkLayout, setLogicNetworkLayoutState] = useState<LogicNetworkLayout[]>([]);
   const [leveledOffsets, setLeveledOffsetsState] = useState<Record<string, number>>({});
+  const [logicReviewIgnored, setLogicReviewIgnoredState] = useState<string[]>([]);
 
   const rehydrateFromEstimate = useCallback(
     (estimate: CurrentEstimate | null, lineItems: EstimateDomainTask[]) => {
@@ -40,6 +44,7 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
         setLogicLinksState([]);
         setLogicNetworkLayoutState([]);
         setLeveledOffsetsState({});
+        setLogicReviewIgnoredState([]);
         return;
       }
 
@@ -88,6 +93,8 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
       } else {
         setLeveledOffsetsState({});
       }
+
+      setLogicReviewIgnoredState(parseLogicReviewIgnoredFromAssumptions(estimate.assumptions));
     },
     [],
   );
@@ -108,15 +115,21 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
     setLeveledOffsetsState(offsets);
   }, []);
 
+  const setLogicReviewIgnored = useCallback((ignoredWarningIds: string[]) => {
+    setLogicReviewIgnoredState(ignoredWarningIds);
+  }, []);
+
   return {
     scheduleSettings,
     logicLinks,
     logicNetworkLayout,
     leveledOffsets,
+    logicReviewIgnored,
     updateScheduleSettings,
     setLogicLinks,
     setLogicNetworkLayout,
     setLeveledOffsets,
+    setLogicReviewIgnored,
     rehydrateFromEstimate,
   };
 }

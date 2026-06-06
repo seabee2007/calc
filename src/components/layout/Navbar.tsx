@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
+import HelpButton from '../../features/help/HelpButton';
 import ThemeToggle from './ThemeToggle';
 import Button from '../ui/Button';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
@@ -199,6 +200,8 @@ const Navbar: React.FC = () => {
             <LayoutGrid className="h-5 w-5" />
           </Link>
         )}
+
+        {user && <HelpButton className={appNavIconButtonClass()} showLabel={false} />}
 
         {user && (
           <Link

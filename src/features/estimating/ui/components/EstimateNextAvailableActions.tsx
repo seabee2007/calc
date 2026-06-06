@@ -46,13 +46,13 @@ export default function EstimateNextAvailableActions({ onNavigate }: Props) {
           <button
             type="button"
             className="font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-400"
-            onClick={() => onNavigate('gantt-preview')}
+            onClick={() => onNavigate('level-iii-gantt')}
           >
-            Gantt Preview
+            Level III Gantt
           </button>
           <span className={PLANNER_MUTED}>
             {' '}
-            — review timeline, dependencies, critical path, and baseline.
+            — review CPM timeline, float, and critical path (same engine as Logic Network).
           </span>
         </li>
         <li className={`list-none pl-0 ${PLANNER_MUTED}`}>

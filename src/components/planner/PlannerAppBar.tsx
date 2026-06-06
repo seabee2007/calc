@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useToolsModalStore } from '../../store/toolsModalStore';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
+import HelpButton from '../../features/help/HelpButton';
 import ThemeToggle from '../layout/ThemeToggle';
 import { APP_NAV_HEADER, appNavIconButtonClass } from '../layout/appNavStyles';
 
@@ -158,6 +159,8 @@ export default function PlannerAppBar({ onMenuClick, projectName }: PlannerAppBa
             <LayoutGrid className="h-5 w-5" />
           </Link>
         )}
+
+        <HelpButton className={appNavIconButtonClass()} showLabel={false} />
 
         <Link
           to="/settings"

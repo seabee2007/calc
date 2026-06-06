@@ -1,4 +1,4 @@
-import type { EstimateCriticalPathResult } from '../../application/estimateCriticalPath';
+import type { CpmCriticalPathPreview } from '../../scheduling/cpm/cpmCriticalPathPreview';
 import { formatSchedulePlannedDate } from '../estimateScheduleDisplay';
 import { ESTIMATE_BLANK, formatEstimateNumber } from '../estimateFormatters';
 import {
@@ -9,12 +9,12 @@ import {
 } from '../estimateWorkspaceTheme';
 
 interface Props {
-  result: EstimateCriticalPathResult;
+  result: CpmCriticalPathPreview;
   loading?: boolean;
 }
 
 export default function EstimateCriticalPathSummary({ result, loading = false }: Props) {
-  const criticalCount = result.criticalTaskIds.length;
+  const criticalCount = result.criticalActivityCodes.length;
   const durationDisplay =
     result.projectDurationDays > 0
       ? `${formatEstimateNumber(result.projectDurationDays, { decimals: 0 })} days`
@@ -24,9 +24,9 @@ export default function EstimateCriticalPathSummary({ result, loading = false }:
   return (
     <div className={`${PLANNER_FORM_PANEL} space-y-3`}>
       <div>
-        <p className={PLANNER_SECTION_TITLE}>Critical path preview</p>
+        <p className={PLANNER_SECTION_TITLE}>Critical path (CPM)</p>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Read-only preview based on planned dates and finish-to-start dependencies.
+          Same CPM engine as Logic Network and Level III Gantt. Critical when total float is 0.
         </p>
       </div>
 
@@ -36,7 +36,7 @@ export default function EstimateCriticalPathSummary({ result, loading = false }:
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
             <p className={`text-xs font-semibold uppercase tracking-wide ${PLANNER_MUTED}`}>
-              Critical tasks
+              Critical activities
             </p>
             <p className={`mt-1 text-lg font-semibold tabular-nums ${TEXT_BODY}`}>
               {formatEstimateNumber(criticalCount, { decimals: 0 })}
@@ -64,8 +64,8 @@ export default function EstimateCriticalPathSummary({ result, loading = false }:
       {result.warnings.length > 0 ? (
         <ul className={`space-y-1 text-sm ${PLANNER_MUTED}`}>
           {result.warnings.map((warning) => (
-            <li key={warning.code} className="list-inside list-disc">
-              {warning.message}
+            <li key={warning} className="list-inside list-disc">
+              {warning}
             </li>
           ))}
         </ul>

@@ -165,12 +165,29 @@ export function leveledOffsetsToAssumptions(
 }
 
 /** Merge all scheduling keys into assumptions in a single spread. */
+export function parseLogicReviewIgnoredFromAssumptions(
+  assumptions: Record<string, unknown> | undefined | null,
+): string[] {
+  if (!assumptions || typeof assumptions !== 'object') return [];
+  const raw = assumptions.logicReviewIgnored;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+}
+
+export function logicReviewIgnoredToAssumptions(
+  ignoredWarningIds: string[],
+  existingAssumptions: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return { ...existingAssumptions, logicReviewIgnored: ignoredWarningIds };
+}
+
 export function mergeScheduleAssumptions(
   patch: Partial<{
     scheduleSettings: ScheduleSettings;
     logicLinks: CpmLogicLink[];
     logicNetworkLayout: LogicNetworkLayout[];
     leveledActivityOffsets: Record<string, number>;
+    logicReviewIgnored: string[];
   }>,
   existingAssumptions: Record<string, unknown> = {},
 ): Record<string, unknown> {
@@ -183,6 +200,9 @@ export function mergeScheduleAssumptions(
       : {}),
     ...(patch.leveledActivityOffsets !== undefined
       ? { leveledActivityOffsets: patch.leveledActivityOffsets }
+      : {}),
+    ...(patch.logicReviewIgnored !== undefined
+      ? { logicReviewIgnored: patch.logicReviewIgnored }
       : {}),
   };
 }

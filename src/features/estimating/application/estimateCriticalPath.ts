@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use `calculateCpm` from `scheduling/cpm/calculateCpm` instead.
+ * Legacy calendar-date critical path — no longer used by estimate workspace UI.
+ */
 import type { EstimateScheduleDependencyPreview } from './estimateScheduleDependencies';
 import type { PlannedEstimateSchedulePlan } from './estimateScheduleDatePlanner';
 import { addDaysToScheduleDate } from './mapScheduleCandidateToScheduleEventInput';
@@ -366,6 +370,7 @@ function calculateWithDependencies(
   };
 }
 
+/** @deprecated Use `calculateCpm` — authoritative CPM engine for all schedule views. */
 export function calculateEstimateCriticalPath(
   plan: PlannedEstimateSchedulePlan | null,
   dependencies: EstimateScheduleDependencyPreview[],
