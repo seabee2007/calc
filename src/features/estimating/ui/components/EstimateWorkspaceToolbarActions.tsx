@@ -1,4 +1,4 @@
-import { ChevronsDownUp, RotateCcw, Save } from 'lucide-react';
+import { ChevronsDownUp, Download, FileSpreadsheet, RotateCcw, Save, Upload } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import {
   ESTIMATE_WORKSPACE_TOOLBAR_MARKER,
@@ -10,6 +10,7 @@ interface Props {
   showReset: boolean;
   showSaveBucket: boolean;
   showSaveQuick: boolean;
+  showImportExport: boolean;
   canEdit: boolean;
   canSave: boolean;
   canSaveQuick: boolean;
@@ -17,6 +18,9 @@ interface Props {
   handlers: EstimateBuilderToolbarHandlers | null;
   onReset: () => void;
   onSave: () => void;
+  onImportEstimate: () => void;
+  onExportEstimate: () => void;
+  onDownloadImportTemplate: () => void;
 }
 
 export default function EstimateWorkspaceToolbarActions({
@@ -24,6 +28,7 @@ export default function EstimateWorkspaceToolbarActions({
   showReset,
   showSaveBucket,
   showSaveQuick,
+  showImportExport,
   canEdit,
   canSave,
   canSaveQuick,
@@ -31,8 +36,12 @@ export default function EstimateWorkspaceToolbarActions({
   handlers,
   onReset,
   onSave,
+  onImportEstimate,
+  onExportEstimate,
+  onDownloadImportTemplate,
 }: Props) {
-  const hasActions = showCollapseAll || showReset || showSaveBucket || showSaveQuick;
+  const hasActions =
+    showCollapseAll || showReset || showSaveBucket || showSaveQuick || showImportExport;
   if (!hasActions) return null;
 
   return (
@@ -90,6 +99,37 @@ export default function EstimateWorkspaceToolbarActions({
         >
           {saving ? 'Saving...' : 'Save estimate'}
         </Button>
+      ) : null}
+      {showImportExport ? (
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Upload className="h-4 w-4" />}
+            disabled={!canEdit || saving}
+            onClick={onImportEstimate}
+          >
+            Import estimate
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Download className="h-4 w-4" />}
+            disabled={saving}
+            onClick={onExportEstimate}
+          >
+            Export estimate
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<FileSpreadsheet className="h-4 w-4" />}
+            disabled={saving}
+            onClick={onDownloadImportTemplate}
+          >
+            Download import template
+          </Button>
+        </>
       ) : null}
     </div>
   );

@@ -33,6 +33,10 @@ import {
   resolveRfiDisplayNumber,
 } from '../../services/projectRecordNumbering';
 import { contractBuilderToolHref } from '../../utils/plannerRoutes';
+import {
+  dispatchPlannerRecordsChanged,
+  type PlannerRecordKind,
+} from '../../utils/plannerRecordsRefresh';
 import Button from '../ui/Button';
 import Toast from '../ui/Toast';
 import FieldRecordStatusBadge from '../field/FieldRecordStatusBadge';
@@ -226,6 +230,16 @@ export default function ProjectDocumentDrawer({
         title: 'Saved',
         message: drawerMeta.saveLabel + ' — workflow updated in a new document version.',
       });
+      const kindMap: Record<string, PlannerRecordKind | undefined> = {
+        rfi: 'rfi',
+        far: 'far',
+        change_order: 'change_order',
+      };
+      const kind = kindMap[normalizePlannerDocumentType(documentType)];
+      if (kind) {
+        console.log(`[${kind.toUpperCase()} Save] refresh planner side panels`);
+        dispatchPlannerRecordsChanged({ kind, projectId, id: documentId });
+      }
       onSaved();
       onClose();
     } catch (e) {

@@ -58,15 +58,15 @@ describe('estimateFormDefaults', () => {
     draft.task.lineItem.material = { unitCost: 5 };
     draft.task.lineItem.equipment = { rate: 200, rateType: 'lump_sum', usageUnits: 1 };
     draft.task.lineItem.subcontractor = { cost: 100 };
-    draft.task.overheadPercent = 10;
-    draft.task.profitPercent = 5;
-    draft.indirectCost = 50;
-
     const totals = computeLinePreviewTotals(draft);
 
     expect(totals.laborHours).toBeGreaterThan(0);
     expect(totals.directCost).toBeGreaterThan(0);
-    expect(totals.sellPrice).toBeGreaterThan(totals.directCost);
+    expect(totals.sellPrice).toBe(totals.directCost);
+    expect(totals.overhead).toBe(0);
+    expect(totals.profit).toBe(0);
+    expect(totals.contingency).toBe(0);
+    expect(totals.tax).toBe(0);
   });
 
   it('computeLinePreviewTotals works for hydrated domain tasks', () => {

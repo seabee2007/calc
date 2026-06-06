@@ -26,6 +26,7 @@ import PricingParamsEditor from '../../components/pricing/PricingParamsEditor';
 import { useProjectStore, useSettingsStore } from '../../store';
 import { getPublicChangeOrderUrl } from '../../lib/changeOrderTracking';
 import { changeOrderEditHref, plannerChangeOrdersHref } from '../../utils/plannerRoutes';
+import { dispatchPlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import ChangeOrderLineItemsEditor from '../../components/change-order/ChangeOrderLineItemsEditor';
 import ChangeOrderDocument from '../../components/change-order/ChangeOrderDocument';
 import ChangeOrderInternalPricingSummary from '../../components/change-order/ChangeOrderInternalPricingSummary';
@@ -206,6 +207,8 @@ export default function ChangeOrderBuilderPage() {
         }
         if (cancelled) return;
 
+        console.log('[Change Order Create] refresh planner side panels');
+        dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: co.id });
         navigate(changeOrderEditHref(projectId, co.id), { replace: true });
       } catch (err) {
         if (!cancelled) {
@@ -444,6 +447,8 @@ export default function ChangeOrderBuilderPage() {
     try {
       const co = await saveChangeOrder(coId, buildSaveInput());
       applyCoToState(co);
+      console.log('[Change Order Save] refresh planner side panels');
+      dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: co.id });
       void reload();
       return co;
     } catch (err) {
@@ -459,6 +464,8 @@ export default function ChangeOrderBuilderPage() {
     setBusy(true);
     try {
       const co = await ensureSent();
+      console.log('[Change Order Send] refresh planner side panels');
+      dispatchPlannerRecordsChanged({ kind: 'change_order', projectId, id: co.id });
       const url = getPublicChangeOrderUrl(co.publicToken);
       setSentUrl(url);
     } catch (err) {

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchTasksForEmployee } from '../../services/plannerService';
+import { subscribePlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import type { PlannerTask } from '../../types/fieldPlanner';
 import EmployeeTaskList from '../../components/employee/EmployeeTaskList';
 import Button from '../../components/ui/Button';
@@ -12,10 +13,18 @@ export default function EmployeeTasksPage() {
   const [tasks, setTasks] = useState<PlannerTask[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!user) return;
-    void fetchTasksForEmployee(user.id).then(setTasks);
+    const loaded = await fetchTasksForEmployee(user.id);
+    console.log('[My Tasks] loaded', loaded.length, 'planner tasks', loaded);
+    setTasks(loaded);
   }, [user]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => subscribePlannerRecordsChanged(() => void load()), [load]);
 
   const tabs: { id: Filter; label: string }[] = [
     { id: 'all', label: 'All' },

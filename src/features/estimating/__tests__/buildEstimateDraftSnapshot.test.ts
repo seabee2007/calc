@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildEstimateDraftSnapshot } from '../application/buildEstimateDraftSnapshot';
 import { draftLineFromDomainTask } from '../application/estimateDraftLine';
 import { buildEstimateSnapshot } from '../application/buildEstimateSnapshot';
+import { normalizeEstimateSettings } from '../application/estimateSettings';
 import { sampleEstimateVersion } from '../__fixtures__/sampleEstimateVersion';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 
@@ -35,6 +36,13 @@ describe('buildEstimateDraftSnapshot', () => {
       draftLineFromDomainTask(taskFromFixtureLine(line, index), `client-${index}`),
     );
 
+    const estimateSettings = normalizeEstimateSettings({
+      overheadPercent: sampleEstimateVersion.pricing?.overheadPercent,
+      profitPercent: sampleEstimateVersion.pricing?.profitPercent,
+      contingencyPercent: sampleEstimateVersion.pricing?.contingencyPercent,
+      taxPercent: sampleEstimateVersion.pricing?.taxPercent,
+    });
+
     const draftSnapshot = buildEstimateDraftSnapshot({
       estimateId: sampleEstimateVersion.meta.estimateId,
       projectId: sampleEstimateVersion.meta.projectId,
@@ -42,11 +50,14 @@ describe('buildEstimateDraftSnapshot', () => {
       estimateType: sampleEstimateVersion.meta.estimateType,
       status: sampleEstimateVersion.meta.status,
       draftLines,
-      pricing: sampleEstimateVersion.pricing,
+      estimateSettings,
       currencyCode: sampleEstimateVersion.meta.currencyCode,
     });
 
-    const directSnapshot = buildEstimateSnapshot(sampleEstimateVersion);
+    const directSnapshot = buildEstimateSnapshot({
+      ...sampleEstimateVersion,
+      estimateSettings,
+    });
 
     expect(draftSnapshot.totals).toEqual(directSnapshot.totals);
     expect(draftSnapshot.lineItems).toHaveLength(directSnapshot.lineItems.length);

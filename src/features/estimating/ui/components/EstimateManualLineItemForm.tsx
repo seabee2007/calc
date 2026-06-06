@@ -18,7 +18,9 @@ import {
   isKnownScopeTemplate,
   normalizeScopeName,
 } from '../../domain/csiScopeTemplates';
-import type { ProductionRateType } from '../../domain/estimateTypes';
+import type { EstimateRelationshipType, ProductionRateType } from '../../domain/estimateTypes';
+import { syncActivityCodeFromParsedManualCode } from '../../application/estimateActivityCoding';
+import { getCsiDivisionByCode } from '../../domain/csiDivisions';
 import {
   parseEstimateFormNumber,
   PRODUCTION_RATE_TYPE_OPTIONS,
@@ -29,9 +31,18 @@ import {
   PLANNER_SECTION_TITLE,
 } from '../../../../components/planner/plannerTheme';
 
+const RELATIONSHIP_OPTIONS = [
+  { value: 'FS', label: 'Finish-to-start (FS)' },
+  { value: 'SS', label: 'Start-to-start (SS)' },
+  { value: 'FF', label: 'Finish-to-finish (FF)' },
+  { value: 'SF', label: 'Start-to-finish (SF)' },
+] as const;
+
 interface Props {
   draft: EstimateDraftLine;
   onChange: (draft: EstimateDraftLine) => void;
+  predecessorOptions?: Array<{ value: string; label: string }>;
+  formError?: string | null;
 }
 
 function FieldGrid({ children }: { children: React.ReactNode }) {
@@ -63,7 +74,12 @@ function CheckboxField({
 const UNASSIGNED_DIVISION_VALUE = '';
 const CUSTOM_UNASSIGNED_SCOPE_VALUE = '';
 
-export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
+export default function EstimateManualLineItemForm({
+  draft,
+  onChange,
+  predecessorOptions = [],
+  formError = null,
+}: Props) {
   const { task } = draft;
   const labor = task.lineItem.labor ?? {};
 
@@ -204,12 +220,17 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             label="Division of Work"
             value={selectedDivisionValue}
             options={csiDivisionSelectOptions}
-            onChange={(value) =>
+            onChange={(value) => {
+              const division = getCsiDivisionByCode(value);
+              patchTask({
+                divisionCode: value,
+                divisionName: division?.name ?? value,
+              });
               patchLineItem({
                 csiDivision: value,
                 csiSection: task.lineItem.csiSection,
-              })
-            }
+              });
+            }}
             fullWidth
           />
           <Input
@@ -255,6 +276,19 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             />
           )}
           <Input
+            label="Activity code"
+            value={task.activityCode ?? ''}
+            placeholder="03-01-02"
+            onChange={(event) => {
+              const next = {
+                ...draft,
+                task: { ...task, activityCode: event.target.value.trim() },
+              };
+              onChange(syncActivityCodeFromParsedManualCode(next, [next]));
+            }}
+            fullWidth
+          />
+          <Input
             label="Activity name"
             value={task.title}
             onChange={(event) => patchTask({ title: event.target.value })}
@@ -283,6 +317,52 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
           />
         </div>
       </section>
+
+      <section className="space-y-3">
+        <h3 className={PLANNER_SECTION_TITLE}>Schedule logic</h3>
+        <FieldGrid>
+          <Select
+            label="Predecessor activity"
+            value={task.predecessorActivityCode ?? ''}
+            options={[
+              { value: '', label: 'No predecessor' },
+              ...predecessorOptions,
+            ]}
+            onChange={(value) =>
+              patchTask({
+                predecessorActivityCode: value || undefined,
+                relationshipType: (task.relationshipType ?? 'FS') as EstimateRelationshipType,
+                lagDays: task.lagDays ?? 0,
+              })
+            }
+            fullWidth
+          />
+          <Select
+            label="Relationship"
+            value={task.relationshipType ?? 'FS'}
+            options={[...RELATIONSHIP_OPTIONS]}
+            onChange={(value) =>
+              patchTask({ relationshipType: value as EstimateRelationshipType })
+            }
+            fullWidth
+          />
+          <Input
+            label="Lag days"
+            type="number"
+            min={0}
+            step={1}
+            value={task.lagDays ?? 0}
+            onChange={(event) =>
+              patchTask({ lagDays: parseEstimateFormNumber(event.target.value) })
+            }
+            fullWidth
+          />
+        </FieldGrid>
+      </section>
+
+      {formError ? (
+        <p className="text-sm text-red-700 dark:text-red-300">{formError}</p>
+      ) : null}
 
       <section className="space-y-3">
         <h3 className={PLANNER_SECTION_TITLE}>Quantity</h3>
@@ -414,7 +494,7 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
       </section>
 
       <section className="space-y-3">
-        <h3 className={PLANNER_SECTION_TITLE}>Costs &amp; markup</h3>
+        <h3 className={PLANNER_SECTION_TITLE}>Direct costs</h3>
         <FieldGrid>
           <Input
             label="Material cost"
@@ -441,65 +521,6 @@ export default function EstimateManualLineItemForm({ draft, onChange }: Props) {
             step="any"
             value={task.lineItem.subcontractor?.cost ?? 0}
             onChange={(event) => patchSubcontractor(parseEstimateFormNumber(event.target.value))}
-            fullWidth
-          />
-          <Input
-            label="Indirect cost"
-            type="number"
-            min={0}
-            step="any"
-            value={draft.indirectCost}
-            onChange={(event) =>
-              onChange({ ...draft, indirectCost: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Overhead %"
-            type="number"
-            min={0}
-            max={100}
-            step="any"
-            value={task.overheadPercent}
-            onChange={(event) =>
-              patchTask({ overheadPercent: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Profit %"
-            type="number"
-            min={0}
-            max={100}
-            step="any"
-            value={task.profitPercent}
-            onChange={(event) =>
-              patchTask({ profitPercent: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Contingency %"
-            type="number"
-            min={0}
-            max={100}
-            step="any"
-            value={task.contingencyPercent}
-            onChange={(event) =>
-              patchTask({ contingencyPercent: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Tax %"
-            type="number"
-            min={0}
-            max={100}
-            step="any"
-            value={task.taxPercent}
-            onChange={(event) =>
-              patchTask({ taxPercent: parseEstimateFormNumber(event.target.value) })
-            }
             fullWidth
           />
         </FieldGrid>

@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import Select from '../ui/Select';
 import { createFieldAdjustment } from '../../services/fieldAdjustmentService';
 import { uploadAdjustmentAttachments } from '../../services/fieldRecordAttachmentService';
+import { dispatchPlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import { FAR_REASONS, FAR_SCHEDULE_IMPACTS } from '../../types/fieldPlanner';
 import FieldFilePicker from './FieldFilePicker';
 
@@ -86,8 +87,14 @@ export default function CreateFieldAdjustmentModal({
           adjustmentId: adj.id,
         });
       }
+      console.log('[FAR Create] created adjustment', adj);
+      console.log('[FAR Create] updating existing field activity path');
+      console.log('[FAR Create] updating existing review queue path');
+      console.log('[FAR Create] updating existing task path');
+      console.log('[FAR Create] refresh planner side panels');
+      dispatchPlannerRecordsChanged({ kind: 'far', projectId, id: adj.id });
       reset();
-      onCreated?.();
+      await onCreated?.();
       onClose();
     } finally {
       setBusy(false);

@@ -15,11 +15,13 @@ import CreateFieldAdjustmentModal from '../field/CreateFieldAdjustmentModal';
 interface EmployeeQuickActionsProps {
   userId: string;
   defaultProjectId?: string;
+  onRecordsChanged?: () => void;
 }
 
 export default function EmployeeQuickActions({
   userId,
   defaultProjectId,
+  onRecordsChanged,
 }: EmployeeQuickActionsProps) {
   const navigate = useNavigate();
   const [rfiOpen, setRfiOpen] = useState(false);
@@ -93,12 +95,14 @@ export default function EmployeeQuickActions({
             onClose={() => setRfiOpen(false)}
             projectId={defaultProjectId}
             userId={userId}
+            onCreated={() => onRecordsChanged?.()}
           />
           <CreateFieldAdjustmentModal
             isOpen={adjOpen}
             onClose={() => setAdjOpen(false)}
             projectId={defaultProjectId}
             userId={userId}
+            onCreated={() => onRecordsChanged?.()}
           />
         </>
       )}

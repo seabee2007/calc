@@ -1,4 +1,5 @@
 import type { ReinforcementSet } from '../../../types';
+import { backfillActivityCodesForDraftLines } from '../application/estimateActivityCoding';
 import {
   createEmptyDraftLine,
   syncDraftLineDescription,
@@ -243,7 +244,7 @@ export function adaptReinforcementCalculationToDraftLines(
     warnings.push('No reinforcement lines generated for the provided type.');
   }
 
-  return { draftLines, warnings };
+  return { draftLines: backfillActivityCodesForDraftLines(draftLines), warnings };
 }
 
 export function adaptReinforcementSetToDraftLines(

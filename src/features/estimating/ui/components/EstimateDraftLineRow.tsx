@@ -8,6 +8,7 @@ import {
   formatEstimateNumber,
 } from '../estimateFormatters';
 import type { EstimateDraftLine } from '../../application/estimateDraftLine';
+import EstimateActivityCodeLabel from './EstimateActivityCodeLabel';
 import {
   ESTIMATE_LINE_ITEM_COL_ACTIONS,
   ESTIMATE_LINE_ITEM_COL_NUM,
@@ -164,7 +165,10 @@ export default function EstimateDraftLineRow({
           </div>
           <div className="col-span-2 min-w-0 sm:col-span-1 lg:col-span-2">
             <p className={`text-xs ${PLANNER_MUTED}`}>Activity</p>
-            <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</p>
+            <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>
+              <EstimateActivityCodeLabel code={task.activityCode} />
+              {title}
+            </p>
           </div>
           <div>
             <p className={`text-xs ${PLANNER_MUTED}`}>Qty</p>
@@ -198,6 +202,7 @@ export default function EstimateDraftLineRow({
         className={`${ESTIMATE_LINE_ITEM_ROW_GRID_WITH_ACTIONS} text-sm ${ESTIMATE_TASK_ROW}`}
       >
         <span className={`font-medium ${TEXT_FOREGROUND} ${ESTIMATE_LINE_ITEM_COL_TASK}`}>
+          <EstimateActivityCodeLabel code={task.activityCode} />
           {title}
         </span>
         <span className={`${TEXT_BODY} ${ESTIMATE_LINE_ITEM_COL_NUM}`}>{quantityLabel}</span>
@@ -219,7 +224,10 @@ export default function EstimateDraftLineRow({
       >
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</p>
+            <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>
+              <EstimateActivityCodeLabel code={task.activityCode} />
+              {title}
+            </p>
             <p className={`mt-0.5 text-xs tabular-nums ${TEXT_MUTED}`}>
               {quantityLabel}
               <span aria-hidden> · </span>

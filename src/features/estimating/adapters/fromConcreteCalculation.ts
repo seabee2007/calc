@@ -1,4 +1,5 @@
 import type { Calculation } from '../../../types';
+import { backfillActivityCodesForDraftLines } from '../application/estimateActivityCoding';
 import {
   createEmptyDraftLine,
   syncDraftLineDescription,
@@ -290,7 +291,7 @@ export function adaptConcreteCalculationToDraftLines(
     );
   }
 
-  return { draftLines, warnings };
+  return { draftLines: backfillActivityCodesForDraftLines(draftLines), warnings };
 }
 
 export function adaptCalculationToDraftLines(

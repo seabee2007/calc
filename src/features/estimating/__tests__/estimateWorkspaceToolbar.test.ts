@@ -3,6 +3,7 @@ import { createEstimateSetupStartState } from '../application/estimateStartFlow'
 import {
   ESTIMATE_WORKSPACE_TOOLBAR_MARKER,
   REMOVED_ESTIMATE_BUILDER_INLINE_TOOLBAR_LABELS,
+  shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
   shouldShowQuickSaveAction,
@@ -40,9 +41,15 @@ describe('estimateWorkspaceToolbar', () => {
 
   it('shows reset form when an estimate or active estimate type exists', () => {
     const setup = mockSetup();
-    expect(shouldShowResetFormAction(true, null, setup, true)).toBe(true);
-    expect(shouldShowResetFormAction(false, 'bid', setup, true)).toBe(true);
-    expect(shouldShowResetFormAction(false, null, setup, true)).toBe(false);
+    expect(shouldShowResetFormAction('line-items', true, null, setup, true)).toBe(true);
+    expect(shouldShowResetFormAction('line-items', false, 'bid', setup, true)).toBe(true);
+    expect(shouldShowResetFormAction('line-items', false, null, setup, true)).toBe(false);
+  });
+
+  it('shows reset form on settings tab when an estimate exists', () => {
+    const setup = mockSetup();
+    expect(shouldShowResetFormAction('settings', true, 'bid', setup, true)).toBe(true);
+    expect(shouldShowResetFormAction('settings', false, null, setup, true)).toBe(false);
   });
 
   it('shows save estimate when an estimate or active estimate type exists', () => {
@@ -70,5 +77,12 @@ describe('estimateWorkspaceToolbar', () => {
     expect(shouldShowQuickSaveAction('line-items', true)).toBe(true);
     expect(shouldShowQuickSaveAction('line-items', false)).toBe(false);
     expect(shouldShowQuickSaveAction('overview', true)).toBe(false);
+  });
+
+  it('shows bid import/export actions only on the estimate tab for bid estimates', () => {
+    expect(shouldShowBidImportExportActions('line-items', true, 'bid')).toBe(true);
+    expect(shouldShowBidImportExportActions('line-items', true, 'budget')).toBe(false);
+    expect(shouldShowBidImportExportActions('overview', true, 'bid')).toBe(false);
+    expect(shouldShowBidImportExportActions('line-items', false, 'bid')).toBe(false);
   });
 });

@@ -1,15 +1,6 @@
+import { buildEstimateTotalsFromSettings } from '../application/estimateSettings';
 import { buildEstimateLineSnapshot } from '../domain/estimateSnapshot';
-import {
-  calculateContingency,
-  calculateFinalSellPrice,
-  calculateIndirectCost,
-  calculateOverhead,
-  calculateProfit,
-  calculateTax,
-  roundToTwo,
-  sanitizeCost,
-} from '../domain/estimateMath';
-import type { ProductionRateType } from '../domain/estimateTypes';
+import type { EstimateSettings, ProductionRateType } from '../domain/estimateTypes';
 import type { EstimateDraftLine } from '../application/estimateDraftLine';
 
 export const PRODUCTION_RATE_TYPE_OPTIONS: ReadonlyArray<{
@@ -91,26 +82,30 @@ function safeTotal(value: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
-export function computeDraftSummaryTotals(draftLines: EstimateDraftLine[]): DraftSummaryTotals {
+export function computeDraftSummaryTotals(
+  draftLines: EstimateDraftLine[],
+  estimateSettings?: Partial<EstimateSettings> | null,
+): DraftSummaryTotals {
   let laborHours = 0;
   let manDays = 0;
   let crewDays = 0;
-  let sellPrice = 0;
 
+  const lineSnapshots = draftLines.map((draft) => buildEstimateLineSnapshot(draft.task.lineItem));
   for (const draft of draftLines) {
     const totals = computeLinePreviewTotals(draft);
     laborHours += safeTotal(totals.laborHours);
     manDays += safeTotal(totals.manDays);
     crewDays += safeTotal(totals.crewDays);
-    sellPrice += safeTotal(totals.sellPrice);
   }
+
+  const projectTotals = buildEstimateTotalsFromSettings(lineSnapshots, estimateSettings);
 
   return {
     lineCount: draftLines.length,
     laborHours,
     manDays,
     crewDays,
-    sellPrice,
+    sellPrice: projectTotals.finalSellPrice,
   };
 }
 
@@ -118,22 +113,6 @@ export function computeLinePreviewTotals(draft: EstimateDraftLine): LinePreviewT
   const { task } = draft;
   const lineSnapshot = buildEstimateLineSnapshot(task.lineItem);
   const directCost = lineSnapshot.costs.directCost;
-  const indirectCost = calculateIndirectCost(sanitizeCost(draft.indirectCost));
-  const overhead = calculateOverhead(directCost, task.overheadPercent);
-  const subtotalBeforeProfit = roundToTwo(directCost + indirectCost + overhead);
-  const profit = calculateProfit(subtotalBeforeProfit, task.profitPercent);
-  const subtotalBeforeContingency = roundToTwo(subtotalBeforeProfit + profit);
-  const contingency = calculateContingency(subtotalBeforeContingency, task.contingencyPercent);
-  const taxableAmount = roundToTwo(subtotalBeforeContingency + contingency);
-  const tax = calculateTax(taxableAmount, task.taxPercent);
-  const sellPrice = calculateFinalSellPrice({
-    directCost,
-    indirectCost,
-    overhead,
-    profit,
-    contingency,
-    tax,
-  });
 
   return {
     laborHours: lineSnapshot.metrics.adjustedLaborHours,
@@ -145,10 +124,10 @@ export function computeLinePreviewTotals(draft: EstimateDraftLine): LinePreviewT
     equipmentCost: lineSnapshot.costs.equipmentCost,
     subcontractorCost: lineSnapshot.costs.subcontractorCost,
     directCost,
-    overhead,
-    profit,
-    contingency,
-    tax,
-    sellPrice,
+    overhead: 0,
+    profit: 0,
+    contingency: 0,
+    tax: 0,
+    sellPrice: directCost,
   };
 }

@@ -25,11 +25,15 @@ export function shouldShowCollapseAllAction(
 }
 
 export function shouldShowResetFormAction(
+  activeTab: EstimateWorkspaceTabId,
   hasEstimate: boolean,
   activeEstimateType: EstimateType | null,
   setup: UseEstimateSetupSessionResult,
   canEdit: boolean,
 ): boolean {
+  if (activeTab === 'settings') {
+    return hasEstimate && canEdit;
+  }
   return (
     (hasEstimate || activeEstimateType != null) &&
     canEdit &&
@@ -62,4 +66,16 @@ export function shouldShowQuickSaveAction(
   showSaveQuick: boolean,
 ): boolean {
   return activeTab === 'line-items' && showSaveQuick;
+}
+
+export function shouldShowBidImportExportActions(
+  activeTab: EstimateWorkspaceTabId,
+  hasEstimate: boolean,
+  activeEstimateType: EstimateType | null,
+): boolean {
+  return (
+    activeTab === 'line-items' &&
+    hasEstimate &&
+    activeEstimateType === 'bid'
+  );
 }

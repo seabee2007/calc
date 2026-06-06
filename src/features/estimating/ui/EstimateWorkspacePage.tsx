@@ -23,6 +23,7 @@ import {
   saveCurrentQuickFeasibilityEstimate,
   type CurrentEstimate,
 } from '../application/currentEstimateService';
+import { normalizeSelectedDivisions } from '../application/estimateWorkBreakdown';
 import {
   buildOptimisticEstimateWithDivisions,
   loadCurrentEstimateForProject,
@@ -59,17 +60,29 @@ import { useEstimateLineItemDraft } from './hooks/useEstimateLineItemDraft';
 import { useEstimateSetupSession } from './hooks/useEstimateSetupSession';
 import {
   shouldShowEstimateBuilderPanel,
+  shouldShowEstimateSettingsPanel,
   shouldShowEstimateTypeSelectionOnTab,
   shouldShowOverviewFinancialSummary,
   shouldShowOverviewNoEstimateMessage,
 } from './estimateWorkspaceRenderRules';
+import EstimateSettingsPanel from './components/EstimateSettingsPanel';
+import { useEstimateSettings } from './hooks/useEstimateSettings';
 import {
+  shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
   shouldShowQuickSaveAction,
   shouldShowResetFormAction,
   type EstimateBuilderToolbarHandlers,
 } from './estimateWorkspaceToolbar';
+import EstimateImportModal from './EstimateImportModal';
+import { applyImportedEstimate } from '../importExport/estimateImportApply';
+import type { ImportedEstimateData } from '../importExport/estimateImportParser';
+import type { EstimateImportApplyMode } from '../importExport/estimateImportApply';
+import {
+  downloadBlankEstimateTemplateWorkbook,
+  downloadEstimateWorkbook,
+} from '../importExport/estimateExportBuilder';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -114,6 +127,10 @@ export default function EstimateWorkspacePage() {
   );
   const [activeEstimateType, setActiveEstimateType] = useState<EstimateType | null>(null);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importCollapseDivisionCodesKey, setImportCollapseDivisionCodesKey] = useState<
+    string | null
+  >(null);
   const [builderToolbarHandlers, setBuilderToolbarHandlers] =
     useState<EstimateBuilderToolbarHandlers | null>(null);
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
@@ -133,6 +150,7 @@ export default function EstimateWorkspacePage() {
     [currentEstimate],
   );
   const lineItemDraft = useEstimateLineItemDraft(estimateAdapter);
+  const estimateSettings = useEstimateSettings();
 
   const schedulePlan = useMemo(() => {
     if (!estimateAdapter || !estimate) return null;
@@ -180,8 +198,10 @@ export default function EstimateWorkspacePage() {
   );
   const estimateSetupRef = useRef(estimateSetup);
   const lineItemDraftRef = useRef(lineItemDraft);
+  const estimateSettingsRef = useRef(estimateSettings);
   estimateSetupRef.current = estimateSetup;
   lineItemDraftRef.current = lineItemDraft;
+  estimateSettingsRef.current = estimateSettings;
 
   useEffect(() => {
     if (!resolvedProjectId) return;
@@ -228,6 +248,7 @@ export default function EstimateWorkspacePage() {
     setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
     estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
     lineItemDraftRef.current.resetDraftSetup();
+    estimateSettingsRef.current.rehydrateFromEstimate(null);
 
     void (async () => {
       try {
@@ -246,6 +267,7 @@ export default function EstimateWorkspacePage() {
 
         if (loadedEstimate) {
           setCurrentEstimate(loadedEstimate);
+          estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
           const loadedType = loadedEstimate.estimateType
             ? normalizeEstimateMethod(loadedEstimate.estimateType)
             : DEFAULT_ESTIMATE_METHOD;
@@ -262,6 +284,7 @@ export default function EstimateWorkspacePage() {
           }
         } else {
           setActiveEstimateType(null);
+          estimateSettingsRef.current.rehydrateFromEstimate(null);
         }
       } catch (error) {
         if (!isStale()) {
@@ -294,12 +317,14 @@ export default function EstimateWorkspacePage() {
     setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
     estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
     lineItemDraftRef.current.resetDraftSetup();
+    estimateSettingsRef.current.rehydrateFromEstimate(null);
 
     try {
       const loadedEstimate = await loadCurrentEstimateForProject(projectId);
       if (token !== loadTokenRef.current) return;
 
       setCurrentEstimate(loadedEstimate);
+      estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
       if (loadedEstimate) {
         const loadedType = loadedEstimate.estimateType
           ? normalizeEstimateMethod(loadedEstimate.estimateType)
@@ -371,6 +396,7 @@ export default function EstimateWorkspacePage() {
     estimate != null &&
     estimateAdapter != null &&
     (lineItemDraft.dirty ||
+      estimateSettings.dirty ||
       estimateSetup.session.selectedDivisions.length > 0 ||
       (currentEstimate?.selectedDivisions.length ?? 0) > 0) &&
     !saving;
@@ -438,6 +464,8 @@ export default function EstimateWorkspacePage() {
         ...(currentEstimate?.selectedDivisions ?? []),
         ...estimateSetup.session.selectedDivisions,
       ],
+      estimateSettings: estimateSettings.settings,
+      existingAssumptions: currentEstimate?.assumptions,
       createdBy: user?.id ?? null,
     });
 
@@ -450,6 +478,7 @@ export default function EstimateWorkspacePage() {
     setSaveToastMessage(createEstimateSaveSuccessToast().message);
     setCurrentEstimate(result.data);
     lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
+    estimateSettings.rehydrateFromEstimate(result.data);
 
     setSaving(false);
   }, [
@@ -458,6 +487,8 @@ export default function EstimateWorkspacePage() {
     canSave,
     saving,
     lineItemDraft,
+    estimateSettings,
+    currentEstimate?.assumptions,
     currentEstimate?.selectedDivisions,
     estimateSetup.session.selectedDivisions,
     user?.id,
@@ -509,19 +540,104 @@ export default function EstimateWorkspacePage() {
     }
 
     lineItemDraft.resetDraftSetup();
+    estimateSettings.rehydrateFromEstimate(null);
     estimateSetup.resetSetup(selectedEstimateMethod);
     setCurrentEstimate(null);
     setActiveEstimateType(null);
     setSaveToastMessage('Estimate reset');
     setSaving(false);
     return true;
-  }, [estimate, estimateSetup, lineItemDraft, saving, selectedEstimateMethod]);
+  }, [estimate, estimateSetup, estimateSettings, lineItemDraft, saving, selectedEstimateMethod]);
 
   const handleConfirmResetSetup = useCallback(async () => {
     const didReset = await handleResetEstimate();
     if (!didReset) return;
     setResetModalOpen(false);
   }, [handleResetEstimate]);
+
+  const handleApplyImportedEstimate = useCallback(
+    async ({
+      mode,
+      importedData,
+    }: {
+      mode: EstimateImportApplyMode;
+      importedData: ImportedEstimateData;
+    }) => {
+      if (!estimate || !estimateAdapter || saving) return;
+
+      const currentSelectedDivisions = normalizeSelectedDivisions([
+        ...(currentEstimate?.selectedDivisions ?? []),
+        ...estimateSetup.session.selectedDivisions,
+      ]);
+
+      const applied = applyImportedEstimate({
+        mode,
+        currentDraftLines: lineItemDraft.draftLines,
+        currentSelectedDivisions,
+        imported: importedData,
+      });
+
+      setSaving(true);
+      setSaveError(null);
+      setSaveToastMessage(null);
+
+      if (importedData.estimateSettings) {
+        estimateSettings.replaceSettings(importedData.estimateSettings);
+      }
+
+      const result = await saveCurrentEstimateWithLineItems({
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        draftLines: applied.draftLines,
+        selectedDivisions: applied.selectedDivisions,
+        estimateSettings: importedData.estimateSettings ?? estimateSettings.settings,
+        existingAssumptions: currentEstimate?.assumptions,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        setSaveError(result.error ?? 'Failed to import estimate.');
+        setSaving(false);
+        return;
+      }
+
+      setCurrentEstimate(result.data);
+      setActiveEstimateType(result.data.estimateType);
+      estimateSetup.restoreSavedSetup(
+        normalizeEstimateMethod(result.data.estimateType ?? estimateAdapter.estimateType),
+        result.data.selectedDivisions,
+      );
+      lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
+      estimateSettings.rehydrateFromEstimate(result.data);
+      setImportCollapseDivisionCodesKey(
+        `import-${Date.now()}-${applied.importedDivisionCodes.join(',')}`,
+      );
+      setSaveToastMessage('Estimate imported');
+      setImportModalOpen(false);
+      setSaving(false);
+    },
+    [
+      estimate,
+      estimateAdapter,
+      saving,
+      currentEstimate?.selectedDivisions,
+      estimateSetup,
+      estimateSettings,
+      lineItemDraft,
+      currentEstimate?.assumptions,
+      user?.id,
+    ],
+  );
+
+  const handleExportEstimate = useCallback(() => {
+    if (!currentEstimate) return;
+    downloadEstimateWorkbook(currentEstimate, project?.name ?? 'project');
+  }, [currentEstimate, project?.name]);
+
+  const handleDownloadImportTemplate = useCallback(() => {
+    downloadBlankEstimateTemplateWorkbook();
+  }, []);
 
   if (plannerLoading) {
     return (
@@ -558,11 +674,13 @@ export default function EstimateWorkspacePage() {
     builderToolbarHandlers?.showCollapseAll ?? false,
   );
   const showResetForm = shouldShowResetFormAction(
+    activeTab,
     hasEstimate,
     activeEstimateType,
     estimateSetup,
     canEditEstimate || activeEstimateType != null,
   );
+  const showEstimateSettings = shouldShowEstimateSettingsPanel(activeTab, tabRenderOptions);
   const showSaveBucket = shouldShowBucketSaveAction(
     activeTab,
     hasEstimate,
@@ -573,6 +691,12 @@ export default function EstimateWorkspacePage() {
   const showSaveQuick = shouldShowQuickSaveAction(
     activeTab,
     builderToolbarHandlers?.showSaveQuick ?? false,
+  );
+  const resolvedEstimateType = currentEstimate?.estimateType ?? activeEstimateType;
+  const showImportExport = shouldShowBidImportExportActions(
+    activeTab,
+    hasEstimate,
+    resolvedEstimateType,
   );
 
   console.log('[Estimate Render]', {
@@ -596,13 +720,23 @@ export default function EstimateWorkspacePage() {
               showReset={showResetForm}
               showSaveBucket={showSaveBucket}
               showSaveQuick={showSaveQuick}
+              showImportExport={showImportExport}
               canEdit={canEditEstimate || activeEstimateType != null}
               canSave={canSave}
               canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
               saving={saving}
               handlers={builderToolbarHandlers}
-              onReset={() => setResetModalOpen(true)}
+              onReset={() => {
+                if (activeTab === 'settings') {
+                  estimateSettings.resetSettings();
+                  return;
+                }
+                setResetModalOpen(true);
+              }}
               onSave={handleSaveEstimate}
+              onImportEstimate={() => setImportModalOpen(true)}
+              onExportEstimate={handleExportEstimate}
+              onDownloadImportTemplate={handleDownloadImportTemplate}
             />
           }
         />
@@ -692,6 +826,20 @@ export default function EstimateWorkspacePage() {
           </div>
         ) : null}
 
+        {!loadError && showEstimateSettings && hasEstimate ? (
+          <EstimateSettingsPanel
+            settingsState={estimateSettings}
+            canEdit={canEditEstimate}
+          />
+        ) : null}
+
+        {!loadError && !dataLoading && activeTab === 'settings' && !hasEstimate ? (
+          <EstimateWorkspaceEmptyState
+            title="No estimate started"
+            body={TAB_NO_ESTIMATE_MESSAGE}
+          />
+        ) : null}
+
         {!loadError && showEstimateBuilder && estimate && hasEstimateAdapter ? (
           <EstimateLineItemsBuilderPanel
             estimate={estimate}
@@ -708,6 +856,7 @@ export default function EstimateWorkspacePage() {
             persistedSelectedDivisions={currentEstimate?.selectedDivisions ?? []}
             onSaveSelectedDivisions={handleSaveSelectedDivisions}
             onToolbarHandlersChange={setBuilderToolbarHandlers}
+            importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
           />
         ) : null}
 
@@ -754,6 +903,12 @@ export default function EstimateWorkspacePage() {
         hasSavedActivities={(estimateAdapter?.lineItems.length ?? 0) > 0}
         onClose={() => setResetModalOpen(false)}
         onConfirm={handleConfirmResetSetup}
+      />
+      <EstimateImportModal
+        isOpen={importModalOpen}
+        saving={saving}
+        onClose={() => setImportModalOpen(false)}
+        onApply={handleApplyImportedEstimate}
       />
       <EstimateWorkspaceToast
         message={saveToastMessage}

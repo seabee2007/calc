@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { supabase } from '../../lib/supabase';
 import { fetchTasksForOwner, reviewTask } from '../../services/plannerService';
 import { fetchOpenRfisForOwner } from '../../services/rfiService';
 import {
@@ -9,8 +10,21 @@ import {
   fetchPendingAdjustmentsForOwner,
 } from '../../services/fieldAdjustmentService';
 import { fetchChangeOrdersForOwnerReview } from '../../services/changeOrderService';
+import {
+  listProjectFarBuilderDocuments,
+  listProjectRfiBuilderDocuments,
+  type ProjectDocumentRow,
+} from '../../services/projectDocumentService';
+import {
+  partitionFarBuilderDocuments,
+  partitionRfiBuilderDocuments,
+  resolveBuilderWorkflowStatusFromDoc,
+} from '../../services/builderWorkflowStatus';
+import { resolveRfiDisplayNumber } from '../../services/projectRecordNumbering';
 import type { ChangeOrder } from '../../types/changeOrder';
 import type { PlannerTask, RfiRequest, FieldAdjustmentRequest } from '../../types/fieldPlanner';
+import { subscribePlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
+import { contractBuilderToolHref } from '../../utils/plannerRoutes';
 import {
   changeOrderEditHref,
   changeOrderNewHref,
@@ -71,6 +85,8 @@ export default function OwnerReviewQueue() {
   const [adjustments, setAdjustments] = useState<FieldAdjustmentRequest[]>([]);
   const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>([]);
   const [farsNeedingCo, setFarsNeedingCo] = useState<FieldAdjustmentRequest[]>([]);
+  const [builderRfis, setBuilderRfis] = useState<ProjectDocumentRow[]>([]);
+  const [builderFars, setBuilderFars] = useState<ProjectDocumentRow[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const hasLoadedOnce = useRef(false);
@@ -86,11 +102,43 @@ export default function OwnerReviewQueue() {
         fetchChangeOrdersForOwnerReview(user.id),
         fetchApprovedFarsNeedingChangeOrder(user.id),
       ]);
-      setTasks(t.filter((x) => x.status === 'Submitted'));
+
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', user.id);
+      const projectIds = (projects ?? []).map((p) => p.id as string);
+      const builderBundles = await Promise.all(
+        projectIds.map(async (projectId) => {
+          const [rfiDocs, farDocs] = await Promise.all([
+            listProjectRfiBuilderDocuments(projectId),
+            listProjectFarBuilderDocuments(projectId),
+          ]);
+          return { rfiDocs, farDocs };
+        }),
+      );
+      const allRfiDocs = builderBundles.flatMap((b) => b.rfiDocs);
+      const allFarDocs = builderBundles.flatMap((b) => b.farDocs);
+      const openBuilderRfis = partitionRfiBuilderDocuments(allRfiDocs).open;
+      const openBuilderFars = partitionFarBuilderDocuments(allFarDocs).open;
+
+      const submittedTasks = t.filter((x) => x.status === 'Submitted');
+      setTasks(submittedTasks);
       setRfis(r);
       setAdjustments(a);
       setChangeOrders(co);
       setFarsNeedingCo(farCo);
+      setBuilderRfis(openBuilderRfis);
+      setBuilderFars(openBuilderFars);
+      console.log(
+        '[Review Queue] loaded',
+        `tasks=${submittedTasks.length}`,
+        `rfis=${r.length}`,
+        `builderRfis=${openBuilderRfis.length}`,
+        `adjustments=${a.length}`,
+        `builderFars=${openBuilderFars.length}`,
+        `changeOrders=${co.length}`,
+      );
     } finally {
       setLoading(false);
       hasLoadedOnce.current = true;
@@ -100,6 +148,8 @@ export default function OwnerReviewQueue() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => subscribePlannerRecordsChanged(() => void reload()), [reload]);
 
   if (!user) return null;
 
@@ -172,6 +222,37 @@ export default function OwnerReviewQueue() {
         <div className={QUEUE_SECTION_CARD}>
           <h2 className={`mb-4 text-lg font-semibold ${TEXT_FOREGROUND}`}>Open RFIs</h2>
           <ul className="space-y-3">
+            {builderRfis.map((doc) => (
+              <li key={`builder-rfi-${doc.id}`} className={QUEUE_LIST_ROW}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`font-mono text-xs ${TEXT_ACCENT}`}>
+                      {resolveRfiDisplayNumber(doc)}
+                    </span>
+                    <FieldRecordStatusBadge
+                      status={resolveBuilderWorkflowStatusFromDoc(doc)}
+                    />
+                  </div>
+                  <p className={`mt-1 font-medium ${TEXT_FOREGROUND}`}>{doc.title}</p>
+                  <p className={`mt-1 text-sm ${TEXT_MUTED}`}>Document Builder RFI</p>
+                </div>
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => {
+                    if (!doc.project_id) return;
+                    navigate(
+                      contractBuilderToolHref(doc.project_id, doc.id, {
+                        packKey: 'GENERIC_RFI',
+                        documentType: 'rfi',
+                      }),
+                    );
+                  }}
+                >
+                  Open
+                </Button>
+              </li>
+            ))}
             {rfis.map((rfi) => (
               <li key={rfi.id} className={QUEUE_LIST_ROW}>
                 <div className="min-w-0 flex-1">
@@ -193,7 +274,7 @@ export default function OwnerReviewQueue() {
                 </Button>
               </li>
             ))}
-            {rfis.length === 0 && (
+            {rfis.length === 0 && builderRfis.length === 0 && (
               <p className={`text-sm ${TEXT_MUTED}`}>No open RFIs.</p>
             )}
           </ul>
@@ -206,6 +287,34 @@ export default function OwnerReviewQueue() {
             Pending adjustments
           </h2>
           <ul className="space-y-3">
+            {builderFars.map((doc) => (
+              <li key={`builder-far-${doc.id}`} className={QUEUE_LIST_ROW}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <FieldRecordStatusBadge
+                      status={resolveBuilderWorkflowStatusFromDoc(doc)}
+                    />
+                  </div>
+                  <p className={`mt-1 font-medium ${TEXT_FOREGROUND}`}>{doc.title}</p>
+                  <p className={`mt-1 text-sm ${TEXT_MUTED}`}>Document Builder FAR</p>
+                </div>
+                <Button
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => {
+                    if (!doc.project_id) return;
+                    navigate(
+                      contractBuilderToolHref(doc.project_id, doc.id, {
+                        packKey: 'GENERIC_FAR',
+                        documentType: 'far',
+                      }),
+                    );
+                  }}
+                >
+                  Review
+                </Button>
+              </li>
+            ))}
             {adjustments.map((adj) => (
               <li key={adj.id} className={QUEUE_LIST_ROW}>
                 <div className="min-w-0 flex-1">
@@ -229,7 +338,7 @@ export default function OwnerReviewQueue() {
                 </Button>
               </li>
             ))}
-            {adjustments.length === 0 && (
+            {adjustments.length === 0 && builderFars.length === 0 && (
               <p className={`text-sm ${TEXT_MUTED}`}>No pending adjustments.</p>
             )}
           </ul>

@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getOwnerFieldActivity } from '../../services/fieldActivityService';
 import { useFieldActivityDismissStore } from '../../store/fieldActivityDismissStore';
+import { subscribePlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import type { FieldActivityItem } from '../../types/fieldPlanner';
 import OpsCard from '../dashboard/OpsCard';
 import Button from '../ui/Button';
@@ -44,13 +45,23 @@ export default function OwnerActivityFeed({ limit = 8 }: { limit?: number }) {
   const dismissAll = useFieldActivityDismissStore((s) => s.dismissAll);
   const dismissedByOwner = useFieldActivityDismissStore((s) => s.dismissedByOwner);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    void getOwnerFieldActivity(user.id, limit)
-      .then(setItems)
-      .finally(() => setLoading(false));
+    try {
+      const loaded = await getOwnerFieldActivity(user.id, limit);
+      console.log('[Field Activity] loaded', loaded.length, 'items', loaded);
+      setItems(loaded);
+    } finally {
+      setLoading(false);
+    }
   }, [user, limit]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => subscribePlannerRecordsChanged(() => void load()), [load]);
 
   const visibleItems = useMemo(() => {
     if (!user) return [];

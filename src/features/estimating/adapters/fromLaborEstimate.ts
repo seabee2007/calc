@@ -1,5 +1,6 @@
 import type { LaborEstimate } from '../../../types/laborEstimate';
 import type { GeneralTradeLaborInput } from '../../../types/generalTradeLabor';
+import { backfillActivityCodesForDraftLines } from '../application/estimateActivityCoding';
 import {
   createEmptyDraftLine,
   syncDraftLineDescription,
@@ -327,7 +328,7 @@ export function adaptLaborEstimateToDraftLines(
     warnings.push('No labor lines generated; volume and trade inputs were empty.');
   }
 
-  return { draftLines, warnings };
+  return { draftLines: backfillActivityCodesForDraftLines(draftLines), warnings };
 }
 
 export function adaptLaborEstimateRecordToDraftLines(

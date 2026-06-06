@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
 import {
+  assignActivityCodeToDraftLine,
+  sortDraftLinesByActivityCode,
+  syncActivityCodeFromParsedManualCode,
+  validateActivityCodeUnique,
+} from '../../application/estimateActivityCoding';
+import { getCsiDivisionByCode, normalizeCsiDivisionCode } from '../../domain/csiDivisions';
+import {
   applyDraftLaborDefaults,
   applyDivisionScopeDefaults,
   cloneDraftLine,
@@ -10,7 +17,6 @@ import {
   moveDraftLineDown,
   moveDraftLineUp,
   reindexDraftLines,
-  sortDraftLinesByPosition,
   syncDraftLineDescription,
   type EstimateDraftLine,
 } from '../../application/estimateDraftLine';
@@ -21,6 +27,7 @@ export interface UseEstimateLineItemDraftResult {
   drawerOpen: boolean;
   editingClientId: string | null;
   formDraft: EstimateDraftLine | null;
+  formError: string | null;
   openAddDrawer: () => void;
   openAddDrawerForDivision: (divisionCode: string) => void;
   openEditDrawer: (clientId: string) => void;
@@ -45,6 +52,7 @@ export function useEstimateLineItemDraft(
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [formDraft, setFormDraft] = useState<EstimateDraftLine | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const hydratedVersionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -65,6 +73,7 @@ export function useEstimateLineItemDraft(
   const openAddDrawer = useCallback(() => {
     const nextPosition = draftLines.length;
     setEditingClientId(null);
+    setFormError(null);
     setFormDraft(applyDraftLaborDefaults(createEmptyDraftLine(nextPosition)));
     setDrawerOpen(true);
   }, [draftLines.length]);
@@ -73,8 +82,12 @@ export function useEstimateLineItemDraft(
     (divisionCode: string) => {
       const nextPosition = draftLines.length;
       const line = applyDraftLaborDefaults(createEmptyDraftLine(nextPosition));
-      line.task.lineItem.csiDivision = divisionCode;
+      const normalizedDivision = normalizeCsiDivisionCode(divisionCode);
+      line.task.lineItem.csiDivision = normalizedDivision;
+      line.task.divisionCode = normalizedDivision;
+      line.task.divisionName = getCsiDivisionByCode(normalizedDivision)?.name ?? normalizedDivision;
       setEditingClientId(null);
+      setFormError(null);
       setFormDraft(applyDivisionScopeDefaults(line));
       setDrawerOpen(true);
     },
@@ -86,6 +99,7 @@ export function useEstimateLineItemDraft(
       const existing = draftLines.find((line) => line.clientId === clientId);
       if (!existing) return;
       setEditingClientId(clientId);
+      setFormError(null);
       setFormDraft(cloneDraftLine(existing));
       setDrawerOpen(true);
     },
@@ -96,32 +110,73 @@ export function useEstimateLineItemDraft(
     setDrawerOpen(false);
     setEditingClientId(null);
     setFormDraft(null);
+    setFormError(null);
   }, []);
 
   const updateFormDraft = useCallback((draft: EstimateDraftLine) => {
     setFormDraft(draft);
+    setFormError(null);
   }, []);
 
   const commitFormDraft = useCallback(() => {
     if (!formDraft) return;
 
-    const normalized = syncDraftLineDescription(
+    let normalized = syncDraftLineDescription(
       applyDivisionScopeDefaults(applyDraftLaborDefaults(formDraft)),
     );
 
-    setDraftLines((prev) => {
-      if (editingClientId) {
-        const next = prev.map((line) =>
-          line.clientId === editingClientId ? normalized : line,
-        );
-        return reindexDraftLines(next);
+    const divisionCode = normalizeCsiDivisionCode(
+      normalized.task.divisionCode ?? normalized.task.lineItem.csiDivision,
+    );
+    if (divisionCode) {
+      normalized = {
+        ...normalized,
+        task: {
+          ...normalized.task,
+          divisionCode,
+          divisionName:
+            normalized.task.divisionName ??
+            getCsiDivisionByCode(divisionCode)?.name ??
+            divisionCode,
+          lineItem: {
+            ...normalized.task.lineItem,
+            csiDivision: divisionCode,
+          },
+        },
+      };
+    }
+
+    const workingLines = editingClientId
+      ? draftLines.map((line) => (line.clientId === editingClientId ? normalized : line))
+      : [...draftLines, normalized];
+
+    if (normalized.task.activityCode?.trim()) {
+      normalized = syncActivityCodeFromParsedManualCode(normalized, workingLines);
+      const uniquenessError = validateActivityCodeUnique(
+        normalized.task.activityCode,
+        workingLines,
+        editingClientId ?? normalized.clientId,
+      );
+      if (uniquenessError) {
+        setFormError(uniquenessError);
+        return;
       }
-      return reindexDraftLines([...prev, normalized]);
+    } else {
+      normalized = assignActivityCodeToDraftLine(normalized, draftLines, {
+        preserveManualCode: false,
+      });
+    }
+
+    setDraftLines(() => {
+      const next = editingClientId
+        ? draftLines.map((line) => (line.clientId === editingClientId ? normalized : line))
+        : [...draftLines, normalized];
+      return reindexDraftLines(sortDraftLinesByActivityCode(next));
     });
 
     setDirty(true);
     closeDrawer();
-  }, [closeDrawer, editingClientId, formDraft]);
+  }, [closeDrawer, draftLines, editingClientId, formDraft]);
 
   const removeDraftLine = useCallback((clientId: string) => {
     setDraftLines((prev) => reindexDraftLines(prev.filter((line) => line.clientId !== clientId)));
@@ -166,7 +221,7 @@ export function useEstimateLineItemDraft(
   }, [version]);
 
   const sortedDraftLines = useMemo(
-    () => sortDraftLinesByPosition(draftLines),
+    () => sortDraftLinesByActivityCode(draftLines),
     [draftLines],
   );
 
@@ -176,6 +231,7 @@ export function useEstimateLineItemDraft(
     drawerOpen,
     editingClientId,
     formDraft,
+    formError,
     openAddDrawer,
     openAddDrawerForDivision,
     openEditDrawer,

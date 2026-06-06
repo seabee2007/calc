@@ -13,6 +13,9 @@ describe('estimateWorkspaceHref', () => {
   });
 
   it('returns tab-specific paths', () => {
+    expect(estimateWorkspaceHref('proj-1', 'settings')).toBe(
+      '/projects/proj-1/planner/estimate/settings',
+    );
     expect(estimateWorkspaceHref('proj-1', 'line-items')).toBe(
       '/projects/proj-1/planner/estimate/line-items',
     );
@@ -34,6 +37,7 @@ describe('parseEstimateWorkspaceTabParam', () => {
   });
 
   it('returns tab id for valid segments', () => {
+    expect(parseEstimateWorkspaceTabParam('settings')).toBe('settings');
     expect(parseEstimateWorkspaceTabParam('line-items')).toBe('line-items');
     expect(parseEstimateWorkspaceTabParam('schedule-preview')).toBe('schedule-preview');
   });

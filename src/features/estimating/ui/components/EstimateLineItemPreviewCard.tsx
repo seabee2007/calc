@@ -56,11 +56,6 @@ export default function EstimateLineItemPreviewCard({ draft }: Props) {
     { label: 'Equipment cost', value: formatEstimateCurrency(totals.equipmentCost) },
     { label: 'Subcontractor cost', value: formatEstimateCurrency(totals.subcontractorCost) },
     { label: 'Direct cost', value: formatEstimateCurrency(totals.directCost) },
-    { label: 'Overhead', value: formatEstimateCurrency(totals.overhead) },
-    { label: 'Profit', value: formatEstimateCurrency(totals.profit) },
-    { label: 'Contingency', value: formatEstimateCurrency(totals.contingency) },
-    { label: 'Tax', value: formatEstimateCurrency(totals.tax) },
-    { label: 'Sell price', value: formatEstimateCurrency(totals.sellPrice) },
   ];
 
   return (
@@ -87,7 +82,7 @@ export default function EstimateLineItemPreviewCard({ draft }: Props) {
         </div>
         <div>
           <p className={`mb-2 text-xs font-semibold uppercase tracking-wide ${PLANNER_MUTED}`}>
-            Costs &amp; sell price
+            Direct costs
           </p>
           <PreviewGrid rows={costRows} />
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { subscribePlannerRecordsChanged } from '../utils/plannerRecordsRefresh';
 import { useLocation } from 'react-router-dom';
 import type { PlannerBoardBundle } from '../types/fieldPlanner';
 import { fetchScheduleEventsForProject } from '../services/scheduleEventService';
@@ -41,6 +42,17 @@ export function useProjectTabCounts(
 ): ProjectTabCounts {
   const { pathname } = useLocation();
   const [counts, setCounts] = useState<ProjectTabCounts>({});
+  const [recordsRefreshVersion, setRecordsRefreshVersion] = useState(0);
+
+  useEffect(
+    () =>
+      subscribePlannerRecordsChanged((detail) => {
+        if (!projectId || detail.projectId === projectId) {
+          setRecordsRefreshVersion((v) => v + 1);
+        }
+      }),
+    [projectId],
+  );
 
   const boardCount =
     bundle && bundle.tasks.length > 0 ? bundle.tasks.length : undefined;
@@ -129,7 +141,7 @@ export function useProjectTabCounts(
     return () => {
       cancelled = true;
     };
-  }, [projectId, userId, pathname, boardCount, bundle]);
+  }, [projectId, userId, pathname, boardCount, bundle, recordsRefreshVersion]);
 
   return counts;
 }

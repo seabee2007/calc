@@ -234,6 +234,81 @@ function countInclusiveSpanDays(
   return count;
 }
 
+function hasExplicitPredecessors(plan: EstimateSchedulePlan): boolean {
+  return collectTasksInProjectOrder(plan).some(
+    (candidate) => candidate.predecessorCandidateIds.length > 0,
+  );
+}
+
+function scheduleExplicitPredecessorRanges(
+  plan: EstimateSchedulePlan,
+  options: Required<
+    Pick<
+      EstimateScheduleDatePlannerOptions,
+      'projectStartDate' | 'workWeek' | 'includeWeekends'
+    >
+  >,
+): {
+  ranges: Map<string, PlannedDateRange>;
+  warnings: EstimateScheduleWarning[];
+} {
+  const ranges = new Map<string, PlannedDateRange>();
+  const warnings: EstimateScheduleWarning[] = [];
+  const tasks = collectTasksInProjectOrder(plan);
+  const byId = new Map(tasks.map((task) => [task.candidateId, task]));
+  const scheduled = new Set<string>();
+
+  const scheduleTask = (candidate: EstimateScheduleTaskCandidate, startDate: string): void => {
+    const durationDays = resolveScheduleEventDurationDays(candidate);
+    warnings.push(...buildDurationWarnings(candidate));
+    const range = addInclusiveDuration(
+      startDate,
+      durationDays,
+      options.workWeek,
+      options.includeWeekends,
+    );
+    ranges.set(candidate.candidateId, range);
+    scheduled.add(candidate.candidateId);
+  };
+
+  const resolveStartDate = (candidate: EstimateScheduleTaskCandidate): string => {
+    let startDate = options.projectStartDate;
+    for (const predecessorId of candidate.predecessorCandidateIds) {
+      const predecessorRange = ranges.get(predecessorId);
+      if (!predecessorRange) continue;
+      const lagDays = Math.max(0, candidate.lagDays ?? 0);
+      const candidateStart = addDaysToScheduleDate(predecessorRange.endDate, lagDays + 1);
+      if (candidateStart > startDate) startDate = candidateStart;
+    }
+    return snapToWorkingDay(startDate, options.workWeek, options.includeWeekends);
+  };
+
+  let guard = 0;
+  while (scheduled.size < tasks.length && guard < tasks.length * tasks.length) {
+    guard += 1;
+    let progressed = false;
+    for (const candidate of tasks) {
+      if (scheduled.has(candidate.candidateId)) continue;
+      const predecessorsReady = candidate.predecessorCandidateIds.every((id) =>
+        ranges.has(id),
+      );
+      if (!predecessorsReady && candidate.predecessorCandidateIds.length > 0) continue;
+      scheduleTask(candidate, resolveStartDate(candidate));
+      progressed = true;
+    }
+    if (!progressed) {
+      for (const candidate of tasks) {
+        if (!scheduled.has(candidate.candidateId)) {
+          scheduleTask(candidate, options.projectStartDate);
+        }
+      }
+      break;
+    }
+  }
+
+  return { ranges, warnings };
+}
+
 function scheduleTaskRanges(
   plan: EstimateSchedulePlan,
   options: Required<
@@ -261,6 +336,10 @@ function scheduleTaskRanges(
     ranges.set(candidate.candidateId, range);
     return range.endDate;
   };
+
+  if (hasExplicitPredecessors(plan)) {
+    return scheduleExplicitPredecessorRanges(plan, options);
+  }
 
   if (options.dependencyMode === 'none') {
     for (const candidate of collectTasksInProjectOrder(plan)) {

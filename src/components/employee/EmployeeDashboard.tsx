@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchTasksForEmployee } from '../../services/plannerService';
 import { fetchAssignedProjects } from '../../services/employeeService';
@@ -9,6 +9,7 @@ import type { PlannerTask } from '../../types/fieldPlanner';
 import EmployeeTaskList from './EmployeeTaskList';
 import EmployeeProjectCard from './EmployeeProjectCard';
 import EmployeeQuickActions from './EmployeeQuickActions';
+import { subscribePlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
@@ -20,23 +21,27 @@ export default function EmployeeDashboard() {
   const [pendingAdj, setPendingAdj] = useState(0);
   const [unreadMsg, setUnreadMsg] = useState(0);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!user) return;
-    void (async () => {
-      const [t, p, rfis, adj, msgs] = await Promise.all([
-        fetchTasksForEmployee(user.id),
-        fetchAssignedProjects(user.id),
-        fetchRfisForEmployee(user.id),
-        fetchAdjustmentsForEmployee(user.id),
-        fetchMessagesForUser(user.id, false),
-      ]);
-      setTasks(t);
-      setProjects(p as typeof projects);
-      setOpenRfis(rfis.filter((r) => r.status === 'Open').length);
-      setPendingAdj(adj.filter((a) => a.status === 'Pending').length);
-      setUnreadMsg(msgs.filter((m) => !m.isRead).length);
-    })();
+    const [t, p, rfis, adj, msgs] = await Promise.all([
+      fetchTasksForEmployee(user.id),
+      fetchAssignedProjects(user.id),
+      fetchRfisForEmployee(user.id),
+      fetchAdjustmentsForEmployee(user.id),
+      fetchMessagesForUser(user.id, false),
+    ]);
+    setTasks(t);
+    setProjects(p as typeof projects);
+    setOpenRfis(rfis.filter((r) => r.status === 'Open').length);
+    setPendingAdj(adj.filter((a) => a.status === 'Pending').length);
+    setUnreadMsg(msgs.filter((m) => !m.isRead).length);
   }, [user]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => subscribePlannerRecordsChanged(() => void load()), [load]);
 
   const todayCount = useMemo(
     () =>
@@ -113,7 +118,11 @@ export default function EmployeeDashboard() {
         <h2 className="text-sm font-semibold uppercase tracking-wider text-cyan-400 mb-3">
           Quick tools
         </h2>
-        <EmployeeQuickActions userId={user.id} defaultProjectId={defaultProjectId} />
+        <EmployeeQuickActions
+          userId={user.id}
+          defaultProjectId={defaultProjectId}
+          onRecordsChanged={() => void load()}
+        />
       </section>
     </div>
   );

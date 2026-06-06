@@ -18,7 +18,7 @@ export interface EstimateScheduleDependencyPreview {
   predecessorCandidateId: string;
   successorCandidateId: string;
   dependencyType: 'finish_to_start';
-  lagDays: 0;
+  lagDays: number;
   source: 'estimate_preview';
 }
 
@@ -64,15 +64,56 @@ function buildFinishToStartLink(
   };
 }
 
+function buildExplicitPredecessorDependencies(
+  candidates: EstimateScheduleTaskCandidate[],
+): EstimateScheduleDependencyPreview[] {
+  const byId = new Map(candidates.map((candidate) => [candidate.candidateId, candidate]));
+  const dependencies: EstimateScheduleDependencyPreview[] = [];
+
+  for (const successor of candidates) {
+    for (const predecessorId of successor.predecessorCandidateIds) {
+      const predecessor = byId.get(predecessorId);
+      if (!predecessor) continue;
+      dependencies.push({
+        id: buildDependencyId(predecessor.candidateId, successor.candidateId),
+        predecessorCandidateId: predecessor.candidateId,
+        successorCandidateId: successor.candidateId,
+        dependencyType: 'finish_to_start',
+        lagDays: Math.max(0, successor.lagDays ?? 0),
+        source: 'estimate_preview',
+      });
+    }
+  }
+
+  return dependencies;
+}
+
 function buildChainDependencies(
   candidates: EstimateScheduleTaskCandidate[],
 ): EstimateScheduleDependencyPreview[] {
   const sorted = sortScheduleCandidatesBySortOrder(candidates);
   if (sorted.length < 2) return [];
 
+  const explicitSuccessorIds = new Set<string>();
+  for (const candidate of sorted) {
+    if (candidate.predecessorCandidateIds.length > 0) {
+      explicitSuccessorIds.add(candidate.candidateId);
+    }
+  }
+
   const dependencies: EstimateScheduleDependencyPreview[] = [];
+  dependencies.push(...buildExplicitPredecessorDependencies(sorted));
+
   for (let index = 1; index < sorted.length; index += 1) {
-    dependencies.push(buildFinishToStartLink(sorted[index - 1], sorted[index]));
+    const predecessor = sorted[index - 1];
+    const successor = sorted[index];
+    if (
+      explicitSuccessorIds.has(successor.candidateId) ||
+      successor.predecessorCandidateIds.length > 0
+    ) {
+      continue;
+    }
+    dependencies.push(buildFinishToStartLink(predecessor, successor));
   }
 
   return dependencies;

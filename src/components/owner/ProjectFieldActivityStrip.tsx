@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getFieldActivityForProject } from '../../services/fieldActivityService';
+import { subscribePlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import type { FieldActivityItem } from '../../types/fieldPlanner';
 import {
   PLANNER_ACTIVITY_STRIP,
@@ -13,9 +14,22 @@ import {
 export default function ProjectFieldActivityStrip({ projectId }: { projectId: string }) {
   const [items, setItems] = useState<FieldActivityItem[]>([]);
 
-  useEffect(() => {
-    void getFieldActivityForProject(projectId, 3).then(setItems);
+  const load = useCallback(async () => {
+    const loaded = await getFieldActivityForProject(projectId, 3);
+    setItems(loaded);
   }, [projectId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(
+    () =>
+      subscribePlannerRecordsChanged((detail) => {
+        if (detail.projectId === projectId) void load();
+      }),
+    [load, projectId],
+  );
 
   if (items.length === 0) return null;
 

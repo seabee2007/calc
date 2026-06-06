@@ -4,9 +4,11 @@ import {
   sortDraftLinesByPosition,
   type EstimateDraftLine,
 } from './estimateDraftLine';
-import { normalizeEstimatePricingInput } from '../domain/estimateSnapshot';
+import {
+  normalizeEstimateSettings,
+  type EstimateSettings,
+} from './estimateSettings';
 import type {
-  EstimatePricingInput,
   EstimateSelectedDivision,
   EstimateSnapshot,
   EstimateStatus,
@@ -21,7 +23,7 @@ export interface BuildEstimateDraftSnapshotParams {
   status?: EstimateStatus;
   draftLines: EstimateDraftLine[];
   selectedDivisions?: EstimateSelectedDivision[];
-  pricing?: EstimatePricingInput;
+  estimateSettings?: Partial<EstimateSettings> | null;
   currencyCode?: string;
 }
 
@@ -30,7 +32,7 @@ export function buildEstimateDraftSnapshot(
 ): EstimateSnapshot {
   const sortedLines = sortDraftLinesByPosition(params.draftLines);
   const lineItems = sortedLines.map(draftLineToLineItemInput);
-  const pricing = normalizeEstimatePricingInput(params.pricing);
+  const estimateSettings = normalizeEstimateSettings(params.estimateSettings);
 
   return buildEstimateSnapshot({
     meta: {
@@ -39,10 +41,10 @@ export function buildEstimateDraftSnapshot(
       version: params.versionNumber,
       estimateType: params.estimateType ?? 'detailed',
       status: params.status ?? 'draft',
-      currencyCode: params.currencyCode ?? 'USD',
+      currencyCode: params.currencyCode ?? estimateSettings.currency,
       preparedAtIso: new Date().toISOString(),
     },
-    pricing,
+    estimateSettings,
     lineItems,
     selectedDivisions: params.selectedDivisions,
   });

@@ -24,6 +24,7 @@ describe('estimate workspace overview tab', () => {
     expect(REMOVED_ESTIMATE_WORKSPACE_TAB_IDS).toContain('totals');
     expect(ESTIMATE_WORKSPACE_TABS.map((tab) => tab.id)).toEqual([
       'overview',
+      'settings',
       'line-items',
       'schedule-preview',
       'gantt-preview',

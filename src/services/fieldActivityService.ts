@@ -2,11 +2,184 @@ import { supabase } from '../lib/supabase';
 import type { FieldActivityItem } from '../types/fieldPlanner';
 import { buildProfileNameMap, nameFromMap } from './profileService';
 import {
+  isFarBuilderWorkflowOpen,
+  isRfiBuilderWorkflowOpen,
+  resolveBuilderWorkflowStatusFromDoc,
+} from './builderWorkflowStatus';
+import {
+  listProjectChangeOrderBuilderDocuments,
+  listProjectFarBuilderDocuments,
+  listProjectRfiBuilderDocuments,
+  type ProjectDocumentRow,
+} from './projectDocumentService';
+import {
+  changeOrderEditHref,
+  contractBuilderToolHref,
   plannerAdjustmentHref,
   plannerBoardHref,
   plannerDocumentsHref,
   plannerRfiHref,
 } from '../utils/plannerRoutes';
+
+function isChangeOrderBuilderWorkflowOpen(
+  doc: Pick<ProjectDocumentRow, 'builder_workflow_status' | 'status'>,
+): boolean {
+  const wf = resolveBuilderWorkflowStatusFromDoc(doc);
+  return !['Draft', 'Closed', 'Void'].includes(wf);
+}
+
+export function builderRfiToActivityItem(
+  doc: ProjectDocumentRow,
+  projectName: string,
+  employeeName: string,
+): FieldActivityItem | null {
+  const status = resolveBuilderWorkflowStatusFromDoc(doc);
+  if (!isRfiBuilderWorkflowOpen(status)) return null;
+  const projectId = doc.project_id;
+  if (!projectId) return null;
+  return {
+    id: `builder-rfi-${doc.id}`,
+    type: 'rfi',
+    projectId,
+    projectName,
+    employeeName,
+    summary: `RFI submitted — ${doc.title}`,
+    timestamp: doc.updated_at ?? doc.created_at,
+    status,
+    href: contractBuilderToolHref(projectId, doc.id, {
+      packKey: 'GENERIC_RFI',
+      documentType: 'rfi',
+    }),
+  };
+}
+
+export function builderFarToActivityItem(
+  doc: ProjectDocumentRow,
+  projectName: string,
+  employeeName: string,
+): FieldActivityItem | null {
+  const status = resolveBuilderWorkflowStatusFromDoc(doc);
+  if (!isFarBuilderWorkflowOpen(status)) return null;
+  const projectId = doc.project_id;
+  if (!projectId) return null;
+  return {
+    id: `builder-far-${doc.id}`,
+    type: 'field_adjustment',
+    projectId,
+    projectName,
+    employeeName,
+    summary: `Field adjustment submitted — ${doc.title}`,
+    timestamp: doc.updated_at ?? doc.created_at,
+    status,
+    href: contractBuilderToolHref(projectId, doc.id, {
+      packKey: 'GENERIC_FAR',
+      documentType: 'far',
+    }),
+  };
+}
+
+export function builderChangeOrderToActivityItem(
+  doc: ProjectDocumentRow,
+  projectName: string,
+  employeeName: string,
+): FieldActivityItem | null {
+  if (!isChangeOrderBuilderWorkflowOpen(doc)) return null;
+  const projectId = doc.project_id;
+  if (!projectId) return null;
+  const status = resolveBuilderWorkflowStatusFromDoc(doc);
+  return {
+    id: `builder-co-${doc.id}`,
+    type: 'owner_response',
+    projectId,
+    projectName,
+    employeeName,
+    summary: `Change order — ${doc.title}`,
+    timestamp: doc.updated_at ?? doc.created_at,
+    status,
+    href: changeOrderEditHref(projectId, doc.id),
+  };
+}
+
+async function fetchBuilderActivityForProjects(
+  projectIds: string[],
+  names: Map<string, string>,
+  nameMap: Map<string, string>,
+): Promise<FieldActivityItem[]> {
+  if (projectIds.length === 0) return [];
+
+  const bundles = await Promise.all(
+    projectIds.map(async (projectId) => {
+      const [rfiDocs, farDocs, coDocs] = await Promise.all([
+        listProjectRfiBuilderDocuments(projectId),
+        listProjectFarBuilderDocuments(projectId),
+        listProjectChangeOrderBuilderDocuments(projectId),
+      ]);
+      return { projectId, rfiDocs, farDocs, coDocs };
+    }),
+  );
+
+  const builderUserIds = new Set<string>();
+  for (const bundle of bundles) {
+    for (const doc of [...bundle.rfiDocs, ...bundle.farDocs, ...bundle.coDocs]) {
+      if (doc.user_id) builderUserIds.add(doc.user_id);
+    }
+  }
+  const builderNameMap = await buildProfileNameMap([...builderUserIds]);
+  const resolveName = (userId: string) =>
+    nameFromMap(nameMap, userId, nameFromMap(builderNameMap, userId));
+
+  const items: FieldActivityItem[] = [];
+  for (const bundle of bundles) {
+    const projectName = names.get(bundle.projectId) ?? 'Project';
+    for (const doc of bundle.rfiDocs) {
+      const item = builderRfiToActivityItem(doc, projectName, resolveName(doc.user_id));
+      if (item) items.push(item);
+    }
+    for (const doc of bundle.farDocs) {
+      const item = builderFarToActivityItem(doc, projectName, resolveName(doc.user_id));
+      if (item) items.push(item);
+    }
+    for (const doc of bundle.coDocs) {
+      const item = builderChangeOrderToActivityItem(doc, projectName, resolveName(doc.user_id));
+      if (item) items.push(item);
+    }
+  }
+  return items;
+}
+
+async function fetchBuilderActivityForProject(
+  projectId: string,
+  projectName: string,
+  nameMap: Map<string, string>,
+): Promise<FieldActivityItem[]> {
+  const [rfiDocs, farDocs, coDocs] = await Promise.all([
+    listProjectRfiBuilderDocuments(projectId),
+    listProjectFarBuilderDocuments(projectId),
+    listProjectChangeOrderBuilderDocuments(projectId),
+  ]);
+
+  const builderUserIds = [...rfiDocs, ...farDocs, ...coDocs]
+    .map((doc) => doc.user_id)
+    .filter(Boolean);
+  const builderNameMap = await buildProfileNameMap(builderUserIds);
+  const resolveName = (userId: string) =>
+    nameFromMap(nameMap, userId, nameFromMap(builderNameMap, userId));
+
+  const items: FieldActivityItem[] = [];
+  for (const doc of rfiDocs) {
+    const item = builderRfiToActivityItem(doc, projectName, resolveName(doc.user_id));
+    if (item) items.push(item);
+  }
+  for (const doc of farDocs) {
+    const item = builderFarToActivityItem(doc, projectName, resolveName(doc.user_id));
+    if (item) items.push(item);
+  }
+  for (const doc of coDocs) {
+    const item = builderChangeOrderToActivityItem(doc, projectName, resolveName(doc.user_id));
+    if (item) items.push(item);
+  }
+  return items;
+}
 
 async function projectNameMap(projectIds: string[]): Promise<Map<string, string>> {
   if (projectIds.length === 0) return new Map();
@@ -84,6 +257,7 @@ export async function getOwnerFieldActivity(
   for (const row of adjustments.data ?? []) userIds.add(row.submitted_by as string);
 
   const nameMap = await buildProfileNameMap([...userIds]);
+  const builderItems = await fetchBuilderActivityForProjects(projectIds, names, nameMap);
 
   const items: FieldActivityItem[] = [];
 
@@ -214,6 +388,8 @@ export async function getOwnerFieldActivity(
     }
   }
 
+  items.push(...builderItems);
+
   items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   return items.slice(0, limit);
 }
@@ -284,6 +460,7 @@ export async function buildProjectActivityFeed(
   for (const row of adjustments.data ?? []) userIds.add(row.submitted_by as string);
 
   const nameMap = await buildProfileNameMap([...userIds]);
+  const builderItems = await fetchBuilderActivityForProject(projectId, projectName, nameMap);
 
   const items: FieldActivityItem[] = [];
 
@@ -431,6 +608,8 @@ export async function buildProjectActivityFeed(
       });
     }
   }
+
+  items.push(...builderItems);
 
   items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   return items.slice(0, limit);

@@ -107,8 +107,13 @@ export function mapEstimateTaskToScheduleCandidate(
     plannedStartDate: null,
     plannedEndDate: null,
     sortOrder: linePosition,
+    activityCode: task.activityCode?.trim() || undefined,
+    predecessorActivityCode: task.predecessorActivityCode?.trim() || undefined,
+    relationshipType: task.relationshipType,
+    lagDays: task.lagDays ?? 0,
     predecessorCandidateIds: [],
-    suggestedDependencyType: 'finish_to_start',
+    suggestedDependencyType:
+      task.relationshipType === 'SS' ? 'start_to_start' : 'finish_to_start',
     warnings: buildWarnings(task, extraction),
   };
 }

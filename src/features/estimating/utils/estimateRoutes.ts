@@ -3,6 +3,7 @@ import type { EstimateWorkspaceTabId } from '../ui/components/EstimateWorkspaceT
 /** URL path segments for estimate workspace tabs (overview uses bare /estimate). */
 export const ESTIMATE_WORKSPACE_TAB_IDS = [
   'overview',
+  'settings',
   'line-items',
   'schedule-preview',
   'gantt-preview',

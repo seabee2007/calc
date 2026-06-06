@@ -6,6 +6,7 @@ import {
 
 export type EstimateWorkspaceTabId =
   | 'overview'
+  | 'settings'
   | 'line-items'
   | 'schedule-preview'
   | 'gantt-preview';
@@ -17,6 +18,7 @@ export interface EstimateWorkspaceTab {
 
 export const ESTIMATE_WORKSPACE_TABS: EstimateWorkspaceTab[] = [
   { id: 'overview', label: 'Overview' },
+  { id: 'settings', label: 'Settings' },
   { id: 'line-items', label: 'Estimate' },
   { id: 'schedule-preview', label: 'Schedule Preview' },
   { id: 'gantt-preview', label: 'Gantt Preview' },

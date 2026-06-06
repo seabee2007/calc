@@ -1,3 +1,4 @@
+import type { EstimateRelationshipType } from './estimateTypes';
 import type { EstimateGroupRollup } from './estimateLineItemTree';
 
 export type EstimateScheduleWarningCode =
@@ -55,6 +56,10 @@ export interface EstimateScheduleTaskCandidate {
   plannedStartDate: null;
   plannedEndDate: null;
   sortOrder: number;
+  activityCode?: string;
+  predecessorActivityCode?: string;
+  relationshipType?: EstimateRelationshipType;
+  lagDays?: number;
   predecessorCandidateIds: string[];
   suggestedDependencyType: EstimateScheduleDependencyType;
   warnings: EstimateScheduleWarning[];

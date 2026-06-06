@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import Select from '../ui/Select';
 import { createRfi } from '../../services/rfiService';
 import { uploadRfiAttachments } from '../../services/fieldRecordAttachmentService';
+import { dispatchPlannerRecordsChanged } from '../../utils/plannerRecordsRefresh';
 import { RFI_PRIORITIES } from '../../types/fieldPlanner';
 import FieldFilePicker from './FieldFilePicker';
 
@@ -85,8 +86,14 @@ export default function CreateRfiModal({
           rfiId: rfi.id,
         });
       }
+      console.log('[RFI Create] created RFI', rfi);
+      console.log('[RFI Create] updating existing field activity path');
+      console.log('[RFI Create] updating existing review queue path');
+      console.log('[RFI Create] updating existing task path');
+      console.log('[RFI Create] refresh planner side panels');
+      dispatchPlannerRecordsChanged({ kind: 'rfi', projectId, id: rfi.id });
       reset();
-      onCreated?.();
+      await onCreated?.();
       onClose();
     } finally {
       setBusy(false);

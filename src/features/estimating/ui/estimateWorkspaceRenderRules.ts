@@ -33,6 +33,13 @@ export function shouldShowEstimateBuilderPanel(
   return tabId === 'line-items' && !options.isLoading && options.hasEstimate;
 }
 
+export function shouldShowEstimateSettingsPanel(
+  tabId: EstimateWorkspaceTabId,
+  options: { isLoading: boolean; hasEstimate: boolean },
+): boolean {
+  return tabId === 'settings' && !options.isLoading && options.hasEstimate;
+}
+
 export function resolveDisplayedEstimateType(
   activeEstimateType: EstimateType | null,
   currentEstimateType: EstimateType | null | undefined,

@@ -109,6 +109,30 @@ export interface EstimatePricingInput {
   taxPercent?: number;
 }
 
+export type EstimateOverheadBase = 'direct_cost' | 'labor_only' | 'custom';
+export type EstimateProfitBase = 'direct_plus_overhead' | 'direct_only';
+export type EstimateTaxBase = 'materials_only' | 'total_estimate' | 'none';
+
+export interface EstimateSettings {
+  defaultLaborRate: number;
+  burdenPercent: number;
+  materialMarkupPercent: number;
+  equipmentMarkupPercent: number;
+  subcontractorMarkupPercent: number;
+  indirectCostPercent: number;
+  overheadPercent: number;
+  profitPercent: number;
+  contingencyPercent: number;
+  taxPercent: number;
+  hoursPerDay: number;
+  defaultCrewSize: number;
+  currency: string;
+  overheadBase: EstimateOverheadBase;
+  profitBase: EstimateProfitBase;
+  taxBase: EstimateTaxBase;
+  importedFromUserSettingsAt?: string | null;
+}
+
 export interface EstimateSnapshotMeta {
   estimateId: string;
   projectId: string;
@@ -119,7 +143,22 @@ export interface EstimateSnapshotMeta {
   preparedAtIso: string;
 }
 
-export type EstimateSelectedDivisionSource = 'manual' | 'ai' | 'inferred';
+export type EstimateSelectedDivisionSource = 'manual' | 'ai' | 'inferred' | 'import';
+
+export type EstimateRelationshipType = 'FS' | 'SS' | 'FF' | 'SF';
+
+export interface EstimateActivityCodeFields {
+  activityCode: string;
+  divisionCode: string;
+  divisionName?: string;
+  workPackageCode?: string;
+  workPackageName?: string;
+  activitySequence: number;
+  lineSequence: number;
+  predecessorActivityCode?: string;
+  relationshipType?: EstimateRelationshipType;
+  lagDays?: number;
+}
 
 export interface EstimateSelectedDivision {
   code: string;
@@ -173,6 +212,7 @@ export interface EstimateCostTotals {
 export interface EstimateSnapshotInput {
   meta: EstimateSnapshotMeta;
   pricing?: EstimatePricingInput;
+  estimateSettings?: EstimateSettings;
   lineItems: EstimateLineItemInput[];
   selectedDivisions?: EstimateSelectedDivision[];
 }
@@ -180,6 +220,7 @@ export interface EstimateSnapshotInput {
 export interface EstimateSnapshot {
   meta: EstimateSnapshotMeta;
   pricing: Required<EstimatePricingInput>;
+  estimateSettings?: EstimateSettings;
   lineItems: EstimateLineSnapshot[];
   selectedDivisions?: EstimateSelectedDivision[];
   totals: EstimateCostTotals;

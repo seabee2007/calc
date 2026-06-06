@@ -136,10 +136,10 @@ describe('plannerProjectSwitchHref', () => {
     ).toBe('/projects/project-b/planner/estimate/schedule-preview');
   });
 
-  it('preserves estimate versions tab when switching projects', () => {
+  it('falls back to board for removed estimate versions tab', () => {
     expect(
       plannerProjectSwitchHref(PROJECT_B, loc('/projects/project-a/planner/estimate/versions')),
-    ).toBe('/projects/project-b/planner/estimate/versions');
+    ).toBe('/projects/project-b/planner/board');
   });
 
   it('preserves bare estimate route (overview) when switching projects', () => {
@@ -166,6 +166,6 @@ describe('plannerProjectSwitchHref', () => {
   it('buildProjectSwitchHref matches plannerProjectSwitchHref', () => {
     expect(
       buildProjectSwitchHref('/projects/project-a/planner/estimate/totals', PROJECT_B),
-    ).toBe('/projects/project-b/planner/estimate/totals');
+    ).toBe('/projects/project-b/planner/board');
   });
 });

@@ -2,6 +2,10 @@ import { normalizeCsiDivisionCode, isKnownCsiDivision } from '../domain/csiDivis
 import { getDefaultScopeForDivision, normalizeScopeName } from '../domain/csiScopeTemplates';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import type { EstimateLineItemInput } from '../domain/estimateTypes';
+import {
+  assignActivityCodeToDraftLine,
+  backfillActivityCodesForDraftLines,
+} from './estimateActivityCoding';
 
 export interface EstimateDraftLine {
   clientId: string;
@@ -76,6 +80,8 @@ export function createDefaultTaskFields(position = 0): EstimateDomainTask {
     scheduleEnabled: true,
     weatherSensitive: false,
     inspectionRequired: false,
+    relationshipType: 'FS',
+    lagDays: 0,
     calculatedValues: {},
   };
 }
@@ -132,13 +138,14 @@ export function draftLineFromDomainTask(
 }
 
 export function draftLinesFromVersion(lineItems: EstimateDomainTask[]): EstimateDraftLine[] {
-  return [...lineItems]
+  const drafts = [...lineItems]
     .sort((a, b) => a.position - b.position)
     .map((task, index) => {
       const draft = draftLineFromDomainTask(task);
       draft.task.position = index;
       return draft;
     });
+  return backfillActivityCodesForDraftLines(drafts);
 }
 
 export function sortDraftLinesByPosition(lines: EstimateDraftLine[]): EstimateDraftLine[] {
@@ -259,9 +266,14 @@ export function duplicateDraftLine(
   copy.task.title = copyTitleLabel(source.task.title);
   copy.task.description = copy.task.title;
   copy.task.lineItem.description = copy.task.title;
+  copy.task.activityCode = undefined;
 
   const next = [...sorted.slice(0, index + 1), copy, ...sorted.slice(index + 1)];
-  return reindexDraftLines(next);
+  const withCode = assignActivityCodeToDraftLine(copy, next);
+  const replaced = next.map((line) =>
+    line.clientId === withCode.clientId ? withCode : line,
+  );
+  return reindexDraftLines(replaced);
 }
 
 export function moveDraftLineUp(

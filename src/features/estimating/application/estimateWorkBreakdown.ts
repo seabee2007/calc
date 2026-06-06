@@ -37,7 +37,9 @@ function parseRecord(value: unknown): Record<string, unknown> {
 }
 
 function selectedDivisionSource(value: unknown): EstimateSelectedDivisionSource {
-  return value === 'ai' || value === 'inferred' || value === 'manual' ? value : 'manual';
+  return value === 'ai' || value === 'inferred' || value === 'manual' || value === 'import'
+    ? value
+    : 'manual';
 }
 
 function selectedDivisionConfidence(value: unknown): number | undefined {

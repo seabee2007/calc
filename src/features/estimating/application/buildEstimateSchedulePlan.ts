@@ -16,6 +16,8 @@ import {
   mapEstimateTaskToScheduleCandidate,
   type MapEstimateTaskToScheduleCandidateContext,
 } from './mapEstimateTaskToScheduleCandidate';
+import { compareActivityCodes } from './estimateActivityCoding';
+import { resolveEstimateSchedulePredecessors } from './resolveEstimateSchedulePredecessors';
 import { sortScheduleCandidatesBySortOrder } from './scheduleCandidateOrdering';
 
 export interface BuildEstimateSchedulePlanParams {
@@ -146,7 +148,13 @@ export function buildEstimateSchedulePlan(
 ): EstimateSchedulePlan {
   const { version, estimateId, projectId } = params;
   const taskRows = version.lineItems.filter((task) => isTaskRow(task.lineType));
-  const includedTasks = taskRows.filter((task) => task.scheduleEnabled);
+  const includedTasks = taskRows
+    .filter((task) => task.scheduleEnabled)
+    .sort(
+      (left, right) =>
+        compareActivityCodes(left.activityCode, right.activityCode) ||
+        left.position - right.position,
+    );
   const excludedTaskCount = taskRows.filter((task) => !task.scheduleEnabled).length;
 
   const context: MapEstimateTaskToScheduleCandidateContext = {
@@ -160,7 +168,7 @@ export function buildEstimateSchedulePlan(
     mapEstimateTaskToScheduleCandidate(task, context),
   );
 
-  return {
+  const preliminaryPlan: EstimateSchedulePlan = {
     meta: {
       projectId,
       estimateId,
@@ -172,6 +180,8 @@ export function buildEstimateSchedulePlan(
     },
     divisions: groupScheduleCandidates(candidates),
   };
+
+  return resolveEstimateSchedulePredecessors(preliminaryPlan).plan;
 }
 
 /** Empty plan helper for tests and edge cases. */

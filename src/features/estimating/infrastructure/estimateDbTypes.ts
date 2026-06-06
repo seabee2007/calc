@@ -1,6 +1,8 @@
 import type {
+  EstimateActivityCodeFields,
   EstimateCostTotals,
   EstimateLineItemInput,
+  EstimateRelationshipType,
   EstimateSnapshot,
   EstimateStatus,
   EstimateType,
@@ -175,7 +177,7 @@ export interface EstimateSummary {
  * Domain-facing task shape used by mappers between DB rows and the pure engine.
  * Wraps `EstimateLineItemInput` plus planner/schedule metadata stored on line items.
  */
-export interface EstimateDomainTask {
+export interface EstimateDomainTask extends Partial<EstimateActivityCodeFields> {
   id: string;
   lineType: EstimateLineItemType;
   title: string;
@@ -184,6 +186,16 @@ export interface EstimateDomainTask {
   trade?: string;
   activity?: string;
   position: number;
+  activityCode?: string;
+  divisionCode?: string;
+  divisionName?: string;
+  workPackageCode?: string;
+  workPackageName?: string;
+  activitySequence?: number;
+  lineSequence?: number;
+  predecessorActivityCode?: string;
+  relationshipType?: EstimateRelationshipType;
+  lagDays?: number;
   lineItem: EstimateLineItemInput;
   overheadPercent: number;
   profitPercent: number;

@@ -3,6 +3,10 @@ import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, FileSignature, Lock } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { plannerChangeOrdersHref } from '../../../utils/plannerRoutes';
+import {
+  dispatchPlannerRecordsChanged,
+  type PlannerRecordKind,
+} from '../../../utils/plannerRecordsRefresh';
 import { saveProjectDocumentDraft } from '../../../services/projectDocumentService';
 import { getNextFarNumber, getNextRfiNumber } from '../../../services/projectRecordNumbering';
 import { DEFAULT_PACK_BY_DOCUMENT_TYPE } from '../../../services/projectDocumentDisplay';
@@ -1011,6 +1015,20 @@ export default function DocumentBuilderPage() {
         message: `Saved as version ${document.latest_version_number}.`,
         type: 'success',
       });
+      const kindMap: Partial<Record<DocumentType, PlannerRecordKind>> = {
+        rfi: 'rfi',
+        far: 'far',
+        change_order: 'change_order',
+      };
+      const kind = kindMap[currentDocumentType];
+      if (kind && document.project_id) {
+        console.log(`[${kind.toUpperCase()} Builder Save] refresh planner side panels`);
+        dispatchPlannerRecordsChanged({
+          kind,
+          projectId: document.project_id,
+          id: document.id,
+        });
+      }
     } catch (e) {
       console.error(e);
       setToast({

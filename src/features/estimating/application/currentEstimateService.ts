@@ -5,6 +5,7 @@ import {
   sortDraftLinesByPosition,
   type EstimateDraftLine,
 } from './estimateDraftLine';
+import { backfillActivityCodesForDomainTasks } from './estimateActivityCoding';
 import {
   buildSelectedDivisionsFromCodes,
   inferDivisionCodesFromItems,
@@ -16,6 +17,12 @@ import {
   type QuickFeasibilityResult,
 } from './estimateQuickFeasibility';
 import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
+import {
+  estimateSettingsToAssumptions,
+  normalizeEstimateSettings,
+  parseEstimateSettingsFromAssumptions,
+  type EstimateSettings,
+} from './estimateSettings';
 import type {
   EstimateCostTotals,
   EstimateSelectedDivision,
@@ -69,6 +76,8 @@ export interface SaveCurrentEstimateWithLineItemsParams {
   estimateType: EstimateType;
   selectedDivisions: readonly EstimateSelectedDivision[];
   draftLines: EstimateDraftLine[];
+  estimateSettings?: Partial<EstimateSettings> | null;
+  existingAssumptions?: Record<string, unknown>;
   createdBy?: string | null;
 }
 
@@ -231,10 +240,12 @@ function mapEstimateRowToCurrentEstimate(row: Record<string, unknown>): CurrentE
       (item) => parseRecord(item) as Partial<EstimateSelectedDivision>,
     ),
   );
-  const lineItems = parseArray(row.line_items).flatMap((item, index) => {
-    const task = domainTaskFromUnknown(item, index);
-    return task ? [task] : [];
-  });
+  const lineItems = backfillActivityCodesForDomainTasks(
+    parseArray(row.line_items).flatMap((item, index) => {
+      const task = domainTaskFromUnknown(item, index);
+      return task ? [task] : [];
+    }),
+  );
   const totals = parseRecord(row.totals);
   const hasPersistedWork =
     selectedDivisions.length > 0 || lineItems.length > 0 || Object.keys(totals).length > 0;
@@ -410,6 +421,10 @@ export async function saveCurrentEstimateWithLineItems(
     ...params.selectedDivisions,
     ...inferredDivisions,
   ]);
+  const estimateSettings = normalizeEstimateSettings(
+    params.estimateSettings ??
+      parseEstimateSettingsFromAssumptions(params.existingAssumptions ?? {}),
+  );
   const snapshot = buildEstimateDraftSnapshot({
     estimateId: params.estimateId ?? 'current',
     projectId: params.projectId,
@@ -418,8 +433,13 @@ export async function saveCurrentEstimateWithLineItems(
     status: 'draft',
     draftLines: [...params.draftLines],
     selectedDivisions,
+    estimateSettings,
   });
   const lineItems = lineItemsFromDraftSnapshot(params.draftLines, snapshot);
+  const assumptions = estimateSettingsToAssumptions(
+    estimateSettings,
+    params.existingAssumptions ?? {},
+  );
 
   return saveEstimateRow({
     ...(params.estimateId ? { id: params.estimateId } : {}),
@@ -435,7 +455,7 @@ export async function saveCurrentEstimateWithLineItems(
       warnings: snapshot.warnings,
       savedAt: nowIso(),
     },
-    assumptions: {},
+    assumptions,
     created_by: params.createdBy ?? null,
     updated_at: nowIso(),
   });

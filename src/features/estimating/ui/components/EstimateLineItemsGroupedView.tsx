@@ -6,6 +6,7 @@ import {
 import { computeTaskRollupSlice } from '../../application/estimateGroupRollups';
 import type { EstimateGroupedDivision } from '../../domain/estimateLineItemTree';
 import EstimateGroupTotalsRow from './EstimateGroupTotalsRow';
+import EstimateActivityCodeLabel from './EstimateActivityCodeLabel';
 import EstimateDraftLineRow from './EstimateDraftLineRow';
 import {
   formatEstimateBlank,
@@ -93,6 +94,7 @@ function SavedTaskRow({ task }: { task: EstimateDomainTask }) {
     <>
       <div className={`${ESTIMATE_LINE_ITEM_ROW_GRID} text-sm ${ESTIMATE_TASK_ROW}`}>
         <span className={`font-medium ${TEXT_FOREGROUND} ${ESTIMATE_LINE_ITEM_COL_TASK}`}>
+          <EstimateActivityCodeLabel code={task.activityCode} />
           {title}
         </span>
         <span className={`${TEXT_BODY} ${ESTIMATE_LINE_ITEM_COL_NUM}`}>{quantityLabel}</span>
@@ -101,7 +103,10 @@ function SavedTaskRow({ task }: { task: EstimateDomainTask }) {
       </div>
 
       <div className={`sm:hidden text-sm ${ESTIMATE_TASK_ROW_MOBILE}`}>
-        <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>{title}</p>
+        <p className={`truncate font-medium ${TEXT_FOREGROUND}`}>
+          <EstimateActivityCodeLabel code={task.activityCode} />
+          {title}
+        </p>
         <p className={`mt-0.5 text-xs tabular-nums ${TEXT_MUTED}`}>
           {quantityLabel}
           <span aria-hidden> · </span>

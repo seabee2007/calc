@@ -74,6 +74,7 @@ interface Props {
   persistedSelectedDivisions?: readonly EstimateSelectedDivision[];
   onSaveSelectedDivisions?: (divisions: EstimateSelectedDivision[]) => Promise<void>;
   onToolbarHandlersChange?: (handlers: EstimateBuilderToolbarHandlers | null) => void;
+  importCollapseDivisionCodesKey?: string | null;
 }
 
 const EMPTY_FILTER: EstimateLineItemsFilter = { divisionKey: null, scopeKey: null };
@@ -93,6 +94,7 @@ export default function EstimateLineItemsBuilderPanel({
   persistedSelectedDivisions = [],
   onSaveSelectedDivisions,
   onToolbarHandlersChange,
+  importCollapseDivisionCodesKey = null,
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
   const [scopeModalOpen, setScopeModalOpen] = useState(false);
@@ -106,7 +108,24 @@ export default function EstimateLineItemsBuilderPanel({
 
   const hydratedVersionIdRef = useRef<string | null>(null);
   const consumedAutoOpenScopeKeyRef = useRef<string | null>(null);
+  const consumedImportCollapseKeyRef = useRef<string | null>(null);
   const { session, quickPanelResetKey } = setup;
+
+  useEffect(() => {
+    if (
+      importCollapseDivisionCodesKey &&
+      consumedImportCollapseKeyRef.current !== importCollapseDivisionCodesKey
+    ) {
+      consumedImportCollapseKeyRef.current = importCollapseDivisionCodesKey;
+      const importedCodes = importCollapseDivisionCodesKey
+        .replace(/^import-\d+-/, '')
+        .split(',')
+        .filter(Boolean);
+      if (importedCodes.length > 0) {
+        setCollapsedDivisionCodes(new Set(importedCodes));
+      }
+    }
+  }, [importCollapseDivisionCodesKey]);
 
   useEffect(() => {
     const inferred = inferDivisionCodesFromItems(draft.draftLines, version.lineItems);
@@ -400,6 +419,14 @@ export default function EstimateLineItemsBuilderPanel({
               <EstimateManualLineItemForm
                 draft={draft.formDraft}
                 onChange={draft.updateFormDraft}
+                formError={draft.formError}
+                predecessorOptions={draft.draftLines
+                  .filter((line) => line.clientId !== draft.editingClientId)
+                  .map((line) => ({
+                    value: line.task.activityCode ?? '',
+                    label: `${line.task.activityCode ?? '—'} ${line.task.title}`.trim(),
+                  }))
+                  .filter((option) => option.value)}
               />
               <EstimateLineItemPreviewCard draft={draft.formDraft} />
             </div>
