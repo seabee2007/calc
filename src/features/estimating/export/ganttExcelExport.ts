@@ -5,7 +5,12 @@ import {
 } from '../importExport/estimateExportBuilder';
 import type { BuildGanttScheduleResult, GanttActivity } from '../schedule/buildGanttSchedule';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import type { CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
+import type { CpmLogicLink, CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
+import {
+  buildTimelineDays,
+  getLevelThreeGanttRows,
+  resolveGanttCellKind,
+} from '../scheduling/levelThreeGanttUtils';
 
 export const GANTT_SCHEDULE_SHEET_NAME = 'Gantt Schedule';
 export const GANTT_LOGIC_NETWORK_SHEET_NAME = 'Logic Network';
@@ -122,8 +127,82 @@ export interface BuildGanttWorkbookParams {
   /** Optional CPM data for Level III Gantt export. */
   cpmResult?: CpmResult | null;
   activities?: ScheduleActivity[];
+  logicLinks?: CpmLogicLink[];
+  projectStartDate?: string;
   leveledOffsets?: Record<string, number>;
   resourceHistogram?: ResourceHistogramDay[];
+}
+
+export const LEVEL_THREE_GANTT_SHEET_NAME = 'Level III Gantt Chart';
+
+const GANTT_CELL_FILL: Record<string, string> = {
+  critical: 'FFEF4444',
+  noncritical: 'FF06B6D4',
+  float: 'FFD1D5DB',
+};
+
+function buildLevelThreeVisualGanttSheet(
+  params: BuildGanttWorkbookParams,
+): XLSX.WorkSheet | null {
+  if (!params.cpmResult || !params.activities?.length) return null;
+
+  const projectStartDate =
+    params.projectStartDate ?? new Date().toISOString().slice(0, 10);
+  const projectDuration = Math.max(params.cpmResult.projectDurationDays, 1);
+  const timelineDays = buildTimelineDays(projectStartDate, projectDuration);
+  const rows = getLevelThreeGanttRows(
+    params.activities,
+    params.cpmResult,
+    projectStartDate,
+    params.leveledOffsets ?? {},
+  );
+
+  const header = [
+    'Activity Code',
+    'Description',
+    'Float',
+    'Duration',
+    'Start',
+    'Finish',
+    ...timelineDays.map((d) => String(d.dayOfMonth)),
+  ];
+
+  const body = rows.map((row) => {
+    const dayCells = timelineDays.map((day) => {
+      const kind = resolveGanttCellKind(day.dayOffset, row);
+      if (kind === 'critical') return '■';
+      if (kind === 'noncritical') return '■';
+      if (kind === 'float') return '·';
+      return '';
+    });
+    return [
+      row.activity.activityCode,
+      row.activity.activityDescription,
+      row.cpm.totalFloat,
+      row.activity.durationDays,
+      row.plannedStart,
+      row.plannedFinish,
+      ...dayCells,
+    ];
+  });
+
+  const sheet = XLSX.utils.aoa_to_sheet([header, ...body]);
+
+  rows.forEach((row, rowIndex) => {
+    timelineDays.forEach((day, colIndex) => {
+      const kind = resolveGanttCellKind(day.dayOffset, row);
+      if (kind === 'empty') return;
+      const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: 6 + colIndex });
+      const cell = sheet[cellRef];
+      if (!cell) return;
+      cell.s = {
+        fill: { fgColor: { rgb: GANTT_CELL_FILL[kind] } },
+        alignment: { horizontal: 'center' },
+      };
+    });
+  });
+
+  return sheet;
 }
 
 export function buildGanttWorkbook(params: BuildGanttWorkbookParams): XLSX.WorkBook {
@@ -170,11 +249,35 @@ export function buildGanttWorkbook(params: BuildGanttWorkbookParams): XLSX.WorkB
   }
 
   if (params.cpmResult && params.activities) {
+    const visualGanttSheet = buildLevelThreeVisualGanttSheet(params);
+    if (visualGanttSheet) {
+      XLSX.utils.book_append_sheet(workbook, visualGanttSheet, LEVEL_THREE_GANTT_SHEET_NAME);
+    }
+
     const cpmByCode = new Map(params.cpmResult.activities.map((a) => [a.activityCode, a]));
     const actByCode = new Map(params.activities.map((a) => [a.activityCode, a]));
     const sorted = [...params.cpmResult.activities].sort(
       (left, right) => left.earlyStart - right.earlyStart,
     );
+
+    if (params.logicLinks && params.logicLinks.length > 0) {
+      const logicRows = [
+        [...LOGIC_NETWORK_HEADERS],
+        ...params.logicLinks.map((link) => [
+          link.predecessorActivityCode,
+          actByCode.get(link.predecessorActivityCode)?.activityDescription ?? '',
+          link.relationshipType,
+          link.lagDays,
+          link.successorActivityCode,
+          actByCode.get(link.successorActivityCode)?.activityDescription ?? '',
+        ]),
+      ];
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.aoa_to_sheet(logicRows),
+        GANTT_LOGIC_NETWORK_SHEET_NAME,
+      );
+    }
 
     const cpmRows = [
       ['code', 'description', 'duration', 'es', 'ef', 'ls', 'lf', 'tf', 'ff', 'critical'],

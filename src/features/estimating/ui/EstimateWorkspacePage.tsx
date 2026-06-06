@@ -85,6 +85,7 @@ import {
 } from '../importExport/estimateExportBuilder';
 import { downloadGanttExcel } from '../export/ganttExcelExport';
 import { downloadGanttPdf } from '../export/ganttPdfExport';
+import { downloadLevelThreeGanttPdfFromElement } from '../export/levelThreeGanttPdfExport';
 import {
   isGanttExportReady,
   prepareGanttExport,
@@ -170,6 +171,7 @@ export default function EstimateWorkspacePage() {
   const lineItemDraft = useEstimateLineItemDraft(estimateAdapter);
   const estimateSettings = useEstimateSettings();
   const scheduleSettingsHook = useScheduleSettings();
+  const ganttExportRef = useRef<HTMLDivElement>(null);
   const [levelingModalResult, setLevelingModalResult] = useState<import('../scheduling/cpmTypes').ResourceLevelingResult | null>(null);
 
   const schedulePlan = useMemo(() => {
@@ -843,11 +845,23 @@ export default function EstimateWorkspacePage() {
           estimateType: estimateAdapter.estimateType,
           cpmResult,
           activities: scheduleActivitiesResult.activities,
+          logicLinks: scheduleSettingsHook.logicLinks,
+          projectStartDate:
+            scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
           scheduleSettings: scheduleSettingsHook.scheduleSettings,
           leveledOffsets: scheduleSettingsHook.leveledOffsets,
+          resourceHistogram,
         };
         if (format === 'pdf') {
-          await downloadGanttPdf(exportParams as Parameters<typeof downloadGanttPdf>[0]);
+          const chartElement = ganttExportRef.current;
+          if (!chartElement) {
+            setSaveToastMessage('Gantt chart is not ready for export.');
+            return;
+          }
+          await downloadLevelThreeGanttPdfFromElement({
+            chartElement,
+            projectName: project?.name ?? 'project',
+          });
           setSaveToastMessage('Gantt PDF exported');
         } else {
           downloadGanttExcel(exportParams as Parameters<typeof downloadGanttExcel>[0]);
@@ -857,7 +871,14 @@ export default function EstimateWorkspacePage() {
         setSaveToastMessage('Could not export Gantt');
       }
     },
-    [estimateAdapter, cpmResult, project?.name, scheduleActivitiesResult.activities, scheduleSettingsHook],
+    [
+      estimateAdapter,
+      cpmResult,
+      project?.name,
+      scheduleActivitiesResult.activities,
+      scheduleSettingsHook,
+      resourceHistogram,
+    ],
   );
 
   const handleDownloadImportTemplate = useCallback(() => {
@@ -1211,19 +1232,21 @@ export default function EstimateWorkspacePage() {
         {!loadError && !dataLoading && activeTab === 'level-iii-gantt' ? (
           hasEstimate ? (
             <div className="space-y-6">
-              <LevelThreeGantt
-                activities={scheduleActivitiesResult.activities}
-                cpmResult={cpmResult}
-                scheduleSettings={scheduleSettingsHook.scheduleSettings}
-                leveledOffsets={scheduleSettingsHook.leveledOffsets}
-                exportReady={Boolean(cpmResult)}
-                onExportPdf={() => void runCpmGanttExport('pdf')}
-                onExportExcel={() => void runCpmGanttExport('excel')}
-              />
-              <ResourceHistogram
-                histogram={resourceHistogram}
-                projectDurationDays={cpmResult?.projectDurationDays ?? 0}
-              />
+              <div ref={ganttExportRef} className="space-y-6">
+                <LevelThreeGantt
+                  activities={scheduleActivitiesResult.activities}
+                  cpmResult={cpmResult}
+                  scheduleSettings={scheduleSettingsHook.scheduleSettings}
+                  leveledOffsets={scheduleSettingsHook.leveledOffsets}
+                  exportReady={Boolean(cpmResult)}
+                  onExportPdf={() => void runCpmGanttExport('pdf')}
+                  onExportExcel={() => void runCpmGanttExport('excel')}
+                />
+                <ResourceHistogram
+                  histogram={resourceHistogram}
+                  projectDurationDays={cpmResult?.projectDurationDays ?? 0}
+                />
+              </div>
               {cpmResult && scheduleActivitiesResult.activities.length > 0 && (
                 <div className="flex">
                   <button

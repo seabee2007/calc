@@ -1,29 +1,24 @@
-import { useMemo } from 'react';
-import { addDaysToScheduleDate } from '../../../application/mapScheduleCandidateToScheduleEventInput';
+import { forwardRef, useMemo } from 'react';
 import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import type { CpmActivityResult, CpmResult, ScheduleSettings } from '../../../scheduling/cpmTypes';
+import type { CpmResult, ScheduleSettings } from '../../../scheduling/cpmTypes';
+import {
+  LEVEL_THREE_DAY_COL_WIDTH_PX,
+  buildTimelineDays,
+  buildTimelineMonthSegments,
+  getLevelThreeGanttRows,
+  resolveGanttCellKind,
+} from '../../../scheduling/levelThreeGanttUtils';
 import Button from '../../../../../components/ui/Button';
 
 const COL_CODE = 'w-24 shrink-0';
 const COL_DESC = 'w-48 shrink-0';
 const COL_META = 'w-14 shrink-0 text-right tabular-nums';
 const ROW_HEIGHT = 36;
-const MIN_BAR_PX = 4;
-const TIMELINE_TOTAL_PX = 800;
 
 function formatDateShort(ymd: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
   if (!match) return ymd;
   return `${match[2]}/${match[3]}`;
-}
-
-interface GanttRow {
-  activity: ScheduleActivity;
-  cpm: CpmActivityResult;
-  plannedStart: string;
-  plannedFinish: string;
-  floatFinish: string;
-  leveledStart?: string;
 }
 
 interface Props {
@@ -36,84 +31,40 @@ interface Props {
   exportReady?: boolean;
 }
 
-function getLevelThreeGanttRows(
-  activities: ScheduleActivity[],
-  cpmResult: CpmResult,
-  projectStartDate: string,
-  leveledOffsets: Record<string, number>,
-): GanttRow[] {
-  const cpmByCode = new Map(cpmResult.activities.map((a) => [a.activityCode, a]));
-  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
-
-  return cpmResult.activities
-    .slice()
-    .sort((left, right) => {
-      if (left.earlyStart !== right.earlyStart) return left.earlyStart - right.earlyStart;
-      return left.activityCode.localeCompare(right.activityCode);
-    })
-    .map((cpm) => {
-      const activity = actByCode.get(cpm.activityCode);
-      if (!activity) return null;
-      const leveledOffset = leveledOffsets[cpm.activityCode] ?? 0;
-      const es = cpm.earlyStart + leveledOffset;
-      const ef = es + (actByCode.get(cpm.activityCode)?.durationDays ?? 1);
-      const tf = Math.max(0, cpm.totalFloat - leveledOffset);
-      return {
-        activity,
-        cpm,
-        plannedStart: addDaysToScheduleDate(projectStartDate, es),
-        plannedFinish: addDaysToScheduleDate(projectStartDate, ef - 1),
-        floatFinish: addDaysToScheduleDate(projectStartDate, es + (actByCode.get(cpm.activityCode)?.durationDays ?? 1) + tf - 1),
-        leveledStart:
-          leveledOffset > 0 ? addDaysToScheduleDate(projectStartDate, es) : undefined,
-      };
-    })
-    .filter((row): row is GanttRow => row !== null);
-}
-
-function GanttBar({
-  cpm,
-  activity,
+function GanttBarCells({
+  row,
   projectDuration,
-  leveledOffset,
+  timelineWidth,
 }: {
-  cpm: CpmActivityResult;
-  activity: ScheduleActivity;
+  row: ReturnType<typeof getLevelThreeGanttRows>[number];
   projectDuration: number;
-  leveledOffset: number;
+  timelineWidth: number;
 }) {
-  const totalDays = Math.max(projectDuration, 1);
-  const es = cpm.earlyStart + leveledOffset;
-  const duration = activity.durationDays;
-  const tf = Math.max(0, cpm.totalFloat - leveledOffset);
-
-  const leftPct = (es / totalDays) * 100;
-  const widthPct = (duration / totalDays) * 100;
-  const floatWidthPct = (tf / totalDays) * 100;
-
-  const barColor = cpm.isCritical
+  const es = row.cpm.earlyStart + row.leveledOffset;
+  const duration = row.activity.durationDays;
+  const tf = Math.max(0, row.cpm.totalFloat - row.leveledOffset);
+  const barColor = row.cpm.isCritical
     ? 'bg-red-500 dark:bg-red-600'
     : 'bg-cyan-500 dark:bg-cyan-600';
 
+  const leftPx = es * LEVEL_THREE_DAY_COL_WIDTH_PX;
+  const widthPx = duration * LEVEL_THREE_DAY_COL_WIDTH_PX;
+  const floatWidthPx = tf * LEVEL_THREE_DAY_COL_WIDTH_PX;
+
   return (
-    <div className="relative flex h-full items-center" style={{ minWidth: TIMELINE_TOTAL_PX }}>
-      {/* Solid activity bar */}
+    <div
+      className="relative h-full"
+      style={{ width: timelineWidth, minWidth: timelineWidth }}
+    >
       <div
-        className={`absolute h-5 rounded ${barColor}`}
-        style={{
-          left: `max(${MIN_BAR_PX}px, ${leftPct}%)`,
-          width: `max(${MIN_BAR_PX}px, ${widthPct}%)`,
-        }}
-        title={`${activity.activityDescription}: ${activity.durationDays}d`}
+        className={`absolute top-1/2 h-5 -translate-y-1/2 rounded ${barColor}`}
+        style={{ left: leftPx, width: Math.max(4, widthPx) }}
+        title={`${row.activity.activityDescription}: ${duration}d`}
       />
-      {/* Float bar (dotted) */}
       {tf > 0 && (
         <div
-          className="absolute h-5 rounded border-2 border-dashed border-slate-400 bg-transparent dark:border-slate-500"
-          style={{
-            left: `max(${MIN_BAR_PX}px, ${leftPct + widthPct}%)`,
-            width: `max(${MIN_BAR_PX}px, ${floatWidthPct}%)`,
-          }}
+          className="absolute top-1/2 h-5 -translate-y-1/2 rounded border-2 border-dashed border-slate-400 bg-transparent dark:border-slate-500"
+          style={{ left: leftPx + widthPx, width: Math.max(4, floatWidthPx) }}
           title={`Float: ${tf}d`}
         />
       )}
@@ -121,15 +72,18 @@ function GanttBar({
   );
 }
 
-export default function LevelThreeGantt({
-  activities,
-  cpmResult,
-  scheduleSettings,
-  leveledOffsets = {},
-  onExportPdf,
-  onExportExcel,
-  exportReady = false,
-}: Props) {
+const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGantt(
+  {
+    activities,
+    cpmResult,
+    scheduleSettings,
+    leveledOffsets = {},
+    onExportPdf,
+    onExportExcel,
+    exportReady = false,
+  },
+  ref,
+) {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const projectStartDate = scheduleSettings.projectStartDate || today;
 
@@ -138,7 +92,16 @@ export default function LevelThreeGantt({
     return getLevelThreeGanttRows(activities, cpmResult, projectStartDate, leveledOffsets);
   }, [activities, cpmResult, projectStartDate, leveledOffsets]);
 
-  const projectDuration = cpmResult?.projectDurationDays ?? 0;
+  const projectDuration = Math.max(cpmResult?.projectDurationDays ?? 0, 1);
+  const timelineDays = useMemo(
+    () => buildTimelineDays(projectStartDate, projectDuration),
+    [projectStartDate, projectDuration],
+  );
+  const monthSegments = useMemo(
+    () => buildTimelineMonthSegments(timelineDays),
+    [timelineDays],
+  );
+  const timelineWidth = projectDuration * LEVEL_THREE_DAY_COL_WIDTH_PX;
 
   const todayOffset = useMemo(() => {
     if (!projectStartDate) return null;
@@ -192,22 +155,54 @@ export default function LevelThreeGantt({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div
+        ref={ref}
+        data-level-three-gantt-export
+        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
+      >
         <div className="overflow-x-auto">
-          {/* Header row */}
-          <div
-            className="flex border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
-            style={{ minWidth: COL_CODE + COL_DESC + COL_META + COL_META + COL_META }}
-          >
-            <span className={COL_CODE}>Code</span>
-            <span className={`${COL_DESC} px-2`}>Description</span>
-            <span className={COL_META}>Float</span>
-            <span className={COL_META}>Dur</span>
-            <span className={COL_META}>Start</span>
-            <span className={`${COL_META} mr-2`}>Finish</span>
-            <span className="ml-2 flex-1 text-center">Timeline →</span>
+          {/* Column labels row */}
+          <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+            <div className="flex shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <span className={COL_CODE}>Code</span>
+              <span className={`${COL_DESC} px-2`}>Description</span>
+              <span className={COL_META}>Float</span>
+              <span className={COL_META}>Dur</span>
+              <span className={COL_META}>Start</span>
+              <span className={`${COL_META} mr-2`}>Finish</span>
+            </div>
+            <div
+              className="relative shrink-0"
+              style={{ width: timelineWidth, minWidth: timelineWidth }}
+            >
+              {/* Month row */}
+              <div className="flex h-5 border-b border-slate-200 dark:border-slate-700">
+                {monthSegments.map((segment) => (
+                  <div
+                    key={`${segment.monthLabel}-${segment.startDayOffset}`}
+                    className="border-r border-slate-200 px-1 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                    style={{ width: segment.dayCount * LEVEL_THREE_DAY_COL_WIDTH_PX }}
+                  >
+                    {segment.monthLabel}
+                  </div>
+                ))}
+              </div>
+              {/* Day number row */}
+              <div className="flex h-5">
+                {timelineDays.map((day) => (
+                  <div
+                    key={day.dayOffset}
+                    className="border-r border-slate-100 text-center text-[10px] tabular-nums text-slate-400 dark:border-slate-800 dark:text-slate-500"
+                    style={{ width: LEVEL_THREE_DAY_COL_WIDTH_PX }}
+                  >
+                    {day.dayOfMonth}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
+          {/* Activity rows */}
           {rows.map((row) => (
             <div
               key={row.activity.activityCode}
@@ -235,32 +230,28 @@ export default function LevelThreeGantt({
               <span className={`${COL_META} text-xs text-slate-600 dark:text-slate-400`}>
                 {row.activity.durationDays}d
               </span>
-              <span className={`${COL_META} text-xs text-slate-500 dark:text-slate-500`}>
+              <span className={`${COL_META} text-xs text-slate-500`}>
                 {formatDateShort(row.plannedStart)}
               </span>
-              <span className={`${COL_META} mr-2 text-xs text-slate-500 dark:text-slate-500`}>
+              <span className={`${COL_META} mr-2 text-xs text-slate-500`}>
                 {formatDateShort(row.plannedFinish)}
               </span>
 
-              {/* Timeline bar area */}
               <div
-                className="relative ml-2 flex-1 overflow-hidden"
-                style={{ height: ROW_HEIGHT, minWidth: TIMELINE_TOTAL_PX }}
+                className="relative shrink-0"
+                style={{ height: ROW_HEIGHT, width: timelineWidth, minWidth: timelineWidth }}
               >
                 {todayOffset !== null && (
                   <div
                     className="absolute top-0 bottom-0 z-10 w-px bg-blue-500 opacity-60"
-                    style={{
-                      left: `${(todayOffset / projectDuration) * 100}%`,
-                    }}
+                    style={{ left: todayOffset * LEVEL_THREE_DAY_COL_WIDTH_PX }}
                     title="Today"
                   />
                 )}
-                <GanttBar
-                  cpm={row.cpm}
-                  activity={row.activity}
+                <GanttBarCells
+                  row={row}
                   projectDuration={projectDuration}
-                  leveledOffset={leveledOffsets[row.activity.activityCode] ?? 0}
+                  timelineWidth={timelineWidth}
                 />
               </div>
             </div>
@@ -288,4 +279,7 @@ export default function LevelThreeGantt({
       </div>
     </div>
   );
-}
+});
+
+export default LevelThreeGantt;
+export { resolveGanttCellKind };
