@@ -39,6 +39,8 @@ import EstimateGanttDependencyLayer from './EstimateGanttDependencyLayer';
 import EstimateGanttRow from './EstimateGanttRow';
 import EstimateGanttScaleControls from './EstimateGanttScaleControls';
 import EstimateGanttTimelineHeader from './EstimateGanttTimelineHeader';
+import Button from '../../../../components/ui/Button';
+import { GANTT_EXPORT_DISABLED_TOOLTIP } from '../../schedule/ganttExportValidation';
 
 const GANTT_PREVIEW_NOTE =
   'This Gantt is a preview generated from estimate activities. It has not been published to the Planner schedule.';
@@ -53,9 +55,18 @@ const PREVIEW_BADGE = `${BADGE_BASE} border border-slate-300 bg-slate-100 text-s
 interface Props {
   datePlanResult: EstimateScheduleDatePlanResult | null;
   loading?: boolean;
+  exportReady?: boolean;
+  onExportPdf?: () => void;
+  onExportExcel?: () => void;
 }
 
-export default function EstimateGanttPreview({ datePlanResult, loading = false }: Props) {
+export default function EstimateGanttPreview({
+  datePlanResult,
+  loading = false,
+  exportReady = false,
+  onExportPdf,
+  onExportExcel,
+}: Props) {
   const plannedPlan = datePlanResult?.plan ?? null;
   const dependencyPreview = useMemo(() => {
     if (!plannedPlan) return null;
@@ -117,7 +128,29 @@ export default function EstimateGanttPreview({ datePlanResult, loading = false }
             Read-only timeline — no drag or resize.
           </p>
         </div>
-        <span className={PREVIEW_BADGE}>Preview only</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!exportReady || loading}
+            title={!exportReady ? GANTT_EXPORT_DISABLED_TOOLTIP : undefined}
+            onClick={onExportPdf}
+          >
+            Export PDF
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!exportReady || loading}
+            title={!exportReady ? GANTT_EXPORT_DISABLED_TOOLTIP : undefined}
+            onClick={onExportExcel}
+          >
+            Export Excel
+          </Button>
+          <span className={PREVIEW_BADGE}>Preview only</span>
+        </div>
       </div>
 
       <div className={`${PLANNER_FORM_PANEL} space-y-3 text-sm ${TEXT_BODY}`}>

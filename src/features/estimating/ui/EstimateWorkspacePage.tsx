@@ -83,6 +83,12 @@ import {
   downloadBlankEstimateTemplateWorkbook,
   downloadEstimateWorkbook,
 } from '../importExport/estimateExportBuilder';
+import { downloadGanttExcel } from '../export/ganttExcelExport';
+import { downloadGanttPdf } from '../export/ganttPdfExport';
+import {
+  isGanttExportReady,
+  prepareGanttExport,
+} from '../schedule/ganttExportValidation';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -169,6 +175,15 @@ export default function EstimateWorkspacePage() {
       includeWeekends: schedulePlanControls.includeWeekends,
     });
   }, [schedulePlan, schedulePlanControls]);
+
+  const ganttExportReady = useMemo(
+    () =>
+      isGanttExportReady({
+        lineItems: estimateAdapter?.lineItems ?? [],
+        plannedPlan: scheduleDatePlanResult?.plan ?? null,
+      }),
+    [estimateAdapter?.lineItems, scheduleDatePlanResult?.plan],
+  );
 
   const projectScopeContext = useMemo(
     () =>
@@ -639,6 +654,60 @@ export default function EstimateWorkspacePage() {
     downloadBlankEstimateTemplateWorkbook();
   }, []);
 
+  const runGanttExport = useCallback(
+    async (format: 'pdf' | 'excel') => {
+      if (!estimateAdapter) return;
+
+      setSaveToastMessage('Preparing Gantt export...');
+
+      try {
+        const prepared = prepareGanttExport({
+          lineItems: estimateAdapter.lineItems,
+          projectStartDate: schedulePlanControls.projectStartDate,
+          includeWeekends: schedulePlanControls.includeWeekends,
+          estimateSettings: estimateSettings.settings,
+        });
+
+        if (!prepared.ok) {
+          setSaveToastMessage(prepared.message);
+          return;
+        }
+
+        const exportParams = {
+          schedule: prepared.schedule,
+          projectName: project?.name ?? 'project',
+          estimateType: estimateAdapter.estimateType,
+        };
+
+        if (format === 'pdf') {
+          await downloadGanttPdf(exportParams);
+          setSaveToastMessage('Gantt PDF exported');
+          return;
+        }
+
+        downloadGanttExcel(exportParams);
+        setSaveToastMessage('Gantt Excel exported');
+      } catch {
+        setSaveToastMessage('Could not export Gantt');
+      }
+    },
+    [
+      estimateAdapter,
+      estimateSettings.settings,
+      project?.name,
+      schedulePlanControls.includeWeekends,
+      schedulePlanControls.projectStartDate,
+    ],
+  );
+
+  const handleExportGanttPdf = useCallback(() => {
+    void runGanttExport('pdf');
+  }, [runGanttExport]);
+
+  const handleExportGanttExcel = useCallback(() => {
+    void runGanttExport('excel');
+  }, [runGanttExport]);
+
   if (plannerLoading) {
     return (
       <div className={PLANNER_PAGE_BG}>
@@ -887,7 +956,13 @@ export default function EstimateWorkspacePage() {
 
         {!loadError && !dataLoading && activeTab === 'gantt-preview' ? (
           hasEstimate ? (
-            <EstimateGanttPreview datePlanResult={scheduleDatePlanResult} loading={dataLoading} />
+            <EstimateGanttPreview
+              datePlanResult={scheduleDatePlanResult}
+              loading={dataLoading}
+              exportReady={ganttExportReady}
+              onExportPdf={handleExportGanttPdf}
+              onExportExcel={handleExportGanttExcel}
+            />
           ) : (
             <EstimateWorkspaceEmptyState
               title="No estimate started"

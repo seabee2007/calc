@@ -9,6 +9,168 @@ export const REMOVED_ESTIMATE_BUILDER_INLINE_TOOLBAR_LABELS = [
   'Reset estimate setup',
 ] as const;
 
+export const ESTIMATE_WORKSPACE_ACTIONS_DROPDOWN_LABEL = 'Actions';
+
+export const ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS = {
+  importEstimate: 'Import estimate',
+  exportEstimate: 'Export estimate',
+  downloadTemplate: 'Download template',
+  collapseAll: 'Collapse all',
+  resetForm: 'Reset form',
+} as const;
+
+export const REMOVED_ESTIMATE_WORKSPACE_INLINE_TOOLBAR_BUTTONS = [
+  ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.importEstimate,
+  ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.exportEstimate,
+  'Download import template',
+  ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.resetForm,
+] as const;
+
+export type EstimateWorkspaceActionsMenuItemKey =
+  | 'import-estimate'
+  | 'export-estimate'
+  | 'download-template'
+  | 'collapse-all'
+  | 'reset-form';
+
+export interface EstimateWorkspaceActionsMenuItem {
+  key: EstimateWorkspaceActionsMenuItemKey;
+  label: string;
+  mobileOnly?: boolean;
+  destructive?: boolean;
+  showDividerBefore?: boolean;
+}
+
+export interface ResolveEstimateWorkspaceToolbarLayoutInput {
+  showCollapseAll: boolean;
+  showReset: boolean;
+  showSaveBucket: boolean;
+  showImportExport: boolean;
+  includeMobileOverflow?: boolean;
+}
+
+export interface EstimateWorkspaceToolbarLayout {
+  showCollapseAllButton: boolean;
+  showResetButton: boolean;
+  showResetInActionsMenu: boolean;
+  showSaveEstimateButton: boolean;
+  showActionsDropdown: boolean;
+  desktopActionsMenuItems: EstimateWorkspaceActionsMenuItem[];
+  mobileActionsMenuItems: EstimateWorkspaceActionsMenuItem[];
+}
+
+export interface EstimateWorkspaceMenuActionHandlers {
+  onImportEstimate: () => void;
+  onExportEstimate: () => void;
+  onDownloadTemplate: () => void;
+  onCollapseAll?: () => void;
+  onResetForm?: () => void;
+}
+
+export function runEstimateWorkspaceMenuAction(
+  key: EstimateWorkspaceActionsMenuItemKey,
+  handlers: EstimateWorkspaceMenuActionHandlers,
+): void {
+  switch (key) {
+    case 'import-estimate':
+      handlers.onImportEstimate();
+      return;
+    case 'export-estimate':
+      handlers.onExportEstimate();
+      return;
+    case 'download-template':
+      handlers.onDownloadTemplate();
+      return;
+    case 'collapse-all':
+      handlers.onCollapseAll?.();
+      return;
+    case 'reset-form':
+      handlers.onResetForm?.();
+      return;
+    default:
+      return;
+  }
+}
+
+export function buildEstimateWorkspaceActionsMenuItems(
+  input: ResolveEstimateWorkspaceToolbarLayoutInput,
+): EstimateWorkspaceActionsMenuItem[] {
+  const items: EstimateWorkspaceActionsMenuItem[] = [];
+
+  if (input.includeMobileOverflow && input.showCollapseAll) {
+    items.push({
+      key: 'collapse-all',
+      label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.collapseAll,
+      mobileOnly: true,
+    });
+  }
+
+  if (input.showImportExport) {
+    items.push(
+      {
+        key: 'import-estimate',
+        label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.importEstimate,
+      },
+      {
+        key: 'export-estimate',
+        label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.exportEstimate,
+      },
+      {
+        key: 'download-template',
+        label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.downloadTemplate,
+      },
+    );
+  }
+
+  if (input.showReset) {
+    items.push({
+      key: 'reset-form',
+      label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.resetForm,
+      destructive: true,
+      showDividerBefore: items.length > 0,
+    });
+  }
+
+  return items;
+}
+
+export function resolveEstimateWorkspaceToolbarLayout(
+  input: ResolveEstimateWorkspaceToolbarLayoutInput,
+): EstimateWorkspaceToolbarLayout {
+  const desktopItems = buildEstimateWorkspaceActionsMenuItems({
+    ...input,
+    includeMobileOverflow: false,
+  });
+  const mobileItems = buildEstimateWorkspaceActionsMenuItems({
+    ...input,
+    includeMobileOverflow: true,
+  });
+
+  return {
+    showCollapseAllButton: input.showCollapseAll,
+    showResetButton: false,
+    showResetInActionsMenu: input.showReset,
+    showSaveEstimateButton: input.showSaveBucket,
+    showActionsDropdown: desktopItems.length > 0 || mobileItems.length > 0,
+    desktopActionsMenuItems: desktopItems,
+    mobileActionsMenuItems: mobileItems,
+  };
+}
+
+export function shouldShowActionsDropdown(
+  input: ResolveEstimateWorkspaceToolbarLayoutInput,
+): boolean {
+  const desktopItems = buildEstimateWorkspaceActionsMenuItems({
+    ...input,
+    includeMobileOverflow: false,
+  });
+  const mobileItems = buildEstimateWorkspaceActionsMenuItems({
+    ...input,
+    includeMobileOverflow: true,
+  });
+  return desktopItems.length > 0 || mobileItems.length > 0;
+}
+
 export interface EstimateBuilderToolbarHandlers {
   showCollapseAll: boolean;
   showSaveQuick: boolean;

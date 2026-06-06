@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { createEstimateSetupStartState } from '../application/estimateStartFlow';
 import {
+  ESTIMATE_WORKSPACE_ACTIONS_DROPDOWN_LABEL,
+  ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS,
   ESTIMATE_WORKSPACE_TOOLBAR_MARKER,
   REMOVED_ESTIMATE_BUILDER_INLINE_TOOLBAR_LABELS,
+  REMOVED_ESTIMATE_WORKSPACE_INLINE_TOOLBAR_BUTTONS,
+  buildEstimateWorkspaceActionsMenuItems,
+  resolveEstimateWorkspaceToolbarLayout,
+  runEstimateWorkspaceMenuAction,
+  shouldShowActionsDropdown,
   shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
@@ -84,5 +91,125 @@ describe('estimateWorkspaceToolbar', () => {
     expect(shouldShowBidImportExportActions('line-items', true, 'budget')).toBe(false);
     expect(shouldShowBidImportExportActions('overview', true, 'bid')).toBe(false);
     expect(shouldShowBidImportExportActions('line-items', false, 'bid')).toBe(false);
+  });
+
+  it('moves import/export/template/reset actions into the Actions dropdown menu', () => {
+    expect(REMOVED_ESTIMATE_WORKSPACE_INLINE_TOOLBAR_BUTTONS).toEqual([
+      'Import estimate',
+      'Export estimate',
+      'Download import template',
+      'Reset form',
+    ]);
+
+    const menuItems = buildEstimateWorkspaceActionsMenuItems({
+      showCollapseAll: false,
+      showReset: true,
+      showSaveBucket: true,
+      showImportExport: true,
+    });
+
+    expect(menuItems.map((item) => item.label)).toEqual([
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.importEstimate,
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.exportEstimate,
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.downloadTemplate,
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.resetForm,
+    ]);
+    expect(menuItems.at(-1)?.showDividerBefore).toBe(true);
+    expect(menuItems.at(-1)?.destructive).toBe(true);
+    expect(ESTIMATE_WORKSPACE_ACTIONS_DROPDOWN_LABEL).toBe('Actions');
+  });
+
+  it('keeps save visible, reset in dropdown, and collapse all estimate-tab only', () => {
+    const estimateTabLayout = resolveEstimateWorkspaceToolbarLayout({
+      showCollapseAll: true,
+      showReset: true,
+      showSaveBucket: true,
+      showImportExport: true,
+    });
+
+    expect(estimateTabLayout.showCollapseAllButton).toBe(true);
+    expect(estimateTabLayout.showResetButton).toBe(false);
+    expect(estimateTabLayout.showResetInActionsMenu).toBe(true);
+    expect(estimateTabLayout.showSaveEstimateButton).toBe(true);
+    expect(estimateTabLayout.showActionsDropdown).toBe(true);
+    expect(estimateTabLayout.desktopActionsMenuItems.map((item) => item.label)).toEqual([
+      'Import estimate',
+      'Export estimate',
+      'Download template',
+      'Reset form',
+    ]);
+
+    const overviewLayout = resolveEstimateWorkspaceToolbarLayout({
+      showCollapseAll: false,
+      showReset: true,
+      showSaveBucket: true,
+      showImportExport: false,
+    });
+
+    expect(overviewLayout.showCollapseAllButton).toBe(false);
+    expect(overviewLayout.showResetButton).toBe(false);
+    expect(overviewLayout.showResetInActionsMenu).toBe(true);
+    expect(overviewLayout.showSaveEstimateButton).toBe(true);
+    expect(overviewLayout.desktopActionsMenuItems.map((item) => item.label)).toEqual(['Reset form']);
+  });
+
+  it('shows mobile collapse overflow before import/export with reset last', () => {
+    const mobileItems = buildEstimateWorkspaceActionsMenuItems({
+      showCollapseAll: true,
+      showReset: true,
+      showSaveBucket: true,
+      showImportExport: true,
+      includeMobileOverflow: true,
+    });
+
+    expect(mobileItems.map((item) => item.label)).toEqual([
+      'Collapse all',
+      'Import estimate',
+      'Export estimate',
+      'Download template',
+      'Reset form',
+    ]);
+    expect(mobileItems.filter((item) => item.mobileOnly).map((item) => item.label)).toEqual([
+      'Collapse all',
+    ]);
+    expect(mobileItems.at(-1)?.showDividerBefore).toBe(true);
+  });
+
+  it('routes reset and import/export actions through the shared menu handler', () => {
+    const calls: string[] = [];
+    const handlers = {
+      onImportEstimate: () => calls.push('import'),
+      onExportEstimate: () => calls.push('export'),
+      onDownloadTemplate: () => calls.push('template'),
+      onCollapseAll: () => calls.push('collapse'),
+      onResetForm: () => calls.push('reset'),
+    };
+
+    runEstimateWorkspaceMenuAction('import-estimate', handlers);
+    runEstimateWorkspaceMenuAction('export-estimate', handlers);
+    runEstimateWorkspaceMenuAction('download-template', handlers);
+    runEstimateWorkspaceMenuAction('collapse-all', handlers);
+    runEstimateWorkspaceMenuAction('reset-form', handlers);
+
+    expect(calls).toEqual(['import', 'export', 'template', 'collapse', 'reset']);
+  });
+
+  it('shows Actions dropdown when import/export menu items are available', () => {
+    expect(
+      shouldShowActionsDropdown({
+        showCollapseAll: false,
+        showReset: true,
+        showSaveBucket: true,
+        showImportExport: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowActionsDropdown({
+        showCollapseAll: false,
+        showReset: true,
+        showSaveBucket: true,
+        showImportExport: false,
+      }),
+    ).toBe(true);
   });
 });

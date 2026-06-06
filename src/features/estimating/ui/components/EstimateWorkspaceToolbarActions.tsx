@@ -1,9 +1,11 @@
-import { ChevronsDownUp, Download, FileSpreadsheet, RotateCcw, Save, Upload } from 'lucide-react';
+import { ChevronsDownUp, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import {
   ESTIMATE_WORKSPACE_TOOLBAR_MARKER,
+  buildEstimateWorkspaceActionsMenuItems,
   type EstimateBuilderToolbarHandlers,
 } from '../estimateWorkspaceToolbar';
+import EstimateWorkspaceActionsMenu from './EstimateWorkspaceActionsMenu';
 
 interface Props {
   showCollapseAll: boolean;
@@ -40,35 +42,46 @@ export default function EstimateWorkspaceToolbarActions({
   onExportEstimate,
   onDownloadImportTemplate,
 }: Props) {
+  const desktopMenuItems = buildEstimateWorkspaceActionsMenuItems({
+    showCollapseAll,
+    showReset,
+    showSaveBucket,
+    showImportExport,
+    includeMobileOverflow: false,
+  });
+  const mobileMenuItems = buildEstimateWorkspaceActionsMenuItems({
+    showCollapseAll,
+    showReset,
+    showSaveBucket,
+    showImportExport,
+    includeMobileOverflow: true,
+  });
+  const showDesktopActionsDropdown = desktopMenuItems.length > 0;
+  const showMobileActionsDropdown = mobileMenuItems.length > 0;
+
   const hasActions =
-    showCollapseAll || showReset || showSaveBucket || showSaveQuick || showImportExport;
+    showCollapseAll ||
+    showReset ||
+    showSaveBucket ||
+    showSaveQuick ||
+    showDesktopActionsDropdown ||
+    showMobileActionsDropdown;
   if (!hasActions) return null;
 
   return (
     <div
       data-testid={ESTIMATE_WORKSPACE_TOOLBAR_MARKER}
-      className="flex flex-wrap items-center gap-2 px-2 pb-2 sm:px-0 sm:pb-0"
+      className="flex flex-wrap items-center justify-end gap-2 px-2 pb-2 sm:px-0 sm:pb-0"
     >
       {showCollapseAll ? (
         <Button
           variant="outline"
           size="sm"
           icon={<ChevronsDownUp className="h-4 w-4" />}
+          className="hidden sm:inline-flex"
           onClick={() => handlers?.collapseAll()}
         >
           Collapse all
-        </Button>
-      ) : null}
-      {showReset ? (
-        <Button
-          variant="outline"
-          size="sm"
-          icon={<RotateCcw className="h-4 w-4" />}
-          disabled={!canEdit}
-          className="border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50 dark:border-red-900/60 dark:text-red-300 dark:hover:bg-red-950/40"
-          onClick={onReset}
-        >
-          Reset form
         </Button>
       ) : null}
       {showSaveQuick ? (
@@ -84,52 +97,68 @@ export default function EstimateWorkspaceToolbarActions({
         </Button>
       ) : null}
       {showSaveBucket ? (
-        <Button
-          variant="accent"
-          size="sm"
-          icon={<Save className="h-4 w-4" />}
-          disabled={!canSave || saving}
-          isLoading={saving}
-          title={
-            canSave
-              ? 'Save the current project estimate'
-              : 'Add activities or selected divisions to enable save'
-          }
-          onClick={onSave}
-        >
-          {saving ? 'Saving...' : 'Save estimate'}
-        </Button>
-      ) : null}
-      {showImportExport ? (
         <>
           <Button
-            variant="outline"
+            variant="accent"
             size="sm"
-            icon={<Upload className="h-4 w-4" />}
-            disabled={!canEdit || saving}
-            onClick={onImportEstimate}
+            icon={<Save className="h-4 w-4" />}
+            disabled={!canSave || saving}
+            isLoading={saving}
+            className="hidden sm:inline-flex"
+            title={
+              canSave
+                ? 'Save the current project estimate'
+                : 'Add activities or selected divisions to enable save'
+            }
+            onClick={onSave}
           >
-            Import estimate
+            {saving ? 'Saving...' : 'Save estimate'}
           </Button>
           <Button
-            variant="outline"
+            variant="accent"
             size="sm"
-            icon={<Download className="h-4 w-4" />}
-            disabled={saving}
-            onClick={onExportEstimate}
+            icon={<Save className="h-4 w-4" />}
+            disabled={!canSave || saving}
+            isLoading={saving}
+            className="sm:hidden"
+            title={
+              canSave
+                ? 'Save the current project estimate'
+                : 'Add activities or selected divisions to enable save'
+            }
+            onClick={onSave}
           >
-            Export estimate
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<FileSpreadsheet className="h-4 w-4" />}
-            disabled={saving}
-            onClick={onDownloadImportTemplate}
-          >
-            Download import template
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </>
+      ) : null}
+      {showDesktopActionsDropdown ? (
+        <div className="hidden sm:block">
+          <EstimateWorkspaceActionsMenu
+            items={desktopMenuItems}
+            disabled={saving}
+            resetDisabled={!canEdit}
+            onImportEstimate={onImportEstimate}
+            onExportEstimate={onExportEstimate}
+            onDownloadTemplate={onDownloadImportTemplate}
+            onCollapseAll={() => handlers?.collapseAll()}
+            onResetForm={onReset}
+          />
+        </div>
+      ) : null}
+      {showMobileActionsDropdown ? (
+        <div className="sm:hidden">
+          <EstimateWorkspaceActionsMenu
+            items={mobileMenuItems}
+            disabled={saving}
+            resetDisabled={!canEdit}
+            onImportEstimate={onImportEstimate}
+            onExportEstimate={onExportEstimate}
+            onDownloadTemplate={onDownloadImportTemplate}
+            onCollapseAll={() => handlers?.collapseAll()}
+            onResetForm={onReset}
+          />
+        </div>
       ) : null}
     </div>
   );
