@@ -10,6 +10,7 @@ import {
 } from './mixDesignWorkflow';
 import { formatPlacementCalculationLabel } from './placementCalculations';
 import { projectHasSavedEstimates } from './customEstimateUtils';
+import { estimateWorkspaceHref } from '../features/estimating/utils/estimateRoutes';
 
 /** Global project lifecycle — drives dashboard, filters, and next actions. */
 export type ProjectWorkflowStage =
@@ -128,6 +129,15 @@ export const PLACEMENT_PLANNER_STAGES: ProjectWorkflowStage[] = [
 export function shouldShowConfigurePlacement(stage: ProjectWorkflowStage): boolean {
   const normalized = normalizeWorkflowStageForDisplay(stage);
   return normalized === 'accepted';
+}
+
+/** Show Calculators + Estimate Workspace instead of legacy Add estimates CTA. */
+export function shouldShowEstimatingPathButtons(
+  stage: ProjectWorkflowStage,
+  hasSavedEstimates: boolean,
+): boolean {
+  const normalized = normalizeWorkflowStageForDisplay(stage);
+  return normalized === 'created' || (normalized === 'estimating' && !hasSavedEstimates);
 }
 
 /** Archived jobs — exclude from dashboard placement queues and schedules. */
@@ -485,10 +495,9 @@ function buildNextAction(
   switch (lifecycle) {
     case 'created':
       return {
-        label: 'Add estimates',
-        description: 'Run calculators or custom line items',
-        path: '/calculator',
-        search: q,
+        label: 'Estimate Workspace',
+        description: 'Open calculators or the full estimate workspace',
+        path: estimateWorkspaceHref(projectId),
       };
     case 'estimating':
       return {

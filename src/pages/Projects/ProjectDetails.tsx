@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  ChevronDown,
   FolderOpen,
   Save,
   Printer,
@@ -11,17 +13,11 @@ import {
   Calendar,
   DollarSign,
   ClipboardCheck,
-  CloudSun,
+  FileSpreadsheet,
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useProjects } from './useProjects';
 import { format } from 'date-fns';
-import CalculationSection from './CalculationSection';
-import MixDesignSection from './MixDesignSection';
-import LaborSection from './LaborSection';
-import QCSection from './QCSection';
-import ReinforcementSection from './ReinforcementSection';
-import StrengthProgress from '../../components/projects/StrengthProgress';
 import PlacementOrderStatusPanel from '../../components/projects/PlacementOrderStatusPanel';
 import {
   OPS_BODY,
@@ -31,7 +27,6 @@ import {
   OPS_HERO_STAT_VALUE,
   OPS_MUTED,
   OPS_OUTLINE_BTN,
-  OPS_PANEL_INNER,
   OPS_PROJECT_HERO,
   OPS_SECTION,
   OPS_SECTION_EYEBROW,
@@ -44,8 +39,10 @@ import {
   PROJECT_LIFECYCLE_STAGE_ORDER,
   workflowStageProgressIndex,
   shouldShowConfigurePlacement,
+  shouldShowEstimatingPathButtons,
   getProjectCardPresentation,
 } from '../../utils/projectWorkflow';
+import EstimatingCalculatorsModal from '../../features/projects/components/EstimatingCalculatorsModal';
 import { workflowQuery } from '../../utils/workflow';
 import { formatPlacementPourDateTime } from '../../utils/placementPourDate';
 import {
@@ -63,27 +60,20 @@ import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { computeProposalFinancials } from '../../utils/proposalFinancials';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
-import type { ForecastDay } from '../../types';
-import {
-  findBestTimeOfDayWindow,
-  formatTimeWindow,
-  scorePourDay,
-  type ScoredPourDay,
-} from '../../utils/pourScoring';
 import { getQcBreakStatus } from '../../utils/projectFolders';
 import ClientPortalActions from '../../components/projects/ClientPortalActions';
 import ProjectFieldActivityStrip from '../../components/owner/ProjectFieldActivityStrip';
 import { useAuth } from '../../hooks/useAuth';
 import { estimateWorkspaceHref } from '../../features/estimating/utils/estimateRoutes';
-import { ClipboardList, FileSpreadsheet } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
+  const [showEstimatingCalculatorsModal, setShowEstimatingCalculatorsModal] = useState(false);
   const { isOwner } = useAuth();
   const { currentProject, ui, handlers } = useProjects();
   const { proposals } = useTrackedProposals();
   const project = (currentProject as any) ?? null;
-  const p = (project ?? {}) as any;
 
   const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
     if (!project) return undefined;
@@ -234,147 +224,9 @@ export default function ProjectDetails() {
     project?.pourDate ? new Date(project.pourDate) : null,
   ).progressPct;
 
-  const pourDetails = useMemo(() => {
-    const order = p.placementOrder;
-    const cs = order?.callSheet ?? {};
-    const lines: string[] = order?.summaryLines ?? [];
-
-    const volumeYd = (p.calculations ?? []).reduce(
-      (s: number, c: any) => s + ((c.result?.volume as number) ?? 0),
-      0,
-    );
-
-    const psiFromCalc =
-      p.calculations?.[0]?.psi ??
-      p.calculations?.[0]?.mixDesign?.psi ??
-      cs.mixDesignNumber?.match(/\d{3,5}/)?.[0] ??
-      '';
-    const mixLabel = psiFromCalc ? `${psiFromCalc} PSI` : (cs.mixDesignNumber?.trim() ? cs.mixDesignNumber : '—');
-
-    const placement =
-      cs.pumpCompany?.trim()
-        ? 'Pump'
-        : 'Chute';
-
-    const laborInputs = p.laborEstimates?.[0]?.inputs ?? null;
-    const finishType = laborInputs?.finishType ? titleCase(String(laborInputs.finishType)) : '—';
-
-    const production = order?.production ?? p.laborEstimates?.[0]?.production ?? null;
-    const crewSize = parseInt(String(production?.crewSize ?? laborInputs?.crewSize ?? ''), 10);
-    const finishers = parseInt(String(production?.finishers ?? laborInputs?.finishers ?? ''), 10);
-    const laborers = Number.isFinite(crewSize) && Number.isFinite(finishers) ? Math.max(0, crewSize - finishers) : NaN;
-    const crewLabel =
-      Number.isFinite(crewSize) && crewSize > 0
-        ? Number.isFinite(finishers) && finishers > 0
-          ? `${laborers} Laborers / ${finishers} Finishers`
-          : `${crewSize} crew`
-        : '—';
-
-    const batchPlant = order?.batchPlantName?.trim() ? order.batchPlantName : '—';
-
-    const firstTruck =
-      parseSummaryValue(lines, /Requested Start Time:\s*(.+)/i) ??
-      (p.pourDate ? format(new Date(p.pourDate), 'HH:mm') : null) ??
-      '—';
-
-    const spacing =
-      parseSummaryValue(lines, /Truck Spacing:\s*(.+)/i) ??
-      parseSummaryValue(lines, /Spacing:\s*(.+)/i) ??
-      '—';
-
-    return {
-      volumeLabel: volumeYd > 0 ? `${volumeYd.toFixed(0)} CY` : '—',
-      mixLabel,
-      placement,
-      finishType,
-      crewLabel,
-      batchPlant,
-      pumpCompany: cs.pumpCompany?.trim() ? cs.pumpCompany : null,
-      firstTruck,
-      spacing,
-    };
-  }, [p]);
-
-  const placementConditions = useMemo(() => {
-    const pourDate = p.pourDate ? new Date(p.pourDate) : null;
-    const forecast: ForecastDay[] | undefined = p.calculations?.[0]?.weather?.forecast;
-    if (!forecast || forecast.length === 0) return null;
-
-    const key = pourDate ? toISODate(pourDate) : toISODate(new Date());
-    const day = forecast.find((d) => d.date === key) ?? forecast[0];
-    if (!day) return null;
-
-    const scored: ScoredPourDay = scorePourDay(day as any, {});
-    const bestWindow = findBestTimeOfDayWindow(day as any);
-    const windowLabel = bestWindow ? formatTimeWindow(bestWindow) : '—';
-
-    const riskLabel =
-      scored.rating === 'excellent' || scored.rating === 'good'
-        ? 'LOW RISK'
-        : scored.rating === 'fair'
-          ? 'MODERATE RISK'
-          : 'HIGH RISK';
-
-    const riskTone =
-      riskLabel === 'LOW RISK'
-        ? 'text-emerald-400'
-        : riskLabel === 'MODERATE RISK'
-          ? 'text-amber-400'
-          : 'text-red-400';
-
-    const hourly = day.hourly ?? [];
-    const maxWind = hourly.length
-      ? Math.max(...hourly.map((h) => h.windSpeed ?? 0))
-      : day.maxWindSpeed ?? 0;
-    const maxRainChance = hourly.length
-      ? Math.max(...hourly.map((h) => h.chanceOfRain ?? 0))
-      : day.chanceOfRain ?? 0;
-    const maxTemp = hourly.length ? Math.max(...hourly.map((h) => h.temp ?? 0)) : day.maxTemp ?? 0;
-
-    const after10 = hourly.filter((h) => (h.hour ?? 0) >= 10);
-    const before10 = hourly.filter((h) => (h.hour ?? 0) < 10);
-    const maxWindAfter10 = after10.length ? Math.max(...after10.map((h) => h.windSpeed ?? 0)) : null;
-    const maxWindBefore10 = before10.length ? Math.max(...before10.map((h) => h.windSpeed ?? 0)) : null;
-
-    const concerns: string[] = [...(scored.primaryRisks ?? [])];
-
-    if (
-      maxWindAfter10 != null &&
-      maxWindBefore10 != null &&
-      maxWindAfter10 >= maxWindBefore10 + 6
-    ) {
-      concerns.unshift('Wind increasing after 10:00');
-    }
-    if (maxRainChance >= 50) {
-      concerns.push(`Rain probability peaks near ${Math.round(maxRainChance)}%`);
-    }
-    if (scored.evaporationRisk === 'severe') {
-      concerns.push('Evaporation severe (plastic shrinkage risk)');
-    } else if (scored.evaporationRisk === 'moderate') {
-      concerns.push('Evaporation moderate (monitor fogging & windbreaks)');
-    }
-
-    const mitigations = (scored.recommendedActions ?? []).slice(0, 4);
-
-    return {
-      dateLabel: day.date,
-      riskLabel,
-      riskTone,
-      recommendedWindow: windowLabel,
-      stats: {
-        heatF: Math.round(maxTemp),
-        windMph: Math.round(maxWind),
-        rainPct: Math.round(maxRainChance),
-        evaporation: scored.evaporationRisk,
-        rating: scored.rating,
-        score: Math.round(scored.score),
-      },
-      concerns: concerns.slice(0, 4),
-      mitigations,
-    };
-  }, [p]);
-
   if (!project) return null;
+
+  const documentsQcHref = plannerDocumentsHref(project.id, { tab: 'qc-reports' });
 
   return (
     <div className="space-y-4 sm:space-y-5 mb-6">
@@ -398,36 +250,14 @@ export default function ProjectDetails() {
             </p>
           </div>
 
-          <div className="flex items-center justify-center gap-2 shrink-0">
-            <Button
-            variant="outline"
-            className={OPS_OUTLINE_BTN}
-            size="sm"
-            onClick={handlers.saveWasteFactor}
-            disabled={ui.isSaving}
-            icon={<Save size={16} />}
-          >
-            <span className="hidden sm:inline">Save</span>
-            </Button>
-            <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlers.printPDF}
-            icon={<Printer size={16} />}
+          <ProjectDetailsActionsMenu
+            saveDisabled={ui.isSaving}
+            onSave={handlers.saveWasteFactor}
+            onOpenEstimateWorkspace={() => navigate(estimateWorkspaceHref(project.id))}
+            onPrint={handlers.printPDF}
+            onEdit={handlers.startEditing}
+            onDelete={() => handlers.confirmDelete('project', project.id)}
           />
-            <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlers.startEditing}
-            icon={<Edit size={16} />}
-          />
-            <Button
-            variant="danger"
-            size="sm"
-            onClick={() => handlers.confirmDelete('project', project.id)}
-            icon={<Trash2 size={16} />}
-          />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -503,14 +333,7 @@ export default function ProjectDetails() {
               >
                 Open Field Planner
               </Button>
-              <Button
-                variant="accent"
-                className="w-full sm:w-auto"
-                icon={<FileSpreadsheet className="h-4 w-4" />}
-                onClick={() => navigate(estimateWorkspaceHref(project.id))}
-              >
-                Open Estimate Workspace
-              </Button>
+            
             </div>
             <ProjectFieldActivityStrip projectId={project.id} />
           </div>
@@ -585,12 +408,7 @@ export default function ProjectDetails() {
                   <button
                     type="button"
                     className="text-left underline-offset-2 hover:underline text-violet-700 dark:text-violet-300"
-                    onClick={() =>
-                      document.getElementById('project-qc-section')?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                      })
-                    }
+                    onClick={() => navigate(documentsQcHref)}
                   >
                     {x.msg}
                   </button>
@@ -602,34 +420,56 @@ export default function ProjectDetails() {
           </ul>
         )}
         <div className="mt-3 flex flex-col sm:flex-row gap-2">
-          <Button
-            variant="accent"
-            size="sm"
-            className="whitespace-nowrap"
-            onClick={() => {
-              const action = workflow.nextAction;
-              if (action.kind === 'close_project') {
-                void handlers.closeOutProject(project.id);
-                return;
-              }
-              if (action.kind === 'back_to_list') {
-                handlers.backToProjectList();
-                return;
-              }
-              if (action.kind === 'scroll_to_qc') {
-                document.getElementById('project-qc-section')?.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start',
-                });
-                return;
-              }
-              const search = action.search?.replace(/^\?/, '') ?? '';
-              navigate({ pathname: action.path, search });
-            }}
-            icon={<ArrowRight size={16} />}
-          >
-            {workflow.nextAction.label}
-          </Button>
+          {shouldShowEstimatingPathButtons(
+            workflow.stage,
+            projectHasSavedEstimates(project),
+          ) ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`whitespace-nowrap ${OPS_OUTLINE_BTN}`}
+                onClick={() => setShowEstimatingCalculatorsModal(true)}
+              >
+                Calculators
+              </Button>
+              <Button
+                variant="accent"
+                size="sm"
+                className="whitespace-nowrap"
+                onClick={() => navigate(estimateWorkspaceHref(project.id))}
+                icon={<ArrowRight size={16} />}
+              >
+                Estimate Workspace
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="accent"
+              size="sm"
+              className="whitespace-nowrap"
+              onClick={() => {
+                const action = workflow.nextAction;
+                if (action.kind === 'close_project') {
+                  void handlers.closeOutProject(project.id);
+                  return;
+                }
+                if (action.kind === 'back_to_list') {
+                  handlers.backToProjectList();
+                  return;
+                }
+                if (action.kind === 'scroll_to_qc') {
+                  navigate(documentsQcHref);
+                  return;
+                }
+                const search = action.search?.replace(/^\?/, '') ?? '';
+                navigate({ pathname: action.path, search });
+              }}
+              icon={<ArrowRight size={16} />}
+            >
+              {workflow.nextAction.label}
+            </Button>
+          )}
           {shouldShowConfigurePlacement(workflow.stage) && (
             <Button
               size="sm"
@@ -704,157 +544,14 @@ export default function ProjectDetails() {
             <span className={`mx-2 ${OPS_MUTED}`} aria-hidden>
               |
             </span>
-            <button
-              type="button"
+            <Link
+              to={documentsQcHref}
               className="font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-400"
-              onClick={() =>
-                document.getElementById('project-qc-section')?.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start',
-                })
-              }
             >
               QC
-            </button>
+            </Link>
           </span>
         </nav>
-      </div>
-
-      {/* TECHNICAL DETAILS — placement, calculations, then reinforcement below */}
-      <div className={OPS_SECTION}>
-        <p className={`${OPS_SECTION_TITLE} mb-2`}>Technical details</p>
-        {project.calculations.length > 0 && (
-          <StrengthProgress
-            project={project}
-            mixProfile={ui.mixProfile}
-            onMixProfileChange={handlers.mixProfileChange}
-            onPourDateChange={handlers.dateChange}
-          />
-        )}
-
-        <div className="mt-4 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className={`${OPS_PANEL_INNER} p-4`}>
-              <p className={`text-xs uppercase tracking-wide ${OPS_SECTION_EYEBROW} mb-2`}>
-                Placement details
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <InfoRow label="Volume" value={pourDetails.volumeLabel} />
-                <InfoRow label="Mix" value={pourDetails.mixLabel} />
-                <InfoRow label="Placement" value={pourDetails.placement} />
-                <InfoRow label="Finish" value={pourDetails.finishType} />
-                <InfoRow label="Crew" value={pourDetails.crewLabel} />
-                <InfoRow label="Batch plant" value={pourDetails.batchPlant} />
-                <InfoRow label="First truck" value={pourDetails.firstTruck} />
-                <InfoRow label="Truck spacing" value={pourDetails.spacing} />
-              </div>
-              {pourDetails.pumpCompany && (
-                <p className={`text-xs ${OPS_MUTED} mt-2`}>
-                  Pump:{' '}
-                  <span className={`font-semibold ${OPS_BODY}`}>
-                    {pourDetails.pumpCompany}
-                  </span>
-                </p>
-              )}
-            </div>
-
-            <div className={`${OPS_PANEL_INNER} p-4`}>
-              <div className="flex items-center gap-2 mb-2">
-                <CloudSun className="h-5 w-5 text-amber-500" />
-                <p className={OPS_SECTION_TITLE}>
-                  Placement conditions
-                </p>
-              </div>
-              {!placementConditions ? (
-                <>
-                  <p className={`text-sm ${OPS_BODY}`}>
-                    {workflow.stage === 'closed'
-                      ? 'No forecast was saved for this completed project.'
-                      : 'No forecast saved on this project yet. Run weather in the calculator or open Placement Planner to pull forecast.'}
-                  </p>
-                  {shouldShowConfigurePlacement(workflow.stage) && (
-                    <div className="mt-3">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className={OPS_OUTLINE_BTN}
-                        onClick={() =>
-                          navigate({
-                            pathname: '/pour-planner',
-                            search: workflowQuery(project.id).replace(/^\?/, ''),
-                          })
-                        }
-                        icon={<ArrowRight size={16} />}
-                      >
-                        Open Placement Planner
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className={`text-lg font-bold ${placementConditions.riskTone}`}>
-                    {placementConditions.riskLabel}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <InfoRow label="Heat (max)" value={`${placementConditions.stats.heatF}°F`} />
-                    <InfoRow label="Wind (max)" value={`${placementConditions.stats.windMph} mph`} />
-                    <InfoRow label="Rain chance" value={`${placementConditions.stats.rainPct}%`} />
-                    <InfoRow
-                      label="Evaporation"
-                      value={titleCase(String(placementConditions.stats.evaporation))}
-                    />
-                  </div>
-
-                  <p className={`text-sm ${OPS_BODY} mt-2`}>
-                    Recommended window:{' '}
-                    <span className="font-semibold">{placementConditions.recommendedWindow}</span>
-                  </p>
-
-                  <p className={`text-[10px] uppercase tracking-wide ${OPS_SECTION_EYEBROW} mt-3 mb-1.5`}>
-                    Concerns
-                  </p>
-                  {placementConditions.concerns.length === 0 ? (
-                    <p className={`text-sm ${OPS_BODY}`}>
-                      No major concerns detected.
-                    </p>
-                  ) : (
-                    <ul className={`text-sm ${OPS_BODY} space-y-1`}>
-                      {placementConditions.concerns.map((c) => (
-                        <li key={c} className="flex gap-2">
-                          <span className="text-amber-500">•</span>
-                          <span>{c}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  <p className={`text-[10px] uppercase tracking-wide ${OPS_SECTION_EYEBROW} mt-3 mb-1.5`}>
-                    Mitigations
-                  </p>
-                  {placementConditions.mitigations.length === 0 ? (
-                    <p className={`text-sm ${OPS_BODY}`}>—</p>
-                  ) : (
-                    <ul className={`text-sm ${OPS_BODY} space-y-1`}>
-                      {placementConditions.mitigations.map((m) => (
-                        <li key={m} className="flex gap-2">
-                          <span className="text-cyan-500">•</span>
-                          <span>{m}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MixDesignSection />
-            <CalculationSection />
-          </div>
-        </div>
       </div>
 
       {projectHasCustomEstimate(project) && (
@@ -888,11 +585,182 @@ export default function ProjectDetails() {
         </div>
       )}
 
-      <ReinforcementSection />
-      <LaborSection />
-      <div id="project-qc-section">
-        <QCSection />
-      </div>
+      <EstimatingCalculatorsModal
+        isOpen={showEstimatingCalculatorsModal}
+        onClose={() => setShowEstimatingCalculatorsModal(false)}
+        projectId={project.id}
+      />
+    </div>
+  );
+}
+
+const PROJECT_DETAILS_ACTIONS_MENU_WIDTH_PX = 220;
+
+interface ProjectDetailsActionsMenuProps {
+  saveDisabled: boolean;
+  onSave: () => void;
+  onOpenEstimateWorkspace: () => void;
+  onPrint: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function ProjectDetailsActionsMenu({
+  saveDisabled,
+  onSave,
+  onOpenEstimateWorkspace,
+  onPrint,
+  onEdit,
+  onDelete,
+}: ProjectDetailsActionsMenuProps) {
+  const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuId = useId();
+
+  const updateMenuPosition = () => {
+    const anchor = wrapRef.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    const margin = 8;
+    let left = rect.right - PROJECT_DETAILS_ACTIONS_MENU_WIDTH_PX;
+    left = Math.max(margin, Math.min(left, window.innerWidth - PROJECT_DETAILS_ACTIONS_MENU_WIDTH_PX - margin));
+    let top = rect.bottom + margin;
+    const menuHeight = menuRef.current?.offsetHeight ?? 220;
+    if (top + menuHeight > window.innerHeight - margin) {
+      top = Math.max(margin, rect.top - menuHeight - margin);
+    }
+    setMenuPos({ top, left });
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    updateMenuPosition();
+    const onLayout = () => updateMenuPosition();
+    window.addEventListener('resize', onLayout);
+    window.addEventListener('scroll', onLayout, true);
+    return () => {
+      window.removeEventListener('resize', onLayout);
+      window.removeEventListener('scroll', onLayout, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (wrapRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const menu = open ? (
+    <div
+      ref={menuRef}
+      id={menuId}
+      role="menu"
+      data-testid="project-details-actions-menu"
+      style={{ top: menuPos.top, left: menuPos.left, width: PROJECT_DETAILS_ACTIONS_MENU_WIDTH_PX }}
+      className="fixed z-[9999] overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+    >
+      <button
+        role="menuitem"
+        type="button"
+        disabled={saveDisabled}
+        data-testid="project-details-actions-item-save"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+        onClick={() => {
+          if (saveDisabled) return;
+          setOpen(false);
+          onSave();
+        }}
+      >
+        <Save className="h-4 w-4 shrink-0" aria-hidden />
+        <span>Save</span>
+      </button>
+      <button
+        role="menuitem"
+        type="button"
+        data-testid="project-details-actions-item-estimate-workspace"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+        onClick={() => {
+          setOpen(false);
+          onOpenEstimateWorkspace();
+        }}
+      >
+        <FileSpreadsheet className="h-4 w-4 shrink-0" aria-hidden />
+        <span>Estimate Workspace</span>
+      </button>
+      <button
+        role="menuitem"
+        type="button"
+        data-testid="project-details-actions-item-print"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+        onClick={() => {
+          setOpen(false);
+          onPrint();
+        }}
+      >
+        <Printer className="h-4 w-4 shrink-0" aria-hidden />
+        <span>Print</span>
+      </button>
+      <button
+        role="menuitem"
+        type="button"
+        data-testid="project-details-actions-item-edit"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+        onClick={() => {
+          setOpen(false);
+          onEdit();
+        }}
+      >
+        <Edit className="h-4 w-4 shrink-0" aria-hidden />
+        <span>Edit</span>
+      </button>
+      <div role="separator" className="my-1 border-t border-slate-200 dark:border-slate-700" />
+      <button
+        role="menuitem"
+        type="button"
+        data-testid="project-details-actions-item-delete"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-700 transition-colors hover:bg-red-50 focus:text-red-300 dark:text-red-300 dark:hover:bg-red-950/40"
+        onClick={() => {
+          setOpen(false);
+          onDelete();
+        }}
+      >
+        <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+        <span>Delete</span>
+      </button>
+    </div>
+  ) : null;
+
+  return (
+    <div className="relative flex shrink-0 items-center justify-center" ref={wrapRef}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className={OPS_OUTLINE_BTN}
+        data-testid="project-details-actions-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>Actions</span>
+        <ChevronDown className="ml-1 h-4 w-4" aria-hidden />
+      </Button>
+      {typeof document !== 'undefined' ? createPortal(menu, document.body) : menu}
     </div>
   );
 }
@@ -904,28 +772,4 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <p className={`text-sm font-semibold ${OPS_HERO_STAT_VALUE} mt-0.5 truncate`}>{value}</p>
     </div>
   );
-}
-
-function parseSummaryValue(lines: string[], pattern: RegExp): string | null {
-  for (const line of lines) {
-    const m = line.match(pattern);
-    if (m?.[1]) return String(m[1]).trim();
-  }
-  return null;
-}
-
-function toISODate(d: Date): string {
-  const x = new Date(d);
-  x.setMinutes(x.getMinutes() - x.getTimezoneOffset());
-  return x.toISOString().slice(0, 10);
-}
-
-function titleCase(s: string): string {
-  return s
-    .replace(/_/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
-    .join(' ');
 }

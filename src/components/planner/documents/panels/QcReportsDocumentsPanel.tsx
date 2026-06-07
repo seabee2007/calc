@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import type { ProjectDocumentRow } from '../../../../services/projectDocumentService';
 import type { ConcreteInspectionChecklist } from '../../../../types/fieldTools';
+import QCRecords from '../../../projects/QCRecords';
 import Button from '../../../ui/Button';
 import { contractBuilderToolHref, concreteInspectionToolHref } from '../../../../utils/plannerRoutes';
+import { useProjectQcRecordHandlers } from '../../../../features/projects/hooks/useProjectQcRecordHandlers';
 import { PLANNER_SECTION_TITLE } from '../../plannerTheme';
 import ProjectDocumentDrawer from '../../ProjectDocumentDrawer';
 import {
@@ -32,6 +34,7 @@ export default function QcReportsDocumentsPanel({
 }: Props) {
   const navigate = useNavigate();
   const [drawerDocId, setDrawerDocId] = useState<string | null>(null);
+  const { records, saveQCRecord, deleteQCRecord } = useProjectQcRecordHandlers(projectId);
 
   return (
     <>
@@ -61,6 +64,15 @@ export default function QcReportsDocumentsPanel({
         onDeleted={onReload}
         onOpenDrawer={setDrawerDocId}
       />
+
+      <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
+        <QCRecords
+          projectId={projectId}
+          records={records}
+          onSave={saveQCRecord}
+          onDelete={deleteQCRecord}
+        />
+      </section>
 
       <section className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
