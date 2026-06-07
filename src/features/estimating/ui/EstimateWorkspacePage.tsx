@@ -106,6 +106,11 @@ import { validateCpmReadiness } from '../scheduling/logic/validateCpmReadiness';
 import { applyLogicSuggestions } from '../scheduling/logic/logicReviewUtils';
 import type { LogicBatchSnapshot, SuggestedLogicLink } from '../scheduling/logic/logicTypes';
 import {
+  buildPrecedenceDiagramRunState,
+  currentPrecedenceDiagramSignaturesMatch,
+  markPrecedenceDiagramStale,
+} from '../scheduling/precedenceDiagram';
+import {
   buildScheduleActivitySignature,
   mergeScheduleAssumptions,
   mergeScheduleAssumptionsForAddImport,
@@ -610,9 +615,39 @@ export default function EstimateWorkspacePage() {
     setSaveError(null);
     setSaveToastMessage(null);
 
+    const precedenceDiagramForSave = scheduleSettingsHook.precedenceDiagram.hasRunCpm
+      ? currentPrecedenceDiagramSignaturesMatch({
+          saved: scheduleSettingsHook.precedenceDiagram,
+          activities: scheduleActivitiesResult.activities,
+          logicLinks: scheduleSettingsHook.logicLinks,
+          scheduleSettings: scheduleSettingsHook.scheduleSettings,
+        })
+        ? scheduleSettingsHook.precedenceDiagram
+        : markPrecedenceDiagramStale(scheduleSettingsHook.precedenceDiagram)
+      : scheduleSettingsHook.precedenceDiagram;
+
+    if (
+      precedenceDiagramForSave.hasRunCpm !== scheduleSettingsHook.precedenceDiagram.hasRunCpm
+    ) {
+      scheduleSettingsHook.setPrecedenceDiagram(precedenceDiagramForSave);
+      scheduleSettingsHook.setCommittedCpmResult(null);
+      scheduleSettingsHook.setCpmWarningMessage(
+        'Logic or activity data changed since CPM was last run. Run CPM again.',
+      );
+    }
+
     const saveAssumptions = mergeScheduleAssumptions(
-      { scheduleSettings: scheduleSettingsHook.scheduleSettings },
-      (currentEstimate?.assumptions as Record<string, unknown>) ?? {},
+      {
+        scheduleSettings: scheduleSettingsHook.scheduleSettings,
+        logicLinks: scheduleSettingsHook.logicLinks,
+        logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
+        leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+        logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
+        logicNetworkInitialized: scheduleSettingsHook.logicNetworkInitialized,
+        logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
+        precedenceDiagram: precedenceDiagramForSave,
+      },
+      (currentEstimateRef.current?.assumptions as Record<string, unknown>) ?? {},
     );
 
     const result = await saveCurrentEstimateWithLineItems({
@@ -867,6 +902,13 @@ export default function EstimateWorkspacePage() {
       scheduleSettingsHook.setLogicLinks(sanitized);
       scheduleSettingsHook.setLogicNetworkInitialized(true);
       scheduleSettingsHook.setCommittedCpmResult(null);
+      const stalePrecedenceDiagram = markPrecedenceDiagramStale(
+        scheduleSettingsHook.precedenceDiagram,
+      );
+      scheduleSettingsHook.setPrecedenceDiagram(stalePrecedenceDiagram);
+      scheduleSettingsHook.setCpmWarningMessage(
+        'Logic or activity data changed since CPM was last run. Run CPM again.',
+      );
 
       if (options.clearLevelingState) {
         scheduleSettingsHook.setLeveledOffsets({});
@@ -884,6 +926,7 @@ export default function EstimateWorkspacePage() {
           leveledActivityOffsets: leveledOffsets,
           logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
           logicNetworkInitialized: true,
+          precedenceDiagram: stalePrecedenceDiagram,
           cpmResultCache: null,
           ...(options.batchSnapshot !== undefined
             ? { lastLogicSuggestionBatch: options.batchSnapshot }
@@ -925,6 +968,8 @@ export default function EstimateWorkspacePage() {
 
       if (result.error || !result.data) {
         setSaveToastMessage(result.error ?? 'Failed to save logic links');
+      } else {
+        setCurrentEstimate(result.data);
       }
     },
     [
@@ -1023,7 +1068,14 @@ export default function EstimateWorkspacePage() {
         activities: scheduleActivitiesResult.activities,
         logicLinks: scheduleSettingsHook.logicLinks,
       });
+      const precedenceDiagram = buildPrecedenceDiagramRunState({
+        activities: scheduleActivitiesResult.activities,
+        logicLinks: scheduleSettingsHook.logicLinks,
+        scheduleSettings: scheduleSettingsHook.scheduleSettings,
+      });
       scheduleSettingsHook.setCommittedCpmResult(result);
+      scheduleSettingsHook.setPrecedenceDiagram(precedenceDiagram);
+      scheduleSettingsHook.setCpmWarningMessage(null);
 
       const updatedAssumptions = mergeScheduleAssumptions(
         {
@@ -1033,11 +1085,13 @@ export default function EstimateWorkspacePage() {
           leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
           logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
           logicNetworkInitialized: true,
-          logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
-          cpmResultCache: result,
+          logicNetworkViewMode: 'precedence-diagram',
+          precedenceDiagram,
         },
         estimate.assumptions as Record<string, unknown>,
       );
+
+      scheduleSettingsHook.setLogicNetworkViewMode('precedence-diagram');
 
       const saveResult = await saveCurrentEstimateWithLineItems({
         estimateId: estimate.id,
@@ -1052,6 +1106,8 @@ export default function EstimateWorkspacePage() {
 
       if (saveResult.error || !saveResult.data) {
         setSaveToastMessage(saveResult.error ?? 'Failed to save CPM results');
+      } else {
+        setCurrentEstimate(saveResult.data);
       }
     } finally {
       setRunCpmBusy(false);
@@ -1155,10 +1211,14 @@ export default function EstimateWorkspacePage() {
           logicNetworkLayout: layout,
           scheduleSettings: scheduleSettingsHook.scheduleSettings,
           leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
           logicNetworkInitialized: true,
+          logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
+          precedenceDiagram: scheduleSettingsHook.precedenceDiagram,
         },
         estimate.assumptions as Record<string, unknown>,
       );
+
       const result = await saveCurrentEstimateWithLineItems({
         estimateId: estimate.id,
         projectId: estimate.projectId,
@@ -1172,6 +1232,7 @@ export default function EstimateWorkspacePage() {
       if (result.error || !result.data) {
         throw new Error(result.error ?? 'Failed to save logic layout');
       }
+      setCurrentEstimate(result.data);
     },
     [
       estimateAdapter,
@@ -1655,6 +1716,11 @@ export default function EstimateWorkspacePage() {
                   {scheduleActivitiesResult.warnings.map((w, i) => (
                     <div key={`schedule-${i}`}>{w}</div>
                   ))}
+                </div>
+              ) : null}
+              {scheduleSettingsHook.cpmWarningMessage ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                  {scheduleSettingsHook.cpmWarningMessage}
                 </div>
               ) : null}
               <LogicNetworkWorkspace

@@ -1,5 +1,9 @@
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import {
+  parsePrecedenceDiagramFromAssumptions,
+  type PrecedenceDiagramState,
+} from './precedenceDiagram';
+import {
   DEFAULT_SCHEDULE_SETTINGS,
   attachCpmWorkflowFields,
   type CpmActivityResult,
@@ -319,6 +323,7 @@ export function mergeScheduleAssumptions(
     lastLogicSuggestionBatch: LogicBatchSnapshot | null;
     logicNetworkInitialized: boolean;
     logicNetworkViewMode: LogicNetworkViewMode;
+    precedenceDiagram: PrecedenceDiagramState | null;
     cpmResultCache: CpmResult | null;
   }>,
   existingAssumptions: Record<string, unknown> = {},
@@ -344,16 +349,26 @@ export function mergeScheduleAssumptions(
       : {}),
   };
 
+  const withPrecedenceDiagram =
+    patch.precedenceDiagram !== undefined
+      ? patch.precedenceDiagram === null
+        ? (() => {
+            const { precedenceDiagram: _removed, ...withoutPrecedenceDiagram } = next;
+            return withoutPrecedenceDiagram;
+          })()
+        : { ...next, precedenceDiagram: patch.precedenceDiagram }
+      : next;
+
   if (patch.lastLogicSuggestionBatch !== undefined) {
     if (patch.lastLogicSuggestionBatch === null) {
-      const { lastLogicSuggestionBatch: _removed, ...withoutBatch } = next;
+      const { lastLogicSuggestionBatch: _removed, ...withoutBatch } = withPrecedenceDiagram;
       if (patch.cpmResultCache !== undefined) {
         return mergeCpmResultCachePatch(withoutBatch, patch.cpmResultCache);
       }
       return withoutBatch;
     }
     const withBatch = {
-      ...next,
+      ...withPrecedenceDiagram,
       lastLogicSuggestionBatch: patch.lastLogicSuggestionBatch,
     };
     if (patch.cpmResultCache !== undefined) {
@@ -363,10 +378,10 @@ export function mergeScheduleAssumptions(
   }
 
   if (patch.cpmResultCache !== undefined) {
-    return mergeCpmResultCachePatch(next, patch.cpmResultCache);
+    return mergeCpmResultCachePatch(withPrecedenceDiagram, patch.cpmResultCache);
   }
 
-  return next;
+  return withPrecedenceDiagram;
 }
 
 function mergeCpmResultCachePatch(
@@ -397,6 +412,7 @@ export const SCHEDULE_LAYER_ASSUMPTION_KEYS = [
   'cpmResultCache',
   'cpmCalculatedAt',
   'logicNetworkViewMode',
+  'precedenceDiagram',
   'levelThreeGanttBaseline',
 ] as const;
 
@@ -533,6 +549,7 @@ export function sanitizeScheduleAssumptionsForLineItems(
   );
 
   const logicNetworkInitialized = parseLogicNetworkInitializedFromAssumptions(base);
+  const precedenceDiagram = parsePrecedenceDiagramFromAssumptions(base);
 
   const stripped = stripScheduleLayerKeys(base);
   return mergeScheduleAssumptions(
@@ -543,6 +560,7 @@ export function sanitizeScheduleAssumptionsForLineItems(
       leveledActivityOffsets,
       logicReviewIgnored,
       logicNetworkInitialized,
+      precedenceDiagram,
     },
     stripped,
   );

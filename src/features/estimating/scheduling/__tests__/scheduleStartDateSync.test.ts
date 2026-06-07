@@ -42,11 +42,15 @@ describe('schedule start date sync wiring', () => {
   });
 
   it('handleSaveEstimate merges scheduleSettings into assumptions before save', () => {
-    expect(pageSource).toContain('const saveAssumptions = mergeScheduleAssumptions');
-    expect(pageSource).toContain(
-      '{ scheduleSettings: scheduleSettingsHook.scheduleSettings }',
+    const saveEstimateBody =
+      pageSource.match(/const handleSaveEstimate = useCallback\(async \(\) => \{[\s\S]*?\n  \}, \[/)?.[0] ??
+      '';
+    expect(saveEstimateBody).toContain('const saveAssumptions = mergeScheduleAssumptions');
+    expect(saveEstimateBody).toContain(
+      'scheduleSettings: scheduleSettingsHook.scheduleSettings',
     );
-    expect(pageSource).toContain('existingAssumptions: saveAssumptions');
+    expect(saveEstimateBody).toContain('precedenceDiagram: precedenceDiagramForSave');
+    expect(saveEstimateBody).toContain('existingAssumptions: saveAssumptions');
   });
 
   it('Gantt Preview export uses scheduleSettings.projectStartDate, not schedulePlanControls', () => {
