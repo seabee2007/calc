@@ -80,11 +80,21 @@ function parseCpmLogicLink(raw: unknown): CpmLogicLink | null {
   const pred = typeof src.predecessorActivityCode === 'string' ? src.predecessorActivityCode.trim() : '';
   const succ = typeof src.successorActivityCode === 'string' ? src.successorActivityCode.trim() : '';
   if (!pred || !succ) return null;
+  const predRuntimeId =
+    typeof src.predecessorRuntimeId === 'string' && src.predecessorRuntimeId.trim()
+      ? src.predecessorRuntimeId.trim()
+      : undefined;
+  const succRuntimeId =
+    typeof src.successorRuntimeId === 'string' && src.successorRuntimeId.trim()
+      ? src.successorRuntimeId.trim()
+      : undefined;
   return {
     predecessorActivityCode: pred,
     successorActivityCode: succ,
     relationshipType: parseRelationshipType(src.relationshipType),
     lagDays: toFiniteNumber(src.lagDays, 0),
+    ...(predRuntimeId ? { predecessorRuntimeId: predRuntimeId } : {}),
+    ...(succRuntimeId ? { successorRuntimeId: succRuntimeId } : {}),
   };
 }
 
@@ -125,6 +135,13 @@ export function parseLogicNetworkInitializedFromAssumptions(
 /** One-time seed: builds CpmLogicLink[] from line items' predecessorActivityCode.
  *  Only call when assumptions.logicLinks is absent or empty. */
 export function seedLogicLinksFromLineItems(lineItems: EstimateDomainTask[]): CpmLogicLink[] {
+  // Map activity code -> runtime id (line-item id) for resolving predecessor identity.
+  const runtimeIdByCode = new Map<string, string>();
+  for (const task of lineItems) {
+    const code = task.activityCode?.trim();
+    if (code && !runtimeIdByCode.has(code)) runtimeIdByCode.set(code, task.id);
+  }
+
   const links: CpmLogicLink[] = [];
   for (const task of lineItems) {
     const pred = task.predecessorActivityCode?.trim();
@@ -133,6 +150,8 @@ export function seedLogicLinksFromLineItems(lineItems: EstimateDomainTask[]): Cp
     links.push({
       predecessorActivityCode: pred,
       successorActivityCode: succ,
+      predecessorRuntimeId: runtimeIdByCode.get(pred),
+      successorRuntimeId: task.id,
       relationshipType: parseRelationshipType(task.relationshipType),
       lagDays: Math.max(0, task.lagDays ?? 0),
     });

@@ -1747,6 +1747,8 @@ export default function EstimateWorkspacePage() {
                 onRevertLastLogicBatch={handleRevertLastLogicBatch}
                 onClearAllLogicLinks={handleClearAllLogicLinks}
                 logicNetworkInitialized={scheduleSettingsHook.logicNetworkInitialized}
+                scheduleSettings={scheduleSettingsHook.scheduleSettings}
+                projectName={project?.name}
               />
             </div>
           ) : (

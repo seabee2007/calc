@@ -1,8 +1,10 @@
 import type {
+  EstimateActivityType,
   EstimateCostTotals,
   EstimateDimensionsInput,
   EstimateLineItemInput,
   EstimateLineSnapshot,
+  EstimateRelationshipType,
   EstimateSnapshot,
   EstimateSnapshotMeta,
   EstimateStatus,
@@ -90,6 +92,19 @@ function isEquipmentRateType(value: unknown): value is EquipmentRateType {
     typeof value === 'string' &&
     ['hour', 'day', 'week', 'month', 'lump_sum'].includes(value)
   );
+}
+
+function isActivityType(value: unknown): value is EstimateActivityType {
+  return (
+    typeof value === 'string' &&
+    ['work', 'inspection', 'milestone', 'curing_lag', 'procurement_lead_time', 'testing'].includes(
+      value,
+    )
+  );
+}
+
+function isRelationshipType(value: unknown): value is EstimateRelationshipType {
+  return typeof value === 'string' && ['FS', 'SS', 'FF', 'SF'].includes(value);
 }
 
 function isLineItemType(value: unknown): value is EstimateLineItemType {
@@ -352,6 +367,23 @@ export function mapLineItemRowToDomainTask(
     scheduleEnabled: row.schedule_enabled ?? true,
     weatherSensitive: row.weather_sensitive ?? false,
     inspectionRequired: row.inspection_required ?? false,
+    activityCode: toOptionalString(row.activity_code),
+    masterActivityCode: toOptionalString(row.master_activity_code),
+    activityInstance:
+      typeof row.activity_instance === 'number' ? row.activity_instance : undefined,
+    displayCode: toOptionalString(row.display_code),
+    isCustomActivity: row.is_custom_activity ?? undefined,
+    activityType: isActivityType(row.activity_type) ? row.activity_type : undefined,
+    sequencingCategory: toOptionalString(row.sequencing_category),
+    logicAnchor: toOptionalString(row.logic_anchor),
+    workPackageCode: toOptionalString(row.work_package_code),
+    divisionCode: toOptionalString(row.division_code) ?? toOptionalString(row.csi_division),
+    divisionName: toOptionalString(row.division_name),
+    predecessorActivityCode: toOptionalString(row.predecessor_activity_code),
+    relationshipType: isRelationshipType(row.relationship_type)
+      ? row.relationship_type
+      : undefined,
+    lagDays: typeof row.lag_days === 'number' ? row.lag_days : undefined,
     calculatedValues,
     equipmentRate: equipmentRateType
       ? toNumber(equipmentInput.rate, toNumber(row.equipment_cost))
@@ -453,6 +485,20 @@ export function mapDomainTaskToLineItemInsert(
     weather_sensitive: task.weatherSensitive,
     inspection_required: task.inspectionRequired,
     position: task.position,
+    activity_code: task.activityCode ?? null,
+    master_activity_code: task.masterActivityCode ?? null,
+    activity_instance: task.activityInstance ?? null,
+    display_code: task.displayCode ?? task.activityCode ?? null,
+    is_custom_activity: task.isCustomActivity ?? false,
+    activity_type: task.activityType ?? null,
+    sequencing_category: task.sequencingCategory ?? null,
+    logic_anchor: task.logicAnchor ?? null,
+    work_package_code: task.workPackageCode ?? null,
+    division_code: task.divisionCode ?? li.csiDivision ?? null,
+    division_name: task.divisionName ?? null,
+    predecessor_activity_code: task.predecessorActivityCode ?? null,
+    relationship_type: task.relationshipType ?? null,
+    lag_days: task.lagDays ?? null,
   };
 }
 

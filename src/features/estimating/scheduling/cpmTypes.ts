@@ -5,6 +5,13 @@ export interface CpmLogicLink {
   successorActivityCode: string;
   relationshipType: CpmRelationshipType;
   lagDays: number;
+  /**
+   * Stable runtime ids for the endpoints. When present these are the authoritative
+   * identity (so repeated activity codes stay uniquely linkable); the activityCode
+   * fields remain for display and legacy/back-compat link matching.
+   */
+  predecessorRuntimeId?: string;
+  successorRuntimeId?: string;
 }
 
 export interface CpmActivityResult {

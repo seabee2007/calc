@@ -7,6 +7,7 @@ import {
   assignActivityCodeToDraftLine,
   backfillActivityCodesForDraftLines,
 } from './estimateActivityCoding';
+import { getMasterActivityByCode } from '../data/masterActivityIndex';
 import { DEFAULT_ESTIMATE_SETTINGS, normalizeEstimateSettings } from './estimateSettings';
 
 export interface EstimateDraftLine {
@@ -139,6 +140,42 @@ export function draftLineFromDomainTask(
   };
 }
 
+/**
+ * Non-destructively links a saved/legacy line to the master dataset.
+ * If the line is not yet linked and its code matches a master activity, the
+ * master's classification is attached WITHOUT overwriting the saved title.
+ * Lines with a code but no match are flagged as custom so they round-trip intact.
+ */
+export function enrichLegacyDraftLineFromMaster(draft: EstimateDraftLine): EstimateDraftLine {
+  const task = draft.task;
+  if (task.masterActivityCode || task.isCustomActivity === true) return draft;
+
+  const code = task.activityCode?.trim();
+  if (!code) return draft;
+
+  const master = getMasterActivityByCode(code);
+  if (!master) {
+    return {
+      ...draft,
+      task: { ...task, isCustomActivity: true, displayCode: task.displayCode ?? code },
+    };
+  }
+
+  return {
+    ...draft,
+    task: {
+      ...task,
+      masterActivityCode: master.activityCode,
+      isCustomActivity: false,
+      displayCode: task.displayCode ?? code,
+      activityType: task.activityType ?? master.activityType,
+      sequencingCategory: task.sequencingCategory ?? master.sequencingCategory,
+      logicAnchor: task.logicAnchor ?? master.logicAnchor,
+      workPackageCode: task.workPackageCode ?? master.workPackageCode,
+    },
+  };
+}
+
 export function draftLinesFromVersion(lineItems: EstimateDomainTask[]): EstimateDraftLine[] {
   const drafts = [...lineItems]
     .sort((a, b) => a.position - b.position)
@@ -147,7 +184,7 @@ export function draftLinesFromVersion(lineItems: EstimateDomainTask[]): Estimate
       draft.task.position = index;
       return draft;
     });
-  return backfillActivityCodesForDraftLines(drafts);
+  return backfillActivityCodesForDraftLines(drafts).map(enrichLegacyDraftLineFromMaster);
 }
 
 export function sortDraftLinesByPosition(lines: EstimateDraftLine[]): EstimateDraftLine[] {

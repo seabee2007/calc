@@ -24,6 +24,7 @@ import {
   normalizeCsiDivisionCode,
 } from '../domain/csiDivisions';
 import { normalizeScopeName } from '../domain/csiScopeTemplates';
+import { getMasterActivityByCode } from '../data/masterActivityIndex';
 import type { EstimateSelectedDivision, EstimateSettings } from '../domain/estimateTypes';
 import {
   ESTIMATE_SETTINGS_SHEET_NAME,
@@ -334,7 +335,49 @@ function mapRowToDraftLine(row: ImportedEstimateRow, position: number): Estimate
     },
   };
 
-  return applyDivisionScopeDefaults(applyDraftLaborDefaults(draft));
+  return enrichImportedDraftFromMaster(
+    applyDivisionScopeDefaults(applyDraftLaborDefaults(draft)),
+  );
+}
+
+/**
+ * Links an imported draft to the master dataset when its activity code matches,
+ * non-destructively: it attaches the master classification (type, category,
+ * logic anchor) and marks the row as master-linked, but preserves the imported
+ * title, work package, quantities, and costs (the imported file is the source of
+ * truth for those). Rows with no matching master code are flagged as custom so
+ * their code/title survive the round-trip untouched.
+ */
+function enrichImportedDraftFromMaster(draft: EstimateDraftLine): EstimateDraftLine {
+  const code = draft.task.activityCode?.trim();
+  const master = code ? getMasterActivityByCode(code) : undefined;
+
+  if (!master) {
+    const hasIdentity = Boolean(code || draft.task.title.trim());
+    return {
+      ...draft,
+      task: {
+        ...draft.task,
+        isCustomActivity: hasIdentity ? true : draft.task.isCustomActivity,
+        masterActivityCode: undefined,
+        displayCode: code || draft.task.displayCode,
+      },
+    };
+  }
+
+  return {
+    ...draft,
+    task: {
+      ...draft.task,
+      trade: draft.task.trade?.trim() || master.primaryTrade,
+      masterActivityCode: master.activityCode,
+      isCustomActivity: false,
+      displayCode: code,
+      activityType: draft.task.activityType ?? master.activityType,
+      sequencingCategory: draft.task.sequencingCategory ?? master.sequencingCategory,
+      logicAnchor: draft.task.logicAnchor ?? master.logicAnchor,
+    },
+  };
 }
 
 function buildImportedSelectedDivisions(
@@ -523,6 +566,15 @@ export function finalizeImportedDraftLines(
         `Activity "${line.task.activityCode ?? line.task.title}" references missing predecessor "${predecessor}".`,
       );
     }
+  }
+
+  const customCount = working.filter((line) => line.task.isCustomActivity === true).length;
+  if (customCount > 0) {
+    warnings.push(
+      `${customCount} ${
+        customCount === 1 ? 'activity was' : 'activities were'
+      } imported as custom (no matching master activity). Their codes and titles were preserved.`,
+    );
   }
 
   return {

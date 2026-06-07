@@ -526,6 +526,30 @@ export default function EstimateLineItemsBuilderPanel({
               <EstimateLineItemPreviewCard draft={draft.formDraft} />
             </div>
             <div className={PLANNER_DRAWER_FOOTER}>
+              {draft.duplicatePrompt ? (
+                <div className="mb-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700/60 dark:bg-amber-950/30">
+                  <p className="font-medium text-amber-900 dark:text-amber-200">
+                    This activity already exists in this estimate.
+                  </p>
+                  <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
+                    {draft.duplicatePrompt.masterActivityCode} — {draft.duplicatePrompt.title}. Add
+                    another instance? The master code stays the same; the new line gets a unique
+                    display code.
+                  </p>
+                  <div className="mt-2 flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={draft.cancelDuplicatePrompt}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="button" variant="accent" onClick={draft.confirmAddInstance}>
+                      Add another instance
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={draft.closeDrawer}>
                   Cancel

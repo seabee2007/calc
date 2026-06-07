@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Download, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
@@ -40,6 +41,7 @@ export default function PlannerPlanHeader() {
   const { user } = useAuth();
   const { project, bundle, team, isOwner } = usePlannerProject();
   const tabCounts = useProjectTabCounts(projectId, user?.id, bundle);
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (!project || !projectId) return null;
@@ -136,27 +138,21 @@ export default function PlannerPlanHeader() {
       >
         {TABS.map(({ to, label, countKey }) => {
           const tabPath = `${base}/${to}`;
+          const isActive = isPlannerNavTabActive(location.pathname, tabPath);
           return (
-          <NavLink
-            key={to}
-            to={tabPath}
-            end={to === 'board'}
-            isActive={
-              to === 'estimate'
-                ? (_, location) => isPlannerNavTabActive(location.pathname, tabPath)
-                : undefined
-            }
-            className={({ isActive }) =>
-              [
+            <Link
+              key={to}
+              to={tabPath}
+              className={[
                 'shrink-0 border-b-2 px-4 py-2.5 transition-colors',
                 isActive
                   ? `border-cyan-600 dark:border-cyan-400 ${PLANNER_NAV_TAB_LABEL_ACTIVE}`
                   : `border-transparent hover:text-gray-900 dark:hover:text-slate-200 ${PLANNER_NAV_TAB_LABEL}`,
-              ].join(' ')
-            }
-          >
-            {formatTabLabel(label, countKey ? tabCounts[countKey] : undefined)}
-          </NavLink>
+              ].join(' ')}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {formatTabLabel(label, countKey ? tabCounts[countKey] : undefined)}
+            </Link>
           );
         })}
       </nav>

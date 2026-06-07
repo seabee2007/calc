@@ -103,7 +103,17 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
       />
 
       <div className={`flex items-center justify-between px-2 py-1 font-mono font-semibold ${headerClass}`}>
-        <span className="truncate">{activity.activityCode}</span>
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="truncate">{activity.displayCode ?? activity.activityCode}</span>
+          {activity.isCustomActivity ? (
+            <span
+              className="shrink-0 rounded bg-amber-200 px-1 text-[9px] font-bold uppercase tracking-wide text-amber-900 dark:bg-amber-700 dark:text-amber-100"
+              title="Custom activity (not in the master dataset)"
+            >
+              Custom
+            </span>
+          ) : null}
+        </span>
         <span className="ml-2 shrink-0 tabular-nums">
           {activity.durationDays}d
           {activity.durationDays < 1 ? (

@@ -6,11 +6,15 @@ import { normalizeScopeName } from '../domain/csiScopeTemplates';
 import type { EstimateRelationshipType } from '../domain/estimateTypes';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import type { EstimateScheduleTaskCandidate } from '../domain/estimateScheduleTypes';
+import type { EstimateActivityTemplate } from '../data/residentialActivityMaster';
 import type { EstimateDraftLine } from './estimateDraftLine';
 
 const ACTIVITY_CODE_PATTERN = /^(\d{2})-(\d{2})-(\d{2})$/;
 const DEFAULT_WORK_PACKAGE_LABEL = 'General';
 const DEFAULT_RELATIONSHIP_TYPE: EstimateRelationshipType = 'FS';
+
+/** Reserved work-package sequence used for user-defined (custom) activities: DD-99-XX. */
+export const CUSTOM_ACTIVITY_SEQUENCE = 99;
 
 export interface ParsedActivityCode {
   divisionCode: string;
@@ -261,6 +265,142 @@ export function applyActivityCodeFieldsToTask(
       csiDivision: fields.divisionCode,
     },
     scopeName: fields.workPackageName,
+  };
+}
+
+/** Builds the user-facing display code, appending `.N` for repeated instances (N > 1). */
+export function buildDisplayCode(
+  activityCode: string,
+  activityInstance?: number,
+): string {
+  if (activityInstance != null && activityInstance > 1) {
+    return `${activityCode}.${activityInstance}`;
+  }
+  return activityCode;
+}
+
+/** Counts existing draft lines that came from the given master activity. */
+export function countMasterActivityInstances(
+  lines: EstimateDraftLine[],
+  masterActivityCode: string,
+  excludeClientId?: string,
+): number {
+  const target = masterActivityCode.trim();
+  let count = 0;
+  for (const line of lines) {
+    if (line.clientId === excludeClientId) continue;
+    if (line.task.masterActivityCode?.trim() === target) count += 1;
+  }
+  return count;
+}
+
+/** Next line sequence within the reserved DD-99 custom work package for a division. */
+export function nextCustomLineSequence(
+  lines: EstimateDraftLine[],
+  divisionCode: string,
+): number {
+  return nextLineSequence(lines, divisionCode, CUSTOM_ACTIVITY_SEQUENCE);
+}
+
+/** Builds a reserved custom activity code: `DD-99-XX`. */
+export function buildCustomActivityCode(
+  divisionCode: string,
+  lineSequence: number,
+): string {
+  return buildActivityCode(divisionCode, CUSTOM_ACTIVITY_SEQUENCE, lineSequence);
+}
+
+/**
+ * Applies a master activity's fixed identity and classification onto a draft
+ * line. The activity code/title come from the master and never change with add
+ * order. `instance` (>1) marks a repeated instance and drives the display code.
+ */
+export function applyMasterActivityToDraftLine(
+  line: EstimateDraftLine,
+  master: EstimateActivityTemplate,
+  instance: number,
+): EstimateDraftLine {
+  const parsed = parseActivityCode(master.activityCode);
+  const activitySequence = parsed?.activitySequence ?? 0;
+  const lineSequence = parsed?.lineSequence ?? 0;
+  const displayCode = buildDisplayCode(master.activityCode, instance);
+
+  const baseTask = applyActivityCodeFieldsToTask(line.task, {
+    activityCode: master.activityCode,
+    divisionCode: master.divisionCode,
+    divisionName: master.divisionName,
+    workPackageCode: master.workPackageCode,
+    workPackageName: master.workPackageName,
+    activitySequence,
+    lineSequence,
+  });
+
+  return {
+    ...line,
+    unit: master.defaultUnit || line.unit,
+    task: {
+      ...baseTask,
+      title: master.title,
+      trade: master.primaryTrade,
+      masterActivityCode: master.activityCode,
+      isCustomActivity: false,
+      activityInstance: instance,
+      displayCode,
+      activityType: master.activityType,
+      sequencingCategory: master.sequencingCategory,
+      logicAnchor: master.logicAnchor,
+      scheduleEnabled: master.scheduleEnabled,
+      weatherSensitive: master.weatherSensitive ?? false,
+      inspectionRequired: master.inspectionRequired ?? false,
+      lineItem: {
+        ...baseTask.lineItem,
+        labor: {
+          ...baseTask.lineItem.labor,
+          crewSize: master.defaultCrewSize,
+          hoursPerDay: master.defaultHoursPerDay,
+        },
+      },
+    },
+  };
+}
+
+/**
+ * Assigns a reserved custom (DD-99-XX) code to a user-defined activity that is
+ * not in the master dataset, preserving the user's typed title.
+ */
+export function assignCustomActivityCodeToDraftLine(
+  line: EstimateDraftLine,
+  lines: EstimateDraftLine[],
+): EstimateDraftLine {
+  const divisionCode = pad2(
+    normalizeCsiDivisionCode(line.task.divisionCode ?? line.task.lineItem.csiDivision),
+  );
+  const lineSequence = nextCustomLineSequence(lines, divisionCode);
+  const activityCode = buildCustomActivityCode(divisionCode, lineSequence);
+  const division = getCsiDivisionByCode(divisionCode);
+  const divisionName = line.task.divisionName ?? division?.name ?? divisionCode;
+  const workPackageName =
+    normalizeScopeName(line.task.workPackageName ?? line.task.scopeName) || 'Custom Activities';
+
+  const baseTask = applyActivityCodeFieldsToTask(line.task, {
+    activityCode,
+    divisionCode,
+    divisionName,
+    workPackageCode: buildWorkPackageCode(divisionCode, CUSTOM_ACTIVITY_SEQUENCE),
+    workPackageName,
+    activitySequence: CUSTOM_ACTIVITY_SEQUENCE,
+    lineSequence,
+  });
+
+  return {
+    ...line,
+    task: {
+      ...baseTask,
+      masterActivityCode: undefined,
+      isCustomActivity: true,
+      activityInstance: 1,
+      displayCode: activityCode,
+    },
   };
 }
 

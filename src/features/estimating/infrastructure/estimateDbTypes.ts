@@ -121,6 +121,20 @@ export interface EstimateLineItemRow {
   inspection_required: boolean;
   position: number;
   created_at: string;
+  activity_code: string | null;
+  master_activity_code: string | null;
+  activity_instance: number | null;
+  display_code: string | null;
+  is_custom_activity: boolean | null;
+  activity_type: string | null;
+  sequencing_category: string | null;
+  logic_anchor: string | null;
+  work_package_code: string | null;
+  division_code: string | null;
+  division_name: string | null;
+  predecessor_activity_code: string | null;
+  relationship_type: EstimateRelationshipType | null;
+  lag_days: number | null;
 }
 
 export type EstimateLineItemInsert = {
@@ -159,6 +173,20 @@ export type EstimateLineItemInsert = {
   weather_sensitive?: boolean;
   inspection_required?: boolean;
   position?: number;
+  activity_code?: string | null;
+  master_activity_code?: string | null;
+  activity_instance?: number | null;
+  display_code?: string | null;
+  is_custom_activity?: boolean | null;
+  activity_type?: string | null;
+  sequencing_category?: string | null;
+  logic_anchor?: string | null;
+  work_package_code?: string | null;
+  division_code?: string | null;
+  division_name?: string | null;
+  predecessor_activity_code?: string | null;
+  relationship_type?: EstimateRelationshipType | null;
+  lag_days?: number | null;
 };
 
 /** CamelCase summary returned by the repository for `estimates` rows. */

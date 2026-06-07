@@ -1,7 +1,7 @@
 import { backfillActivityCodesForDomainTasks } from '../../application/estimateActivityCoding';
 import { extractScheduleLaborPlan } from '../../application/extractScheduleLaborPlan';
 import { computeTaskRollupSlice } from '../../application/estimateGroupRollups';
-import type { EstimateSettings } from '../../domain/estimateTypes';
+import type { EstimateActivityType, EstimateSettings } from '../../domain/estimateTypes';
 import type { EstimateDomainTask } from '../../infrastructure/estimateDbTypes';
 import type { CpmRelationshipType } from '../cpmTypes';
 
@@ -21,6 +21,29 @@ export interface ScheduleActivity {
   predecessorActivityCode?: string;
   relationshipType: CpmRelationshipType;
   lagDays: number;
+  /** Stable per-line runtime id (the line-item id). Unique even when activityCode repeats. */
+  runtimeActivityId?: string;
+  /** User-facing code: master code, or `${code}.${instance}` for repeated instances. */
+  displayCode?: string;
+  /** Master activity code this line came from (undefined for custom activities). */
+  masterActivityCode?: string;
+  /** True for user-defined activities not in the master dataset. */
+  isCustomActivity?: boolean;
+  activityType?: EstimateActivityType;
+  sequencingCategory?: string;
+  logicAnchor?: string;
+  primaryTrade?: string;
+}
+
+/**
+ * The unique identity used to key the logic graph (canvas nodes, CPM, links).
+ * Prefers the stable runtime id so repeated master codes stay uniquely linkable;
+ * falls back to the activity code for legacy/test data without a runtime id.
+ */
+export function getActivityGraphKey(
+  activity: Pick<ScheduleActivity, 'runtimeActivityId' | 'activityCode'>,
+): string {
+  return activity.runtimeActivityId?.trim() || activity.activityCode;
 }
 
 export interface ScheduleActivityAdapterWarning {
@@ -106,6 +129,14 @@ export function estimateLineItemsToScheduleActivities(
 
     return {
       activityCode,
+      runtimeActivityId: task.id,
+      displayCode: task.displayCode?.trim() || activityCode,
+      masterActivityCode: task.masterActivityCode?.trim() || undefined,
+      isCustomActivity: task.isCustomActivity ?? undefined,
+      activityType: task.activityType,
+      sequencingCategory: task.sequencingCategory,
+      logicAnchor: task.logicAnchor,
+      primaryTrade: task.trade?.trim() || undefined,
       activityDescription: task.title?.trim() || task.description?.trim() || activityCode,
       divisionCode: task.divisionCode?.trim() || task.lineItem.csiDivision?.trim() || '00',
       divisionName: task.divisionName?.trim() || task.lineItem.csiDivision?.trim() || '',

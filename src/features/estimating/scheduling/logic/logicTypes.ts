@@ -100,6 +100,19 @@ export type AiLogicReviewInput = {
     crewSize?: number;
     laborHours?: number;
     scheduleEnabled?: boolean;
+    // Stable identity fields. runtimeActivityId is the authoritative identity so
+    // repeated master codes stay uniquely linkable; masterActivityCode/logicAnchor
+    // are the authoritative source of an activity's meaning (never infer from notes).
+    runtimeActivityId?: string;
+    displayCode?: string;
+    masterActivityCode?: string;
+    isCustomActivity?: boolean;
+    // Optional classification fields sourced from the Residential Activity Master.
+    activityType?: 'work' | 'inspection' | 'milestone' | 'curing_lag' | 'procurement_lead_time' | 'testing';
+    sequencingCategory?: string;
+    logicAnchor?: string;
+    primaryTrade?: string;
+    variant?: 'baseline' | 'slab_on_grade' | 'crawlspace' | 'optional';
   }>;
   logicLinks: CpmLogicLink[];
 };

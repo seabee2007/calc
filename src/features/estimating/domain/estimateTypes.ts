@@ -147,6 +147,14 @@ export type EstimateSelectedDivisionSource = 'manual' | 'ai' | 'inferred' | 'imp
 
 export type EstimateRelationshipType = 'FS' | 'SS' | 'FF' | 'SF';
 
+export type EstimateActivityType =
+  | 'work'
+  | 'inspection'
+  | 'milestone'
+  | 'curing_lag'
+  | 'procurement_lead_time'
+  | 'testing';
+
 export interface EstimateActivityCodeFields {
   activityCode: string;
   divisionCode: string;
@@ -158,6 +166,20 @@ export interface EstimateActivityCodeFields {
   predecessorActivityCode?: string;
   relationshipType?: EstimateRelationshipType;
   lagDays?: number;
+  /** Master activity code this line was created from (null/undefined for custom activities). */
+  masterActivityCode?: string;
+  /** Instance number when the same master activity is added more than once (1-based; >1 means a repeat). */
+  activityInstance?: number;
+  /** Code shown in the UI: equals activityCode, or `${activityCode}.${instance}` for repeats. */
+  displayCode?: string;
+  /** True when the line is a user-defined activity not present in the master dataset. */
+  isCustomActivity?: boolean;
+  /** Classification copied from the master activity (drives sequencing/scheduling treatment). */
+  activityType?: EstimateActivityType;
+  /** Coarse phase bucket copied from the master activity. */
+  sequencingCategory?: string;
+  /** Stable keyword copied from the master activity, used by the deterministic sequencer. */
+  logicAnchor?: string;
 }
 
 export interface EstimateSelectedDivision {

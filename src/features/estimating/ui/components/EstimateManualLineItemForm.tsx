@@ -3,6 +3,7 @@ import { Info } from 'lucide-react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import ConstructionUnitCombobox from './ConstructionUnitCombobox';
+import MasterActivityCombobox from './MasterActivityCombobox';
 import FieldLabelWithTooltip from './FieldLabelWithTooltip';
 import LaborFieldDefinitionsModal from './LaborFieldDefinitionsModal';
 import { getLaborFieldDefinition } from '../../data/laborFieldDefinitions';
@@ -23,8 +24,13 @@ import {
   isKnownScopeTemplate,
   normalizeScopeName,
 } from '../../domain/csiScopeTemplates';
-import type { EstimateRelationshipType, ProductionRateType } from '../../domain/estimateTypes';
-import { syncActivityCodeFromParsedManualCode } from '../../application/estimateActivityCoding';
+import type {
+  EstimateActivityType,
+  EstimateRelationshipType,
+  ProductionRateType,
+} from '../../domain/estimateTypes';
+import { applyMasterActivityToDraftLine } from '../../application/estimateActivityCoding';
+import { getMasterActivityByCode } from '../../data/masterActivityIndex';
 import { getCsiDivisionByCode } from '../../domain/csiDivisions';
 import {
   parseEstimateFormNumber,
@@ -42,6 +48,15 @@ const RELATIONSHIP_OPTIONS = [
   { value: 'FF', label: 'Finish-to-finish (FF)' },
   { value: 'SF', label: 'Start-to-finish (SF)' },
 ] as const;
+
+const ACTIVITY_TYPE_OPTIONS: Array<{ value: EstimateActivityType; label: string }> = [
+  { value: 'work', label: 'Work' },
+  { value: 'inspection', label: 'Inspection' },
+  { value: 'milestone', label: 'Milestone' },
+  { value: 'curing_lag', label: 'Curing lag' },
+  { value: 'procurement_lead_time', label: 'Procurement lead time' },
+  { value: 'testing', label: 'Testing' },
+];
 
 interface Props {
   draft: EstimateDraftLine;
@@ -221,109 +236,247 @@ export default function EstimateManualLineItemForm({
     patchLineItem({ subcontractor: { cost: value } });
   };
 
+  const isCustomMode = task.isCustomActivity === true;
+  const selectedMaster = getMasterActivityByCode(task.masterActivityCode);
+  const masterDisplayCode = task.displayCode ?? task.activityCode ?? '';
+
+  const selectMaster = (activityCode: string) => {
+    const master = getMasterActivityByCode(activityCode);
+    if (!master) return;
+    onChange(applyMasterActivityToDraftLine(draft, master, task.activityInstance ?? 1));
+  };
+
+  const enterCustomMode = () => {
+    onChange({
+      ...draft,
+      task: {
+        ...task,
+        isCustomActivity: true,
+        masterActivityCode: undefined,
+        activityInstance: 1,
+        displayCode: undefined,
+        activityType: task.activityType ?? 'work',
+      },
+    });
+  };
+
+  const enterMasterMode = () => {
+    onChange({
+      ...draft,
+      task: {
+        ...task,
+        isCustomActivity: false,
+      },
+    });
+  };
+
+  const clearMasterSelection = () => {
+    onChange({
+      ...draft,
+      task: {
+        ...task,
+        masterActivityCode: undefined,
+        activityCode: undefined,
+        displayCode: undefined,
+        activityInstance: undefined,
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h3 className={PLANNER_SECTION_TITLE}>Identity</h3>
-        <FieldGrid>
-          <Select
-            label="Division of Work"
-            value={selectedDivisionValue}
-            options={csiDivisionSelectOptions}
-            onChange={(value) => {
-              const division = getCsiDivisionByCode(value);
-              patchTask({
-                divisionCode: value,
-                divisionName: division?.name ?? value,
-              });
-              patchLineItem({
-                csiDivision: value,
-                csiSection: task.lineItem.csiSection,
-              });
-            }}
-            fullWidth
-          />
-          <Input
-            label="CSI Section"
-            value={task.lineItem.csiSection ?? ''}
-            onChange={(event) => patchLineItem({ csiSection: event.target.value })}
-            fullWidth
-          />
-          {hasKnownScopeTemplates ? (
-            <>
-              <Select
-                label="Work Package / Scope"
-                value={selectedScopeValue}
-                options={scopeSelectOptions}
-                onChange={(value) => {
-                  if (value === CUSTOM_UNASSIGNED_SCOPE_VALUE) {
-                    patchTask({ scopeName: '' });
-                    return;
-                  }
-                  patchTask({ scopeName: value });
-                }}
-                fullWidth
-              />
-              {showCustomScopeInput ? (
-                <Input
-                  label="Custom work package name"
-                  value={task.scopeName ?? ''}
-                  onChange={(event) =>
-                    patchTask({ scopeName: normalizeScopeName(event.target.value) })
-                  }
-                  fullWidth
-                />
-              ) : null}
-            </>
-          ) : (
-            <Input
-              label="Work Package / Scope"
-              value={task.scopeName ?? ''}
-              onChange={(event) =>
-                patchTask({ scopeName: normalizeScopeName(event.target.value) })
-              }
+        <div className="flex items-center justify-between">
+          <h3 className={PLANNER_SECTION_TITLE}>Identity</h3>
+          <div className="inline-flex overflow-hidden rounded-lg border border-slate-300 text-xs dark:border-slate-600">
+            <button
+              type="button"
+              className={`px-3 py-1 ${
+                !isCustomMode
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-transparent text-slate-600 dark:text-slate-300'
+              }`}
+              onClick={enterMasterMode}
+            >
+              From master
+            </button>
+            <button
+              type="button"
+              className={`px-3 py-1 ${
+                isCustomMode
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-transparent text-slate-600 dark:text-slate-300'
+              }`}
+              onClick={enterCustomMode}
+            >
+              + Custom activity
+            </button>
+          </div>
+        </div>
+
+        {!isCustomMode ? (
+          <div className="space-y-3">
+            <Select
+              label="Division of Work"
+              value={selectedDivisionValue}
+              options={csiDivisionSelectOptions}
+              onChange={(value) => {
+                const division = getCsiDivisionByCode(value);
+                patchTask({
+                  divisionCode: value,
+                  divisionName: division?.name ?? value,
+                });
+                patchLineItem({
+                  csiDivision: value,
+                  csiSection: task.lineItem.csiSection,
+                });
+              }}
               fullWidth
             />
-          )}
-          <Input
-            label="Activity code"
-            value={task.activityCode ?? ''}
-            placeholder="03-01-02"
-            onChange={(event) => {
-              const next = {
-                ...draft,
-                task: { ...task, activityCode: event.target.value.trim() },
-              };
-              onChange(syncActivityCodeFromParsedManualCode(next, [next]));
-            }}
-            fullWidth
-          />
-          <Input
-            label="Activity name"
-            value={task.title}
-            onChange={(event) => patchTask({ title: event.target.value })}
-            fullWidth
-          />
-          <Input
-            label="Trade"
-            value={task.trade ?? ''}
-            onChange={(event) => patchTask({ trade: event.target.value })}
-            fullWidth
-          />
-          <Input
-            label="Activity type"
-            value={task.activity ?? ''}
-            onChange={(event) => patchTask({ activity: event.target.value })}
-            fullWidth
-          />
-        </FieldGrid>
+            <MasterActivityCombobox
+              label="Activity"
+              value={selectedMaster ?? null}
+              divisionCode={isKnownCsiDivision(selectedDivisionValue) ? normalizedDivision : null}
+              onSelect={(activity) => selectMaster(activity.activityCode)}
+            />
+
+            {selectedMaster ? (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-900/40">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">
+                    {masterDisplayCode}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-xs text-cyan-700 hover:underline dark:text-cyan-300"
+                    onClick={clearMasterSelection}
+                  >
+                    Change activity
+                  </button>
+                </div>
+                <p className="mt-1 font-medium text-slate-800 dark:text-slate-200">
+                  {selectedMaster.title}
+                </p>
+                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                  <div>
+                    <dt className="inline font-medium">Work package: </dt>
+                    <dd className="inline">{selectedMaster.workPackageName}</dd>
+                  </div>
+                  <div>
+                    <dt className="inline font-medium">Trade: </dt>
+                    <dd className="inline">{selectedMaster.primaryTrade}</dd>
+                  </div>
+                  <div>
+                    <dt className="inline font-medium">Type: </dt>
+                    <dd className="inline">{selectedMaster.activityType}</dd>
+                  </div>
+                  <div>
+                    <dt className="inline font-medium">Category: </dt>
+                    <dd className="inline">{selectedMaster.sequencingCategory}</dd>
+                  </div>
+                </dl>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Select a standard activity. Its code, name, work package, and trade are fixed by the
+                master and will not change with add order.
+              </p>
+            )}
+          </div>
+        ) : (
+          <FieldGrid>
+            <Select
+              label="Division of Work"
+              value={selectedDivisionValue}
+              options={csiDivisionSelectOptions}
+              onChange={(value) => {
+                const division = getCsiDivisionByCode(value);
+                patchTask({
+                  divisionCode: value,
+                  divisionName: division?.name ?? value,
+                });
+                patchLineItem({
+                  csiDivision: value,
+                  csiSection: task.lineItem.csiSection,
+                });
+              }}
+              fullWidth
+            />
+            <Input
+              label="CSI Section"
+              value={task.lineItem.csiSection ?? ''}
+              onChange={(event) => patchLineItem({ csiSection: event.target.value })}
+              fullWidth
+            />
+            {hasKnownScopeTemplates ? (
+              <>
+                <Select
+                  label="Work Package / Scope"
+                  value={selectedScopeValue}
+                  options={scopeSelectOptions}
+                  onChange={(value) => {
+                    if (value === CUSTOM_UNASSIGNED_SCOPE_VALUE) {
+                      patchTask({ scopeName: '' });
+                      return;
+                    }
+                    patchTask({ scopeName: value });
+                  }}
+                  fullWidth
+                />
+                {showCustomScopeInput ? (
+                  <Input
+                    label="Custom work package name"
+                    value={task.scopeName ?? ''}
+                    onChange={(event) =>
+                      patchTask({ scopeName: normalizeScopeName(event.target.value) })
+                    }
+                    fullWidth
+                  />
+                ) : null}
+              </>
+            ) : (
+              <Input
+                label="Work Package / Scope"
+                value={task.scopeName ?? ''}
+                onChange={(event) =>
+                  patchTask({ scopeName: normalizeScopeName(event.target.value) })
+                }
+                fullWidth
+              />
+            )}
+            <Input
+              label="Activity name"
+              value={task.title}
+              onChange={(event) => patchTask({ title: event.target.value })}
+              fullWidth
+            />
+            <Input
+              label="Trade"
+              value={task.trade ?? ''}
+              onChange={(event) => patchTask({ trade: event.target.value })}
+              fullWidth
+            />
+            <Select
+              label="Activity type"
+              value={task.activityType ?? 'work'}
+              options={ACTIVITY_TYPE_OPTIONS}
+              onChange={(value) => patchTask({ activityType: value as EstimateActivityType })}
+              fullWidth
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400 sm:col-span-2">
+              Custom activities are marked CUSTOM and receive a reserved DD-99-XX code on save.
+            </p>
+          </FieldGrid>
+        )}
+
         <div>
-          <label className={PLANNER_FORM_LABEL}>Activity notes</label>
+          <label className={PLANNER_FORM_LABEL}>Custom scope notes</label>
           <textarea
             className={`mt-1 min-h-[72px] w-full ${PLANNER_INPUT}`}
             value={task.description ?? ''}
             onChange={(event) => patchTask({ description: event.target.value })}
             rows={3}
+            placeholder="Project-specific details (does not change the official activity name or code)."
           />
         </div>
       </section>

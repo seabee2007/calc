@@ -27,7 +27,10 @@ import {
   type EdgeChange,
   type Viewport,
 } from '@xyflow/react';
-import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import {
+  getActivityGraphKey,
+  type ScheduleActivity,
+} from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import type {
   CpmLogicLink,
   CpmResult,
@@ -58,18 +61,39 @@ import { sanitizeLogicLinksForActivities } from '../../../scheduling/scheduleAss
 
 const NODE_TYPES = { cpmActivity: CpmActivityNode };
 
-function buildNodeId(activityCode: string): string {
-  return `node-${activityCode}`;
+function buildNodeId(graphKey: string): string {
+  return `node-${graphKey}`;
 }
 
 function buildEdgeId(pred: string, succ: string): string {
   return `edge-${pred}-${succ}`;
 }
 
+/** Maps activity codes to a representative graph key (first occurrence) for legacy links. */
+function buildCodeToGraphKey(activities: ScheduleActivity[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const activity of activities) {
+    if (!map.has(activity.activityCode)) {
+      map.set(activity.activityCode, getActivityGraphKey(activity));
+    }
+  }
+  return map;
+}
+
+/** Resolves a link endpoint to its node graph key, preferring the runtime id. */
+function resolveEndpointKey(
+  runtimeId: string | undefined,
+  activityCode: string,
+  codeToGraphKey: Map<string, string>,
+): string {
+  return runtimeId?.trim() || codeToGraphKey.get(activityCode) || activityCode;
+}
+
 export function linkToEdge(
   link: CpmLogicLink,
   cpmResult: CpmResult | null,
   viewMode: LogicNetworkViewMode = 'logic-network',
+  codeToGraphKey: Map<string, string> = new Map(),
 ): Edge {
   const label =
     link.lagDays > 0 ? `${link.relationshipType}+${link.lagDays}d` : link.relationshipType;
@@ -79,10 +103,12 @@ export function linkToEdge(
     isDisplayCritical(cpmResult, link.predecessorActivityCode) &&
     isDisplayCritical(cpmResult, link.successorActivityCode);
   const stroke = onDisplayCriticalPath ? '#ef4444' : '#64748b';
+  const predKey = resolveEndpointKey(link.predecessorRuntimeId, link.predecessorActivityCode, codeToGraphKey);
+  const succKey = resolveEndpointKey(link.successorRuntimeId, link.successorActivityCode, codeToGraphKey);
   return {
-    id: buildEdgeId(link.predecessorActivityCode, link.successorActivityCode),
-    source: buildNodeId(link.predecessorActivityCode),
-    target: buildNodeId(link.successorActivityCode),
+    id: buildEdgeId(predKey, succKey),
+    source: buildNodeId(predKey),
+    target: buildNodeId(succKey),
     label,
     animated: false,
     style: { stroke },
@@ -100,8 +126,9 @@ export function mapLogicLinksToEdges(
   links: CpmLogicLink[],
   cpmResult: CpmResult | null,
   viewMode: LogicNetworkViewMode = 'logic-network',
+  codeToGraphKey: Map<string, string> = new Map(),
 ): Edge[] {
-  return links.map((link) => linkToEdge(link, cpmResult, viewMode));
+  return links.map((link) => linkToEdge(link, cpmResult, viewMode, codeToGraphKey));
 }
 
 export function buildLogicNetworkNodes(
@@ -116,10 +143,14 @@ export function buildLogicNetworkNodes(
 ): Node<CpmActivityNodeData>[] {
   const { viewMode, logicTopology, showCpmFields } = options;
   const layoutByCode = new Map(layout.map((entry) => [entry.activityCode, entry]));
-  const cpmByCode = new Map(cpmResult?.activities.map((a) => [a.activityCode, a]) ?? []);
+  // CPM results may be keyed by graph key (live preview) or activity code (committed).
+  const cpmByKey = new Map(cpmResult?.activities.map((a) => [a.activityCode, a]) ?? []);
 
   return activities.map((activity, index) => {
-    const cpmActivity = cpmByCode.get(activity.activityCode);
+    const graphKey = getActivityGraphKey(activity);
+    const cpmActivity = cpmByKey.get(graphKey) ?? cpmByKey.get(activity.activityCode);
+    // The key that actually matched the CPM result (graph key for live preview, else code).
+    const cpmKey = cpmByKey.has(graphKey) ? graphKey : activity.activityCode;
     const position = resolveLogicNetworkNodePosition(
       activity,
       index,
@@ -127,7 +158,7 @@ export function buildLogicNetworkNodes(
       showCpmFields ? cpmActivity : undefined,
     );
     return {
-      id: buildNodeId(activity.activityCode),
+      id: buildNodeId(graphKey),
       type: 'cpmActivity',
       position,
       data: {
@@ -143,13 +174,13 @@ export function buildLogicNetworkNodes(
             : null,
         isDisplayCritical:
           showCpmFields && cpmResult != null
-            ? isDisplayCritical(cpmResult, activity.activityCode)
+            ? isDisplayCritical(cpmResult, cpmKey)
             : false,
         topologyLabel:
           viewMode === 'precedence-diagram'
             ? resolveTopologyLabel(
                 cpmResult,
-                activity.activityCode,
+                cpmKey,
                 cpmActivity?.totalFloat === 0,
               )
             : null,
@@ -168,6 +199,8 @@ interface Props {
   activities: ScheduleActivity[];
   logicLinks: CpmLogicLink[];
   cpmResult: CpmResult | null;
+  /** Live CPM preview computed in LogicNetworkWorkspace — shown in Logic Network mode. */
+  livePreviewCpm?: CpmResult | null;
   layout: LogicNetworkLayout[];
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
@@ -219,6 +252,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     activities,
     logicLinks,
     cpmResult,
+    livePreviewCpm = null,
     layout,
     onLinksChange,
     onLayoutChange,
@@ -298,17 +332,27 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     [activities, logicLinks],
   );
 
-  const showCpmFields = viewMode === 'precedence-diagram' && (cpmResult?.hasRunCpm ?? false);
+  // In Logic Network mode: show CPM fields if a live preview has been calculated.
+  // In Precedence Diagram mode: show CPM fields only after Run CPM has been committed.
+  const showCpmFields =
+    (viewMode === 'logic-network' && livePreviewCpm != null) ||
+    (viewMode === 'precedence-diagram' && (cpmResult?.hasRunCpm ?? false));
+
+  // The active CPM dataset: live preview in Logic Network mode, committed in Precedence mode.
+  const activeCpmResult =
+    viewMode === 'logic-network' && livePreviewCpm != null ? livePreviewCpm : cpmResult;
 
   const mappedNodes = useMemo(
     () =>
-      buildLogicNetworkNodes(activities, cpmResult, effectiveLayout, {
+      buildLogicNetworkNodes(activities, activeCpmResult, effectiveLayout, {
         viewMode,
         logicTopology,
         showCpmFields,
       }),
-    [activities, cpmResult, effectiveLayout, logicTopology, showCpmFields, viewMode],
+    [activities, activeCpmResult, effectiveLayout, logicTopology, showCpmFields, viewMode],
   );
+
+  const codeToGraphKey = useMemo(() => buildCodeToGraphKey(activities), [activities]);
 
   const sanitizedLogicLinks = useMemo(() => {
     const activityCodes = new Set(activities.map((activity) => activity.activityCode));
@@ -316,8 +360,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   }, [activities, logicLinks]);
 
   const mappedEdges = useMemo(
-    () => mapLogicLinksToEdges(sanitizedLogicLinks, cpmResult, viewMode),
-    [cpmResult, sanitizedLogicLinks, viewMode],
+    () => mapLogicLinksToEdges(sanitizedLogicLinks, activeCpmResult, viewMode, codeToGraphKey),
+    [activeCpmResult, sanitizedLogicLinks, viewMode, codeToGraphKey],
   );
 
   useEffect(() => {
@@ -329,20 +373,20 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       edgeCount: mappedEdges.length,
       initialized: logicNetworkInitialized,
       viewMode,
-      hasRunCpm: cpmResult?.hasRunCpm ?? false,
-      hasValidCriticalPath: cpmResult?.hasValidCriticalPath ?? false,
-      criticalPathStatus: cpmResult?.criticalPathStatus ?? 'unknown',
+      hasRunCpm: activeCpmResult?.hasRunCpm ?? false,
+      hasValidCriticalPath: activeCpmResult?.hasValidCriticalPath ?? false,
+      criticalPathStatus: activeCpmResult?.criticalPathStatus ?? 'unknown',
     });
   }, [
     activities.length,
-    cpmResult?.criticalPathStatus,
-    cpmResult?.hasValidCriticalPath,
+    activeCpmResult?.criticalPathStatus,
+    activeCpmResult?.hasValidCriticalPath,
     logicLinks.length,
     logicNetworkInitialized,
     mappedEdges.length,
     sanitizedLogicLinks.length,
     viewMode,
-    cpmResult?.hasRunCpm,
+    activeCpmResult?.hasRunCpm,
   ]);
 
   useEffect(() => {
@@ -406,7 +450,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     });
     autoLayoutSnapshotRef.current = autoLayout;
     setNodes(
-      buildLogicNetworkNodes(activities, cpmResult, autoLayout, {
+      buildLogicNetworkNodes(activities, activeCpmResult, autoLayout, {
         viewMode,
         logicTopology,
         showCpmFields,
@@ -419,7 +463,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     });
   }, [
     activities,
-    cpmResult,
+    activeCpmResult,
     logicLinks,
     logicTopology,
     onLayoutChange,
@@ -456,23 +500,39 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     [handleAutoLayout, handleFitView, collectCurrentLayout],
   );
 
+  const activityByGraphKey = useMemo(() => {
+    const map = new Map<string, ScheduleActivity>();
+    for (const activity of activities) {
+      map.set(getActivityGraphKey(activity), activity);
+    }
+    return map;
+  }, [activities]);
+
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
       const { source, target } = connection;
       if (!source || !target) return;
 
-      const predCode = source.replace('node-', '');
-      const succCode = target.replace('node-', '');
+      const predKey = source.replace('node-', '');
+      const succKey = target.replace('node-', '');
 
-      if (predCode === succCode) {
+      if (predKey === succKey) {
         showToast('An activity cannot depend on itself.');
         return;
       }
 
-      const alreadyExists = logicLinks.some(
-        (l) =>
-          l.predecessorActivityCode === predCode && l.successorActivityCode === succCode,
-      );
+      const predActivity = activityByGraphKey.get(predKey);
+      const succActivity = activityByGraphKey.get(succKey);
+      const predCode = predActivity?.activityCode ?? predKey;
+      const succCode = succActivity?.activityCode ?? succKey;
+      const predRuntimeId = predActivity?.runtimeActivityId;
+      const succRuntimeId = succActivity?.runtimeActivityId;
+
+      const alreadyExists = logicLinks.some((l) => {
+        const lPred = l.predecessorRuntimeId ?? l.predecessorActivityCode;
+        const lSucc = l.successorRuntimeId ?? l.successorActivityCode;
+        return lPred === predKey && lSucc === succKey;
+      });
       if (alreadyExists) {
         showToast('This logic link already exists.');
         return;
@@ -481,6 +541,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       const newLink: CpmLogicLink = {
         predecessorActivityCode: predCode,
         successorActivityCode: succCode,
+        predecessorRuntimeId: predRuntimeId,
+        successorRuntimeId: succRuntimeId,
         relationshipType: 'FS',
         lagDays: 0,
       };
@@ -492,7 +554,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
 
       onLinksChange([...logicLinks, newLink]);
     },
-    [logicLinks, onLinksChange, showToast],
+    [activityByGraphKey, logicLinks, onLinksChange, showToast],
   );
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {

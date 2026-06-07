@@ -6,72 +6,60 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-const SYSTEM_PROMPT = `You are a conservative construction CPM logic assistant.
+/**
+ * AI role: semantic classifier + gap filler only.
+ * TypeScript (client) runs graph validation, cycle checks, and CPM/RCS math.
+ */
+const SYSTEM_PROMPT = `You are a strict B2B construction scheduling data-transformer. Your job is to analyze an unstructured list of residential activity cards, standardize them, and identify explicit sequence dependencies.
 
-Your job is to help build the Logic Network only.
+CRITICAL RULES:
+1. Output MUST be structured JSON only. Do NOT calculate dates, float, durations, critical path, or project duration.
+2. Look for "Compound Cards" (e.g. "Rough framing and MEP inspections"). Flag these and recommend splitting structural vs. inspection components.
+3. Apply standard residential logic: Mobilization -> Substructure -> Superstructure (Framing) -> Dry-In -> MEP Rough-ins -> Insulation -> Drywall -> Finishes -> Trim -> Final Inspection.
+4. Respect resource constraints: do not suggest parallel heavy-trade paths that would exceed the provided available crew size on the same day.
+5. Use ONLY activity codes provided. Do not invent activities.
+6. Do not suggest links that already exist in existing logic links or the deterministic draft.
+7. Prefer finish-to-start (FS) unless another relationship is clearly required.
+8. Suggest only direct construction dependencies — no broad generic chains.
+9. Do NOT merge activities. Each card is single-responsibility (one trade, one action, one phase). Suggest links only between the provided activity codes; never combine, rename, or collapse two cards into one.
+10. Treat special activity types differently from normal field work when an "activityType" is provided:
+   - "inspection": a hold/gate. Successor work must wait for the gate (FS); do not run dependent field work in parallel with the gate.
+   - "milestone": a zero-duration marker. Link as an FS reference point only; never assign it crew demand.
+   - "curing_lag": a time-only delay (concrete cure). Model as an FS link with the lag, not as crewed work.
+   - "procurement_lead_time": off-site lead time (e.g. countertop fabrication). It precedes its install step via FS with the lead-time lag and carries no on-site crew.
+   - "testing": a verification step that must finish before the related close-in or trim work proceeds (FS).
+11. Treat "masterActivityCode" and "logicAnchor" as the AUTHORITATIVE identity and meaning of each activity. Determine sequencing from these and the standardized title/division — never infer identity or scope from "description"/notes (project-specific notes only). Two cards may share the same "masterActivityCode" but have different "activityCode"/"displayCode" values: these are distinct instances and must be linked independently. Always reference activities by their provided "activityCode" in your output.
 
-Do not calculate:
-- ES
-- EF
-- LS
-- LF
-- total float
-- free float
-- critical path
-- project duration
-
-Only suggest direct predecessor/successor relationships between existing activity codes.
-
-Rules:
-- Use only the activity codes provided.
-- Do not invent activities.
-- Do not suggest links that already exist.
-- Do not suggest reverse logic.
-- Do not create circular logic.
-- Prefer finish-to-start relationships unless another relationship is clearly required.
-- Prefer fewer high-confidence links over many weak links.
-- Suggest only direct construction sequence links.
-- Do not create broad generic chains.
-- Do not assume all work in one division precedes all work in another division.
-- Do not suggest a link unless the construction sequence is clear.
-
-Good examples:
-- survey/layout before excavation
-- utility locate before excavation
-- clearing/grubbing before rough grading
-- rough grading before layout or foundation excavation where applicable
-- excavation before forms
-- forms before reinforcement
-- reinforcement before concrete placement
-- slab base/vapor barrier before slab placement
-- framing before MEP rough-in
-- MEP rough-ins before insulation
-- insulation before drywall
-- drywall before paint
-- paint before flooring/fixtures where applicable
-- finishes before final cleanup
-- final cleanup before punch list
-- punch list before final turnover
-
-Return JSON only:
+Return JSON using this exact schema:
 {
-  "suggestions": [
+  "compoundCardAlerts": [
     {
-      "predecessorActivityCode": "string",
-      "successorActivityCode": "string",
+      "activityCode": "01-02-01",
+      "issue": "Combines Framing and Inspections. Suggest splitting into separate structural and municipal cards to avoid trade loops."
+    }
+  ],
+  "suggestedGapsFilled": [
+    {
+      "predecessorActivityCode": "26-02-01",
+      "successorActivityCode": "27-01-01",
       "relationshipType": "FS",
       "lagDays": 0,
-      "confidence": 0.0,
-      "reason": "string"
+      "confidence": 0.95,
+      "reason": "Low voltage rough-in must follow the primary electrical boxes and branch wiring setup."
     }
   ]
 }
 
-Only return suggestions with confidence >= 0.75.`;
+Only include suggestedGapsFilled entries with confidence >= 0.75.`;
 
 interface RequestBody {
   activities?: unknown;
   logicLinks?: unknown;
+  projectType?: string;
+  projectLocation?: string;
+  templateContext?: boolean;
+  availableCrewSize?: number;
+  draftSequenceContext?: unknown[];
 }
 
 function normalizeAiSuggestion(raw: unknown, index: number): Record<string, unknown> | null {
@@ -103,7 +91,7 @@ function normalizeAiSuggestion(raw: unknown, index: number): Record<string, unkn
   const issue =
     typeof src.issue === "string" && src.issue.trim()
       ? src.issue.trim()
-      : `Likely predecessor: ${predecessorActivityCode} before ${successorActivityCode}`;
+      : `Gap fill: ${predecessorActivityCode} before ${successorActivityCode}`;
 
   return {
     id: `ai-${predecessorActivityCode}-${successorActivityCode}-${index}`,
@@ -115,6 +103,15 @@ function normalizeAiSuggestion(raw: unknown, index: number): Record<string, unkn
     lagDays,
     reason,
   };
+}
+
+function normalizeCompoundCardAlert(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const src = raw as Record<string, unknown>;
+  const activityCode = typeof src.activityCode === "string" ? src.activityCode.trim() : "";
+  const issue = typeof src.issue === "string" ? src.issue.trim() : "";
+  if (!activityCode || !issue) return null;
+  return { activityCode, issue };
 }
 
 serve(async (req) => {
@@ -168,6 +165,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           suggestions: [],
+          compoundCardAlerts: [],
           error: "OPENAI_API_KEY is not configured on this server.",
         }),
         {
@@ -177,15 +175,25 @@ serve(async (req) => {
       );
     }
 
+    const crewSize =
+      typeof body.availableCrewSize === "number" && body.availableCrewSize > 0
+        ? body.availableCrewSize
+        : 16;
+    const draftLinks = Array.isArray(body.draftSequenceContext) ? body.draftSequenceContext : [];
+
     const userPrompt = [
-      "Suggest likely predecessor/successor links for the Logic Network only.",
-      "Do not calculate CPM dates, float, or critical path.",
-      "Only suggest links between existing activity codes.",
-      "Do not suggest duplicate links.",
+      "Analyze the activity list. Flag compound cards and suggest missing logic links only.",
+      "Do NOT calculate CPM dates, float, critical path, or project duration.",
+      "",
+      `Project type: ${body.projectType ?? "residential"}`,
+      `Project location: ${body.projectLocation ?? "unspecified"}`,
+      `Available crew size (resource constraint): ${crewSize}`,
       "",
       `Activities:\n${JSON.stringify(body.activities)}`,
       "",
       `Existing logic links:\n${JSON.stringify(body.logicLinks ?? [])}`,
+      "",
+      `Deterministic draft links already proposed (do not duplicate):\n${JSON.stringify(draftLinks)}`,
     ].join("\n");
 
     const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -196,7 +204,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        temperature: 0.2,
+        temperature: 0.1,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -208,7 +216,7 @@ serve(async (req) => {
     if (!openAiResponse.ok) {
       const errorText = await openAiResponse.text();
       return new Response(
-        JSON.stringify({ suggestions: [], error: `OpenAI request failed: ${errorText}` }),
+        JSON.stringify({ suggestions: [], compoundCardAlerts: [], error: `OpenAI request failed: ${errorText}` }),
         {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -218,27 +226,41 @@ serve(async (req) => {
 
     const completion = await openAiResponse.json();
     const content = completion?.choices?.[0]?.message?.content;
-    let parsed: { suggestions?: unknown[] } = { suggestions: [] };
+    let parsed: {
+      suggestions?: unknown[];
+      suggestedGapsFilled?: unknown[];
+      compoundCardAlerts?: unknown[];
+    } = {};
+
     if (typeof content === "string" && content.trim()) {
       try {
         parsed = JSON.parse(content);
       } catch {
-        parsed = { suggestions: [] };
+        parsed = {};
       }
     }
 
-    const rawSuggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
-    const suggestions = rawSuggestions
+    const rawGapLinks = Array.isArray(parsed.suggestedGapsFilled)
+      ? parsed.suggestedGapsFilled
+      : Array.isArray(parsed.suggestions)
+        ? parsed.suggestions
+        : [];
+
+    const suggestions = rawGapLinks
       .map((raw, index) => normalizeAiSuggestion(raw, index))
       .filter((suggestion): suggestion is Record<string, unknown> => suggestion !== null);
 
-    return new Response(JSON.stringify({ suggestions }), {
+    const compoundCardAlerts = (Array.isArray(parsed.compoundCardAlerts) ? parsed.compoundCardAlerts : [])
+      .map((raw) => normalizeCompoundCardAlert(raw))
+      .filter((alert): alert is Record<string, unknown> => alert !== null);
+
+    return new Response(JSON.stringify({ suggestions, compoundCardAlerts }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ suggestions: [], error: message }), {
+    return new Response(JSON.stringify({ suggestions: [], compoundCardAlerts: [], error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
