@@ -25,6 +25,7 @@ interface Props {
   onImportEstimate: () => void;
   onExportEstimate: () => void;
   onDownloadImportTemplate: () => void;
+  onOpenHelp: () => void;
 }
 
 export default function EstimateWorkspaceToolbarActions({
@@ -44,6 +45,7 @@ export default function EstimateWorkspaceToolbarActions({
   onImportEstimate,
   onExportEstimate,
   onDownloadImportTemplate,
+  onOpenHelp,
 }: Props) {
   const desktopMenuItems = buildEstimateWorkspaceActionsMenuItems({
     showCollapseAll,
@@ -169,6 +171,7 @@ export default function EstimateWorkspaceToolbarActions({
             onImportEstimate={onImportEstimate}
             onExportEstimate={onExportEstimate}
             onDownloadTemplate={onDownloadImportTemplate}
+            onOpenHelp={onOpenHelp}
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
           />
@@ -183,6 +186,7 @@ export default function EstimateWorkspaceToolbarActions({
             onImportEstimate={onImportEstimate}
             onExportEstimate={onExportEstimate}
             onDownloadTemplate={onDownloadImportTemplate}
+            onOpenHelp={onOpenHelp}
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
           />

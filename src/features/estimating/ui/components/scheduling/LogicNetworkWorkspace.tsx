@@ -229,15 +229,6 @@ export default function LogicNetworkWorkspace({
               <button type="button" className={toolbarButtonClass} onClick={() => void enterFullscreen()}>
                 Full screen
               </button>
-              <button
-                type="button"
-                className={toolbarButtonClass}
-                title="Workspace tips"
-                aria-label="Show Logic Network workspace tips"
-                onClick={() => setShowOnboarding(true)}
-              >
-                ?
-              </button>
             </>
           )}
           <button

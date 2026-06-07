@@ -47,7 +47,7 @@ import EstimateWorkspaceToast from './components/EstimateWorkspaceToast';
 import { createEstimateSaveSuccessToast } from './estimateBuilderUi';
 import EstimateLineItemsBuilderPanel from './components/EstimateLineItemsBuilderPanel';
 import EstimateResetSetupConfirmModal from './components/EstimateResetSetupConfirmModal';
-import HelpButton from '../../help/HelpButton';
+import { useDefinitionsHelpStore } from '../../help/definitionsHelpStore';
 import EstimateWorkspaceToolbarActions from './components/EstimateWorkspaceToolbarActions';
 import EstimateTotalsReviewPanel from './components/EstimateTotalsReviewPanel';
 import EstimateSchedulePreviewPanel from './components/EstimateSchedulePreviewPanel';
@@ -115,8 +115,7 @@ import {
 } from '../scheduling/scheduleAssumptions';
 import { useScheduleSettings } from './hooks/useScheduleSettings';
 import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
-import LevelThreeGantt from './components/scheduling/LevelThreeGantt';
-import ResourceHistogram from './components/scheduling/ResourceHistogram';
+import LevelThreeGanttWorkspace from './components/scheduling/LevelThreeGanttWorkspace';
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
 import { calculateResourceHistogram } from '../scheduling/resources/resourceHistogramCalculator';
 import { resourceLevelSchedule } from '../scheduling/resources/resourceLevelSchedule';
@@ -1302,6 +1301,10 @@ export default function EstimateWorkspacePage() {
     downloadBlankEstimateTemplateWorkbook();
   }, []);
 
+  const handleOpenHelp = useCallback(() => {
+    useDefinitionsHelpStore.getState().open();
+  }, []);
+
   const runGanttExport = useCallback(
     async (format: 'pdf' | 'excel') => {
       if (!estimateAdapter) return;
@@ -1449,35 +1452,31 @@ export default function EstimateWorkspacePage() {
           activeTabId={activeTab}
           onTabChange={handleTabChange}
           rightActions={
-            <div className="flex items-center gap-2">
-              <HelpButton
-                className="inline-flex items-center gap-1.5 rounded px-2 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-              />
-              <EstimateWorkspaceToolbarActions
-                showAddDivision={showAddDivision}
-                showCollapseAll={showCollapseAll}
-                showReset={showResetForm}
-                showSaveBucket={showSaveBucket}
-                showSaveQuick={showSaveQuick}
-                showImportExport={showImportExport}
-                canEdit={canEditEstimate || activeEstimateType != null}
-                canSave={canSave}
-                canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
-                saving={saving}
-                handlers={builderToolbarHandlers}
-                onReset={() => {
-                  if (activeTab === 'settings') {
-                    estimateSettings.resetSettings();
-                    return;
-                  }
-                  setResetModalOpen(true);
-                }}
-                onSave={handleSaveEstimate}
-                onImportEstimate={() => setImportModalOpen(true)}
-                onExportEstimate={handleExportEstimate}
-                onDownloadImportTemplate={handleDownloadImportTemplate}
-              />
-            </div>
+            <EstimateWorkspaceToolbarActions
+              showAddDivision={showAddDivision}
+              showCollapseAll={showCollapseAll}
+              showReset={showResetForm}
+              showSaveBucket={showSaveBucket}
+              showSaveQuick={showSaveQuick}
+              showImportExport={showImportExport}
+              canEdit={canEditEstimate || activeEstimateType != null}
+              canSave={canSave}
+              canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
+              saving={saving}
+              handlers={builderToolbarHandlers}
+              onReset={() => {
+                if (activeTab === 'settings') {
+                  estimateSettings.resetSettings();
+                  return;
+                }
+                setResetModalOpen(true);
+              }}
+              onSave={handleSaveEstimate}
+              onImportEstimate={() => setImportModalOpen(true)}
+              onExportEstimate={handleExportEstimate}
+              onDownloadImportTemplate={handleDownloadImportTemplate}
+              onOpenHelp={handleOpenHelp}
+            />
           }
         />
 
@@ -1712,24 +1711,20 @@ export default function EstimateWorkspacePage() {
                   ))}
                 </div>
               ) : null}
-              <div ref={ganttExportRef} className="space-y-6">
-                <LevelThreeGantt
-                  activities={scheduleActivitiesResult.activities}
-                  cpmResult={cpmResult}
-                  scheduleSettings={scheduleSettingsHook.scheduleSettings}
-                  leveledOffsets={scheduleSettingsHook.leveledOffsets}
-                  logicLinks={scheduleSettingsHook.logicLinks}
-                  lineItems={estimateAdapter?.lineItems ?? []}
-                  onEditActivity={handleEditActivityFromGantt}
-                  exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
-                  onExportPdf={() => void runCpmGanttExport('pdf')}
-                  onExportExcel={() => void runCpmGanttExport('excel')}
-                />
-                <ResourceHistogram
-                  histogram={resourceHistogram}
-                  projectDurationDays={cpmResult?.projectDurationDays ?? 0}
-                />
-              </div>
+              <LevelThreeGanttWorkspace
+                chartExportRef={ganttExportRef}
+                activities={scheduleActivitiesResult.activities}
+                cpmResult={cpmResult}
+                scheduleSettings={scheduleSettingsHook.scheduleSettings}
+                leveledOffsets={scheduleSettingsHook.leveledOffsets}
+                logicLinks={scheduleSettingsHook.logicLinks}
+                lineItems={estimateAdapter?.lineItems ?? []}
+                onEditActivity={handleEditActivityFromGantt}
+                exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
+                onExportPdf={() => void runCpmGanttExport('pdf')}
+                onExportExcel={() => void runCpmGanttExport('excel')}
+                resourceHistogram={resourceHistogram}
+              />
               {cpmResult?.hasRunCpm && scheduleActivitiesResult.activities.length > 0 && (
                 <div className="flex">
                   <button

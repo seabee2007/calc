@@ -98,6 +98,15 @@ describe('Logic Network workspace fullscreen UI', () => {
     expect(logicNetworkWorkspaceSource).toContain('isTypingTarget');
   });
 
+  it('does not render a standalone help button in the toolbar', () => {
+    expect(logicNetworkWorkspaceSource).not.toContain('Show Logic Network workspace tips');
+    expect(logicNetworkWorkspaceSource).not.toMatch(/>\s*\?\s*<\/button>/);
+    expect(logicNetworkWorkspaceSource).toContain('Check logic');
+    expect(logicNetworkWorkspaceSource).toContain('Auto layout');
+    expect(logicNetworkWorkspaceSource).toContain('Fit view');
+    expect(logicNetworkWorkspaceSource).toContain('Save layout');
+  });
+
   it('optionally syncs browser fullscreen API', () => {
     expect(logicNetworkWorkspaceSource).toContain('requestBrowserFullscreen');
     expect(logicNetworkWorkspaceSource).toContain('exitBrowserFullscreen');

@@ -47,6 +47,8 @@ interface Props {
   onExportPdf?: () => void;
   onExportExcel?: () => void;
   exportReady?: boolean;
+  fullscreen?: boolean;
+  chromeless?: boolean;
 }
 
 function TimelineGridlines({ dayCount }: { dayCount: number }) {
@@ -149,6 +151,8 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
     onExportPdf,
     onExportExcel,
     exportReady = false,
+    fullscreen = false,
+    chromeless = false,
   },
   ref,
 ) {
@@ -208,15 +212,17 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
   if (!cpmResult?.hasRunCpm || rows.length === 0) {
     return (
       <div className="space-y-3">
-        <div>
-          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-            Level III Gantt
-          </h2>
-          <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-300">
-            Draft schedule only. Run CPM from a valid precedence diagram before viewing the Level III
-            Gantt timeline.
-          </p>
-        </div>
+        {!chromeless ? (
+          <div>
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+              Level III Gantt
+            </h2>
+            <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-300">
+              Draft schedule only. Run CPM from a valid precedence diagram before viewing the Level III
+              Gantt timeline.
+            </p>
+          </div>
+        ) : null}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Scheduled activities ({activities.length})
@@ -236,46 +242,52 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
   const headerTimelineHeight = HEADER_MONTH_HEIGHT + HEADER_DAY_HEIGHT;
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-            Level III Gantt
-          </h2>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-            Activities sorted by early start · {rows.length} activities · {projectDuration} days
-          </p>
+    <div className={fullscreen ? 'flex h-full min-h-0 w-full flex-col gap-3' : 'space-y-3'}>
+      {!chromeless ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+              Level III Gantt
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+              Activities sorted by early start · {rows.length} activities · {projectDuration} days
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!exportReady}
+              title={!exportReady ? 'Run CPM before exporting.' : undefined}
+              onClick={onExportPdf}
+            >
+              Export PDF
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!exportReady}
+              title={!exportReady ? 'Run CPM before exporting.' : undefined}
+              onClick={onExportExcel}
+            >
+              Export Excel
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!exportReady}
-            title={!exportReady ? 'Run CPM before exporting.' : undefined}
-            onClick={onExportPdf}
-          >
-            Export PDF
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!exportReady}
-            title={!exportReady ? 'Run CPM before exporting.' : undefined}
-            onClick={onExportExcel}
-          >
-            Export Excel
-          </Button>
-        </div>
-      </div>
+      ) : null}
 
       <div
         ref={ref}
         data-level-three-gantt-export
-        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
+        className={
+          fullscreen
+            ? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-900'
+            : 'overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900'
+        }
       >
-        <div className="overflow-x-auto">
+        <div className={fullscreen ? 'min-h-0 flex-1 overflow-auto' : 'overflow-x-auto'}>
           <div style={{ minWidth: LEFT_TABLE_WIDTH + timelineWidth }}>
             <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
               <div
@@ -411,7 +423,11 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+      <div
+        className={`flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 ${
+          fullscreen ? 'shrink-0 px-4 pb-3' : ''
+        }`}
+      >
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-8 rounded bg-red-500" />
           Critical path

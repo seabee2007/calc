@@ -33,6 +33,20 @@ const estimateWorkspaceSource = readFileSync(
   ),
   'utf8',
 );
+const estimateActionsMenuSource = readFileSync(
+  resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    '../../estimating/ui/components/EstimateWorkspaceActionsMenu.tsx',
+  ),
+  'utf8',
+);
+const estimateToolbarActionsSource = readFileSync(
+  resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    '../../estimating/ui/components/EstimateWorkspaceToolbarActions.tsx',
+  ),
+  'utf8',
+);
 const appSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../../../App.tsx'),
   'utf8',
@@ -103,12 +117,18 @@ describe('definitions help UI wiring', () => {
     expect(useDefinitionsHelpStore.getState().focusTerm).toBeNull();
   });
 
-  it('wires help buttons in app headers and estimate workspace', () => {
+  it('wires help buttons in app headers and estimate workspace actions menu', () => {
     expect(helpButtonSource).toContain('useDefinitionsHelpStore');
     expect(helpButtonSource).toContain('open(focusTerm)');
     expect(plannerAppBarSource).toContain('HelpButton');
     expect(navbarSource).toContain('HelpButton');
-    expect(estimateWorkspaceSource).toContain('HelpButton');
+    expect(estimateWorkspaceSource).not.toContain('HelpButton');
+    expect(estimateWorkspaceSource).toContain('useDefinitionsHelpStore');
+    expect(estimateWorkspaceSource).toContain('handleOpenHelp');
+    expect(estimateToolbarActionsSource).not.toContain('HelpButton');
+    expect(estimateActionsMenuSource).toContain('help-definitions');
+    expect(estimateActionsMenuSource).toContain('HelpCircle');
+    expect(estimateActionsMenuSource).toContain('onOpenHelp');
     expect(appSource).toContain('DefinitionsHelpHost');
   });
 

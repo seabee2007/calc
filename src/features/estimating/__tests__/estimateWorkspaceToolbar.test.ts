@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { createEstimateSetupStartState } from '../application/estimateStartFlow';
 import {
@@ -19,6 +22,14 @@ import {
   shouldShowResetFormAction,
   shouldShowSaveEstimateAction,
 } from '../ui/estimateWorkspaceToolbar';
+
+const toolbarActionsSource = readFileSync(
+  resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    '../ui/components/EstimateWorkspaceToolbarActions.tsx',
+  ),
+  'utf8',
+);
 
 function mockSetup(sessionOverrides: Record<string, unknown> = {}) {
   return {
@@ -128,10 +139,14 @@ describe('estimateWorkspaceToolbar', () => {
       ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.importEstimate,
       ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.exportEstimate,
       ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.downloadTemplate,
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.helpDefinitions,
       ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.resetForm,
     ]);
     expect(menuItems.at(-1)?.showDividerBefore).toBe(true);
     expect(menuItems.at(-1)?.destructive).toBe(true);
+    expect(menuItems.find((item) => item.key === 'help-definitions')?.label).toBe(
+      'Help / Definitions',
+    );
     expect(ESTIMATE_WORKSPACE_ACTIONS_DROPDOWN_LABEL).toBe('Actions');
   });
 
@@ -152,6 +167,7 @@ describe('estimateWorkspaceToolbar', () => {
       'Import estimate',
       'Export estimate',
       'Download template',
+      'Help / Definitions',
       'Reset form',
     ]);
 
@@ -166,7 +182,10 @@ describe('estimateWorkspaceToolbar', () => {
     expect(overviewLayout.showResetButton).toBe(false);
     expect(overviewLayout.showResetInActionsMenu).toBe(true);
     expect(overviewLayout.showSaveEstimateButton).toBe(true);
-    expect(overviewLayout.desktopActionsMenuItems.map((item) => item.label)).toEqual(['Reset form']);
+    expect(overviewLayout.desktopActionsMenuItems.map((item) => item.label)).toEqual([
+      'Help / Definitions',
+      'Reset form',
+    ]);
   });
 
   it('shows mobile collapse overflow before import/export with reset last', () => {
@@ -183,6 +202,7 @@ describe('estimateWorkspaceToolbar', () => {
       'Import estimate',
       'Export estimate',
       'Download template',
+      'Help / Definitions',
       'Reset form',
     ]);
     expect(mobileItems.filter((item) => item.mobileOnly).map((item) => item.label)).toEqual([
@@ -197,6 +217,7 @@ describe('estimateWorkspaceToolbar', () => {
       onImportEstimate: () => calls.push('import'),
       onExportEstimate: () => calls.push('export'),
       onDownloadTemplate: () => calls.push('template'),
+      onOpenHelp: () => calls.push('help'),
       onCollapseAll: () => calls.push('collapse'),
       onResetForm: () => calls.push('reset'),
     };
@@ -204,10 +225,16 @@ describe('estimateWorkspaceToolbar', () => {
     runEstimateWorkspaceMenuAction('import-estimate', handlers);
     runEstimateWorkspaceMenuAction('export-estimate', handlers);
     runEstimateWorkspaceMenuAction('download-template', handlers);
+    runEstimateWorkspaceMenuAction('help-definitions', handlers);
     runEstimateWorkspaceMenuAction('collapse-all', handlers);
     runEstimateWorkspaceMenuAction('reset-form', handlers);
 
-    expect(calls).toEqual(['import', 'export', 'template', 'collapse', 'reset']);
+    expect(calls).toEqual(['import', 'export', 'template', 'help', 'collapse', 'reset']);
+  });
+
+  it('does not render a visible Help button in the estimate toolbar', () => {
+    expect(toolbarActionsSource).not.toContain('HelpButton');
+    expect(toolbarActionsSource).toContain('onOpenHelp');
   });
 
   it('shows Actions dropdown when import/export menu items are available', () => {

@@ -5,6 +5,7 @@ import {
   ChevronsDownUp,
   Download,
   FileSpreadsheet,
+  HelpCircle,
   RotateCcw,
   Upload,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ interface Props {
   onImportEstimate: () => void;
   onExportEstimate: () => void;
   onDownloadTemplate: () => void;
+  onOpenHelp?: () => void;
   onCollapseAll?: () => void;
   onResetForm?: () => void;
 }
@@ -37,6 +39,8 @@ function menuIcon(key: EstimateWorkspaceActionsMenuItemKey) {
       return <Download className="h-4 w-4 shrink-0" aria-hidden />;
     case 'download-template':
       return <FileSpreadsheet className="h-4 w-4 shrink-0" aria-hidden />;
+    case 'help-definitions':
+      return <HelpCircle className="h-4 w-4 shrink-0" aria-hidden />;
     case 'collapse-all':
       return <ChevronsDownUp className="h-4 w-4 shrink-0" aria-hidden />;
     case 'reset-form':
@@ -53,6 +57,7 @@ export default function EstimateWorkspaceActionsMenu({
   onImportEstimate,
   onExportEstimate,
   onDownloadTemplate,
+  onOpenHelp,
   onCollapseAll,
   onResetForm,
 }: Props) {
@@ -66,6 +71,7 @@ export default function EstimateWorkspaceActionsMenu({
     onImportEstimate,
     onExportEstimate,
     onDownloadTemplate,
+    onOpenHelp,
     onCollapseAll,
     onResetForm,
   };
