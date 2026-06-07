@@ -39,7 +39,11 @@ import { GANTT_EXPORT_INFO_SHEET_NAME, GANTT_LOGIC_NETWORK_SHEET_NAME } from '..
 import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import html2canvas from 'html2canvas';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import type { CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
+import {
+  buildValidCpmDisplayFields,
+  type CpmResult,
+  type ResourceHistogramDay,
+} from '../scheduling/cpmTypes';
 import { getLevelThreeGanttRows } from '../scheduling/levelThreeGanttUtils';
 
 function makeActivity(code: string): ScheduleActivity {
@@ -85,6 +89,10 @@ const cpmResult: CpmResult = {
   projectDurationDays: 5,
   criticalPathActivityCodes: ['A'],
   warnings: [],
+  ...buildValidCpmDisplayFields(['A'], {
+    hasRunCpm: true,
+    hasValidPrecedenceDiagram: true,
+  }),
 };
 
 const resourceHistogram: ResourceHistogramDay[] = [

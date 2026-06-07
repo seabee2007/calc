@@ -119,6 +119,12 @@ export type AiLogicReviewResult = {
   suggestions: AiLogicSuggestion[];
 };
 
+export type LogicBatchSnapshot = {
+  appliedAt: string;
+  addedLinks: CpmLogicLink[];
+  previousLinksSnapshot: CpmLogicLink[];
+};
+
 export const LOGIC_WARNING_CATEGORY_LABELS: Record<LogicWarningCategory, string> = {
   missingLikelyPredecessor: 'Missing likely predecessors',
   missingLikelySuccessor: 'Missing likely successors',

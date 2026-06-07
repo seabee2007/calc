@@ -12,12 +12,14 @@ import {
   getVisibleBreakdownDivisions,
 } from '../../application/estimateBuilderFilters';
 import {
+  appendSelectedDivisions,
   buildSelectedDivisionsFromCodes,
   inferDivisionCodesFromItems,
   mergeDivisionBucketsWithActivities,
   normalizeSelectedDivisions,
   selectedDivisionsFromSnapshot,
 } from '../../application/estimateWorkBreakdown';
+import type { ScopeModalMode } from '../../application/estimateStartFlow';
 import {
   ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE,
   getEstimateTabHelperText,
@@ -73,6 +75,8 @@ interface Props {
   }) => void;
   persistedSelectedDivisions?: readonly EstimateSelectedDivision[];
   onSaveSelectedDivisions?: (divisions: EstimateSelectedDivision[]) => Promise<void>;
+  onDivisionsAdded?: () => void;
+  onNoNewDivisionsSelected?: () => void;
   onToolbarHandlersChange?: (handlers: EstimateBuilderToolbarHandlers | null) => void;
   importCollapseDivisionCodesKey?: string | null;
   focusActivityCode?: string | null;
@@ -95,6 +99,8 @@ export default function EstimateLineItemsBuilderPanel({
   onSaveQuick,
   persistedSelectedDivisions = [],
   onSaveSelectedDivisions,
+  onDivisionsAdded,
+  onNoNewDivisionsSelected,
   onToolbarHandlersChange,
   importCollapseDivisionCodesKey = null,
   focusActivityCode = null,
@@ -102,6 +108,7 @@ export default function EstimateLineItemsBuilderPanel({
 }: Props) {
   const [filter, setFilter] = useState<EstimateLineItemsFilter>(EMPTY_FILTER);
   const [scopeModalOpen, setScopeModalOpen] = useState(false);
+  const [scopeModalMode, setScopeModalMode] = useState<ScopeModalMode>('create');
   const [collapsedDivisionCodes, setCollapsedDivisionCodes] = useState<Set<string>>(
     () => new Set(),
   );
@@ -231,17 +238,45 @@ export default function EstimateLineItemsBuilderPanel({
     !showBucketPanel &&
     shouldOpenBuildScopeModal(session.selectedEstimateType);
 
+  const handleOpenCreateScopeModal = useCallback(() => {
+    setScopeModalMode('create');
+    setScopeModalOpen(true);
+  }, []);
+
+  const handleOpenAddDivisionModal = useCallback(() => {
+    setScopeModalMode('add');
+    setScopeModalOpen(true);
+  }, []);
+
   useEffect(() => {
     if (!autoOpenScopeModalKey) return;
     if (consumedAutoOpenScopeKeyRef.current === autoOpenScopeModalKey) return;
     if (!showBuildScopePrompt) return;
 
     consumedAutoOpenScopeKeyRef.current = autoOpenScopeModalKey;
-    setScopeModalOpen(true);
+    handleOpenCreateScopeModal();
     onAutoOpenScopeModalConsumed?.();
-  }, [autoOpenScopeModalKey, onAutoOpenScopeModalConsumed, showBuildScopePrompt]);
+  }, [autoOpenScopeModalKey, handleOpenCreateScopeModal, onAutoOpenScopeModalConsumed, showBuildScopePrompt]);
 
-  const handleCreateWorkBreakdown = async (divisions: EstimateSelectedDivision[]) => {
+  const handleScopeModalSubmit = async (divisions: EstimateSelectedDivision[]) => {
+    if (scopeModalMode === 'add') {
+      const merged = appendSelectedDivisions(persistedSelectedDivisions, divisions);
+      setup.setSelectedDivisions(merged);
+      setCollapsedDivisionCodes((current) => {
+        const next = new Set(current);
+        for (const division of divisions) {
+          next.add(division.code);
+        }
+        return next;
+      });
+      setScopeModalOpen(false);
+      if (onSaveSelectedDivisions) {
+        await onSaveSelectedDivisions(merged);
+      }
+      onDivisionsAdded?.();
+      return;
+    }
+
     const selectedDivisions = normalizeSelectedDivisions(divisions);
     setup.setSelectedDivisions(selectedDivisions);
     setCollapsedDivisionCodes(new Set(selectedDivisions.map((division) => division.code)));
@@ -322,8 +357,10 @@ export default function EstimateLineItemsBuilderPanel({
       showCollapseAll: showBucketPanel,
       showSaveQuick: showQuickFeasibilityPanel,
       canSaveQuick,
+      showAddDivision: showBucketPanel,
       collapseAll: handleCollapseAll,
       saveQuick: handleSaveQuickFromToolbar,
+      openAddDivision: handleOpenAddDivisionModal,
     });
   }, [
     onToolbarHandlersChange,
@@ -332,6 +369,7 @@ export default function EstimateLineItemsBuilderPanel({
     canSaveQuick,
     handleCollapseAll,
     handleSaveQuickFromToolbar,
+    handleOpenAddDivisionModal,
   ]);
 
   // Reset toolbar handlers only on unmount, not on every dep change above.
@@ -372,7 +410,7 @@ export default function EstimateLineItemsBuilderPanel({
             size="sm"
             icon={<Play className="h-4 w-4" />}
             disabled={!canEdit}
-            onClick={() => setScopeModalOpen(true)}
+            onClick={handleOpenCreateScopeModal}
           >
             Build Project Scope
           </Button>
@@ -428,9 +466,12 @@ export default function EstimateLineItemsBuilderPanel({
       <EstimateStartScopeModal
         isOpen={scopeModalOpen}
         estimateType={session.selectedEstimateType}
+        mode={scopeModalMode}
+        existingDivisionCodes={selectedDivisionCodes}
         projectContext={projectScopeContext}
         onClose={() => setScopeModalOpen(false)}
-        onCreate={handleCreateWorkBreakdown}
+        onCreate={handleScopeModalSubmit}
+        onNoNewDivisionsSelected={onNoNewDivisionsSelected}
       />
 
       <DrawerPanel

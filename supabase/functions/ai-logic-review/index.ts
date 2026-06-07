@@ -6,45 +6,115 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-const SYSTEM_PROMPT = `You are a professional construction scheduler and CPM logic reviewer.
+const SYSTEM_PROMPT = `You are a conservative construction CPM logic assistant.
 
-Your task is to review a residential construction schedule activity list and identify likely missing logic relationships.
+Your job is to help build the Logic Network only.
 
-You must only suggest logic links between activities that already exist in the provided activity list.
+Do not calculate:
+- ES
+- EF
+- LS
+- LF
+- total float
+- free float
+- critical path
+- project duration
 
-Do not invent new activities.
-Do not change activity titles.
-Do not change durations.
-Do not change costs.
-Do not change crew data.
-Do not delete existing logic.
-Do not suggest a link that already exists.
+Only suggest direct predecessor/successor relationships between existing activity codes.
 
-Focus on common construction sequencing, including:
-- demolition before new construction
-- layout before excavation
-- excavation before footings
-- forms and rebar before concrete
-- underground utilities before slab
-- foundation before framing
-- framing before rough MEP
-- rough plumbing/electrical/HVAC before insulation
-- inspections before covering work
+Rules:
+- Use only the activity codes provided.
+- Do not invent activities.
+- Do not suggest links that already exist.
+- Do not suggest reverse logic.
+- Do not create circular logic.
+- Prefer finish-to-start relationships unless another relationship is clearly required.
+- Prefer fewer high-confidence links over many weak links.
+- Suggest only direct construction sequence links.
+- Do not create broad generic chains.
+- Do not assume all work in one division precedes all work in another division.
+- Do not suggest a link unless the construction sequence is clear.
+
+Good examples:
+- survey/layout before excavation
+- utility locate before excavation
+- clearing/grubbing before rough grading
+- rough grading before layout or foundation excavation where applicable
+- excavation before forms
+- forms before reinforcement
+- reinforcement before concrete placement
+- slab base/vapor barrier before slab placement
+- framing before MEP rough-in
+- MEP rough-ins before insulation
 - insulation before drywall
 - drywall before paint
-- paint before final fixtures and finishes where applicable
-- cabinets/countertops before final plumbing trim where applicable
-- final inspections before turnover
+- paint before flooring/fixtures where applicable
+- finishes before final cleanup
+- final cleanup before punch list
+- punch list before final turnover
 
-Use construction judgment, but avoid over-warning.
+Return JSON only:
+{
+  "suggestions": [
+    {
+      "predecessorActivityCode": "string",
+      "successorActivityCode": "string",
+      "relationshipType": "FS",
+      "lagDays": 0,
+      "confidence": 0.0,
+      "reason": "string"
+    }
+  ]
+}
 
-Prefer strong, useful suggestions over many weak suggestions.
-
-Return JSON only.`;
+Only return suggestions with confidence >= 0.75.`;
 
 interface RequestBody {
   activities?: unknown;
   logicLinks?: unknown;
+}
+
+function normalizeAiSuggestion(raw: unknown, index: number): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const src = raw as Record<string, unknown>;
+  const predecessorActivityCode =
+    typeof src.predecessorActivityCode === "string" ? src.predecessorActivityCode.trim() : "";
+  const successorActivityCode =
+    typeof src.successorActivityCode === "string" ? src.successorActivityCode.trim() : "";
+  if (!predecessorActivityCode || !successorActivityCode) return null;
+
+  let confidence: "low" | "medium" | "high" = "low";
+  if (typeof src.confidence === "string" && ["low", "medium", "high"].includes(src.confidence)) {
+    confidence = src.confidence as "low" | "medium" | "high";
+  } else if (typeof src.confidence === "number" && Number.isFinite(src.confidence)) {
+    confidence = src.confidence >= 0.75 ? "high" : src.confidence >= 0.5 ? "medium" : "low";
+  }
+  if (confidence !== "high") return null;
+
+  const relationshipType =
+    src.relationshipType === "SS" ||
+    src.relationshipType === "FF" ||
+    src.relationshipType === "SF"
+      ? src.relationshipType
+      : "FS";
+  const lagDays =
+    typeof src.lagDays === "number" && Number.isFinite(src.lagDays) ? Math.max(0, src.lagDays) : 0;
+  const reason = typeof src.reason === "string" ? src.reason.trim() : "";
+  const issue =
+    typeof src.issue === "string" && src.issue.trim()
+      ? src.issue.trim()
+      : `Likely predecessor: ${predecessorActivityCode} before ${successorActivityCode}`;
+
+  return {
+    id: `ai-${predecessorActivityCode}-${successorActivityCode}-${index}`,
+    confidence: "high",
+    issue,
+    predecessorActivityCode,
+    successorActivityCode,
+    relationshipType,
+    lagDays,
+    reason,
+  };
 }
 
 serve(async (req) => {
@@ -108,12 +178,10 @@ serve(async (req) => {
     }
 
     const userPrompt = [
-      "Review the following construction schedule activities and existing logic links.",
-      "Identify likely missing predecessor/successor relationships.",
+      "Suggest likely predecessor/successor links for the Logic Network only.",
+      "Do not calculate CPM dates, float, or critical path.",
       "Only suggest links between existing activity codes.",
       "Do not suggest duplicate links.",
-      'Return JSON in this shape:',
-      '{ "suggestions": [{ "id": "stable-id", "confidence": "low | medium | high", "issue": "plain language issue", "predecessorActivityCode": "activity code", "successorActivityCode": "activity code", "relationshipType": "FS | SS | FF | SF", "lagDays": 0, "reason": "short construction reason" }] }',
       "",
       `Activities:\n${JSON.stringify(body.activities)}`,
       "",
@@ -139,17 +207,18 @@ serve(async (req) => {
 
     if (!openAiResponse.ok) {
       const errorText = await openAiResponse.text();
-      console.error("[ai-logic-review] OpenAI error", errorText);
-      return new Response(JSON.stringify({ error: "AI logic review failed." }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ suggestions: [], error: `OpenAI request failed: ${errorText}` }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const completion = await openAiResponse.json();
     const content = completion?.choices?.[0]?.message?.content;
     let parsed: { suggestions?: unknown[] } = { suggestions: [] };
-
     if (typeof content === "string" && content.trim()) {
       try {
         parsed = JSON.parse(content);
@@ -158,13 +227,18 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ suggestions: parsed.suggestions ?? [] }), {
+    const rawSuggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
+    const suggestions = rawSuggestions
+      .map((raw, index) => normalizeAiSuggestion(raw, index))
+      .filter((suggestion): suggestion is Record<string, unknown> => suggestion !== null);
+
+    return new Response(JSON.stringify({ suggestions }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("[ai-logic-review] Unexpected error", error);
-    return new Response(JSON.stringify({ error: "AI logic review failed." }), {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ suggestions: [], error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

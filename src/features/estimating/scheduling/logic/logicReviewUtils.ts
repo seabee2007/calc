@@ -1,5 +1,9 @@
-import { calculateCpm } from '../cpm/calculateCpm';
 import type { CpmLogicLink } from '../cpmTypes';
+import { appendLogicLinks, wouldCreateCircularDependency } from './logicCycleUtils';
+import {
+  validateLogicLinkCandidate,
+  type LogicLinkInvalidReason,
+} from './validateLogicLinkCandidate';
 import type {
   ActivityMatchCriteria,
   CheckLogicNetworkInput,
@@ -119,55 +123,10 @@ export function appendSuggestedLogicLinks(
   existingLinks: CpmLogicLink[],
   suggestedLinks: SuggestedLogicLink[],
 ): CpmLogicLink[] {
-  const next = [...existingLinks];
-  for (const suggested of suggestedLinks) {
-    const duplicate = next.some(
-      (link) =>
-        link.predecessorActivityCode === suggested.predecessorActivityCode &&
-        link.successorActivityCode === suggested.successorActivityCode,
-    );
-    if (duplicate) continue;
-    next.push({
-      predecessorActivityCode: suggested.predecessorActivityCode,
-      successorActivityCode: suggested.successorActivityCode,
-      relationshipType: suggested.relationshipType,
-      lagDays: suggested.lagDays,
-    });
-  }
-  return next;
+  return appendLogicLinks(existingLinks, suggestedLinks);
 }
 
-export function wouldCreateCircularDependency(
-  existingLinks: CpmLogicLink[],
-  suggestedLinks: SuggestedLogicLink[],
-): boolean {
-  const testLinks = appendSuggestedLogicLinks(existingLinks, suggestedLinks);
-  const codes = new Set<string>();
-  for (const link of testLinks) {
-    codes.add(link.predecessorActivityCode);
-    codes.add(link.successorActivityCode);
-  }
-
-  const result = calculateCpm({
-    activities: [...codes].map((code) => ({
-      activityCode: code,
-      activityDescription: code,
-      divisionCode: '00',
-      divisionName: '',
-      durationDays: 1,
-      laborHours: 0,
-      manDays: 0,
-      crewDays: 0,
-      crewSize: 1,
-      totalCost: 0,
-      relationshipType: 'FS' as const,
-      lagDays: 0,
-    })),
-    logicLinks: testLinks,
-  });
-
-  return result.warnings.some((warning) => warning.toLowerCase().includes('circular'));
-}
+export { wouldCreateCircularDependency };
 
 export function filterIgnoredWarnings(
   warnings: LogicReviewWarning[],
@@ -200,7 +159,12 @@ export type ApplyLogicSuggestionSkipReason =
   | 'missing-link'
   | 'duplicate'
   | 'cycle'
-  | 'invalid-activity';
+  | 'invalid-activity'
+  | 'reverse-link'
+  | 'invalid-relationship-type'
+  | 'invalid-lag'
+  | 'would-over-constrain-network'
+  | 'self-link';
 
 export type ApplyLogicSuggestionSkip = {
   link: SuggestedLogicLink;
@@ -213,28 +177,56 @@ export type ApplyLogicSuggestionsResult = {
   skipped: ApplyLogicSuggestionSkip[];
 };
 
-function isDuplicateLogicLink(
-  existingLinks: readonly CpmLogicLink[],
-  link: SuggestedLogicLink,
-): boolean {
-  return existingLinks.some(
-    (existing) =>
-      existing.predecessorActivityCode === link.predecessorActivityCode &&
-      existing.successorActivityCode === link.successorActivityCode &&
-      existing.relationshipType === link.relationshipType &&
-      existing.lagDays === link.lagDays,
-  );
+const SKIP_REASON_LABELS: Record<ApplyLogicSuggestionSkipReason, string> = {
+  'missing-link': 'missing link fields',
+  duplicate: 'duplicate link',
+  cycle: 'would create circular dependency',
+  'invalid-activity': 'missing activity code',
+  'reverse-link': 'reverse link already exists',
+  'invalid-relationship-type': 'invalid relationship type',
+  'invalid-lag': 'invalid lag days',
+  'would-over-constrain-network': 'would over-constrain network',
+  'self-link': 'self link',
+};
+
+function mapInvalidReasonToSkipReason(
+  reason: LogicLinkInvalidReason,
+): ApplyLogicSuggestionSkipReason {
+  switch (reason) {
+    case 'missing-predecessor-activity':
+    case 'missing-successor-activity':
+      return 'invalid-activity';
+    case 'duplicate-link':
+      return 'duplicate';
+    case 'would-create-cycle':
+      return 'cycle';
+    case 'reverse-link':
+      return 'reverse-link';
+    case 'invalid-relationship-type':
+      return 'invalid-relationship-type';
+    case 'invalid-lag':
+      return 'invalid-lag';
+    case 'would-over-constrain-network':
+      return 'would-over-constrain-network';
+    case 'self-link':
+      return 'self-link';
+    default:
+      return 'invalid-activity';
+  }
 }
 
-function isGraphDuplicateLogicLink(
-  existingLinks: readonly CpmLogicLink[],
-  link: SuggestedLogicLink,
-): boolean {
-  return existingLinks.some(
-    (existing) =>
-      existing.predecessorActivityCode === link.predecessorActivityCode &&
-      existing.successorActivityCode === link.successorActivityCode,
-  );
+export function summarizeSkippedLogicSuggestions(
+  skipped: ApplyLogicSuggestionSkip[],
+): Array<{ reason: ApplyLogicSuggestionSkipReason; label: string; count: number }> {
+  const counts = new Map<ApplyLogicSuggestionSkipReason, number>();
+  for (const entry of skipped) {
+    counts.set(entry.reason, (counts.get(entry.reason) ?? 0) + 1);
+  }
+  return [...counts.entries()].map(([reason, count]) => ({
+    reason,
+    label: SKIP_REASON_LABELS[reason],
+    count,
+  }));
 }
 
 export function collectVisibleAutoFixLinks(warnings: LogicReviewWarning[]): SuggestedLogicLink[] {
@@ -255,9 +247,21 @@ export function applyLogicSuggestions({
 }: {
   suggestions: SuggestedLogicLink[];
   existingLinks: CpmLogicLink[];
-  activities: readonly { activityCode: string }[];
+  activities: readonly {
+    activityCode: string;
+    activityDescription?: string;
+    divisionCode?: string;
+    divisionName?: string;
+    durationDays?: number;
+    laborHours?: number;
+    manDays?: number;
+    crewDays?: number;
+    crewSize?: number;
+    totalCost?: number;
+    relationshipType?: CpmLogicLink['relationshipType'];
+    lagDays?: number;
+  }[];
 }): ApplyLogicSuggestionsResult {
-  const activityCodes = new Set(activities.map((activity) => activity.activityCode));
   const nextLinks = [...existingLinks];
   const added: SuggestedLogicLink[] = [];
   const skipped: ApplyLogicSuggestionSkip[] = [];
@@ -268,30 +272,28 @@ export function applyLogicSuggestions({
       continue;
     }
 
-    if (
-      !activityCodes.has(link.predecessorActivityCode) ||
-      !activityCodes.has(link.successorActivityCode)
-    ) {
-      skipped.push({ link, reason: 'invalid-activity' });
-      continue;
-    }
-
-    if (isDuplicateLogicLink(nextLinks, link) || isGraphDuplicateLogicLink(nextLinks, link)) {
-      skipped.push({ link, reason: 'duplicate' });
-      continue;
-    }
-
-    if (wouldCreateCircularDependency(nextLinks, [link])) {
-      skipped.push({ link, reason: 'cycle' });
-      continue;
-    }
-
-    nextLinks.push({
-      predecessorActivityCode: link.predecessorActivityCode,
-      successorActivityCode: link.successorActivityCode,
+    const candidate: CpmLogicLink = {
+      predecessorActivityCode: link.predecessorActivityCode.trim(),
+      successorActivityCode: link.successorActivityCode.trim(),
       relationshipType: link.relationshipType,
       lagDays: link.lagDays,
+    };
+
+    const validation = validateLogicLinkCandidate({
+      link: candidate,
+      activities,
+      existingLinks: nextLinks,
     });
+
+    if (!validation.ok) {
+      skipped.push({
+        link,
+        reason: mapInvalidReasonToSkipReason(validation.reason),
+      });
+      continue;
+    }
+
+    nextLinks.push(candidate);
     added.push(link);
   }
 
@@ -316,6 +318,106 @@ export function filterResolvedAiWarnings(
         ),
     );
   });
+}
+
+export type UnsafeLogicLinkIssueType =
+  | 'self-link'
+  | 'duplicate-link'
+  | 'missing-activity-code'
+  | 'circular-dependency';
+
+export type UnsafeLogicLinkIssue = {
+  type: UnsafeLogicLinkIssueType;
+  link: CpmLogicLink;
+  message: string;
+};
+
+export function collectUnsafeLogicLinkIssues({
+  logicLinks,
+  activities,
+}: {
+  logicLinks: CpmLogicLink[];
+  activities: readonly { activityCode: string }[];
+}): UnsafeLogicLinkIssue[] {
+  const activityCodes = new Set(activities.map((activity) => activity.activityCode));
+  const issues: UnsafeLogicLinkIssue[] = [];
+  const graphPairs = new Map<string, number>();
+
+  for (const link of logicLinks) {
+    if (link.predecessorActivityCode === link.successorActivityCode) {
+      issues.push({
+        type: 'self-link',
+        link,
+        message: `${link.predecessorActivityCode} links to itself`,
+      });
+    }
+
+    if (
+      !activityCodes.has(link.predecessorActivityCode) ||
+      !activityCodes.has(link.successorActivityCode)
+    ) {
+      issues.push({
+        type: 'missing-activity-code',
+        link,
+        message: `${link.predecessorActivityCode} → ${link.successorActivityCode} references missing activity code`,
+      });
+    }
+
+    const pairKey = `${link.predecessorActivityCode}|${link.successorActivityCode}`;
+    const count = (graphPairs.get(pairKey) ?? 0) + 1;
+    graphPairs.set(pairKey, count);
+    if (count > 1) {
+      issues.push({
+        type: 'duplicate-link',
+        link,
+        message: `Duplicate link ${link.predecessorActivityCode} → ${link.successorActivityCode}`,
+      });
+    }
+  }
+
+  if (logicLinks.length > 0 && wouldCreateCircularDependency(logicLinks, [])) {
+    for (const link of logicLinks) {
+      const withoutLink = logicLinks.filter(
+        (candidate) =>
+          !(
+            candidate.predecessorActivityCode === link.predecessorActivityCode &&
+            candidate.successorActivityCode === link.successorActivityCode &&
+            candidate.relationshipType === link.relationshipType &&
+            candidate.lagDays === link.lagDays
+          ),
+      );
+      if (wouldCreateCircularDependency(withoutLink, [])) {
+        continue;
+      }
+      issues.push({
+        type: 'circular-dependency',
+        link,
+        message: `${link.predecessorActivityCode} → ${link.successorActivityCode} participates in a circular dependency`,
+      });
+    }
+  }
+
+  return issues;
+}
+
+export function summarizeUnsafeLogicLinkIssues(
+  issues: UnsafeLogicLinkIssue[],
+): Array<{ type: UnsafeLogicLinkIssueType; label: string; count: number }> {
+  const labels: Record<UnsafeLogicLinkIssueType, string> = {
+    'self-link': 'self links',
+    'duplicate-link': 'duplicate links',
+    'missing-activity-code': 'missing activity codes',
+    'circular-dependency': 'circular dependencies',
+  };
+  const counts = new Map<UnsafeLogicLinkIssueType, number>();
+  for (const issue of issues) {
+    counts.set(issue.type, (counts.get(issue.type) ?? 0) + 1);
+  }
+  return [...counts.entries()].map(([type, count]) => ({
+    type,
+    label: labels[type],
+    count,
+  }));
 }
 
 export function buildAcceptAllToastMessage(

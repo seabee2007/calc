@@ -1,4 +1,4 @@
-import { canResetEstimateSetup } from '../application/estimateStartFlow';
+import { canResetEstimateSetup, supportsActivityWorkflow } from '../application/estimateStartFlow';
 import type { EstimateType } from '../domain/estimateTypes';
 import type { UseEstimateSetupSessionResult } from './hooks/useEstimateSetupSession';
 import type { EstimateWorkspaceTabId } from './components/EstimateWorkspaceTabBar';
@@ -171,12 +171,33 @@ export function shouldShowActionsDropdown(
   return desktopItems.length > 0 || mobileItems.length > 0;
 }
 
+export const ADD_DIVISION_TOOLBAR_LABEL = '+ Add division';
+
 export interface EstimateBuilderToolbarHandlers {
   showCollapseAll: boolean;
   showSaveQuick: boolean;
   canSaveQuick: boolean;
+  showAddDivision: boolean;
   collapseAll: () => void;
   saveQuick: () => void;
+  openAddDivision: () => void;
+}
+
+export function shouldShowAddDivisionAction(
+  activeTab: EstimateWorkspaceTabId,
+  hasEstimate: boolean,
+  showBucketPanel: boolean,
+  estimateType: EstimateType | null,
+  canEdit: boolean,
+): boolean {
+  return (
+    activeTab === 'line-items' &&
+    hasEstimate &&
+    canEdit &&
+    showBucketPanel &&
+    estimateType != null &&
+    supportsActivityWorkflow(estimateType)
+  );
 }
 
 export function shouldShowCollapseAllAction(

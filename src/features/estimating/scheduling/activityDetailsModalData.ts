@@ -1,5 +1,6 @@
 import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
-import type { CpmActivityResult, CpmLogicLink } from './cpmTypes';
+import { isDisplayCritical } from './cpm/cpmDisplayCritical';
+import type { CpmActivityResult, CpmLogicLink, CpmResult } from './cpmTypes';
 import { formatEstimatedFloat } from './levelThreeGanttGrid';
 import type { LevelThreeGanttRow } from './levelThreeGanttUtils';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
@@ -55,6 +56,7 @@ export function buildActivityDetailsViewModel(
   cpm: CpmActivityResult,
   logicLinks: CpmLogicLink[] = [],
   lineItem?: EstimateDomainTask,
+  cpmResult?: CpmResult | null,
 ): ActivityDetailsViewModel {
   const division = [activity.divisionCode, activity.divisionName].filter(Boolean).join(' — ');
   const workPackage = [activity.workPackageCode, activity.workPackageName].filter(Boolean).join(' — ');
@@ -72,7 +74,7 @@ export function buildActivityDetailsViewModel(
     lateFinish: cpm.lateFinish,
     totalFloat: cpm.totalFloat,
     freeFloat: cpm.freeFloat,
-    isCritical: cpm.isCritical,
+    isCritical: cpmResult ? isDisplayCritical(cpmResult, activity.activityCode) : cpm.isCritical,
     crewSize: activity.crewSize,
     laborHours: activity.laborHours,
     manDays: activity.manDays,
@@ -90,10 +92,11 @@ export function resolveSelectedGanttActivityDetails(
   rows: LevelThreeGanttRow[],
   logicLinks: CpmLogicLink[] = [],
   lineItems: EstimateDomainTask[] = [],
+  cpmResult?: CpmResult | null,
 ): ActivityDetailsViewModel | null {
   if (!selectedActivityCode) return null;
   const row = rows.find((entry) => entry.activity.activityCode === selectedActivityCode);
   if (!row) return null;
   const lineItem = lineItems.find((item) => item.activityCode === selectedActivityCode);
-  return buildActivityDetailsViewModel(row.activity, row.cpm, logicLinks, lineItem);
+  return buildActivityDetailsViewModel(row.activity, row.cpm, logicLinks, lineItem, cpmResult);
 }

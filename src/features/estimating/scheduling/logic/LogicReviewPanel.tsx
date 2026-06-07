@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
 import type { CpmLogicLink } from '../cpmTypes';
 import { checkLogicNetwork } from './checkLogicNetwork';
@@ -10,6 +10,8 @@ import {
   type AiLogicSuggestion,
 } from './aiLogicReviewService';
 import LogicReviewAcceptAllConfirmModal from './LogicReviewAcceptAllConfirmModal';
+import LogicReviewClearAllConfirmModal from './LogicReviewClearAllConfirmModal';
+import LogicReviewRevertBatchConfirmModal from './LogicReviewRevertBatchConfirmModal';
 import LogicReviewWarningCard from './LogicReviewWarningCard';
 import type { LogicReviewWarning, LogicWarningCategory, SuggestedLogicLink } from './logicTypes';
 import { LOGIC_WARNING_CATEGORY_LABELS } from './logicTypes';
@@ -17,8 +19,12 @@ import { dedupeLogicWarnings } from './checkLogicNetwork';
 import {
   applyLogicSuggestions,
   buildAcceptAllToastMessage,
+  collectUnsafeLogicLinkIssues,
   collectVisibleAutoFixLinks,
   filterResolvedAiWarnings,
+  summarizeSkippedLogicSuggestions,
+  summarizeUnsafeLogicLinkIssues,
+  type ApplyLogicSuggestionSkip,
 } from './logicReviewUtils';
 
 const CATEGORY_ORDER: LogicWarningCategory[] = [
@@ -41,6 +47,11 @@ interface Props {
   ignoredWarningIds: string[];
   onAddSuggestedLinks: (links: SuggestedLogicLink[]) => Promise<void>;
   onIgnoreWarning: (warningId: string) => Promise<void>;
+  onRevertLastBatch?: () => Promise<void>;
+  onClearAllLogicLinks?: () => Promise<void>;
+  onRemoveLogicLink?: (link: CpmLogicLink) => Promise<void>;
+  hasLogicBatch?: boolean;
+  logicBatchAddedCount?: number;
   onNotify?: (message: string, variant?: 'success' | 'error') => void;
   busy?: boolean;
 }
@@ -53,6 +64,11 @@ export default function LogicReviewPanel({
   ignoredWarningIds,
   onAddSuggestedLinks,
   onIgnoreWarning,
+  onRevertLastBatch,
+  onClearAllLogicLinks,
+  onRemoveLogicLink,
+  hasLogicBatch = false,
+  logicBatchAddedCount = 0,
   onNotify,
   busy = false,
 }: Props) {
@@ -63,6 +79,13 @@ export default function LogicReviewPanel({
   const [aiRan, setAiRan] = useState(false);
   const [acceptAllConfirmOpen, setAcceptAllConfirmOpen] = useState(false);
   const [acceptingAll, setAcceptingAll] = useState(false);
+  const [revertConfirmOpen, setRevertConfirmOpen] = useState(false);
+  const [revertingBatch, setRevertingBatch] = useState(false);
+  const [clearAllConfirmOpen, setClearAllConfirmOpen] = useState(false);
+  const [clearingAll, setClearingAll] = useState(false);
+  const [repairExpanded, setRepairExpanded] = useState(false);
+  const [repairToolsExpanded, setRepairToolsExpanded] = useState(false);
+  const [lastSkipped, setLastSkipped] = useState<ApplyLogicSuggestionSkip[]>([]);
 
   const reviewInput = useMemo(
     () => ({
@@ -107,6 +130,19 @@ export default function LogicReviewPanel({
   );
   const canAcceptAll = visibleAutoFixLinks.length > 0;
 
+  const unsafeIssues = useMemo(
+    () => collectUnsafeLogicLinkIssues({ logicLinks, activities }),
+    [activities, logicLinks],
+  );
+  const unsafeIssueSummary = useMemo(
+    () => summarizeUnsafeLogicLinkIssues(unsafeIssues),
+    [unsafeIssues],
+  );
+  const skippedSummary = useMemo(
+    () => summarizeSkippedLogicSuggestions(lastSkipped),
+    [lastSkipped],
+  );
+
   const handleAcceptAllConfirmed = async () => {
     if (!canAcceptAll || acceptingAll || busy) return;
 
@@ -118,6 +154,8 @@ export default function LogicReviewPanel({
 
     setAcceptingAll(true);
     try {
+      setLastSkipped(preview.skipped);
+
       if (preview.added.length === 0) {
         const toast = buildAcceptAllToastMessage(0, preview.skipped.length);
         onNotify?.(toast.message, toast.variant);
@@ -134,6 +172,34 @@ export default function LogicReviewPanel({
       onNotify?.('Could not accept logic suggestions', 'error');
     } finally {
       setAcceptingAll(false);
+    }
+  };
+
+  const handleRevertConfirmed = async () => {
+    if (!onRevertLastBatch || revertingBatch || busy) return;
+    setRevertingBatch(true);
+    try {
+      await onRevertLastBatch();
+      onNotify?.('Reverted last AI logic changes', 'success');
+      setRevertConfirmOpen(false);
+    } catch {
+      onNotify?.('Could not revert last AI logic changes', 'error');
+    } finally {
+      setRevertingBatch(false);
+    }
+  };
+
+  const handleClearAllConfirmed = async () => {
+    if (!onClearAllLogicLinks || clearingAll || busy) return;
+    setClearingAll(true);
+    try {
+      await onClearAllLogicLinks();
+      onNotify?.('Cleared all logic links', 'success');
+      setClearAllConfirmOpen(false);
+    } catch {
+      onNotify?.('Could not clear logic links', 'error');
+    } finally {
+      setClearingAll(false);
     }
   };
 
@@ -221,7 +287,7 @@ export default function LogicReviewPanel({
               disabled={aiLoading || busy || acceptingAll}
               onClick={() => void handleSuggestWithAi()}
             >
-              {aiLoading ? 'Reviewing with AI…' : 'Suggest logic with AI'}
+              {aiLoading ? 'Reviewing with AI…' : 'Suggest precedence links'}
             </button>
             <button
               type="button"
@@ -231,6 +297,16 @@ export default function LogicReviewPanel({
             >
               {acceptingAll ? 'Accepting…' : 'Accept all'}
             </button>
+            {hasLogicBatch ? (
+              <button
+                type="button"
+                className="rounded-md border border-amber-700 bg-amber-950 px-3 py-1.5 text-xs font-medium text-amber-100 hover:bg-amber-900 disabled:opacity-60"
+                disabled={busy || acceptingAll || revertingBatch}
+                onClick={() => setRevertConfirmOpen(true)}
+              >
+                {revertingBatch ? 'Reverting…' : 'Revert last AI changes'}
+              </button>
+            ) : null}
             <button
               type="button"
               className="rounded-md border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800"
@@ -239,6 +315,47 @@ export default function LogicReviewPanel({
               {showIgnored ? 'Hide ignored' : 'Show ignored'}
             </button>
           </div>
+
+          <div className="mt-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-slate-200"
+              onClick={() => setRepairToolsExpanded((value) => !value)}
+            >
+              {repairToolsExpanded ? (
+                <ChevronDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5" />
+              )}
+              Repair unsafe logic
+            </button>
+            {repairToolsExpanded ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-md border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-60"
+                  disabled={busy || clearingAll}
+                  onClick={() => setClearAllConfirmOpen(true)}
+                >
+                  Clear all logic links
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {skippedSummary.length > 0 ? (
+            <div className="mt-3 rounded-md border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-300">
+              <p className="font-medium text-slate-200">Skipped:</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {skippedSummary.map((entry) => (
+                  <li key={entry.reason}>
+                    {entry.count} {entry.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {aiError ? (
             <p className="mt-2 rounded-md bg-rose-950/60 px-3 py-2 text-xs text-rose-300">
               {aiError.toLowerCase().includes('openai_api_key') ||
@@ -257,6 +374,52 @@ export default function LogicReviewPanel({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {unsafeIssues.length > 0 ? (
+            <section className="mb-6 rounded-lg border border-rose-900/70 bg-rose-950/20 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-rose-200">Repair unsafe logic</h3>
+                  <ul className="mt-2 space-y-1 text-xs text-rose-100/90">
+                    {unsafeIssueSummary.map((entry) => (
+                      <li key={entry.type}>
+                        {entry.count} {entry.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-md border border-rose-800 px-2 py-1 text-xs text-rose-100 hover:bg-rose-900/40"
+                  onClick={() => setRepairExpanded((value) => !value)}
+                >
+                  {repairExpanded ? 'Hide details' : 'Review and fix'}
+                </button>
+              </div>
+              {repairExpanded ? (
+                <ul className="mt-3 space-y-2">
+                  {unsafeIssues.map((issue, index) => (
+                    <li
+                      key={`${issue.type}-${issue.link.predecessorActivityCode}-${issue.link.successorActivityCode}-${index}`}
+                      className="flex items-start justify-between gap-3 rounded-md border border-rose-900/50 bg-slate-950/60 px-3 py-2 text-xs text-slate-200"
+                    >
+                      <span>{issue.message}</span>
+                      {onRemoveLogicLink ? (
+                        <button
+                          type="button"
+                          className="shrink-0 rounded border border-rose-800 px-2 py-1 text-[11px] text-rose-100 hover:bg-rose-900/40 disabled:opacity-60"
+                          disabled={busy}
+                          onClick={() => void onRemoveLogicLink(issue.link)}
+                        >
+                          Remove link
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
+
           {allWarnings.length === 0 ? (
             <p className="rounded-lg border border-dashed border-slate-700 px-4 py-8 text-center text-sm text-slate-400">
               {aiRan
@@ -300,6 +463,24 @@ export default function LogicReviewPanel({
           if (!acceptingAll) setAcceptAllConfirmOpen(false);
         }}
         onConfirm={() => void handleAcceptAllConfirmed()}
+      />
+      <LogicReviewRevertBatchConfirmModal
+        isOpen={revertConfirmOpen}
+        addedLinkCount={logicBatchAddedCount}
+        reverting={revertingBatch}
+        onClose={() => {
+          if (!revertingBatch) setRevertConfirmOpen(false);
+        }}
+        onConfirm={() => void handleRevertConfirmed()}
+      />
+      <LogicReviewClearAllConfirmModal
+        isOpen={clearAllConfirmOpen}
+        linkCount={logicLinks.length}
+        clearing={clearingAll}
+        onClose={() => {
+          if (!clearingAll) setClearAllConfirmOpen(false);
+        }}
+        onConfirm={() => void handleClearAllConfirmed()}
       />
     </div>,
     document.body,

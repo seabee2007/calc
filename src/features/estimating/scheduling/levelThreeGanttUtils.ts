@@ -1,5 +1,6 @@
 import { addDaysToScheduleDate } from '../application/mapScheduleCandidateToScheduleEventInput';
 import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
+import { isDisplayCritical, resolveTopologyLabel } from './cpm/cpmDisplayCritical';
 import type { CpmActivityResult, CpmResult } from './cpmTypes';
 import { DAY_WIDTH, getLocalDateYmd } from './levelThreeGanttGrid';
 
@@ -116,17 +117,38 @@ export type GanttCellKind = 'critical' | 'noncritical' | 'float' | 'empty';
 export function resolveGanttCellKind(
   dayOffset: number,
   row: LevelThreeGanttRow,
+  cpmResult: CpmResult | null,
 ): GanttCellKind {
   const es = row.cpm.earlyStart + row.leveledOffset;
   const ef = es + row.activity.durationDays;
   const tf = Math.max(0, row.cpm.totalFloat - row.leveledOffset);
   const floatEnd = ef + tf;
+  const displayCritical =
+    cpmResult != null && isDisplayCritical(cpmResult, row.activity.activityCode);
 
   if (dayOffset >= es && dayOffset < ef) {
-    return row.cpm.isCritical ? 'critical' : 'noncritical';
+    return displayCritical ? 'critical' : 'noncritical';
   }
   if (tf > 0 && dayOffset >= ef && dayOffset < floatEnd) {
     return 'float';
   }
   return 'empty';
+}
+
+export function resolveGanttRowCodeClassName(
+  row: LevelThreeGanttRow,
+  cpmResult: CpmResult | null,
+): string {
+  if (cpmResult && isDisplayCritical(cpmResult, row.activity.activityCode)) {
+    return 'text-red-600 dark:text-red-400';
+  }
+
+  if (
+    cpmResult &&
+    resolveTopologyLabel(cpmResult, row.activity.activityCode, row.cpm.totalFloat === 0)
+  ) {
+    return 'text-amber-600 dark:text-amber-400';
+  }
+
+  return 'text-slate-700 dark:text-slate-300';
 }

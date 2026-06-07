@@ -1,6 +1,7 @@
-import { ChevronsDownUp, Save } from 'lucide-react';
+import { ChevronsDownUp, Plus, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import {
+  ADD_DIVISION_TOOLBAR_LABEL,
   ESTIMATE_WORKSPACE_TOOLBAR_MARKER,
   buildEstimateWorkspaceActionsMenuItems,
   type EstimateBuilderToolbarHandlers,
@@ -8,6 +9,7 @@ import {
 import EstimateWorkspaceActionsMenu from './EstimateWorkspaceActionsMenu';
 
 interface Props {
+  showAddDivision: boolean;
   showCollapseAll: boolean;
   showReset: boolean;
   showSaveBucket: boolean;
@@ -26,6 +28,7 @@ interface Props {
 }
 
 export default function EstimateWorkspaceToolbarActions({
+  showAddDivision,
   showCollapseAll,
   showReset,
   showSaveBucket,
@@ -60,6 +63,7 @@ export default function EstimateWorkspaceToolbarActions({
   const showMobileActionsDropdown = mobileMenuItems.length > 0;
 
   const hasActions =
+    showAddDivision ||
     showCollapseAll ||
     showReset ||
     showSaveBucket ||
@@ -73,6 +77,30 @@ export default function EstimateWorkspaceToolbarActions({
       data-testid={ESTIMATE_WORKSPACE_TOOLBAR_MARKER}
       className="flex flex-wrap items-center justify-end gap-2 px-2 pb-2 sm:px-0 sm:pb-0"
     >
+      {showAddDivision ? (
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Plus className="h-4 w-4" />}
+          disabled={!canEdit || saving}
+          className="hidden sm:inline-flex"
+          onClick={() => handlers?.openAddDivision()}
+        >
+          {ADD_DIVISION_TOOLBAR_LABEL}
+        </Button>
+      ) : null}
+      {showAddDivision ? (
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Plus className="h-4 w-4" />}
+          disabled={!canEdit || saving}
+          className="sm:hidden"
+          onClick={() => handlers?.openAddDivision()}
+        >
+          Add division
+        </Button>
+      ) : null}
       {showCollapseAll ? (
         <Button
           variant="outline"

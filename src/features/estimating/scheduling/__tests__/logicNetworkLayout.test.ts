@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildLogicNetworkNodes } from '../../ui/components/scheduling/EstimateLogicNetworkCanvas';
+import { buildLogicNetworkTopology } from '../logic/logicNetworkTopology';
 import {
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
   autoLayoutNodePosition,
@@ -59,7 +60,12 @@ describe('logicNetworkLayout', () => {
 
   it('buildLogicNetworkNodes renders nodes without saved layout', () => {
     const activities = [makeActivity('A'), makeActivity('B')];
-    const nodes = buildLogicNetworkNodes(activities, null, []);
+    const topology = buildLogicNetworkTopology(activities, []);
+    const nodes = buildLogicNetworkNodes(activities, null, [], {
+      viewMode: 'logic-network',
+      logicTopology: topology,
+      showCpmFields: false,
+    });
     expect(nodes).toHaveLength(2);
     expect(nodes[0].id).toBe('node-A');
     expect(nodes[1].position.y).toBeGreaterThan(nodes[0].position.y);
@@ -103,6 +109,12 @@ describe('logicNetworkLayout', () => {
       projectDurationDays: 9,
       criticalPathActivityCodes: ['A', 'B', 'C'],
       warnings: [],
+      criticalPathStatus: 'valid',
+      hasValidCriticalPath: true,
+      criticalPathContinuityWarnings: [],
+      displayCriticalActivityCodes: ['A', 'B', 'C'],
+      openStartActivityCodes: [],
+      openFinishActivityCodes: [],
     });
     expect(layout).toHaveLength(3);
     expect(layout[1].x).toBe(3 * 160);

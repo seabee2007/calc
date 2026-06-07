@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
-import type { CpmLogicLink, CpmResult } from '../cpmTypes';
+import { buildValidCpmDisplayFields, type CpmLogicLink, type CpmResult } from '../cpmTypes';
 import {
   buildActivityDetailsViewModel,
   resolveSelectedGanttActivityDetails,
@@ -53,6 +53,10 @@ const sampleCpm: CpmResult = {
   projectDurationDays: 42,
   criticalPathActivityCodes: ['01-01-01'],
   warnings: [],
+  ...buildValidCpmDisplayFields(['01-01-01'], {
+    hasRunCpm: true,
+    hasValidPrecedenceDiagram: true,
+  }),
 };
 
 const lineItems: EstimateDomainTask[] = [
@@ -93,6 +97,7 @@ describe('activityDetailsModalData', () => {
       sampleCpm.activities[0],
       logicLinks,
       lineItems[0],
+      sampleCpm,
     );
 
     expect(details.activityCode).toBe('01-01-01');
@@ -121,6 +126,7 @@ describe('activityDetailsModalData', () => {
       rows,
       logicLinks,
       lineItems,
+      sampleCpm,
     );
 
     expect(details).not.toBeNull();
@@ -135,7 +141,13 @@ describe('activityDetailsModalData', () => {
       sampleCpm,
       '2026-06-06',
     );
-    const details = resolveSelectedGanttActivityDetails('01-02-01', rows, logicLinks, lineItems);
+    const details = resolveSelectedGanttActivityDetails(
+      '01-02-01',
+      rows,
+      logicLinks,
+      lineItems,
+      sampleCpm,
+    );
 
     expect(details).not.toBeNull();
     expect(details?.activityCode).toBe('01-02-01');

@@ -75,6 +75,7 @@ export function sanitizeAiLogicReviewResult(
 ): AiLogicSuggestion[] {
   const valid = (raw.suggestions ?? [])
     .filter((suggestion) => validateAiLogicSuggestion(suggestion, input))
+    .filter((suggestion) => suggestion.confidence === 'high')
     .sort((left, right) => CONFIDENCE_ORDER[left.confidence] - CONFIDENCE_ORDER[right.confidence]);
 
   return valid.slice(0, maxSuggestions);

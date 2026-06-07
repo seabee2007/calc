@@ -8,6 +8,9 @@ import {
   createInitialEstimateSetupSession,
   getBuildScopeModalDescription,
   getBuildScopeModalTitle,
+  getScopeModalDescription,
+  getScopeModalSubmitLabel,
+  getScopeModalTitle,
   getEstimateTabHelperText,
   isQuickFeasibilityEstimateType,
   QUICK_FEASIBILITY_TAB_HELPER,
@@ -166,5 +169,13 @@ describe('estimateStartFlow', () => {
     expect(getBuildScopeModalTitle('bid')).toBe('Build Project Scope');
     expect(getBuildScopeModalDescription('detailed')).toContain('top-level buckets');
     expect(getBuildScopeModalDescription('bid')).toContain('top-level buckets');
+  });
+
+  it('uses add-mode scope modal copy', () => {
+    expect(getScopeModalTitle('add', 'detailed')).toBe('Add Divisions');
+    expect(getScopeModalDescription('add', 'budget')).toBe(
+      'Select additional divisions to add to this estimate.',
+    );
+    expect(getScopeModalSubmitLabel('add')).toBe('Add selected divisions');
   });
 });

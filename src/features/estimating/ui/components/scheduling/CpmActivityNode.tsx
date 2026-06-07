@@ -1,11 +1,34 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import type { CpmActivityResult } from '../../../scheduling/cpmTypes';
+import type { CpmActivityResult, LogicNetworkViewMode } from '../../../scheduling/cpmTypes';
 import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import type { TopologyLabel } from '../../../scheduling/cpm/cpmDisplayCritical';
+import type { LogicTopologyLabel } from '../../../scheduling/logic/logicNetworkTopology';
+
+const TOPOLOGY_LABEL_TEXT: Record<TopologyLabel, string> = {
+  'open-start': 'Open start',
+  'open-finish': 'Open finish',
+  disconnected: 'Disconnected',
+  'missing-logic': 'Missing logic',
+};
+
+const LOGIC_TOPOLOGY_LABEL_TEXT: Record<LogicTopologyLabel, string> = {
+  'open-start': 'Open start',
+  'open-finish': 'Open finish',
+  'missing-duration': 'Missing duration',
+  circular: 'Circular logic',
+};
 
 export interface CpmActivityNodeData {
   activity: ScheduleActivity;
+  viewMode: LogicNetworkViewMode;
   cpmResult?: CpmActivityResult;
+  isDisplayCritical?: boolean;
+  topologyLabel?: TopologyLabel | null;
+  logicTopologyLabel?: LogicTopologyLabel | null;
+  predecessorCount?: number;
+  successorCount?: number;
+  showCpmFields?: boolean;
   [key: string]: unknown;
 }
 
@@ -20,46 +43,70 @@ function formatDay(day: number | undefined): string {
 }
 
 export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }: Props) {
-  const { activity, cpmResult } = data;
+  const {
+    activity,
+    viewMode,
+    cpmResult,
+    isDisplayCritical = false,
+    topologyLabel = null,
+    logicTopologyLabel = null,
+    predecessorCount = 0,
+    successorCount = 0,
+    showCpmFields = false,
+  } = data;
 
-  const isCritical = cpmResult?.isCritical ?? false;
-  const missingDuration = activity.durationDays < 1;
+  const isLogicMode = viewMode === 'logic-network';
+  const activeTopologyLabel = isLogicMode ? logicTopologyLabel : topologyLabel;
+  const isCircularError = isLogicMode && logicTopologyLabel === 'circular';
 
-  const borderColor = isCritical
-    ? 'border-red-500 dark:border-red-400'
-    : selected
-      ? 'border-cyan-500 dark:border-cyan-400'
-      : 'border-slate-300 dark:border-slate-600';
+  const borderColor = isLogicMode
+    ? isCircularError
+      ? 'border-red-500 dark:border-red-400'
+      : activeTopologyLabel
+        ? 'border-amber-500 dark:border-amber-400'
+        : selected
+          ? 'border-cyan-500 dark:border-cyan-400'
+          : 'border-slate-300 dark:border-slate-600'
+    : isDisplayCritical
+      ? 'border-red-500 dark:border-red-400'
+      : activeTopologyLabel
+        ? 'border-amber-500 dark:border-amber-400'
+        : selected
+          ? 'border-cyan-500 dark:border-cyan-400'
+          : 'border-slate-300 dark:border-slate-600';
+
+  const headerClass = isLogicMode
+    ? isCircularError
+      ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
+      : activeTopologyLabel
+        ? 'bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+        : 'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+    : isDisplayCritical
+      ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
+      : activeTopologyLabel
+        ? 'bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+        : 'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
 
   return (
     <div
       className={`relative w-52 rounded border-2 bg-white text-xs shadow-sm dark:bg-slate-900 ${borderColor}`}
     >
-      {/* Source handle (right) */}
       <Handle
         type="source"
         position={Position.Right}
         className="!h-3 !w-3 !border-2 !border-slate-400 !bg-white dark:!bg-slate-700"
       />
-      {/* Target handle (left) */}
       <Handle
         type="target"
         position={Position.Left}
         className="!h-3 !w-3 !border-2 !border-slate-400 !bg-white dark:!bg-slate-700"
       />
 
-      {/* Top row: code + duration */}
-      <div
-        className={`flex items-center justify-between px-2 py-1 font-mono font-semibold ${
-          isCritical
-            ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
-            : 'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
-        }`}
-      >
+      <div className={`flex items-center justify-between px-2 py-1 font-mono font-semibold ${headerClass}`}>
         <span className="truncate">{activity.activityCode}</span>
         <span className="ml-2 shrink-0 tabular-nums">
           {activity.durationDays}d
-          {missingDuration ? (
+          {activity.durationDays < 1 ? (
             <span className="ml-1 text-amber-500" title="Missing or invalid duration">
               ⚠
             </span>
@@ -67,7 +114,20 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
         </span>
       </div>
 
-      {/* Description */}
+      {activeTopologyLabel ? (
+        <div
+          className={`border-t px-2 py-0.5 text-[10px] font-medium ${
+            isCircularError
+              ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300'
+              : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200'
+          }`}
+        >
+          {isLogicMode
+            ? LOGIC_TOPOLOGY_LABEL_TEXT[logicTopologyLabel!]
+            : TOPOLOGY_LABEL_TEXT[topologyLabel!]}
+        </div>
+      ) : null}
+
       <div className="border-t border-slate-200 px-2 py-1 dark:border-slate-700">
         <span
           className="line-clamp-2 text-slate-800 dark:text-slate-100"
@@ -77,55 +137,74 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
         </span>
       </div>
 
-      {/* ES / EF / LS / LF */}
-      <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
-        <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
-          <span className="text-slate-500 dark:text-slate-400">ES </span>
-          <span className="tabular-nums text-slate-800 dark:text-slate-100">
-            {formatDay(cpmResult?.earlyStart)}
-          </span>
+      {isLogicMode ? (
+        <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
+          <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
+            <span className="text-slate-500 dark:text-slate-400">Pred </span>
+            <span className="tabular-nums text-slate-800 dark:text-slate-100">
+              {predecessorCount}
+            </span>
+          </div>
+          <div className="px-2 py-1">
+            <span className="text-slate-500 dark:text-slate-400">Succ </span>
+            <span className="tabular-nums text-slate-800 dark:text-slate-100">{successorCount}</span>
+          </div>
         </div>
-        <div className="px-2 py-1">
-          <span className="text-slate-500 dark:text-slate-400">EF </span>
-          <span className="tabular-nums text-slate-800 dark:text-slate-100">
-            {formatDay(cpmResult?.earlyFinish)}
-          </span>
-        </div>
-        <div className="border-r border-t border-slate-200 px-2 py-1 dark:border-slate-700">
-          <span className="text-slate-500 dark:text-slate-400">LS </span>
-          <span className="tabular-nums text-slate-800 dark:text-slate-100">
-            {formatDay(cpmResult?.lateStart)}
-          </span>
-        </div>
-        <div className="border-t border-slate-200 px-2 py-1 dark:border-slate-700">
-          <span className="text-slate-500 dark:text-slate-400">LF </span>
-          <span className="tabular-nums text-slate-800 dark:text-slate-100">
-            {formatDay(cpmResult?.lateFinish)}
-          </span>
-        </div>
-      </div>
+      ) : showCpmFields ? (
+        <>
+          <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
+            <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">ES </span>
+              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+                {formatDay(cpmResult?.earlyStart)}
+              </span>
+            </div>
+            <div className="px-2 py-1">
+              <span className="text-slate-500 dark:text-slate-400">EF </span>
+              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+                {formatDay(cpmResult?.earlyFinish)}
+              </span>
+            </div>
+            <div className="border-r border-t border-slate-200 px-2 py-1 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">LS </span>
+              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+                {formatDay(cpmResult?.lateStart)}
+              </span>
+            </div>
+            <div className="border-t border-slate-200 px-2 py-1 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">LF </span>
+              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+                {formatDay(cpmResult?.lateFinish)}
+              </span>
+            </div>
+          </div>
 
-      {/* TF / FF */}
-      <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
-        <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
-          <span className="text-slate-500 dark:text-slate-400">TF </span>
-          <span
-            className={`tabular-nums ${
-              (cpmResult?.totalFloat ?? 0) === 0
-                ? 'font-semibold text-red-600 dark:text-red-400'
-                : 'text-slate-800 dark:text-slate-100'
-            }`}
-          >
-            {formatDay(cpmResult?.totalFloat)}
-          </span>
+          <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
+            <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">TF </span>
+              <span
+                className={`tabular-nums ${
+                  isDisplayCritical
+                    ? 'font-semibold text-red-600 dark:text-red-400'
+                    : 'text-slate-800 dark:text-slate-100'
+                }`}
+              >
+                {formatDay(cpmResult?.totalFloat)}
+              </span>
+            </div>
+            <div className="px-2 py-1">
+              <span className="text-slate-500 dark:text-slate-400">FF </span>
+              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+                {formatDay(cpmResult?.freeFloat)}
+              </span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="border-t border-slate-200 px-2 py-2 text-[10px] text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          Run CPM to calculate ES, EF, LS, LF, TF, and FF.
         </div>
-        <div className="px-2 py-1">
-          <span className="text-slate-500 dark:text-slate-400">FF </span>
-          <span className="tabular-nums text-slate-800 dark:text-slate-100">
-            {formatDay(cpmResult?.freeFloat)}
-          </span>
-        </div>
-      </div>
+      )}
     </div>
   );
 });

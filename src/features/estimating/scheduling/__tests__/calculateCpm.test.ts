@@ -181,15 +181,16 @@ describe('calculateCpm', () => {
     }
   });
 
-  it('warns when disconnected critical activities do not connect start to finish', () => {
+  it('does not expose a display-critical path when logic links are missing', () => {
     const activities = [makeActivity('A', 5), makeActivity('B', 5)];
     const result = calculateCpm({ activities, logicLinks: [] });
 
     expect(result.activities.every((activity) => activity.isCritical)).toBe(true);
+    expect(result.hasValidCriticalPath).toBe(false);
+    expect(result.displayCriticalActivityCodes).toEqual([]);
+    expect(result.criticalPathStatus).toBe('missing-logic');
     expect(
-      result.warnings.some((warning) =>
-        warning.toLowerCase().includes('not connected through logic links'),
-      ),
+      result.warnings.some((warning) => warning.includes('No logic links exist')),
     ).toBe(true);
   });
 

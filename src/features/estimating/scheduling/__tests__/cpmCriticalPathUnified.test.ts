@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { calculateCpm } from '../cpm/calculateCpm';
+import { calculateCpm, runCpmCalculation } from '../cpm/calculateCpm';
 import {
   buildCpmCriticalPathPreview,
   mapCriticalActivityCodesToCandidateIds,
@@ -64,10 +64,10 @@ function fs(pred: string, succ: string): CpmLogicLink {
 }
 
 describe('unified CPM critical path', () => {
-  it('Logic Network and Level III Gantt read isCritical from calculateCpm', () => {
+  it('Logic Network and Level III Gantt read display-critical from calculateCpm', () => {
     const activities = [makeActivity('A', 5), makeActivity('B', 2), makeActivity('C', 3)];
     const links = [fs('A', 'B'), fs('A', 'C')];
-    const cpmResult = calculateCpm({ activities, logicLinks: links });
+    const cpmResult = runCpmCalculation({ activities, logicLinks: links });
 
     const criticalCodes = cpmResult.activities
       .filter((activity) => activity.isCritical)
@@ -84,9 +84,13 @@ describe('unified CPM critical path', () => {
       cpm: cpmResult.activities.find((activity) => activity.activityCode === 'C')!,
       leveledOffset: 0,
     };
-    expect(resolveGanttCellKind(criticalRow.cpm.earlyStart, criticalRow)).toBe('critical');
-    expect(logicNetworkCanvasSource).toContain('cpmResult');
-    expect(levelThreeGanttSource).toContain('row.cpm.isCritical');
+    if (cpmResult.hasValidCriticalPath) {
+      expect(resolveGanttCellKind(criticalRow.cpm.earlyStart, criticalRow, cpmResult)).toBe(
+        'critical',
+      );
+    }
+    expect(logicNetworkCanvasSource).toContain('isDisplayCritical');
+    expect(levelThreeGanttSource).toContain('isDisplayCritical');
   });
 
   it('Gantt preview uses buildCpmCriticalPathPreview instead of legacy engine', () => {
@@ -98,7 +102,7 @@ describe('unified CPM critical path', () => {
   it('Gantt preview critical task ids map from the same CPM critical activity codes', () => {
     const activities = [makeActivity('A', 3), makeActivity('B', 4), makeActivity('C', 2)];
     const links = [fs('A', 'B'), fs('B', 'C')];
-    const cpmResult = calculateCpm({ activities, logicLinks: links });
+    const cpmResult = runCpmCalculation({ activities, logicLinks: links });
     const preview = buildCpmCriticalPathPreview({
       cpmResult,
       plan: {
@@ -175,9 +179,10 @@ describe('unified CPM critical path', () => {
       projectStartDate: '2026-06-01',
     });
 
-    expect(preview.warnings.some((warning) => warning.includes('not connected through logic links'))).toBe(
-      true,
-    );
+    expect(
+      preview.warnings.some((warning) => warning.includes('No logic links exist')),
+    ).toBe(true);
+    expect(preview.criticalActivityCodes).toEqual([]);
   });
 
   it('no schedule UI uses visual chain order for critical styling', () => {

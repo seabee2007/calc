@@ -2,6 +2,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { sanitizeEstimateExportFileStem } from '../importExport/estimateExportBuilder';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import { isDisplayCritical } from '../scheduling/cpm/cpmDisplayCritical';
 import type { CpmLogicLink, CpmResult, ResourceHistogramDay } from '../scheduling/cpmTypes';
 import { computeTodayDayOffset, getLocalDateYmd } from '../scheduling/levelThreeGanttGrid';
 import {
@@ -282,10 +283,13 @@ function addLevelThreeGanttSheet(
     }
   });
 
+  const cpmResult = params.cpmResult!;
+
   rows.forEach((row, rowIndex) => {
     const excelRow = LEVEL_THREE_EXCEL_DATA_START_ROW + rowIndex;
     const rowFill =
       rowIndex % 2 === 1 ? LEVEL_THREE_EXCEL_COLORS.rowAltBg : LEVEL_THREE_EXCEL_COLORS.sheetBg;
+    const displayCritical = isDisplayCritical(cpmResult, row.activity.activityCode);
 
     sheet.getRow(excelRow).height = ACTIVITY_ROW_HEIGHT;
 
@@ -293,10 +297,10 @@ function addLevelThreeGanttSheet(
     codeCell.value = row.activity.activityCode;
     applyBaseCell(codeCell, {
       fill: rowFill,
-      fontColor: row.cpm.isCritical
+      fontColor: displayCritical
         ? LEVEL_THREE_EXCEL_COLORS.criticalText
         : LEVEL_THREE_EXCEL_COLORS.text,
-      bold: row.cpm.isCritical,
+      bold: displayCritical,
     });
 
     const descCell = sheet.getCell(excelRow, 2);
@@ -319,7 +323,7 @@ function addLevelThreeGanttSheet(
 
     timelineDays.forEach((day) => {
       const col = timelineColumnForDayOffset(day.dayOffset);
-      const kind = resolveGanttCellKind(day.dayOffset, row);
+      const kind = resolveGanttCellKind(day.dayOffset, row, cpmResult);
       const isTodayColumn = todayOffset !== null && day.dayOffset === todayOffset;
       const cell = sheet.getCell(excelRow, col);
       cell.value = '';
@@ -399,9 +403,9 @@ function addCpmTableSheet(
       cpm.lateFinish,
       cpm.totalFloat,
       cpm.freeFloat,
-      cpm.isCritical ? 'Yes' : 'No',
+      isDisplayCritical(params.cpmResult!, cpm.activityCode) ? 'Yes' : 'No',
     ]);
-    if (cpm.isCritical) {
+    if (isDisplayCritical(params.cpmResult!, cpm.activityCode)) {
       row.eachCell((cell) => {
         cell.fill = solidFill('FFFECACA');
       });

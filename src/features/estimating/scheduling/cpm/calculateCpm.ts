@@ -1,6 +1,8 @@
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
 import type { CpmActivityResult, CpmLogicLink, CpmRelationshipType, CpmResult } from '../cpmTypes';
-import { buildCriticalPathContinuityWarning } from './criticalPathContinuity';
+import { attachCpmWorkflowFields, EMPTY_CPM_DISPLAY_CRITICAL } from '../cpmTypes';
+import { validateCriticalPathContinuity } from '../logic/validateCriticalPathContinuity';
+import { validateCpmReadiness } from '../logic/validateCpmReadiness';
 
 export interface CalculateCpmParams {
   activities: ScheduleActivity[];
@@ -124,7 +126,16 @@ export function calculateCpm(params: CalculateCpmParams): CpmResult {
   const { activities, logicLinks, projectStartDay = 0 } = params;
 
   if (activities.length === 0) {
-    return { activities: [], projectDurationDays: 0, criticalPathActivityCodes: [], warnings };
+    return attachCpmWorkflowFields(
+      {
+        activities: [],
+        projectDurationDays: 0,
+        criticalPathActivityCodes: [],
+        warnings,
+        ...EMPTY_CPM_DISPLAY_CRITICAL,
+      },
+      { hasRunCpm: false, hardErrors: [] },
+    );
   }
 
   // Validate unique codes
@@ -308,20 +319,46 @@ export function calculateCpm(params: CalculateCpmParams): CpmResult {
     .filter((a) => a.isCritical)
     .map((a) => a.activityCode);
 
-  const continuityWarning = buildCriticalPathContinuityWarning({
+  const continuity = validateCriticalPathContinuity({
     activities: resultActivities,
     logicLinks: validLinks,
     projectStartDay,
     projectFinish,
+    hasCycle,
   });
-  if (continuityWarning) {
-    warnings.push(continuityWarning);
+
+  for (const continuityWarning of continuity.warnings) {
+    if (!warnings.includes(continuityWarning)) {
+      warnings.push(continuityWarning);
+    }
   }
 
-  return {
-    activities: resultActivities,
-    projectDurationDays: projectFinish - projectStartDay,
-    criticalPathActivityCodes,
-    warnings,
-  };
+  return attachCpmWorkflowFields(
+    {
+      activities: resultActivities,
+      projectDurationDays: projectFinish - projectStartDay,
+      criticalPathActivityCodes,
+      warnings,
+      criticalPathStatus: continuity.criticalPathStatus,
+      hasValidCriticalPath: continuity.hasValidCriticalPath,
+      criticalPathContinuityWarnings: continuity.warnings,
+      displayCriticalActivityCodes: continuity.displayCriticalActivityCodes,
+      openStartActivityCodes: continuity.openStartActivityCodes,
+      openFinishActivityCodes: continuity.openFinishActivityCodes,
+    },
+    { hasRunCpm: false, hardErrors: [] },
+  );
+}
+
+/** User-triggered CPM run for the Precedence Diagram workflow. */
+export function runCpmCalculation(params: CalculateCpmParams): CpmResult {
+  const readiness = validateCpmReadiness({
+    activities: params.activities,
+    logicLinks: params.logicLinks,
+  });
+  const base = calculateCpm(params);
+  return attachCpmWorkflowFields(base, {
+    hasRunCpm: true,
+    hardErrors: readiness.hardErrors,
+  });
 }

@@ -141,6 +141,24 @@ export function getBuildScopeModalDescription(type: EstimateType): string {
   return 'Choose the major divisions of work. These become the top-level buckets for activities, estimating, scheduling, and Gantt planning.';
 }
 
+export type ScopeModalMode = 'create' | 'add';
+
+export function getScopeModalTitle(mode: ScopeModalMode, type: EstimateType): string {
+  if (mode === 'add') return 'Add Divisions';
+  return getBuildScopeModalTitle(type);
+}
+
+export function getScopeModalDescription(mode: ScopeModalMode, type: EstimateType): string {
+  if (mode === 'add') {
+    return 'Select additional divisions to add to this estimate.';
+  }
+  return getBuildScopeModalDescription(type);
+}
+
+export function getScopeModalSubmitLabel(mode: ScopeModalMode): string {
+  return mode === 'add' ? 'Add selected divisions' : 'Create work breakdown';
+}
+
 export function shouldReinitializeSetupSessionFromVersion(
   previousVersionKey: string | null,
   nextVersionKey: string,

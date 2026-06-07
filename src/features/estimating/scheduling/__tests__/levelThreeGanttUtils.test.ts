@@ -6,7 +6,7 @@ import {
   getLevelThreeGanttRows,
 } from '../levelThreeGanttUtils';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
-import type { CpmResult } from '../cpmTypes';
+import { buildValidCpmDisplayFields, type CpmResult } from '../cpmTypes';
 
 function makeActivity(code: string, duration = 3): ScheduleActivity {
   return {
@@ -51,6 +51,10 @@ const sampleCpm: CpmResult = {
   projectDurationDays: 5,
   criticalPathActivityCodes: ['A'],
   warnings: [],
+  ...buildValidCpmDisplayFields(['A'], {
+    hasRunCpm: true,
+    hasValidPrecedenceDiagram: true,
+  }),
 };
 
 describe('levelThreeGanttUtils', () => {
@@ -87,9 +91,9 @@ describe('levelThreeGanttUtils', () => {
       '2026-06-06',
     );
     const criticalRow = rows.find((r) => r.activity.activityCode === 'A')!;
-    expect(resolveGanttCellKind(0, criticalRow)).toBe('critical');
-    expect(resolveGanttCellKind(2, criticalRow)).toBe('critical');
-    expect(resolveGanttCellKind(3, criticalRow)).toBe('empty');
+    expect(resolveGanttCellKind(0, criticalRow, sampleCpm)).toBe('critical');
+    expect(resolveGanttCellKind(2, criticalRow, sampleCpm)).toBe('critical');
+    expect(resolveGanttCellKind(3, criticalRow, sampleCpm)).toBe('empty');
   });
 
   it('resolveGanttCellKind marks float cells for noncritical activity', () => {
@@ -99,7 +103,7 @@ describe('levelThreeGanttUtils', () => {
       '2026-06-06',
     );
     const floatRow = rows.find((r) => r.activity.activityCode === 'B')!;
-    expect(resolveGanttCellKind(3, floatRow)).toBe('noncritical');
-    expect(resolveGanttCellKind(5, floatRow)).toBe('float');
+    expect(resolveGanttCellKind(3, floatRow, sampleCpm)).toBe('noncritical');
+    expect(resolveGanttCellKind(5, floatRow, sampleCpm)).toBe('float');
   });
 });

@@ -3,12 +3,18 @@ import type { CurrentEstimate } from '../../application/currentEstimateService';
 import {
   DEFAULT_SCHEDULE_SETTINGS,
   type CpmLogicLink,
+  type CpmResult,
   type LogicNetworkLayout,
+  type LogicNetworkViewMode,
   type ScheduleSettings,
 } from '../../scheduling/cpmTypes';
 import {
+  hasLogicLinksKey,
+  parseCpmResultCacheFromAssumptions,
   parseLogicLinksFromAssumptions,
+  parseLogicNetworkInitializedFromAssumptions,
   parseLogicNetworkLayoutFromAssumptions,
+  parseLogicNetworkViewModeFromAssumptions,
   parseLeveledOffsetsFromAssumptions,
   parseLogicReviewIgnoredFromAssumptions,
   parseScheduleSettingsFromAssumptions,
@@ -23,11 +29,17 @@ export interface UseScheduleSettingsResult {
   logicNetworkLayout: LogicNetworkLayout[];
   leveledOffsets: Record<string, number>;
   logicReviewIgnored: string[];
+  logicNetworkInitialized: boolean;
+  logicNetworkViewMode: LogicNetworkViewMode;
+  committedCpmResult: CpmResult | null;
   updateScheduleSettings: (patch: Partial<ScheduleSettings>) => void;
   setLogicLinks: (links: CpmLogicLink[]) => void;
   setLogicNetworkLayout: (layout: LogicNetworkLayout[]) => void;
   setLeveledOffsets: (offsets: Record<string, number>) => void;
   setLogicReviewIgnored: (ignoredWarningIds: string[]) => void;
+  setLogicNetworkInitialized: (initialized: boolean) => void;
+  setLogicNetworkViewMode: (mode: LogicNetworkViewMode) => void;
+  setCommittedCpmResult: (result: CpmResult | null) => void;
   rehydrateFromEstimate: (estimate: CurrentEstimate | null, lineItems: EstimateDomainTask[]) => void;
 }
 
@@ -38,6 +50,10 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
   const [logicNetworkLayout, setLogicNetworkLayoutState] = useState<LogicNetworkLayout[]>([]);
   const [leveledOffsets, setLeveledOffsetsState] = useState<Record<string, number>>({});
   const [logicReviewIgnored, setLogicReviewIgnoredState] = useState<string[]>([]);
+  const [logicNetworkInitialized, setLogicNetworkInitializedState] = useState(false);
+  const [logicNetworkViewMode, setLogicNetworkViewModeState] =
+    useState<LogicNetworkViewMode>('logic-network');
+  const [committedCpmResult, setCommittedCpmResultState] = useState<CpmResult | null>(null);
 
   const rehydrateFromEstimate = useCallback(
     (estimate: CurrentEstimate | null, lineItems: EstimateDomainTask[]) => {
@@ -47,6 +63,9 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
         setLogicNetworkLayoutState([]);
         setLeveledOffsetsState({});
         setLogicReviewIgnoredState([]);
+        setLogicNetworkInitializedState(false);
+        setLogicNetworkViewModeState('logic-network');
+        setCommittedCpmResultState(null);
         return;
       }
 
@@ -75,17 +94,21 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
 
       setScheduleSettings(parsedSettings);
 
+      const initialized = parseLogicNetworkInitializedFromAssumptions(sanitizedAssumptions);
+      const hasLinksKey = hasLogicLinksKey(estimate.assumptions);
       const existingLinks = parseLogicLinksFromAssumptions(sanitizedAssumptions);
-      if (existingLinks.length > 0) {
+      if (initialized || hasLinksKey) {
         setLogicLinksState(existingLinks);
       } else {
-        const seeded = seedLogicLinksFromLineItems(lineItems);
-        setLogicLinksState(seeded);
+        setLogicLinksState(seedLogicLinksFromLineItems(lineItems));
       }
+      setLogicNetworkInitializedState(initialized || hasLinksKey);
 
       setLogicNetworkLayoutState(parseLogicNetworkLayoutFromAssumptions(sanitizedAssumptions));
       setLeveledOffsetsState(parseLeveledOffsetsFromAssumptions(sanitizedAssumptions));
       setLogicReviewIgnoredState(parseLogicReviewIgnoredFromAssumptions(sanitizedAssumptions));
+      setLogicNetworkViewModeState(parseLogicNetworkViewModeFromAssumptions(sanitizedAssumptions));
+      setCommittedCpmResultState(parseCpmResultCacheFromAssumptions(sanitizedAssumptions));
     },
     [],
   );
@@ -110,17 +133,35 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
     setLogicReviewIgnoredState(ignoredWarningIds);
   }, []);
 
+  const setLogicNetworkInitialized = useCallback((initialized: boolean) => {
+    setLogicNetworkInitializedState(initialized);
+  }, []);
+
+  const setLogicNetworkViewMode = useCallback((mode: LogicNetworkViewMode) => {
+    setLogicNetworkViewModeState(mode);
+  }, []);
+
+  const setCommittedCpmResult = useCallback((result: CpmResult | null) => {
+    setCommittedCpmResultState(result);
+  }, []);
+
   return {
     scheduleSettings,
     logicLinks,
     logicNetworkLayout,
     leveledOffsets,
     logicReviewIgnored,
+    logicNetworkInitialized,
+    logicNetworkViewMode,
+    committedCpmResult,
     updateScheduleSettings,
     setLogicLinks,
     setLogicNetworkLayout,
     setLeveledOffsets,
     setLogicReviewIgnored,
+    setLogicNetworkInitialized,
+    setLogicNetworkViewMode,
+    setCommittedCpmResult,
     rehydrateFromEstimate,
   };
 }

@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as calculateCpmModule from '../cpm/calculateCpm';
 import { checkLogicNetwork } from '../logic/checkLogicNetwork';
 import {
   applyLogicSuggestions,
@@ -103,6 +104,87 @@ describe('applyLogicSuggestions', () => {
     expect(result.added).toHaveLength(1);
     expect(result.skipped).toHaveLength(1);
     expect(result.skipped[0]?.reason).toBe('duplicate');
+  });
+
+  it('skips reverse links when the opposite direction already exists', () => {
+    const result = applyLogicSuggestions({
+      suggestions: [fs('A', 'B')],
+      existingLinks: [fs('B', 'A')],
+      activities,
+    });
+
+    expect(result.added).toHaveLength(0);
+    expect(result.skipped[0]?.reason).toBe('reverse-link');
+  });
+
+  it('skips invalid relationship types', () => {
+    const result = applyLogicSuggestions({
+      suggestions: [
+        {
+          ...fs('A', 'B'),
+          relationshipType: 'XX' as CpmLogicLink['relationshipType'],
+        },
+      ],
+      existingLinks: [],
+      activities,
+    });
+
+    expect(result.added).toHaveLength(0);
+    expect(result.skipped[0]?.reason).toBe('invalid-relationship-type');
+  });
+
+  it('skips invalid lag values', () => {
+    const result = applyLogicSuggestions({
+      suggestions: [{ ...fs('A', 'B'), lagDays: Number.NaN }],
+      existingLinks: [],
+      activities,
+    });
+
+    expect(result.added).toHaveLength(0);
+    expect(result.skipped[0]?.reason).toBe('invalid-lag');
+  });
+
+  it('skips links that would over-constrain the network', () => {
+    vi.spyOn(calculateCpmModule, 'calculateCpm').mockReturnValue({
+      activities: [
+        {
+          activityCode: 'B',
+          earlyStart: 5,
+          earlyFinish: 8,
+          lateStart: 3,
+          lateFinish: 6,
+          totalFloat: -2,
+          freeFloat: 0,
+          isCritical: false,
+        },
+      ],
+      projectDurationDays: 8,
+      criticalPathActivityCodes: ['B'],
+      warnings: [],
+    });
+
+    const result = applyLogicSuggestions({
+      suggestions: [fs('A', 'B')],
+      existingLinks: [],
+      activities,
+    });
+
+    expect(result.added).toHaveLength(0);
+    expect(result.skipped[0]?.reason).toBe('would-over-constrain-network');
+
+    vi.restoreAllMocks();
+  });
+
+  it('validates later suggestions against the evolving draft network', () => {
+    const result = applyLogicSuggestions({
+      suggestions: [fs('A', 'B'), fs('B', 'C'), fs('C', 'A')],
+      existingLinks: [],
+      activities,
+    });
+
+    expect(result.added).toHaveLength(2);
+    expect(result.skipped).toHaveLength(1);
+    expect(result.skipped[0]?.reason).toBe('cycle');
   });
 });
 
@@ -277,7 +359,16 @@ describe('accept all UI wiring', () => {
 
   it('reuses handleAddSuggestedLogicLinks to save accepted links to assumptions', () => {
     expect(pageSource).toContain('handleAddSuggestedLogicLinks');
-    expect(pageSource).toContain('appendSuggestedLogicLinks');
+    expect(pageSource).toContain('applyLogicSuggestions');
     expect(pageSource).toContain('handleLogicLinksChange');
+    expect(pageSource).not.toContain('appendSuggestedLogicLinks');
+  });
+
+  it('exposes revert and clear logic link handlers in Logic Review panel', () => {
+    expect(panelSource).toContain('Revert last AI changes');
+    expect(panelSource).toContain('Clear all logic links');
+    expect(panelSource).toContain('Repair unsafe logic');
+    expect(workspaceSource).toContain('onRevertLastLogicBatch');
+    expect(workspaceSource).toContain('onClearAllLogicLinks');
   });
 });

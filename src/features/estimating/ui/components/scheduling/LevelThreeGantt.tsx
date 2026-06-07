@@ -25,10 +25,12 @@ import {
   timelineWidthPx,
   todayLineLeftPx,
 } from '../../../scheduling/levelThreeGanttGrid';
+import { isDisplayCritical } from '../../../scheduling/cpm/cpmDisplayCritical';
 import {
   buildTimelineDays,
   buildTimelineMonthSegments,
   getLevelThreeGanttRows,
+  resolveGanttRowCodeClassName,
 } from '../../../scheduling/levelThreeGanttUtils';
 import type { EstimateDomainTask } from '../../../infrastructure/estimateDbTypes';
 import Button from '../../../../../components/ui/Button';
@@ -186,18 +188,47 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
         rows,
         logicLinks,
         lineItems,
+        cpmResult,
       ),
-    [selectedActivityCode, rows, lineItems, logicLinks],
+    [cpmResult, selectedActivityCode, rows, lineItems, logicLinks],
   );
 
   useEffect(() => {
     assertGanttGridInvariants(projectDuration, timelineWidth, rows.length, barLayouts);
   }, [projectDuration, timelineWidth, rows.length, barLayouts]);
 
-  if (!cpmResult || rows.length === 0) {
+  if (activities.length === 0) {
     return (
       <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 py-20 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
         No scheduled activities. Add activities in the Estimate tab, then wire them in Logic Network.
+      </div>
+    );
+  }
+
+  if (!cpmResult?.hasRunCpm || rows.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+            Level III Gantt
+          </h2>
+          <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-300">
+            Draft schedule only. Run CPM from a valid precedence diagram before viewing the Level III
+            Gantt timeline.
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Scheduled activities ({activities.length})
+          </p>
+          <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-200">
+            {activities.map((activity) => (
+              <li key={activity.activityCode}>
+                {activity.activityCode} · {activity.activityDescription} · {activity.durationDays}d
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     );
   }
@@ -338,11 +369,7 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                       style={{ gridTemplateColumns: gridTemplate }}
                     >
                       <span
-                        className={`truncate px-2 font-mono font-medium ${
-                          row.cpm.isCritical
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-slate-700 dark:text-slate-300'
-                        }`}
+                        className={`truncate px-2 font-mono font-medium ${resolveGanttRowCodeClassName(row, cpmResult)}`}
                       >
                         {row.activity.activityCode}
                       </span>
@@ -372,7 +399,7 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                     )}
                     <ActivityBars
                       layout={layout}
-                      isCritical={row.cpm.isCritical}
+                      isCritical={isDisplayCritical(cpmResult!, row.activity.activityCode)}
                       activityCode={row.activity.activityCode}
                       onBarClick={setSelectedActivityCode}
                     />

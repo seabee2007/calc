@@ -61,9 +61,9 @@ export function buildCpmCriticalPathPreview(params: {
     };
   }
 
-  const criticalActivityCodes = cpmResult.activities
-    .filter((activity) => activity.isCritical)
-    .map((activity) => activity.activityCode);
+  const criticalActivityCodes = cpmResult.hasValidCriticalPath
+    ? [...cpmResult.displayCriticalActivityCodes]
+    : [];
 
   const codeToCandidateId = buildActivityCodeToCandidateIdMap(plan);
   const criticalTaskIds = mapCriticalActivityCodesToCandidateIds(
@@ -82,6 +82,13 @@ export function buildCpmCriticalPathPreview(params: {
       : null;
 
   const warnings = [...cpmResult.warnings];
+  if (!cpmResult.hasValidCriticalPath && cpmResult.criticalPathContinuityWarnings.length > 0) {
+    for (const warning of cpmResult.criticalPathContinuityWarnings) {
+      if (!warnings.includes(warning)) {
+        warnings.push(warning);
+      }
+    }
+  }
   if (criticalActivityCodes.length > 0 && criticalTaskIds.length < criticalActivityCodes.length) {
     warnings.push(
       'Some critical CPM activities could not be matched to Gantt preview tasks. Open Logic Network or Level III Gantt for the full CPM view.',

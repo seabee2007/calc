@@ -34,7 +34,7 @@ import {
   getLevelThreeGanttRows,
 } from '../levelThreeGanttUtils';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
-import type { CpmResult } from '../cpmTypes';
+import { buildValidCpmDisplayFields, type CpmResult } from '../cpmTypes';
 
 const levelThreeGanttSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../../ui/components/scheduling/LevelThreeGantt.tsx'),
@@ -84,6 +84,7 @@ const sampleCpm: CpmResult = {
   projectDurationDays: 5,
   criticalPathActivityCodes: ['A'],
   warnings: [],
+  ...buildValidCpmDisplayFields(['A']),
 };
 
 describe('levelThreeGanttGrid', () => {

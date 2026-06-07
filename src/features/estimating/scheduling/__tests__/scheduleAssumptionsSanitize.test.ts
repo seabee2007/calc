@@ -8,6 +8,7 @@ import {
   getValidScheduleActivityCodes,
   mergeScheduleAssumptionsForAddImport,
   parseLogicLinksFromAssumptions,
+  parseLogicNetworkInitializedFromAssumptions,
   parseLogicNetworkLayoutFromAssumptions,
   parseLeveledOffsetsFromAssumptions,
   parseLogicReviewIgnoredFromAssumptions,
@@ -109,6 +110,14 @@ describe('sanitizeScheduleAssumptionsForLineItems', () => {
     expect(sanitized.resourceLevelingResults).toBeUndefined();
     expect(sanitized.logicReviewAiSuggestions).toBeUndefined();
   });
+
+  it('preserves logicNetworkInitialized through sanitize', () => {
+    const sanitized = sanitizeScheduleAssumptionsForLineItems(
+      { ...STALE_ASSUMPTIONS, logicNetworkInitialized: true },
+      NEW_TASKS,
+    );
+    expect(parseLogicNetworkInitializedFromAssumptions(sanitized)).toBe(true);
+  });
 });
 
 describe('resetScheduleAssumptionsForReplacement', () => {
@@ -126,6 +135,11 @@ describe('resetScheduleAssumptionsForReplacement', () => {
     const links = parseLogicLinksFromAssumptions(reset);
     expect(links).toEqual(seedLogicLinksFromLineItems(NEW_TASKS));
     expect(links.some((link) => link.predecessorActivityCode === 'OLD-A')).toBe(false);
+  });
+
+  it('sets logicNetworkInitialized on replace import', () => {
+    const reset = resetScheduleAssumptionsForReplacement(STALE_ASSUMPTIONS, NEW_TASKS);
+    expect(parseLogicNetworkInitializedFromAssumptions(reset)).toBe(true);
   });
 });
 
@@ -171,6 +185,11 @@ describe('mergeScheduleAssumptionsForAddImport', () => {
       'KEEP-A',
     ]);
   });
+
+  it('sets logicNetworkInitialized on add import', () => {
+    const merged = mergeScheduleAssumptionsForAddImport(STALE_ASSUMPTIONS, NEW_TASKS, NEW_TASKS);
+    expect(parseLogicNetworkInitializedFromAssumptions(merged)).toBe(true);
+  });
 });
 
 describe('schedule layer reset wiring', () => {
@@ -203,6 +222,47 @@ describe('schedule layer reset wiring', () => {
     expect(pageSource).toContain('activitySignature={scheduleActivitySignature}');
     expect(canvasSource).toContain('activitySignature');
     expect(canvasSource).toContain('autoLayoutSnapshotRef.current = null');
+  });
+});
+
+describe('sanitizeScheduleAssumptionsForLineItems link hygiene', () => {
+  it('removes self links and exact duplicate links on load', () => {
+    const tasks = [
+      makeTask({ activityCode: 'A', title: 'Layout' }),
+      makeTask({ activityCode: 'B', title: 'Excavation', predecessorActivityCode: 'A' }),
+    ];
+    const assumptions = {
+      logicLinks: [
+        {
+          predecessorActivityCode: 'A',
+          successorActivityCode: 'A',
+          relationshipType: 'FS',
+          lagDays: 0,
+        },
+        {
+          predecessorActivityCode: 'A',
+          successorActivityCode: 'B',
+          relationshipType: 'FS',
+          lagDays: 0,
+        },
+        {
+          predecessorActivityCode: 'A',
+          successorActivityCode: 'B',
+          relationshipType: 'FS',
+          lagDays: 0,
+        },
+      ],
+    };
+
+    const sanitized = sanitizeScheduleAssumptionsForLineItems(assumptions, tasks);
+    expect(parseLogicLinksFromAssumptions(sanitized)).toEqual([
+      {
+        predecessorActivityCode: 'A',
+        successorActivityCode: 'B',
+        relationshipType: 'FS',
+        lagDays: 0,
+      },
+    ]);
   });
 });
 

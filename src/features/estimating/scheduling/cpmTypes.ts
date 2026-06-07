@@ -20,11 +20,132 @@ export interface CpmActivityResult {
   isCritical: boolean;
 }
 
+export type LogicNetworkViewMode = 'logic-network' | 'precedence-diagram';
+
+export type ScheduleWorkflowStatus =
+  | 'logic-network-draft'
+  | 'logic-ready'
+  | 'precedence-ready'
+  | 'cpm-calculated'
+  | 'missing-logic'
+  | 'invalid-circular'
+  | 'invalid-disconnected'
+  | 'invalid-missing-references'
+  | 'invalid-open-ended'
+  | 'over-constrained';
+
+export type CriticalPathStatus =
+  | 'valid'
+  | 'missing-logic'
+  | 'disconnected'
+  | 'circular'
+  | 'over-constrained'
+  | 'open-start'
+  | 'open-finish'
+  | 'not-run';
+
 export interface CpmResult {
   activities: CpmActivityResult[];
   projectDurationDays: number;
+  /** Math-based zero-float codes — not used for display styling. */
   criticalPathActivityCodes: string[];
   warnings: string[];
+  hardErrors: string[];
+  criticalPathStatus: CriticalPathStatus;
+  hasRunCpm: boolean;
+  hasValidPrecedenceDiagram: boolean;
+  hasValidCriticalPath: boolean;
+  criticalPathContinuityWarnings: string[];
+  /** Display-critical codes — alias: validCriticalPathActivityCodes */
+  displayCriticalActivityCodes: string[];
+  validCriticalPathActivityCodes: string[];
+  openStartActivityCodes: string[];
+  openFinishActivityCodes: string[];
+}
+
+export function buildValidCpmDisplayFields(
+  displayCriticalActivityCodes: string[],
+  overrides: Partial<
+    Pick<
+      CpmResult,
+      | 'criticalPathStatus'
+      | 'hasValidCriticalPath'
+      | 'criticalPathContinuityWarnings'
+      | 'openStartActivityCodes'
+      | 'openFinishActivityCodes'
+      | 'hasRunCpm'
+      | 'hasValidPrecedenceDiagram'
+      | 'hardErrors'
+    >
+  > = {},
+): Pick<
+  CpmResult,
+  | 'criticalPathStatus'
+  | 'hasValidCriticalPath'
+  | 'criticalPathContinuityWarnings'
+  | 'displayCriticalActivityCodes'
+  | 'validCriticalPathActivityCodes'
+  | 'openStartActivityCodes'
+  | 'openFinishActivityCodes'
+  | 'hasRunCpm'
+  | 'hasValidPrecedenceDiagram'
+  | 'hardErrors'
+> {
+  return {
+    criticalPathStatus: 'valid',
+    hasValidCriticalPath: true,
+    criticalPathContinuityWarnings: [],
+    displayCriticalActivityCodes,
+    validCriticalPathActivityCodes: displayCriticalActivityCodes,
+    openStartActivityCodes: [],
+    openFinishActivityCodes: [],
+    hasRunCpm: false,
+    hasValidPrecedenceDiagram: false,
+    hardErrors: [],
+    ...overrides,
+  };
+}
+
+export const EMPTY_CPM_DISPLAY_CRITICAL: Pick<
+  CpmResult,
+  | 'criticalPathStatus'
+  | 'hasValidCriticalPath'
+  | 'criticalPathContinuityWarnings'
+  | 'displayCriticalActivityCodes'
+  | 'validCriticalPathActivityCodes'
+  | 'openStartActivityCodes'
+  | 'openFinishActivityCodes'
+  | 'hasRunCpm'
+  | 'hasValidPrecedenceDiagram'
+  | 'hardErrors'
+> = {
+  criticalPathStatus: 'missing-logic',
+  hasValidCriticalPath: false,
+  criticalPathContinuityWarnings: [],
+  displayCriticalActivityCodes: [],
+  validCriticalPathActivityCodes: [],
+  openStartActivityCodes: [],
+  openFinishActivityCodes: [],
+  hasRunCpm: false,
+  hasValidPrecedenceDiagram: false,
+  hardErrors: [],
+};
+
+export function attachCpmWorkflowFields(
+  result: Omit<
+    CpmResult,
+    'hasRunCpm' | 'hasValidPrecedenceDiagram' | 'validCriticalPathActivityCodes' | 'hardErrors'
+  >,
+  options: { hasRunCpm: boolean; hardErrors?: string[] },
+): CpmResult {
+  const hardErrors = options.hardErrors ?? [];
+  return {
+    ...result,
+    hasRunCpm: options.hasRunCpm,
+    hasValidPrecedenceDiagram: options.hasRunCpm && hardErrors.length === 0,
+    validCriticalPathActivityCodes: result.displayCriticalActivityCodes,
+    hardErrors,
+  };
 }
 
 export interface ScheduleSettings {

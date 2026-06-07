@@ -70,6 +70,7 @@ import {
 import EstimateSettingsPanel from './components/EstimateSettingsPanel';
 import { useEstimateSettings } from './hooks/useEstimateSettings';
 import {
+  shouldShowAddDivisionAction,
   shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
@@ -94,15 +95,23 @@ import {
 } from '../schedule/ganttExportValidation';
 import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
 import { estimateLineItemsToScheduleActivities } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import { calculateCpm } from '../scheduling/cpm/calculateCpm';
-import type { CpmLogicLink, LogicNetworkLayout, ScheduleSettings } from '../scheduling/cpmTypes';
-import { appendSuggestedLogicLinks } from '../scheduling/logic/logicReviewUtils';
-import type { SuggestedLogicLink } from '../scheduling/logic/logicTypes';
+import { runCpmCalculation } from '../scheduling/cpm/calculateCpm';
+import type {
+  CpmLogicLink,
+  LogicNetworkLayout,
+  LogicNetworkViewMode,
+  ScheduleSettings,
+} from '../scheduling/cpmTypes';
+import { validateCpmReadiness } from '../scheduling/logic/validateCpmReadiness';
+import { applyLogicSuggestions } from '../scheduling/logic/logicReviewUtils';
+import type { LogicBatchSnapshot, SuggestedLogicLink } from '../scheduling/logic/logicTypes';
 import {
   buildScheduleActivitySignature,
   mergeScheduleAssumptions,
   mergeScheduleAssumptionsForAddImport,
+  parseLogicBatchSnapshotFromAssumptions,
   resetScheduleAssumptionsForReplacement,
+  sanitizeLogicLinksForActivities,
 } from '../scheduling/scheduleAssumptions';
 import { useScheduleSettings } from './hooks/useScheduleSettings';
 import LogicNetworkWorkspace from './components/scheduling/LogicNetworkWorkspace';
@@ -185,6 +194,10 @@ export default function EstimateWorkspacePage() {
   const lineItemDraft = useEstimateLineItemDraft(estimateAdapter);
   const estimateSettings = useEstimateSettings();
   const scheduleSettingsHook = useScheduleSettings();
+  const currentEstimateRef = useRef(currentEstimate);
+  useEffect(() => {
+    currentEstimateRef.current = currentEstimate;
+  }, [currentEstimate]);
   const ganttExportRef = useRef<HTMLDivElement>(null);
   const [levelingModalResult, setLevelingModalResult] = useState<import('../scheduling/cpmTypes').ResourceLevelingResult | null>(null);
 
@@ -218,14 +231,14 @@ export default function EstimateWorkspacePage() {
     [estimateAdapter, estimateSettings.settings],
   );
 
-  const cpmResult = useMemo(
+  const cpmResult = scheduleSettingsHook.committedCpmResult;
+
+  const cpmReadiness = useMemo(
     () =>
-      scheduleActivitiesResult.activities.length > 0
-        ? calculateCpm({
-            activities: scheduleActivitiesResult.activities,
-            logicLinks: scheduleSettingsHook.logicLinks,
-          })
-        : null,
+      validateCpmReadiness({
+        activities: scheduleActivitiesResult.activities,
+        logicLinks: scheduleSettingsHook.logicLinks,
+      }),
     [scheduleActivitiesResult.activities, scheduleSettingsHook.logicLinks],
   );
 
@@ -835,53 +848,266 @@ export default function EstimateWorkspacePage() {
 
   // ── Schedule save helpers ──────────────────────────────────────────────────
 
+  const saveLogicLinksSafely = useCallback(
+    async (
+      nextLinks: CpmLogicLink[],
+      options: {
+        batchSnapshot?: LogicBatchSnapshot | null;
+        clearLevelingState?: boolean;
+        allowEmpty?: boolean;
+      } = {},
+    ) => {
+      const estimate = currentEstimateRef.current;
+      if (!estimate || !estimateAdapter) return;
+
+      const activityCodes = new Set(
+        scheduleActivitiesResult.activities.map((activity) => activity.activityCode),
+      );
+      const sanitized = sanitizeLogicLinksForActivities(nextLinks, activityCodes);
+
+      scheduleSettingsHook.setLogicLinks(sanitized);
+      scheduleSettingsHook.setLogicNetworkInitialized(true);
+      scheduleSettingsHook.setCommittedCpmResult(null);
+
+      if (options.clearLevelingState) {
+        scheduleSettingsHook.setLeveledOffsets({});
+      }
+
+      const leveledOffsets = options.clearLevelingState
+        ? {}
+        : scheduleSettingsHook.leveledOffsets;
+
+      let updatedAssumptions = mergeScheduleAssumptions(
+        {
+          logicLinks: sanitized,
+          logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
+          scheduleSettings: scheduleSettingsHook.scheduleSettings,
+          leveledActivityOffsets: leveledOffsets,
+          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
+          logicNetworkInitialized: true,
+          cpmResultCache: null,
+          ...(options.batchSnapshot !== undefined
+            ? { lastLogicSuggestionBatch: options.batchSnapshot }
+            : {}),
+        },
+        estimate.assumptions as Record<string, unknown>,
+      );
+
+      if (options.clearLevelingState) {
+        const {
+          resourceLevelingResults: _resourceLevelingResults,
+          logicReviewAiSuggestions: _logicReviewAiSuggestions,
+          ...withoutLevelingExtras
+        } = updatedAssumptions;
+        updatedAssumptions = withoutLevelingExtras;
+      }
+
+      if (import.meta.env.DEV && options.allowEmpty && sanitized.length === 0) {
+        console.info('[Logic Network]', {
+          action: 'clear',
+          activityCount: scheduleActivitiesResult.activities.length,
+          linkCount: 0,
+          initialized: true,
+          hasValidCriticalPath: cpmResult?.hasValidCriticalPath ?? false,
+          criticalPathStatus: cpmResult?.criticalPathStatus ?? 'unknown',
+        });
+      }
+
+      const result = await saveCurrentEstimateWithLineItems({
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        draftLines: lineItemDraft.draftLines,
+        selectedDivisions: estimate.selectedDivisions,
+        estimateSettings: estimateSettings.settings,
+        existingAssumptions: updatedAssumptions,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        setSaveToastMessage(result.error ?? 'Failed to save logic links');
+      }
+    },
+    [
+      cpmResult?.criticalPathStatus,
+      cpmResult?.hasValidCriticalPath,
+      estimateAdapter,
+      estimateSettings.settings,
+      lineItemDraft.draftLines,
+      scheduleActivitiesResult.activities,
+      scheduleSettingsHook,
+      user?.id,
+    ],
+  );
+
   const handleLogicLinksChange = useCallback(
-    async (links: CpmLogicLink[]) => {
-      if (!currentEstimate || !estimateAdapter) return;
-      scheduleSettingsHook.setLogicLinks(links);
+    async (links: CpmLogicLink[], batchSnapshot?: LogicBatchSnapshot | null) => {
+      await saveLogicLinksSafely(links, {
+        ...(batchSnapshot !== undefined ? { batchSnapshot } : {}),
+      });
+    },
+    [saveLogicLinksSafely],
+  );
+
+  const handleAddSuggestedLogicLinks = useCallback(
+    async (suggestedLinks: SuggestedLogicLink[]) => {
+      if (!currentEstimate || !estimateAdapter || suggestedLinks.length === 0) return;
+
+      const activities = scheduleActivitiesResult.activities;
+      const previousLinks = scheduleSettingsHook.logicLinks;
+
+      const result = applyLogicSuggestions({
+        suggestions: suggestedLinks,
+        existingLinks: previousLinks,
+        activities,
+      });
+
+      if (result.added.length === 0) return;
+
+      const batch: LogicBatchSnapshot = {
+        appliedAt: new Date().toISOString(),
+        addedLinks: result.added.map((link) => ({
+          predecessorActivityCode: link.predecessorActivityCode,
+          successorActivityCode: link.successorActivityCode,
+          relationshipType: link.relationshipType,
+          lagDays: link.lagDays,
+        })),
+        previousLinksSnapshot: previousLinks,
+      };
+
+      await handleLogicLinksChange(result.nextLinks, batch);
+    },
+    [
+      currentEstimate,
+      estimateAdapter,
+      handleLogicLinksChange,
+      scheduleActivitiesResult.activities,
+      scheduleSettingsHook.logicLinks,
+    ],
+  );
+
+  const logicBatchSnapshot = useMemo(
+    () =>
+      parseLogicBatchSnapshotFromAssumptions(
+        currentEstimate?.assumptions as Record<string, unknown> | undefined,
+      ),
+    [currentEstimate?.assumptions],
+  );
+  const hasLogicBatch = logicBatchSnapshot !== null;
+
+  const handleRevertLastLogicBatch = useCallback(async () => {
+    const batch = parseLogicBatchSnapshotFromAssumptions(
+      currentEstimate?.assumptions as Record<string, unknown> | undefined,
+    );
+    if (!batch) return;
+    await handleLogicLinksChange(batch.previousLinksSnapshot, null);
+  }, [currentEstimate?.assumptions, handleLogicLinksChange]);
+
+  const handleClearAllLogicLinks = useCallback(async () => {
+    await saveLogicLinksSafely([], {
+      allowEmpty: true,
+      clearLevelingState: true,
+      batchSnapshot: null,
+    });
+  }, [saveLogicLinksSafely]);
+
+  const [runCpmBusy, setRunCpmBusy] = useState(false);
+
+  const handleRunCpm = useCallback(async () => {
+    const estimate = currentEstimateRef.current;
+    if (!estimate || !estimateAdapter) return;
+    if (!cpmReadiness.canRunCpm) return;
+
+    setRunCpmBusy(true);
+    try {
+      const result = runCpmCalculation({
+        activities: scheduleActivitiesResult.activities,
+        logicLinks: scheduleSettingsHook.logicLinks,
+      });
+      scheduleSettingsHook.setCommittedCpmResult(result);
+
       const updatedAssumptions = mergeScheduleAssumptions(
         {
-          logicLinks: links,
+          logicLinks: scheduleSettingsHook.logicLinks,
           logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
           scheduleSettings: scheduleSettingsHook.scheduleSettings,
           leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
           logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
+          logicNetworkInitialized: true,
+          logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
+          cpmResultCache: result,
         },
-        currentEstimate.assumptions as Record<string, unknown>,
+        estimate.assumptions as Record<string, unknown>,
       );
-      await saveCurrentEstimateWithLineItems({
-        estimateId: currentEstimate.id,
-        projectId: currentEstimate.projectId,
+
+      const saveResult = await saveCurrentEstimateWithLineItems({
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
         estimateType: estimateAdapter.estimateType,
         draftLines: lineItemDraft.draftLines,
-        selectedDivisions: currentEstimate.selectedDivisions,
+        selectedDivisions: estimate.selectedDivisions,
+        estimateSettings: estimateSettings.settings,
+        existingAssumptions: updatedAssumptions,
+        createdBy: user?.id ?? null,
+      });
+
+      if (saveResult.error || !saveResult.data) {
+        setSaveToastMessage(saveResult.error ?? 'Failed to save CPM results');
+      }
+    } finally {
+      setRunCpmBusy(false);
+    }
+  }, [
+    cpmReadiness.canRunCpm,
+    estimateAdapter,
+    estimateSettings.settings,
+    lineItemDraft.draftLines,
+    scheduleActivitiesResult.activities,
+    scheduleSettingsHook,
+    user?.id,
+  ]);
+
+  const handleLogicNetworkViewModeChange = useCallback(
+    async (mode: LogicNetworkViewMode) => {
+      const estimate = currentEstimateRef.current;
+      if (!estimate || !estimateAdapter) return;
+      scheduleSettingsHook.setLogicNetworkViewMode(mode);
+      const updatedAssumptions = mergeScheduleAssumptions(
+        {
+          logicLinks: scheduleSettingsHook.logicLinks,
+          logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
+          scheduleSettings: scheduleSettingsHook.scheduleSettings,
+          leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
+          logicNetworkInitialized: true,
+          logicNetworkViewMode: mode,
+        },
+        estimate.assumptions as Record<string, unknown>,
+      );
+      await saveCurrentEstimateWithLineItems({
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        estimateType: estimateAdapter.estimateType,
+        draftLines: lineItemDraft.draftLines,
+        selectedDivisions: estimate.selectedDivisions,
         estimateSettings: estimateSettings.settings,
         existingAssumptions: updatedAssumptions,
         createdBy: user?.id ?? null,
       });
     },
     [
-      currentEstimate,
       estimateAdapter,
-      lineItemDraft.draftLines,
       estimateSettings.settings,
+      lineItemDraft.draftLines,
       scheduleSettingsHook,
       user?.id,
     ],
   );
 
-  const handleAddSuggestedLogicLinks = useCallback(
-    async (suggestedLinks: SuggestedLogicLink[]) => {
-      if (!currentEstimate || !estimateAdapter || suggestedLinks.length === 0) return;
-      const nextLinks = appendSuggestedLogicLinks(scheduleSettingsHook.logicLinks, suggestedLinks);
-      await handleLogicLinksChange(nextLinks);
-    },
-    [currentEstimate, estimateAdapter, handleLogicLinksChange, scheduleSettingsHook.logicLinks],
-  );
-
   const handleIgnoreLogicWarning = useCallback(
     async (warningId: string) => {
-      if (!currentEstimate || !estimateAdapter) return;
+      const estimate = currentEstimateRef.current;
+      if (!estimate || !estimateAdapter) return;
       const nextIgnored = scheduleSettingsHook.logicReviewIgnored.includes(warningId)
         ? scheduleSettingsHook.logicReviewIgnored
         : [...scheduleSettingsHook.logicReviewIgnored, warningId];
@@ -893,22 +1119,22 @@ export default function EstimateWorkspacePage() {
           scheduleSettings: scheduleSettingsHook.scheduleSettings,
           leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
           logicReviewIgnored: nextIgnored,
+          logicNetworkInitialized: true,
         },
-        currentEstimate.assumptions as Record<string, unknown>,
+        estimate.assumptions as Record<string, unknown>,
       );
       await saveCurrentEstimateWithLineItems({
-        estimateId: currentEstimate.id,
-        projectId: currentEstimate.projectId,
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
         estimateType: estimateAdapter.estimateType,
         draftLines: lineItemDraft.draftLines,
-        selectedDivisions: currentEstimate.selectedDivisions,
+        selectedDivisions: estimate.selectedDivisions,
         estimateSettings: estimateSettings.settings,
         existingAssumptions: updatedAssumptions,
         createdBy: user?.id ?? null,
       });
     },
     [
-      currentEstimate,
       estimateAdapter,
       estimateSettings.settings,
       lineItemDraft.draftLines,
@@ -919,7 +1145,8 @@ export default function EstimateWorkspacePage() {
 
   const persistLogicNetworkLayout = useCallback(
     async (layout: LogicNetworkLayout[]) => {
-      if (!currentEstimate || !estimateAdapter) {
+      const estimate = currentEstimateRef.current;
+      if (!estimate || !estimateAdapter) {
         throw new Error('No estimate available');
       }
       scheduleSettingsHook.setLogicNetworkLayout(layout);
@@ -929,15 +1156,16 @@ export default function EstimateWorkspacePage() {
           logicNetworkLayout: layout,
           scheduleSettings: scheduleSettingsHook.scheduleSettings,
           leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicNetworkInitialized: true,
         },
-        currentEstimate.assumptions as Record<string, unknown>,
+        estimate.assumptions as Record<string, unknown>,
       );
       const result = await saveCurrentEstimateWithLineItems({
-        estimateId: currentEstimate.id,
-        projectId: currentEstimate.projectId,
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
         estimateType: estimateAdapter.estimateType,
         draftLines: lineItemDraft.draftLines,
-        selectedDivisions: currentEstimate.selectedDivisions,
+        selectedDivisions: estimate.selectedDivisions,
         estimateSettings: estimateSettings.settings,
         existingAssumptions: updatedAssumptions,
         createdBy: user?.id ?? null,
@@ -947,7 +1175,6 @@ export default function EstimateWorkspacePage() {
       }
     },
     [
-      currentEstimate,
       estimateAdapter,
       lineItemDraft.draftLines,
       estimateSettings.settings,
@@ -975,7 +1202,8 @@ export default function EstimateWorkspacePage() {
   );
 
   const handleApplyResourceLeveling = useCallback(async () => {
-    if (!levelingModalResult || !currentEstimate || !estimateAdapter) return;
+    const estimate = currentEstimateRef.current;
+    if (!levelingModalResult || !estimate || !estimateAdapter) return;
     const newOffsets: Record<string, number> = {};
     for (const moved of levelingModalResult.movedActivities) {
       newOffsets[moved.activityCode] = moved.daysMoved;
@@ -987,15 +1215,16 @@ export default function EstimateWorkspacePage() {
         logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
         scheduleSettings: scheduleSettingsHook.scheduleSettings,
         leveledActivityOffsets: newOffsets,
+        logicNetworkInitialized: true,
       },
-      currentEstimate.assumptions as Record<string, unknown>,
+      estimate.assumptions as Record<string, unknown>,
     );
     await saveCurrentEstimateWithLineItems({
-      estimateId: currentEstimate.id,
-      projectId: currentEstimate.projectId,
+      estimateId: estimate.id,
+      projectId: estimate.projectId,
       estimateType: estimateAdapter.estimateType,
       draftLines: lineItemDraft.draftLines,
-      selectedDivisions: currentEstimate.selectedDivisions,
+      selectedDivisions: estimate.selectedDivisions,
       estimateSettings: estimateSettings.settings,
       existingAssumptions: updatedAssumptions,
       createdBy: user?.id ?? null,
@@ -1003,7 +1232,6 @@ export default function EstimateWorkspacePage() {
     setLevelingModalResult(null);
   }, [
     levelingModalResult,
-    currentEstimate,
     estimateAdapter,
     lineItemDraft.draftLines,
     estimateSettings.settings,
@@ -1183,6 +1411,13 @@ export default function EstimateWorkspacePage() {
     builderToolbarHandlers?.showSaveQuick ?? false,
   );
   const resolvedEstimateType = currentEstimate?.estimateType ?? activeEstimateType;
+  const showAddDivision = shouldShowAddDivisionAction(
+    activeTab,
+    hasEstimate,
+    builderToolbarHandlers?.showAddDivision ?? false,
+    resolvedEstimateType,
+    canEditEstimate || activeEstimateType != null,
+  );
   const showImportExport = shouldShowBidImportExportActions(
     activeTab,
     hasEstimate,
@@ -1200,6 +1435,12 @@ export default function EstimateWorkspacePage() {
     () => setFocusActivityCode(null),
     [],
   );
+  const handleDivisionsAdded = useCallback(() => {
+    setSaveToastMessage('Divisions added');
+  }, []);
+  const handleNoNewDivisionsSelected = useCallback(() => {
+    setSaveToastMessage('Select at least one new division');
+  }, []);
 
   return (
     <>
@@ -1213,6 +1454,7 @@ export default function EstimateWorkspacePage() {
                 className="inline-flex items-center gap-1.5 rounded px-2 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
               />
               <EstimateWorkspaceToolbarActions
+                showAddDivision={showAddDivision}
                 showCollapseAll={showCollapseAll}
                 showReset={showResetForm}
                 showSaveBucket={showSaveBucket}
@@ -1353,6 +1595,8 @@ export default function EstimateWorkspacePage() {
             onSaveQuick={handleSaveQuickEstimate}
             persistedSelectedDivisions={currentEstimate?.selectedDivisions ?? EMPTY_SELECTED_DIVISIONS}
             onSaveSelectedDivisions={handleSaveSelectedDivisions}
+            onDivisionsAdded={handleDivisionsAdded}
+            onNoNewDivisionsSelected={handleNoNewDivisionsSelected}
             onToolbarHandlersChange={setBuilderToolbarHandlers}
             importCollapseDivisionCodesKey={importCollapseDivisionCodesKey}
             focusActivityCode={focusActivityCode}
@@ -1407,17 +1651,13 @@ export default function EstimateWorkspacePage() {
         {!loadError && !dataLoading && activeTab === 'logic-network' ? (
           hasEstimate ? (
             <div className="space-y-4">
-              {(scheduleActivitiesResult.warnings.length > 0 ||
-                (cpmResult?.warnings.length ?? 0) > 0) && (
+              {scheduleActivitiesResult.warnings.length > 0 ? (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
                   {scheduleActivitiesResult.warnings.map((w, i) => (
                     <div key={`schedule-${i}`}>{w}</div>
                   ))}
-                  {cpmResult?.warnings.map((w, i) => (
-                    <div key={`cpm-${i}`}>{w}</div>
-                  ))}
                 </div>
-              )}
+              ) : null}
               <LogicNetworkWorkspace
                 canvasKey={resolvedProjectId ?? 'no-project'}
                 activitySignature={scheduleActivitySignature}
@@ -1426,11 +1666,21 @@ export default function EstimateWorkspacePage() {
                 cpmResult={cpmResult}
                 layout={scheduleSettingsHook.logicNetworkLayout}
                 logicReviewIgnored={scheduleSettingsHook.logicReviewIgnored}
+                viewMode={scheduleSettingsHook.logicNetworkViewMode}
+                onViewModeChange={handleLogicNetworkViewModeChange}
+                cpmReadiness={cpmReadiness}
+                onRunCpm={handleRunCpm}
+                runCpmBusy={runCpmBusy}
                 onLinksChange={handleLogicLinksChange}
                 onLayoutChange={handleLogicNetworkLayoutChange}
                 onSaveLayout={handleSaveLogicNetworkLayout}
                 onAddSuggestedLinks={handleAddSuggestedLogicLinks}
                 onIgnoreLogicWarning={handleIgnoreLogicWarning}
+                hasLogicBatch={hasLogicBatch}
+                logicBatchAddedCount={logicBatchSnapshot?.addedLinks.length ?? 0}
+                onRevertLastLogicBatch={handleRevertLastLogicBatch}
+                onClearAllLogicLinks={handleClearAllLogicLinks}
+                logicNetworkInitialized={scheduleSettingsHook.logicNetworkInitialized}
               />
             </div>
           ) : (
@@ -1444,17 +1694,24 @@ export default function EstimateWorkspacePage() {
         {!loadError && !dataLoading && activeTab === 'level-iii-gantt' ? (
           hasEstimate ? (
             <div className="space-y-6">
-              {(scheduleActivitiesResult.warnings.length > 0 ||
-                (cpmResult?.warnings.length ?? 0) > 0) && (
+              {!cpmResult?.hasRunCpm ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                  Draft schedule only. Critical path is unavailable until you run CPM from a valid
+                  precedence diagram in Logic Network.
+                </div>
+              ) : cpmResult && !cpmResult.hasValidCriticalPath ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                  No valid critical path yet. Complete the logic network from project start to
+                  project finish.
+                </div>
+              ) : null}
+              {scheduleActivitiesResult.warnings.length > 0 ? (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
                   {scheduleActivitiesResult.warnings.map((w, i) => (
                     <div key={`schedule-${i}`}>{w}</div>
                   ))}
-                  {cpmResult?.warnings.map((w, i) => (
-                    <div key={`cpm-${i}`}>{w}</div>
-                  ))}
                 </div>
-              )}
+              ) : null}
               <div ref={ganttExportRef} className="space-y-6">
                 <LevelThreeGantt
                   activities={scheduleActivitiesResult.activities}
@@ -1464,7 +1721,7 @@ export default function EstimateWorkspacePage() {
                   logicLinks={scheduleSettingsHook.logicLinks}
                   lineItems={estimateAdapter?.lineItems ?? []}
                   onEditActivity={handleEditActivityFromGantt}
-                  exportReady={Boolean(cpmResult)}
+                  exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
                   onExportPdf={() => void runCpmGanttExport('pdf')}
                   onExportExcel={() => void runCpmGanttExport('excel')}
                 />
@@ -1473,7 +1730,7 @@ export default function EstimateWorkspacePage() {
                   projectDurationDays={cpmResult?.projectDurationDays ?? 0}
                 />
               </div>
-              {cpmResult && scheduleActivitiesResult.activities.length > 0 && (
+              {cpmResult?.hasRunCpm && scheduleActivitiesResult.activities.length > 0 && (
                 <div className="flex">
                   <button
                     type="button"

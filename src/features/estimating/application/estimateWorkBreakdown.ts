@@ -83,6 +83,14 @@ export function buildSelectedDivisionsFromCodes(
   });
 }
 
+/** Append new divisions without duplicating existing codes. */
+export function appendSelectedDivisions(
+  existing: readonly EstimateSelectedDivision[],
+  additions: readonly EstimateSelectedDivision[],
+): EstimateSelectedDivision[] {
+  return normalizeSelectedDivisions([...existing, ...additions]);
+}
+
 export function normalizeSelectedDivisions(
   divisions: readonly Partial<EstimateSelectedDivision>[],
   options: { fallbackSource?: EstimateSelectedDivisionSource; createdAt?: string } = {},

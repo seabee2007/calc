@@ -16,7 +16,6 @@ import {
   Background,
   Controls,
   MiniMap,
-  addEdge,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -33,7 +32,13 @@ import type {
   CpmLogicLink,
   CpmResult,
   LogicNetworkLayout,
+  LogicNetworkViewMode,
 } from '../../../scheduling/cpmTypes';
+import {
+  buildLogicNetworkTopology,
+  resolveLogicTopologyLabel,
+  type LogicNetworkTopology,
+} from '../../../scheduling/logic/logicNetworkTopology';
 import { LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS } from '../../../scheduling/logicNetworkFullscreen';
 import {
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
@@ -47,6 +52,8 @@ import {
 import { CpmActivityNode, type CpmActivityNodeData } from './CpmActivityNode';
 import LogicLinkEditorPanel from './LogicLinkEditorPanel';
 import { calculateCpm } from '../../../scheduling/cpm/calculateCpm';
+import { isDisplayCritical, resolveTopologyLabel } from '../../../scheduling/cpm/cpmDisplayCritical';
+import { sanitizeLogicLinksForActivities } from '../../../scheduling/scheduleAssumptions';
 
 const NODE_TYPES = { cpmActivity: CpmActivityNode };
 
@@ -58,17 +65,27 @@ function buildEdgeId(pred: string, succ: string): string {
   return `edge-${pred}-${succ}`;
 }
 
-function linkToEdge(link: CpmLogicLink): Edge {
+export function linkToEdge(
+  link: CpmLogicLink,
+  cpmResult: CpmResult | null,
+  viewMode: LogicNetworkViewMode = 'logic-network',
+): Edge {
   const label =
     link.lagDays > 0 ? `${link.relationshipType}+${link.lagDays}d` : link.relationshipType;
+  const onDisplayCriticalPath =
+    viewMode === 'precedence-diagram' &&
+    cpmResult != null &&
+    isDisplayCritical(cpmResult, link.predecessorActivityCode) &&
+    isDisplayCritical(cpmResult, link.successorActivityCode);
+  const stroke = onDisplayCriticalPath ? '#ef4444' : '#64748b';
   return {
     id: buildEdgeId(link.predecessorActivityCode, link.successorActivityCode),
     source: buildNodeId(link.predecessorActivityCode),
     target: buildNodeId(link.successorActivityCode),
     label,
     animated: false,
-    style: { stroke: '#64748b' },
-    labelStyle: { fontSize: 10, fill: '#64748b' },
+    style: { stroke },
+    labelStyle: { fontSize: 10, fill: stroke },
     data: {
       predecessorActivityCode: link.predecessorActivityCode,
       successorActivityCode: link.successorActivityCode,
@@ -78,20 +95,35 @@ function linkToEdge(link: CpmLogicLink): Edge {
   };
 }
 
+export function mapLogicLinksToEdges(
+  links: CpmLogicLink[],
+  cpmResult: CpmResult | null,
+  viewMode: LogicNetworkViewMode = 'logic-network',
+): Edge[] {
+  return links.map((link) => linkToEdge(link, cpmResult, viewMode));
+}
+
 export function buildLogicNetworkNodes(
   activities: ScheduleActivity[],
   cpmResult: CpmResult | null,
   layout: LogicNetworkLayout[],
+  options: {
+    viewMode: LogicNetworkViewMode;
+    logicTopology: LogicNetworkTopology;
+    showCpmFields: boolean;
+  },
 ): Node<CpmActivityNodeData>[] {
+  const { viewMode, logicTopology, showCpmFields } = options;
   const layoutByCode = new Map(layout.map((entry) => [entry.activityCode, entry]));
   const cpmByCode = new Map(cpmResult?.activities.map((a) => [a.activityCode, a]) ?? []);
 
   return activities.map((activity, index) => {
+    const cpmActivity = cpmByCode.get(activity.activityCode);
     const position = resolveLogicNetworkNodePosition(
       activity,
       index,
       layoutByCode.get(activity.activityCode),
-      cpmByCode.get(activity.activityCode),
+      showCpmFields ? cpmActivity : undefined,
     );
     return {
       id: buildNodeId(activity.activityCode),
@@ -99,7 +131,27 @@ export function buildLogicNetworkNodes(
       position,
       data: {
         activity,
-        cpmResult: cpmByCode.get(activity.activityCode),
+        viewMode,
+        cpmResult: cpmActivity,
+        showCpmFields,
+        predecessorCount: logicTopology.predecessorCountByCode[activity.activityCode] ?? 0,
+        successorCount: logicTopology.successorCountByCode[activity.activityCode] ?? 0,
+        logicTopologyLabel:
+          viewMode === 'logic-network'
+            ? resolveLogicTopologyLabel(logicTopology, activity)
+            : null,
+        isDisplayCritical:
+          showCpmFields && cpmResult != null
+            ? isDisplayCritical(cpmResult, activity.activityCode)
+            : false,
+        topologyLabel:
+          viewMode === 'precedence-diagram'
+            ? resolveTopologyLabel(
+                cpmResult,
+                activity.activityCode,
+                cpmActivity?.totalFloat === 0,
+              )
+            : null,
       },
     };
   });
@@ -123,6 +175,8 @@ interface Props {
   canvasKey: string;
   /** Changes when scheduled activities change — clears stale auto-layout snapshots. */
   activitySignature?: string;
+  logicNetworkInitialized?: boolean;
+  viewMode?: LogicNetworkViewMode;
   fullscreen?: boolean;
   chromeless?: boolean;
   viewport?: Viewport;
@@ -170,6 +224,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     saving = false,
     canvasKey,
     activitySignature = '',
+    logicNetworkInitialized = false,
+    viewMode = 'logic-network',
     fullscreen = false,
     chromeless = false,
     viewport: controlledViewport,
@@ -236,12 +292,57 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     onLayoutChange(generated);
   }, [layout, onLayoutChange]);
 
-  const mappedNodes = useMemo(
-    () => buildLogicNetworkNodes(activities, cpmResult, effectiveLayout),
-    [activities, cpmResult, effectiveLayout],
+  const logicTopology = useMemo(
+    () => buildLogicNetworkTopology(activities, logicLinks),
+    [activities, logicLinks],
   );
 
-  const mappedEdges = useMemo(() => logicLinks.map(linkToEdge), [logicLinks]);
+  const showCpmFields = viewMode === 'precedence-diagram' && (cpmResult?.hasRunCpm ?? false);
+
+  const mappedNodes = useMemo(
+    () =>
+      buildLogicNetworkNodes(activities, cpmResult, effectiveLayout, {
+        viewMode,
+        logicTopology,
+        showCpmFields,
+      }),
+    [activities, cpmResult, effectiveLayout, logicTopology, showCpmFields, viewMode],
+  );
+
+  const sanitizedLogicLinks = useMemo(() => {
+    const activityCodes = new Set(activities.map((activity) => activity.activityCode));
+    return sanitizeLogicLinksForActivities(logicLinks, activityCodes);
+  }, [activities, logicLinks]);
+
+  const mappedEdges = useMemo(
+    () => mapLogicLinksToEdges(sanitizedLogicLinks, cpmResult, viewMode),
+    [cpmResult, sanitizedLogicLinks, viewMode],
+  );
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.info('[Logic Network]', {
+      activityCount: activities.length,
+      linkCount: logicLinks.length,
+      sanitizedLinkCount: sanitizedLogicLinks.length,
+      edgeCount: mappedEdges.length,
+      initialized: logicNetworkInitialized,
+      viewMode,
+      hasRunCpm: cpmResult?.hasRunCpm ?? false,
+      hasValidCriticalPath: cpmResult?.hasValidCriticalPath ?? false,
+      criticalPathStatus: cpmResult?.criticalPathStatus ?? 'unknown',
+    });
+  }, [
+    activities.length,
+    cpmResult?.criticalPathStatus,
+    cpmResult?.hasValidCriticalPath,
+    logicLinks.length,
+    logicNetworkInitialized,
+    mappedEdges.length,
+    sanitizedLogicLinks.length,
+    viewMode,
+    cpmResult?.hasRunCpm,
+  ]);
 
   useEffect(() => {
     setNodes(mappedNodes);
@@ -300,7 +401,13 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   const handleAutoLayout = useCallback(() => {
     const autoLayout = buildAutoLayoutFromActivities(activities, cpmResult);
     autoLayoutSnapshotRef.current = autoLayout;
-    setNodes(buildLogicNetworkNodes(activities, cpmResult, autoLayout));
+    setNodes(
+      buildLogicNetworkNodes(activities, cpmResult, autoLayout, {
+        viewMode,
+        logicTopology,
+        showCpmFields,
+      }),
+    );
     onLayoutChange(autoLayout);
     requestAnimationFrame(() => {
       void fitView({ padding: 0.2, duration: 300 });
@@ -367,11 +474,9 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         return;
       }
 
-      const updatedLinks = [...logicLinks, newLink];
-      onLinksChange(updatedLinks);
-      setEdges((currentEdges) => addEdge(linkToEdge(newLink), currentEdges));
+      onLinksChange([...logicLinks, newLink]);
     },
-    [logicLinks, onLinksChange, setEdges, showToast],
+    [logicLinks, onLinksChange, showToast],
   );
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
@@ -418,9 +523,8 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
         ),
     );
     onLinksChange(updatedLinks);
-    setEdges((currentEdges) => currentEdges.filter((e) => e.id !== editingLink.edgeId));
     setEditingLink(null);
-  }, [editingLink, logicLinks, onLinksChange, setEdges]);
+  }, [editingLink, logicLinks, onLinksChange]);
 
   const hasWarnings = activities.some((a) => a.durationDays < 1 || a.crewSize < 1);
 

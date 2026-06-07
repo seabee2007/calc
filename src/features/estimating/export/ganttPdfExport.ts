@@ -4,6 +4,7 @@ import { savePDFWithPlatformSupport } from '../../../utils/pdf';
 import { sanitizeEstimateExportFileStem } from '../importExport/estimateExportBuilder';
 import type { BuildGanttScheduleResult, GanttActivity } from '../schedule/buildGanttSchedule';
 import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import { isDisplayCritical } from '../scheduling/cpm/cpmDisplayCritical';
 import type { CpmResult, ResourceHistogramDay, ScheduleSettings } from '../scheduling/cpmTypes';
 
 declare module 'jspdf' {
@@ -265,17 +266,22 @@ function drawCpmTable(doc: jsPDF, params: BuildGanttPdfDocumentParams): void {
         String(cpm.lateFinish),
         String(cpm.totalFloat),
         String(cpm.freeFloat),
-        cpm.isCritical ? 'Yes' : '',
+        isDisplayCritical(params.cpmResult, cpm.activityCode) ? 'Yes' : '',
       ];
     }),
     margin: { left: MARGIN, right: MARGIN },
     styles: { fontSize: 7, cellPadding: 2 },
     headStyles: { fillColor: [70, 70, 70], textColor: 255 },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-    didParseCell: (data: { section: string; column: { index: number }; cell: { styles: { fillColor: number[] | string; textColor: number | number[] } } }) => {
+    didParseCell: (data: {
+      section: string;
+      column: { index: number };
+      row: { index: number };
+      cell: { styles: { fillColor: number[] | string; textColor: number | number[] } };
+    }) => {
       if (data.section === 'body' && data.column.index === 9) {
-        const val = sorted[data.cell.styles.textColor as unknown as number];
-        if (val?.isCritical) {
+        const cpm = sorted[data.row.index];
+        if (cpm && isDisplayCritical(params.cpmResult!, cpm.activityCode)) {
           data.cell.styles.fillColor = [255, 220, 220];
           data.cell.styles.textColor = [200, 0, 0];
         }

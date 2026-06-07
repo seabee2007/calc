@@ -9,7 +9,9 @@ import {
   buildEstimateWorkspaceActionsMenuItems,
   resolveEstimateWorkspaceToolbarLayout,
   runEstimateWorkspaceMenuAction,
+  ADD_DIVISION_TOOLBAR_LABEL,
   shouldShowActionsDropdown,
+  shouldShowAddDivisionAction,
   shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
@@ -38,6 +40,20 @@ describe('estimateWorkspaceToolbar', () => {
   it('exposes a toolbar marker and removes the old inline reset label', () => {
     expect(ESTIMATE_WORKSPACE_TOOLBAR_MARKER).toBe('estimate-workspace-toolbar-actions');
     expect(REMOVED_ESTIMATE_BUILDER_INLINE_TOOLBAR_LABELS).toContain('Reset estimate setup');
+  });
+
+  it('exposes the add division toolbar label', () => {
+    expect(ADD_DIVISION_TOOLBAR_LABEL).toBe('+ Add division');
+  });
+
+  it('shows add division only on the estimate tab when buckets are visible', () => {
+    expect(shouldShowAddDivisionAction('line-items', true, true, 'detailed', true)).toBe(true);
+    expect(shouldShowAddDivisionAction('line-items', false, true, 'detailed', true)).toBe(false);
+    expect(shouldShowAddDivisionAction('line-items', true, false, 'detailed', true)).toBe(false);
+    expect(shouldShowAddDivisionAction('overview', true, true, 'detailed', true)).toBe(false);
+    expect(
+      shouldShowAddDivisionAction('line-items', true, true, 'quick_feasibility', true),
+    ).toBe(false);
   });
 
   it('shows collapse all only on the estimate tab when division buckets are visible', () => {

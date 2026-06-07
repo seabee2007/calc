@@ -1,11 +1,17 @@
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import {
   DEFAULT_SCHEDULE_SETTINGS,
+  attachCpmWorkflowFields,
+  type CpmActivityResult,
   type CpmLogicLink,
   type CpmRelationshipType,
+  type CpmResult,
   type LogicNetworkLayout,
+  type LogicNetworkViewMode,
   type ScheduleSettings,
 } from './cpmTypes';
+import { wouldCreateCircularDependency } from './logic/logicCycleUtils';
+import type { LogicBatchSnapshot } from './logic/logicTypes';
 
 // ── ScheduleSettings ────────────────────────────────────────────────────────
 
@@ -92,6 +98,24 @@ export function logicLinksToAssumptions(
   existingAssumptions: Record<string, unknown> = {},
 ): Record<string, unknown> {
   return { ...existingAssumptions, logicLinks: links };
+}
+
+/** True when assumptions explicitly contain a logicLinks key (including empty []). */
+export function hasLogicLinksKey(
+  assumptions: Record<string, unknown> | undefined | null,
+): boolean {
+  return (
+    assumptions != null &&
+    typeof assumptions === 'object' &&
+    assumptions.logicLinks !== undefined
+  );
+}
+
+export function parseLogicNetworkInitializedFromAssumptions(
+  assumptions: Record<string, unknown> | undefined | null,
+): boolean {
+  if (!assumptions || typeof assumptions !== 'object') return false;
+  return toBoolean(assumptions.logicNetworkInitialized, false);
 }
 
 /** One-time seed: builds CpmLogicLink[] from line items' predecessorActivityCode.
@@ -181,6 +205,110 @@ export function logicReviewIgnoredToAssumptions(
   return { ...existingAssumptions, logicReviewIgnored: ignoredWarningIds };
 }
 
+// ── Logic suggestion batch snapshot ─────────────────────────────────────────
+
+function parseLogicBatchSnapshot(raw: unknown): LogicBatchSnapshot | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const src = raw as Record<string, unknown>;
+  const appliedAt = typeof src.appliedAt === 'string' ? src.appliedAt.trim() : '';
+  if (!appliedAt) return null;
+
+  const addedLinks = Array.isArray(src.addedLinks)
+    ? src.addedLinks.map(parseCpmLogicLink).filter((link): link is CpmLogicLink => link !== null)
+    : [];
+  const previousLinksSnapshot = Array.isArray(src.previousLinksSnapshot)
+    ? src.previousLinksSnapshot
+        .map(parseCpmLogicLink)
+        .filter((link): link is CpmLogicLink => link !== null)
+    : [];
+
+  return {
+    appliedAt,
+    addedLinks,
+    previousLinksSnapshot,
+  };
+}
+
+export function parseLogicBatchSnapshotFromAssumptions(
+  assumptions: Record<string, unknown> | undefined | null,
+): LogicBatchSnapshot | null {
+  if (!assumptions || typeof assumptions !== 'object') return null;
+  return parseLogicBatchSnapshot(assumptions.lastLogicSuggestionBatch);
+}
+
+// ── Logic network view mode + committed CPM ───────────────────────────────────
+
+export function parseLogicNetworkViewModeFromAssumptions(
+  assumptions: Record<string, unknown> | undefined | null,
+): LogicNetworkViewMode {
+  if (!assumptions || typeof assumptions !== 'object') return 'logic-network';
+  const raw = assumptions.logicNetworkViewMode;
+  return raw === 'precedence-diagram' ? 'precedence-diagram' : 'logic-network';
+}
+
+function parseCpmActivityResult(raw: unknown): CpmActivityResult | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const src = raw as Record<string, unknown>;
+  const activityCode =
+    typeof src.activityCode === 'string' ? src.activityCode.trim() : '';
+  if (!activityCode) return null;
+  return {
+    activityCode,
+    earlyStart: toFiniteNumber(src.earlyStart, 0),
+    earlyFinish: toFiniteNumber(src.earlyFinish, 0),
+    lateStart: toFiniteNumber(src.lateStart, 0),
+    lateFinish: toFiniteNumber(src.lateFinish, 0),
+    totalFloat: toFiniteNumber(src.totalFloat, 0),
+    freeFloat: toFiniteNumber(src.freeFloat, 0),
+    isCritical: toBoolean(src.isCritical, false),
+  };
+}
+
+export function parseCpmResultCacheFromAssumptions(
+  assumptions: Record<string, unknown> | undefined | null,
+): CpmResult | null {
+  if (!assumptions || typeof assumptions !== 'object') return null;
+  const raw = assumptions.cpmResultCache;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const src = raw as Record<string, unknown>;
+  const activities = Array.isArray(src.activities)
+    ? src.activities.map(parseCpmActivityResult).filter((a): a is CpmActivityResult => a !== null)
+    : [];
+  const displayCriticalActivityCodes = Array.isArray(src.displayCriticalActivityCodes)
+    ? src.displayCriticalActivityCodes.filter((c): c is string => typeof c === 'string')
+    : [];
+  const base = {
+    activities,
+    projectDurationDays: toFiniteNumber(src.projectDurationDays, 0),
+    criticalPathActivityCodes: Array.isArray(src.criticalPathActivityCodes)
+      ? src.criticalPathActivityCodes.filter((c): c is string => typeof c === 'string')
+      : [],
+    warnings: Array.isArray(src.warnings)
+      ? src.warnings.filter((w): w is string => typeof w === 'string')
+      : [],
+    criticalPathStatus:
+      typeof src.criticalPathStatus === 'string' ? src.criticalPathStatus : 'not-run',
+    hasValidCriticalPath: toBoolean(src.hasValidCriticalPath, false),
+    criticalPathContinuityWarnings: Array.isArray(src.criticalPathContinuityWarnings)
+      ? src.criticalPathContinuityWarnings.filter((w): w is string => typeof w === 'string')
+      : [],
+    displayCriticalActivityCodes,
+    openStartActivityCodes: Array.isArray(src.openStartActivityCodes)
+      ? src.openStartActivityCodes.filter((c): c is string => typeof c === 'string')
+      : [],
+    openFinishActivityCodes: Array.isArray(src.openFinishActivityCodes)
+      ? src.openFinishActivityCodes.filter((c): c is string => typeof c === 'string')
+      : [],
+  } as Omit<CpmResult, 'hasRunCpm' | 'hasValidPrecedenceDiagram' | 'validCriticalPathActivityCodes' | 'hardErrors'>;
+
+  return attachCpmWorkflowFields(base, {
+    hasRunCpm: toBoolean(src.hasRunCpm, true),
+    hardErrors: Array.isArray(src.hardErrors)
+      ? src.hardErrors.filter((e): e is string => typeof e === 'string')
+      : [],
+  });
+}
+
 export function mergeScheduleAssumptions(
   patch: Partial<{
     scheduleSettings: ScheduleSettings;
@@ -188,10 +316,14 @@ export function mergeScheduleAssumptions(
     logicNetworkLayout: LogicNetworkLayout[];
     leveledActivityOffsets: Record<string, number>;
     logicReviewIgnored: string[];
+    lastLogicSuggestionBatch: LogicBatchSnapshot | null;
+    logicNetworkInitialized: boolean;
+    logicNetworkViewMode: LogicNetworkViewMode;
+    cpmResultCache: CpmResult | null;
   }>,
   existingAssumptions: Record<string, unknown> = {},
 ): Record<string, unknown> {
-  return {
+  const next = {
     ...existingAssumptions,
     ...(patch.scheduleSettings !== undefined ? { scheduleSettings: patch.scheduleSettings } : {}),
     ...(patch.logicLinks !== undefined ? { logicLinks: patch.logicLinks } : {}),
@@ -204,6 +336,51 @@ export function mergeScheduleAssumptions(
     ...(patch.logicReviewIgnored !== undefined
       ? { logicReviewIgnored: patch.logicReviewIgnored }
       : {}),
+    ...(patch.logicNetworkInitialized !== undefined
+      ? { logicNetworkInitialized: patch.logicNetworkInitialized }
+      : {}),
+    ...(patch.logicNetworkViewMode !== undefined
+      ? { logicNetworkViewMode: patch.logicNetworkViewMode }
+      : {}),
+  };
+
+  if (patch.lastLogicSuggestionBatch !== undefined) {
+    if (patch.lastLogicSuggestionBatch === null) {
+      const { lastLogicSuggestionBatch: _removed, ...withoutBatch } = next;
+      if (patch.cpmResultCache !== undefined) {
+        return mergeCpmResultCachePatch(withoutBatch, patch.cpmResultCache);
+      }
+      return withoutBatch;
+    }
+    const withBatch = {
+      ...next,
+      lastLogicSuggestionBatch: patch.lastLogicSuggestionBatch,
+    };
+    if (patch.cpmResultCache !== undefined) {
+      return mergeCpmResultCachePatch(withBatch, patch.cpmResultCache);
+    }
+    return withBatch;
+  }
+
+  if (patch.cpmResultCache !== undefined) {
+    return mergeCpmResultCachePatch(next, patch.cpmResultCache);
+  }
+
+  return next;
+}
+
+function mergeCpmResultCachePatch(
+  assumptions: Record<string, unknown>,
+  cpmResultCache: CpmResult | null,
+): Record<string, unknown> {
+  if (cpmResultCache === null) {
+    const { cpmResultCache: _removed, cpmCalculatedAt: _at, ...withoutCache } = assumptions;
+    return withoutCache;
+  }
+  return {
+    ...assumptions,
+    cpmResultCache,
+    cpmCalculatedAt: new Date().toISOString(),
   };
 }
 
@@ -215,8 +392,11 @@ export const SCHEDULE_LAYER_ASSUMPTION_KEYS = [
   'resourceLevelingResults',
   'logicReviewIgnored',
   'logicReviewAiSuggestions',
+  'lastLogicSuggestionBatch',
   'cpmWarnings',
   'cpmResultCache',
+  'cpmCalculatedAt',
+  'logicNetworkViewMode',
   'levelThreeGanttBaseline',
 ] as const;
 
@@ -243,6 +423,29 @@ export function getValidScheduleActivityCodes(
   return codes;
 }
 
+function exactLogicLinkKey(link: CpmLogicLink): string {
+  return `${link.predecessorActivityCode}|${link.successorActivityCode}|${link.relationshipType}|${link.lagDays}`;
+}
+
+export function sanitizeLogicLinks(links: CpmLogicLink[]): CpmLogicLink[] {
+  const seen = new Set<string>();
+  const sanitized: CpmLogicLink[] = [];
+
+  for (const link of links) {
+    if (link.predecessorActivityCode === link.successorActivityCode) {
+      continue;
+    }
+    const key = exactLogicLinkKey(link);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    sanitized.push(link);
+  }
+
+  return sanitized;
+}
+
 function filterLogicLinksForActivityCodes(
   links: CpmLogicLink[],
   validActivityCodes: Set<string>,
@@ -252,6 +455,14 @@ function filterLogicLinksForActivityCodes(
       validActivityCodes.has(link.predecessorActivityCode) &&
       validActivityCodes.has(link.successorActivityCode),
   );
+}
+
+/** Drop self-links, duplicates, and links whose endpoints are not in validActivityCodes. */
+export function sanitizeLogicLinksForActivities(
+  links: CpmLogicLink[],
+  validActivityCodes: Set<string>,
+): CpmLogicLink[] {
+  return sanitizeLogicLinks(filterLogicLinksForActivityCodes(links, validActivityCodes));
 }
 
 function filterLogicNetworkLayoutForActivityCodes(
@@ -296,10 +507,18 @@ export function sanitizeScheduleAssumptionsForLineItems(
   const base = assumptions && typeof assumptions === 'object' ? { ...assumptions } : {};
   const validActivityCodes = getValidScheduleActivityCodes(lineItems);
 
-  const logicLinks = filterLogicLinksForActivityCodes(
-    parseLogicLinksFromAssumptions(base),
-    validActivityCodes,
+  const logicLinks = sanitizeLogicLinks(
+    filterLogicLinksForActivityCodes(parseLogicLinksFromAssumptions(base), validActivityCodes),
   );
+
+  if (
+    logicLinks.length > 0 &&
+    wouldCreateCircularDependency(logicLinks, [])
+  ) {
+    console.warn(
+      '[scheduleAssumptions] Circular dependency detected after sanitizing logic links.',
+    );
+  }
   const logicNetworkLayout = filterLogicNetworkLayoutForActivityCodes(
     parseLogicNetworkLayoutFromAssumptions(base),
     validActivityCodes,
@@ -313,6 +532,8 @@ export function sanitizeScheduleAssumptionsForLineItems(
     validActivityCodes,
   );
 
+  const logicNetworkInitialized = parseLogicNetworkInitializedFromAssumptions(base);
+
   const stripped = stripScheduleLayerKeys(base);
   return mergeScheduleAssumptions(
     {
@@ -321,6 +542,7 @@ export function sanitizeScheduleAssumptionsForLineItems(
       logicNetworkLayout,
       leveledActivityOffsets,
       logicReviewIgnored,
+      logicNetworkInitialized,
     },
     stripped,
   );
@@ -343,6 +565,7 @@ export function resetScheduleAssumptionsForReplacement(
       logicNetworkLayout: [],
       leveledActivityOffsets: {},
       logicReviewIgnored: [],
+      logicNetworkInitialized: true,
     },
     stripped,
   );
@@ -380,7 +603,10 @@ export function mergeScheduleAssumptionsForAddImport(
   );
 
   return mergeScheduleAssumptions(
-    { logicLinks: appendUniqueLogicLinks(existingLinks, importedSeeds) },
+    {
+      logicLinks: appendUniqueLogicLinks(existingLinks, importedSeeds),
+      logicNetworkInitialized: true,
+    },
     sanitized,
   );
 }
