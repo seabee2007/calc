@@ -40,6 +40,7 @@ import {
   type LogicNetworkTopology,
 } from '../../../scheduling/logic/logicNetworkTopology';
 import { LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS } from '../../../scheduling/logicNetworkFullscreen';
+import { autoLayoutLogicNetwork } from '../../../scheduling/logic/autoLayoutLogicNetwork';
 import {
   LOGIC_NETWORK_CANVAS_HEIGHT_CLASS,
   buildAutoLayoutFromActivities,
@@ -276,10 +277,10 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
     }
     if (activities.length === 0) return [];
     if (!autoLayoutSnapshotRef.current) {
-      autoLayoutSnapshotRef.current = buildAutoLayoutFromActivities(activities, cpmResult);
+      autoLayoutSnapshotRef.current = buildAutoLayoutFromActivities(activities, logicLinks);
     }
     return autoLayoutSnapshotRef.current;
-  }, [layout, activities, cpmResult]);
+  }, [layout, activities, logicLinks]);
 
   useEffect(() => {
     if (layout.length > 0) {
@@ -399,7 +400,10 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   );
 
   const handleAutoLayout = useCallback(() => {
-    const autoLayout = buildAutoLayoutFromActivities(activities, cpmResult);
+    const { layout: autoLayout, warning } = autoLayoutLogicNetwork({
+      activities,
+      logicLinks,
+    });
     autoLayoutSnapshotRef.current = autoLayout;
     setNodes(
       buildLogicNetworkNodes(activities, cpmResult, autoLayout, {
@@ -409,10 +413,22 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       }),
     );
     onLayoutChange(autoLayout);
+    showToast(warning ?? 'Layout updated');
     requestAnimationFrame(() => {
       void fitView({ padding: 0.2, duration: 300 });
     });
-  }, [activities, cpmResult, onLayoutChange, setNodes, fitView]);
+  }, [
+    activities,
+    cpmResult,
+    logicLinks,
+    logicTopology,
+    onLayoutChange,
+    setNodes,
+    showCpmFields,
+    showToast,
+    viewMode,
+    fitView,
+  ]);
 
   const handleFitView = useCallback(() => {
     void fitView({ padding: 0.2, duration: 300 });

@@ -1,5 +1,6 @@
 import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
-import type { CpmActivityResult, CpmResult, LogicNetworkLayout } from './cpmTypes';
+import type { CpmActivityResult, CpmLogicLink, LogicNetworkLayout } from './cpmTypes';
+import { autoLayoutLogicNetwork } from './logic/autoLayoutLogicNetwork';
 
 export const LOGIC_NETWORK_CANVAS_HEIGHT_CLASS = 'h-[calc(100vh-300px)] min-h-[640px] w-full';
 
@@ -37,15 +38,7 @@ export function resolveLogicNetworkNodePosition(
 
 export function buildAutoLayoutFromActivities(
   activities: ScheduleActivity[],
-  cpmResult: CpmResult | null,
+  logicLinks: CpmLogicLink[],
 ): LogicNetworkLayout[] {
-  const cpmByCode = new Map(cpmResult?.activities.map((a) => [a.activityCode, a]) ?? []);
-  return activities.map((activity, index) => {
-    const pos = autoLayoutNodePosition(activity, index, cpmByCode.get(activity.activityCode));
-    return {
-      activityCode: activity.activityCode,
-      x: pos.x,
-      y: pos.y,
-    };
-  });
+  return autoLayoutLogicNetwork({ activities, logicLinks }).layout;
 }

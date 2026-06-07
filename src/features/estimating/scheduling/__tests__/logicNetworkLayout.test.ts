@@ -71,52 +71,27 @@ describe('logicNetworkLayout', () => {
     expect(nodes[1].position.y).toBeGreaterThan(nodes[0].position.y);
   });
 
-  it('buildAutoLayoutFromActivities returns layout for every activity', () => {
+  it('buildAutoLayoutFromActivities returns dependency layout for every activity', () => {
     const activities = [makeActivity('A'), makeActivity('B'), makeActivity('C')];
-    const layout = buildAutoLayoutFromActivities(activities, {
-      activities: [
-        {
-          activityCode: 'A',
-          earlyStart: 0,
-          earlyFinish: 3,
-          lateStart: 0,
-          lateFinish: 3,
-          totalFloat: 0,
-          freeFloat: 0,
-          isCritical: true,
-        },
-        {
-          activityCode: 'B',
-          earlyStart: 3,
-          earlyFinish: 6,
-          lateStart: 3,
-          lateFinish: 6,
-          totalFloat: 0,
-          freeFloat: 0,
-          isCritical: true,
-        },
-        {
-          activityCode: 'C',
-          earlyStart: 6,
-          earlyFinish: 9,
-          lateStart: 6,
-          lateFinish: 9,
-          totalFloat: 0,
-          freeFloat: 0,
-          isCritical: true,
-        },
-      ],
-      projectDurationDays: 9,
-      criticalPathActivityCodes: ['A', 'B', 'C'],
-      warnings: [],
-      criticalPathStatus: 'valid',
-      hasValidCriticalPath: true,
-      criticalPathContinuityWarnings: [],
-      displayCriticalActivityCodes: ['A', 'B', 'C'],
-      openStartActivityCodes: [],
-      openFinishActivityCodes: [],
-    });
+    const links = [
+      {
+        predecessorActivityCode: 'A',
+        successorActivityCode: 'B',
+        relationshipType: 'FS' as const,
+        lagDays: 0,
+      },
+      {
+        predecessorActivityCode: 'B',
+        successorActivityCode: 'C',
+        relationshipType: 'FS' as const,
+        lagDays: 0,
+      },
+    ];
+    const layout = buildAutoLayoutFromActivities(activities, links);
+    const byCode = new Map(layout.map((entry) => [entry.activityCode, entry]));
+
     expect(layout).toHaveLength(3);
-    expect(layout[1].x).toBe(3 * 160);
+    expect(byCode.get('A')!.x).toBeLessThan(byCode.get('B')!.x);
+    expect(byCode.get('B')!.x).toBeLessThan(byCode.get('C')!.x);
   });
 });
