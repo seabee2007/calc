@@ -1,4 +1,4 @@
-import { ChevronsDownUp, Plus, Save } from 'lucide-react';
+import { ChevronsDownUp, Save } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import {
   ADD_DIVISION_TOOLBAR_LABEL,
@@ -27,6 +27,8 @@ interface Props {
   onDownloadImportTemplate: () => void;
   onOpenHelp: () => void;
 }
+
+const COMPACT_ICON_BUTTON_CLASS = 'h-10 w-10 px-0';
 
 export default function EstimateWorkspaceToolbarActions({
   showAddDivision,
@@ -83,35 +85,25 @@ export default function EstimateWorkspaceToolbarActions({
         <Button
           variant="outline"
           size="sm"
-          icon={<Plus className="h-4 w-4" />}
           disabled={!canEdit || saving}
-          className="hidden sm:inline-flex"
+          className="h-10 px-4"
+          aria-label={ADD_DIVISION_TOOLBAR_LABEL}
+          title={ADD_DIVISION_TOOLBAR_LABEL}
           onClick={() => handlers?.openAddDivision()}
         >
-          {ADD_DIVISION_TOOLBAR_LABEL}
-        </Button>
-      ) : null}
-      {showAddDivision ? (
-        <Button
-          variant="outline"
-          size="sm"
-          icon={<Plus className="h-4 w-4" />}
-          disabled={!canEdit || saving}
-          className="sm:hidden"
-          onClick={() => handlers?.openAddDivision()}
-        >
-          Add division
+          + DIV
         </Button>
       ) : null}
       {showCollapseAll ? (
         <Button
           variant="outline"
           size="sm"
-          icon={<ChevronsDownUp className="h-4 w-4" />}
-          className="hidden sm:inline-flex"
+          className={`hidden sm:inline-flex ${COMPACT_ICON_BUTTON_CLASS}`}
+          aria-label="Collapse all divisions"
+          title="Collapse all"
           onClick={() => handlers?.collapseAll()}
         >
-          Collapse all
+          <ChevronsDownUp className="h-4 w-4" aria-hidden />
         </Button>
       ) : null}
       {showSaveQuick ? (
@@ -127,40 +119,18 @@ export default function EstimateWorkspaceToolbarActions({
         </Button>
       ) : null}
       {showSaveBucket ? (
-        <>
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Save className="h-4 w-4" />}
-            disabled={!canSave || saving}
-            isLoading={saving}
-            className="hidden sm:inline-flex"
-            title={
-              canSave
-                ? 'Save the current project estimate'
-                : 'Add activities or selected divisions to enable save'
-            }
-            onClick={onSave}
-          >
-            {saving ? 'Saving...' : 'Save estimate'}
-          </Button>
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Save className="h-4 w-4" />}
-            disabled={!canSave || saving}
-            isLoading={saving}
-            className="sm:hidden"
-            title={
-              canSave
-                ? 'Save the current project estimate'
-                : 'Add activities or selected divisions to enable save'
-            }
-            onClick={onSave}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        </>
+        <Button
+          variant="accent"
+          size="sm"
+          disabled={!canSave || saving}
+          isLoading={saving}
+          className={COMPACT_ICON_BUTTON_CLASS}
+          aria-label="Save estimate"
+          title="Save estimate"
+          onClick={onSave}
+        >
+          {!saving ? <Save className="h-4 w-4" aria-hidden /> : null}
+        </Button>
       ) : null}
       {showDesktopActionsDropdown ? (
         <div className="hidden sm:block">

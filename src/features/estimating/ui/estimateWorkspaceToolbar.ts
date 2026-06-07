@@ -188,7 +188,7 @@ export interface EstimateBuilderToolbarHandlers {
   showCollapseAll: boolean;
   showSaveQuick: boolean;
   canSaveQuick: boolean;
-  showAddDivision: boolean;
+  showAddDivision: boolean; 
   collapseAll: () => void;
   saveQuick: () => void;
   openAddDivision: () => void;

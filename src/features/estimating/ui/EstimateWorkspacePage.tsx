@@ -195,8 +195,9 @@ export default function EstimateWorkspacePage() {
     () => (currentEstimate ? currentEstimateToDomainVersion(currentEstimate) : null),
     [currentEstimate],
   );
-  const lineItemDraft = useEstimateLineItemDraft(estimateAdapter);
   const estimateSettings = useEstimateSettings();
+  const lineItemDraft = useEstimateLineItemDraft(estimateAdapter, estimateSettings.settings);
+  const rehydrateDraftFromVersion = lineItemDraft.rehydrateFromVersion;
   const scheduleSettingsHook = useScheduleSettings();
   const currentEstimateRef = useRef(currentEstimate);
   useEffect(() => {
@@ -718,10 +719,10 @@ export default function EstimateWorkspacePage() {
 
       setSaveToastMessage(createEstimateSaveSuccessToast().message);
       setCurrentEstimate(result.data);
-      lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
+      rehydrateDraftFromVersion(currentEstimateToDomainVersion(result.data));
       setSaving(false);
     },
-    [estimate, lineItemDraft, saving, user?.id],
+    [estimate, rehydrateDraftFromVersion, saving, user?.id],
   );
 
   const handleResetEstimate = useCallback(async (): Promise<boolean> => {

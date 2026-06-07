@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildProjectSwitchHref, plannerProjectSwitchHref } from './plannerRoutes';
+import { buildProjectSwitchHref, isPlannerNavTabActive, plannerProjectSwitchHref } from './plannerRoutes';
 
 const PROJECT_B = 'project-b';
 
@@ -167,5 +167,45 @@ describe('plannerProjectSwitchHref', () => {
     expect(
       buildProjectSwitchHref('/projects/project-a/planner/estimate/totals', PROJECT_B),
     ).toBe('/projects/project-b/planner/board');
+  });
+});
+
+describe('isPlannerNavTabActive', () => {
+  const projectId = 'project-a';
+  const estimateBasePath = `/projects/${projectId}/planner/estimate`;
+
+  it('marks the main Estimate tab active on the estimate root route', () => {
+    expect(isPlannerNavTabActive(estimateBasePath, estimateBasePath)).toBe(true);
+  });
+
+  it('marks the main Estimate tab active on nested estimate workspace routes', () => {
+    for (const subPath of [
+      'overview',
+      'settings',
+      'line-items',
+      'schedule-preview',
+      'logic-network',
+      'level-iii-gantt',
+    ]) {
+      expect(
+        isPlannerNavTabActive(`${estimateBasePath}/${subPath}`, estimateBasePath),
+      ).toBe(true);
+    }
+  });
+
+  it('does not mark Estimate active on unrelated planner routes', () => {
+    expect(isPlannerNavTabActive(`/projects/${projectId}/planner/schedule`, estimateBasePath)).toBe(
+      false,
+    );
+    expect(
+      isPlannerNavTabActive(`/projects/${projectId}/planner/documents`, estimateBasePath),
+    ).toBe(false);
+  });
+
+  it('supports exact matching when requested', () => {
+    expect(
+      isPlannerNavTabActive(`${estimateBasePath}/settings`, estimateBasePath, { exact: true }),
+    ).toBe(false);
+    expect(isPlannerNavTabActive(estimateBasePath, estimateBasePath, { exact: true })).toBe(true);
   });
 });

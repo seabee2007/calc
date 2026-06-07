@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useParams } from 'react-router-dom';
+import { isPlannerNavTabActive } from '../../utils/plannerRoutes';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
 
 const TABS = [
@@ -22,11 +23,18 @@ export default function PlannerTabNav() {
       className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900 sm:px-6"
       aria-label="Project planner"
     >
-      {TABS.map(({ to, label }) => (
+      {TABS.map(({ to, label }) => {
+        const tabPath = `${base}/${to}`;
+        return (
         <NavLink
           key={to}
-          to={`${base}/${to}`}
-          end={to === 'board' || to === 'estimate'}
+          to={tabPath}
+          end={to === 'board'}
+          isActive={
+            to === 'estimate'
+              ? (_, location) => isPlannerNavTabActive(location.pathname, tabPath)
+              : undefined
+          }
           className={({ isActive }) =>
             [
               'shrink-0 border-b-2 px-4 py-3 transition-colors',
@@ -38,7 +46,8 @@ export default function PlannerTabNav() {
         >
           {label}
         </NavLink>
-      ))}
+        );
+      })}
     </nav>
   );
 }

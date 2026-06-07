@@ -88,26 +88,23 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen min-w-screen flex flex-col relative bg-white dark:bg-gray-900 overflow-hidden"
+    <main
+      className="relative min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
-        minHeight: '100dvh',
-        minWidth: '100dvw',
-        height: '100dvh',
-        width: '100dvw',
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)'
+        paddingRight: 'env(safe-area-inset-right)',
       }}
     >
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
-      
-      <div className="relative z-10 p-4">
+      <div className="pointer-events-none fixed inset-0 bg-black/40 dark:bg-black/60" />
+
+      <div className="relative z-10 min-h-[100dvh] px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
@@ -116,10 +113,9 @@ const Login: React.FC = () => {
         >
           Back
         </Button>
-      </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-10 min-h-[100%] w-full">
-        <Card className="w-full max-w-md p-8 my-auto">
+        <div className="flex min-h-[calc(100dvh-4rem)] items-start justify-center py-6 lg:items-center">
+          <Card className="mx-auto w-full max-w-md p-8">
           <div className="text-center mb-8">
             <LogIn className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
             <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Sign in to your account</h2>
@@ -227,9 +223,10 @@ const Login: React.FC = () => {
               </Button>
             </form>
           )}
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+    </main>
   );
 };
 

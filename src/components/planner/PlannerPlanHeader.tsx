@@ -10,6 +10,7 @@ import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
 import { PLANNER_MENU_PANEL } from './plannerTheme';
 import UserAvatar from './UserAvatar';
 import Button from '../ui/Button';
+import { isPlannerNavTabActive } from '../../utils/plannerRoutes';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
 
 type TabCountKey = keyof ProjectTabCounts;
@@ -133,11 +134,18 @@ export default function PlannerPlanHeader() {
         className="flex gap-0 overflow-x-auto border-t border-slate-100 px-2 dark:border-slate-800 sm:px-4"
         aria-label="Plan views"
       >
-        {TABS.map(({ to, label, countKey }) => (
+        {TABS.map(({ to, label, countKey }) => {
+          const tabPath = `${base}/${to}`;
+          return (
           <NavLink
             key={to}
-            to={`${base}/${to}`}
-            end={to === 'board' || to === 'estimate'}
+            to={tabPath}
+            end={to === 'board'}
+            isActive={
+              to === 'estimate'
+                ? (_, location) => isPlannerNavTabActive(location.pathname, tabPath)
+                : undefined
+            }
             className={({ isActive }) =>
               [
                 'shrink-0 border-b-2 px-4 py-2.5 transition-colors',
@@ -149,7 +157,8 @@ export default function PlannerPlanHeader() {
           >
             {formatTabLabel(label, countKey ? tabCounts[countKey] : undefined)}
           </NavLink>
-        ))}
+          );
+        })}
       </nav>
     </div>
   );

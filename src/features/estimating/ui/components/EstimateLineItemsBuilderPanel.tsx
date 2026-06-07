@@ -336,21 +336,49 @@ export default function EstimateLineItemsBuilderPanel({
     [],
   );
 
+  const divisionCodesSignature = useMemo(
+    () =>
+      workBreakdown.divisions
+        .map((division) => division.code)
+        .sort()
+        .join('|'),
+    [workBreakdown.divisions],
+  );
+
   const handleCollapseAll = useCallback(() => {
     setCollapsedDivisionCodes(
-      buildCollapsedDivisionCodes(workBreakdown.divisions.map((division) => division.code)),
+      buildCollapsedDivisionCodes(
+        divisionCodesSignature ? divisionCodesSignature.split('|') : [],
+      ),
     );
-  }, [workBreakdown.divisions]);
+  }, [divisionCodesSignature]);
 
   const handleSaveQuickFromToolbar = useCallback(() => {
     if (!quickPreview) return;
     onSaveQuick(quickPreview);
   }, [onSaveQuick, quickPreview]);
 
-  // Push updated toolbar handler values to the parent whenever they change.
-  // Intentionally no cleanup here — a null reset on every dep change would
-  // cause two parent setState calls per update, destabilising workBreakdown
-  // and triggering an infinite render loop via handleCollapseAll.
+  const toolbarHandlersRef = useRef({
+    collapseAll: handleCollapseAll,
+    saveQuick: handleSaveQuickFromToolbar,
+    openAddDivision: handleOpenAddDivisionModal,
+  });
+  toolbarHandlersRef.current = {
+    collapseAll: handleCollapseAll,
+    saveQuick: handleSaveQuickFromToolbar,
+    openAddDivision: handleOpenAddDivisionModal,
+  };
+
+  const stableCollapseAll = useCallback(() => toolbarHandlersRef.current.collapseAll(), []);
+  const stableSaveQuick = useCallback(() => toolbarHandlersRef.current.saveQuick(), []);
+  const stableOpenAddDivision = useCallback(
+    () => toolbarHandlersRef.current.openAddDivision(),
+    [],
+  );
+
+  // Push toolbar flags and stable handler refs to the parent when visibility changes.
+  // Do not depend on handler callbacks directly — parent re-renders would recreate
+  // onSaveQuick and retrigger this effect in a setState loop.
   useEffect(() => {
     if (!onToolbarHandlersChange) return;
     onToolbarHandlersChange({
@@ -358,18 +386,18 @@ export default function EstimateLineItemsBuilderPanel({
       showSaveQuick: showQuickFeasibilityPanel,
       canSaveQuick,
       showAddDivision: showBucketPanel,
-      collapseAll: handleCollapseAll,
-      saveQuick: handleSaveQuickFromToolbar,
-      openAddDivision: handleOpenAddDivisionModal,
+      collapseAll: stableCollapseAll,
+      saveQuick: stableSaveQuick,
+      openAddDivision: stableOpenAddDivision,
     });
   }, [
     onToolbarHandlersChange,
     showBucketPanel,
     showQuickFeasibilityPanel,
     canSaveQuick,
-    handleCollapseAll,
-    handleSaveQuickFromToolbar,
-    handleOpenAddDivisionModal,
+    stableCollapseAll,
+    stableSaveQuick,
+    stableOpenAddDivision,
   ]);
 
   // Reset toolbar handlers only on unmount, not on every dep change above.

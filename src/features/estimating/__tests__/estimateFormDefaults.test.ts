@@ -104,6 +104,30 @@ describe('estimateFormDefaults', () => {
     expect(totals.laborCost).toBe(400);
   });
 
+  it('computeLinePreviewTotals ignores unit string changes', () => {
+    const draft = createEmptyDraftLine();
+    draft.task.title = 'Pour slab';
+    draft.task.lineItem.quantity.quantity = 100;
+    draft.unit = 'SF';
+    draft.task.lineItem.labor = {
+      productionRate: 10,
+      productionRateType: 'units_per_labor_hour',
+      hoursPerDay: 8,
+      crewSize: 2,
+      laborRate: 50,
+      burdenPercent: 10,
+    };
+    draft.task.lineItem.material = { unitCost: 5 };
+    draft.task.lineItem.equipment = { rate: 200, rateType: 'lump_sum', usageUnits: 1 };
+    draft.task.lineItem.subcontractor = { cost: 100 };
+
+    const sfTotals = computeLinePreviewTotals(draft);
+    draft.unit = 'CUSTOM';
+    const customTotals = computeLinePreviewTotals(draft);
+
+    expect(customTotals).toEqual(sfTotals);
+  });
+
   it('computeDraftSummaryTotals aggregates draft lines safely', () => {
     const first = createEmptyDraftLine(0, 'line-a');
     first.task.title = 'Line A';

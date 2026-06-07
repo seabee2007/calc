@@ -14,6 +14,10 @@ import {
   OPS_SECTION_EYEBROW,
   OPS_TITLE,
 } from '../dashboard/opsTheme';
+import {
+  DocumentsEmptyState,
+  DocumentsSectionHeader,
+} from '../planner/documents/documentsPanelUtils';
 
 interface QCRecordsProps {
   projectId: string;
@@ -23,6 +27,7 @@ interface QCRecordsProps {
     recordId?: string,
   ) => void | Promise<void>;
   onDelete: (recordId: string) => void;
+  presentation?: 'default' | 'documents';
 }
 
 type FreshFormData = {
@@ -140,7 +145,9 @@ const QCRecords: React.FC<QCRecordsProps> = ({
   records,
   onSave,
   onDelete,
+  presentation = 'default',
 }) => {
+  const isDocumentsPresentation = presentation === 'documents';
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<QCRecord | null>(null);
   const [recordType, setRecordType] = useState<QCRecordType>('fresh_test');
@@ -281,33 +288,52 @@ const QCRecords: React.FC<QCRecordsProps> = ({
     setShowForm(true);
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div>
-          <h3 className={`text-xl font-semibold ${OPS_TITLE}`}>
-            Concrete QC Records
-          </h3>
-          <p className={`text-sm ${OPS_MUTED} mt-1`}>
-            Use Concrete Slump Test for placement-day field tests. Use Break Test Result for 7, 14,
-            and 28-day cylinder results.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
-          <Button variant="accent" onClick={() => openNewForm('fresh_test')} icon={<Plus size={16} />}>
-            Slump Test
-          </Button>
-          <Button variant="accent" onClick={() => openNewForm('break_test')}  icon={<Plus size={16} />}
-          >
-            Break Result
-          </Button>
-        </div>
-      </div>
+  const headerAction = (
+    <>
+      <Button
+        variant="accent"
+        size={isDocumentsPresentation ? 'sm' : undefined}
+        onClick={() => openNewForm('fresh_test')}
+        icon={<Plus size={16} />}
+      >
+        Slump Test
+      </Button>
+      <Button
+        variant="accent"
+        size={isDocumentsPresentation ? 'sm' : undefined}
+        onClick={() => openNewForm('break_test')}
+        icon={<Plus size={16} />}
+      >
+        Break Result
+      </Button>
+    </>
+  );
 
-      <div className="flex flex-col sm:flex-row gap-4">
+  return (
+    <div className={isDocumentsPresentation ? 'space-y-4' : 'space-y-6'}>
+      {isDocumentsPresentation ? (
+        <DocumentsSectionHeader
+          title="Concrete QC Records"
+          description="Track slump tests and concrete break results for this project."
+          action={headerAction}
+        />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div>
+            <h3 className={`text-xl font-semibold ${OPS_TITLE}`}>Concrete QC Records</h3>
+            <p className={`text-sm ${OPS_MUTED} mt-1`}>
+              Use Concrete Slump Test for placement-day field tests. Use Break Test Result for 7, 14,
+              and 28-day cylinder results.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 shrink-0">{headerAction}</div>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex-1">
           <Input
-            placeholder="Search records..."
+            placeholder={isDocumentsPresentation ? 'Search QC records...' : 'Search records...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             icon={<Search className="h-4 w-4 text-gray-400" />}
@@ -576,9 +602,13 @@ const QCRecords: React.FC<QCRecordsProps> = ({
       )}
 
       {filteredRecords.length === 0 ? (
-        <div className={OPS_EMPTY_STATE}>
-          <p className={OPS_MUTED}>No QC records found</p>
-        </div>
+        isDocumentsPresentation ? (
+          <DocumentsEmptyState message="No concrete QC records found." />
+        ) : (
+          <div className={OPS_EMPTY_STATE}>
+            <p className={OPS_MUTED}>No QC records found</p>
+          </div>
+        )
       ) : (
         <div className="space-y-8">
           {freshRecords.length > 0 && (

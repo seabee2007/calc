@@ -1,6 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Info } from 'lucide-react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
+import ConstructionUnitCombobox from './ConstructionUnitCombobox';
+import FieldLabelWithTooltip from './FieldLabelWithTooltip';
+import LaborFieldDefinitionsModal from './LaborFieldDefinitionsModal';
+import { getLaborFieldDefinition } from '../../data/laborFieldDefinitions';
 import {
   applyDivisionScopeDefaults,
   applyDraftLaborDefaults,
@@ -74,12 +79,17 @@ function CheckboxField({
 const UNASSIGNED_DIVISION_VALUE = '';
 const CUSTOM_UNASSIGNED_SCOPE_VALUE = '';
 
+function laborTooltip(id: string): string {
+  return getLaborFieldDefinition(id)?.short ?? '';
+}
+
 export default function EstimateManualLineItemForm({
   draft,
   onChange,
   predecessorOptions = [],
   formError = null,
 }: Props) {
+  const [laborHelpOpen, setLaborHelpOpen] = useState(false);
   const { task } = draft;
   const labor = task.lineItem.labor ?? {};
 
@@ -378,10 +388,10 @@ export default function EstimateManualLineItemForm({
             }
             fullWidth
           />
-          <Input
+          <ConstructionUnitCombobox
             label="Unit"
             value={draft.unit}
-            onChange={(event) => onChange({ ...draft, unit: event.target.value })}
+            onChange={(unit) => onChange({ ...draft, unit })}
             fullWidth
           />
           <Input
@@ -400,96 +410,166 @@ export default function EstimateManualLineItemForm({
       </section>
 
       <section className="space-y-3">
-        <h3 className={PLANNER_SECTION_TITLE}>Labor</h3>
+        <div className="flex items-center gap-2">
+          <h3 className={PLANNER_SECTION_TITLE}>Labor</h3>
+          <button
+            type="button"
+            aria-label="Open labor field definitions"
+            className="rounded-full p-1 text-slate-400 transition-colors hover:text-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
+            onClick={() => setLaborHelpOpen(true)}
+          >
+            <Info className="h-4 w-4" />
+          </button>
+        </div>
+        <LaborFieldDefinitionsModal
+          isOpen={laborHelpOpen}
+          onClose={() => setLaborHelpOpen(false)}
+        />
         <FieldGrid>
-          <Input
-            label="Production rate"
-            type="number"
-            min={0}
-            step="any"
-            value={labor.productionRate ?? 0}
-            onChange={(event) =>
-              patchLabor({ productionRate: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Select
-            label="Production rate type"
-            value={labor.productionRateType ?? 'units_per_labor_hour'}
-            options={PRODUCTION_RATE_TYPE_OPTIONS.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
-            onChange={(value) => patchLabor({ productionRateType: value as ProductionRateType })}
-            fullWidth
-          />
-          <Input
-            label="Crew size"
-            type="number"
-            min={0}
-            step="any"
-            value={labor.crewSize ?? 0}
-            onChange={(event) =>
-              patchLabor({ crewSize: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Hours per day"
-            type="number"
-            min={0}
-            step="any"
-            value={labor.hoursPerDay ?? 8}
-            onChange={(event) =>
-              patchLabor({ hoursPerDay: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Labor rate"
-            type="number"
-            min={0}
-            step="any"
-            value={labor.laborRate ?? 0}
-            onChange={(event) =>
-              patchLabor({ laborRate: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Burden %"
-            type="number"
-            min={0}
-            max={100}
-            step="any"
-            value={labor.burdenPercent ?? 0}
-            onChange={(event) =>
-              patchLabor({ burdenPercent: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Difficulty factor"
-            type="number"
-            min={0}
-            step="any"
-            value={labor.difficultyFactor ?? 1}
-            onChange={(event) =>
-              patchLabor({ difficultyFactor: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
-          <Input
-            label="Location factor"
-            type="number"
-            min={0}
-            step="any"
-            value={labor.locationFactor ?? 1}
-            onChange={(event) =>
-              patchLabor({ locationFactor: parseEstimateFormNumber(event.target.value) })
-            }
-            fullWidth
-          />
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="production-rate"
+              label="Production rate"
+              tooltip={laborTooltip('production_rate')}
+            />
+            <Input
+              id="production-rate"
+              type="number"
+              min={0}
+              step="any"
+              value={labor.productionRate ?? 0}
+              onChange={(event) =>
+                patchLabor({ productionRate: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="production-rate-type"
+              label="Production rate type"
+              tooltip={laborTooltip('production_rate_type')}
+            />
+            <Select
+              id="production-rate-type"
+              value={labor.productionRateType ?? 'units_per_labor_hour'}
+              options={PRODUCTION_RATE_TYPE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+              onChange={(value) => patchLabor({ productionRateType: value as ProductionRateType })}
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="crew-size"
+              label="Crew size"
+              tooltip={laborTooltip('crew_size')}
+            />
+            <Input
+              id="crew-size"
+              type="number"
+              min={0}
+              step="any"
+              value={labor.crewSize ?? 0}
+              onChange={(event) =>
+                patchLabor({ crewSize: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="hours-per-day"
+              label="Hours per day"
+              tooltip={laborTooltip('hours_per_day')}
+            />
+            <Input
+              id="hours-per-day"
+              type="number"
+              min={0}
+              step="any"
+              value={labor.hoursPerDay ?? 8}
+              onChange={(event) =>
+                patchLabor({ hoursPerDay: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="labor-rate"
+              label="Labor rate"
+              tooltip={laborTooltip('labor_rate')}
+            />
+            <Input
+              id="labor-rate"
+              type="number"
+              min={0}
+              step="any"
+              value={labor.laborRate ?? 0}
+              onChange={(event) =>
+                patchLabor({ laborRate: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="burden-percent"
+              label="Burden %"
+              tooltip={laborTooltip('burden_percent')}
+            />
+            <Input
+              id="burden-percent"
+              type="number"
+              min={0}
+              max={100}
+              step="any"
+              value={labor.burdenPercent ?? 0}
+              onChange={(event) =>
+                patchLabor({ burdenPercent: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="difficulty-factor"
+              label="Difficulty factor"
+              tooltip={laborTooltip('difficulty_factor')}
+            />
+            <Input
+              id="difficulty-factor"
+              type="number"
+              min={0}
+              step="any"
+              value={labor.difficultyFactor ?? 1}
+              onChange={(event) =>
+                patchLabor({ difficultyFactor: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
+          <div>
+            <FieldLabelWithTooltip
+              htmlFor="location-factor"
+              label="Location factor"
+              tooltip={laborTooltip('location_factor')}
+            />
+            <Input
+              id="location-factor"
+              type="number"
+              min={0}
+              step="any"
+              value={labor.locationFactor ?? 1}
+              onChange={(event) =>
+                patchLabor({ locationFactor: parseEstimateFormNumber(event.target.value) })
+              }
+              fullWidth
+            />
+          </div>
         </FieldGrid>
       </section>
 

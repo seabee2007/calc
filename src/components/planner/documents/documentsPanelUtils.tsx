@@ -4,6 +4,7 @@ import type { ProjectDocumentRow } from '../../../services/projectDocumentServic
 import PlannerBuilderDocumentRow from '../PlannerBuilderDocumentRow';
 import ProjectRecordActions from '../ProjectRecordActions';
 import {
+  PLANNER_FORM_PANEL,
   PLANNER_MUTED,
   PLANNER_TABLE,
   PLANNER_TABLE_HEAD,
@@ -36,6 +37,62 @@ export function formatSigningMeta(doc: ProjectDocumentRow): string {
   if (status === 'declined') return 'Declined';
   if (status === 'void') return 'Void';
   return `Draft · v${doc.latest_version_number}`;
+}
+
+export function DocumentsSectionHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-1">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
+        {description ? <p className={PLANNER_MUTED}>{description}</p> : null}
+      </div>
+      {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
+    </div>
+  );
+}
+
+export function DocumentsSectionCard({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title?: string;
+  description?: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className={`${PLANNER_FORM_PANEL} space-y-4 p-6`}>
+      {title ? (
+        <DocumentsSectionHeader title={title} description={description} action={action} />
+      ) : null}
+      {children}
+    </section>
+  );
+}
+
+export function DocumentsEmptyState({
+  message,
+  description,
+}: {
+  message: string;
+  description?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-900/40">
+      <p className={`text-sm ${PLANNER_MUTED}`}>{message}</p>
+      {description ? <p className={`mt-2 text-sm ${PLANNER_MUTED}`}>{description}</p> : null}
+    </div>
+  );
 }
 
 export function BuilderDraftsTable({

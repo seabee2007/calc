@@ -39,8 +39,9 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full p-8">
+    <main className="min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-gray-50">
+      <div className="flex min-h-[100dvh] items-start justify-center px-4 py-8 sm:px-6 sm:py-12 lg:items-center lg:px-8">
+        <Card className="mx-auto w-full max-w-md p-8">
         <div className="text-center mb-8">
           <KeyRound className="mx-auto h-12 w-12 text-blue-600" />
           <h2 className="mt-6 text-3xl font-bold text-gray-900">Reset Password</h2>
@@ -104,8 +105,9 @@ const ResetPassword: React.FC = () => {
             </Button>
           </form>
         )}
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </main>
   );
 };
 

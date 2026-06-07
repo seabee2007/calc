@@ -5,6 +5,19 @@ import {
   isEstimateWorkspaceTabId,
 } from '../features/estimating/utils/estimateRoutes';
 
+/** Match a planner nav tab path; nested routes stay active unless exact is set. */
+export function isPlannerNavTabActive(
+  pathname: string,
+  tabPath: string,
+  options?: { exact?: boolean },
+): boolean {
+  if (options?.exact) {
+    return pathname === tabPath;
+  }
+
+  return pathname === tabPath || pathname.startsWith(`${tabPath}/`);
+}
+
 /** True when the route should use PlannerWorkspaceLayout (no photo bg, footer, bottom nav). */
 export function isPlannerWorkspacePath(pathname: string): boolean {
   if (pathname.includes('/planner') || pathname.startsWith('/planner')) return true;

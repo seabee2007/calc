@@ -27,7 +27,7 @@ import { PLANNER_PAGE_BG } from '../../components/planner/plannerTheme';
 
 export default function PlannerDocumentsPage() {
   const { user } = useAuth();
-  const { projectId, project } = usePlannerProject();
+  const { projectId } = usePlannerProject();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const highlightSafety = searchParams.get('safety');
@@ -187,12 +187,6 @@ export default function PlannerDocumentsPage() {
 
   return (
     <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col`}>
-      <div className="border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Documents — {project?.name ?? 'This project'}
-        </h2>
-      </div>
-
       <PlannerDocumentsTabBar tabs={tabs} activeTabId={activeTab} onTabChange={setActiveTab} />
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">

@@ -60,13 +60,30 @@ describe('Project Details concrete-specific cleanup', () => {
 });
 
 describe('Documents QC actions', () => {
+  it('renders QCReports sections with consistent documents layout copy', () => {
+    expect(qcReportsPanelSource).toContain('DocumentsSectionCard');
+    expect(qcReportsPanelSource).toContain('title="QC Reports"');
+    expect(qcReportsPanelSource).toContain('No QC reports yet.');
+    expect(qcReportsPanelSource).toContain('title="QC Checklists"');
+    expect(qcReportsPanelSource).toContain('No QC checklists found.');
+    expect(qcReportsPanelSource).not.toContain('DocumentsPanelFootnote');
+  });
+
   it('renders QCRecords with Slump Test and Break Result actions', () => {
     expect(qcReportsPanelSource).toContain('QCRecords');
+    expect(qcReportsPanelSource).toContain('presentation="documents"');
     expect(qcReportsPanelSource).toContain('useProjectQcRecordHandlers');
     expect(qcRecordsSource).toContain("openNewForm('fresh_test')");
     expect(qcRecordsSource).toContain("openNewForm('break_test')");
     expect(qcRecordsSource).toContain('Slump Test');
     expect(qcRecordsSource).toContain('Break Result');
+  });
+
+  it('uses documents presentation copy for concrete QC records', () => {
+    expect(qcRecordsSource).toContain("presentation === 'documents'");
+    expect(qcRecordsSource).toContain('Search QC records...');
+    expect(qcRecordsSource).toContain('No concrete QC records found.');
+    expect(qcRecordsSource).toContain('Track slump tests and concrete break results for this project.');
   });
 
   it('opens existing slump and break workflows through QCRecords forms', () => {

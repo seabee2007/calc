@@ -139,6 +139,44 @@ describe('saveEstimateVersionWithLineItems', () => {
     });
   });
 
+  it('persists custom unit strings unchanged', async () => {
+    const customDraft = buildPopulatedDraft();
+    customDraft.unit = 'CUSTOM';
+
+    const insertEstimateLineItems = vi.fn(async () =>
+      success([{ id: 'line-1' } as EstimateLineItemRow]),
+    );
+
+    const result = await saveEstimateVersionWithLineItems(
+      {
+        estimateId: 'est-1',
+        projectId: 'proj-1',
+        currentVersion,
+        draftLines: [customDraft],
+        createdBy: 'user-1',
+      },
+      {
+        listEstimateVersions: vi.fn(async () => success([versionRow(1)])),
+        createEstimateVersion: vi.fn(async () => success(versionRow(2, 'ver-new'))),
+        insertEstimateLineItems,
+        updateEstimateCurrentVersion: vi.fn(async () =>
+          success({ id: 'est-1', currentVersionId: 'ver-new' } as EstimateSummary),
+        ),
+      },
+    );
+
+    expect(result.error).toBeNull();
+    expect(insertEstimateLineItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lineItems: expect.arrayContaining([
+          expect.objectContaining({
+            unit: 'CUSTOM',
+          }),
+        ]),
+      }),
+    );
+  });
+
   it('preserves selected divisions with no line items in the saved snapshot', async () => {
     const listEstimateVersions = vi.fn(async () =>
       success([versionRow(1), versionRow(2)]),

@@ -10,6 +10,7 @@ import { getCsiDivisionByCode, normalizeCsiDivisionCode } from '../../domain/csi
 import {
   applyDraftLaborDefaults,
   applyDivisionScopeDefaults,
+  applyEstimateSettingsToNewDraftLine,
   cloneDraftLine,
   createEmptyDraftLine,
   draftLinesFromVersion,
@@ -20,6 +21,7 @@ import {
   syncDraftLineDescription,
   type EstimateDraftLine,
 } from '../../application/estimateDraftLine';
+import type { EstimateSettings } from '../../domain/estimateTypes';
 
 export interface UseEstimateLineItemDraftResult {
   draftLines: EstimateDraftLine[];
@@ -46,6 +48,7 @@ export interface UseEstimateLineItemDraftResult {
 
 export function useEstimateLineItemDraft(
   version: EstimateDomainVersion | null,
+  estimateSettings?: Partial<EstimateSettings> | null,
 ): UseEstimateLineItemDraftResult {
   const [draftLines, setDraftLines] = useState<EstimateDraftLine[]>([]);
   const [dirty, setDirty] = useState(false);
@@ -70,18 +73,28 @@ export function useEstimateLineItemDraft(
     hydratedVersionIdRef.current = version.id;
   }, [version]);
 
+  const createNewFormDraft = useCallback(
+    (position: number) =>
+      applyDivisionScopeDefaults(
+        applyDraftLaborDefaults(
+          applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(position), estimateSettings),
+        ),
+      ),
+    [estimateSettings],
+  );
+
   const openAddDrawer = useCallback(() => {
     const nextPosition = draftLines.length;
     setEditingClientId(null);
     setFormError(null);
-    setFormDraft(applyDraftLaborDefaults(createEmptyDraftLine(nextPosition)));
+    setFormDraft(createNewFormDraft(nextPosition));
     setDrawerOpen(true);
-  }, [draftLines.length]);
+  }, [createNewFormDraft, draftLines.length]);
 
   const openAddDrawerForDivision = useCallback(
     (divisionCode: string) => {
       const nextPosition = draftLines.length;
-      const line = applyDraftLaborDefaults(createEmptyDraftLine(nextPosition));
+      const line = createNewFormDraft(nextPosition);
       const normalizedDivision = normalizeCsiDivisionCode(divisionCode);
       line.task.lineItem.csiDivision = normalizedDivision;
       line.task.divisionCode = normalizedDivision;
@@ -91,7 +104,7 @@ export function useEstimateLineItemDraft(
       setFormDraft(applyDivisionScopeDefaults(line));
       setDrawerOpen(true);
     },
-    [draftLines.length],
+    [createNewFormDraft, draftLines.length],
   );
 
   const openEditDrawer = useCallback(

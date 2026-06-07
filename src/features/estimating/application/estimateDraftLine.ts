@@ -1,11 +1,13 @@
 import { normalizeCsiDivisionCode, isKnownCsiDivision } from '../domain/csiDivisions';
 import { getDefaultScopeForDivision, normalizeScopeName } from '../domain/csiScopeTemplates';
+import type { EstimateSettings } from '../domain/estimateTypes';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import type { EstimateLineItemInput } from '../domain/estimateTypes';
 import {
   assignActivityCodeToDraftLine,
   backfillActivityCodesForDraftLines,
 } from './estimateActivityCoding';
+import { DEFAULT_ESTIMATE_SETTINGS, normalizeEstimateSettings } from './estimateSettings';
 
 export interface EstimateDraftLine {
   clientId: string;
@@ -242,6 +244,36 @@ export function applyDraftLaborDefaults(draft: EstimateDraftLine): EstimateDraft
           hoursPerDay: labor.hoursPerDay > 0 ? labor.hoursPerDay : 8,
           difficultyFactor: labor.difficultyFactor > 0 ? labor.difficultyFactor : 1,
           locationFactor: labor.locationFactor > 0 ? labor.locationFactor : 1,
+        },
+      },
+    },
+  };
+}
+
+/** Prefill new activity drafts from project-wide estimate settings. */
+export function applyEstimateSettingsToNewDraftLine(
+  draft: EstimateDraftLine,
+  estimateSettings?: Partial<EstimateSettings> | null,
+): EstimateDraftLine {
+  const settings = normalizeEstimateSettings(estimateSettings ?? DEFAULT_ESTIMATE_SETTINGS);
+  const labor = draft.task.lineItem.labor;
+
+  return {
+    ...draft,
+    task: {
+      ...draft.task,
+      overheadPercent: settings.overheadPercent,
+      profitPercent: settings.profitPercent,
+      contingencyPercent: settings.contingencyPercent,
+      taxPercent: settings.taxPercent,
+      lineItem: {
+        ...draft.task.lineItem,
+        labor: {
+          ...labor,
+          laborRate: settings.defaultLaborRate,
+          burdenPercent: settings.burdenPercent,
+          hoursPerDay: settings.hoursPerDay > 0 ? settings.hoursPerDay : labor.hoursPerDay,
+          crewSize: settings.defaultCrewSize > 0 ? settings.defaultCrewSize : labor.crewSize,
         },
       },
     },

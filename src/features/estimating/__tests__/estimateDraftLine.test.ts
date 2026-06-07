@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyDivisionScopeDefaults,
+  applyEstimateSettingsToNewDraftLine,
   createEmptyDraftLine,
   draftLineFromDomainTask,
   draftLinesFromVersion,
@@ -12,6 +13,7 @@ import {
   sortDraftLinesByPosition,
   syncDraftLineDescription,
 } from '../application/estimateDraftLine';
+import { computeLinePreviewTotals } from '../ui/estimateFormDefaults';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 
 function sampleTask(overrides: Partial<EstimateDomainTask> = {}): EstimateDomainTask {
@@ -191,5 +193,81 @@ describe('estimateDraftLine', () => {
 
     const updated = applyDivisionScopeDefaults(draft);
     expect(updated.task.scopeName).toBe('Custom pour scope');
+  });
+
+  it('applyEstimateSettingsToNewDraftLine maps defaultLaborRate to labor.laborRate', () => {
+    const draft = applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(), {
+      defaultLaborRate: 55,
+      burdenPercent: 25,
+    });
+
+    expect(draft.task.lineItem.labor.laborRate).toBe(55);
+    expect(draft.task.lineItem.labor.burdenPercent).toBe(25);
+  });
+
+  it('applyEstimateSettingsToNewDraftLine does not leave labor defaults at zero when settings are set', () => {
+    const draft = applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(), {
+      defaultLaborRate: 55,
+      burdenPercent: 25,
+    });
+
+    expect(draft.task.lineItem.labor.laborRate).not.toBe(0);
+    expect(draft.task.lineItem.labor.burdenPercent).not.toBe(0);
+  });
+
+  it('applyEstimateSettingsToNewDraftLine uses updated settings for each new draft', () => {
+    const first = applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(), {
+      defaultLaborRate: 55,
+      burdenPercent: 25,
+    });
+    const second = applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(), {
+      defaultLaborRate: 60,
+      burdenPercent: 30,
+    });
+
+    expect(first.task.lineItem.labor.laborRate).toBe(55);
+    expect(second.task.lineItem.labor.laborRate).toBe(60);
+    expect(second.task.lineItem.labor.burdenPercent).toBe(30);
+  });
+
+  it('draftLineFromDomainTask preserves saved labor values from existing activities', () => {
+    const draft = draftLineFromDomainTask(
+      sampleTask({
+        lineItem: {
+          ...sampleTask().lineItem,
+          labor: {
+            productionRate: 10,
+            productionRateType: 'units_per_labor_hour',
+            hoursPerDay: 8,
+            crewSize: 2,
+            laborRate: 42,
+            burdenPercent: 18,
+          },
+        },
+      }),
+    );
+
+    expect(draft.task.lineItem.labor.laborRate).toBe(42);
+    expect(draft.task.lineItem.labor.burdenPercent).toBe(18);
+  });
+
+  it('saved activity preview totals use populated laborRate and burdenPercent', () => {
+    const draft = applyEstimateSettingsToNewDraftLine(createEmptyDraftLine(), {
+      defaultLaborRate: 55,
+      burdenPercent: 25,
+    });
+    draft.task.title = 'Pour slab';
+    draft.task.lineItem.quantity.quantity = 100;
+    draft.task.lineItem.labor = {
+      ...draft.task.lineItem.labor,
+      productionRate: 10,
+      productionRateType: 'units_per_labor_hour',
+      hoursPerDay: 8,
+      crewSize: 2,
+    };
+
+    const totals = computeLinePreviewTotals(draft);
+    expect(totals.laborCost).toBeGreaterThan(0);
+    expect(totals.laborCost).toBe(687.5);
   });
 });

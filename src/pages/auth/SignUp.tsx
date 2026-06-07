@@ -176,40 +176,34 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div
-      className="relative min-h-[100dvh] w-full overflow-x-hidden bg-white dark:bg-gray-900"
+    <main
+      className="relative min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
       }}
     >
-      <div className="fixed inset-0 bg-black/40 dark:bg-black/60 pointer-events-none" />
+      <div className="pointer-events-none fixed inset-0 bg-black/40 dark:bg-black/60" />
 
-      <div
-        className="relative z-10 space-y-8 px-4 py-6 sm:px-6 lg:px-8"
-        style={{
-          paddingTop: 'max(env(safe-area-inset-top), 1.5rem)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 2.5rem)',
-          paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
-          paddingRight: 'max(env(safe-area-inset-right), 1rem)'
-        }}
-      >
-        <div>
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            icon={<ArrowLeft size={20} />}
-            className="text-white hover:text-blue-200"
-          >
-            Back
-          </Button>
-        </div>
+      <div className="relative z-10 min-h-[100dvh] px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          icon={<ArrowLeft size={20} />}
+          className="text-white hover:text-blue-200"
+        >
+          Back
+        </Button>
 
-        <section className="flex justify-center pb-10">
-          <Card className="w-full max-w-md p-6 sm:p-8">
+        <div className="flex min-h-[calc(100dvh-4rem)] items-start justify-center py-6 lg:items-center">
+          <Card className="mx-auto w-full max-w-md p-6 sm:p-8">
             <div className="mb-8 text-center">
               <UserPlus className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
 
@@ -373,7 +367,7 @@ const SignUp: React.FC = () => {
               </Button>
             </form>
           </Card>
-        </section>
+        </div>
       </div>
 
       <Modal
@@ -386,7 +380,7 @@ const SignUp: React.FC = () => {
           <UserAgreement />
         </div>
       </Modal>
-    </div>
+    </main>
   );
 };
 
