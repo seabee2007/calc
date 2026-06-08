@@ -58,7 +58,7 @@ import {
 const PROJECT_SELECT = `
   id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -70,7 +70,7 @@ const PROJECT_SELECT = `
 const PROJECT_SELECT_NO_CLIENT_INFO = `
   id, name, description, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -82,7 +82,7 @@ const PROJECT_SELECT_NO_CLIENT_INFO = `
 const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
   id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -93,7 +93,7 @@ const PROJECT_SELECT_NO_LABOR_ESTIMATES = `
 const PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT = `
   id, name, description, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -104,7 +104,7 @@ const PROJECT_SELECT_NO_LABOR_ESTIMATES_NO_CLIENT = `
 const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
   id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -114,7 +114,7 @@ const PROJECT_SELECT_NO_PLACEMENT_ORDER = `
 
 const PROJECT_SELECT_NO_JOBSITE = `
   id, name, description, client_info, custom_estimates,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -124,7 +124,7 @@ const PROJECT_SELECT_NO_JOBSITE = `
 
 const PROJECT_SELECT_LEGACY = `
   id, name, description, client_info,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile,
   calculations(*),
   qc_records(*, qc_checklists(*)),
@@ -135,40 +135,40 @@ const PROJECT_SELECT_LEGACY = `
 const PROJECT_SELECT_MINIMAL = `
   id, name, description, client_info, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order
 `;
 
 const PROJECT_SELECT_MINIMAL_NO_CLIENT_INFO = `
   id, name, description, custom_estimates,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order
 `;
 
 const PROJECT_SELECT_MINIMAL_NO_CUSTOM_ESTIMATES = `
   id, name, description, client_info,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order
 `;
 
 const PROJECT_SELECT_MINIMAL_NO_CLIENT_NO_CUSTOM = `
   id, name, description,
   jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order
 `;
 
 const PROJECT_SELECT_MINIMAL_NO_JOBSITE = `
   id, name, description, client_info, custom_estimates,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile, placement_order
 `;
 
 const PROJECT_SELECT_MINIMAL_LEGACY = `
   id, name, description,
-  waste_factor, created_at, updated_at,
+  waste_factor, project_crew_size, created_at, updated_at,
   pour_date, mix_profile
 `;
 
@@ -202,6 +202,10 @@ function isCustomEstimatesColumnError(message: string): boolean {
 
 function isWasteFactorColumnError(message: string): boolean {
   return message.includes('waste_factor');
+}
+
+function isProjectCrewSizeColumnError(message: string): boolean {
+  return message.includes('project_crew_size');
 }
 
 function isMixProfileColumnError(message: string): boolean {
@@ -266,7 +270,8 @@ function isRecoverableProjectSelectError(message: string): boolean {
     isTruckTicketsSchemaError(message) ||
     isPlacementOrderColumnError(message) ||
     isLaborEstimatesSchemaError(message) ||
-    isCustomEstimatesColumnError(message)
+    isCustomEstimatesColumnError(message) ||
+    isProjectCrewSizeColumnError(message)
   );
 }
 
@@ -507,6 +512,7 @@ type ProjectInsertSource = {
   jobsiteAddress?: USAddress;
   clientInfo?: ProjectClientInfo;
   wasteFactor?: number;
+  projectCrewSize?: number;
   pourDate?: string | null;
 };
 
@@ -524,6 +530,7 @@ function buildInsertFallbackRow(
     ...jobsite,
     client_info: payload.client_info ?? null,
     waste_factor: payload.waste_factor ?? source.wasteFactor ?? 10,
+    project_crew_size: payload.project_crew_size ?? source.projectCrewSize ?? 7,
     pour_date: payload.pour_date ?? source.pourDate ?? null,
     mix_profile: payload.mix_profile ?? 'standard',
     created_at: now,
@@ -582,6 +589,13 @@ async function insertProjectRow(
     }
     if (isWasteFactorColumnError(msg)) {
       body = omitPayloadKeys(body, ['waste_factor']);
+      continue;
+    }
+    if (isProjectCrewSizeColumnError(msg)) {
+      body = omitPayloadKeys(body, ['project_crew_size']);
+      console.warn(
+        'Saved project without project_crew_size — apply migration 20260623000000_project_crew_size.sql',
+      );
       continue;
     }
     if (isMixProfileColumnError(msg)) {
@@ -691,6 +705,10 @@ function mapProjectFromRow(row: any): Project {
     jobsiteAddress: mapJobsiteFromRow(row),
     clientInfo: parseClientInfoFromDb(row.client_info),
     wasteFactor: row.waste_factor,
+    projectCrewSize:
+      row.project_crew_size != null && Number.isFinite(Number(row.project_crew_size))
+        ? Number(row.project_crew_size)
+        : 7,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     pourDate: row.pour_date,
@@ -1010,6 +1028,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       description: project.description || '',
       ...jobsitePayload(project.jobsiteAddress),
       waste_factor: project.wasteFactor ?? 10,
+      project_crew_size: project.projectCrewSize ?? 7,
       pour_date: project.pourDate ?? null,
       mix_profile: 'standard',
     };
@@ -1024,6 +1043,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       jobsiteAddress: project.jobsiteAddress,
       clientInfo: project.clientInfo,
       wasteFactor: project.wasteFactor,
+      projectCrewSize: project.projectCrewSize,
       pourDate: project.pourDate,
     });
 
@@ -1056,6 +1076,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (projectData.name)        payload.name        = projectData.name;
     if (projectData.description !== undefined) payload.description = projectData.description;
     if (projectData.wasteFactor) payload.waste_factor = projectData.wasteFactor;
+    if (projectData.projectCrewSize != null) {
+      payload.project_crew_size = projectData.projectCrewSize;
+    }
     if (projectData.pourDate)    payload.pour_date    = projectData.pourDate;
     if (projectData.mixProfile)  payload.mix_profile  = projectData.mixProfile;
     if (projectData.placementOrder !== undefined) {

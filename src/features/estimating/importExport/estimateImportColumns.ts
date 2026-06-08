@@ -34,6 +34,7 @@ export const ESTIMATE_IMPORT_OPTIONAL_COLUMNS = [
   'lag_days',
   'predecessor_activity',
   'notes',
+  'csi_section',
 ] as const;
 
 export const ESTIMATE_IMPORT_ALL_COLUMNS = [
@@ -86,4 +87,5 @@ export const ESTIMATE_IMPORT_TEMPLATE_SAMPLE_ROW: Record<EstimateImportColumn, s
   lag_days: 0,
   predecessor_activity: '',
   notes: 'Sample row — replace with your estimate lines',
+  csi_section: '03 30 00',
 };

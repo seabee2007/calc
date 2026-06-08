@@ -11,6 +11,7 @@ import {
 } from '../utils/estimateRoutes';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
+import { useProjectStore } from '../../../store';
 import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
 import type { EstimateSelectedDivision, EstimateType } from '../domain/estimateTypes';
 import {
@@ -124,6 +125,7 @@ import LevelThreeGanttWorkspace from './components/scheduling/LevelThreeGanttWor
 import ResourceLevelingModal from './components/scheduling/ResourceLevelingModal';
 import { calculateResourceHistogram } from '../scheduling/resources/resourceHistogramCalculator';
 import { resourceLevelSchedule } from '../scheduling/resources/resourceLevelSchedule';
+import { resolveProjectAvailableCrewSize } from '../scheduling/resources/projectAvailableCrewSize';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -156,6 +158,8 @@ export default function EstimateWorkspacePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { projectId, project, loading: plannerLoading, accessDenied } = usePlannerProject();
+  const updateProject = useProjectStore((state) => state.updateProject);
+  const [projectCrewSizeSaving, setProjectCrewSizeSaving] = useState(false);
   const parsedTab = parseEstimateWorkspaceTabParam(estimateTab);
   const activeTab: EstimateWorkspaceTabId = parsedTab ?? 'overview';
   const [dataLoading, setDataLoading] = useState(true);
@@ -255,6 +259,15 @@ export default function EstimateWorkspacePage() {
     [estimateAdapter],
   );
 
+  const projectAvailableCrewSize = useMemo(
+    () =>
+      resolveProjectAvailableCrewSize({
+        projectCrewSize: project?.projectCrewSize,
+        legacyAvailableCrewSize: scheduleSettingsHook.scheduleSettings.availableCrewSize,
+      }),
+    [project?.projectCrewSize, scheduleSettingsHook.scheduleSettings.availableCrewSize],
+  );
+
   const resourceHistogram = useMemo(() => {
     if (!cpmResult || scheduleActivitiesResult.activities.length === 0) return [];
     return calculateResourceHistogram({
@@ -263,14 +276,15 @@ export default function EstimateWorkspacePage() {
       projectStartDate:
         scheduleSettingsHook.scheduleSettings.projectStartDate ||
         getTodayScheduleDateYmd(),
-      availableCrewSize: scheduleSettingsHook.scheduleSettings.availableCrewSize,
+      availableCrewSize: projectAvailableCrewSize,
       leveledOffsets: scheduleSettingsHook.leveledOffsets,
     });
   }, [
     cpmResult,
     scheduleActivitiesResult.activities,
-    scheduleSettingsHook.scheduleSettings,
+    scheduleSettingsHook.scheduleSettings.projectStartDate,
     scheduleSettingsHook.leveledOffsets,
+    projectAvailableCrewSize,
   ]);
 
   const ganttExportReady = useMemo(
@@ -1305,12 +1319,17 @@ export default function EstimateWorkspacePage() {
     const result = resourceLevelSchedule({
       activities: scheduleActivitiesResult.activities,
       logicLinks: scheduleSettingsHook.logicLinks,
-      availableCrewSize: scheduleSettingsHook.scheduleSettings.availableCrewSize,
+      availableCrewSize: projectAvailableCrewSize,
       projectStartDate:
         scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
     });
     setLevelingModalResult(result);
-  }, [cpmResult, scheduleActivitiesResult.activities, scheduleSettingsHook]);
+  }, [
+    cpmResult,
+    scheduleActivitiesResult.activities,
+    scheduleSettingsHook,
+    projectAvailableCrewSize,
+  ]);
 
   const runCpmGanttExport = useCallback(
     async (format: 'pdf' | 'excel') => {
@@ -1452,6 +1471,22 @@ export default function EstimateWorkspacePage() {
     estimateAdapter?.estimateType === 'quick_feasibility' ||
     activeEstimateType === 'quick_feasibility';
   const canEditEstimate = hasEstimate && hasEstimateAdapter;
+  const handleProjectCrewSizeChange = useCallback(
+    async (nextValue: number) => {
+      if (!project?.id || !canEditEstimate) return;
+      const normalized = Math.max(1, Math.min(999, Math.round(nextValue)));
+      setProjectCrewSizeSaving(true);
+      try {
+        await updateProject(project.id, { projectCrewSize: normalized });
+        setSaveToastMessage('Project crew size saved');
+      } catch {
+        setSaveToastMessage('Could not save project crew size');
+      } finally {
+        setProjectCrewSizeSaving(false);
+      }
+    },
+    [project?.id, canEditEstimate, updateProject],
+  );
   const showCollapseAll = shouldShowCollapseAllAction(
     activeTab,
     builderToolbarHandlers?.showCollapseAll ?? false,
@@ -1631,6 +1666,9 @@ export default function EstimateWorkspacePage() {
           <EstimateSettingsPanel
             settingsState={estimateSettings}
             canEdit={canEditEstimate}
+            projectCrewSize={projectAvailableCrewSize}
+            onProjectCrewSizeChange={(value) => void handleProjectCrewSizeChange(value)}
+            projectCrewSizeSaving={projectCrewSizeSaving}
           />
         ) : null}
 
@@ -1748,6 +1786,7 @@ export default function EstimateWorkspacePage() {
                 onClearAllLogicLinks={handleClearAllLogicLinks}
                 logicNetworkInitialized={scheduleSettingsHook.logicNetworkInitialized}
                 scheduleSettings={scheduleSettingsHook.scheduleSettings}
+                projectAvailableCrewSize={projectAvailableCrewSize}
                 projectName={project?.name}
               />
             </div>
@@ -1801,7 +1840,7 @@ export default function EstimateWorkspacePage() {
                     className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     onClick={handleRunResourceLeveling}
                   >
-                    Run resource leveling
+                    Resource level schedule
                   </button>
                   {Object.keys(scheduleSettingsHook.leveledOffsets).length > 0 && (
                     <button

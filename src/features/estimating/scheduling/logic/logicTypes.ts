@@ -113,6 +113,9 @@ export type AiLogicReviewInput = {
     logicAnchor?: string;
     primaryTrade?: string;
     variant?: 'baseline' | 'slab_on_grade' | 'crawlspace' | 'optional';
+    /** Secondary CSI classification context from the activity master or line item. */
+    csiDivisionCode?: string;
+    csiSectionCode?: string;
   }>;
   logicLinks: CpmLogicLink[];
 };

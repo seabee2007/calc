@@ -80,6 +80,38 @@ describe('calculateResourceHistogram', () => {
     });
     expect(result[0].isOverallocated).toBe(true);
     expect(result[0].requiredCrew).toBe(12);
+    expect(result[0].overallocatedAmount).toBe(2);
+  });
+
+  it('tracks critical and noncritical crew separately', () => {
+    const activities = [makeAct('A', 2, 4), makeAct('B', 2, 3)];
+    const cpmActivities = [
+      { ...makeCpm('A', 0, 2), isCritical: true },
+      { ...makeCpm('B', 0, 2), isCritical: false },
+    ];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+    expect(result[0].criticalRequiredCrew).toBe(4);
+    expect(result[0].noncriticalRequiredCrew).toBe(3);
+    expect(result[0].requiredCrew).toBe(7);
+  });
+
+  it('compares required crew against project crew size cap', () => {
+    const activities = [makeAct('A', 1, 8)];
+    const cpmActivities = [makeCpm('A', 0, 1)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 7,
+    });
+    expect(result[0].availableCrew).toBe(7);
+    expect(result[0].isOverallocated).toBe(true);
+    expect(result[0].overallocatedAmount).toBe(1);
   });
 
   it('does not flag overallocation when within available', () => {

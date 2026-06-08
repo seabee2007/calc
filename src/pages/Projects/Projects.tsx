@@ -192,6 +192,7 @@ const ProjectsContent: React.FC = () => {
                 jobsiteAddress: currentProject.jobsiteAddress,
                 clientInfo: currentProject.clientInfo,
                 pourDate: currentProject.pourDate?.split('T')[0],
+                projectCrewSize: currentProject.projectCrewSize ?? 7,
               }}
               projectId={currentProject.id}
               isEditing

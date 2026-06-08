@@ -31,6 +31,8 @@ export function calculateResourceHistogram(
 
   for (let day = 0; day < projectDuration; day += 1) {
     let requiredCrew = 0;
+    let criticalRequiredCrew = 0;
+    let noncriticalRequiredCrew = 0;
 
     for (const cpm of cpmActivities) {
       const activity = actByCode.get(cpm.activityCode);
@@ -40,17 +42,48 @@ export function calculateResourceHistogram(
       const ef = es + activity.durationDays;
       if (day >= es && day < ef) {
         requiredCrew += activity.crewSize;
+        if (cpm.isCritical) {
+          criticalRequiredCrew += activity.crewSize;
+        } else {
+          noncriticalRequiredCrew += activity.crewSize;
+        }
       }
     }
+
+    const overallocatedAmount = Math.max(0, requiredCrew - availableCrewSize);
 
     days.push({
       dayOffset: day,
       date: addDaysToScheduleDate(projectStartDate, day),
       requiredCrew,
+      criticalRequiredCrew,
+      noncriticalRequiredCrew,
       availableCrew: availableCrewSize,
-      isOverallocated: requiredCrew > availableCrewSize,
+      overallocatedAmount,
+      isOverallocated: overallocatedAmount > 0,
     });
   }
 
   return days;
+}
+
+export function countOverallocatedDays(histogram: ResourceHistogramDay[]): number {
+  return histogram.filter((day) => day.isOverallocated).length;
+}
+
+export function peakRequiredCrew(histogram: ResourceHistogramDay[]): number {
+  if (histogram.length === 0) return 0;
+  return Math.max(...histogram.map((day) => day.requiredCrew));
+}
+
+export function buildCriticalOnlyHistogram(
+  histogram: ResourceHistogramDay[],
+): ResourceHistogramDay[] {
+  return histogram.map((day) => ({
+    ...day,
+    requiredCrew: day.criticalRequiredCrew,
+    noncriticalRequiredCrew: 0,
+    overallocatedAmount: Math.max(0, day.criticalRequiredCrew - day.availableCrew),
+    isOverallocated: day.criticalRequiredCrew > day.availableCrew,
+  }));
 }

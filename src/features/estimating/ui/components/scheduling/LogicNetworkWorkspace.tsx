@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { Viewport } from '@xyflow/react';
 import { Cpu, Download } from 'lucide-react';
 import { exportLogicLinksToExcel } from '../../../export/logicNetworkExcelExport';
+import { getMasterActivityCsiContext } from '../../../data/masterActivityIndex';
 import {
   getActivityGraphKey,
   type ScheduleActivity,
@@ -101,6 +102,7 @@ interface Props {
   layout: LogicNetworkLayout[];
   logicReviewIgnored: string[];
   scheduleSettings?: ScheduleSettings;
+  projectAvailableCrewSize?: number;
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
   onSaveLayout: (layout: LogicNetworkLayout[]) => Promise<void>;
@@ -130,6 +132,7 @@ export default function LogicNetworkWorkspace({
   activities,
   onSaveLayout,
   scheduleSettings,
+  projectAvailableCrewSize,
   projectType,
   projectLocation,
   projectName = 'project',
@@ -258,7 +261,7 @@ export default function LogicNetworkWorkspace({
         setLivePreviewCpm(result);
 
         // RCS check
-        const crewSize = scheduleSettings?.availableCrewSize ?? 0;
+        const crewSize = projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize ?? 0;
         if (crewSize > 0 && activities.length > 0) {
           const projectStartDate =
             scheduleSettings?.projectStartDate || new Date().toISOString().slice(0, 10);
@@ -274,7 +277,7 @@ export default function LogicNetworkWorkspace({
         setLiveCpmBusy(false);
       }
     },
-    [activities, canvasProps.logicLinks, scheduleSettings],
+    [activities, canvasProps.logicLinks, scheduleSettings, projectAvailableCrewSize],
   );
 
   // ── AI sequence workflow ──────────────────────────────────────────────────
@@ -285,27 +288,32 @@ export default function LogicNetworkWorkspace({
     setAiSequenceError(null);
     try {
       const input: AiLogicSequenceInput = {
-        activities: activities.map((a) => ({
-          activityCode: a.activityCode,
-          title: a.activityDescription,
-          divisionCode: a.divisionCode,
-          divisionName: a.divisionName,
-          workPackageName: a.workPackageName,
-          durationDays: a.durationDays,
-          crewSize: a.crewSize,
-          runtimeActivityId: getActivityGraphKey(a),
-          displayCode: a.displayCode,
-          masterActivityCode: a.masterActivityCode,
-          isCustomActivity: a.isCustomActivity,
-          activityType: a.activityType,
-          sequencingCategory: a.sequencingCategory,
-          logicAnchor: a.logicAnchor,
-          primaryTrade: a.primaryTrade,
-        })),
+        activities: activities.map((a) => {
+          const masterCsi = getMasterActivityCsiContext(a.masterActivityCode ?? a.activityCode);
+          return {
+            activityCode: a.activityCode,
+            title: a.activityDescription,
+            divisionCode: a.divisionCode,
+            divisionName: a.divisionName,
+            workPackageName: a.workPackageName,
+            durationDays: a.durationDays,
+            crewSize: a.crewSize,
+            runtimeActivityId: getActivityGraphKey(a),
+            displayCode: a.displayCode,
+            masterActivityCode: a.masterActivityCode,
+            isCustomActivity: a.isCustomActivity,
+            activityType: a.activityType,
+            sequencingCategory: a.sequencingCategory,
+            logicAnchor: a.logicAnchor,
+            primaryTrade: a.primaryTrade,
+            csiDivisionCode: masterCsi.csiDivisionCode,
+            csiSectionCode: masterCsi.csiSectionCode,
+          };
+        }),
         logicLinks: canvasProps.logicLinks,
         projectType,
         projectLocation,
-        availableCrewSize: scheduleSettings?.availableCrewSize,
+        availableCrewSize: projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize,
         templateContext: true,
       };
 
@@ -325,7 +333,7 @@ export default function LogicNetworkWorkspace({
         ];
         const previewCpm = calculateCpmByGraphKey(activities, previewLinks);
         const criticalCount = previewCpm.activities.filter((a) => a.isCritical).length;
-        const crewSize = scheduleSettings?.availableCrewSize ?? 0;
+        const crewSize = projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize ?? 0;
         let overloadedDays = 0;
         if (crewSize > 0) {
           const projectStartDate = scheduleSettings?.projectStartDate || new Date().toISOString().slice(0, 10);
@@ -582,7 +590,7 @@ export default function LogicNetworkWorkspace({
       {isLogicMode && rcsOverloadedDays > 0 ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Resource overload: <strong>{rcsOverloadedDays}</strong> days exceed the{' '}
-          <strong>{scheduleSettings?.availableCrewSize ?? '?'}-person</strong> crew limit.
+          <strong>{projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize ?? '?'}-person</strong> crew limit.
           {rcsMovedCount > 0
             ? ` ${rcsMovedCount} float activities can be re-sequenced to reduce overload.`
             : ' Overload cannot be resolved within existing float — consider adding crew or extending the schedule.'}

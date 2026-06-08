@@ -39,6 +39,10 @@ export type EstimateActivityTemplate = {
   inspectionRequired?: boolean;
   weatherSensitive?: boolean;
   variant?: 'baseline' | 'slab_on_grade' | 'crawlspace' | 'optional';
+  /** Official CSI MasterFormat division code (e.g. "03"). */
+  csiDivisionCode?: string;
+  /** Official CSI MasterFormat section code (e.g. "03 30 00"). */
+  csiSectionCode?: string;
 };
 
 type RowInput = {
@@ -58,6 +62,8 @@ type RowInput = {
   inspectionRequired?: boolean;
   weatherSensitive?: boolean;
   variant?: EstimateActivityTemplate['variant'];
+  csiDivisionCode?: string;
+  csiSectionCode?: string;
 };
 
 /** Builds a full template row, applying shared defaults. */
@@ -85,9 +91,12 @@ function t(row: RowInput): EstimateActivityTemplate {
   if (row.inspectionRequired) template.inspectionRequired = true;
   if (row.weatherSensitive) template.weatherSensitive = true;
   if (row.variant && row.variant !== 'baseline') template.variant = row.variant;
+  if (row.csiDivisionCode) template.csiDivisionCode = row.csiDivisionCode;
+  if (row.csiSectionCode) template.csiSectionCode = row.csiSectionCode;
   return template;
 }
 
+const DIV_00 = 'Procurement and Contracting Requirements';
 const DIV_01 = 'General Requirements / Project Management';
 const DIV_02 = 'Existing Conditions / Selective Demolition';
 const DIV_03 = 'Concrete & Substructure';
@@ -108,11 +117,42 @@ const DIV_23 = 'HVAC';
 const DIV_25 = 'Integrated Automation';
 const DIV_26 = 'Electrical';
 const DIV_27 = 'Communications';
+const DIV_28 = 'Electronic Safety and Security';
 const DIV_31 = 'Earthwork & Utilities';
 const DIV_32 = 'Exterior Improvements';
 const DIV_33 = 'Site Utilities';
+const DIV_48 = 'Electrical Power Generation';
 
 export const residentialActivityMaster: EstimateActivityTemplate[] = [
+  // ── Division 00 — Project Procurement ────────────────────────────────────
+  t({ code: '00-01-01', title: 'Issue owner project requirements', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'owner-requirements', crew: 1, unit: 'LS', trade: 'Owner / General Contractor', action: 'Document owner requirements, project intent, budget expectations, and procurement path before estimate development.' }),
+  t({ code: '00-01-02', title: 'Prepare preliminary project scope', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'preliminary-scope', crew: 1, unit: 'LS', trade: 'General Contractor / Estimator', action: 'Prepare the initial written project scope for pricing, schedule planning, and owner review.' }),
+  t({ code: '00-01-03', title: 'Prepare preliminary estimate', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'preliminary-estimate', crew: 1, unit: 'LS', trade: 'Estimator', action: 'Develop an early cost estimate using available drawings, scope notes, allowances, and assumptions.' }),
+  t({ code: '00-01-04', title: 'Prepare bid estimate', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'bid-estimate', crew: 1, unit: 'LS', trade: 'Estimator', action: 'Prepare the formal bid estimate with divisions, line items, labor, material, equipment, subcontractor, and markup values.' }),
+  t({ code: '00-01-05', title: 'Solicit subcontractor quotes', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'subcontractor-quotes', crew: 1, unit: 'LS', trade: 'General Contractor / Estimator', action: 'Request pricing from subcontractors for scoped trade packages.' }),
+  t({ code: '00-01-06', title: 'Review subcontractor quotes', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'quote-review', crew: 1, unit: 'LS', trade: 'General Contractor / Estimator', action: 'Review subcontractor proposals for completeness, exclusions, qualifications, and scope gaps.' }),
+  t({ code: '00-01-07', title: 'Prepare owner proposal', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'owner-proposal', crew: 1, unit: 'LS', trade: 'General Contractor', action: 'Prepare the formal owner-facing proposal with scope, pricing, assumptions, alternates, and exclusions.' }),
+  t({ code: '00-01-08', title: 'Submit owner proposal', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'proposal-submit', crew: 1, unit: 'LS', trade: 'General Contractor', action: 'Submit the proposal package to the owner for review and acceptance.' }),
+  t({ code: '00-01-09', title: 'Negotiate proposal revisions', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'proposal-negotiation', crew: 1, unit: 'LS', trade: 'General Contractor / Owner', action: 'Review owner comments and revise scope, price, alternates, or exclusions as required.' }),
+  t({ code: '00-01-10', title: 'Receive owner proposal acceptance', divName: DIV_00, wpName: 'Project Procurement', seq: 'procurement', anchor: 'proposal-acceptance', crew: 1, unit: 'LS', trade: 'Owner', action: 'Record owner acceptance of proposal, price, scope, and intended project delivery path.' }),
+
+  // ── Division 00 — Contracting ────────────────────────────────────────────
+  t({ code: '00-02-01', title: 'Prepare construction contract', divName: DIV_00, wpName: 'Contracting', seq: 'contracting', anchor: 'contract-draft', crew: 1, unit: 'LS', trade: 'General Contractor', action: 'Prepare the construction agreement with scope, contract amount, payment terms, schedule, exclusions, and owner responsibilities.' }),
+  t({ code: '00-02-02', title: 'Review construction contract', divName: DIV_00, wpName: 'Contracting', seq: 'contracting', anchor: 'contract-review', crew: 1, unit: 'LS', trade: 'Owner / General Contractor', action: 'Review contract terms, exhibits, drawings, specifications, allowances, and required attachments before signature.' }),
+  t({ code: '00-02-03', title: 'Execute construction contract', divName: DIV_00, wpName: 'Contracting', seq: 'contracting', anchor: 'contract-execution', crew: 1, unit: 'LS', trade: 'Owner / General Contractor', action: 'Execute the contract and establish the formal agreement for construction.' }),
+  t({ code: '00-02-04', title: 'Collect initial deposit', divName: DIV_00, wpName: 'Contracting', seq: 'contracting', anchor: 'initial-deposit', crew: 1, unit: 'LS', trade: 'General Contractor / Owner', action: 'Collect the contract-required initial deposit or mobilization payment before releasing work.' }),
+  t({ code: '00-02-05', title: 'Issue notice to proceed', divName: DIV_00, wpName: 'Contracting', type: 'milestone', seq: 'contracting', anchor: 'notice-to-proceed', crew: 1, dur: 0, unit: 'LS', trade: 'Owner / General Contractor', action: 'Issue formal notice to proceed after contract execution, deposit, permits, and required startup conditions are satisfied.' }),
+
+  // ── Division 00 — Subcontracting ─────────────────────────────────────────
+  t({ code: '00-03-01', title: 'Prepare subcontract agreements', divName: DIV_00, wpName: 'Subcontracting', seq: 'contracting', anchor: 'subcontract-draft', crew: 1, unit: 'LS', trade: 'General Contractor', action: 'Prepare subcontract agreements for selected trade partners with scope, price, schedule, insurance, and payment terms.' }),
+  t({ code: '00-03-02', title: 'Execute subcontract agreements', divName: DIV_00, wpName: 'Subcontracting', seq: 'contracting', anchor: 'subcontract-execution', crew: 1, unit: 'LS', trade: 'General Contractor / Subcontractor', action: 'Execute subcontract agreements before releasing subcontractor field work.' }),
+  t({ code: '00-03-03', title: 'Collect subcontractor insurance documents', divName: DIV_00, wpName: 'Subcontracting', seq: 'contracting', anchor: 'subcontractor-insurance', crew: 1, unit: 'LS', trade: 'General Contractor / Subcontractor', action: 'Collect certificates of insurance, licenses, bonds, and compliance documents required before field mobilization.' }),
+
+  // ── Division 00 — Procurement Controls ───────────────────────────────────
+  t({ code: '00-04-01', title: 'Prepare procurement log', divName: DIV_00, wpName: 'Procurement Controls', seq: 'procurement', anchor: 'procurement-log', crew: 1, unit: 'LS', trade: 'General Contractor / Scheduler', action: 'Create a procurement log for long-lead materials, owner selections, submittals, approvals, order dates, and delivery dates.' }),
+  t({ code: '00-04-02', title: 'Release long-lead material orders', divName: DIV_00, wpName: 'Procurement Controls', seq: 'procurement', anchor: 'long-lead-release', crew: 1, unit: 'LS', trade: 'General Contractor / Procurement', action: 'Release approved long-lead materials such as windows, doors, trusses, cabinets, countertops, equipment, or specialty items.' }),
+  t({ code: '00-04-03', title: 'Track material delivery status', divName: DIV_00, wpName: 'Procurement Controls', seq: 'procurement', anchor: 'delivery-tracking', crew: 1, unit: 'LS', trade: 'General Contractor / Procurement', action: 'Track vendor confirmations, shipping dates, delivery windows, and delayed material risks.' }),
+
   // ── Division 01 — Preconstruction & Mobilization ─────────────────────────
   t({ code: '01-01-01', title: 'Project kickoff meeting', divName: DIV_01, wpName: 'Preconstruction & Mobilization', seq: 'preconstruction', anchor: 'preconstruction', crew: 1, unit: 'LS', trade: 'General Contractor / PM', action: 'Formal preconstruction kickoff establishing parties, communication path, and start.' }),
   t({ code: '01-01-02', title: 'Baseline schedule issuance', divName: DIV_01, wpName: 'Preconstruction & Mobilization', seq: 'preconstruction', anchor: 'preconstruction', crew: 1, unit: 'LS', trade: 'General Contractor / Scheduler', action: 'Publish initial approved logic schedule and baseline dates for trade release.' }),
@@ -177,7 +217,7 @@ export const residentialActivityMaster: EstimateActivityTemplate[] = [
   // ── Division 03 — Footing Concrete ───────────────────────────────────────
   t({ code: '03-01-01', title: 'Set footing forms', divName: DIV_03, wpName: 'Footing Concrete', seq: 'foundation', anchor: 'footing-forms', crew: 3, unit: 'LF', trade: 'Concrete', action: 'Set and brace continuous footing forms to line and grade.', weatherSensitive: true }),
   t({ code: '03-01-02', title: 'Place footing reinforcement', divName: DIV_03, wpName: 'Footing Concrete', seq: 'foundation', anchor: 'footing-rebar', crew: 2, unit: 'LF', trade: 'Concrete / Rebar', action: 'Place continuous footing rebar with required laps and clearances.', inspectionRequired: true }),
-  t({ code: '03-01-03', title: 'Place footing concrete', divName: DIV_03, wpName: 'Footing Concrete', seq: 'foundation', anchor: 'footing-concrete', crew: 4, unit: 'CY', trade: 'Concrete', action: 'Place and consolidate footing concrete after the footing inspection.', weatherSensitive: true }),
+  t({ code: '03-01-03', title: 'Place footing concrete', divName: DIV_03, wpName: 'Footing Concrete', seq: 'foundation', anchor: 'footing-concrete', crew: 4, unit: 'CY', trade: 'Concrete', action: 'Place and consolidate footing concrete after the footing inspection.', weatherSensitive: true, csiDivisionCode: '03', csiSectionCode: '03 30 00' }),
   t({ code: '03-01-04', title: 'Foundation concrete curing period', divName: DIV_03, wpName: 'Footing Concrete', type: 'curing_lag', seq: 'foundation', anchor: 'footing-cure', crew: 0, dur: 7, unit: 'DAY', trade: 'Concrete', action: 'Required cure/strength-gain lag before loading footings with wall work.' }),
   t({ code: '03-01-05', title: 'Strip footing forms', divName: DIV_03, wpName: 'Footing Concrete', seq: 'foundation', anchor: 'footing-strip', crew: 2, unit: 'LF', trade: 'Concrete', action: 'Remove footing forms after initial strength gain.' }),
 
@@ -290,7 +330,7 @@ export const residentialActivityMaster: EstimateActivityTemplate[] = [
   t({ code: '33-05-02', title: 'Compact utility trench backfill', divName: DIV_33, wpName: 'Utility Backfill', seq: 'utilities', anchor: 'utility-compaction', crew: 2, unit: 'LF', trade: 'Site Utilities / Earthwork', action: 'Compact utility trench backfill in lifts to reduce settlement and support finished grades.', weatherSensitive: true }),
 
   // ── Division 06 — Sill & Floor Framing ───────────────────────────────────
-  t({ code: '06-01-01', title: 'Install sill plates and anchors', divName: DIV_06, wpName: 'Sill & Floor Framing', seq: 'framing', anchor: 'sill-plate', crew: 2, unit: 'LF', trade: 'Carpentry / Framing', action: 'Set treated sill plates with sill seal on anchor bolts.' }),
+  t({ code: '06-01-01', title: 'Install sill plates and anchors', divName: DIV_06, wpName: 'Sill & Floor Framing', seq: 'framing', anchor: 'sill-plate', crew: 2, unit: 'LF', trade: 'Carpentry / Framing', action: 'Set treated sill plates with sill seal on anchor bolts.', csiDivisionCode: '06', csiSectionCode: '06 10 00' }),
   t({ code: '06-01-02', title: 'Set girders and support columns', divName: DIV_06, wpName: 'Sill & Floor Framing', seq: 'framing', anchor: 'girder', crew: 3, unit: 'LF', trade: 'Carpentry / Framing', action: 'Install main beams and support posts for the floor system.' }),
   t({ code: '06-01-03', title: 'Frame floor joists', divName: DIV_06, wpName: 'Sill & Floor Framing', seq: 'framing', anchor: 'floor-joists', crew: 4, unit: 'SF', trade: 'Carpentry / Framing', action: 'Set and hang floor joists over the crawlspace foundation system.', variant: 'crawlspace' }),
   t({ code: '06-01-04', title: 'Install rim and blocking', divName: DIV_06, wpName: 'Sill & Floor Framing', seq: 'framing', anchor: 'floor-joists', crew: 2, unit: 'LF', trade: 'Carpentry / Framing', action: 'Install rim board and joist blocking for the crawlspace floor frame.', variant: 'crawlspace' }),
@@ -375,7 +415,7 @@ export const residentialActivityMaster: EstimateActivityTemplate[] = [
   t({ code: '26-01-02', title: 'Install service conductors', divName: DIV_26, wpName: 'Electrical Service', seq: 'rough-in', anchor: 'service-conductors', crew: 2, unit: 'LF', trade: 'Electrical', action: 'Run service-entrance conductors to the panel.' }),
 
   // ── Division 26 — Electrical Rough-In ────────────────────────────────────
-  t({ code: '26-02-01', title: 'Install device boxes', divName: DIV_26, wpName: 'Electrical Rough-In', seq: 'rough-in', anchor: 'rough-electrical', crew: 3, unit: 'EA', trade: 'Electrical', action: 'Mount outlet, switch, and fixture boxes per the electrical plan.' }),
+  t({ code: '26-02-01', title: 'Install device boxes', divName: DIV_26, wpName: 'Electrical Rough-In', seq: 'rough-in', anchor: 'rough-electrical', crew: 3, unit: 'EA', trade: 'Electrical', action: 'Mount outlet, switch, and fixture boxes per the electrical plan.', csiDivisionCode: '26', csiSectionCode: '26 05 00' }),
   t({ code: '26-02-02', title: 'Pull branch circuit wiring', divName: DIV_26, wpName: 'Electrical Rough-In', seq: 'rough-in', anchor: 'rough-electrical', crew: 3, unit: 'LF', trade: 'Electrical', action: 'Run branch-circuit conductors from the panel to device boxes.' }),
   t({ code: '26-02-03', title: 'Make rough electrical connections', divName: DIV_26, wpName: 'Electrical Rough-In', seq: 'rough-in', anchor: 'rough-electrical', crew: 2, unit: 'EA', trade: 'Electrical', action: 'Land and splice conductors in boxes and panel for inspection.', inspectionRequired: true }),
 
@@ -390,7 +430,7 @@ export const residentialActivityMaster: EstimateActivityTemplate[] = [
   t({ code: '27-02-01', title: 'Install low-voltage devices', divName: DIV_27, wpName: 'Communications Trim-Out', seq: 'trim-out', anchor: 'low-voltage-trim', crew: 1, unit: 'EA', trade: 'Low-Voltage / Communications', action: 'Terminate jacks, install plates, and mount low-voltage devices.' }),
 
   // ── Division 09 — Drywall ────────────────────────────────────────────────
-  t({ code: '09-01-01', title: 'Hang drywall', divName: DIV_09, wpName: 'Drywall', seq: 'drywall', anchor: 'drywall-hang', crew: 4, unit: 'SF', trade: 'Drywall', action: 'Hang gypsum board on walls and ceilings after insulation approval.' }),
+  t({ code: '09-01-01', title: 'Hang drywall', divName: DIV_09, wpName: 'Drywall', seq: 'drywall', anchor: 'drywall-hang', crew: 4, unit: 'SF', trade: 'Drywall', action: 'Hang gypsum board on walls and ceilings after insulation approval.', csiDivisionCode: '09', csiSectionCode: '09 20 00' }),
   t({ code: '09-01-02', title: 'Tape and finish drywall', divName: DIV_09, wpName: 'Drywall', seq: 'drywall', anchor: 'drywall-finish', crew: 3, unit: 'SF', trade: 'Drywall', action: 'Tape, mud, and finish drywall joints to a paint-ready surface.' }),
   t({ code: '09-01-03', title: 'Sand drywall', divName: DIV_09, wpName: 'Drywall', seq: 'drywall', anchor: 'drywall-sand', crew: 2, unit: 'SF', trade: 'Drywall', action: 'Sand finished joints smooth before primer.' }),
 
@@ -582,4 +622,71 @@ export const residentialActivityMaster: EstimateActivityTemplate[] = [
   t({ code: '25-03-03', title: 'Commission integrated automation system', divName: DIV_25, wpName: 'Automation Commissioning', seq: 'integrated-automation-commissioning', anchor: 'automation-commissioning', crew: 1, unit: 'LS', trade: 'Automation', action: 'Commission the full automation system and verify owner-ready operation.', inspectionRequired: true }),
   t({ code: '25-03-04', title: 'Train owner on automation system', divName: DIV_25, wpName: 'Automation Turnover', seq: 'closeout', anchor: 'automation-owner-training', crew: 1, unit: 'LS', trade: 'Automation', action: 'Provide owner training for automation controls, apps, scenes, schedules, security functions, and basic troubleshooting.' }),
   t({ code: '25-03-05', title: 'Turn over automation documentation', divName: DIV_25, wpName: 'Automation Turnover', seq: 'closeout', anchor: 'automation-documentation-turnover', crew: 1, unit: 'LS', trade: 'Automation', action: 'Provide automation documentation, network settings, device schedules, warranties, manuals, and access credentials at turnover.' }),
+
+  // ── Division 28 — Security Rough-In ──────────────────────────────────────
+  t({ code: '28-01-01', title: 'Review security system rough-in layout', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'security-layout-review', crew: 1, unit: 'LS', trade: 'Security / Low Voltage', action: 'Review camera, alarm, keypad, sensor, and control panel locations before wall rough-in.' }),
+  t({ code: '28-01-02', title: 'Install security control panel backbox', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'security-panel-backbox', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install the security control panel backbox or enclosure at the approved equipment location.' }),
+  t({ code: '28-01-03', title: 'Install keypad rough-in boxes', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'keypad-rough-in', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install rough-in boxes or mounting rings for alarm keypads and user control stations.' }),
+  t({ code: '28-01-04', title: 'Pull security keypad cable', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'keypad-cable', crew: 2, unit: 'LF', trade: 'Security / Low Voltage', action: 'Pull low-voltage control cable from the security control panel to keypad locations.' }),
+  t({ code: '28-01-05', title: 'Pull door contact sensor cable', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'door-contact-cable', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Pull sensor cable to exterior door contact locations before wall close-in.' }),
+  t({ code: '28-01-06', title: 'Pull window contact sensor cable', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'window-contact-cable', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Pull sensor cable to selected window contact locations before wall close-in.' }),
+  t({ code: '28-01-07', title: 'Pull motion detector cable', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'motion-detector-cable', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Pull low-voltage cable to motion detector locations before wall close-in.' }),
+  t({ code: '28-01-08', title: 'Pull glass break detector cable', divName: DIV_28, wpName: 'Security Rough-In', seq: 'low-voltage', anchor: 'glass-break-cable', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Pull low-voltage cable to glass break detector locations where included in the system design.' }),
+
+  // ── Division 28 — Video Surveillance Rough-In ────────────────────────────
+  t({ code: '28-02-01', title: 'Install video doorbell rough-in', divName: DIV_28, wpName: 'Video Surveillance Rough-In', seq: 'low-voltage', anchor: 'video-doorbell-rough-in', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install rough-in wiring and box for video doorbell or entry camera device.' }),
+  t({ code: '28-02-02', title: 'Pull exterior camera cable', divName: DIV_28, wpName: 'Video Surveillance Rough-In', seq: 'low-voltage', anchor: 'exterior-camera-cable', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Pull low-voltage or network cable to exterior security camera locations.', weatherSensitive: true }),
+  t({ code: '28-02-03', title: 'Pull interior camera cable', divName: DIV_28, wpName: 'Video Surveillance Rough-In', seq: 'low-voltage', anchor: 'interior-camera-cable', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Pull low-voltage or network cable to interior camera locations where included in the system design.' }),
+  t({ code: '28-02-04', title: 'Install camera mounting backboxes', divName: DIV_28, wpName: 'Video Surveillance Rough-In', seq: 'low-voltage', anchor: 'camera-backboxes', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install exterior or interior mounting boxes, rings, or backplates for security cameras.' }),
+
+  // ── Division 28 — Security Trim-Out ──────────────────────────────────────
+  t({ code: '28-03-01', title: 'Install alarm control panel', divName: DIV_28, wpName: 'Security Trim-Out', seq: 'finish-trim', anchor: 'alarm-panel-install', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install and terminate the alarm control panel after wall finishes are complete.' }),
+  t({ code: '28-03-02', title: 'Install alarm keypads', divName: DIV_28, wpName: 'Security Trim-Out', seq: 'finish-trim', anchor: 'keypad-install', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install alarm keypads and connect them to the security control panel wiring.' }),
+  t({ code: '28-03-03', title: 'Install door contact sensors', divName: DIV_28, wpName: 'Security Trim-Out', seq: 'finish-trim', anchor: 'door-contact-install', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install and test contact sensors at exterior doors.' }),
+  t({ code: '28-03-04', title: 'Install window contact sensors', divName: DIV_28, wpName: 'Security Trim-Out', seq: 'finish-trim', anchor: 'window-contact-install', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install and test contact sensors at selected windows.' }),
+  t({ code: '28-03-05', title: 'Install motion detectors', divName: DIV_28, wpName: 'Security Trim-Out', seq: 'finish-trim', anchor: 'motion-detector-install', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install, aim, and test motion detectors after interior finishes are complete.' }),
+  t({ code: '28-03-06', title: 'Install security cameras', divName: DIV_28, wpName: 'Video Surveillance Trim-Out', seq: 'finish-trim', anchor: 'camera-install', crew: 2, unit: 'EA', trade: 'Security / Low Voltage', action: 'Install and aim security cameras at approved locations.' }),
+
+  // ── Division 28 — Security Commissioning ─────────────────────────────────
+  t({ code: '28-04-01', title: 'Program security system', divName: DIV_28, wpName: 'Security Commissioning', seq: 'commissioning', anchor: 'security-programming', crew: 1, unit: 'LS', trade: 'Security / Low Voltage', action: 'Program user codes, zones, device names, notifications, and monitoring settings.' }),
+  t({ code: '28-04-02', title: 'Test security system devices', divName: DIV_28, wpName: 'Security Commissioning', type: 'testing', seq: 'commissioning', anchor: 'security-device-test', crew: 1, unit: 'LS', trade: 'Security / Low Voltage', action: 'Test keypads, door sensors, window sensors, motion detectors, cameras, and alarm response functions.', inspectionRequired: true }),
+  t({ code: '28-04-03', title: 'Train owner on security system', divName: DIV_28, wpName: 'Security Commissioning', seq: 'closeout', anchor: 'security-owner-training', crew: 1, unit: 'LS', trade: 'Security / Low Voltage', action: 'Provide owner training for security system operation, app access, user codes, and basic troubleshooting.' }),
+
+  // ── Division 48 — Power Generation Planning ──────────────────────────────
+  t({ code: '48-01-01', title: 'Review power generation system layout', divName: DIV_48, wpName: 'Power Generation Planning', seq: 'power-generation', anchor: 'power-generation-layout-review', crew: 1, unit: 'LS', trade: 'Electrical / Solar', action: 'Review generator, solar, battery, inverter, transfer switch, and utility interconnection locations.' }),
+  t({ code: '48-01-02', title: 'Submit power generation interconnection documents', divName: DIV_48, wpName: 'Power Generation Planning', seq: 'power-generation', anchor: 'interconnection-submittal', crew: 1, unit: 'LS', trade: 'Electrical / Solar', action: 'Submit required utility or AHJ interconnection documents for solar, battery, or generator systems.', inspectionRequired: true }),
+  t({ code: '48-01-03', title: 'Receive power generation approval', divName: DIV_48, wpName: 'Power Generation Planning', seq: 'power-generation', anchor: 'power-generation-approval', crew: 1, unit: 'LS', trade: 'Utility / AHJ', action: 'Record approval to install or interconnect the power generation system.', inspectionRequired: true }),
+
+  // ── Division 48 — Standby Generator ──────────────────────────────────────
+  t({ code: '48-02-01', title: 'Install generator concrete pad', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'generator-pad', crew: 3, unit: 'EA', trade: 'Concrete / Electrical', action: 'Place concrete pad or approved equipment base for standby generator installation.', weatherSensitive: true }),
+  t({ code: '48-02-02', title: 'Set standby generator', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'generator-set', crew: 3, unit: 'EA', trade: 'Electrical / Generator', action: 'Set standby generator on approved pad or base at final equipment location.', weatherSensitive: true }),
+  t({ code: '48-02-03', title: 'Install generator feeder conduit', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'generator-feeder-conduit', crew: 2, unit: 'LF', trade: 'Electrical', action: 'Install conduit pathway between generator, transfer switch, and service equipment.' }),
+  t({ code: '48-02-04', title: 'Pull generator feeder conductors', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'generator-feeder-conductors', crew: 2, unit: 'LF', trade: 'Electrical', action: 'Pull generator feeder conductors through installed conduit pathways.' }),
+  t({ code: '48-02-05', title: 'Install automatic transfer switch', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'transfer-switch', crew: 2, unit: 'EA', trade: 'Electrical', action: 'Install automatic transfer switch and required service or load-side connections.', inspectionRequired: true }),
+  t({ code: '48-02-06', title: 'Install generator control wiring', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'generator-control-wiring', crew: 2, unit: 'LF', trade: 'Electrical', action: 'Install low-voltage control wiring between generator, transfer switch, and monitoring equipment.' }),
+  t({ code: '48-02-07', title: 'Install generator fuel piping', divName: DIV_48, wpName: 'Standby Generator', seq: 'power-generation', anchor: 'generator-fuel-piping', crew: 2, unit: 'LF', trade: 'Plumbing / Gas', action: 'Install natural gas or propane fuel piping to the standby generator location.', inspectionRequired: true }),
+  t({ code: '48-02-08', title: 'Pressure test generator fuel piping', divName: DIV_48, wpName: 'Standby Generator', type: 'testing', seq: 'power-generation', anchor: 'generator-fuel-test', crew: 1, unit: 'EA', trade: 'Plumbing / Gas', action: 'Pressure test generator fuel piping before startup and final connection approval.', inspectionRequired: true }),
+  t({ code: '48-02-09', title: 'Start up standby generator', divName: DIV_48, wpName: 'Standby Generator', seq: 'commissioning', anchor: 'generator-startup', crew: 2, unit: 'EA', trade: 'Generator Technician', action: 'Perform generator startup, basic operating checks, and manufacturer-required commissioning steps.', inspectionRequired: true }),
+
+  // ── Division 48 — Solar Photovoltaic ─────────────────────────────────────
+  t({ code: '48-03-01', title: 'Install solar roof attachments', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-roof-attachments', crew: 3, unit: 'EA', trade: 'Solar', action: 'Install flashed roof attachments or mounting points for the solar racking system.', weatherSensitive: true }),
+  t({ code: '48-03-02', title: 'Install solar racking rails', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-racking', crew: 3, unit: 'LF', trade: 'Solar', action: 'Install solar racking rails and mounting hardware on approved roof or ground supports.', weatherSensitive: true }),
+  t({ code: '48-03-03', title: 'Install solar PV modules', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-modules', crew: 4, unit: 'EA', trade: 'Solar', action: 'Install photovoltaic modules on completed racking system.', weatherSensitive: true }),
+  t({ code: '48-03-04', title: 'Install solar DC wiring', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-dc-wiring', crew: 3, unit: 'LS', trade: 'Solar / Electrical', action: 'Install DC conductors, string wiring, grounding, and module-level electrical connections.', inspectionRequired: true, weatherSensitive: true }),
+  t({ code: '48-03-05', title: 'Install solar inverter', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-inverter', crew: 2, unit: 'EA', trade: 'Solar / Electrical', action: 'Install solar inverter, combiner, or inverter system equipment at approved location.', inspectionRequired: true }),
+  t({ code: '48-03-06', title: 'Install solar AC disconnect', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-ac-disconnect', crew: 2, unit: 'EA', trade: 'Solar / Electrical', action: 'Install required AC disconnect or service disconnect for the solar PV system.', inspectionRequired: true }),
+  t({ code: '48-03-07', title: 'Install solar production meter', divName: DIV_48, wpName: 'Solar Photovoltaic', seq: 'power-generation', anchor: 'solar-production-meter', crew: 2, unit: 'EA', trade: 'Solar / Electrical', action: 'Install production meter, meter base, or monitoring meter where required by utility or system design.', inspectionRequired: true }),
+
+  // ── Division 48 — Battery Storage ────────────────────────────────────────
+  t({ code: '48-04-01', title: 'Install battery storage equipment', divName: DIV_48, wpName: 'Battery Storage', seq: 'power-generation', anchor: 'battery-equipment', crew: 3, unit: 'EA', trade: 'Electrical / Battery Storage', action: 'Install battery cabinet, battery modules, or wall-mounted battery system at approved location.', inspectionRequired: true }),
+  t({ code: '48-04-02', title: 'Install battery inverter equipment', divName: DIV_48, wpName: 'Battery Storage', seq: 'power-generation', anchor: 'battery-inverter', crew: 2, unit: 'EA', trade: 'Electrical / Battery Storage', action: 'Install battery inverter, gateway, or energy management equipment.', inspectionRequired: true }),
+  t({ code: '48-04-03', title: 'Install battery system conductors', divName: DIV_48, wpName: 'Battery Storage', seq: 'power-generation', anchor: 'battery-conductors', crew: 2, unit: 'LS', trade: 'Electrical / Battery Storage', action: 'Install conductors, raceways, grounding, and control wiring for battery storage system.', inspectionRequired: true }),
+  t({ code: '48-04-04', title: 'Configure battery backup circuits', divName: DIV_48, wpName: 'Battery Storage', seq: 'power-generation', anchor: 'battery-backup-circuits', crew: 2, unit: 'LS', trade: 'Electrical / Battery Storage', action: 'Configure backed-up circuits, critical load panel, or energy management settings.', inspectionRequired: true }),
+
+  // ── Division 48 — Power Generation Testing and Closeout ──────────────────
+  t({ code: '48-05-01', title: 'Perform power generation electrical inspection', divName: DIV_48, wpName: 'Power Generation Testing', type: 'inspection', seq: 'inspection-gate', anchor: 'power-generation-inspection', crew: 1, unit: 'EA', trade: 'Inspector', action: 'Inspect power generation equipment, conductors, disconnects, labeling, grounding, and interconnection readiness.', inspectionRequired: true }),
+  t({ code: '48-05-02', title: 'Commission solar PV system', divName: DIV_48, wpName: 'Power Generation Testing', seq: 'commissioning', anchor: 'solar-commissioning', crew: 2, unit: 'LS', trade: 'Solar / Electrical', action: 'Test solar PV system startup, inverter operation, monitoring, and production output.', inspectionRequired: true }),
+  t({ code: '48-05-03', title: 'Commission battery storage system', divName: DIV_48, wpName: 'Power Generation Testing', seq: 'commissioning', anchor: 'battery-commissioning', crew: 2, unit: 'LS', trade: 'Electrical / Battery Storage', action: 'Test battery charge, discharge, backup operation, monitoring, and owner-selected backup settings.', inspectionRequired: true }),
+  t({ code: '48-05-04', title: 'Receive utility permission to operate', divName: DIV_48, wpName: 'Power Generation Testing', seq: 'commissioning', anchor: 'permission-to-operate', crew: 1, unit: 'LS', trade: 'Utility', action: 'Record utility permission to operate before enabling grid-interactive solar or battery export functions.', inspectionRequired: true }),
+  t({ code: '48-05-05', title: 'Train owner on power generation system', divName: DIV_48, wpName: 'Power Generation Closeout', seq: 'closeout', anchor: 'power-generation-owner-training', crew: 1, unit: 'LS', trade: 'Electrical / Solar', action: 'Provide owner training for generator, solar, battery, monitoring, shutdown, and emergency procedures.' }),
 ];

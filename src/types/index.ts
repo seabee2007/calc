@@ -227,6 +227,8 @@ export interface Project {
   reinforcements?: ReinforcementSet[];
   laborEstimates?: LaborEstimate[];
   wasteFactor?: number;
+  /** Total workers normally available for this project per workday (resource histogram / leveling). */
+  projectCrewSize?: number;
   pourDate?: string;
   placementOrder?: PlacementOrder;
   mixProfile?: MixProfileType;

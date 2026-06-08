@@ -2,26 +2,200 @@ import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleAc
 import type {
   CpmActivityResult,
   CpmLogicLink,
+  CpmRelationshipType,
   MovedActivity,
   ResourceLevelingResult,
+  UnmovedActivity,
 } from '../cpmTypes';
 import { calculateCpm } from '../cpm/calculateCpm';
-import { calculateResourceHistogram } from './resourceHistogramCalculator';
+import {
+  buildCriticalOnlyHistogram,
+  calculateResourceHistogram,
+  countOverallocatedDays,
+  peakRequiredCrew,
+} from './resourceHistogramCalculator';
 
 export interface ResourceLevelScheduleParams {
   activities: ScheduleActivity[];
   logicLinks: CpmLogicLink[];
   availableCrewSize: number;
   projectStartDate: string;
+  allowProjectExtension?: boolean;
+}
+
+function minSuccessorStart(
+  link: CpmLogicLink,
+  relationshipType: CpmRelationshipType,
+  predES: number,
+  predEF: number,
+  succDuration: number,
+): number {
+  switch (relationshipType) {
+    case 'SS':
+      return predES + link.lagDays;
+    case 'FF':
+      return predEF + link.lagDays - succDuration;
+    case 'SF':
+      return predES + link.lagDays - succDuration;
+    case 'FS':
+    default:
+      return predEF + link.lagDays;
+  }
+}
+
+function effectiveStart(cpm: CpmActivityResult, offsets: Record<string, number>): number {
+  return cpm.earlyStart + (offsets[cpm.activityCode] ?? 0);
+}
+
+function computeRequiredCrewForDay(
+  day: number,
+  activities: ScheduleActivity[],
+  cpmActivities: CpmActivityResult[],
+  offsets: Record<string, number>,
+): number {
+  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  let required = 0;
+  for (const cpm of cpmActivities) {
+    const activity = actByCode.get(cpm.activityCode);
+    if (!activity) continue;
+    const es = effectiveStart(cpm, offsets);
+    const ef = es + activity.durationDays;
+    if (day >= es && day < ef) {
+      required += activity.crewSize;
+    }
+  }
+  return required;
+}
+
+function activityFitsAtStart(
+  activityCode: string,
+  startDay: number,
+  activities: ScheduleActivity[],
+  cpmActivities: CpmActivityResult[],
+  offsets: Record<string, number>,
+  availableCrewSize: number,
+): boolean {
+  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  const activity = actByCode.get(activityCode);
+  if (!activity) return false;
+  for (let day = startDay; day < startDay + activity.durationDays; day += 1) {
+    const required = computeRequiredCrewForDay(day, activities, cpmActivities, offsets);
+    if (required > availableCrewSize) return false;
+  }
+  return true;
+}
+
+function buildOutgoingLinks(logicLinks: CpmLogicLink[]): Map<string, CpmLogicLink[]> {
+  const outgoing = new Map<string, CpmLogicLink[]>();
+  for (const link of logicLinks) {
+    const list = outgoing.get(link.predecessorActivityCode) ?? [];
+    list.push(link);
+    outgoing.set(link.predecessorActivityCode, list);
+  }
+  return outgoing;
+}
+
+function enforceSuccessorConstraints(
+  predecessorCode: string,
+  activities: ScheduleActivity[],
+  baseCpm: CpmActivityResult[],
+  offsets: Record<string, number>,
+  outgoingLinks: Map<string, CpmLogicLink[]>,
+): { ok: boolean; dependentCodes: string[] } {
+  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  const cpmByCode = new Map(baseCpm.map((c) => [c.activityCode, c]));
+  const dependentCodes: string[] = [];
+
+  const visit = (predCode: string): boolean => {
+    const predCpm = cpmByCode.get(predCode);
+    const predAct = actByCode.get(predCode);
+    if (!predCpm || !predAct) return true;
+
+    const predES = effectiveStart(predCpm, offsets);
+    const predEF = predES + predAct.durationDays;
+
+    for (const link of outgoingLinks.get(predCode) ?? []) {
+      const succCpm = cpmByCode.get(link.successorActivityCode);
+      const succAct = actByCode.get(link.successorActivityCode);
+      if (!succCpm || !succAct) continue;
+
+      const minStart = minSuccessorStart(
+        link,
+        link.relationshipType,
+        predES,
+        predEF,
+        succAct.durationDays,
+      );
+      const currentStart = effectiveStart(succCpm, offsets);
+      if (currentStart >= minStart) continue;
+
+      const neededOffset = minStart - succCpm.earlyStart;
+      if (neededOffset > succCpm.totalFloat) {
+        return false;
+      }
+
+      offsets[link.successorActivityCode] = neededOffset;
+      if (!dependentCodes.includes(link.successorActivityCode)) {
+        dependentCodes.push(link.successorActivityCode);
+      }
+      if (!visit(link.successorActivityCode)) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const ok = visit(predecessorCode);
+  return { ok, dependentCodes };
+}
+
+function buildLeveledActivities(
+  baseCpm: CpmActivityResult[],
+  offsets: Record<string, number>,
+): CpmActivityResult[] {
+  return baseCpm.map((cpm) => {
+    const offset = offsets[cpm.activityCode] ?? 0;
+    return {
+      ...cpm,
+      earlyStart: cpm.earlyStart + offset,
+      earlyFinish: cpm.earlyFinish + offset,
+      lateStart: cpm.lateStart + offset,
+      lateFinish: cpm.lateFinish + offset,
+      totalFloat: cpm.totalFloat - offset,
+    };
+  });
+}
+
+function projectDurationFromOffsets(
+  activities: ScheduleActivity[],
+  baseCpm: CpmActivityResult[],
+  offsets: Record<string, number>,
+): number {
+  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  return Math.max(
+    0,
+    ...baseCpm.map((cpm) => {
+      const activity = actByCode.get(cpm.activityCode);
+      return effectiveStart(cpm, offsets) + (activity?.durationDays ?? 1);
+    }),
+  );
 }
 
 export function resourceLevelSchedule(
   params: ResourceLevelScheduleParams,
 ): ResourceLevelingResult {
-  const { activities, logicLinks, availableCrewSize, projectStartDate } = params;
+  const {
+    activities,
+    logicLinks,
+    availableCrewSize,
+    projectStartDate,
+    allowProjectExtension = false,
+  } = params;
 
   const initialCpm = calculateCpm({ activities, logicLinks });
   const warnings: string[] = [...initialCpm.warnings];
+  const unmovedActivities: UnmovedActivity[] = [];
 
   if (initialCpm.activities.length === 0) {
     return {
@@ -30,143 +204,221 @@ export function resourceLevelSchedule(
       resourceHistogramAfter: [],
       projectDurationBefore: 0,
       projectDurationAfter: 0,
+      availableCrewSize,
+      peakCrewBefore: 0,
+      peakCrewAfter: 0,
+      overallocatedDaysBefore: 0,
+      overallocatedDaysAfter: 0,
       movedActivities: [],
+      unmovedActivities,
       warnings,
     };
   }
 
+  const baseCpm = initialCpm.activities;
+  const outgoingLinks = buildOutgoingLinks(logicLinks);
+  const offsets: Record<string, number> = {};
+  const movedActivities: MovedActivity[] = [];
+
   const histogramBefore = calculateResourceHistogram({
     activities,
-    cpmActivities: initialCpm.activities,
+    cpmActivities: baseCpm,
     projectStartDate,
     availableCrewSize,
   });
 
-  // Work with mutable offsets
-  const offsets: Record<string, number> = {};
-  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
-  const movedActivities: MovedActivity[] = [];
+  const criticalOnlyBefore = buildCriticalOnlyHistogram(histogramBefore);
+  if (criticalOnlyBefore.some((day) => day.isOverallocated)) {
+    warnings.push(
+      'Critical-path labor exceeds available crew size. Increase crew size or revise logic/durations.',
+    );
+  }
 
-  let maxIterations = activities.length * activities.length + 10;
+  let maxIterations = activities.length * activities.length * 4 + 10;
 
   while (maxIterations-- > 0) {
-    // Recompute CPM with current offsets applied
-    const adjustedActivities: ScheduleActivity[] = activities.map((a) => ({
-      ...a,
-      durationDays: a.durationDays, // durations don't change
-    }));
-
-    const currentCpm = calculateCpm({ activities: adjustedActivities, logicLinks });
-
-    // Apply offsets to cpm results
-    const adjustedCpmActivities: CpmActivityResult[] = currentCpm.activities.map((cpm) => {
-      const offset = offsets[cpm.activityCode] ?? 0;
-      return {
-        ...cpm,
-        earlyStart: cpm.earlyStart + offset,
-        earlyFinish: cpm.earlyFinish + offset,
-        lateStart: cpm.lateStart + offset,
-        lateFinish: cpm.lateFinish + offset,
-        totalFloat: cpm.totalFloat - offset,
-      };
-    });
-
-    // Check current histogram
-    const currentHistogram = calculateResourceHistogram({
+    const histogram = calculateResourceHistogram({
       activities,
-      cpmActivities: adjustedCpmActivities,
+      cpmActivities: baseCpm,
       projectStartDate,
       availableCrewSize,
       leveledOffsets: offsets,
     });
 
-    const overallocatedDays = currentHistogram.filter((d) => d.isOverallocated);
+    const overallocatedDays = histogram.filter((day) => day.isOverallocated);
     if (overallocatedDays.length === 0) break;
 
-    const firstOverDay = overallocatedDays[0];
+    const firstOverDay = overallocatedDays[0]!.dayOffset;
+    const currentOverCount = overallocatedDays.length;
 
-    // Find noncritical activities active on this day, sorted by ascending TF
-    const movable = adjustedCpmActivities
+    const candidates = baseCpm
       .filter((cpm) => {
         if (cpm.isCritical) return false;
-        const activity = actByCode.get(cpm.activityCode);
-        if (!activity) return false;
-        const es = cpm.earlyStart;
-        const ef = es + activity.durationDays;
-        return firstOverDay.dayOffset >= es && firstOverDay.dayOffset < ef;
+        if (allowProjectExtension) return false;
+        const act = activities.find((a) => a.activityCode === cpm.activityCode);
+        if (!act) return false;
+        const es = effectiveStart(cpm, offsets);
+        const ef = es + act.durationDays;
+        return firstOverDay >= es && firstOverDay < ef;
       })
-      .sort((left, right) => left.totalFloat - right.totalFloat);
-
-    if (movable.length === 0) {
-      warnings.push(
-        `Resources exceed availability on day ${firstOverDay.dayOffset}. Some activities cannot be delayed further — project duration may need to extend or crew size must increase.`,
-      );
-      break;
-    }
-
-    // Delay the activity with least float by 1 day (do not exceed total float)
-    const target = movable[0];
-    const currentOffset = offsets[target.activityCode] ?? 0;
-    const maxAdditionalDelay = Math.max(0, target.totalFloat - 1);
-    if (maxAdditionalDelay <= 0) {
-      warnings.push(
-        `Resources exceed availability. Activity "${target.activityCode}" cannot be delayed without extending the project.`,
-      );
-      break;
-    }
-
-    offsets[target.activityCode] = currentOffset + 1;
-
-    const existingMoved = movedActivities.find((m) => m.activityCode === target.activityCode);
-    if (existingMoved) {
-      existingMoved.newStart = target.earlyStart + offsets[target.activityCode]!;
-      existingMoved.daysMoved = offsets[target.activityCode]!;
-    } else {
-      movedActivities.push({
-        activityCode: target.activityCode,
-        oldStart: target.earlyStart - currentOffset,
-        newStart: target.earlyStart + 1,
-        daysMoved: 1,
-        reason: `Overallocation on day ${firstOverDay.dayOffset}`,
+      .sort((left, right) => {
+        const tfDiff = left.totalFloat - right.totalFloat;
+        if (tfDiff !== 0) return tfDiff;
+        const esDiff = effectiveStart(left, offsets) - effectiveStart(right, offsets);
+        if (esDiff !== 0) return esDiff;
+        return left.activityCode.localeCompare(right.activityCode);
       });
+
+    if (candidates.length === 0) {
+      warnings.push(
+        `Resources exceed availability on day ${firstOverDay}. Some activities cannot be delayed further — project duration may need to extend or crew size must increase.`,
+      );
+      break;
+    }
+
+    let resolved = false;
+
+    for (const candidate of candidates) {
+      const activity = activities.find((a) => a.activityCode === candidate.activityCode);
+      if (!activity) continue;
+
+      const currentOffset = offsets[candidate.activityCode] ?? 0;
+      const currentStart = candidate.earlyStart + currentOffset;
+      const maxStart = candidate.earlyStart + candidate.totalFloat;
+
+      if (
+        activityFitsAtStart(
+          candidate.activityCode,
+          currentStart,
+          activities,
+          baseCpm,
+          offsets,
+          availableCrewSize,
+        )
+      ) {
+        continue;
+      }
+
+      for (let tryStart = currentStart + 1; tryStart <= maxStart; tryStart += 1) {
+        const trialOffsets = {
+          ...offsets,
+          [candidate.activityCode]: tryStart - candidate.earlyStart,
+        };
+
+        const cascade = enforceSuccessorConstraints(
+          candidate.activityCode,
+          activities,
+          baseCpm,
+          trialOffsets,
+          outgoingLinks,
+        );
+        if (!cascade.ok) continue;
+
+        if (
+          !activityFitsAtStart(
+            candidate.activityCode,
+            tryStart,
+            activities,
+            baseCpm,
+            trialOffsets,
+            availableCrewSize,
+          )
+        ) {
+          continue;
+        }
+
+        const trialHistogram = calculateResourceHistogram({
+          activities,
+          cpmActivities: baseCpm,
+          projectStartDate,
+          availableCrewSize,
+          leveledOffsets: trialOffsets,
+        });
+        const trialOverCount = countOverallocatedDays(trialHistogram);
+        if (trialOverCount >= currentOverCount) continue;
+
+        Object.assign(offsets, trialOffsets);
+
+        const existingMoved = movedActivities.find((m) => m.activityCode === candidate.activityCode);
+        const newOffset = offsets[candidate.activityCode] ?? 0;
+        if (existingMoved) {
+          existingMoved.newStart = candidate.earlyStart + newOffset;
+          existingMoved.daysMoved = newOffset;
+          existingMoved.dependentActivityCodes = cascade.dependentCodes;
+        } else {
+          movedActivities.push({
+            activityCode: candidate.activityCode,
+            oldStart: candidate.earlyStart,
+            newStart: candidate.earlyStart + newOffset,
+            daysMoved: newOffset,
+            reason: `Overallocation on day ${firstOverDay}`,
+            dependentActivityCodes: cascade.dependentCodes,
+          });
+        }
+
+        resolved = true;
+        break;
+      }
+
+      if (resolved) break;
+    }
+
+    if (!resolved) {
+      for (const candidate of candidates) {
+        unmovedActivities.push({
+          activityCode: candidate.activityCode,
+          reason:
+            'No valid start date within total float resolves overallocation without violating logic.',
+        });
+      }
+      warnings.push(
+        `Resources exceed availability on day ${firstOverDay}. No noncritical activity could be delayed within float.`,
+      );
+      if (!allowProjectExtension) {
+        warnings.push(
+          'Project extension is not enabled. Enable "Allow project extension" to move activities beyond float.',
+        );
+      }
+      break;
     }
   }
 
-  // Final state
-  const finalCpm = calculateCpm({ activities, logicLinks });
-  const finalAdjusted: CpmActivityResult[] = finalCpm.activities.map((cpm) => {
-    const offset = offsets[cpm.activityCode] ?? 0;
-    return {
-      ...cpm,
-      earlyStart: cpm.earlyStart + offset,
-      earlyFinish: cpm.earlyFinish + offset,
-      totalFloat: cpm.totalFloat - offset,
-    };
-  });
-
+  const finalAdjusted = buildLeveledActivities(baseCpm, offsets);
   const histogramAfter = calculateResourceHistogram({
     activities,
-    cpmActivities: finalAdjusted,
+    cpmActivities: baseCpm,
     projectStartDate,
     availableCrewSize,
     leveledOffsets: offsets,
   });
 
+  const projectDurationBefore = initialCpm.projectDurationDays;
   const projectDurationAfter = Math.max(
-    initialCpm.projectDurationDays,
-    ...finalAdjusted.map((a) => {
-      const act = actByCode.get(a.activityCode);
-      return a.earlyStart + (act?.durationDays ?? 1);
-    }),
+    projectDurationBefore,
+    projectDurationFromOffsets(activities, baseCpm, offsets),
   );
+
+  if (projectDurationAfter > projectDurationBefore && !allowProjectExtension) {
+    warnings.push(
+      'Resource leveling would extend project duration. No further float-based moves were applied.',
+    );
+  }
 
   return {
     leveledActivities: finalAdjusted,
     resourceHistogramBefore: histogramBefore,
     resourceHistogramAfter: histogramAfter,
-    projectDurationBefore: initialCpm.projectDurationDays,
-    projectDurationAfter,
+    projectDurationBefore,
+    projectDurationAfter: allowProjectExtension
+      ? projectDurationAfter
+      : Math.min(projectDurationAfter, projectDurationBefore),
+    availableCrewSize,
+    peakCrewBefore: peakRequiredCrew(histogramBefore),
+    peakCrewAfter: peakRequiredCrew(histogramAfter),
+    overallocatedDaysBefore: countOverallocatedDays(histogramBefore),
+    overallocatedDaysAfter: countOverallocatedDays(histogramAfter),
     movedActivities,
+    unmovedActivities,
     warnings,
   };
 }

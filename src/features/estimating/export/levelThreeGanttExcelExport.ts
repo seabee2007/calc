@@ -342,7 +342,16 @@ function addResourceHistogramSheet(
   const sheet = workbook.addWorksheet(RESOURCE_HISTOGRAM_SHEET_NAME, {
     views: [{ showGridLines: false }],
   });
-  sheet.addRow(['Day', 'Date', 'Required Crew', 'Available Crew', 'Overallocated']);
+  sheet.addRow([
+    'Day',
+    'Date',
+    'Required Crew',
+    'Critical Resources',
+    'Noncritical Resources',
+    'Available Crew',
+    'Overallocated Amount',
+    'Overallocated',
+  ]);
   sheet.getRow(1).font = { bold: true, color: { argb: LEVEL_THREE_EXCEL_COLORS.text } };
   sheet.getRow(1).fill = solidFill(LEVEL_THREE_EXCEL_COLORS.headerBg);
 
@@ -351,7 +360,10 @@ function addResourceHistogramSheet(
       day.dayOffset,
       day.date,
       day.requiredCrew,
+      day.criticalRequiredCrew,
+      day.noncriticalRequiredCrew,
       day.availableCrew,
+      day.overallocatedAmount,
       day.isOverallocated ? 'Yes' : 'No',
     ]);
     const fill = index % 2 === 0 ? LEVEL_THREE_EXCEL_COLORS.sheetBg : LEVEL_THREE_EXCEL_COLORS.rowAltBg;

@@ -100,7 +100,10 @@ const resourceHistogram: ResourceHistogramDay[] = [
     dayOffset: 0,
     date: '2026-06-06',
     requiredCrew: 3,
+    criticalRequiredCrew: 2,
+    noncriticalRequiredCrew: 1,
     availableCrew: 2,
+    overallocatedAmount: 1,
     isOverallocated: true,
   },
 ];

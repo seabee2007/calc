@@ -172,8 +172,16 @@ export interface ResourceHistogramDay {
   dayOffset: number;
   date: string;
   requiredCrew: number;
+  criticalRequiredCrew: number;
+  noncriticalRequiredCrew: number;
   availableCrew: number;
+  overallocatedAmount: number;
   isOverallocated: boolean;
+}
+
+export interface UnmovedActivity {
+  activityCode: string;
+  reason: string;
 }
 
 export interface MovedActivity {
@@ -182,6 +190,7 @@ export interface MovedActivity {
   newStart: number;
   daysMoved: number;
   reason: string;
+  dependentActivityCodes?: string[];
 }
 
 export interface ResourceLevelingResult {
@@ -190,7 +199,13 @@ export interface ResourceLevelingResult {
   resourceHistogramAfter: ResourceHistogramDay[];
   projectDurationBefore: number;
   projectDurationAfter: number;
+  availableCrewSize: number;
+  peakCrewBefore: number;
+  peakCrewAfter: number;
+  overallocatedDaysBefore: number;
+  overallocatedDaysAfter: number;
   movedActivities: MovedActivity[];
+  unmovedActivities: UnmovedActivity[];
   warnings: string[];
 }
 

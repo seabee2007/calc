@@ -20,9 +20,13 @@ import { computeLinePreviewTotals } from '../ui/estimateFormDefaults';
 import type { EstimateRelationshipType } from '../domain/estimateTypes';
 import {
   getCsiDivisionByCode,
-  isKnownCsiDivision,
   normalizeCsiDivisionCode,
 } from '../domain/csiDivisions';
+import {
+  getCsiDivision,
+  matchCsiSectionForDivision,
+  normalizeCsiSectionCode,
+} from '../data/csi';
 import { normalizeScopeName } from '../domain/csiScopeTemplates';
 import { getMasterActivityByCode } from '../data/masterActivityIndex';
 import type { EstimateSelectedDivision, EstimateSettings } from '../domain/estimateTypes';
@@ -68,6 +72,7 @@ export interface ImportedEstimateRow {
   lag_days?: number;
   predecessor_activity?: string;
   notes?: string;
+  csi_section?: string;
 }
 
 export interface MapRowsToEstimateDataOptions {
@@ -141,6 +146,8 @@ const HEADER_ALIASES: Record<string, EstimateImportColumn> = {
   predecessoractivitycode: 'predecessor_activity_code',
   relationshiptype: 'relationship_type',
   lagdays: 'lag_days',
+  csi_section: 'csi_section',
+  csisection: 'csi_section',
 };
 
 function normalizeHeader(value: unknown): string {
@@ -249,6 +256,36 @@ function resolveDurationDays(
   return undefined;
 }
 
+function appendImportedCsiValidationWarnings(
+  rowNumber: number,
+  divisionCode: string,
+  rawSection: string | undefined,
+  warnings: string[],
+): string | undefined {
+  const division = getCsiDivision(divisionCode);
+  if (!division) {
+    warnings.push(`Row ${rowNumber}: unknown CSI division code "${divisionCode}".`);
+  }
+
+  const trimmedSection = rawSection?.trim();
+  if (!trimmedSection) return undefined;
+
+  const normalizedSection = normalizeCsiSectionCode(trimmedSection);
+  if (!normalizedSection) {
+    warnings.push(`Row ${rowNumber}: invalid CSI section "${trimmedSection}".`);
+    return trimmedSection;
+  }
+
+  const matched = matchCsiSectionForDivision(divisionCode, normalizedSection);
+  if (!matched) {
+    warnings.push(
+      `Row ${rowNumber}: CSI section "${normalizedSection}" not found for division "${divisionCode}" (csiSectionMatched: false).`,
+    );
+  }
+
+  return normalizedSection;
+}
+
 function mapRowToDraftLine(row: ImportedEstimateRow, position: number): EstimateDraftLine {
   const laborHours = resolveLaborHours(row);
   const durationDays = resolveDurationDays(row, laborHours);
@@ -288,6 +325,7 @@ function mapRowToDraftLine(row: ImportedEstimateRow, position: number): Estimate
         ...draft.task.lineItem,
         description: row.description || row.activity_title,
         csiDivision: row.division_code,
+        csiSection: row.csi_section,
         quantity: {
           formula: 'quantity_with_waste',
           quantity,
@@ -376,6 +414,11 @@ function enrichImportedDraftFromMaster(draft: EstimateDraftLine): EstimateDraftL
       activityType: draft.task.activityType ?? master.activityType,
       sequencingCategory: draft.task.sequencingCategory ?? master.sequencingCategory,
       logicAnchor: draft.task.logicAnchor ?? master.logicAnchor,
+      lineItem: {
+        ...draft.task.lineItem,
+        csiDivision: draft.task.lineItem.csiDivision ?? master.csiDivisionCode,
+        csiSection: draft.task.lineItem.csiSection ?? master.csiSectionCode,
+      },
     },
   };
 }
@@ -473,8 +516,13 @@ export function validateImportedEstimate(
       warnings.push(`Row ${rowNumber}: invalid division_code "${cellToString(row.division_code)}"; row skipped.`);
       return;
     }
-    if (!isKnownCsiDivision(divisionCode)) {
+    if (!getCsiDivision(divisionCode)) {
       warnings.push(`Row ${rowNumber}: unknown CSI division code "${divisionCode}".`);
+    }
+
+    const rawCsiSection = cellToString(row.csi_section);
+    if (rawCsiSection) {
+      appendImportedCsiValidationWarnings(rowNumber, divisionCode, rawCsiSection, warnings);
     }
 
     const quantity = coerceRequiredNumber(row.quantity, 'quantity', rowNumber, errors);
@@ -635,6 +683,14 @@ export function mapRowsToEstimateData(
           ? buildWorkPackageCode(divisionCode, activitySequence)
           : '');
 
+    const rawCsiSection = cellToString(row.csi_section) || undefined;
+    const normalizedCsiSection = appendImportedCsiValidationWarnings(
+      rowNumber,
+      divisionCode,
+      rawCsiSection,
+      warnings,
+    );
+
     const mapped: ImportedEstimateRow = {
       rowNumber,
       activity_code: activityCode || undefined,
@@ -675,6 +731,7 @@ export function mapRowsToEstimateData(
       lag_days: coerceOptionalNumber(row.lag_days, 'lag_days', rowNumber, warnings) ?? 0,
       predecessor_activity: cellToString(row.predecessor_activity),
       notes: cellToString(row.notes),
+      csi_section: normalizedCsiSection ?? rawCsiSection,
     };
 
     if (

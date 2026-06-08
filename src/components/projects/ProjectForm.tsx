@@ -48,6 +48,8 @@ export interface ProjectFormData {
   jobsiteAddress: USAddress;
   clientInfo: ProjectClientInfo;
   clientPortalAccess?: ClientPortalAccessInput;
+  /** Total workers normally available for this project per workday. */
+  projectCrewSize: number;
 }
 
 interface ProjectFormProps {
@@ -118,6 +120,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       clientPhone: formatUSPhoneNumber(initialData?.clientInfo?.clientPhone),
       ...initialData?.clientPortalAccess,
     },
+    projectCrewSize: initialData?.projectCrewSize ?? 7,
   });
 
   const {
@@ -588,6 +591,36 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             )}
           </>
         )}
+      </div>
+
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+            Project planning
+          </h4>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Schedule resource limits used by the Level III Gantt histogram and resource leveling.
+          </p>
+        </div>
+        <Input
+          label="Project Crew Size"
+          type="number"
+          min={1}
+          max={999}
+          step={1}
+          fullWidth
+          error={errors.projectCrewSize?.message?.toString()}
+          {...register('projectCrewSize', {
+            required: 'Project crew size is required',
+            min: { value: 1, message: 'Must be at least 1 worker' },
+            max: { value: 999, message: 'Must be 999 or fewer workers' },
+            valueAsNumber: true,
+          })}
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Total workers normally available for this project per workday. Used for the Level III
+          Gantt resource histogram and resource leveling.
+        </p>
       </div>
 
       <div>

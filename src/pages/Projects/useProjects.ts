@@ -170,6 +170,7 @@ function useProjectsState() {
           jobsiteAddress: data.jobsiteAddress,
           clientInfo: data.clientInfo,
           pourDate: data.pourDate,
+          projectCrewSize: data.projectCrewSize,
         });
         navigate('/projects', {
           replace: true,
@@ -213,6 +214,7 @@ function useProjectsState() {
           jobsiteAddress: data.jobsiteAddress,
           clientInfo: data.clientInfo,
           pourDate: data.pourDate,
+          projectCrewSize: data.projectCrewSize,
         });
         setUi((s) => ({ ...s, editing: false }));
         toast('Project updated successfully', 'success');

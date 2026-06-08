@@ -36,6 +36,19 @@ export function isMasterActivityCode(code: string | undefined | null): boolean {
   return getMasterActivityByCode(code) !== undefined;
 }
 
+/** CSI classification linked from the master activity, when annotated. */
+export function getMasterActivityCsiContext(code: string | undefined | null): {
+  csiDivisionCode?: string;
+  csiSectionCode?: string;
+} {
+  const master = getMasterActivityByCode(code);
+  if (!master) return {};
+  return {
+    csiDivisionCode: master.csiDivisionCode,
+    csiSectionCode: master.csiSectionCode,
+  };
+}
+
 /** All master activities within a CSI division, sorted by code. */
 export function getMasterActivitiesByDivision(
   divisionCode: string | undefined | null,

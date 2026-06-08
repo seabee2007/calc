@@ -14,6 +14,9 @@ import {
 interface Props {
   settingsState: UseEstimateSettingsResult;
   canEdit: boolean;
+  projectCrewSize: number;
+  onProjectCrewSizeChange: (value: number) => void;
+  projectCrewSizeSaving?: boolean;
 }
 
 function SettingsSection({
@@ -57,7 +60,13 @@ function PercentInput({
   );
 }
 
-export default function EstimateSettingsPanel({ settingsState, canEdit }: Props) {
+export default function EstimateSettingsPanel({
+  settingsState,
+  canEdit,
+  projectCrewSize,
+  onProjectCrewSizeChange,
+  projectCrewSizeSaving = false,
+}: Props) {
   const {
     settings,
     importing,
@@ -151,6 +160,26 @@ export default function EstimateSettingsPanel({ settingsState, canEdit }: Props)
         />
       </SettingsSection>
 
+      <SettingsSection title="Schedule resources">
+        <Input
+          label="Project Crew Size"
+          type="number"
+          min={1}
+          max={999}
+          step={1}
+          value={projectCrewSize}
+          disabled={!canEdit || projectCrewSizeSaving}
+          onChange={(event) =>
+            onProjectCrewSizeChange(parseEstimateFormNumber(event.target.value))
+          }
+          fullWidth
+        />
+        <p className={`text-xs ${PLANNER_MUTED} sm:col-span-2 lg:col-span-3`}>
+          Total workers normally available for this project per workday. Used for the Level III
+          Gantt resource histogram and resource leveling. Saved to the project record.
+        </p>
+      </SettingsSection>
+
       <SettingsSection title="Rules">
         <Select
           label="Apply overhead to"
@@ -212,7 +241,7 @@ export default function EstimateSettingsPanel({ settingsState, canEdit }: Props)
           fullWidth
         />
         <Input
-          label="Crew size"
+          label="Default activity crew size"
           type="number"
           min={0}
           step="any"
@@ -223,6 +252,10 @@ export default function EstimateSettingsPanel({ settingsState, canEdit }: Props)
           }
           fullWidth
         />
+        <p className={`text-xs ${PLANNER_MUTED} sm:col-span-2 lg:col-span-3`}>
+          Workers required for a new estimate line item when no activity-specific crew size is set.
+          This is not the project daily labor cap.
+        </p>
         <Input
           label="Currency"
           value={settings.currency}

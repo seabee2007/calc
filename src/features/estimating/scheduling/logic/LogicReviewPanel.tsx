@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
+import { getMasterActivityCsiContext } from '../../data/masterActivityIndex';
 import type { CpmLogicLink } from '../cpmTypes';
 import { checkLogicNetwork } from './checkLogicNetwork';
 import {
@@ -209,17 +210,24 @@ export default function LogicReviewPanel({
     setAiRan(false);
     try {
       const input = {
-        activities: activities.map((activity) => ({
-          activityCode: activity.activityCode,
-          title: activity.activityDescription,
-          divisionCode: activity.divisionCode,
-          divisionName: activity.divisionName,
-          workPackageName: activity.workPackageName,
-          durationDays: activity.durationDays,
-          crewSize: activity.crewSize,
-          laborHours: activity.laborHours,
-          scheduleEnabled: true,
-        })),
+        activities: activities.map((activity) => {
+          const masterCsi = getMasterActivityCsiContext(
+            activity.masterActivityCode ?? activity.activityCode,
+          );
+          return {
+            activityCode: activity.activityCode,
+            title: activity.activityDescription,
+            divisionCode: activity.divisionCode,
+            divisionName: activity.divisionName,
+            workPackageName: activity.workPackageName,
+            durationDays: activity.durationDays,
+            crewSize: activity.crewSize,
+            laborHours: activity.laborHours,
+            scheduleEnabled: true,
+            csiDivisionCode: masterCsi.csiDivisionCode,
+            csiSectionCode: masterCsi.csiSectionCode,
+          };
+        }),
         logicLinks,
       };
       const suggestions: AiLogicSuggestion[] = await requestAiLogicReview(input);

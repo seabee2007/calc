@@ -17,6 +17,32 @@
     
     <title>ConcreteCalc - Concrete Calculator App</title>
     <meta name="description" content="Professional concrete calculator for construction and engineering projects." />
+    <script>
+      // #region agent log
+      (function () {
+        function log(hypothesisId, message, data) {
+          fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0c8c0' }, body: JSON.stringify({ sessionId: 'd0c8c0', runId: 'post-fix', hypothesisId: hypothesisId, location: 'index.html', message: message, data: data, timestamp: Date.now() }) }).catch(function () {});
+        }
+        log('H5,H6', 'HTML pre-module diagnostics', {
+          path: location.pathname,
+          serviceWorkerControlled: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller),
+          currentScriptSrc: document.currentScript && document.currentScript.src,
+        });
+        window.addEventListener('error', function (event) {
+          log('H1,H5,H6', 'Pre-main runtime error', {
+            path: location.pathname,
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            scriptSrcs: Array.prototype.map.call(document.scripts, function (script) { return script.src; }).filter(Boolean),
+            preloadHrefs: Array.prototype.map.call(document.querySelectorAll('link[rel="modulepreload"]'), function (link) { return link.href; }),
+            serviceWorkerControlled: Boolean(navigator.serviceWorker && navigator.serviceWorker.controller),
+          });
+        });
+      })();
+      // #endregion
+    </script>
     <style>
       :root {
         --sat: env(safe-area-inset-top);

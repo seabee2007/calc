@@ -51,20 +51,6 @@ export default defineConfig({
     })
   ],
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-          if (id.includes('exceljs') || id.includes('file-saver')) return 'vendor-exceljs';
-          if (id.includes('jspdf')) return 'vendor-pdf';
-          if (id.includes('html2canvas')) return 'vendor-html2canvas';
-          if (id.includes('framer-motion')) return 'vendor-motion';
-          if (id.includes('@supabase')) return 'vendor-supabase';
-          if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react';
-          return 'vendor';
-        },
-      },
-    },
     chunkSizeWarningLimit: 1500,
   },
   server: {

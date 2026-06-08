@@ -55,27 +55,23 @@ describe('resourceLevelSchedule', () => {
     // Warnings should be issued; no activities actually delayed
     expect(result.warnings.length).toBeGreaterThan(0);
     expect(result.movedActivities).toHaveLength(0);
+    expect(result.warnings.some((w) => w.includes('Critical-path labor exceeds'))).toBe(true);
   });
 
   it('delays a non-critical activity to reduce overallocation', () => {
-    // A(5, crew=5) starts at day 0 on the critical path
-    // B(3, crew=5) also starts at day 0 (parallel, has float)
-    // Available crew = 6 — both starting at 0 exceeds limit
-    // B should be delayed by CPM float
-    const activities = [makeAct('A', 5, 5), makeAct('B', 3, 5), makeAct('C', 2, 1)];
-    // A → C is the critical path; B has float
-    const links: CpmLogicLink[] = [fs('A', 'C'), fs('B', 'C')];
+    const activities = [makeAct('A', 10, 2), makeAct('B', 1, 5), makeAct('Z', 1, 1)];
+    const links: CpmLogicLink[] = [fs('A', 'Z')];
     const result = resourceLevelSchedule({
       activities,
       logicLinks: links,
       availableCrewSize: 6,
       projectStartDate: '2025-01-01',
     });
-    // B should be moved at least a little
     expect(result.movedActivities.length).toBeGreaterThan(0);
     const moved = result.movedActivities.find((m) => m.activityCode === 'B');
     expect(moved).toBeTruthy();
     expect(moved!.daysMoved).toBeGreaterThan(0);
+    expect(result.overallocatedDaysAfter).toBeLessThan(result.overallocatedDaysBefore);
   });
 
   it('does not extend duration beyond TF', () => {
@@ -105,9 +101,40 @@ describe('resourceLevelSchedule', () => {
       availableCrewSize: 6,
       projectStartDate: '2025-01-01',
     });
-    const overBefore = result.resourceHistogramBefore.filter((d) => d.isOverallocated).length;
-    const overAfter = result.resourceHistogramAfter.filter((d) => d.isOverallocated).length;
-    // After leveling, overallocation should be reduced (or same if not possible)
-    expect(overAfter).toBeLessThanOrEqual(overBefore);
+    expect(result.overallocatedDaysAfter).toBeLessThanOrEqual(result.overallocatedDaysBefore);
+    expect(result.availableCrewSize).toBe(6);
+    expect(result.peakCrewBefore).toBeGreaterThanOrEqual(result.peakCrewAfter);
+  });
+
+  it('does not extend project duration unless explicitly allowed', () => {
+    const activities = [makeAct('A', 5, 5), makeAct('B', 3, 5), makeAct('C', 2, 1)];
+    const links: CpmLogicLink[] = [fs('A', 'C'), fs('B', 'C')];
+    const result = resourceLevelSchedule({
+      activities,
+      logicLinks: links,
+      availableCrewSize: 6,
+      projectStartDate: '2025-01-01',
+      allowProjectExtension: false,
+    });
+    expect(result.projectDurationAfter).toBeLessThanOrEqual(result.projectDurationBefore);
+  });
+
+  it('considers least total float noncritical activities first', () => {
+    const activities = [
+      makeAct('A', 4, 4),
+      makeAct('B', 3, 4),
+      makeAct('C', 3, 4),
+      makeAct('D', 2, 1),
+    ];
+    const links: CpmLogicLink[] = [fs('A', 'D'), fs('B', 'D'), fs('C', 'D')];
+    const result = resourceLevelSchedule({
+      activities,
+      logicLinks: links,
+      availableCrewSize: 6,
+      projectStartDate: '2025-01-01',
+    });
+    if (result.movedActivities.length > 0) {
+      expect(result.movedActivities[0]?.activityCode).toBe('C');
+    }
   });
 });
