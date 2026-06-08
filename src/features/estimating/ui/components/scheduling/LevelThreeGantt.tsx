@@ -1,9 +1,10 @@
-import { forwardRef, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import { resolveSelectedGanttActivityDetails } from '../../../scheduling/activityDetailsModalData';
 import type { CpmLogicLink, CpmResult, ScheduleSettings } from '../../../scheduling/cpmTypes';
 import {
   DAY_WIDTH,
+  DEFAULT_PIXELS_PER_DAY,
   GANTT_LEFT_TABLE_REGION_ATTR,
   GANTT_TIMELINE_REGION_ATTR,
   HEADER_DAY_HEIGHT,
@@ -19,6 +20,7 @@ import {
   computeTodayDayOffset,
   getLocalDateYmd,
   dayCellLeftPx,
+  dayCellWidthPx,
   formatEstimatedFloat,
   leftTableGridTemplateColumns,
   monthSegmentWidthPx,
@@ -49,16 +51,26 @@ interface Props {
   exportReady?: boolean;
   fullscreen?: boolean;
   chromeless?: boolean;
+  /** Pixels per calendar day — drives zoom level. Defaults to DEFAULT_PIXELS_PER_DAY. */
+  pixelsPerDay?: number;
+  /** Ref forwarded to the inner horizontal-scroll container (for Fit Project / Today scroll). */
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
 }
 
-function TimelineGridlines({ dayCount }: { dayCount: number }) {
+function TimelineGridlines({
+  dayCount,
+  pixelsPerDay,
+}: {
+  dayCount: number;
+  pixelsPerDay: number;
+}) {
   return (
     <>
       {Array.from({ length: dayCount + 1 }, (_, dayOffset) => (
         <div
           key={dayOffset}
           className="absolute top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-700"
-          style={{ left: dayCellLeftPx(dayOffset) }}
+          style={{ left: dayCellLeftPx(dayOffset, pixelsPerDay) }}
         />
       ))}
     </>
@@ -68,15 +80,17 @@ function TimelineGridlines({ dayCount }: { dayCount: number }) {
 function TodayLine({
   todayOffset,
   height,
+  pixelsPerDay,
 }: {
   todayOffset: number;
   height: number | '100%';
+  pixelsPerDay: number;
 }) {
   return (
     <div
       className="pointer-events-none absolute top-0 z-20"
       style={{
-        left: todayLineLeftPx(todayOffset),
+        left: todayLineLeftPx(todayOffset, pixelsPerDay),
         width: 2,
         height,
         backgroundColor: 'rgba(6, 182, 212, 0.75)',
@@ -124,7 +138,7 @@ function ActivityBars({
       {layout.floatWidth > 0 && (
         <button
           type="button"
-          className="absolute cursor-pointer rounded border-2 border-dashed border-slate-400 bg-transparent hover:border-slate-500 dark:border-slate-500 dark:hover:border-slate-400"
+          className="absolute cursor-pointer rounded border-2 border-dashed border-slate-500 bg-transparent hover:border-slate-600 dark:border-slate-500 dark:hover:border-slate-400"
           style={{
             top: barTop,
             height: 20,
@@ -153,10 +167,14 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
     exportReady = false,
     fullscreen = false,
     chromeless = false,
+    pixelsPerDay = DEFAULT_PIXELS_PER_DAY,
+    scrollContainerRef: externalScrollRef,
   },
   ref,
 ) {
   const [selectedActivityCode, setSelectedActivityCode] = useState<string | null>(null);
+  const internalScrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = externalScrollRef ?? internalScrollRef;
   const today = useMemo(() => getLocalDateYmd(), []);
   const projectStartDate = scheduleSettings.projectStartDate || today;
 
@@ -166,7 +184,7 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
   }, [activities, cpmResult, projectStartDate, leveledOffsets]);
 
   const projectDuration = Math.max(cpmResult?.projectDurationDays ?? 0, 1);
-  const timelineWidth = timelineWidthPx(projectDuration);
+  const timelineWidth = timelineWidthPx(projectDuration, pixelsPerDay);
   const gridTemplate = leftTableGridTemplateColumns();
 
   const timelineDays = useMemo(
@@ -178,7 +196,10 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
     [timelineDays],
   );
 
-  const barLayouts = useMemo(() => rows.map((row) => computeActivityBarLayout(row)), [rows]);
+  const barLayouts = useMemo(
+    () => rows.map((row) => computeActivityBarLayout(row, pixelsPerDay)),
+    [rows, pixelsPerDay],
+  );
 
   const todayOffset = useMemo(
     () => computeTodayDayOffset(projectStartDate, today, projectDuration),
@@ -198,8 +219,8 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
   );
 
   useEffect(() => {
-    assertGanttGridInvariants(projectDuration, timelineWidth, rows.length, barLayouts);
-  }, [projectDuration, timelineWidth, rows.length, barLayouts]);
+    assertGanttGridInvariants(projectDuration, timelineWidth, rows.length, barLayouts, pixelsPerDay);
+  }, [projectDuration, timelineWidth, rows.length, barLayouts, pixelsPerDay]);
 
   if (activities.length === 0) {
     return (
@@ -287,7 +308,10 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
             : 'overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900'
         }
       >
-        <div className={fullscreen ? 'min-h-0 flex-1 overflow-auto' : 'overflow-x-auto'}>
+        <div
+          ref={scrollRef}
+          className={fullscreen ? 'min-h-0 flex-1 overflow-auto' : 'overflow-x-auto'}
+        >
           <div style={{ minWidth: LEFT_TABLE_WIDTH + timelineWidth }}>
             <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
               <div
@@ -296,13 +320,13 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                 style={{ width: LEFT_TABLE_WIDTH, height: headerTimelineHeight }}
               >
                 <div
-                  className="grid h-full text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                  className="grid h-full text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
                   style={{ gridTemplateColumns: gridTemplate }}
                 >
                   <span className="flex items-end truncate px-2 pb-2">CODE</span>
                   <span className="flex items-end truncate px-2 pb-2">DESCRIPTION</span>
                   <span
-                    className={`${FLOAT_COLUMN_CLASS} text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400`}
+                    className={`${FLOAT_COLUMN_CLASS} text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400`}
                     style={FLOAT_COLUMN_HEADER_BORDER_STYLE}
                   >
                     {LEFT_TABLE_HEADERS[2]}
@@ -322,10 +346,10 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                   {monthSegments.map((segment) => (
                     <div
                       key={`${segment.monthLabel}-${segment.startDayOffset}`}
-                      className="absolute top-0 flex items-center justify-center border-r border-slate-200 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                      className="absolute top-0 flex items-center justify-center border-r border-slate-200 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:text-slate-400"
                       style={{
-                        left: dayCellLeftPx(segment.startDayOffset),
-                        width: monthSegmentWidthPx(segment.dayCount),
+                        left: dayCellLeftPx(segment.startDayOffset, pixelsPerDay),
+                        width: monthSegmentWidthPx(segment.dayCount, pixelsPerDay),
                         height: HEADER_MONTH_HEIGHT,
                       }}
                     >
@@ -344,21 +368,25 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                         day.isToday
                           ? 'font-semibold text-cyan-600 dark:text-cyan-400'
                           : day.isWeekend
-                            ? 'text-slate-400 dark:text-slate-500'
-                            : 'text-slate-500 dark:text-slate-400'
+                            ? 'text-slate-400 dark:text-slate-600'
+                            : 'text-slate-600 dark:text-slate-400'
                       }`}
                       style={{
-                        left: dayCellLeftPx(day.dayOffset),
-                        width: DAY_WIDTH,
+                        left: dayCellLeftPx(day.dayOffset, pixelsPerDay),
+                        width: dayCellWidthPx(pixelsPerDay),
                         height: HEADER_DAY_HEIGHT,
                       }}
                     >
-                      {day.dayOfMonth}
+                      {pixelsPerDay >= 14 ? day.dayOfMonth : null}
                     </div>
                   ))}
                 </div>
                 {todayOffset !== null && (
-                  <TodayLine todayOffset={todayOffset} height={headerTimelineHeight} />
+                  <TodayLine
+                    todayOffset={todayOffset}
+                    height={headerTimelineHeight}
+                    pixelsPerDay={pixelsPerDay}
+                  />
                 )}
               </div>
             </div>
@@ -405,9 +433,9 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
                     className="relative shrink-0 overflow-hidden"
                     style={{ width: timelineWidth, height: ROW_HEIGHT }}
                   >
-                    <TimelineGridlines dayCount={projectDuration} />
+                    <TimelineGridlines dayCount={projectDuration} pixelsPerDay={pixelsPerDay} />
                     {todayOffset !== null && (
-                      <TodayLine todayOffset={todayOffset} height="100%" />
+                      <TodayLine todayOffset={todayOffset} height="100%" pixelsPerDay={pixelsPerDay} />
                     )}
                     <ActivityBars
                       layout={layout}
@@ -424,7 +452,7 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
       </div>
 
       <div
-        className={`flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 ${
+        className={`flex flex-wrap items-center gap-4 text-xs text-slate-600 dark:text-slate-400 ${
           fullscreen ? 'shrink-0 px-4 pb-3' : ''
         }`}
       >
@@ -437,14 +465,14 @@ const LevelThreeGantt = forwardRef<HTMLDivElement, Props>(function LevelThreeGan
           Noncritical
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-8 rounded border-2 border-dashed border-slate-400" />
+          <span className="inline-block h-3 w-8 rounded border-2 border-dashed border-slate-500 dark:border-slate-400" />
           Estimated float
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0.5 w-8 bg-cyan-400" />
+          <span className="inline-block h-0.5 w-8 bg-cyan-500 dark:bg-cyan-400" />
           Today
         </span>
-        <span className="text-slate-400">Click a bar to view activity details</span>
+        <span className="text-slate-500 dark:text-slate-500">Click a bar to view activity details</span>
       </div>
 
       {selectedDetails && (

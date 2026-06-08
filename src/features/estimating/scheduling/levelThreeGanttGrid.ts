@@ -3,6 +3,13 @@ import type { LevelThreeGanttRow } from './levelThreeGanttUtils';
 /** Shared layout constants — used by UI, export, and tests. */
 export const DAY_WIDTH = 32;
 export const ROW_HEIGHT = 42;
+
+/** Discrete zoom levels (pixels per day). */
+export const ZOOM_LEVELS = [8, 14, 22, 32, 56] as const;
+export type ZoomLevel = (typeof ZOOM_LEVELS)[number];
+
+/** Default zoom level used when no pixelsPerDay is provided. */
+export const DEFAULT_PIXELS_PER_DAY: ZoomLevel = 22;
 export const HEADER_MONTH_HEIGHT = 28;
 export const HEADER_DAY_HEIGHT = 28;
 
@@ -52,24 +59,25 @@ export function leftTableGridTemplateColumns(): string {
   return `${CODE_COLUMN_WIDTH}px ${DESCRIPTION_COLUMN_WIDTH}px ${FLOAT_COLUMN_WIDTH}px`;
 }
 
-export function dayOffsetToX(dayOffset: number): number {
-  return dayOffset * DAY_WIDTH;
+export function dayOffsetToX(dayOffset: number, pixelsPerDay = DAY_WIDTH): number {
+  return dayOffset * pixelsPerDay;
 }
 
-export function dayCellLeftPx(dayOffset: number): number {
-  return dayOffsetToX(dayOffset);
+export function dayCellLeftPx(dayOffset: number, pixelsPerDay = DAY_WIDTH): number {
+  return dayOffsetToX(dayOffset, pixelsPerDay);
 }
 
-export function dayCellWidthPx(): number {
-  return DAY_CELL_WIDTH;
+/** Returns the pixel width of one day cell at the given zoom level. */
+export function dayCellWidthPx(pixelsPerDay = DAY_WIDTH): number {
+  return pixelsPerDay;
 }
 
-export function timelineWidthPx(projectDurationDays: number): number {
-  return projectDurationDays * DAY_WIDTH;
+export function timelineWidthPx(projectDurationDays: number, pixelsPerDay = DAY_WIDTH): number {
+  return projectDurationDays * pixelsPerDay;
 }
 
-export function monthSegmentWidthPx(dayCount: number): number {
-  return dayCount * DAY_WIDTH;
+export function monthSegmentWidthPx(dayCount: number, pixelsPerDay = DAY_WIDTH): number {
+  return dayCount * pixelsPerDay;
 }
 
 /** Strip time — use local calendar year/month/day only. */
@@ -127,12 +135,15 @@ export function computeTodayDayOffset(
   return offset;
 }
 
-export function todayLineLeftPx(todayDayOffset: number): number {
-  return dayOffsetToX(todayDayOffset);
+export function todayLineLeftPx(todayDayOffset: number, pixelsPerDay = DAY_WIDTH): number {
+  return dayOffsetToX(todayDayOffset, pixelsPerDay);
 }
 
 /** Half-open interval [ES, EF): bar occupies ES..EF-1 day cells. */
-export function computeActivityBarLayout(row: LevelThreeGanttRow): ActivityBarLayout {
+export function computeActivityBarLayout(
+  row: LevelThreeGanttRow,
+  pixelsPerDay = DAY_WIDTH,
+): ActivityBarLayout {
   const earlyStart = row.cpm.earlyStart + row.leveledOffset;
   const earlyFinish = earlyStart + row.activity.durationDays;
   const totalFloat = Math.max(0, row.cpm.totalFloat - row.leveledOffset);
@@ -141,10 +152,10 @@ export function computeActivityBarLayout(row: LevelThreeGanttRow): ActivityBarLa
     earlyStart,
     earlyFinish,
     totalFloat,
-    barLeft: dayOffsetToX(earlyStart),
-    barWidth: Math.max(row.activity.durationDays * DAY_WIDTH, MIN_BAR_WIDTH_PX),
-    floatLeft: dayOffsetToX(earlyFinish),
-    floatWidth: totalFloat * DAY_WIDTH,
+    barLeft: dayOffsetToX(earlyStart, pixelsPerDay),
+    barWidth: Math.max(row.activity.durationDays * pixelsPerDay, MIN_BAR_WIDTH_PX),
+    floatLeft: dayOffsetToX(earlyFinish, pixelsPerDay),
+    floatWidth: totalFloat * pixelsPerDay,
   };
 }
 
@@ -157,10 +168,11 @@ export function assertGanttGridInvariants(
   timelineWidth: number,
   rowCount: number,
   barLayouts: ActivityBarLayout[],
+  pixelsPerDay = DAY_WIDTH,
 ): void {
   if (!import.meta.env.DEV) return;
 
-  const expectedWidth = timelineWidthPx(projectDurationDays);
+  const expectedWidth = timelineWidthPx(projectDurationDays, pixelsPerDay);
   if (timelineWidth !== expectedWidth) {
     console.warn(
       `[Level III Gantt] timelineWidth mismatch: got ${timelineWidth}, expected ${expectedWidth}`,
@@ -168,14 +180,14 @@ export function assertGanttGridInvariants(
   }
 
   for (const layout of barLayouts) {
-    if (layout.barLeft % DAY_WIDTH !== 0) {
+    if (pixelsPerDay > 0 && layout.barLeft % pixelsPerDay !== 0) {
       console.warn(
-        `[Level III Gantt] barLeft ${layout.barLeft} not aligned to DAY_WIDTH grid`,
+        `[Level III Gantt] barLeft ${layout.barLeft} not aligned to pixelsPerDay grid`,
       );
     }
-    if (layout.floatLeft % DAY_WIDTH !== 0) {
+    if (pixelsPerDay > 0 && layout.floatLeft % pixelsPerDay !== 0) {
       console.warn(
-        `[Level III Gantt] floatLeft ${layout.floatLeft} not aligned to DAY_WIDTH grid`,
+        `[Level III Gantt] floatLeft ${layout.floatLeft} not aligned to pixelsPerDay grid`,
       );
     }
   }

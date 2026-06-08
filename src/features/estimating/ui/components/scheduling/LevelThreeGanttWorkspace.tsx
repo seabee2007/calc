@@ -16,6 +16,11 @@ import {
   requestBrowserFullscreen,
   setLevelThreeGanttFullscreenTipDismissed,
 } from '../../../scheduling/levelThreeGanttFullscreen';
+import {
+  DEFAULT_PIXELS_PER_DAY,
+  LEFT_TABLE_WIDTH,
+  ZOOM_LEVELS,
+} from '../../../scheduling/levelThreeGanttGrid';
 import type { EstimateDomainTask } from '../../../infrastructure/estimateDbTypes';
 import Button from '../../../../../components/ui/Button';
 import LevelThreeGantt from './LevelThreeGantt';
@@ -24,7 +29,7 @@ import LevelThreeGanttWorkspaceOnboardingModal from './LevelThreeGanttWorkspaceO
 import ResourceHistogram from './ResourceHistogram';
 
 const TOOLBAR_BUTTON_CLASS =
-  'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
+  'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
 
 interface Props {
   activities: ScheduleActivity[];
@@ -59,8 +64,12 @@ export default function LevelThreeGanttWorkspace({
   const [showOnboarding, setShowOnboarding] = useState(
     () => !isLevelThreeGanttFullscreenTipDismissed(),
   );
+  const [pixelsPerDay, setPixelsPerDay] = useState<number>(DEFAULT_PIXELS_PER_DAY);
+
   const shellRef = useRef<HTMLDivElement>(null);
-  const chartScrollRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const projectDuration = cpmResult?.projectDurationDays ?? 0;
 
   const dismissOnboarding = useCallback(() => {
     setShowOnboarding(false);
@@ -82,12 +91,60 @@ export default function LevelThreeGanttWorkspace({
     void enterFullscreen();
   }, [dismissOnboarding, enterFullscreen]);
 
-  const fitChartWidth = useCallback(() => {
-    const scrollEl = chartScrollRef.current;
-    if (!scrollEl) return;
-    scrollEl.scrollLeft = 0;
-    scrollEl.scrollTop = 0;
+  const zoomIn = useCallback(() => {
+    setPixelsPerDay((prev) => {
+      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
+      if (idx === -1) {
+        // snap to nearest level above
+        const next = ZOOM_LEVELS.find((z) => z > prev);
+        return next ?? ZOOM_LEVELS[ZOOM_LEVELS.length - 1];
+      }
+      return idx < ZOOM_LEVELS.length - 1 ? ZOOM_LEVELS[idx + 1] : prev;
+    });
   }, []);
+
+  const zoomOut = useCallback(() => {
+    setPixelsPerDay((prev) => {
+      const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
+      if (idx === -1) {
+        // snap to nearest level below
+        const candidates = ZOOM_LEVELS.filter((z) => z < prev);
+        return candidates.length > 0 ? candidates[candidates.length - 1] : ZOOM_LEVELS[0];
+      }
+      return idx > 0 ? ZOOM_LEVELS[idx - 1] : prev;
+    });
+  }, []);
+
+  const fitChartWidth = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el || projectDuration <= 0) return;
+    const availableWidth = el.clientWidth - LEFT_TABLE_WIDTH;
+    if (availableWidth <= 0) return;
+    const fitted = availableWidth / projectDuration;
+    // Clamp to zoom range
+    const clamped = Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitted));
+    setPixelsPerDay(clamped);
+    el.scrollLeft = 0;
+  }, [projectDuration]);
+
+  const scrollToToday = useCallback(
+    (pxPerDay = pixelsPerDay) => {
+      const el = scrollContainerRef.current;
+      if (!el || !scheduleSettings.projectStartDate) return;
+      const projectStart = new Date(scheduleSettings.projectStartDate);
+      const today = new Date();
+      const diffMs = today.getTime() - projectStart.getTime();
+      const diffDays = diffMs / 86_400_000;
+      if (diffDays < 0 || diffDays > projectDuration) return;
+      const todayX = diffDays * pxPerDay + LEFT_TABLE_WIDTH;
+      const half = el.clientWidth / 2;
+      el.scrollLeft = Math.max(0, todayX - half);
+    },
+    [pixelsPerDay, projectDuration, scheduleSettings.projectStartDate],
+  );
+
+  const isAtMinZoom = pixelsPerDay <= ZOOM_LEVELS[0];
+  const isAtMaxZoom = pixelsPerDay >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1];
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -134,6 +191,48 @@ export default function LevelThreeGanttWorkspace({
   const hasChart = Boolean(cpmResult?.hasRunCpm && activities.length > 0);
   const showResourceHistogram = resourceHistogram.length > 0;
 
+  /** Zoom toolbar rendered in both embedded and fullscreen modes. */
+  const zoomControls = hasChart ? (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        className={TOOLBAR_BUTTON_CLASS}
+        onClick={zoomOut}
+        disabled={isAtMinZoom}
+        title="Zoom out — show more of the timeline"
+        aria-label="Zoom out"
+      >
+        −
+      </button>
+      <button
+        type="button"
+        className={TOOLBAR_BUTTON_CLASS}
+        onClick={zoomIn}
+        disabled={isAtMaxZoom}
+        title="Zoom in — show more detail"
+        aria-label="Zoom in"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        className={TOOLBAR_BUTTON_CLASS}
+        onClick={fitChartWidth}
+        title="Fit the full project duration into view"
+      >
+        Fit width
+      </button>
+      <button
+        type="button"
+        className={TOOLBAR_BUTTON_CLASS}
+        onClick={() => scrollToToday()}
+        title="Scroll timeline to today"
+      >
+        Today
+      </button>
+    </div>
+  ) : null;
+
   const shell = (
     <div
       ref={shellRef}
@@ -147,6 +246,11 @@ export default function LevelThreeGanttWorkspace({
           onExportPdf={onExportPdf}
           onExportExcel={onExportExcel}
           onFitWidth={fitChartWidth}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onScrollToToday={() => scrollToToday()}
+          isAtMinZoom={isAtMinZoom}
+          isAtMaxZoom={isAtMaxZoom}
           onExitFullscreen={() => void exitFullscreen()}
         />
       ) : hasChart ? (
@@ -160,6 +264,7 @@ export default function LevelThreeGanttWorkspace({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {zoomControls}
             <button
               type="button"
               className={TOOLBAR_BUTTON_CLASS}
@@ -207,10 +312,7 @@ export default function LevelThreeGanttWorkspace({
             : 'space-y-6'
         }
       >
-        <div
-          ref={chartScrollRef}
-          className={isFullscreen ? 'min-h-0 flex-1 overflow-auto' : undefined}
-        >
+        <div className={isFullscreen ? 'min-h-0 flex-1 overflow-auto' : undefined}>
           <LevelThreeGantt
             ref={chartExportRef}
             activities={activities}
@@ -222,11 +324,13 @@ export default function LevelThreeGanttWorkspace({
             onEditActivity={onEditActivity}
             fullscreen={isFullscreen}
             chromeless
+            pixelsPerDay={pixelsPerDay}
+            scrollContainerRef={scrollContainerRef}
           />
         </div>
 
         {showResourceHistogram ? (
-          <div className={isFullscreen ? 'shrink-0 border-t border-slate-800 px-4 py-3' : undefined}>
+          <div className={isFullscreen ? 'shrink-0 border-t border-slate-300 px-4 py-3 dark:border-slate-800' : undefined}>
             <ResourceHistogram
               histogram={resourceHistogram}
               projectDurationDays={cpmResult?.projectDurationDays ?? 0}
