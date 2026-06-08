@@ -59,6 +59,24 @@ import { calculateCpm } from '../../../scheduling/cpm/calculateCpm';
 import { isDisplayCritical, resolveTopologyLabel } from '../../../scheduling/cpm/cpmDisplayCritical';
 import { sanitizeLogicLinksForActivities } from '../../../scheduling/scheduleAssumptions';
 
+function useIsDarkMode(): boolean {
+  const [isDark, setIsDark] = useState(
+    () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+  );
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const syncTheme = () => setIsDark(root.classList.contains('dark'));
+    syncTheme();
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+}
+
 const NODE_TYPES = { cpmActivity: CpmActivityNode };
 
 function buildNodeId(graphKey: string): string {
@@ -269,6 +287,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
   },
   ref,
 ) {
+  const isDark = useIsDarkMode();
   const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<CpmActivityNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -606,17 +625,20 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
 
   const hasWarnings = activities.some((a) => a.durationDays < 1 || a.crewSize < 1);
 
+  const canvasSurfaceClass =
+    'relative overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100';
+
   const canvasWrapperClass = fullscreen
-    ? `relative overflow-hidden bg-slate-900 ${LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS}`
-    : `relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`;
+    ? `${canvasSurfaceClass} ${LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS}`
+    : `${canvasSurfaceClass} rounded-xl border border-slate-300 dark:border-slate-700 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`;
 
   if (activities.length === 0) {
     return (
       <div
-        className={`flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 ${
+        className={`flex items-center justify-center text-sm text-slate-600 dark:text-slate-400 ${
           fullscreen
             ? LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS
-            : `rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`
+            : `rounded-xl border border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 ${LOGIC_NETWORK_CANVAS_HEIGHT_CLASS}`
         }`}
       >
         No schedule-enabled activities yet.
@@ -669,9 +691,22 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
           minZoom={0.2}
           maxZoom={2}
         >
-          <Background gap={16} />
+          <Background gap={20} size={1} color={isDark ? '#1e293b' : '#cbd5e1'} />
           <Controls className="logic-network-controls" position="bottom-left" />
-          <MiniMap nodeStrokeWidth={3} zoomable pannable />
+          <MiniMap
+            nodeStrokeWidth={3}
+            zoomable
+            pannable
+            bgColor={isDark ? '#020817' : '#f8fafc'}
+            nodeColor={isDark ? '#475569' : '#94a3b8'}
+            nodeStrokeColor={isDark ? '#64748b' : '#64748b'}
+            maskColor={isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(15, 23, 42, 0.08)'}
+            style={{
+              borderWidth: 1,
+              borderStyle: 'solid',
+              borderColor: isDark ? '#334155' : '#cbd5e1',
+            }}
+          />
         </ReactFlow>
     </div>
   );

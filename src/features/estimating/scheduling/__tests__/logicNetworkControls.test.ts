@@ -52,11 +52,12 @@ describe('Logic Network React Flow controls visibility', () => {
     expect(logicNetworkCanvasSource).toContain("import './logicNetworkControls.css'");
     expect(logicNetworkControlsCss).toContain('.logic-network-controls');
     expect(logicNetworkControlsCss).toContain('z-index: 20');
-    expect(logicNetworkControlsCss).toContain('background: #f8fafc');
+    expect(logicNetworkControlsCss).toContain('background: #ffffff');
     expect(logicNetworkControlsCss).toContain('color: #0f172a');
     expect(logicNetworkControlsCss).toContain('border-bottom: 1px solid #cbd5e1');
-    expect(logicNetworkControlsCss).toContain('background: #e2e8f0');
+    expect(logicNetworkControlsCss).toContain('background: #f1f5f9');
     expect(logicNetworkControlsCss).toContain('box-shadow');
+    expect(logicNetworkControlsCss).toContain('.dark .logic-network-controls');
   });
 
   it('keeps React Flow inside sized wrappers without hiding controls behind fullscreen-only logic', () => {

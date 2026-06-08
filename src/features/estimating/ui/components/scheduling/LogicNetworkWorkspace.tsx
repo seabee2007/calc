@@ -16,6 +16,7 @@ import type {
   ScheduleSettings,
 } from '../../../scheduling/cpmTypes';
 import { calculateCpm } from '../../../scheduling/cpm/calculateCpm';
+import { ENABLE_AI_SEQUENCE_ACTIVITIES } from '../../../scheduling/schedulingFeatureFlags';
 
 /**
  * Re-keys activities and links by their stable graph key (runtime id when present)
@@ -87,7 +88,7 @@ const TOOLBAR_BUTTON_CLASS =
   'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
 
 const FULLSCREEN_TOOLBAR_BUTTON_CLASS =
-  'rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 shadow-sm hover:bg-slate-700';
+  'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
 
 const MODE_TAB_ACTIVE_CLASS =
   'rounded-lg border border-cyan-600 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800 dark:border-cyan-500 dark:bg-cyan-950 dark:text-cyan-100';
@@ -426,12 +427,12 @@ export default function LogicNetworkWorkspace({
     >
       <div
         className={`flex flex-wrap items-center justify-between gap-2 ${
-          isFullscreen ? 'shrink-0 border-b border-slate-800 px-4 py-3' : ''
+          isFullscreen ? 'shrink-0 border-b border-slate-300 px-4 py-3 dark:border-slate-800' : ''
         }`}
       >
         <div className="flex flex-wrap items-center gap-2">
           {isFullscreen ? (
-            <span className="text-sm font-semibold text-slate-100">Logic Network</span>
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Logic Network</span>
           ) : (
             <button type="button" className={toolbarButtonClass} onClick={() => void enterFullscreen()}>
               Full screen
@@ -489,20 +490,22 @@ export default function LogicNetworkWorkspace({
               >
                 {liveCpmBusy ? 'Calculating…' : livePreviewCpm ? 'Recalculate CPM' : 'Calculate CPM'}
               </button>
-              <button
-                type="button"
-                className={
-                  aiSequenceBusy
-                    ? disabledToolbarButtonClass
-                    : 'inline-flex items-center gap-1.5 rounded-lg border border-violet-400 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-800 shadow-sm hover:bg-violet-100 dark:border-violet-600 dark:bg-violet-950 dark:text-violet-200 dark:hover:bg-violet-900'
-                }
-                disabled={aiSequenceBusy || activities.length === 0}
-                onClick={() => void handleAiSequence()}
-                title="Use AI + construction rules to suggest logic links for all activities"
-              >
-                <Cpu size={12} />
-                {aiSequenceBusy ? 'Analysing…' : 'AI Sequence Activities'}
-              </button>
+              {ENABLE_AI_SEQUENCE_ACTIVITIES ? (
+                <button
+                  type="button"
+                  className={
+                    aiSequenceBusy
+                      ? disabledToolbarButtonClass
+                      : 'inline-flex items-center gap-1.5 rounded-lg border border-violet-400 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-800 shadow-sm hover:bg-violet-100 dark:border-violet-600 dark:bg-violet-950 dark:text-violet-200 dark:hover:bg-violet-900'
+                  }
+                  disabled={aiSequenceBusy || activities.length === 0}
+                  onClick={() => void handleAiSequence()}
+                  title="Use AI + construction rules to suggest logic links for all activities"
+                >
+                  <Cpu size={12} />
+                  {aiSequenceBusy ? 'Analysing…' : 'AI Sequence Activities'}
+                </button>
+              ) : null}
             </>
           )}
           <button type="button" className={toolbarButtonClass} onClick={() => canvasRef.current?.autoLayout()}>

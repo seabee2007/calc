@@ -1,7 +1,7 @@
 export const LOGIC_NETWORK_FULLSCREEN_TIP_DISMISSED_KEY = 'logicNetworkFullscreenTipDismissed';
 
 export const LOGIC_NETWORK_FULLSCREEN_OVERLAY_CLASS =
-  'fixed inset-0 z-[9999] flex flex-col bg-slate-950';
+  'fixed inset-0 z-[9999] flex flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100';
 
 export const LOGIC_NETWORK_FULLSCREEN_CANVAS_WRAPPER_CLASS = 'min-h-0 flex-1 w-full';
 

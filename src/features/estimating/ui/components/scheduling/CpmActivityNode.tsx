@@ -80,26 +80,30 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
       ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
       : activeTopologyLabel
         ? 'bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
-        : 'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+        : 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-200'
     : isDisplayCritical
       ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
       : activeTopologyLabel
         ? 'bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
-        : 'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+        : 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-200';
+
+  const cardShadowClass = isDisplayCritical || isCircularError
+    ? 'shadow-xl shadow-red-900/15 dark:shadow-black/40'
+    : 'shadow-xl shadow-slate-900/15 dark:shadow-black/40';
 
   return (
     <div
-      className={`relative w-52 rounded border-2 bg-white text-xs shadow-sm dark:bg-slate-900 ${borderColor}`}
+      className={`relative w-52 rounded border-2 bg-white text-xs transition-shadow hover:border-cyan-400 hover:shadow-2xl dark:bg-slate-900 dark:hover:border-cyan-400 ${borderColor} ${cardShadowClass}`}
     >
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-3 !w-3 !border-2 !border-slate-400 !bg-white dark:!bg-slate-700"
+        className="!h-3 !w-3 !border-2 !border-slate-500 !bg-white hover:!border-cyan-500 dark:!border-slate-400 dark:!bg-slate-900"
       />
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-3 !w-3 !border-2 !border-slate-400 !bg-white dark:!bg-slate-700"
+        className="!h-3 !w-3 !border-2 !border-slate-500 !bg-white hover:!border-cyan-500 dark:!border-slate-400 dark:!bg-slate-900"
       />
 
       <div className={`flex items-center justify-between px-2 py-1 font-mono font-semibold ${headerClass}`}>
@@ -140,7 +144,7 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
 
       <div className="border-t border-slate-200 px-2 py-1 dark:border-slate-700">
         <span
-          className="line-clamp-2 text-slate-800 dark:text-slate-100"
+          className="line-clamp-2 text-slate-900 dark:text-slate-100"
           title={activity.activityDescription}
         >
           {activity.activityDescription}
@@ -150,40 +154,40 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
       {isLogicMode ? (
         <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
           <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
-            <span className="text-slate-500 dark:text-slate-400">Pred </span>
-            <span className="tabular-nums text-slate-800 dark:text-slate-100">
+            <span className="text-slate-600 dark:text-slate-400">Pred </span>
+            <span className="tabular-nums text-slate-900 dark:text-slate-100">
               {predecessorCount}
             </span>
           </div>
           <div className="px-2 py-1">
-            <span className="text-slate-500 dark:text-slate-400">Succ </span>
-            <span className="tabular-nums text-slate-800 dark:text-slate-100">{successorCount}</span>
+            <span className="text-slate-600 dark:text-slate-400">Succ </span>
+            <span className="tabular-nums text-slate-900 dark:text-slate-100">{successorCount}</span>
           </div>
         </div>
       ) : showCpmFields ? (
         <>
           <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
             <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
-              <span className="text-slate-500 dark:text-slate-400">ES </span>
-              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+              <span className="text-slate-600 dark:text-slate-400">ES </span>
+              <span className="tabular-nums text-slate-900 dark:text-slate-100">
                 {formatDay(cpmResult?.earlyStart)}
               </span>
             </div>
             <div className="px-2 py-1">
-              <span className="text-slate-500 dark:text-slate-400">EF </span>
-              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+              <span className="text-slate-600 dark:text-slate-400">EF </span>
+              <span className="tabular-nums text-slate-900 dark:text-slate-100">
                 {formatDay(cpmResult?.earlyFinish)}
               </span>
             </div>
             <div className="border-r border-t border-slate-200 px-2 py-1 dark:border-slate-700">
-              <span className="text-slate-500 dark:text-slate-400">LS </span>
-              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+              <span className="text-slate-600 dark:text-slate-400">LS </span>
+              <span className="tabular-nums text-slate-900 dark:text-slate-100">
                 {formatDay(cpmResult?.lateStart)}
               </span>
             </div>
             <div className="border-t border-slate-200 px-2 py-1 dark:border-slate-700">
-              <span className="text-slate-500 dark:text-slate-400">LF </span>
-              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+              <span className="text-slate-600 dark:text-slate-400">LF </span>
+              <span className="tabular-nums text-slate-900 dark:text-slate-100">
                 {formatDay(cpmResult?.lateFinish)}
               </span>
             </div>
@@ -191,27 +195,27 @@ export const CpmActivityNode = memo(function CpmActivityNode({ data, selected }:
 
           <div className="grid grid-cols-2 border-t border-slate-200 dark:border-slate-700">
             <div className="border-r border-slate-200 px-2 py-1 dark:border-slate-700">
-              <span className="text-slate-500 dark:text-slate-400">TF </span>
+              <span className="text-slate-600 dark:text-slate-400">TF </span>
               <span
                 className={`tabular-nums ${
                   isDisplayCritical
-                    ? 'font-semibold text-red-600 dark:text-red-400'
-                    : 'text-slate-800 dark:text-slate-100'
+                    ? 'font-semibold text-red-700 dark:text-red-400'
+                    : 'text-slate-900 dark:text-slate-100'
                 }`}
               >
                 {formatDay(cpmResult?.totalFloat)}
               </span>
             </div>
             <div className="px-2 py-1">
-              <span className="text-slate-500 dark:text-slate-400">FF </span>
-              <span className="tabular-nums text-slate-800 dark:text-slate-100">
+              <span className="text-slate-600 dark:text-slate-400">FF </span>
+              <span className="tabular-nums text-slate-900 dark:text-slate-100">
                 {formatDay(cpmResult?.freeFloat)}
               </span>
             </div>
           </div>
         </>
       ) : (
-        <div className="border-t border-slate-200 px-2 py-2 text-[10px] text-slate-500 dark:border-slate-700 dark:text-slate-400">
+        <div className="border-t border-slate-200 px-2 py-2 text-[10px] text-slate-600 dark:border-slate-700 dark:text-slate-400">
           Run CPM to calculate ES, EF, LS, LF, TF, and FF.
         </div>
       )}
