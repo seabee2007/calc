@@ -17,8 +17,8 @@ const validLineItem: EstimateLineItemInput = {
     wastePercent: 5,
   },
   labor: {
-    productionRate: 10,
-    productionRateType: 'units_per_labor_hour',
+    productionRate: 0.1,
+    productionRateType: 'labor_hours_per_unit',
     laborRate: 55,
     burdenPercent: 20,
     crewSize: 2,
@@ -58,13 +58,11 @@ describe('estimateValidation line-level warnings', () => {
     expect(warningCodes).toContain('missing_production_rate');
   });
 
-  it('creates a warning when crew size is missing for units_per_crew_day', () => {
+  it('creates a warning when crew size is missing', () => {
     const warningCodes = getWarningCodes({
       ...validLineItem,
       labor: {
         ...validLineItem.labor!,
-        productionRateType: 'units_per_crew_day',
-        productionRate: 25,
         crewSize: undefined,
         hoursPerDay: 8,
       },
@@ -73,13 +71,11 @@ describe('estimateValidation line-level warnings', () => {
     expect(warningCodes).toContain('missing_crew_size');
   });
 
-  it('creates a warning when hours per day is missing for day-based rates', () => {
+  it('creates a warning when hours per day is missing', () => {
     const warningCodes = getWarningCodes({
       ...validLineItem,
       labor: {
         ...validLineItem.labor!,
-        productionRateType: 'units_per_labor_day',
-        productionRate: 20,
         hoursPerDay: undefined,
       },
     });

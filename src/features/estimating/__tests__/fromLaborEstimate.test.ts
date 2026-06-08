@@ -94,12 +94,14 @@ describe('fromLaborEstimate', () => {
     const duration = draftLines.find((line) => line.task.activity === 'Crew duration');
 
     expect(placement?.task.lineItem.quantity.quantity).toBe(18);
-    expect(placement?.task.lineItem.labor.productionRate).toBe(6.5);
+    expect(placement?.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+    expect(placement?.task.lineItem.labor.productionRate).toBeCloseTo(1 / 6.5);
     expect(placement?.task.lineItem.labor.laborRate).toBe(42);
     expect(placement?.task.lineItem.labor.crewSize).toBe(6);
 
     expect(finishing?.task.lineItem.quantity.quantity).toBe(1620);
-    expect(finishing?.task.lineItem.labor.productionRate).toBe(220);
+    expect(finishing?.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+    expect(finishing?.task.lineItem.labor.productionRate).toBeCloseTo(1 / 220);
 
     expect(duration?.task.lineItem.quantity.quantity).toBe(12);
     expect(duration?.task.lineItem.labor.crewSize).toBe(6);
@@ -129,7 +131,8 @@ describe('fromLaborEstimate', () => {
 
     expect(draftLines).toHaveLength(1);
     expect(draftLines[0].task.trade).toBe('Carpentry');
-    expect(draftLines[0].task.lineItem.labor.productionRate).toBe(40);
+    expect(draftLines[0].task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+    expect(draftLines[0].task.lineItem.labor.productionRate).toBe(0.025);
   });
 
   it('adds warnings when production rates are missing', () => {

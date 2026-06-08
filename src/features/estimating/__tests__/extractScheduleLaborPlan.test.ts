@@ -118,6 +118,39 @@ describe('extractScheduleLaborPlan', () => {
     assertFiniteLabor(result.labor);
   });
 
+  it('recomputes duration from current crew size instead of stale stored duration', () => {
+    const task = buildTask({
+      calculatedValues: {
+        metrics: {
+          laborHours: 80,
+          adjustedLaborHours: 80,
+          manDays: 10,
+          crewDays: 10,
+          durationDays: 10,
+        },
+        costs: { directCost: 100 },
+      },
+      lineItem: {
+        ...sampleEstimateVersion.lineItems[0],
+        labor: {
+          ...sampleEstimateVersion.lineItems[0].labor!,
+          productionRate: 0.25,
+          productionRateType: 'labor_hours_per_unit',
+          crewSize: 4,
+          hoursPerDay: 8,
+          parallelCrews: 1,
+        },
+      },
+    });
+
+    const result = extractScheduleLaborPlan(task);
+
+    expect(result.labor.laborHours).toBe(80);
+    expect(result.labor.crewDays).toBe(2.5);
+    expect(result.labor.durationDays).toBe(3);
+    assertFiniteLabor(result.labor);
+  });
+
   it('handles missing crew size safely with default', () => {
     const task = buildTask({
       lineItem: {

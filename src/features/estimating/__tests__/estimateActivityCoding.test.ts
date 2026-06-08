@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyMasterActivityToDraftLine,
   assignActivityCodeToDraftLine,
   backfillActivityCodesForDraftLines,
   buildActivityCode,
@@ -7,6 +8,7 @@ import {
   validateActivityCodeUnique,
 } from '../application/estimateActivityCoding';
 import { createEmptyDraftLine } from '../application/estimateDraftLine';
+import { getMasterActivityByCode } from '../data/masterActivityIndex';
 
 function line(
   clientId: string,
@@ -88,5 +90,76 @@ describe('estimateActivityCoding', () => {
       '03-01-02',
       '03-02-01',
     ]);
+  });
+
+  it('applies production defaults when selecting a mapped master activity', () => {
+    const master = getMasterActivityByCode('03-01-03');
+    expect(master).toBeDefined();
+
+    const applied = applyMasterActivityToDraftLine(createEmptyDraftLine(), master!, 1);
+
+    expect(applied.unit).toBe('CY');
+    expect(applied.task.lineItem.labor.productionRate).toBe(0.337);
+    expect(applied.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+    expect(applied.task.lineItem.labor.crewSize).toBe(4);
+  });
+
+  it('applies representative mapped production defaults from the activity bridge', () => {
+    const cases = [
+      { code: '06-02-01', productionRate: 0.364 },
+      { code: '07-05-01', productionRate: 0.010 },
+      { code: '09-01-01', productionRate: 0.013 },
+      { code: '09-02-02', productionRate: 0.005 },
+      { code: '11-01-01', productionRate: 1 },
+    ] as const;
+
+    for (const { code, productionRate } of cases) {
+      const master = getMasterActivityByCode(code);
+      expect(master).toBeDefined();
+      const applied = applyMasterActivityToDraftLine(createEmptyDraftLine(), master!, 1);
+      expect(applied.task.lineItem.labor.productionRate).toBe(productionRate);
+      expect(applied.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+    }
+  });
+
+  it('overwrites initial zero production rate with mapped defaults', () => {
+    const master = getMasterActivityByCode('03-01-03');
+    expect(master).toBeDefined();
+    const draft = createEmptyDraftLine();
+    expect(draft.task.lineItem.labor.productionRate).toBe(0);
+
+    const applied = applyMasterActivityToDraftLine(draft, master!, 1);
+
+    expect(applied.task.lineItem.labor.productionRate).toBe(0.337);
+  });
+
+  it('does not overwrite production fields touched in the current modal session', () => {
+    const master = getMasterActivityByCode('03-01-03');
+    expect(master).toBeDefined();
+    const draft = createEmptyDraftLine();
+    draft.unit = 'SF';
+    draft.task.lineItem.labor.productionRate = 0.5;
+    draft.task.lineItem.labor.crewSize = 2;
+
+    const applied = applyMasterActivityToDraftLine(draft, master!, 1, {
+      touchedFields: new Set(['unit', 'productionRate', 'crewSize']),
+    });
+
+    expect(applied.unit).toBe('SF');
+    expect(applied.task.lineItem.labor.productionRate).toBe(0.5);
+    expect(applied.task.lineItem.labor.crewSize).toBe(2);
+    expect(applied.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+  });
+
+  it('uses fallback master defaults for unmapped activities', () => {
+    // 03-01-02 is "Place footing reinforcement" (LF) — intentionally not mapped to a production rate
+    const master = getMasterActivityByCode('03-01-02');
+    expect(master).toBeDefined();
+
+    const applied = applyMasterActivityToDraftLine(createEmptyDraftLine(), master!, 1);
+
+    expect(applied.unit).toBe(master!.defaultUnit);
+    expect(applied.task.lineItem.labor.productionRate).toBe(0);
+    expect(applied.task.lineItem.labor.crewSize).toBe(master!.defaultCrewSize);
   });
 });

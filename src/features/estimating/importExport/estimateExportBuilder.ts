@@ -11,6 +11,8 @@ import {
   estimateSettingsRowsForExport,
   parseEstimateSettingsFromAssumptions,
 } from '../application/estimateSettings';
+import { getMasterActivityByCode } from '../data/masterActivityIndex';
+import { getProductionRateById } from '../data/productionRates';
 import {
   CONCRETE_CALC_BID_ESTIMATE_TEMPLATE_NAME,
   ESTIMATE_IMPORT_ALL_COLUMNS,
@@ -24,33 +26,53 @@ import {
 } from './estimateImportColumns';
 
 export interface EstimateExportRow {
-  activity_code: string;
+  // required columns
   division_code: string;
   division_name: string;
+  activity_title: string;
+  quantity: number;
+  unit: string;
+  // activity identity
+  activity_code: string;
   work_package: string;
   work_package_code: string;
   work_package_name: string;
-  activity_sequence: number | '';
-  line_sequence: number | '';
-  activity_title: string;
-  description: string;
-  quantity: number;
-  unit: string;
+  // CSI classification
+  csi_code: string;
+  csi_section: string;
+  // production rate bridge (v2.0)
+  production_rate_id: string;
+  production_rate_type: string;
+  man_hours_per_unit: number | '';
+  // costs
+  indirect_cost: number | '';
   labor_hours: number | '';
   labor_rate: number | '';
   labor_cost: number | '';
   material_cost: number | '';
   equipment_cost: number | '';
   subcontractor_cost: number | '';
+  // per-line markup overrides (v2.0 explicit names); markup is primarily project-level
+  overhead_percent_override: number | '';
+  profit_percent_override: number | '';
+  // kept for backward-compat round-trip of v1.x imports
   overhead_percent: number | '';
   profit_percent: number | '';
   total_cost: number | '';
+  // schedule
   duration_days: number | '';
   crew_size: number | '';
   predecessor_activity_code: string;
   relationship_type: string;
   lag_days: number | '';
+  // activity classification (v2.0)
+  is_custom_activity: string;
+  activity_type: string;
+  // deprecated v1.x fields preserved for round-trip compat
+  activity_sequence: number | '';
+  line_sequence: number | '';
   predecessor_activity: string;
+  description: string;
   notes: string;
 }
 
@@ -96,22 +118,40 @@ function taskToExportRow(
     preview.laborHours ||
     '';
 
+  // Resolve production rate bridge fields from master activity → rate record
+  const masterActivity = task.activityCode ? getMasterActivityByCode(task.activityCode) : undefined;
+  const productionRateId = masterActivity?.productionRateId ?? '';
+  const productionRateRecord = productionRateId ? getProductionRateById(productionRateId) : undefined;
+  const manHoursPerUnit: number | '' =
+    productionRateRecord?.bareManHoursPerUnit ??
+    (task.lineItem.labor.productionRate > 0 ? task.lineItem.labor.productionRate : '');
+  const csiCode = task.lineItem.csiSection ?? masterActivity?.csiSectionCode ?? '';
+  const csiSection = task.lineItem.csiSection ?? masterActivity?.csiSectionCode ?? '';
+  const productionRateType = productionRateRecord ? 'labor_hours_per_unit' : (task.lineItem.labor.productionRateType ?? '');
+
+  // Per-line markup overrides (v2.0): only export when non-zero
+  const overheadOverride = toNumberOrBlank(task.overheadPercent);
+  const profitOverride = toNumberOrBlank(task.profitPercent);
+
   return {
-    activity_code: task.activityCode ?? '',
     division_code: divisionCode,
     division_name: task.divisionName ?? divisionName,
-    work_package: task.workPackageName ?? task.scopeName ?? '',
-    work_package_code: task.workPackageCode ?? '',
-    work_package_name: task.workPackageName ?? task.scopeName ?? '',
-    activity_sequence: task.activitySequence ?? '',
-    line_sequence: task.lineSequence ?? '',
     activity_title: task.title ?? task.lineItem.description ?? '',
-    description: task.lineItem.description ?? task.description ?? '',
     quantity: task.lineItem.quantity.quantity ?? 0,
     unit:
       (typeof task.calculatedValues.unit === 'string' && task.calculatedValues.unit) ||
       draft.unit ||
       '',
+    activity_code: task.activityCode ?? '',
+    work_package: task.workPackageName ?? task.scopeName ?? '',
+    work_package_code: task.workPackageCode ?? '',
+    work_package_name: task.workPackageName ?? task.scopeName ?? '',
+    csi_code: csiCode,
+    csi_section: csiSection,
+    production_rate_id: productionRateId,
+    production_rate_type: productionRateType,
+    man_hours_per_unit: manHoursPerUnit,
+    indirect_cost: '',
     labor_hours: laborHours,
     labor_rate: toNumberOrBlank(task.lineItem.labor.laborRate) || '',
     labor_cost:
@@ -134,8 +174,10 @@ function taskToExportRow(
       toNumberOrBlank(imported.subcontractorCost) ||
       preview.subcontractorCost ||
       '',
-    overhead_percent: toNumberOrBlank(task.overheadPercent) || '',
-    profit_percent: toNumberOrBlank(task.profitPercent) || '',
+    overhead_percent_override: overheadOverride,
+    profit_percent_override: profitOverride,
+    overhead_percent: '',
+    profit_percent: '',
     total_cost:
       toNumberOrBlank(imported.totalCost) ||
       preview.sellPrice ||
@@ -153,8 +195,13 @@ function taskToExportRow(
         : ''),
     relationship_type: task.relationshipType ?? 'FS',
     lag_days: task.lagDays ?? 0,
+    is_custom_activity: task.isCustomActivity === true ? 'true' : task.isCustomActivity === false ? 'false' : '',
+    activity_type: task.activityType ?? '',
+    activity_sequence: task.activitySequence ?? '',
+    line_sequence: task.lineSequence ?? '',
     predecessor_activity:
       (typeof imported.predecessorActivity === 'string' && imported.predecessorActivity) || '',
+    description: task.lineItem.description ?? task.description ?? '',
     notes: (typeof imported.notes === 'string' && imported.notes) || '',
   };
 }
@@ -180,33 +227,52 @@ function exportRowsFromEstimate(estimate: CurrentEstimate): EstimateExportRow[] 
 
 function rowToSheetRecord(row: EstimateExportRow): Record<EstimateImportColumn, string | number> {
   return {
-    activity_code: row.activity_code,
+    // required
     division_code: row.division_code,
     division_name: row.division_name,
+    activity_title: row.activity_title,
+    quantity: row.quantity,
+    unit: row.unit,
+    // activity identity
+    activity_code: row.activity_code,
     work_package: row.work_package,
     work_package_code: row.work_package_code,
     work_package_name: row.work_package_name,
-    activity_sequence: row.activity_sequence,
-    line_sequence: row.line_sequence,
-    activity_title: row.activity_title,
-    description: row.description,
-    quantity: row.quantity,
-    unit: row.unit,
+    // classification
+    csi_code: row.csi_code,
+    csi_section: row.csi_section,
+    // production rate bridge
+    production_rate_id: row.production_rate_id,
+    production_rate_type: row.production_rate_type,
+    man_hours_per_unit: row.man_hours_per_unit,
+    // costs
+    indirect_cost: row.indirect_cost,
     labor_hours: row.labor_hours,
     labor_rate: row.labor_rate,
     labor_cost: row.labor_cost,
     material_cost: row.material_cost,
     equipment_cost: row.equipment_cost,
     subcontractor_cost: row.subcontractor_cost,
+    // markup
+    overhead_percent_override: row.overhead_percent_override,
+    profit_percent_override: row.profit_percent_override,
     overhead_percent: row.overhead_percent,
     profit_percent: row.profit_percent,
     total_cost: row.total_cost,
+    // schedule
     duration_days: row.duration_days,
     crew_size: row.crew_size,
     predecessor_activity_code: row.predecessor_activity_code,
     relationship_type: row.relationship_type,
     lag_days: row.lag_days,
+    // classification
+    is_custom_activity: row.is_custom_activity,
+    activity_type: row.activity_type,
+    // deprecated v1.x
+    activity_sequence: row.activity_sequence,
+    line_sequence: row.line_sequence,
     predecessor_activity: row.predecessor_activity,
+    description: row.description,
     notes: row.notes,
   };
 }

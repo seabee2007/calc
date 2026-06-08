@@ -149,6 +149,14 @@ describe('planEstimateScheduleDates', () => {
   it('skips weekends by default when spanning multiple working days', () => {
     const plan = buildPlan([
       buildTask(0, {
+        lineItem: {
+          ...sampleEstimateVersion.lineItems[0],
+          labor: {
+            ...sampleEstimateVersion.lineItems[0].labor!,
+            crewSize: 1,
+            hoursPerDay: 8,
+          },
+        },
         calculatedValues: {
           metrics: {
             laborHours: 16,
@@ -175,6 +183,14 @@ describe('planEstimateScheduleDates', () => {
   it('includes weekends when includeWeekends is true', () => {
     const plan = buildPlan([
       buildTask(0, {
+        lineItem: {
+          ...sampleEstimateVersion.lineItems[0],
+          labor: {
+            ...sampleEstimateVersion.lineItems[0].labor!,
+            crewSize: 1,
+            hoursPerDay: 8,
+          },
+        },
         calculatedValues: {
           metrics: {
             laborHours: 16,

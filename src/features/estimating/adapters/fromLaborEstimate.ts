@@ -6,7 +6,6 @@ import {
   syncDraftLineDescription,
   type EstimateDraftLine,
 } from '../application/estimateDraftLine';
-import type { ProductionRateType } from '../domain/estimateTypes';
 import type { EstimateAdapterResult } from './fromConcreteCalculation';
 import {
   CONCRETE_CSI_DIVISION,
@@ -48,6 +47,11 @@ function resolveProductionRate(
   return rate;
 }
 
+function laborHoursPerUnitFromUnitsPerLaborHour(rate: number): number {
+  const safeRate = safeFinite(rate);
+  return safeRate > 0 ? 1 / safeRate : 0;
+}
+
 function resolveLaborRate(
   value: number | undefined,
   lineLabel: string,
@@ -61,21 +65,16 @@ function resolveLaborRate(
   return rate;
 }
 
-function mapGeneralTradeProductionType(
-  type: GeneralTradeLaborInput['productionRateType'],
-): ProductionRateType {
-  return type === 'laborHoursPerUnit' ? 'labor_hours_per_unit' : 'units_per_labor_hour';
-}
-
-function generalTradeProductionRate(input: GeneralTradeLaborInput): number {
+function generalTradeManHoursPerUnit(input: GeneralTradeLaborInput): number {
+  const productionRate = safeFinite(input.productionRate);
   if (input.productionRateType === 'laborHoursPerUnit') {
-    return safeFinite(input.productionRate);
+    return productionRate;
   }
   if (input.productionRateType === 'unitsPerLaborDay') {
     const hoursPerDay = Math.max(1, safeFinite(input.hoursPerDay, 8));
-    return safeFinite(input.productionRate) / hoursPerDay;
+    return productionRate > 0 ? hoursPerDay / productionRate : 0;
   }
-  return safeFinite(input.productionRate);
+  return laborHoursPerUnitFromUnitsPerLaborHour(productionRate);
 }
 
 function buildConcreteLaborDraftLine(
@@ -112,8 +111,12 @@ function buildConcreteLaborDraftLine(
   };
   draft.task.lineItem.labor = {
     ...draft.task.lineItem.labor,
-    productionRate: resolveProductionRate(config.productionRate, config.lineLabel, warnings),
-    productionRateType: 'units_per_labor_hour',
+    productionRate: resolveProductionRate(
+      laborHoursPerUnitFromUnitsPerLaborHour(config.productionRate ?? 0),
+      config.lineLabel,
+      warnings,
+    ),
+    productionRateType: 'labor_hours_per_unit',
     laborRate: resolveLaborRate(config.laborRate, config.lineLabel, warnings),
     crewSize: Math.max(1, safeFinite(config.crewSize, 2)),
     hoursPerDay: Math.max(1, safeFinite(config.hoursPerDay, 8)),
@@ -149,11 +152,11 @@ function buildGeneralTradeDraftLine(
   draft.task.lineItem.labor = {
     ...draft.task.lineItem.labor,
     productionRate: resolveProductionRate(
-      generalTradeProductionRate(input),
+      generalTradeManHoursPerUnit(input),
       'General trade labor',
       warnings,
     ),
-    productionRateType: mapGeneralTradeProductionType(input.productionRateType),
+    productionRateType: 'labor_hours_per_unit',
     laborRate: resolveLaborRate(input.laborRate, 'General trade labor', warnings),
     crewSize: Math.max(1, safeFinite(input.crewSize, 2)),
     hoursPerDay: Math.max(1, safeFinite(input.hoursPerDay, 8)),

@@ -54,7 +54,7 @@ export function createDefaultTaskFields(position = 0): EstimateDomainTask {
       },
       labor: {
         productionRate: 0,
-        productionRateType: 'units_per_labor_hour',
+        productionRateType: 'labor_hours_per_unit',
         hoursPerDay: 8,
         crewSize: 1,
         parallelCrews: 1,

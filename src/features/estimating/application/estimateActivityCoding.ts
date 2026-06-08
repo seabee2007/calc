@@ -7,6 +7,7 @@ import type { EstimateRelationshipType } from '../domain/estimateTypes';
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
 import type { EstimateScheduleTaskCandidate } from '../domain/estimateScheduleTypes';
 import type { EstimateActivityTemplate } from '../data/residentialActivityMaster';
+import { getProductionRateDefaultsForActivity } from '../data/productionRates';
 import type { EstimateDraftLine } from './estimateDraftLine';
 
 const ACTIVITY_CODE_PATTERN = /^(\d{2})-(\d{2})-(\d{2})$/;
@@ -32,6 +33,8 @@ export interface AssignActivityCodeOptions {
   forceRegenerate?: boolean;
   divisionName?: string;
 }
+
+export type MasterActivityDefaultField = 'unit' | 'productionRate' | 'crewSize';
 
 export function pad2(value: number | string): string {
   const numeric = typeof value === 'number' ? value : Number(String(value).replace(/\D/g, ''));
@@ -319,11 +322,16 @@ export function applyMasterActivityToDraftLine(
   line: EstimateDraftLine,
   master: EstimateActivityTemplate,
   instance: number,
+  options: { touchedFields?: ReadonlySet<MasterActivityDefaultField> } = {},
 ): EstimateDraftLine {
   const parsed = parseActivityCode(master.activityCode);
   const activitySequence = parsed?.activitySequence ?? 0;
   const lineSequence = parsed?.lineSequence ?? 0;
   const displayCode = buildDisplayCode(master.activityCode, instance);
+  const productionDefaults = getProductionRateDefaultsForActivity(master.activityCode);
+  const touchedFields = options.touchedFields;
+  const isTouched = (field: MasterActivityDefaultField): boolean => touchedFields?.has(field) ?? false;
+  const lineItemLabor = line.task.lineItem.labor;
 
   const baseTask = applyActivityCodeFieldsToTask(line.task, {
     activityCode: master.activityCode,
@@ -337,7 +345,7 @@ export function applyMasterActivityToDraftLine(
 
   return {
     ...line,
-    unit: master.defaultUnit || line.unit,
+    unit: isTouched('unit') ? line.unit : (productionDefaults?.unit ?? master.defaultUnit ?? line.unit),
     task: {
       ...baseTask,
       title: master.title,
@@ -356,7 +364,13 @@ export function applyMasterActivityToDraftLine(
         ...baseTask.lineItem,
         labor: {
           ...baseTask.lineItem.labor,
-          crewSize: master.defaultCrewSize,
+          productionRate: isTouched('productionRate')
+            ? lineItemLabor.productionRate
+            : (productionDefaults?.productionRate ?? lineItemLabor.productionRate),
+          productionRateType: productionDefaults?.productionRateType ?? lineItemLabor.productionRateType,
+          crewSize: isTouched('crewSize')
+            ? lineItemLabor.crewSize
+            : (productionDefaults?.defaultCrewSize ?? master.defaultCrewSize),
           hoursPerDay: master.defaultHoursPerDay,
         },
       },

@@ -15,12 +15,9 @@ describe('estimateFormDefaults', () => {
     expect(parseEstimateFormNumber('abc')).toBe(0);
   });
 
-  it('exposes all production rate type options', () => {
+  it('exposes man-hours per unit as the manual labor input option', () => {
     expect(PRODUCTION_RATE_TYPE_OPTIONS.map((option) => option.value)).toEqual([
-      'units_per_labor_hour',
-      'units_per_labor_day',
       'labor_hours_per_unit',
-      'units_per_crew_day',
     ]);
   });
 
@@ -48,8 +45,8 @@ describe('estimateFormDefaults', () => {
     draft.task.title = 'Pour slab';
     draft.task.lineItem.quantity.quantity = 100;
     draft.task.lineItem.labor = {
-      productionRate: 10,
-      productionRateType: 'units_per_labor_hour',
+      productionRate: 0.1,
+      productionRateType: 'labor_hours_per_unit',
       hoursPerDay: 8,
       crewSize: 2,
       laborRate: 50,
@@ -61,12 +58,56 @@ describe('estimateFormDefaults', () => {
     const totals = computeLinePreviewTotals(draft);
 
     expect(totals.laborHours).toBeGreaterThan(0);
+    expect(totals.laborHours).toBe(10);
+    expect(totals.durationDays).toBe(1);
     expect(totals.directCost).toBeGreaterThan(0);
     expect(totals.sellPrice).toBe(totals.directCost);
     expect(totals.overhead).toBe(0);
     expect(totals.profit).toBe(0);
     expect(totals.contingency).toBe(0);
     expect(totals.tax).toBe(0);
+  });
+
+  it('lets crew size calculate duration from the same man-hours per unit', () => {
+    const draft = createEmptyDraftLine();
+    draft.task.title = 'Place concrete';
+    draft.task.lineItem.quantity.quantity = 320;
+    draft.task.lineItem.labor = {
+      productionRate: 0.25,
+      productionRateType: 'labor_hours_per_unit',
+      hoursPerDay: 8,
+      crewSize: 2,
+      laborRate: 50,
+      burdenPercent: 0,
+    };
+
+    const twoPersonCrewTotals = computeLinePreviewTotals(draft);
+    draft.task.lineItem.labor.crewSize = 4;
+    const fourPersonCrewTotals = computeLinePreviewTotals(draft);
+
+    expect(twoPersonCrewTotals.laborHours).toBe(80);
+    expect(fourPersonCrewTotals.laborHours).toBe(80);
+    expect(twoPersonCrewTotals.durationDays).toBe(5);
+    expect(fourPersonCrewTotals.durationDays).toBe(3);
+  });
+
+  it('calculates footing concrete labor and duration from production defaults', () => {
+    const draft = createEmptyDraftLine();
+    draft.task.title = 'Place footing concrete';
+    draft.task.lineItem.quantity.quantity = 95;
+    draft.task.lineItem.labor = {
+      productionRate: 0.337,
+      productionRateType: 'labor_hours_per_unit',
+      hoursPerDay: 8,
+      crewSize: 4,
+      laborRate: 50,
+      burdenPercent: 0,
+    };
+
+    const totals = computeLinePreviewTotals(draft);
+
+    expect(totals.laborHours).toBeCloseTo(32.02);
+    expect(totals.durationDays).toBe(1);
   });
 
   it('computeLinePreviewTotals works for hydrated domain tasks', () => {

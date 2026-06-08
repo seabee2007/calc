@@ -7,10 +7,7 @@ export const PRODUCTION_RATE_TYPE_OPTIONS: ReadonlyArray<{
   value: ProductionRateType;
   label: string;
 }> = [
-  { value: 'units_per_labor_hour', label: 'Units per labor hour' },
-  { value: 'units_per_labor_day', label: 'Units per labor day' },
-  { value: 'labor_hours_per_unit', label: 'Labor hours per unit' },
-  { value: 'units_per_crew_day', label: 'Units per crew day' },
+  { value: 'labor_hours_per_unit', label: 'Man-hours per unit' },
 ];
 
 export interface DraftFormWarning {
@@ -56,7 +53,7 @@ export function collectDraftFormWarnings(draft: EstimateDraftLine): DraftFormWar
   }
 
   if (!labor?.productionRate || labor.productionRate <= 0) {
-    warnings.push({ code: 'missing_production_rate', message: 'Production rate is missing.' });
+    warnings.push({ code: 'missing_production_rate', message: 'Man-hours per unit is missing.' });
   }
 
   if (!labor?.crewSize || labor.crewSize <= 0) {

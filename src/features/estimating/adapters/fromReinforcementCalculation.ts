@@ -54,6 +54,11 @@ function resolveProductionRate(
   return rate;
 }
 
+function laborHoursPerUnitFromUnitsPerLaborHour(rate: number | undefined): number {
+  const safeRate = safeFinite(rate);
+  return safeRate > 0 ? 1 / safeRate : 0;
+}
+
 function resolveLaborRate(
   value: number | undefined,
   lineLabel: string,
@@ -109,8 +114,12 @@ function buildReinforcementDraftLine(
   if (config.productionRate !== undefined || config.laborRate !== undefined) {
     draft.task.lineItem.labor = {
       ...draft.task.lineItem.labor,
-      productionRate: resolveProductionRate(config.productionRate, config.lineLabel, warnings),
-      productionRateType: 'units_per_labor_hour',
+      productionRate: resolveProductionRate(
+        laborHoursPerUnitFromUnitsPerLaborHour(config.productionRate),
+        config.lineLabel,
+        warnings,
+      ),
+      productionRateType: 'labor_hours_per_unit',
       laborRate: resolveLaborRate(config.laborRate, config.lineLabel, warnings),
       crewSize: Math.max(1, safeFinite(config.crewSize, 2)),
       hoursPerDay: Math.max(1, safeFinite(config.hoursPerDay, 8)),

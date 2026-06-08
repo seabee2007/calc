@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
@@ -27,15 +27,13 @@ import {
 import type {
   EstimateActivityType,
   EstimateRelationshipType,
-  ProductionRateType,
 } from '../../domain/estimateTypes';
 import { applyMasterActivityToDraftLine } from '../../application/estimateActivityCoding';
+import type { MasterActivityDefaultField } from '../../application/estimateActivityCoding';
 import { getMasterActivityByCode } from '../../data/masterActivityIndex';
+import { getProductionRateDefaultsForActivity } from '../../data/productionRates';
 import { getCsiDivisionByCode } from '../../domain/csiDivisions';
-import {
-  parseEstimateFormNumber,
-  PRODUCTION_RATE_TYPE_OPTIONS,
-} from '../estimateFormDefaults';
+import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import {
   PLANNER_FORM_LABEL,
   PLANNER_INPUT,
@@ -105,8 +103,13 @@ export default function EstimateManualLineItemForm({
   formError = null,
 }: Props) {
   const [laborHelpOpen, setLaborHelpOpen] = useState(false);
+  const touchedDefaultFieldsRef = useRef<Set<MasterActivityDefaultField>>(new Set());
   const { task } = draft;
   const labor = task.lineItem.labor ?? {};
+
+  useEffect(() => {
+    touchedDefaultFieldsRef.current.clear();
+  }, [draft.clientId]);
 
   const storedDivision = task.lineItem.csiDivision ?? '';
   const normalizedDivision = normalizeCsiDivisionCode(storedDivision);
@@ -216,9 +219,15 @@ export default function EstimateManualLineItemForm({
     });
   };
 
-  const patchLabor = (patch: Partial<NonNullable<EstimateDraftLine['task']['lineItem']['labor']>>) => {
+  const patchLabor = (
+    patch: Partial<NonNullable<EstimateDraftLine['task']['lineItem']['labor']>>,
+    touchedField?: MasterActivityDefaultField,
+  ) => {
+    if (touchedField) {
+      touchedDefaultFieldsRef.current.add(touchedField);
+    }
     patchLineItem({
-      labor: { ...labor, ...patch },
+      labor: { ...labor, ...patch, productionRateType: 'labor_hours_per_unit' },
     });
   };
 
@@ -239,11 +248,21 @@ export default function EstimateManualLineItemForm({
   const isCustomMode = task.isCustomActivity === true;
   const selectedMaster = getMasterActivityByCode(task.masterActivityCode);
   const masterDisplayCode = task.displayCode ?? task.activityCode ?? '';
+  const selectedProductionDefaults = getProductionRateDefaultsForActivity(
+    selectedMaster?.activityCode ?? task.masterActivityCode ?? task.displayCode ?? task.activityCode,
+  );
+  const showProductionDefaultsNote =
+    selectedProductionDefaults != null &&
+    Math.abs((labor.productionRate ?? 0) - selectedProductionDefaults.productionRate) < 0.000001;
 
   const selectMaster = (activityCode: string) => {
     const master = getMasterActivityByCode(activityCode);
     if (!master) return;
-    onChange(applyMasterActivityToDraftLine(draft, master, task.activityInstance ?? 1));
+    onChange(
+      applyMasterActivityToDraftLine(draft, master, task.activityInstance ?? 1, {
+        touchedFields: touchedDefaultFieldsRef.current,
+      }),
+    );
   };
 
   const enterCustomMode = () => {
@@ -544,7 +563,10 @@ export default function EstimateManualLineItemForm({
           <ConstructionUnitCombobox
             label="Unit"
             value={draft.unit}
-            onChange={(unit) => onChange({ ...draft, unit })}
+            onChange={(unit) => {
+              touchedDefaultFieldsRef.current.add('unit');
+              onChange({ ...draft, unit });
+            }}
             fullWidth
           />
           <Input
@@ -582,7 +604,7 @@ export default function EstimateManualLineItemForm({
           <div>
             <FieldLabelWithTooltip
               htmlFor="production-rate"
-              label="Production rate"
+              label="Man-hours per unit"
               tooltip={laborTooltip('production_rate')}
             />
             <Input
@@ -592,27 +614,19 @@ export default function EstimateManualLineItemForm({
               step="any"
               value={labor.productionRate ?? 0}
               onChange={(event) =>
-                patchLabor({ productionRate: parseEstimateFormNumber(event.target.value) })
+                patchLabor(
+                  { productionRate: parseEstimateFormNumber(event.target.value) },
+                  'productionRate',
+                )
               }
               fullWidth
             />
-          </div>
-          <div>
-            <FieldLabelWithTooltip
-              htmlFor="production-rate-type"
-              label="Production rate type"
-              tooltip={laborTooltip('production_rate_type')}
-            />
-            <Select
-              id="production-rate-type"
-              value={labor.productionRateType ?? 'units_per_labor_hour'}
-              options={PRODUCTION_RATE_TYPE_OPTIONS.map((option) => ({
-                value: option.value,
-                label: option.label,
-              }))}
-              onChange={(value) => patchLabor({ productionRateType: value as ProductionRateType })}
-              fullWidth
-            />
+            {showProductionDefaultsNote && selectedProductionDefaults ? (
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Loaded from {selectedProductionDefaults.sourceCsiCode} —{' '}
+                {selectedProductionDefaults.sourceDescription}
+              </p>
+            ) : null}
           </div>
           <div>
             <FieldLabelWithTooltip
@@ -627,7 +641,7 @@ export default function EstimateManualLineItemForm({
               step="any"
               value={labor.crewSize ?? 0}
               onChange={(event) =>
-                patchLabor({ crewSize: parseEstimateFormNumber(event.target.value) })
+                patchLabor({ crewSize: parseEstimateFormNumber(event.target.value) }, 'crewSize')
               }
               fullWidth
             />

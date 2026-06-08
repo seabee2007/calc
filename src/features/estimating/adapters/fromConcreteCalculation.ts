@@ -79,6 +79,28 @@ function resolveProductionRate(
   return rate;
 }
 
+function toLaborHoursPerUnit(
+  productionRate: number | undefined,
+  productionRateType: ProductionRateType,
+  crewSize: number,
+  hoursPerDay: number,
+): number {
+  const rate = safeFinite(productionRate);
+  if (rate <= 0) return 0;
+
+  switch (productionRateType) {
+    case 'labor_hours_per_unit':
+      return rate;
+    case 'units_per_labor_day':
+      return Math.max(1, safeFinite(hoursPerDay, 8)) / rate;
+    case 'units_per_crew_day':
+      return (Math.max(1, safeFinite(crewSize, 1)) * Math.max(1, safeFinite(hoursPerDay, 8))) / rate;
+    case 'units_per_labor_hour':
+    default:
+      return 1 / rate;
+  }
+}
+
 function resolveLaborRate(
   value: number | undefined,
   lineLabel: string,
@@ -160,8 +182,12 @@ function buildDraftLine(position: number, config: DraftLineConfig, warnings: str
   if (productionRate !== undefined || laborRate !== undefined) {
     draft.task.lineItem.labor = {
       ...draft.task.lineItem.labor,
-      productionRate: resolveProductionRate(productionRate, lineLabel, warnings),
-      productionRateType,
+      productionRate: resolveProductionRate(
+        toLaborHoursPerUnit(productionRate, productionRateType, crewSize, hoursPerDay),
+        lineLabel,
+        warnings,
+      ),
+      productionRateType: 'labor_hours_per_unit',
       laborRate: resolveLaborRate(laborRate, lineLabel, warnings),
       crewSize: Math.max(1, safeFinite(crewSize, 1)),
       hoursPerDay: Math.max(1, safeFinite(hoursPerDay, 8)),

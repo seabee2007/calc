@@ -87,19 +87,19 @@ export function extractScheduleLaborPlan(task: EstimateDomainTask): ExtractSched
   let crewDays = safeNumber(metrics.crewDays);
   let durationDays = safeNumber(metrics.durationDays);
 
-  if (manDays <= 0 && hoursForDuration > 0) {
+  if (hoursForDuration > 0) {
     manDays = calculateManDays(hoursForDuration, inputs.hoursPerDay);
   } else if (manDays <= 0) {
     manDays = slice.manDays;
   }
 
-  if (crewDays <= 0 && hoursForDuration > 0) {
+  if (hoursForDuration > 0) {
     crewDays = calculateCrewDays(hoursForDuration, inputs.crewSize, inputs.hoursPerDay);
   } else if (crewDays <= 0) {
     crewDays = slice.crewDays;
   }
 
-  if (durationDays <= 0 && crewDays > 0) {
+  if (crewDays > 0) {
     durationDays = calculateDurationDays(crewDays, inputs.parallelCrews);
   } else if (durationDays <= 0) {
     durationDays = slice.durationDays;

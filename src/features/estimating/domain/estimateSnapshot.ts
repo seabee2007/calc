@@ -108,7 +108,7 @@ export function buildEstimateLineSnapshot(line: EstimateLineItemInput): Estimate
   const wastePercent = clampPercent(line.quantity.wastePercent ?? 0);
   const quantityWithWaste = calculateQuantityWithWaste(baseQuantity, wastePercent);
 
-  const laborRateType = line.labor?.productionRateType ?? 'units_per_labor_hour';
+  const laborRateType = line.labor?.productionRateType ?? 'labor_hours_per_unit';
   const laborHours = line.labor
     ? calculateLaborHours(quantityWithWaste, line.labor.productionRate ?? 0, laborRateType, {
         hoursPerDay: line.labor.hoursPerDay,

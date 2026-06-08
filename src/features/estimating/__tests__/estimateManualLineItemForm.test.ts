@@ -19,7 +19,8 @@ describe('EstimateManualLineItemForm wiring', () => {
   });
 
   it('preserves direct unit updates on the draft line', () => {
-    expect(formSource).toContain('onChange={(unit) => onChange({ ...draft, unit })}');
+    expect(formSource).toContain("touchedDefaultFieldsRef.current.add('unit')");
+    expect(formSource).toContain('onChange({ ...draft, unit })');
   });
 
   it('renders labor help icon and definitions modal', () => {
@@ -30,9 +31,8 @@ describe('EstimateManualLineItemForm wiring', () => {
 
   it('uses tooltips for labor field labels', () => {
     expect(formSource).toContain('FieldLabelWithTooltip');
-    expect(formSource).toContain("label=\"Production rate\"");
+    expect(formSource).toContain("label=\"Man-hours per unit\"");
     expect(formSource).toContain("label=\"Crew size\"");
-    expect(formSource).toContain("label=\"Production rate type\"");
     expect(formSource).toContain("label=\"Hours per day\"");
     expect(formSource).toContain("label=\"Labor rate\"");
     expect(formSource).toContain("label=\"Burden %\"");

@@ -68,6 +68,7 @@ describe('estimateDraftLine', () => {
     expect(draft.task.position).toBe(3);
     expect(draft.task.lineType).toBe('task');
     expect(draft.task.lineItem.quantity.formula).toBe('quantity_with_waste');
+    expect(draft.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
     expect(draft.unit).toBe('');
     expect(draft.indirectCost).toBe(0);
   });

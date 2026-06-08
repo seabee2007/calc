@@ -29,6 +29,7 @@ import {
 } from '../data/csi';
 import { normalizeScopeName } from '../domain/csiScopeTemplates';
 import { getMasterActivityByCode } from '../data/masterActivityIndex';
+import { getProductionRateById } from '../data/productionRates';
 import type { EstimateSelectedDivision, EstimateSettings } from '../domain/estimateTypes';
 import {
   ESTIMATE_SETTINGS_SHEET_NAME,
@@ -44,35 +45,50 @@ import {
 
 export interface ImportedEstimateRow {
   rowNumber: number;
+  // required
   activity_code?: string;
   division_code: string;
   division_name: string;
   work_package: string;
   work_package_code?: string;
   work_package_name?: string;
-  activity_sequence?: number;
-  line_sequence?: number;
   activity_title: string;
   description: string;
   quantity: number;
   unit: string;
+  // CSI classification
+  csi_code?: string;
+  csi_section?: string;
+  // production rate bridge (v2.0)
+  production_rate_id?: string;
+  production_rate_type?: string;
+  man_hours_per_unit?: number;
+  // costs
+  indirect_cost?: number;
   labor_hours?: number;
   labor_rate?: number;
   labor_cost?: number;
   material_cost?: number;
   equipment_cost?: number;
   subcontractor_cost?: number;
+  // markup overrides; project-level settings are preferred
   overhead_percent?: number;
   profit_percent?: number;
   total_cost?: number;
+  // schedule
   duration_days?: number;
   crew_size?: number;
   predecessor_activity_code?: string;
   relationship_type?: EstimateRelationshipType;
   lag_days?: number;
+  // activity classification (v2.0)
+  is_custom_activity?: boolean;
+  activity_type?: string;
+  // deprecated v1.x fields
+  activity_sequence?: number;
+  line_sequence?: number;
   predecessor_activity?: string;
   notes?: string;
-  csi_section?: string;
 }
 
 export interface MapRowsToEstimateDataOptions {
@@ -121,12 +137,34 @@ const HEADER_ALIASES: Record<string, EstimateImportColumn> = {
   workpackage: 'work_package',
   scope: 'work_package',
   qty: 'quantity',
+  // production rate bridge (v2.0)
+  productionrateid: 'production_rate_id',
+  productionrate_id: 'production_rate_id',
+  productionratetype: 'production_rate_type',
+  productionrate_type: 'production_rate_type',
+  manhoursperunit: 'man_hours_per_unit',
+  mhperunit: 'man_hours_per_unit',
+  baremanhours: 'man_hours_per_unit',
+  baremanhoursperu: 'man_hours_per_unit',
+  // CSI
+  csicode: 'csi_code',
+  csi_code: 'csi_code',
+  csisection: 'csi_section',
+  csi_section: 'csi_section',
+  // costs
+  indirectcost: 'indirect_cost',
+  indirect: 'indirect_cost',
   laborhours: 'labor_hours',
   laborrate: 'labor_rate',
   laborcost: 'labor_cost',
   materialcost: 'material_cost',
   equipmentcost: 'equipment_cost',
   subcontractorcost: 'subcontractor_cost',
+  // markup — v2.0 override names and v1.x backward-compat aliases
+  overheadpercentoverride: 'overhead_percent_override',
+  overhead_percent_override: 'overhead_percent_override',
+  profitpercentoverride: 'profit_percent_override',
+  profit_percent_override: 'profit_percent_override',
   overheadpercent: 'overhead_percent',
   overhead: 'overhead_percent',
   profitpercent: 'profit_percent',
@@ -146,8 +184,10 @@ const HEADER_ALIASES: Record<string, EstimateImportColumn> = {
   predecessoractivitycode: 'predecessor_activity_code',
   relationshiptype: 'relationship_type',
   lagdays: 'lag_days',
-  csi_section: 'csi_section',
-  csisection: 'csi_section',
+  iscustomactivity: 'is_custom_activity',
+  is_custom: 'is_custom_activity',
+  activitytype: 'activity_type',
+  type: 'activity_type',
 };
 
 function normalizeHeader(value: unknown): string {
@@ -229,6 +269,10 @@ function calculateImportedTotalCost(row: {
 
 function resolveLaborHours(row: ImportedEstimateRow): number | undefined {
   if (row.labor_hours != null && row.labor_hours > 0) return row.labor_hours;
+  // v2.0: derive from man_hours_per_unit × quantity when labor_hours is absent
+  if (row.man_hours_per_unit != null && row.man_hours_per_unit > 0 && row.quantity > 0) {
+    return row.quantity * row.man_hours_per_unit;
+  }
   if (
     row.labor_cost != null &&
     row.labor_cost > 0 &&
@@ -290,8 +334,12 @@ function mapRowToDraftLine(row: ImportedEstimateRow, position: number): Estimate
   const laborHours = resolveLaborHours(row);
   const durationDays = resolveDurationDays(row, laborHours);
   const quantity = row.quantity;
+  // v2.0: prefer explicit man_hours_per_unit over deriving from laborHours/quantity
+  // so the exact rate from the production rate record is preserved round-trip.
   const productionRate =
-    laborHours != null && quantity > 0 ? laborHours / quantity : 0;
+    row.man_hours_per_unit != null && row.man_hours_per_unit > 0
+      ? row.man_hours_per_unit
+      : laborHours != null && quantity > 0 ? laborHours / quantity : 0;
   const workPackageName =
     normalizeScopeName(row.work_package_name || row.work_package) || row.work_package;
   const predecessorCode =
@@ -299,6 +347,10 @@ function mapRowToDraftLine(row: ImportedEstimateRow, position: number): Estimate
     (row.predecessor_activity?.trim() && /^\d{2}-\d{2}-\d{2}$/.test(row.predecessor_activity.trim())
       ? row.predecessor_activity.trim()
       : undefined);
+
+  // Resolve per-line markup overrides: v2.0 uses _override columns; v1.x used plain names
+  const resolvedOverheadPercent = row.overhead_percent ?? 0;
+  const resolvedProfitPercent = row.profit_percent ?? 0;
 
   let draft = createEmptyDraftLine(position);
   draft = {
@@ -319,13 +371,15 @@ function mapRowToDraftLine(row: ImportedEstimateRow, position: number): Estimate
       title: row.activity_title,
       description: row.description || row.activity_title,
       scopeName: workPackageName,
-      overheadPercent: row.overhead_percent ?? 0,
-      profitPercent: row.profit_percent ?? 0,
+      overheadPercent: resolvedOverheadPercent,
+      profitPercent: resolvedProfitPercent,
+      activityType: row.activity_type || undefined,
+      isCustomActivity: row.is_custom_activity === true ? true : undefined,
       lineItem: {
         ...draft.task.lineItem,
         description: row.description || row.activity_title,
         csiDivision: row.division_code,
-        csiSection: row.csi_section,
+        csiSection: row.csi_section ?? row.csi_code,
         quantity: {
           formula: 'quantity_with_waste',
           quantity,
@@ -525,6 +579,16 @@ export function validateImportedEstimate(
       appendImportedCsiValidationWarnings(rowNumber, divisionCode, rawCsiSection, warnings);
     }
 
+    const rawProductionRateId = cellToString(row.production_rate_id);
+    if (rawProductionRateId) {
+      const found = getProductionRateById(rawProductionRateId);
+      if (!found) {
+        warnings.push(
+          `Row ${rowNumber}: production_rate_id "${rawProductionRateId}" was not found in the production rate library. Man-hours will use the provided value or be left blank.`,
+        );
+      }
+    }
+
     const quantity = coerceRequiredNumber(row.quantity, 'quantity', rowNumber, errors);
     if (quantity == null) return;
 
@@ -534,12 +598,16 @@ export function validateImportedEstimate(
       return;
     }
 
+    coerceOptionalNumber(row.man_hours_per_unit, 'man_hours_per_unit', rowNumber, warnings);
+    coerceOptionalNumber(row.indirect_cost, 'indirect_cost', rowNumber, warnings);
     coerceOptionalNumber(row.labor_hours, 'labor_hours', rowNumber, warnings);
     coerceOptionalNumber(row.labor_rate, 'labor_rate', rowNumber, warnings);
     coerceOptionalNumber(row.labor_cost, 'labor_cost', rowNumber, warnings);
     coerceOptionalNumber(row.material_cost, 'material_cost', rowNumber, warnings);
     coerceOptionalNumber(row.equipment_cost, 'equipment_cost', rowNumber, warnings);
     coerceOptionalNumber(row.subcontractor_cost, 'subcontractor_cost', rowNumber, warnings);
+    coerceOptionalNumber(row.overhead_percent_override, 'overhead_percent_override', rowNumber, warnings);
+    coerceOptionalNumber(row.profit_percent_override, 'profit_percent_override', rowNumber, warnings);
     coerceOptionalNumber(row.overhead_percent, 'overhead_percent', rowNumber, warnings);
     coerceOptionalNumber(row.profit_percent, 'profit_percent', rowNumber, warnings);
     coerceOptionalNumber(row.total_cost, 'total_cost', rowNumber, warnings);
@@ -690,6 +758,29 @@ export function mapRowsToEstimateData(
       rawCsiSection,
       warnings,
     );
+    const rawCsiCode = cellToString(row.csi_code) || undefined;
+
+    // v2.0: resolve production_rate_id and man_hours_per_unit
+    const rawProductionRateId = cellToString(row.production_rate_id) || undefined;
+    let manHoursPerUnit = coerceOptionalNumber(row.man_hours_per_unit, 'man_hours_per_unit', rowNumber, warnings);
+    if (rawProductionRateId && manHoursPerUnit == null) {
+      const rate = getProductionRateById(rawProductionRateId);
+      if (rate) {
+        manHoursPerUnit = rate.bareManHoursPerUnit;
+      } else {
+        warnings.push(
+          `Row ${rowNumber}: production_rate_id "${rawProductionRateId}" not found; man_hours_per_unit will be derived from labor_hours/quantity or left blank.`,
+        );
+      }
+    }
+
+    // v2.0: accept overhead/profit from _override columns (fall back to old column names)
+    const overheadPercent =
+      coerceOptionalNumber(row.overhead_percent_override, 'overhead_percent_override', rowNumber, warnings) ??
+      coerceOptionalNumber(row.overhead_percent, 'overhead_percent', rowNumber, warnings);
+    const profitPercent =
+      coerceOptionalNumber(row.profit_percent_override, 'profit_percent_override', rowNumber, warnings) ??
+      coerceOptionalNumber(row.profit_percent, 'profit_percent', rowNumber, warnings);
 
     const mapped: ImportedEstimateRow = {
       rowNumber,
@@ -699,6 +790,15 @@ export function mapRowsToEstimateData(
       work_package: workPackageName,
       work_package_code: workPackageCode || undefined,
       work_package_name: workPackageName || undefined,
+      // CSI classification
+      csi_code: rawCsiCode,
+      csi_section: normalizedCsiSection ?? rawCsiSection,
+      // production rate bridge
+      production_rate_id: rawProductionRateId,
+      production_rate_type: cellToString(row.production_rate_type) || undefined,
+      man_hours_per_unit: manHoursPerUnit,
+      // costs
+      indirect_cost: coerceOptionalNumber(row.indirect_cost, 'indirect_cost', rowNumber, warnings),
       activity_sequence: activitySequence,
       line_sequence: lineSequence,
       activity_title: activityTitle,
@@ -716,22 +816,18 @@ export function mapRowsToEstimateData(
         rowNumber,
         warnings,
       ),
-      overhead_percent: coerceOptionalNumber(
-        row.overhead_percent,
-        'overhead_percent',
-        rowNumber,
-        warnings,
-      ),
-      profit_percent: coerceOptionalNumber(row.profit_percent, 'profit_percent', rowNumber, warnings),
+      overhead_percent: overheadPercent,
+      profit_percent: profitPercent,
       total_cost: coerceOptionalNumber(row.total_cost, 'total_cost', rowNumber, warnings),
       duration_days: coerceOptionalNumber(row.duration_days, 'duration_days', rowNumber, warnings),
       crew_size: coerceOptionalNumber(row.crew_size, 'crew_size', rowNumber, warnings),
       predecessor_activity_code: cellToString(row.predecessor_activity_code) || undefined,
       relationship_type: normalizeRelationshipType(cellToString(row.relationship_type)),
       lag_days: coerceOptionalNumber(row.lag_days, 'lag_days', rowNumber, warnings) ?? 0,
+      is_custom_activity: cellToString(row.is_custom_activity).toLowerCase() === 'true' ? true : undefined,
+      activity_type: cellToString(row.activity_type) || undefined,
       predecessor_activity: cellToString(row.predecessor_activity),
       notes: cellToString(row.notes),
-      csi_section: normalizedCsiSection ?? rawCsiSection,
     };
 
     if (

@@ -26,19 +26,15 @@ describe('laborFieldDefinitions', () => {
     expect(getLaborFormTooltipDefinitions()).toHaveLength(8);
   });
 
-  it('includes modal definitions for production rate, crew size, man-days, and crew-days', () => {
+  it('includes modal definitions for man-hours per unit, crew size, man-days, and crew-days', () => {
     const titles = LABOR_FIELD_DEFINITIONS.map((entry) => entry.title);
     expect(titles).toEqual(
-      expect.arrayContaining(['Production rate', 'Crew size', 'Man-days', 'Crew-days']),
+      expect.arrayContaining(['Man-hours per unit', 'Crew size', 'Man-days', 'Crew-days']),
     );
   });
 
   it('includes production rate type options in modal content', () => {
     const productionRateType = getLaborFieldDefinition('production_rate_type');
-    expect(productionRateType?.options).toEqual([
-      'Units per labor hour',
-      'Units per labor day',
-      'Labor hours per unit',
-    ]);
+    expect(productionRateType?.options).toEqual(['Man-hours per unit']);
   });
 });

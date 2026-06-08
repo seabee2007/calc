@@ -215,34 +215,27 @@ export function validateEstimateLineItemInput(line: EstimateLineItemInput): Esti
       warnings.push(
         createWarning(
           'missing_production_rate',
-          'Labor input requires productionRate and productionRateType.',
+          'Labor input requires positive man-hours per unit.',
           { lineItemId: line.id, fieldPath: 'labor.productionRate' },
         ),
       );
     }
 
-    if (
-      (line.labor.productionRateType === 'units_per_labor_day' ||
-        line.labor.productionRateType === 'units_per_crew_day') &&
-      !isFinitePositive(line.labor.hoursPerDay)
-    ) {
+    if (!isFinitePositive(line.labor.hoursPerDay)) {
       warnings.push(
         createWarning(
           'missing_hours_per_day',
-          'Labor input requires a positive hoursPerDay for day-based production rates.',
+          'Labor input requires positive hoursPerDay to calculate duration.',
           { lineItemId: line.id, fieldPath: 'labor.hoursPerDay' },
         ),
       );
     }
 
-    if (
-      line.labor.productionRateType === 'units_per_crew_day' &&
-      !isFinitePositive(line.labor.crewSize)
-    ) {
+    if (!isFinitePositive(line.labor.crewSize)) {
       warnings.push(
         createWarning(
           'missing_crew_size',
-          'Labor input requires a positive crewSize for units_per_crew_day rates.',
+          'Labor input requires positive crewSize to calculate duration.',
           { lineItemId: line.id, fieldPath: 'labor.crewSize' },
         ),
       );

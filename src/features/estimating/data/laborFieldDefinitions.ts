@@ -10,22 +10,19 @@ export interface LaborFieldDefinition {
 export const LABOR_FIELD_DEFINITIONS: readonly LaborFieldDefinition[] = [
   {
     id: 'production_rate',
-    title: 'Production rate',
-    short: 'How fast the work is completed.',
+    title: 'Man-hours per unit',
+    short: 'Bare labor hours required for one unit of work.',
     plain:
-      'This tells the app how much work can be done in a certain amount of time. Example: 100 SF per hour, or 2 labor hours per unit.',
+      'Enter the labor hours needed for one unit before crew size is applied. Example: 0.08 means each unit takes 0.08 labor hours.',
     showInFormTooltip: true,
   },
   {
     id: 'production_rate_type',
-    title: 'Production rate type',
-    short: 'How the app reads your production rate.',
-    plain: 'Choose the option that matches how you know the work rate.',
-    options: [
-      'Units per labor hour',
-      'Units per labor day',
-      'Labor hours per unit',
-    ],
+    title: 'Labor input type',
+    short: 'Manual estimate lines store man-hours per unit.',
+    plain:
+      'Manual estimate lines use bare man-hours per unit. Crew size and hours per day then calculate duration.',
+    options: ['Man-hours per unit'],
     showInFormTooltip: true,
   },
   {

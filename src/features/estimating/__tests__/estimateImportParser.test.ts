@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import {
   ESTIMATE_IMPORT_ALL_COLUMNS,
   ESTIMATE_IMPORT_LINE_ITEMS_SHEET_NAME,
+  ESTIMATE_IMPORT_TEMPLATE_GUIDANCE,
   ESTIMATE_IMPORT_TEMPLATE_SAMPLE_ROW,
 } from '../importExport/estimateImportColumns';
 import {
@@ -47,18 +48,21 @@ describe('estimateImportParser', () => {
     ]);
 
     const draft = result.importedData?.draftLines[0];
-    expect(draft?.task.title).toBe('Place and finish slab');
-    expect(draft?.task.activityCode).toBe('03-01-02');
+    // v2.0 sample row: 03-01-03 Place footing concrete, 50 CY, 0.337 MH/CY
+    expect(draft?.task.title).toBe('Place footing concrete');
+    expect(draft?.task.activityCode).toBe('03-01-03');
     expect(draft?.task.lineItem.csiDivision).toBe('03');
-    expect(draft?.task.lineItem.quantity.quantity).toBe(1200);
+    expect(draft?.task.lineItem.quantity.quantity).toBe(50);
     expect(draft?.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
-    expect(draft?.task.lineItem.labor.productionRate).toBeCloseTo(96 / 1200);
-    expect(draft?.unit).toBe('SF');
+    // man_hours_per_unit is provided explicitly → productionRate = 0.337
+    expect(draft?.task.lineItem.labor.productionRate).toBeCloseTo(0.337);
+    expect(draft?.task.lineItem.labor.crewSize).toBe(4);
+    expect(draft?.unit).toBe('CY');
     expect(draft?.task.calculatedValues.importedEstimate).toEqual(
       expect.objectContaining({
         notes: 'Sample row — replace with your estimate lines',
-        laborHours: 96,
-        durationDays: 3,
+        laborHours: 17,
+        durationDays: 1,
       }),
     );
   });
@@ -187,6 +191,114 @@ describe('estimateImportParser', () => {
 
     expect(withCode.draftLines[0].task.activityCode).toBe('03-01-01');
     expect(withCode.draftLines[1].task.activityCode).toBe('03-01-02');
+  });
+
+  // ── v2.0 production rate bridge tests ────────────────────────────────────
+
+  it('uses man_hours_per_unit as productionRate when provided', () => {
+    const imported = mapRowsToEstimateData([
+      {
+        division_code: '03',
+        division_name: 'Concrete',
+        activity_title: 'Place footing concrete',
+        activity_code: '03-01-03',
+        quantity: 50,
+        unit: 'CY',
+        man_hours_per_unit: 0.337,
+        crew_size: 4,
+      },
+    ]);
+    const draft = imported.draftLines[0];
+    expect(draft.task.lineItem.labor.productionRate).toBeCloseTo(0.337);
+    expect(draft.task.lineItem.labor.productionRateType).toBe('labor_hours_per_unit');
+    // labor_hours derived: 50 * 0.337 = 16.85
+    expect(imported.rows[0].labor_hours).toBeCloseTo(16.85);
+  });
+
+  it('derives man_hours_per_unit from production_rate_id lookup when man_hours_per_unit absent', () => {
+    const imported = mapRowsToEstimateData([
+      {
+        division_code: '03',
+        division_name: 'Concrete',
+        activity_title: 'Place footing concrete',
+        activity_code: '03-01-03',
+        quantity: 50,
+        unit: 'CY',
+        production_rate_id: '03-31-00-footings-direct-chute',
+        // no man_hours_per_unit — should be filled from production rate lookup
+      },
+    ]);
+    const draft = imported.draftLines[0];
+    expect(draft.task.lineItem.labor.productionRate).toBeCloseTo(0.337);
+    expect(imported.rows[0].man_hours_per_unit).toBeCloseTo(0.337);
+    expect(imported.errors).toEqual([]);
+  });
+
+  it('warns on unknown production_rate_id but does not fail', () => {
+    const imported = mapRowsToEstimateData([
+      {
+        division_code: '03',
+        division_name: 'Concrete',
+        activity_title: 'Custom activity',
+        quantity: 10,
+        unit: 'CY',
+        production_rate_id: 'xx-99-99-nonexistent-rate',
+      },
+    ]);
+    expect(imported.errors).toEqual([]);
+    expect(imported.draftLines).toHaveLength(1);
+    expect(imported.warnings.some((w) => w.includes('xx-99-99-nonexistent-rate'))).toBe(true);
+  });
+
+  it('accepts overhead_percent_override as per-line markup override (v2.0)', () => {
+    const imported = mapRowsToEstimateData([
+      {
+        division_code: '03',
+        division_name: 'Concrete',
+        activity_title: 'Place slab',
+        quantity: 100,
+        unit: 'SF',
+        labor_cost: 1000,
+        material_cost: 500,
+        overhead_percent_override: 12,
+        profit_percent_override: 8,
+      },
+    ]);
+    expect(imported.rows[0].overhead_percent).toBe(12);
+    expect(imported.rows[0].profit_percent).toBe(8);
+    // total_cost: direct(1500) + overhead(180) + profit(134.4) = 1814.4
+    expect(imported.rows[0].total_cost).toBeCloseTo(1814.4);
+  });
+
+  it('backward-compat: old overhead_percent / profit_percent still accepted', () => {
+    const imported = mapRowsToEstimateData([
+      {
+        division_code: '03',
+        division_name: 'Concrete',
+        activity_title: 'Place slab',
+        quantity: 100,
+        unit: 'SF',
+        labor_cost: 1000,
+        material_cost: 500,
+        overhead_percent: 10,
+        profit_percent: 10,
+      },
+    ]);
+    expect(imported.errors).toEqual([]);
+    expect(imported.rows[0].total_cost).toBeCloseTo(1815);
+  });
+
+  it('template column list includes v2.0 production rate and CSI fields', () => {
+    expect(ESTIMATE_IMPORT_ALL_COLUMNS).toContain('production_rate_id');
+    expect(ESTIMATE_IMPORT_ALL_COLUMNS).toContain('man_hours_per_unit');
+    expect(ESTIMATE_IMPORT_ALL_COLUMNS).toContain('production_rate_type');
+    expect(ESTIMATE_IMPORT_ALL_COLUMNS).toContain('csi_code');
+    expect(ESTIMATE_IMPORT_ALL_COLUMNS).toContain('overhead_percent_override');
+    expect(ESTIMATE_IMPORT_ALL_COLUMNS).toContain('profit_percent_override');
+    // v2.0 guidance must not mention the deprecated DIVISION-ACTIVITY-LINE format
+    expect([...ESTIMATE_IMPORT_TEMPLATE_GUIDANCE].join(' ')).not.toContain('DIVISION-ACTIVITY-LINE');
+    expect([...ESTIMATE_IMPORT_TEMPLATE_GUIDANCE].join(' ')).toContain('fixed master activity codes');
+    expect([...ESTIMATE_IMPORT_TEMPLATE_GUIDANCE].join(' ')).toContain('production_rate_id');
   });
 
   it('auto-renumbers duplicate activity codes when enabled', () => {
