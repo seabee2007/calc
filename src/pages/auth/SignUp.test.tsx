@@ -1,22 +1,26 @@
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Login from './Login';
+import SignUp from './SignUp';
 
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
-    signIn: vi.fn(),
-    refreshProfile: vi.fn(),
+    signUp: vi.fn(),
   }),
 }));
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getUser: vi.fn(),
-      resetPasswordForEmail: vi.fn(),
+      getSession: vi.fn(),
     },
   },
+}));
+
+vi.mock('../../services/employeeService', () => ({
+  acceptInviteForCurrentUser: vi.fn(),
+  fetchEmployeeInvitePreview: vi.fn(),
 }));
 
 vi.mock('../../components/auth/SocialLoginButtons', () => ({
@@ -28,34 +32,32 @@ vi.mock('../../components/auth/SocialLoginButtons', () => ({
   ),
 }));
 
-describe('Login', () => {
+vi.mock('../../components/ui/Modal', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+describe('SignUp', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders email/password fields and social login buttons', () => {
+  it('renders signup fields, social buttons, and shared auth copy', () => {
     render(
       <MemoryRouter>
-        <Login />
+        <SignUp />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('heading', { level: 2, name: 'Welcome back' })).toBeInTheDocument();
-    expect(screen.getByText('Sign in to continue to your project workspace.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Create your account' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Start building estimates, proposals, and schedules in one workspace.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
+    expect(screen.getByText('Confirm Password')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Account' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Continue with GitHub' })).toBeInTheDocument();
-  });
-
-  it('shows oauth error message from query param', () => {
-    render(
-      <MemoryRouter initialEntries={['/login?error=oauth']}>
-        <Login />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText('Social login failed. Please try again.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });
 });

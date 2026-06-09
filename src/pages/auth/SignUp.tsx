@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { UserPlus, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import {
   acceptInviteForCurrentUser,
@@ -9,12 +9,18 @@ import {
 } from '../../services/employeeService';
 import { supabase } from '../../lib/supabase';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
+import AuthLayout, {
+  AuthAlert,
+  AuthDivider,
+  authInputClassName,
+  authLinkClassName,
+  authPrimaryButtonClassName,
+} from '../../components/auth/AuthLayout';
+import { AUTH_ACCENT } from '../../components/auth/authBrandTheme';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import UserAgreement from '../../components/legal/UserAgreement';
-import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
 interface SignUpForm {
   email: string;
@@ -36,12 +42,12 @@ const SignUp: React.FC = () => {
     watch,
     setValue,
     formState: { errors },
-    setError
+    setError,
   } = useForm<SignUpForm>({
     defaultValues: {
       agreeToTerms: false,
       email: '',
-    }
+    },
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -132,7 +138,7 @@ const SignUp: React.FC = () => {
     if (data.verificationAnswer !== expectedAnswer) {
       setError('verificationAnswer', {
         type: 'manual',
-        message: 'Incorrect answer. Please try again.'
+        message: 'Incorrect answer. Please try again.',
       });
       generateVerificationQuestion();
       return;
@@ -170,7 +176,7 @@ const SignUp: React.FC = () => {
       );
     } catch {
       setError('root', {
-        message: 'Error creating account. Please try again.'
+        message: 'Error creating account. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -178,220 +184,169 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <main
-      className="relative min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat',
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
-      }}
-    >
-      <div className="pointer-events-none fixed inset-0 bg-black/40 dark:bg-black/60" />
+    <>
+      <AuthLayout
+        title="Create your account"
+        subtitle="Start building estimates, proposals, and schedules in one workspace."
+      >
+        {invitePreview && !invitePreview.expired && (
+          <AuthAlert variant="info">
+            You&apos;re joining as <strong>{invitePreview.role.replace('_', ' ')}</strong>. Use{' '}
+            <strong>{invitePreview.email}</strong> to accept this invite.
+          </AuthAlert>
+        )}
 
-      <div className="relative z-10 min-h-[100dvh] px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          icon={<ArrowLeft size={20} />}
-          className="text-white hover:text-blue-200"
+        {inviteLoadError && <AuthAlert variant="warning">{inviteLoadError}</AuthAlert>}
+
+        {socialLoginError && <AuthAlert variant="error">{socialLoginError}</AuthAlert>}
+
+        <SocialLoginButtons
+          appearance="auth-dark"
+          disabled={isLoading}
+          onError={(message) => setSocialLoginError(message)}
+        />
+
+        <AuthDivider label="or create an account with email" />
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="auth-page-inputs space-y-6 [&_label]:text-slate-300"
         >
-          Back
-        </Button>
+          <Input
+            label="Email address"
+            type="email"
+            icon={<Mail className="h-5 w-5 text-slate-400" />}
+            error={errors.email?.message}
+            className={authInputClassName}
+            {...register('email', {
+              required: 'Email is required',
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address',
+              },
+            })}
+            fullWidth
+          />
 
-        <div className="flex min-h-[calc(100dvh-4rem)] items-start justify-center py-6 lg:items-center">
-          <Card className="mx-auto w-full max-w-md p-6 sm:p-8">
-            <div className="mb-8 text-center">
-              <UserPlus className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400" />
+          <Input
+            label="Password"
+            type="password"
+            icon={<Lock className="h-5 w-5 text-slate-400" />}
+            error={errors.password?.message}
+            className={authInputClassName}
+            {...register('password', {
+              required: 'Password is required',
+              minLength: {
+                value: 6,
+                message: 'Password must be at least 6 characters',
+              },
+            })}
+            fullWidth
+          />
 
-              <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
-                Create your account
-              </h2>
+          <Input
+            label="Confirm Password"
+            type="password"
+            icon={<Lock className="h-5 w-5 text-slate-400" />}
+            error={errors.confirmPassword?.message}
+            className={authInputClassName}
+            {...register('confirmPassword', {
+              required: 'Please confirm your password',
+              validate: (val: string) => {
+                if (watch('password') !== val) {
+                  return 'Passwords do not match';
+                }
+                return true;
+              },
+            })}
+            fullWidth
+          />
 
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Or{' '}
-                <button
+          <div className="flex items-start">
+            <div className="flex h-5 items-center">
+              <input
+                id="agreeToTerms"
+                type="checkbox"
+                {...register('agreeToTerms', {
+                  required: 'You must agree to the User Agreement to continue',
+                })}
+                className={AUTH_ACCENT.checkbox}
+              />
+            </div>
+
+            <div className="ml-3">
+              <label htmlFor="agreeToTerms" className="text-sm text-slate-300">
+                I agree to the{' '}
+                <Button
                   type="button"
-                  onClick={() =>
-                    navigate(inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login')
-                  }
-                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                  variant="ghost"
+                  onClick={() => setShowAgreement(true)}
+                  className={`!inline !h-auto !p-0 hover:!bg-transparent ${authLinkClassName}`}
                 >
-                  sign in to existing account
-                </button>
-              </p>
-            </div>
+                  User Agreement
+                </Button>
+              </label>
 
-            {invitePreview && !invitePreview.expired && (
-              <div className="mb-6 rounded-md border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-100">
-                You&apos;re joining as <strong>{invitePreview.role.replace('_', ' ')}</strong>.
-                Use <strong>{invitePreview.email}</strong> to accept this invite.
-              </div>
-            )}
-
-            {inviteLoadError && (
-              <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-                {inviteLoadError}
-              </div>
-            )}
-
-            {socialLoginError && (
-              <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100">
-                {socialLoginError}
-              </div>
-            )}
-
-            <SocialLoginButtons
-              disabled={isLoading}
-              onError={(message) => setSocialLoginError(message)}
-            />
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                  Or create an account with email
-                </span>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <Input
-                label="Email address"
-                type="email"
-                icon={<Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
-                error={errors.email?.message}
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address'
-                  }
-                })}
-                fullWidth
-              />
-
-              <Input
-                label="Password"
-                type="password"
-                icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
-                error={errors.password?.message}
-                {...register('password', {
-                  required: 'Password is required',
-                  minLength: {
-                    value: 6,
-                    message: 'Password must be at least 6 characters'
-                  }
-                })}
-                fullWidth
-              />
-
-              <Input
-                label="Confirm Password"
-                type="password"
-                icon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
-                error={errors.confirmPassword?.message}
-                {...register('confirmPassword', {
-                  required: 'Please confirm your password',
-                  validate: (val: string) => {
-                    if (watch('password') !== val) {
-                      return 'Passwords do not match';
-                    }
-                    return true;
-                  }
-                })}
-                fullWidth
-              />
-
-              <div className="flex items-start">
-                <div className="flex h-5 items-center">
-                  <input
-                    id="agreeToTerms"
-                    type="checkbox"
-                    {...register('agreeToTerms', {
-                      required: 'You must agree to the User Agreement to continue'
-                    })}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                  />
-                </div>
-
-                <div className="ml-3">
-                  <label htmlFor="agreeToTerms" className="text-sm text-gray-600 dark:text-gray-300">
-                    I agree to the{' '}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setShowAgreement(true)}
-                      className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      User Agreement
-                    </Button>
-                  </label>
-
-                  {errors.agreeToTerms && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {errors.agreeToTerms.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/30">
-                <div className="mb-2 flex items-center">
-                  <ShieldCheck className="mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" />
-
-                  <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200">
-                    Human Verification
-                  </h3>
-                </div>
-
-                <p className="mb-3 text-sm text-blue-700 dark:text-blue-300">
-                  Please solve this simple math problem:
-                </p>
-
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="text-lg font-medium text-blue-900 dark:text-blue-200">
-                    {num1} {operator} {num2} = ?
-                  </span>
-                </div>
-
-                <Input
-                  type="number"
-                  label="Your answer"
-                  error={errors.verificationAnswer?.message}
-                  {...register('verificationAnswer', {
-                    required: 'Please answer the verification question',
-                    valueAsNumber: true
-                  })}
-                  fullWidth
-                />
-              </div>
-
-              {errors.root && (
-                <p className="text-center text-sm text-red-600 dark:text-red-400">
-                  {errors.root.message}
-                </p>
+              {errors.agreeToTerms && (
+                <p className="mt-1 text-sm text-red-300">{errors.agreeToTerms.message}</p>
               )}
+            </div>
+          </div>
 
-              <Button
-                type="submit"
-                fullWidth
-                isLoading={isLoading}
-                icon={<UserPlus size={18} />}
-              >
-                Create Account
-              </Button>
-            </form>
-          </Card>
-        </div>
-      </div>
+          <div className={AUTH_ACCENT.verificationBox}>
+            <div className="mb-2 flex items-center">
+              <ShieldCheck className={AUTH_ACCENT.verificationIcon} />
+              <h3 className={AUTH_ACCENT.verificationTitle}>Human Verification</h3>
+            </div>
+
+            <p className="mb-3 text-sm text-slate-300">
+              Please solve this simple math problem:
+            </p>
+
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-lg font-medium text-white">
+                {num1} {operator} {num2} = ?
+              </span>
+            </div>
+
+            <Input
+              type="number"
+              label="Your answer"
+              error={errors.verificationAnswer?.message}
+              className={authInputClassName}
+              {...register('verificationAnswer', {
+                required: 'Please answer the verification question',
+                valueAsNumber: true,
+              })}
+              fullWidth
+            />
+          </div>
+
+          {errors.root && <AuthAlert variant="error">{errors.root.message}</AuthAlert>}
+
+          <Button
+            type="submit"
+            fullWidth
+            isLoading={isLoading}
+            className={authPrimaryButtonClassName}
+          >
+            Create Account
+          </Button>
+
+          <p className="text-center text-sm text-slate-300">
+            Already have an account?{' '}
+            <button
+              type="button"
+              onClick={() =>
+                navigate(inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login')
+              }
+              className={authLinkClassName}
+            >
+              Sign in
+            </button>
+          </p>
+        </form>
+      </AuthLayout>
 
       <Modal
         isOpen={showAgreement}
@@ -403,7 +358,7 @@ const SignUp: React.FC = () => {
           <UserAgreement />
         </div>
       </Modal>
-    </main>
+    </>
   );
 };
 

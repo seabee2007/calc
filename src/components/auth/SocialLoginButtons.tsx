@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import Button from '../ui/Button';
 import { signInWithProvider, type OAuthProvider } from '../../lib/oauthAuth';
+import { AUTH_ACCENT } from './authBrandTheme';
 
 interface SocialLoginButtonsProps {
   disabled?: boolean;
   onError?: (message: string) => void;
+  appearance?: 'default' | 'auth-dark';
 }
 
 export default function SocialLoginButtons({
   disabled = false,
   onError,
+  appearance = 'default',
 }: SocialLoginButtonsProps) {
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
+  const buttonClassName = appearance === 'auth-dark' ? AUTH_ACCENT.socialButtonDark : undefined;
 
   const handleProviderClick = async (provider: OAuthProvider) => {
     try {
@@ -31,6 +35,7 @@ export default function SocialLoginButtons({
         fullWidth
         disabled={disabled || loadingProvider !== null}
         isLoading={loadingProvider === 'google'}
+        className={buttonClassName}
         onClick={() => void handleProviderClick('google')}
       >
         Continue with Google
@@ -41,6 +46,7 @@ export default function SocialLoginButtons({
         fullWidth
         disabled={disabled || loadingProvider !== null}
         isLoading={loadingProvider === 'github'}
+        className={buttonClassName}
         onClick={() => void handleProviderClick('github')}
       >
         Continue with GitHub

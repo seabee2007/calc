@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { signInWithProvider } from '../lib/oauthAuth';
+import { AUTH_ACCENT } from '../components/auth/authBrandTheme';
 import {
   MARKETING_FEATURE_CARDS,
   MARKETING_HERO_SUBTITLE,
@@ -46,9 +47,9 @@ export default function MarketingHome() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-600/10" />
+        <div className={`pointer-events-none absolute inset-0 ${AUTH_ACCENT.heroGradient}`} />
         <div className="relative">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300/90 sm:text-sm">
+          <p className={`mb-4 text-xs font-semibold uppercase tracking-[0.24em] sm:text-sm ${AUTH_ACCENT.brandLabel}`}>
             {MARKETING_WORKFLOW}
           </p>
           <h1 className="mx-auto max-w-4xl text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
@@ -91,17 +92,7 @@ export default function MarketingHome() {
                 >
                   Sign in
                 </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  fullWidth
-                  className="sm:w-auto"
-                  disabled={googleLoading}
-                  isLoading={googleLoading}
-                  onClick={() => void handleGoogleSignIn()}
-                >
-                  Continue with Google
-                </Button>
+                
               </>
             )}
           </div>
@@ -143,16 +134,16 @@ export default function MarketingHome() {
                 <button
                   type="button"
                   onClick={() => navigate(feature.path)}
-                  className="group flex h-full w-full flex-col rounded-2xl border border-white/10 bg-slate-900/60 p-5 text-left shadow-lg backdrop-blur-md transition-all hover:border-cyan-400/30 hover:bg-slate-900/80 hover:shadow-cyan-500/10 sm:p-6"
+                  className={AUTH_ACCENT.featureCardHover}
                 >
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-300">
+                  <div className={AUTH_ACCENT.featureIconBox}>
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
                   <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-300">
                     {feature.description}
                   </p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-300 transition-colors group-hover:text-cyan-200">
+                  <span className={AUTH_ACCENT.featureLink}>
                     Learn more
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </span>
