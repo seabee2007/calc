@@ -8,10 +8,7 @@ import App from './App';
 import { AuthProvider } from './hooks/useAuth';
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import RootErrorBoundary from './components/layout/RootErrorBoundary';
-import { installDebugBootstrap } from './lib/debugBootstrap';
 import './index.css';
-
-installDebugBootstrap();
 
 // Initialize any required polyfills or global handlers
 const initializeApp = () => {

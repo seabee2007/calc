@@ -1,5 +1,4 @@
 import React from 'react';
-import { emitDebugLog } from '../../lib/debugBootstrap';
 
 interface RootErrorBoundaryProps {
   children: React.ReactNode;
@@ -28,15 +27,6 @@ export default class RootErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('[RootErrorBoundary]', error, errorInfo);
-    // #region agent log
-    emitDebugLog('H5', 'RootErrorBoundary caught render error', {
-      route: window.location.pathname,
-      href: window.location.href,
-      userAgent: navigator.userAgent,
-      errorMessage: error.message,
-      componentStack: errorInfo.componentStack,
-    });
-    // #endregion
   }
 
   render() {

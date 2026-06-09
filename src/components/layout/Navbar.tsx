@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToolsModalStore } from '../../store/toolsModalStore';
-import { emitDebugLog } from '../../lib/debugBootstrap';
 import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import HelpButton from '../../features/help/HelpButton';
 import ThemeToggle from './ThemeToggle';
@@ -57,15 +56,6 @@ const Navbar: React.FC = () => {
     [location.pathname],
   );
   const mobileSectionLabel = location.pathname === '/' ? 'Dashboard' : sectionLabel;
-
-  // #region agent log
-  emitDebugLog('H3', 'Navbar render', {
-    route: location.pathname,
-    signedIn: Boolean(user),
-    mobileOpen,
-    viewportWidth: typeof window !== 'undefined' ? window.innerWidth : null,
-  });
-  // #endregion
 
   const startProject = () => {
     setMobileOpen(false);
