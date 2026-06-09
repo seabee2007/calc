@@ -72,5 +72,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom']
-  }
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    globals: true,
+  },
 });

@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import { supabase } from '../../lib/supabase';
+import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import backgroundImage from '../../assets/images/bkgrnd.jpg';
 
 interface LoginForm {
@@ -23,6 +24,8 @@ const Login: React.FC = () => {
     new URLSearchParams(location.search).get('invite') ??
     undefined;
   const loginMessage = (location.state as { message?: string } | null)?.message;
+  const oauthError = new URLSearchParams(location.search).get('error') === 'oauth';
+  const [socialLoginError, setSocialLoginError] = React.useState<string | null>(null);
   const { register, handleSubmit, formState: { errors }, setError, watch } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = React.useState(false);
   const [resetEmailSent, setResetEmailSent] = React.useState(false);
@@ -148,6 +151,31 @@ const Login: React.FC = () => {
             <div className="mb-6 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-100">
               {loginMessage}
             </div>
+          )}
+
+          {(oauthError || socialLoginError) && (
+            <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100">
+              {socialLoginError ?? 'Social login failed. Please try again.'}
+            </div>
+          )}
+
+          {!resetEmailSent && (
+            <>
+              <SocialLoginButtons
+                disabled={isLoading}
+                onError={(message) => setSocialLoginError(message)}
+              />
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                    Or continue with email
+                  </span>
+                </div>
+              </div>
+            </>
           )}
 
           {resetEmailSent ? (

@@ -8,6 +8,7 @@ import Calculator from './pages/Calculator';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import ResetPassword from './pages/auth/ResetPassword';
+import AuthCallbackPage from './pages/auth/AuthCallbackPage';
 import AuthGuard from './components/auth/AuthGuard';
 import { OwnerGuard, EmployeeGuard } from './components/auth/RoleGuard';
 import { LegacyTaskDetailRedirect } from './components/routing/LegacyPlannerRedirects';
@@ -504,6 +505,7 @@ function App() {
           <Route path="/client/project/:token" element={<LazyRoute Page={LazyClientPortal} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/test-onboarding"

@@ -8,6 +8,7 @@ import {
   fetchEmployeeInvitePreview,
 } from '../../services/employeeService';
 import { supabase } from '../../lib/supabase';
+import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -51,6 +52,7 @@ const SignUp: React.FC = () => {
     expired: boolean;
   } | null>(null);
   const [inviteLoadError, setInviteLoadError] = useState<string | null>(null);
+  const [socialLoginError, setSocialLoginError] = useState<string | null>(null);
 
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -238,6 +240,28 @@ const SignUp: React.FC = () => {
                 {inviteLoadError}
               </div>
             )}
+
+            {socialLoginError && (
+              <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100">
+                {socialLoginError}
+              </div>
+            )}
+
+            <SocialLoginButtons
+              disabled={isLoading}
+              onError={(message) => setSocialLoginError(message)}
+            />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  Or create an account with email
+                </span>
+              </div>
+            </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Input
