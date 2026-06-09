@@ -70,6 +70,41 @@
   <body>
     <div class="status-bar-bg"></div>
     <div id="root"></div>
+    <script>
+      (function () {
+        try {
+          var scriptSrcs = Array.prototype.slice
+            .call(document.querySelectorAll('script[src]'))
+            .map(function (node) {
+              return node.getAttribute('src');
+            });
+          sessionStorage.setItem(
+            'cc-boot',
+            JSON.stringify({
+              t: Date.now(),
+              href: location.href,
+              scripts: scriptSrcs,
+              swControlled: !!(navigator.serviceWorker && navigator.serviceWorker.controller),
+            }),
+          );
+        } catch (e) {}
+
+        window.addEventListener('error', function (event) {
+          try {
+            sessionStorage.setItem(
+              'cc-last-error',
+              JSON.stringify({
+                t: Date.now(),
+                message: event.message,
+                file: event.filename,
+                line: event.lineno,
+                col: event.colno,
+              }),
+            );
+          } catch (e2) {}
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

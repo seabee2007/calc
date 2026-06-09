@@ -3,6 +3,7 @@ import { ArrowRight, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
+import { emitDebugLog } from '../lib/debugBootstrap';
 import {
   MARKETING_FEATURE_CARDS,
   MARKETING_HERO_SUBTITLE,
@@ -14,6 +15,15 @@ import {
 export default function MarketingHome() {
   const navigate = useNavigate();
   const { user, isEmployee } = useAuth();
+
+  // #region agent log
+  emitDebugLog('H3', 'MarketingHome render', {
+    route: '/',
+    signedIn: Boolean(user),
+    isEmployee,
+    viewportWidth: typeof window !== 'undefined' ? window.innerWidth : null,
+  });
+  // #endregion
 
   const openWorkspace = () => {
     if (isEmployee) {

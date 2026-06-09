@@ -7,7 +7,11 @@ import { Capacitor } from '@capacitor/core';
 import App from './App';
 import { AuthProvider } from './hooks/useAuth';
 import { ConfirmProvider } from './contexts/ConfirmContext';
+import RootErrorBoundary from './components/layout/RootErrorBoundary';
+import { installDebugBootstrap } from './lib/debugBootstrap';
 import './index.css';
+
+installDebugBootstrap();
 
 // Initialize any required polyfills or global handlers
 const initializeApp = () => {
@@ -40,13 +44,15 @@ if (!rootElement) {
 // Create and render root
 const root = createRoot(rootElement);
 root.render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ConfirmProvider>
-          <App />
-        </ConfirmProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </StrictMode>
+  <RootErrorBoundary>
+    <StrictMode>
+      <BrowserRouter>
+        <AuthProvider>
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </StrictMode>
+  </RootErrorBoundary>
 );

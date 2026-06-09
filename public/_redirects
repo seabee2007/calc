@@ -1,0 +1,5 @@
+# Missing hashed bundles must 404 — never serve index.html as JavaScript.
+/assets/* 404
+
+# SPA fallback for client-side routes only.
+/*    /index.html   200
