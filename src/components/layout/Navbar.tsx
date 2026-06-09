@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
+  ClipboardList,
   FolderPlus,
   LayoutDashboard,
   LayoutGrid,
@@ -22,6 +23,7 @@ import FieldNotificationsBell from '../field/FieldNotificationsBell';
 import HelpButton from '../../features/help/HelpButton';
 import ThemeToggle from './ThemeToggle';
 import ShareInviteModal from '../share/ShareInviteModal';
+import PilotSurveyModal from '../survey/PilotSurveyModal';
 import Button from '../ui/Button';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
 
@@ -56,6 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [shareInviteOpen, setShareInviteOpen] = useState(false);
+  const [surveyOpen, setSurveyOpen] = useState(false);
 
   const dashboardHref = isEmployee && !isOwner ? '/employee/dashboard' : '/';
   const sectionLabel = useMemo(
@@ -284,6 +287,17 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
                   </button>
                   <button
                     type="button"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      setSurveyOpen(true);
+                    }}
+                  >
+                    <ClipboardList className="h-4 w-4 text-cyan-400" aria-hidden />
+                    Survey
+                  </button>
+                  <button
+                    type="button"
                     className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800"
                     onClick={() => {
                       setProfileOpen(false);
@@ -417,6 +431,18 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
                 Share / Invite Client
               </button>
 
+              <button
+                type="button"
+                className={mobileLinkClass(false)}
+                onClick={() => {
+                  setMobileOpen(false);
+                  setSurveyOpen(true);
+                }}
+              >
+                <ClipboardList className="h-5 w-5 text-cyan-400" />
+                Survey
+              </button>
+
               <div className="px-3 py-2">
                 <ThemeToggle />
               </div>
@@ -437,6 +463,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
       </AnimatePresence>
 
       <ShareInviteModal isOpen={shareInviteOpen} onClose={() => setShareInviteOpen(false)} />
+      <PilotSurveyModal isOpen={surveyOpen} onClose={() => setSurveyOpen(false)} />
     </>
   );
 };
