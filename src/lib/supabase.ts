@@ -10,11 +10,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
-    autoRefreshToken: true
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    flowType: 'pkce',
   },
   global: {
     headers: {
-      'X-Client-Info': 'concrete-calc'
-    }
-  }
+      'X-Client-Info': 'concrete-calc',
+    },
+  },
 });
+
+if (import.meta.env.DEV) {
+  console.log('[SupabaseClient] detectSessionInUrl false');
+}

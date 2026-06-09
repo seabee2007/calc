@@ -8,8 +8,18 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     let active = true;
 
-    async function finishLogin() {
-      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+    async function handleCallback() {
+      const code = new URLSearchParams(window.location.search).get('code');
+
+      console.log('[AuthCallback] code exists', Boolean(code));
+      console.log('[AuthCallback] origin', window.location.origin);
+
+      if (!code) {
+        navigate('/login?error=missing-code', { replace: true });
+        return;
+      }
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (!active) return;
 
@@ -25,7 +35,7 @@ export default function AuthCallbackPage() {
       navigate('/', { replace: true });
     }
 
-    void finishLogin();
+    void handleCallback();
 
     return () => {
       active = false;

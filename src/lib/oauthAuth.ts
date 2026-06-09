@@ -7,10 +7,13 @@ export function getOAuthCallbackUrl(): string {
 }
 
 export async function signInWithProvider(provider: OAuthProvider): Promise<void> {
+  const redirectTo = getOAuthCallbackUrl();
+  console.log('[OAuth] redirectTo', redirectTo);
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: getOAuthCallbackUrl(),
+      redirectTo,
     },
   });
 

@@ -28,7 +28,10 @@ describe('AuthCallbackPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
-      value: { href: 'http://localhost:5173/auth/callback?code=abc' },
+      value: {
+        origin: 'http://localhost:5173',
+        search: '?code=abc',
+      },
       writable: true,
     });
   });
@@ -43,8 +46,29 @@ describe('AuthCallbackPage', () => {
     );
 
     await waitFor(() => {
-      expect(exchangeCodeForSession).toHaveBeenCalledWith('http://localhost:5173/auth/callback?code=abc');
+      expect(exchangeCodeForSession).toHaveBeenCalledWith('abc');
       expect(navigate).toHaveBeenCalledWith('/', { replace: true });
+    });
+  });
+
+  it('navigates to login when code is missing', async () => {
+    Object.defineProperty(window, 'location', {
+      value: {
+        origin: 'http://localhost:5173',
+        search: '',
+      },
+      writable: true,
+    });
+
+    render(
+      <MemoryRouter>
+        <AuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(exchangeCodeForSession).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith('/login?error=missing-code', { replace: true });
     });
   });
 
@@ -58,6 +82,7 @@ describe('AuthCallbackPage', () => {
     );
 
     await waitFor(() => {
+      expect(exchangeCodeForSession).toHaveBeenCalledWith('abc');
       expect(navigate).toHaveBeenCalledWith('/login?error=oauth', {
         replace: true,
         state: { message: 'Social login failed. Please try again.' },

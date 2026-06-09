@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
+import { Capacitor } from '@capacitor/core';
 import Button from './components/ui/Button';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './store/themeStore';
@@ -131,7 +132,10 @@ function App() {
   const [initError, setInitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const isCapacitorWebView = 'Capacitor' in window;
+  const isNativePlatform = Capacitor.isNativePlatform();
+  if (import.meta.env.DEV) {
+    console.log('[Capacitor] isNativePlatform', isNativePlatform);
+  }
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -150,7 +154,7 @@ function App() {
               .catch((e) => console.error('Error prefetching proposals:', e)),
           ]);
 
-          if (!isCapacitorWebView) {
+          if (!isNativePlatform) {
             await Promise.all([
               migrateSettings().catch((e) => console.error('Error migrating settings:', e)),
               migratePreferences().catch((e) =>
@@ -168,7 +172,7 @@ function App() {
     };
 
     initializeApp();
-  }, [user, authLoading, isCapacitorWebView, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
+  }, [user, authLoading, isNativePlatform, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
 
   useEffect(() => {
     const checkOnboarding = () => {
@@ -178,7 +182,7 @@ function App() {
 
           let onboardingCompleted = false;
 
-          if (isCapacitorWebView) {
+          if (isNativePlatform) {
             onboardingCompleted = !isTestOnboarding;
           } else {
             try {
@@ -202,7 +206,7 @@ function App() {
     };
 
     checkOnboarding();
-  }, [user, authLoading, location.pathname, isCapacitorWebView]);
+  }, [user, authLoading, location.pathname, isNativePlatform]);
 
   useEffect(() => {
     if (isDark) {
@@ -217,7 +221,7 @@ function App() {
   const handleOnboardingComplete = () => {
     try {
       setShowOnboarding(false);
-      if (!isCapacitorWebView) {
+      if (!isNativePlatform) {
         localStorage.setItem('onboarding_completed', 'true');
       }
     } catch (error) {
