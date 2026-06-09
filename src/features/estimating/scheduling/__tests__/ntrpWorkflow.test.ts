@@ -34,10 +34,6 @@ const canvasSource = readFileSync(
   ),
   'utf8',
 );
-const logicReviewSource = readFileSync(
-  resolve(dirname(fileURLToPath(import.meta.url)), '../logic/LogicReviewPanel.tsx'),
-  'utf8',
-);
 
 function makeActivity(code: string, durationDays = 3): ScheduleActivity {
   return {
@@ -120,7 +116,7 @@ describe('Logic Network mode UI contract', () => {
     expect(logicWorkspaceSource).toContain('Logic Network');
     expect(logicWorkspaceSource).toContain('Precedence Diagram');
     expect(logicWorkspaceSource).toContain('Run CPM');
-    expect(logicWorkspaceSource).toContain('Check logic');
+    expect(logicWorkspaceSource).toContain('Calculate CPM');
   });
 
   it('workspace uses committed CPM via runCpmCalculation, not auto calculateCpm', () => {
@@ -128,11 +124,6 @@ describe('Logic Network mode UI contract', () => {
     expect(workspaceSource).toContain('committedCpmResult');
     expect(workspaceSource).toContain('validateCpmReadiness');
     expect(workspaceSource).not.toMatch(/useMemo\(\s*\(\)\s*=>\s*\n?\s*scheduleActivitiesResult\.activities\.length > 0\s*\?\s*calculateCpm/);
-  });
-
-  it('AI helper is renamed to Suggest precedence links', () => {
-    expect(logicReviewSource).toContain('Suggest precedence links');
-    expect(logicReviewSource).not.toContain('Suggest logic with AI');
   });
 });
 

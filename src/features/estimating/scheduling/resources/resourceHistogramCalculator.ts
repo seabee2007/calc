@@ -33,6 +33,7 @@ export function calculateResourceHistogram(
     let requiredCrew = 0;
     let criticalRequiredCrew = 0;
     let noncriticalRequiredCrew = 0;
+    const activeActivities: ResourceHistogramDay['activeActivities'] = [];
 
     for (const cpm of cpmActivities) {
       const activity = actByCode.get(cpm.activityCode);
@@ -47,8 +48,18 @@ export function calculateResourceHistogram(
         } else {
           noncriticalRequiredCrew += activity.crewSize;
         }
+        activeActivities.push({
+          activityCode: activity.activityCode,
+          activityTitle: activity.activityDescription,
+          crewSize: activity.crewSize,
+          isCritical: cpm.isCritical,
+          scheduledStartDay: es,
+          scheduledFinishDay: ef - 1,
+        });
       }
     }
+
+    activeActivities.sort((left, right) => left.activityCode.localeCompare(right.activityCode));
 
     const overallocatedAmount = Math.max(0, requiredCrew - availableCrewSize);
 
@@ -61,6 +72,7 @@ export function calculateResourceHistogram(
       availableCrew: availableCrewSize,
       overallocatedAmount,
       isOverallocated: overallocatedAmount > 0,
+      activeActivities,
     });
   }
 

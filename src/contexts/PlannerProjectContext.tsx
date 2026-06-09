@@ -23,6 +23,7 @@ import { formatUSAddress, usAddressFromFields } from '../types/address';
 import type { Project } from '../types';
 import type { PlannerBoardBundle, Profile } from '../types/fieldPlanner';
 import type { ProjectWorkflowStage } from '../utils/projectWorkflow';
+import { DEFAULT_PROJECT_CREW_SIZE } from '../features/estimating/scheduling/resources/projectAvailableCrewSize';
 
 export interface PlannerProjectMeta {
   id: string;
@@ -32,6 +33,7 @@ export interface PlannerProjectMeta {
   statusStage: ProjectWorkflowStage;
   locationLabel: string;
   ownerId: string;
+  projectCrewSize?: number;
   pourDate?: string | null;
 }
 
@@ -40,6 +42,7 @@ interface PlannerProjectRow {
   name: string;
   description: string | null;
   user_id: string;
+  project_crew_size: number | null;
   pour_date: string | null;
   jobsite_street: string | null;
   jobsite_street2: string | null;
@@ -80,7 +83,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       const { data: row, error } = await supabase
         .from('projects')
         .select(
-          'id, name, description, user_id, pour_date, jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip, placement_order',
+          'id, name, description, user_id, project_crew_size, pour_date, jobsite_street, jobsite_street2, jobsite_city, jobsite_state, jobsite_zip, placement_order',
         )
         .eq('id', projectId)
         .maybeSingle();
@@ -127,6 +130,11 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
       });
       const locationLabel = formatUSAddress(addr) || 'Location not set';
 
+      const hydratedProjectCrewSize =
+        projectRow.project_crew_size != null &&
+        Number.isFinite(Number(projectRow.project_crew_size))
+          ? Number(projectRow.project_crew_size)
+          : DEFAULT_PROJECT_CREW_SIZE;
       setProject({
         id: projectRow.id,
         name: projectRow.name,
@@ -135,6 +143,7 @@ export function PlannerProjectProvider({ children }: { children: React.ReactNode
         statusStage: workflow.stage,
         locationLabel,
         ownerId: projectRow.user_id,
+        projectCrewSize: hydratedProjectCrewSize,
         pourDate: projectRow.pour_date ?? null,
       });
 

@@ -105,6 +105,16 @@ const resourceHistogram: ResourceHistogramDay[] = [
     availableCrew: 2,
     overallocatedAmount: 1,
     isOverallocated: true,
+    activeActivities: [
+      {
+        activityCode: 'A',
+        activityTitle: 'Activity A',
+        crewSize: 8,
+        isCritical: true,
+        scheduledStartDay: 0,
+        scheduledFinishDay: 0,
+      },
+    ],
   },
 ];
 

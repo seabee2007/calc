@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Viewport } from '@xyflow/react';
-import { Cpu, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { exportLogicLinksToExcel } from '../../../export/logicNetworkExcelExport';
-import { getMasterActivityCsiContext } from '../../../data/masterActivityIndex';
 import {
   getActivityGraphKey,
   type ScheduleActivity,
@@ -16,7 +15,30 @@ import type {
   ScheduleSettings,
 } from '../../../scheduling/cpmTypes';
 import { calculateCpm } from '../../../scheduling/cpm/calculateCpm';
-import { ENABLE_AI_SEQUENCE_ACTIVITIES } from '../../../scheduling/schedulingFeatureFlags';
+import type { CpmReadinessResult } from '../../../scheduling/logic/validateCpmReadiness';
+import {
+  exitBrowserFullscreen,
+  isLogicNetworkFullscreenTipDismissed,
+  isTypingTarget,
+  LOGIC_NETWORK_FULLSCREEN_OVERLAY_CLASS,
+  requestBrowserFullscreen,
+  setLogicNetworkFullscreenTipDismissed,
+} from '../../../scheduling/logicNetworkFullscreen';
+import {
+  LOGIC_NETWORK_LAYOUT_SAVE_ERROR_MESSAGE,
+  LOGIC_NETWORK_LAYOUT_SAVE_SUCCESS_MESSAGE,
+  LOGIC_NETWORK_LAYOUT_SAVE_TOAST_DURATION_MS,
+  LOGIC_NETWORK_LAYOUT_SAVE_TOAST_Z_INDEX_CLASS,
+} from '../../../scheduling/logicNetworkSaveLayout';
+import { INITIAL_LOGIC_NETWORK_VIEWPORT } from '../../../scheduling/logicNetworkViewportPolicy';
+import { resourceLevelSchedule } from '../../../scheduling/resources/resourceLevelSchedule';
+import EstimateWorkspaceToast, {
+  type EstimateWorkspaceToastVariant,
+} from '../EstimateWorkspaceToast';
+import EstimateLogicNetworkCanvas, {
+  type LogicNetworkCanvasHandle,
+} from './EstimateLogicNetworkCanvas';
+import LogicNetworkWorkspaceOnboardingModal from './LogicNetworkWorkspaceOnboardingModal';
 
 /**
  * Re-keys activities and links by their stable graph key (runtime id when present)
@@ -51,38 +73,6 @@ function calculateCpmByGraphKey(
   }));
   return calculateCpm({ activities: keyedActivities, logicLinks: keyedLinks, projectStartDay });
 }
-import type { CpmReadinessResult } from '../../../scheduling/logic/validateCpmReadiness';
-import {
-  exitBrowserFullscreen,
-  isLogicNetworkFullscreenTipDismissed,
-  isTypingTarget,
-  LOGIC_NETWORK_FULLSCREEN_OVERLAY_CLASS,
-  requestBrowserFullscreen,
-  setLogicNetworkFullscreenTipDismissed,
-} from '../../../scheduling/logicNetworkFullscreen';
-import {
-  LOGIC_NETWORK_LAYOUT_SAVE_ERROR_MESSAGE,
-  LOGIC_NETWORK_LAYOUT_SAVE_SUCCESS_MESSAGE,
-  LOGIC_NETWORK_LAYOUT_SAVE_TOAST_DURATION_MS,
-  LOGIC_NETWORK_LAYOUT_SAVE_TOAST_Z_INDEX_CLASS,
-} from '../../../scheduling/logicNetworkSaveLayout';
-import { INITIAL_LOGIC_NETWORK_VIEWPORT } from '../../../scheduling/logicNetworkViewportPolicy';
-import { resourceLevelSchedule } from '../../../scheduling/resources/resourceLevelSchedule';
-import EstimateWorkspaceToast, {
-  type EstimateWorkspaceToastVariant,
-} from '../EstimateWorkspaceToast';
-import LogicReviewPanel from '../../../scheduling/logic/LogicReviewPanel';
-import type { SuggestedLogicLink } from '../../../scheduling/logic/logicTypes';
-import {
-  runAiLogicSequence,
-  type AiSequenceValidationResult,
-  type AiLogicSequenceInput,
-} from '../../../scheduling/logic/aiSequenceService';
-import EstimateLogicNetworkCanvas, {
-  type LogicNetworkCanvasHandle,
-} from './EstimateLogicNetworkCanvas';
-import LogicNetworkWorkspaceOnboardingModal from './LogicNetworkWorkspaceOnboardingModal';
-import AiSequenceReviewModal, { type CpmPreviewSummary } from './AiSequenceReviewModal';
 
 const TOOLBAR_BUTTON_CLASS =
   'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
@@ -101,18 +91,11 @@ interface Props {
   logicLinks: CpmLogicLink[];
   cpmResult: CpmResult | null;
   layout: LogicNetworkLayout[];
-  logicReviewIgnored: string[];
   scheduleSettings?: ScheduleSettings;
   projectAvailableCrewSize?: number;
   onLinksChange: (links: CpmLogicLink[]) => void;
   onLayoutChange: (layout: LogicNetworkLayout[]) => void;
   onSaveLayout: (layout: LogicNetworkLayout[]) => Promise<void>;
-  onAddSuggestedLinks: (links: SuggestedLogicLink[]) => Promise<void>;
-  onIgnoreLogicWarning: (warningId: string) => Promise<void>;
-  hasLogicBatch?: boolean;
-  logicBatchAddedCount?: number;
-  onRevertLastLogicBatch?: () => Promise<void>;
-  onClearAllLogicLinks?: () => Promise<void>;
   logicNetworkInitialized?: boolean;
   viewMode?: LogicNetworkViewMode;
   onViewModeChange?: (mode: LogicNetworkViewMode) => void | Promise<void>;
@@ -122,8 +105,6 @@ interface Props {
   saving?: boolean;
   canvasKey: string;
   activitySignature?: string;
-  projectType?: string;
-  projectLocation?: string;
   projectName?: string;
 }
 
@@ -134,8 +115,6 @@ export default function LogicNetworkWorkspace({
   onSaveLayout,
   scheduleSettings,
   projectAvailableCrewSize,
-  projectType,
-  projectLocation,
   projectName = 'project',
   ...canvasProps
 }: Props) {
@@ -148,8 +127,6 @@ export default function LogicNetworkWorkspace({
     message: string;
     variant: EstimateWorkspaceToastVariant;
   } | null>(null);
-  const [showLogicReview, setShowLogicReview] = useState(false);
-  const [logicReviewBusy, setLogicReviewBusy] = useState(false);
   const [viewport, setViewport] = useState<Viewport>(INITIAL_LOGIC_NETWORK_VIEWPORT);
 
   // ── Live CPM preview state ────────────────────────────────────────────────
@@ -158,14 +135,6 @@ export default function LogicNetworkWorkspace({
   const [rcsOverloadedDays, setRcsOverloadedDays] = useState(0);
   const [rcsMovedCount, setRcsMovedCount] = useState(0);
 
-  // ── AI sequence state ─────────────────────────────────────────────────────
-  const [aiSequenceBusy, setAiSequenceBusy] = useState(false);
-  const [showAiSequenceReview, setShowAiSequenceReview] = useState(false);
-  const [aiSequenceValidation, setAiSequenceValidation] = useState<AiSequenceValidationResult | null>(null);
-  const [aiSequenceApplying, setAiSequenceApplying] = useState(false);
-  const [aiSequenceError, setAiSequenceError] = useState<string | null>(null);
-  const [previewCpmSummary, setPreviewCpmSummary] = useState<CpmPreviewSummary | null>(null);
-
   const shellRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<LogicNetworkCanvasHandle>(null);
   const hasFitInitialViewRef = useRef(false);
@@ -173,12 +142,10 @@ export default function LogicNetworkWorkspace({
   useEffect(() => {
     hasFitInitialViewRef.current = false;
     setViewport(INITIAL_LOGIC_NETWORK_VIEWPORT);
-    // Clear live preview when the canvas resets (project/estimate changed)
     setLivePreviewCpm(null);
     setRcsOverloadedDays(0);
   }, [canvasKey]);
 
-  // Clear live preview when logic links change externally
   useEffect(() => {
     setLivePreviewCpm(null);
     setRcsOverloadedDays(0);
@@ -215,7 +182,10 @@ export default function LogicNetworkWorkspace({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (isFullscreen) { event.preventDefault(); void exitFullscreen(); }
+        if (isFullscreen) {
+          event.preventDefault();
+          void exitFullscreen();
+        }
         return;
       }
       if ((event.key === 'f' || event.key === 'F') && !isTypingTarget(event.target)) {
@@ -232,7 +202,9 @@ export default function LogicNetworkWorkspace({
     if (!isFullscreen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [isFullscreen]);
 
   const handleSaveLayout = useCallback(async () => {
@@ -251,8 +223,6 @@ export default function LogicNetworkWorkspace({
     }
   }, [isSavingLayout, onSaveLayout]);
 
-  // ── Live CPM calculation ──────────────────────────────────────────────────
-
   const handleRunLiveCpm = useCallback(
     (linksOverride?: CpmLogicLink[]) => {
       setLiveCpmBusy(true);
@@ -261,12 +231,16 @@ export default function LogicNetworkWorkspace({
         const result = calculateCpmByGraphKey(activities, links);
         setLivePreviewCpm(result);
 
-        // RCS check
         const crewSize = projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize ?? 0;
         if (crewSize > 0 && activities.length > 0) {
           const projectStartDate =
             scheduleSettings?.projectStartDate || new Date().toISOString().slice(0, 10);
-          const rcs = resourceLevelSchedule({ activities, logicLinks: links, availableCrewSize: crewSize, projectStartDate });
+          const rcs = resourceLevelSchedule({
+            activities,
+            logicLinks: links,
+            availableCrewSize: crewSize,
+            projectStartDate,
+          });
           const overloaded = rcs.resourceHistogramAfter.filter((d) => d.isOverallocated).length;
           setRcsOverloadedDays(overloaded);
           setRcsMovedCount(rcs.movedActivities.length);
@@ -279,120 +253,6 @@ export default function LogicNetworkWorkspace({
       }
     },
     [activities, canvasProps.logicLinks, scheduleSettings, projectAvailableCrewSize],
-  );
-
-  // ── AI sequence workflow ──────────────────────────────────────────────────
-
-  const handleAiSequence = useCallback(async () => {
-    if (aiSequenceBusy || activities.length === 0) return;
-    setAiSequenceBusy(true);
-    setAiSequenceError(null);
-    try {
-      const input: AiLogicSequenceInput = {
-        activities: activities.map((a) => {
-          const masterCsi = getMasterActivityCsiContext(a.masterActivityCode ?? a.activityCode);
-          return {
-            activityCode: a.activityCode,
-            title: a.activityDescription,
-            divisionCode: a.divisionCode,
-            divisionName: a.divisionName,
-            workPackageName: a.workPackageName,
-            durationDays: a.durationDays,
-            crewSize: a.crewSize,
-            runtimeActivityId: getActivityGraphKey(a),
-            displayCode: a.displayCode,
-            masterActivityCode: a.masterActivityCode,
-            isCustomActivity: a.isCustomActivity,
-            activityType: a.activityType,
-            sequencingCategory: a.sequencingCategory,
-            logicAnchor: a.logicAnchor,
-            primaryTrade: a.primaryTrade,
-            csiDivisionCode: masterCsi.csiDivisionCode,
-            csiSectionCode: masterCsi.csiSectionCode,
-          };
-        }),
-        logicLinks: canvasProps.logicLinks,
-        projectType,
-        projectLocation,
-        availableCrewSize: projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize,
-        templateContext: true,
-      };
-
-      const result = await runAiLogicSequence(input);
-      setAiSequenceValidation(result);
-
-      // Compute a CPM preview from the deterministic-only links (before user applies)
-      if (result.valid.length > 0) {
-        const previewLinks = [
-          ...canvasProps.logicLinks,
-          ...result.valid.filter((s) => s.source === 'deterministic').map((s) => ({
-            predecessorActivityCode: s.predecessorActivityCode,
-            successorActivityCode: s.successorActivityCode,
-            relationshipType: s.relationshipType,
-            lagDays: s.lagDays,
-          })),
-        ];
-        const previewCpm = calculateCpmByGraphKey(activities, previewLinks);
-        const criticalCount = previewCpm.activities.filter((a) => a.isCritical).length;
-        const crewSize = projectAvailableCrewSize ?? scheduleSettings?.availableCrewSize ?? 0;
-        let overloadedDays = 0;
-        if (crewSize > 0) {
-          const projectStartDate = scheduleSettings?.projectStartDate || new Date().toISOString().slice(0, 10);
-          const rcs = resourceLevelSchedule({ activities, logicLinks: previewLinks, availableCrewSize: crewSize, projectStartDate });
-          overloadedDays = rcs.resourceHistogramAfter.filter((d) => d.isOverallocated).length;
-        }
-        setPreviewCpmSummary({
-          criticalCount,
-          projectDurationDays: previewCpm.projectDurationDays,
-          overloadedDays,
-        });
-      } else {
-        setPreviewCpmSummary(null);
-      }
-
-      setShowAiSequenceReview(true);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : 'AI sequencing failed';
-      setAiSequenceError(msg);
-      console.error('[AI Sequence]', error);
-    } finally {
-      setAiSequenceBusy(false);
-    }
-  }, [
-    aiSequenceBusy,
-    activities,
-    canvasProps.logicLinks,
-    projectType,
-    projectLocation,
-    scheduleSettings,
-  ]);
-
-  const handleAiSequenceApply = useCallback(
-    async (links: SuggestedLogicLink[]) => {
-      if (aiSequenceApplying) return;
-      setAiSequenceApplying(true);
-      try {
-        const newLinks: CpmLogicLink[] = links.map((l) => ({
-          predecessorActivityCode: l.predecessorActivityCode,
-          successorActivityCode: l.successorActivityCode,
-          relationshipType: l.relationshipType,
-          lagDays: l.lagDays,
-        }));
-        const combined = [...canvasProps.logicLinks, ...newLinks];
-        canvasProps.onLinksChange(combined);
-        setShowAiSequenceReview(false);
-        // Run live CPM immediately after applying
-        handleRunLiveCpm(combined);
-        // Auto-layout and fit
-        requestAnimationFrame(() => {
-          canvasRef.current?.autoLayout();
-          setTimeout(() => canvasRef.current?.fitView(), 300);
-        });
-      } finally {
-        setAiSequenceApplying(false);
-      }
-    },
-    [aiSequenceApplying, canvasProps, handleRunLiveCpm],
   );
 
   const toolbarButtonClass = isFullscreen ? FULLSCREEN_TOOLBAR_BUTTON_CLASS : TOOLBAR_BUTTON_CLASS;
@@ -469,44 +329,19 @@ export default function LogicNetworkWorkspace({
               {canvasProps.runCpmBusy ? 'Running CPM…' : 'Run CPM'}
             </button>
           ) : (
-            <>
-              <button
-                type="button"
-                className={toolbarButtonClass}
-                onClick={() => setShowLogicReview(true)}
-              >
-                Check logic
-              </button>
-              <button
-                type="button"
-                className={
-                  liveCpmBusy
-                    ? disabledToolbarButtonClass
-                    : 'rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 shadow-sm hover:bg-indigo-100 dark:border-indigo-600 dark:bg-indigo-950 dark:text-indigo-200 dark:hover:bg-indigo-900'
-                }
-                disabled={liveCpmBusy}
-                onClick={() => handleRunLiveCpm()}
-                title="Calculate CPM and show ES, EF, LS, LF, TF on activity cards"
-              >
-                {liveCpmBusy ? 'Calculating…' : livePreviewCpm ? 'Recalculate CPM' : 'Calculate CPM'}
-              </button>
-              {ENABLE_AI_SEQUENCE_ACTIVITIES ? (
-                <button
-                  type="button"
-                  className={
-                    aiSequenceBusy
-                      ? disabledToolbarButtonClass
-                      : 'inline-flex items-center gap-1.5 rounded-lg border border-violet-400 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-800 shadow-sm hover:bg-violet-100 dark:border-violet-600 dark:bg-violet-950 dark:text-violet-200 dark:hover:bg-violet-900'
-                  }
-                  disabled={aiSequenceBusy || activities.length === 0}
-                  onClick={() => void handleAiSequence()}
-                  title="Use AI + construction rules to suggest logic links for all activities"
-                >
-                  <Cpu size={12} />
-                  {aiSequenceBusy ? 'Analysing…' : 'AI Sequence Activities'}
-                </button>
-              ) : null}
-            </>
+            <button
+              type="button"
+              className={
+                liveCpmBusy
+                  ? disabledToolbarButtonClass
+                  : 'rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 shadow-sm hover:bg-indigo-100 dark:border-indigo-600 dark:bg-indigo-950 dark:text-indigo-200 dark:hover:bg-indigo-900'
+              }
+              disabled={liveCpmBusy}
+              onClick={() => handleRunLiveCpm()}
+              title="Calculate CPM and show ES, EF, LS, LF, TF on activity cards"
+            >
+              {liveCpmBusy ? 'Calculating…' : livePreviewCpm ? 'Recalculate CPM' : 'Calculate CPM'}
+            </button>
           )}
           <button type="button" className={toolbarButtonClass} onClick={() => canvasRef.current?.autoLayout()}>
             Auto layout
@@ -583,13 +418,9 @@ export default function LogicNetworkWorkspace({
               {livePreviewCpm.projectDurationDays} day duration
             </p>
           ) : null}
-          {isLogicMode && aiSequenceError ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{aiSequenceError}</p>
-          ) : null}
         </div>
       ) : null}
 
-      {/* ── RCS overload warning ─────────────────────────────────────────── */}
       {isLogicMode && rcsOverloadedDays > 0 ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Resource overload: <strong>{rcsOverloadedDays}</strong> days exceed the{' '}
@@ -620,72 +451,6 @@ export default function LogicNetworkWorkspace({
         <LogicNetworkWorkspaceOnboardingModal
           onContinue={dismissOnboarding}
           onEnterFullscreen={handleEnterFromModal}
-        />
-      ) : null}
-
-      <LogicReviewPanel
-        isOpen={showLogicReview}
-        onClose={() => setShowLogicReview(false)}
-        activities={activities}
-        logicLinks={canvasProps.logicLinks}
-        ignoredWarningIds={canvasProps.logicReviewIgnored}
-        busy={logicReviewBusy}
-        hasLogicBatch={canvasProps.hasLogicBatch}
-        logicBatchAddedCount={canvasProps.logicBatchAddedCount}
-        onAddSuggestedLinks={async (links) => {
-          setLogicReviewBusy(true);
-          try { await canvasProps.onAddSuggestedLinks(links); }
-          finally { setLogicReviewBusy(false); }
-        }}
-        onIgnoreWarning={async (warningId) => {
-          setLogicReviewBusy(true);
-          try { await canvasProps.onIgnoreLogicWarning(warningId); }
-          finally { setLogicReviewBusy(false); }
-        }}
-        onRevertLastBatch={async () => {
-          if (!canvasProps.onRevertLastLogicBatch) return;
-          setLogicReviewBusy(true);
-          try { await canvasProps.onRevertLastLogicBatch(); }
-          finally { setLogicReviewBusy(false); }
-        }}
-        onClearAllLogicLinks={async () => {
-          if (!canvasProps.onClearAllLogicLinks) return;
-          setLogicReviewBusy(true);
-          try { await canvasProps.onClearAllLogicLinks(); }
-          finally { setLogicReviewBusy(false); }
-        }}
-        onRemoveLogicLink={async (link) => {
-          setLogicReviewBusy(true);
-          try {
-            const nextLinks = canvasProps.logicLinks.filter(
-              (candidate) =>
-                !(
-                  candidate.predecessorActivityCode === link.predecessorActivityCode &&
-                  candidate.successorActivityCode === link.successorActivityCode &&
-                  candidate.relationshipType === link.relationshipType &&
-                  candidate.lagDays === link.lagDays
-                ),
-            );
-            await canvasProps.onLinksChange(nextLinks);
-          } finally {
-            setLogicReviewBusy(false); }
-        }}
-        onNotify={(message, variant = 'success') => {
-          setLayoutSaveToast({ message, variant });
-        }}
-      />
-
-      {/* AI Sequence Review Modal */}
-      {aiSequenceValidation ? (
-        <AiSequenceReviewModal
-          isOpen={showAiSequenceReview}
-          onClose={() => setShowAiSequenceReview(false)}
-          activityCount={activities.length}
-          validationResult={aiSequenceValidation}
-          onApplySuggested={handleAiSequenceApply}
-          onApplyHighConfidence={handleAiSequenceApply}
-          applying={aiSequenceApplying}
-          previewCpmSummary={previewCpmSummary ?? undefined}
         />
       ) : null}
     </div>

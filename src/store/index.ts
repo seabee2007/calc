@@ -38,6 +38,7 @@ import {
 import { isTruckTicketRecord } from '../utils/concreteTruckTicket';
 import type { ProjectCustomEstimates } from '../types/projectEstimate';
 import { EMPTY_PROJECT_CUSTOM_ESTIMATES } from '../types/projectEstimate';
+import { DEFAULT_PROJECT_CREW_SIZE } from '../features/estimating/scheduling/resources/projectAvailableCrewSize';
 import {
   customEstimatesToDbPayload,
   parseCustomEstimatesFromDb,
@@ -530,7 +531,7 @@ function buildInsertFallbackRow(
     ...jobsite,
     client_info: payload.client_info ?? null,
     waste_factor: payload.waste_factor ?? source.wasteFactor ?? 10,
-    project_crew_size: payload.project_crew_size ?? source.projectCrewSize ?? 7,
+    project_crew_size: payload.project_crew_size ?? source.projectCrewSize ?? DEFAULT_PROJECT_CREW_SIZE,
     pour_date: payload.pour_date ?? source.pourDate ?? null,
     mix_profile: payload.mix_profile ?? 'standard',
     created_at: now,
@@ -708,7 +709,7 @@ function mapProjectFromRow(row: any): Project {
     projectCrewSize:
       row.project_crew_size != null && Number.isFinite(Number(row.project_crew_size))
         ? Number(row.project_crew_size)
-        : 7,
+        : DEFAULT_PROJECT_CREW_SIZE,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     pourDate: row.pour_date,
@@ -1028,7 +1029,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       description: project.description || '',
       ...jobsitePayload(project.jobsiteAddress),
       waste_factor: project.wasteFactor ?? 10,
-      project_crew_size: project.projectCrewSize ?? 7,
+      project_crew_size: project.projectCrewSize ?? DEFAULT_PROJECT_CREW_SIZE,
       pour_date: project.pourDate ?? null,
       mix_profile: 'standard',
     };

@@ -168,6 +168,15 @@ export interface LogicNetworkLayout {
   y: number;
 }
 
+export interface ResourceHistogramActiveActivity {
+  activityCode: string;
+  activityTitle: string;
+  crewSize: number;
+  isCritical: boolean;
+  scheduledStartDay: number;
+  scheduledFinishDay: number;
+}
+
 export interface ResourceHistogramDay {
   dayOffset: number;
   date: string;
@@ -177,6 +186,7 @@ export interface ResourceHistogramDay {
   availableCrew: number;
   overallocatedAmount: number;
   isOverallocated: boolean;
+  activeActivities: ResourceHistogramActiveActivity[];
 }
 
 export interface UnmovedActivity {

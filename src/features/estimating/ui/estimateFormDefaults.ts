@@ -38,6 +38,54 @@ export function parseEstimateFormNumber(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+export interface CommitPositiveIntegerInputOptions {
+  min?: number;
+  max?: number;
+}
+
+export interface CommitPositiveIntegerInputResult {
+  display: string;
+  committed: number | null;
+}
+
+export function commitPositiveIntegerInput(
+  rawInput: string,
+  previousValid: number,
+  options: CommitPositiveIntegerInputOptions = {},
+): CommitPositiveIntegerInputResult {
+  const min = options.min ?? 1;
+  const max = options.max ?? 999;
+  const fallback =
+    Number.isFinite(previousValid) && previousValid >= min && previousValid <= max
+      ? Math.round(previousValid)
+      : min;
+  const trimmed = rawInput.trim();
+
+  if (!trimmed) {
+    return { display: String(fallback), committed: null };
+  }
+
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed)) {
+    return { display: String(fallback), committed: null };
+  }
+
+  const rounded = Math.round(parsed);
+  if (rounded < min || rounded > max) {
+    return { display: String(fallback), committed: null };
+  }
+
+  const previousRounded =
+    Number.isFinite(previousValid) && previousValid >= min && previousValid <= max
+      ? Math.round(previousValid)
+      : null;
+
+  return {
+    display: String(rounded),
+    committed: previousRounded !== null && rounded === previousRounded ? null : rounded,
+  };
+}
+
 export function collectDraftFormWarnings(draft: EstimateDraftLine): DraftFormWarning[] {
   const warnings: DraftFormWarning[] = [];
   const { task } = draft;

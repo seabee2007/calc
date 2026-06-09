@@ -1,13 +1,32 @@
 import type { ResourceLevelingResult } from '../../../scheduling/cpmTypes';
+import {
+  ALLOW_PROJECT_EXTENSION_LABEL,
+  PROJECT_EXTENSION_DISABLED_HELPER,
+  PROJECT_EXTENSION_ENABLED_HELPER,
+} from './resourceLevelingModalCopy';
+import { RESOURCE_HISTOGRAM_HELPER_TEXT } from './resourceHistogramUi';
 
 interface Props {
   result: ResourceLevelingResult;
+  allowProjectExtension: boolean;
+  onAllowProjectExtensionChange: (value: boolean) => void;
   onApply: () => void;
   onCancel: () => void;
 }
 
-export default function ResourceLevelingModal({ result, onApply, onCancel }: Props) {
+export default function ResourceLevelingModal({
+  result,
+  allowProjectExtension,
+  onAllowProjectExtensionChange,
+  onApply,
+  onCancel,
+}: Props) {
   const durationChange = result.projectDurationAfter - result.projectDurationBefore;
+  const canApply = result.movedActivities.length > 0;
+  const noMovesMessage =
+    result.overallocatedDaysAfter > 0 || result.unmovedActivities.length > 0
+      ? 'No activities were moved within available total float.'
+      : 'No activities were moved. Schedule is already resource-balanced.';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -18,11 +37,41 @@ export default function ResourceLevelingModal({ result, onApply, onCancel }: Pro
           </h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Deterministic float-based schedule shift. CPM dates, durations, and activity crew sizes
-            are preserved until you apply leveled offsets.
+            are preserved until you apply leveled offsets. Daily crew counts reflect total workers
+            required per project day.
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {RESOURCE_HISTOGRAM_HELPER_TEXT}
           </p>
         </div>
 
         <div className="space-y-4 px-5 py-4">
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600"
+              checked={allowProjectExtension}
+              onChange={(event) => onAllowProjectExtensionChange(event.target.checked)}
+            />
+            <span className="space-y-1">
+              <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">
+                {ALLOW_PROJECT_EXTENSION_LABEL}
+              </span>
+              <span className="block text-xs text-slate-500 dark:text-slate-400">
+                {allowProjectExtension
+                  ? PROJECT_EXTENSION_ENABLED_HELPER
+                  : PROJECT_EXTENSION_DISABLED_HELPER}
+              </span>
+            </span>
+          </label>
+
+          {allowProjectExtension && durationChange > 0 ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+              Project duration increases from {result.projectDurationBefore} days to{' '}
+              {result.projectDurationAfter} days.
+            </p>
+          ) : null}
+
           <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
               <p className="text-xs text-slate-500 dark:text-slate-400">Available crew size</p>
@@ -31,13 +80,13 @@ export default function ResourceLevelingModal({ result, onApply, onCancel }: Pro
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Peak crew before</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Peak crew before (per day)</p>
               <p className="mt-1 text-lg font-semibold text-slate-800 dark:text-slate-100">
                 {result.peakCrewBefore}
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Peak crew after</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Peak crew after (per day)</p>
               <p className="mt-1 text-lg font-semibold text-slate-800 dark:text-slate-100">
                 {result.peakCrewAfter}
               </p>
@@ -70,7 +119,7 @@ export default function ResourceLevelingModal({ result, onApply, onCancel }: Pro
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Overallocated days</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Days over crew limit</p>
               <p className="mt-1 text-lg font-semibold text-slate-800 dark:text-slate-100">
                 {result.overallocatedDaysBefore} → {result.overallocatedDaysAfter}
               </p>
@@ -133,9 +182,7 @@ export default function ResourceLevelingModal({ result, onApply, onCancel }: Pro
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              No activities were moved. Schedule is already resource-balanced.
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{noMovesMessage}</p>
           )}
 
           {result.unmovedActivities.length > 0 ? (
@@ -182,7 +229,8 @@ export default function ResourceLevelingModal({ result, onApply, onCancel }: Pro
           </button>
           <button
             type="button"
-            className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700"
+            className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!canApply}
             onClick={onApply}
           >
             Apply resource leveling

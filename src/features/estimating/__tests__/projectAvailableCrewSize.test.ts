@@ -23,12 +23,22 @@ describe('resolveProjectAvailableCrewSize', () => {
     ).toBe(9);
   });
 
-  it('defaults to 7 when both are missing', () => {
+  it('defaults to 10 when both are missing', () => {
     expect(
       resolveProjectAvailableCrewSize({
         projectCrewSize: undefined,
         legacyAvailableCrewSize: undefined,
       }),
     ).toBe(DEFAULT_PROJECT_CREW_SIZE);
+    expect(DEFAULT_PROJECT_CREW_SIZE).toBe(10);
+  });
+
+  it('does not treat legacy available crew size of 1 as activity default bleed-through when project crew is saved', () => {
+    expect(
+      resolveProjectAvailableCrewSize({
+        projectCrewSize: 8,
+        legacyAvailableCrewSize: 1,
+      }),
+    ).toBe(8);
   });
 });

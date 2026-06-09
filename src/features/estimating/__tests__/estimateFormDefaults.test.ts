@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createEmptyDraftLine, draftLineFromDomainTask } from '../application/estimateDraftLine';
 import {
   collectDraftFormWarnings,
+  commitPositiveIntegerInput,
   computeDraftSummaryTotals,
   computeLinePreviewTotals,
   parseEstimateFormNumber,
@@ -13,6 +14,45 @@ describe('estimateFormDefaults', () => {
     expect(parseEstimateFormNumber('')).toBe(0);
     expect(parseEstimateFormNumber('12.5')).toBe(12.5);
     expect(parseEstimateFormNumber('abc')).toBe(0);
+  });
+
+  describe('commitPositiveIntegerInput', () => {
+    it('allows blank input while editing without committing zero', () => {
+      const result = commitPositiveIntegerInput('', 10);
+      expect(result.committed).toBeNull();
+      expect(result.display).toBe('10');
+    });
+
+    it('restores the previous valid project crew size when blank', () => {
+      expect(commitPositiveIntegerInput('', 8, { min: 1, max: 999 })).toEqual({
+        committed: null,
+        display: '8',
+      });
+    });
+
+    it('commits a valid new positive integer on blur', () => {
+      const result = commitPositiveIntegerInput('12', 10);
+      expect(result.committed).toBe(12);
+      expect(result.display).toBe('12');
+    });
+
+    it('restores previous value for invalid or sub-minimum input', () => {
+      expect(commitPositiveIntegerInput('abc', 3)).toEqual({
+        committed: null,
+        display: '3',
+      });
+      expect(commitPositiveIntegerInput('0', 3)).toEqual({
+        committed: null,
+        display: '3',
+      });
+    });
+
+    it('does not commit when the rounded value matches the previous value', () => {
+      expect(commitPositiveIntegerInput('10', 10)).toEqual({
+        committed: null,
+        display: '10',
+      });
+    });
   });
 
   it('exposes man-hours per unit as the manual labor input option', () => {

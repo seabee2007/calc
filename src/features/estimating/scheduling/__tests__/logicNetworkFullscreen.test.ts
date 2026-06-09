@@ -101,7 +101,7 @@ describe('Logic Network workspace fullscreen UI', () => {
   it('does not render a standalone help button in the toolbar', () => {
     expect(logicNetworkWorkspaceSource).not.toContain('Show Logic Network workspace tips');
     expect(logicNetworkWorkspaceSource).not.toMatch(/>\s*\?\s*<\/button>/);
-    expect(logicNetworkWorkspaceSource).toContain('Check logic');
+    expect(logicNetworkWorkspaceSource).toContain('Calculate CPM');
     expect(logicNetworkWorkspaceSource).toContain('Auto layout');
     expect(logicNetworkWorkspaceSource).toContain('Fit view');
     expect(logicNetworkWorkspaceSource).toContain('Save layout');

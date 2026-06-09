@@ -28,6 +28,7 @@ import {
   sanitizeScheduleAssumptionsForLineItems,
   seedLogicLinksFromLineItems,
 } from '../../scheduling/scheduleAssumptions';
+import { parseEstimateSettingsFromAssumptions } from '../../application/estimateSettings';
 import type { EstimateDomainTask } from '../../infrastructure/estimateDbTypes';
 
 export interface UseScheduleSettingsResult {
@@ -101,18 +102,12 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
         sanitizedAssumptions.scheduleSettings != null &&
         typeof sanitizedAssumptions.scheduleSettings === 'object';
 
+      const estimateSettings = parseEstimateSettingsFromAssumptions(sanitizedAssumptions);
+
       if (!hasExplicitScheduleSettings) {
-        const estimateSettingsRaw = sanitizedAssumptions.estimateSettings as
-          | Record<string, unknown>
-          | undefined;
-        parsedSettings.hoursPerDay =
-          typeof estimateSettingsRaw?.hoursPerDay === 'number'
-            ? estimateSettingsRaw.hoursPerDay
-            : DEFAULT_SCHEDULE_SETTINGS.hoursPerDay;
-        parsedSettings.availableCrewSize =
-          typeof estimateSettingsRaw?.defaultCrewSize === 'number'
-            ? estimateSettingsRaw.defaultCrewSize
-            : DEFAULT_SCHEDULE_SETTINGS.availableCrewSize;
+        parsedSettings.hoursPerDay = estimateSettings.hoursPerDay;
+        // Project crew size is stored on the project record — never copy default activity crew size here.
+        parsedSettings.availableCrewSize = DEFAULT_SCHEDULE_SETTINGS.availableCrewSize;
       }
 
       setScheduleSettings(parsedSettings);
@@ -133,7 +128,7 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
 
       const savedViewMode = parseLogicNetworkViewModeFromAssumptions(sanitizedAssumptions);
       const { activities } = estimateLineItemsToScheduleActivities(lineItems, {
-        defaultCrewSize: parsedSettings.availableCrewSize,
+        defaultCrewSize: estimateSettings.defaultCrewSize,
         hoursPerDay: parsedSettings.hoursPerDay,
       });
       const savedPrecedenceDiagram =

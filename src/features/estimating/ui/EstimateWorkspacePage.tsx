@@ -69,6 +69,8 @@ import {
   shouldShowOverviewNoEstimateMessage,
 } from './estimateWorkspaceRenderRules';
 import EstimateSettingsPanel from './components/EstimateSettingsPanel';
+import type { PositiveIntegerInputHandle } from './components/PositiveIntegerInput';
+import { commitPositiveIntegerInput } from './estimateFormDefaults';
 import { useEstimateSettings } from './hooks/useEstimateSettings';
 import {
   shouldShowAddDivisionAction,
@@ -104,8 +106,7 @@ import type {
   ScheduleSettings,
 } from '../scheduling/cpmTypes';
 import { validateCpmReadiness } from '../scheduling/logic/validateCpmReadiness';
-import { applyLogicSuggestions } from '../scheduling/logic/logicReviewUtils';
-import type { LogicBatchSnapshot, SuggestedLogicLink } from '../scheduling/logic/logicTypes';
+import type { LogicBatchSnapshot } from '../scheduling/logic/logicTypes';
 import {
   buildPrecedenceDiagramRunState,
   currentPrecedenceDiagramSignaturesMatch,
@@ -115,7 +116,6 @@ import {
   buildScheduleActivitySignature,
   mergeScheduleAssumptions,
   mergeScheduleAssumptionsForAddImport,
-  parseLogicBatchSnapshotFromAssumptions,
   resetScheduleAssumptionsForReplacement,
   sanitizeLogicLinksForActivities,
 } from '../scheduling/scheduleAssumptions';
@@ -157,9 +157,18 @@ export default function EstimateWorkspacePage() {
   }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { projectId, project, loading: plannerLoading, accessDenied } = usePlannerProject();
+  const {
+    projectId,
+    project,
+    loading: plannerLoading,
+    accessDenied,
+    reload: reloadPlannerProject,
+  } = usePlannerProject();
   const updateProject = useProjectStore((state) => state.updateProject);
   const [projectCrewSizeSaving, setProjectCrewSizeSaving] = useState(false);
+  const [optimisticProjectCrewSize, setOptimisticProjectCrewSize] = useState<number | null>(null);
+  const [projectCrewSizeDraftDirty, setProjectCrewSizeDraftDirty] = useState(false);
+  const projectCrewSizeInputRef = useRef<PositiveIntegerInputHandle>(null);
   const parsedTab = parseEstimateWorkspaceTabParam(estimateTab);
   const activeTab: EstimateWorkspaceTabId = parsedTab ?? 'overview';
   const [dataLoading, setDataLoading] = useState(true);
@@ -209,6 +218,7 @@ export default function EstimateWorkspacePage() {
   }, [currentEstimate]);
   const ganttExportRef = useRef<HTMLDivElement>(null);
   const [levelingModalResult, setLevelingModalResult] = useState<import('../scheduling/cpmTypes').ResourceLevelingResult | null>(null);
+  const [levelingAllowProjectExtension, setLevelingAllowProjectExtension] = useState(false);
 
   const schedulePlan = useMemo(() => {
     if (!estimateAdapter || !estimate) return null;
@@ -262,10 +272,57 @@ export default function EstimateWorkspacePage() {
   const projectAvailableCrewSize = useMemo(
     () =>
       resolveProjectAvailableCrewSize({
-        projectCrewSize: project?.projectCrewSize,
+        projectCrewSize: optimisticProjectCrewSize ?? project?.projectCrewSize,
         legacyAvailableCrewSize: scheduleSettingsHook.scheduleSettings.availableCrewSize,
       }),
-    [project?.projectCrewSize, scheduleSettingsHook.scheduleSettings.availableCrewSize],
+    [
+      optimisticProjectCrewSize,
+      project?.projectCrewSize,
+      scheduleSettingsHook.scheduleSettings.availableCrewSize,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      optimisticProjectCrewSize != null &&
+      project?.projectCrewSize === optimisticProjectCrewSize
+    ) {
+      setOptimisticProjectCrewSize(null);
+    }
+  }, [optimisticProjectCrewSize, project?.projectCrewSize]);
+
+  const handleProjectCrewSizeChange = useCallback(
+    async (nextValue: number) => {
+      if (!project?.id || !estimate || !estimateAdapter) {
+        return;
+      }
+      const normalized = Math.max(1, Math.min(999, Math.round(nextValue)));
+      setOptimisticProjectCrewSize(normalized);
+      setProjectCrewSizeSaving(true);
+      try {
+        await updateProject(project.id, { projectCrewSize: normalized });
+        await reloadPlannerProject();
+        setProjectCrewSizeDraftDirty(false);
+        setSaveToastMessage('Project crew size saved');
+      } catch {
+        setOptimisticProjectCrewSize(null);
+        setSaveToastMessage('Could not save project crew size');
+      } finally {
+        setProjectCrewSizeSaving(false);
+      }
+    },
+    [project?.id, estimate, estimateAdapter, updateProject, reloadPlannerProject],
+  );
+
+  const handleProjectCrewSizeDraftChange = useCallback(
+    (raw: string) => {
+      const { committed } = commitPositiveIntegerInput(raw, projectAvailableCrewSize, {
+        min: 1,
+        max: 999,
+      });
+      setProjectCrewSizeDraftDirty(committed !== null);
+    },
+    [projectAvailableCrewSize],
   );
 
   const resourceHistogram = useMemo(() => {
@@ -573,7 +630,8 @@ export default function EstimateWorkspacePage() {
     (lineItemDraft.dirty ||
       estimateSettings.dirty ||
       estimateSetup.session.selectedDivisions.length > 0 ||
-      (currentEstimate?.selectedDivisions.length ?? 0) > 0) &&
+      (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
+      projectCrewSizeDraftDirty) &&
     !saving;
 
   const handleSaveSelectedDivisions = useCallback(
@@ -629,6 +687,23 @@ export default function EstimateWorkspacePage() {
     setSaving(true);
     setSaveError(null);
     setSaveToastMessage(null);
+
+    const pendingCrewCommit = projectCrewSizeInputRef.current?.flushCommit() ?? null;
+    if (pendingCrewCommit !== null) {
+      setProjectCrewSizeDraftDirty(false);
+      await handleProjectCrewSizeChange(pendingCrewCommit);
+    }
+
+    const hasEstimateChanges =
+      lineItemDraft.dirty ||
+      estimateSettings.dirty ||
+      estimateSetup.session.selectedDivisions.length > 0 ||
+      (currentEstimate?.selectedDivisions.length ?? 0) > 0;
+
+    if (!hasEstimateChanges) {
+      setSaving(false);
+      return;
+    }
 
     const precedenceDiagramForSave = scheduleSettingsHook.precedenceDiagram.hasRunCpm
       ? currentPrecedenceDiagramSignaturesMatch({
@@ -707,6 +782,8 @@ export default function EstimateWorkspacePage() {
     currentEstimate?.selectedDivisions,
     estimateSetup.session.selectedDivisions,
     user?.id,
+    projectCrewSizeDraftDirty,
+    handleProjectCrewSizeChange,
   ]);
 
   const handleSaveQuickEstimate = useCallback(
@@ -1008,68 +1085,6 @@ export default function EstimateWorkspacePage() {
     [saveLogicLinksSafely],
   );
 
-  const handleAddSuggestedLogicLinks = useCallback(
-    async (suggestedLinks: SuggestedLogicLink[]) => {
-      if (!currentEstimate || !estimateAdapter || suggestedLinks.length === 0) return;
-
-      const activities = scheduleActivitiesResult.activities;
-      const previousLinks = scheduleSettingsHook.logicLinks;
-
-      const result = applyLogicSuggestions({
-        suggestions: suggestedLinks,
-        existingLinks: previousLinks,
-        activities,
-      });
-
-      if (result.added.length === 0) return;
-
-      const batch: LogicBatchSnapshot = {
-        appliedAt: new Date().toISOString(),
-        addedLinks: result.added.map((link) => ({
-          predecessorActivityCode: link.predecessorActivityCode,
-          successorActivityCode: link.successorActivityCode,
-          relationshipType: link.relationshipType,
-          lagDays: link.lagDays,
-        })),
-        previousLinksSnapshot: previousLinks,
-      };
-
-      await handleLogicLinksChange(result.nextLinks, batch);
-    },
-    [
-      currentEstimate,
-      estimateAdapter,
-      handleLogicLinksChange,
-      scheduleActivitiesResult.activities,
-      scheduleSettingsHook.logicLinks,
-    ],
-  );
-
-  const logicBatchSnapshot = useMemo(
-    () =>
-      parseLogicBatchSnapshotFromAssumptions(
-        currentEstimate?.assumptions as Record<string, unknown> | undefined,
-      ),
-    [currentEstimate?.assumptions],
-  );
-  const hasLogicBatch = logicBatchSnapshot !== null;
-
-  const handleRevertLastLogicBatch = useCallback(async () => {
-    const batch = parseLogicBatchSnapshotFromAssumptions(
-      currentEstimate?.assumptions as Record<string, unknown> | undefined,
-    );
-    if (!batch) return;
-    await handleLogicLinksChange(batch.previousLinksSnapshot, null);
-  }, [currentEstimate?.assumptions, handleLogicLinksChange]);
-
-  const handleClearAllLogicLinks = useCallback(async () => {
-    await saveLogicLinksSafely([], {
-      allowEmpty: true,
-      clearLevelingState: true,
-      batchSnapshot: null,
-    });
-  }, [saveLogicLinksSafely]);
-
   const [runCpmBusy, setRunCpmBusy] = useState(false);
 
   const handleRunCpm = useCallback(async () => {
@@ -1174,45 +1189,6 @@ export default function EstimateWorkspacePage() {
     ],
   );
 
-  const handleIgnoreLogicWarning = useCallback(
-    async (warningId: string) => {
-      const estimate = currentEstimateRef.current;
-      if (!estimate || !estimateAdapter) return;
-      const nextIgnored = scheduleSettingsHook.logicReviewIgnored.includes(warningId)
-        ? scheduleSettingsHook.logicReviewIgnored
-        : [...scheduleSettingsHook.logicReviewIgnored, warningId];
-      scheduleSettingsHook.setLogicReviewIgnored(nextIgnored);
-      const updatedAssumptions = mergeScheduleAssumptions(
-        {
-          logicLinks: scheduleSettingsHook.logicLinks,
-          logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
-          scheduleSettings: scheduleSettingsHook.scheduleSettings,
-          leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
-          logicReviewIgnored: nextIgnored,
-          logicNetworkInitialized: true,
-        },
-        estimate.assumptions as Record<string, unknown>,
-      );
-      await saveCurrentEstimateWithLineItems({
-        estimateId: estimate.id,
-        projectId: estimate.projectId,
-        estimateType: estimateAdapter.estimateType,
-        draftLines: lineItemDraft.draftLines,
-        selectedDivisions: estimate.selectedDivisions,
-        estimateSettings: estimateSettings.settings,
-        existingAssumptions: updatedAssumptions,
-        createdBy: user?.id ?? null,
-      });
-    },
-    [
-      estimateAdapter,
-      estimateSettings.settings,
-      lineItemDraft.draftLines,
-      scheduleSettingsHook,
-      user?.id,
-    ],
-  );
-
   const persistLogicNetworkLayout = useCallback(
     async (layout: LogicNetworkLayout[]) => {
       const estimate = currentEstimateRef.current;
@@ -1279,6 +1255,7 @@ export default function EstimateWorkspacePage() {
   const handleApplyResourceLeveling = useCallback(async () => {
     const estimate = currentEstimateRef.current;
     if (!levelingModalResult || !estimate || !estimateAdapter) return;
+    if (levelingModalResult.movedActivities.length === 0) return;
     const newOffsets: Record<string, number> = {};
     for (const moved of levelingModalResult.movedActivities) {
       newOffsets[moved.activityCode] = moved.daysMoved;
@@ -1314,22 +1291,39 @@ export default function EstimateWorkspacePage() {
     user?.id,
   ]);
 
+  const runResourceLevelingPreview = useCallback(
+    (allowProjectExtension: boolean) => {
+      if (!cpmResult || !scheduleActivitiesResult.activities.length) return;
+      const result = resourceLevelSchedule({
+        activities: scheduleActivitiesResult.activities,
+        logicLinks: scheduleSettingsHook.logicLinks,
+        availableCrewSize: projectAvailableCrewSize,
+        projectStartDate:
+          scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
+        allowProjectExtension,
+      });
+      setLevelingModalResult(result);
+    },
+    [
+      cpmResult,
+      scheduleActivitiesResult.activities,
+      scheduleSettingsHook,
+      projectAvailableCrewSize,
+    ],
+  );
+
   const handleRunResourceLeveling = useCallback(() => {
-    if (!cpmResult || !scheduleActivitiesResult.activities.length) return;
-    const result = resourceLevelSchedule({
-      activities: scheduleActivitiesResult.activities,
-      logicLinks: scheduleSettingsHook.logicLinks,
-      availableCrewSize: projectAvailableCrewSize,
-      projectStartDate:
-        scheduleSettingsHook.scheduleSettings.projectStartDate || getTodayScheduleDateYmd(),
-    });
-    setLevelingModalResult(result);
-  }, [
-    cpmResult,
-    scheduleActivitiesResult.activities,
-    scheduleSettingsHook,
-    projectAvailableCrewSize,
-  ]);
+    setLevelingAllowProjectExtension(false);
+    runResourceLevelingPreview(false);
+  }, [runResourceLevelingPreview]);
+
+  const handleLevelingAllowProjectExtensionChange = useCallback(
+    (allowProjectExtension: boolean) => {
+      setLevelingAllowProjectExtension(allowProjectExtension);
+      runResourceLevelingPreview(allowProjectExtension);
+    },
+    [runResourceLevelingPreview],
+  );
 
   const runCpmGanttExport = useCallback(
     async (format: 'pdf' | 'excel') => {
@@ -1471,22 +1465,6 @@ export default function EstimateWorkspacePage() {
     estimateAdapter?.estimateType === 'quick_feasibility' ||
     activeEstimateType === 'quick_feasibility';
   const canEditEstimate = hasEstimate && hasEstimateAdapter;
-  const handleProjectCrewSizeChange = useCallback(
-    async (nextValue: number) => {
-      if (!project?.id || !canEditEstimate) return;
-      const normalized = Math.max(1, Math.min(999, Math.round(nextValue)));
-      setProjectCrewSizeSaving(true);
-      try {
-        await updateProject(project.id, { projectCrewSize: normalized });
-        setSaveToastMessage('Project crew size saved');
-      } catch {
-        setSaveToastMessage('Could not save project crew size');
-      } finally {
-        setProjectCrewSizeSaving(false);
-      }
-    },
-    [project?.id, canEditEstimate, updateProject],
-  );
   const showCollapseAll = shouldShowCollapseAllAction(
     activeTab,
     builderToolbarHandlers?.showCollapseAll ?? false,
@@ -1668,6 +1646,8 @@ export default function EstimateWorkspacePage() {
             canEdit={canEditEstimate}
             projectCrewSize={projectAvailableCrewSize}
             onProjectCrewSizeChange={(value) => void handleProjectCrewSizeChange(value)}
+            onProjectCrewSizeDraftChange={handleProjectCrewSizeDraftChange}
+            projectCrewSizeInputRef={projectCrewSizeInputRef}
             projectCrewSizeSaving={projectCrewSizeSaving}
           />
         ) : null}
@@ -1769,7 +1749,6 @@ export default function EstimateWorkspacePage() {
                 logicLinks={scheduleSettingsHook.logicLinks}
                 cpmResult={cpmResult}
                 layout={scheduleSettingsHook.logicNetworkLayout}
-                logicReviewIgnored={scheduleSettingsHook.logicReviewIgnored}
                 viewMode={scheduleSettingsHook.logicNetworkViewMode}
                 onViewModeChange={handleLogicNetworkViewModeChange}
                 cpmReadiness={cpmReadiness}
@@ -1778,12 +1757,6 @@ export default function EstimateWorkspacePage() {
                 onLinksChange={handleLogicLinksChange}
                 onLayoutChange={handleLogicNetworkLayoutChange}
                 onSaveLayout={handleSaveLogicNetworkLayout}
-                onAddSuggestedLinks={handleAddSuggestedLogicLinks}
-                onIgnoreLogicWarning={handleIgnoreLogicWarning}
-                hasLogicBatch={hasLogicBatch}
-                logicBatchAddedCount={logicBatchSnapshot?.addedLinks.length ?? 0}
-                onRevertLastLogicBatch={handleRevertLastLogicBatch}
-                onClearAllLogicLinks={handleClearAllLogicLinks}
                 logicNetworkInitialized={scheduleSettingsHook.logicNetworkInitialized}
                 scheduleSettings={scheduleSettingsHook.scheduleSettings}
                 projectAvailableCrewSize={projectAvailableCrewSize}
@@ -1882,6 +1855,8 @@ export default function EstimateWorkspacePage() {
       {levelingModalResult && (
         <ResourceLevelingModal
           result={levelingModalResult}
+          allowProjectExtension={levelingAllowProjectExtension}
+          onAllowProjectExtensionChange={handleLevelingAllowProjectExtensionChange}
           onApply={() => void handleApplyResourceLeveling()}
           onCancel={() => setLevelingModalResult(null)}
         />

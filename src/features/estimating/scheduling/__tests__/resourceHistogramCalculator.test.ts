@@ -140,4 +140,23 @@ describe('calculateResourceHistogram', () => {
     expect(result[0].requiredCrew).toBe(0);
     expect(result[3].requiredCrew).toBe(5);
   });
+
+  it('lists active activities for each project day', () => {
+    const activities = [makeAct('A', 3, 3), makeAct('B', 3, 2)];
+    const cpmActivities = [
+      { ...makeCpm('A', 0, 3), isCritical: true },
+      { ...makeCpm('B', 1, 4), isCritical: false },
+    ];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result[1].activeActivities).toHaveLength(2);
+    expect(result[1].activeActivities.map((activity) => activity.activityCode)).toEqual(['A', 'B']);
+    expect(result[1].activeActivities[0]?.isCritical).toBe(true);
+    expect(result[1].activeActivities[1]?.scheduledStartDay).toBe(1);
+  });
 });

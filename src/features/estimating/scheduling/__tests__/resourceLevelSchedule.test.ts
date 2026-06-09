@@ -137,4 +137,31 @@ describe('resourceLevelSchedule', () => {
       expect(result.movedActivities[0]?.activityCode).toBe('C');
     }
   });
+
+  it('shows project extension warning only when extension is disabled', () => {
+    const activities = [makeAct('A', 3, 6), makeAct('B', 6, 6), makeAct('C', 2, 1)];
+    const links: CpmLogicLink[] = [fs('A', 'C'), fs('B', 'C')];
+    const params = {
+      activities,
+      logicLinks: links,
+      availableCrewSize: 6,
+      projectStartDate: '2025-01-01',
+    };
+
+    const withoutExtension = resourceLevelSchedule({
+      ...params,
+      allowProjectExtension: false,
+    });
+    const withExtension = resourceLevelSchedule({
+      ...params,
+      allowProjectExtension: true,
+    });
+
+    expect(
+      withoutExtension.warnings.some((warning) => warning.includes('Project extension is not enabled')),
+    ).toBe(true);
+    expect(
+      withExtension.warnings.some((warning) => warning.includes('Project extension is not enabled')),
+    ).toBe(false);
+  });
 });

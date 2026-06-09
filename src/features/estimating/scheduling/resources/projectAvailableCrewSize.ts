@@ -1,4 +1,4 @@
-export const DEFAULT_PROJECT_CREW_SIZE = 7;
+export const DEFAULT_PROJECT_CREW_SIZE = 10;
 
 export function resolveProjectAvailableCrewSize(input: {
   projectCrewSize?: number | null;

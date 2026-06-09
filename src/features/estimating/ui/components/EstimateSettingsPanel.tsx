@@ -1,10 +1,12 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
+import type { PositiveIntegerInputHandle } from './PositiveIntegerInput';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import Button from '../../../../components/ui/Button';
 import type { EstimateSettings } from '../../domain/estimateTypes';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import type { UseEstimateSettingsResult } from '../hooks/useEstimateSettings';
+import PositiveIntegerInput from './PositiveIntegerInput';
 import {
   PLANNER_FORM_PANEL,
   PLANNER_MUTED,
@@ -16,6 +18,8 @@ interface Props {
   canEdit: boolean;
   projectCrewSize: number;
   onProjectCrewSizeChange: (value: number) => void;
+  onProjectCrewSizeDraftChange?: (raw: string) => void;
+  projectCrewSizeInputRef?: RefObject<PositiveIntegerInputHandle | null>;
   projectCrewSizeSaving?: boolean;
 }
 
@@ -65,6 +69,8 @@ export default function EstimateSettingsPanel({
   canEdit,
   projectCrewSize,
   onProjectCrewSizeChange,
+  onProjectCrewSizeDraftChange,
+  projectCrewSizeInputRef,
   projectCrewSizeSaving = false,
 }: Props) {
   const {
@@ -161,18 +167,15 @@ export default function EstimateSettingsPanel({
       </SettingsSection>
 
       <SettingsSection title="Schedule resources">
-        <Input
+        <PositiveIntegerInput
+          ref={projectCrewSizeInputRef}
           label="Project Crew Size"
-          type="number"
-          min={1}
-          max={999}
-          step={1}
           value={projectCrewSize}
           disabled={!canEdit || projectCrewSizeSaving}
-          onChange={(event) =>
-            onProjectCrewSizeChange(parseEstimateFormNumber(event.target.value))
-          }
-          fullWidth
+          min={1}
+          max={999}
+          onCommit={onProjectCrewSizeChange}
+          onDraftChange={onProjectCrewSizeDraftChange}
         />
         <p className={`text-xs ${PLANNER_MUTED} sm:col-span-2 lg:col-span-3`}>
           Total workers normally available for this project per workday. Used for the Level III
@@ -240,17 +243,12 @@ export default function EstimateSettingsPanel({
           }
           fullWidth
         />
-        <Input
+        <PositiveIntegerInput
           label="Default activity crew size"
-          type="number"
-          min={0}
-          step="any"
           value={settings.defaultCrewSize}
           disabled={!canEdit}
-          onChange={(event) =>
-            patch({ defaultCrewSize: parseEstimateFormNumber(event.target.value) })
-          }
-          fullWidth
+          min={1}
+          onCommit={(value) => patch({ defaultCrewSize: value })}
         />
         <p className={`text-xs ${PLANNER_MUTED} sm:col-span-2 lg:col-span-3`}>
           Workers required for a new estimate line item when no activity-specific crew size is set.

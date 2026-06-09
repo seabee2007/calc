@@ -134,12 +134,11 @@ describe('logic network save wiring', () => {
     expect(hookSource).not.toContain('if (existingLinks.length > 0)');
   });
 
-  it('manual, AI, and clear routes use saveLogicLinksSafely', () => {
+  it('manual link routes use saveLogicLinksSafely', () => {
     expect(pageSource).toContain('saveLogicLinksSafely');
     expect(pageSource).toContain('handleLogicLinksChange');
-    expect(pageSource).toContain('handleAddSuggestedLogicLinks');
-    expect(pageSource).toContain('handleClearAllLogicLinks');
-    expect(pageSource).toContain('clearLevelingState: true');
+    expect(pageSource).not.toContain('handleAddSuggestedLogicLinks');
+    expect(pageSource).not.toContain('handleClearAllLogicLinks');
     expect(pageSource).toContain('sanitizeLogicLinksForActivities');
   });
 
