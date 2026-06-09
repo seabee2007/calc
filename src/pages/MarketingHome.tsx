@@ -1,10 +1,8 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, LayoutDashboard } from 'lucide-react';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
-import { signInWithProvider } from '../lib/oauthAuth';
 import { AUTH_ACCENT } from '../components/auth/authBrandTheme';
 import {
   MARKETING_FEATURE_CARDS,
@@ -17,8 +15,6 @@ import {
 export default function MarketingHome() {
   const navigate = useNavigate();
   const { user, isEmployee } = useAuth();
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const openWorkspace = () => {
     if (isEmployee) {
@@ -28,19 +24,8 @@ export default function MarketingHome() {
     navigate('/projects');
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setGoogleError(null);
-      setGoogleLoading(true);
-      await signInWithProvider('google');
-    } catch {
-      setGoogleError('Google sign-in failed. Please try again.');
-      setGoogleLoading(false);
-    }
-  };
-
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-12 overflow-x-hidden pb-8 sm:space-y-16 sm:pb-12">
+    <div className="mx-auto min-h-screen w-full max-w-6xl space-y-12 overflow-x-hidden pb-8 sm:space-y-16 sm:pb-12">
       <motion.section
         className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/55 px-4 py-10 text-center shadow-2xl backdrop-blur-md sm:px-8 sm:py-14"
         initial={{ opacity: 0, y: 16 }}
@@ -96,11 +81,6 @@ export default function MarketingHome() {
               </>
             )}
           </div>
-          {!user && googleError ? (
-            <p className="relative mt-4 text-sm text-red-300" role="alert">
-              {googleError}
-            </p>
-          ) : null}
         </div>
       </motion.section>
 

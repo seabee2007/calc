@@ -42,7 +42,11 @@ function sectionLabelForPath(pathname: string, search = ''): string {
   return 'Concrete Calc';
 }
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  showThemeToggle?: boolean;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut, isOwner, isEmployee } = useAuth();
@@ -213,9 +217,11 @@ const Navbar: React.FC = () => {
           </Link>
         )}
 
-        <div className="[&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
-          <ThemeToggle />
-        </div>
+        {showThemeToggle ? (
+          <div className="[&_button]:!min-h-0 [&_button]:!p-2 [&_button]:!text-slate-300 [&_button]:hover:!bg-white/10 [&_button]:hover:!text-white">
+            <ThemeToggle />
+          </div>
+        ) : null}
 
         {user && isOwner && (
           <span className="hidden md:inline-flex">

@@ -31,6 +31,8 @@ const Layout: React.FC = () => {
     isPublicProposal ||
     isPublicClientPortal;
 
+  const isLoggedOutLanding = location.pathname === '/' && !user;
+
   const showBottomNav =
     Boolean(user) &&
     !isAuthPage &&
@@ -107,17 +109,23 @@ const Layout: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen w-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950"
+      className={
+        isLoggedOutLanding
+          ? 'min-h-screen w-screen overflow-x-hidden bg-slate-950 text-white'
+          : 'min-h-screen w-screen overflow-x-hidden bg-slate-50 dark:bg-slate-950'
+      }
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <SiteBackground />
+      <SiteBackground forceDark={isLoggedOutLanding} />
 
       {/* App content */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <Navbar />
+        <Navbar showThemeToggle={!isLoggedOutLanding} />
 
         <main
-          className="relative mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
+          className={`relative mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8${
+            isLoggedOutLanding ? ' text-white' : ''
+          }`}
           style={{
             paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
             paddingRight: 'max(env(safe-area-inset-right), 1rem)',

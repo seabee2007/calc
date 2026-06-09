@@ -208,15 +208,19 @@ function App() {
     checkOnboarding();
   }, [user, authLoading, location.pathname, isNativePlatform]);
 
+  const isLoggedOutLanding = location.pathname === '/' && !user && !authLoading;
+
   useEffect(() => {
-    if (isDark) {
+    const shouldUseDark = isLoggedOutLanding || isDark;
+
+    if (shouldUseDark) {
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark');
     }
-  }, [isDark]);
+  }, [isDark, isLoggedOutLanding]);
 
   const handleOnboardingComplete = () => {
     try {

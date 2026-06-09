@@ -56,6 +56,7 @@ describe('mobile signed-out landing render', () => {
     expect(screen.getByRole('button', { name: 'Get started' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Sign in' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign up' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Toggle theme' })).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', { level: 1, name: 'Concrete Calc Project Management Suite' }),
     ).toBeInTheDocument();
