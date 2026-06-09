@@ -8,13 +8,19 @@ export function getOAuthCallbackUrl(): string {
 
 export async function signInWithProvider(provider: OAuthProvider): Promise<void> {
   const redirectTo = getOAuthCallbackUrl();
-  console.log('[OAuth] redirectTo', redirectTo);
+
+  const options: {
+    redirectTo: string;
+    queryParams?: { prompt: string };
+  } = { redirectTo };
+
+  if (provider === 'google') {
+    options.queryParams = { prompt: 'select_account' };
+  }
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
-    options: {
-      redirectTo,
-    },
+    options,
   });
 
   if (error) {

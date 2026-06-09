@@ -26,13 +26,27 @@ describe('oauthAuth', () => {
     expect(getOAuthCallbackUrl()).toBe('http://localhost:5173/auth/callback');
   });
 
-  it('signInWithProvider calls signInWithOAuth with provider and redirectTo', async () => {
+  it('signInWithProvider calls signInWithOAuth with provider, redirectTo, and Google queryParams', async () => {
     signInWithOAuth.mockResolvedValue({ error: null });
 
     await signInWithProvider('google');
 
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
+      options: {
+        redirectTo: 'http://localhost:5173/auth/callback',
+        queryParams: { prompt: 'select_account' },
+      },
+    });
+  });
+
+  it('signInWithProvider does not add Google queryParams for GitHub', async () => {
+    signInWithOAuth.mockResolvedValue({ error: null });
+
+    await signInWithProvider('github');
+
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'github',
       options: {
         redirectTo: 'http://localhost:5173/auth/callback',
       },

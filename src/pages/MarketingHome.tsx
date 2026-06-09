@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, LayoutDashboard } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
+import { signInWithProvider } from '../lib/oauthAuth';
 import {
   MARKETING_FEATURE_CARDS,
   MARKETING_HERO_SUBTITLE,
@@ -14,6 +16,8 @@ import {
 export default function MarketingHome() {
   const navigate = useNavigate();
   const { user, isEmployee } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const openWorkspace = () => {
     if (isEmployee) {
@@ -21,6 +25,17 @@ export default function MarketingHome() {
       return;
     }
     navigate('/projects');
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleError(null);
+      setGoogleLoading(true);
+      await signInWithProvider('google');
+    } catch {
+      setGoogleError('Google sign-in failed. Please try again.');
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -76,9 +91,25 @@ export default function MarketingHome() {
                 >
                   Sign in
                 </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  fullWidth
+                  className="sm:w-auto"
+                  disabled={googleLoading}
+                  isLoading={googleLoading}
+                  onClick={() => void handleGoogleSignIn()}
+                >
+                  Continue with Google
+                </Button>
               </>
             )}
           </div>
+          {!user && googleError ? (
+            <p className="relative mt-4 text-sm text-red-300" role="alert">
+              {googleError}
+            </p>
+          ) : null}
         </div>
       </motion.section>
 

@@ -24,13 +24,37 @@ https://app.concrete-calc.com
 **Additional Redirect URLs:**
 
 ```text
-http://localhost:5173/**
-http://172.20.10.2:5173/**
-https://app.concrete-calc.com/**
-https://concrete-calc.com/**
+https://app.concrete-calc.com/auth/callback
+http://localhost:5173/auth/callback
 ```
 
-The app uses `redirectTo: ${window.location.origin}/auth/callback` for OAuth. That URL must match an allowed redirect pattern above.
+The app uses `redirectTo: ${window.location.origin}/auth/callback` for OAuth. That URL must match an allowed redirect URL above.
+
+### Two-site OAuth flow
+
+| Site | Role |
+| --- | --- |
+| `https://concrete-calc.com` | Public marketing site only. Sign-in buttons must link to `https://app.concrete-calc.com/login`. The marketing site must **not** host `/auth/callback`. |
+| `https://app.concrete-calc.com` | App owns `/login`, `/signup`, `/auth/callback`, onboarding, and the workspace. |
+
+Sign-in entry points on the app:
+
+- App landing (`/`) — **Continue with Google** and **Sign in** → `/login`
+- Login page (`/login`) — **Continue with Google** via existing social login buttons
+
+Google OAuth always requests account selection via `prompt=select_account`.
+
+### Google Cloud Console
+
+In **Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client**:
+
+**Authorized redirect URI** (Supabase provider callback, not the app callback):
+
+```text
+https://bhxbxcexssolsdgvgxjz.supabase.co/auth/v1/callback
+```
+
+After Google auth, Supabase redirects to the app callback (`/auth/callback`), which exchanges the PKCE code and routes to `/` for existing onboarding/dashboard gating.
 
 ### Local development
 

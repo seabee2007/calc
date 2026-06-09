@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import MarketingHome from './MarketingHome';
 import {
@@ -11,6 +12,10 @@ const navigate = vi.fn();
 const authState = vi.hoisted(() => ({
   user: null as { id: string } | null,
   isEmployee: false,
+}));
+
+const { signInWithProvider } = vi.hoisted(() => ({
+  signInWithProvider: vi.fn(),
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -25,11 +30,16 @@ vi.mock('../hooks/useAuth', () => ({
   useAuth: () => authState,
 }));
 
+vi.mock('../lib/oauthAuth', () => ({
+  signInWithProvider,
+}));
+
 describe('MarketingHome', () => {
   beforeEach(() => {
     authState.user = null;
     authState.isEmployee = false;
     navigate.mockClear();
+    signInWithProvider.mockReset();
   });
 
   it('renders the PM suite hero and removes legacy calculator positioning', () => {
@@ -54,6 +64,37 @@ describe('MarketingHome', () => {
 
     expect(screen.getByRole('button', { name: 'Get started' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
+  });
+
+  it('starts Google sign-in from the landing page', async () => {
+    const user = userEvent.setup();
+    signInWithProvider.mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter>
+        <MarketingHome />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    expect(signInWithProvider).toHaveBeenCalledWith('google');
+  });
+
+  it('shows an error when Google sign-in fails', async () => {
+    const user = userEvent.setup();
+    signInWithProvider.mockRejectedValue(new Error('Provider not enabled'));
+
+    render(
+      <MemoryRouter>
+        <MarketingHome />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Google sign-in failed. Please try again.');
   });
 
   it('renders all PM suite feature cards', () => {
