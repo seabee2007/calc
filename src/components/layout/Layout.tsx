@@ -8,6 +8,7 @@ import MoreMenuModal from '../workflow/MoreMenuModal';
 import { useAuth } from '../../hooks/useAuth';
 import { isPlannerWorkspacePath } from '../../utils/plannerRoutes';
 import SiteBackground from './SiteBackground';
+import PageErrorBoundary from './PageErrorBoundary';
 import { COLOR_CANVAS_DARK, COLOR_CANVAS_LIGHT } from '../../theme/appTheme';
 
 const Layout: React.FC = () => {
@@ -25,6 +26,8 @@ const Layout: React.FC = () => {
   const isAuthPage =
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
+    location.pathname === '/auth/callback' ||
+    location.pathname === '/reset-password' ||
     isPublicProposal ||
     isPublicClientPortal;
 
@@ -122,7 +125,9 @@ const Layout: React.FC = () => {
             minHeight: 'auto',
           }}
         >
-          <Outlet />
+          <PageErrorBoundary title="This page failed to load">
+            <Outlet />
+          </PageErrorBoundary>
         </main>
 
         <Footer />

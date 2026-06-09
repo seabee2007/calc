@@ -1,150 +1,136 @@
-import React from 'react';
 import { motion } from 'framer-motion';
+import { ArrowRight, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, Folder, Book, ArrowRight, CloudSun, LayoutDashboard } from 'lucide-react';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
+import {
+  MARKETING_FEATURE_CARDS,
+  MARKETING_HERO_SUBTITLE,
+  MARKETING_HERO_TITLE,
+  MARKETING_SUITE_SECTION_TITLE,
+  MARKETING_WORKFLOW,
+} from './marketingHomeContent';
 
-const MarketingHome: React.FC = () => {
+export default function MarketingHome() {
   const navigate = useNavigate();
+  const { user, isEmployee } = useAuth();
 
-  const features = [
-    {
-      title: 'Operations dashboard',
-      description:
-        'Dashboard for placements, dispatch, weather risk, QC, and readiness scores',
-      icon: <LayoutDashboard className="h-10 w-10 text-white" />,
-      action: () => navigate('/signup'),
-      gradient: 'from-slate-700 to-slate-900',
-    },
-    {
-      title: 'Placement planner',
-      description: 'ACI weather scoring, truck spacing, and ready-mix call sheets',
-      icon: <CloudSun className="h-10 w-10 text-white" />,
-      action: () => navigate('/signup'),
-      gradient: 'from-cyan-500 to-cyan-700',
-    },
-    {
-      title: 'Precise calculations',
-      description: 'Slabs, footers, columns, sidewalks — field-ready volumes',
-      icon: <Calculator className="h-10 w-10 text-white" />,
-      action: () => navigate('/calculator'),
-      gradient: 'from-blue-500 to-blue-700',
-    },
-    {
-      title: 'Project management',
-      description: 'QC logs, truck tickets, jobsite addresses, and placement dates',
-      icon: <Folder className="h-10 w-10 text-white" />,
-      action: () => navigate('/projects'),
-      gradient: 'from-indigo-500 to-indigo-700',
-    },
-    {
-      title: 'Concrete resources',
-      description: 'Guides for mix, finishing, and NAVFAC-style field workflows',
-      icon: <Book className="h-10 w-10 text-white" />,
-      action: () => navigate('/resources'),
-      gradient: 'from-blue-500 to-blue-700',
-    },
-  ];
+  const openWorkspace = () => {
+    if (isEmployee) {
+      navigate('/employee/dashboard');
+      return;
+    }
+    navigate('/projects');
+  };
 
   return (
-    <div className="space-y-12">
+    <div className="mx-auto w-full max-w-6xl space-y-12 overflow-x-hidden pb-8 sm:space-y-16 sm:pb-12">
       <motion.section
-        className="text-center py-12 px-4 sm:px-6 lg:px-8"
-        initial={{ opacity: 0, y: 20 }}
+        className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/55 px-4 py-10 text-center shadow-2xl backdrop-blur-md sm:px-8 sm:py-14"
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <motion.h1
-          className="text-4xl sm:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          Concrete field operations
-          <span className="text-cyan-400"> platform</span>
-        </motion.h1>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-600/10" />
+        <div className="relative">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300/90 sm:text-sm">
+            {MARKETING_WORKFLOW}
+          </p>
+          <h1 className="mx-auto max-w-4xl text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
+            {MARKETING_HERO_TITLE}
+          </h1>
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-slate-200 sm:text-lg">
+            {MARKETING_HERO_SUBTITLE}
+          </p>
 
-        <motion.p
-          className="text-xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] max-w-3xl mx-auto mb-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          More than volume math — plan placements, manage dispatch call sheets, track QC,
-          and score weather risk for military and commercial jobsites.
-        </motion.p>
-
-        <motion.div
-          className="flex flex-col sm:flex-row justify-center gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-        >
-          <Button
-            size="lg"
-            onClick={() => navigate('/signup')}
-            icon={<LayoutDashboard size={20} />}
-          >
-            Get started
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => navigate('/login')}
-            className="bg-white/10 backdrop-blur-sm"
-          >
-            Sign in
-          </Button>
-        </motion.div>
+          <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+            {user ? (
+              <Button
+                size="lg"
+                variant="accent"
+                fullWidth
+                className="sm:w-auto"
+                onClick={openWorkspace}
+                icon={<LayoutDashboard size={20} />}
+              >
+                Open workspace
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="lg"
+                  variant="accent"
+                  fullWidth
+                  className="sm:w-auto"
+                  onClick={() => navigate('/signup')}
+                  icon={<LayoutDashboard size={20} />}
+                >
+                  Get started
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  fullWidth
+                  className="border-white/20 bg-white/5 text-white hover:bg-white/10 sm:w-auto"
+                  onClick={() => navigate('/login')}
+                >
+                  Sign in
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </motion.section>
 
-      <section className="py-8">
-        <h2 className="text-2xl font-bold text-white drop-shadow mb-8 text-center">
-          Built for the field
-        </h2>
+      <section className="px-1 sm:px-0">
+        <div className="mb-8 text-center">
+          <h2 className="text-2xl font-semibold text-white sm:text-3xl">{MARKETING_SUITE_SECTION_TITLE}</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+            Professional construction project management software for estimating, planning, scheduling,
+            documents, and field execution.
+          </p>
+        </div>
+
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3"
           initial="hidden"
           animate="visible"
           variants={{
-            visible: { transition: { staggerChildren: 0.08 } },
+            visible: { transition: { staggerChildren: 0.06 } },
           }}
         >
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              variants={{
-                hidden: { y: 20, opacity: 0 },
-                visible: { y: 0, opacity: 1 },
-              }}
-            >
-              <Card
-                className={`h-full p-6 text-center bg-gradient-to-br ${feature.gradient} hover:scale-[1.02] transition-all shadow-xl`}
-                shadow="lg"
-                hoverable
-                clickable
-                onClick={feature.action}
+          {MARKETING_FEATURE_CARDS.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={feature.title}
+                variants={{
+                  hidden: { y: 16, opacity: 0 },
+                  visible: { y: 0, opacity: 1 },
+                }}
               >
-                <div className="flex justify-center mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-white/90 mb-4 text-sm">{feature.description}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={feature.action}
-                  icon={<ArrowRight size={16} />}
-                  className="bg-white/10 text-white border-white/30"
+                <button
+                  type="button"
+                  onClick={() => navigate(feature.path)}
+                  className="group flex h-full w-full flex-col rounded-2xl border border-white/10 bg-slate-900/60 p-5 text-left shadow-lg backdrop-blur-md transition-all hover:border-cyan-400/30 hover:bg-slate-900/80 hover:shadow-cyan-500/10 sm:p-6"
                 >
-                  Explore
-                </Button>
-              </Card>
-            </motion.div>
-          ))}
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-300">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-300">
+                    {feature.description}
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-300 transition-colors group-hover:text-cyan-200">
+                    Learn more
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </span>
+                </button>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </section>
     </div>
   );
-};
-
-export default MarketingHome;
+}

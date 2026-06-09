@@ -33,6 +33,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-blue-50 flex items-center justify-center relative overflow-hidden">
       <div className="relative z-10 text-center px-6 max-w-lg mx-auto">
         <AnimatePresence mode="wait">
+          {!showTitle && !showContent ? (
+            <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-24" aria-hidden />
+          ) : null}
           {/* Title Animation */}
           {showTitle && !showContent && (
             <motion.div

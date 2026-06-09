@@ -112,8 +112,7 @@ const Navbar: React.FC = () => {
             to="/"
             className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
           >
-            <span>Concrete</span>
-            <span className="hidden sm:inline">Calc</span>
+            Concrete Calc
           </Link>
         )}
 
@@ -293,8 +292,12 @@ const Navbar: React.FC = () => {
               className="!h-8 !px-2 !py-1 !text-xs"
               onClick={() => navigate('/signup')}
               icon={<UserPlus className="h-3.5 w-3.5" />}
+              aria-label="Sign up"
             >
-              <span className="hidden sm:inline">Sign up</span>
+              <span>
+                <span className="sr-only sm:hidden">Sign up</span>
+                <span className="hidden sm:inline">Sign up</span>
+              </span>
             </Button>
           </div>
         )}

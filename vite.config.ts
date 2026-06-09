@@ -73,6 +73,9 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom']
   },
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

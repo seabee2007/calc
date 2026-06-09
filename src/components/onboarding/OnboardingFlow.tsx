@@ -164,10 +164,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
   return (
     <AnimatePresence mode="wait">
-      {currentStep === 'welcome' && (
+      {currentStep === 'welcome' ? (
         <WelcomeScreen key="welcome" onNext={handleNext} onSkip={handleSkip} />
-      )}
-      {currentStep === 'theme' && (
+      ) : currentStep === 'theme' ? (
         <ThemeSelector
           key="theme"
           value={formData.theme}
@@ -175,8 +174,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
           onNext={handleNext}
           onBack={handleBack}
         />
-      )}
-      {currentStep !== 'welcome' && currentStep !== 'theme' && (
+      ) : (
         <OnboardingStep
           key={currentStep}
           title={stepConfig[currentStep].title}

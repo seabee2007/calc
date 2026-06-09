@@ -215,16 +215,15 @@ const SignUp: React.FC = () => {
 
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                 Or{' '}
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
                   onClick={() =>
                     navigate(inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login')
                   }
-                  className="!inline !h-auto !p-0 !font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   sign in to existing account
-                </Button>
+                </button>
               </p>
             </div>
 

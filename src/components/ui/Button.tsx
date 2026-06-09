@@ -46,6 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   target,
   rel,
   onClick,
+  type = 'button',
   ...props
 }, ref) => {
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
@@ -91,8 +92,9 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   };
 
   const widthStyle = fullWidth ? 'w-full' : '';
-
   const classes = `${baseStyles} ${focusRingByVariant[variant]} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${className}`;
+  const isDisabled = Boolean(isLoading || disabled);
+  const tapAnimation = isDisabled ? undefined : { scale: 0.97 };
 
   const content = (
     <>
@@ -119,41 +121,40 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
         </svg>
       )}
 
-      {icon && !isLoading && <span className="mr-2">{icon}</span>}
+      {icon && !isLoading ? <span className="mr-2 inline-flex shrink-0">{icon}</span> : null}
 
-      {children}
+      {children ?? null}
     </>
   );
 
   if (as === 'a') {
     return (
-      <motion.div whileTap={{ scale: 0.97 }} className="inline-block">
-        <a
-          ref={ref as React.Ref<HTMLAnchorElement>}
-          className={classes}
-          href={href}
-          target={target}
-          rel={rel}
-          onClick={handleClick}
-        >
-          {content}
-        </a>
-      </motion.div>
+      <motion.a
+        ref={ref as React.Ref<HTMLAnchorElement>}
+        className={classes}
+        href={href}
+        target={target}
+        rel={rel}
+        onClick={handleClick}
+        whileTap={tapAnimation}
+      >
+        {content}
+      </motion.a>
     );
   }
 
   return (
-    <motion.div whileTap={{ scale: 0.97 }} className={fullWidth ? 'block w-full' : 'inline-block'}>
-      <button
-        ref={ref as React.Ref<HTMLButtonElement>}
-        className={classes}
-        disabled={isLoading || disabled}
-        onClick={handleClick}
-        {...props}
-      >
-        {content}
-      </button>
-    </motion.div>
+    <motion.button
+      ref={ref as React.Ref<HTMLButtonElement>}
+      type={type}
+      className={classes}
+      disabled={isDisabled}
+      onClick={handleClick}
+      whileTap={tapAnimation}
+      {...props}
+    >
+      {content}
+    </motion.button>
   );
 });
 
