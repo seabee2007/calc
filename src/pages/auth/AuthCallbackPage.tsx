@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-
+import { consumePendingProjectInviteToken } from '../../services/projectInviteService';
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
 
@@ -29,6 +29,12 @@ export default function AuthCallbackPage() {
           replace: true,
           state: { message: 'Social login failed. Please try again.' },
         });
+        return;
+      }
+
+      const pendingProjectInvite = consumePendingProjectInviteToken();
+      if (pendingProjectInvite) {
+        navigate(`/invite/${pendingProjectInvite}`, { replace: true });
         return;
       }
 

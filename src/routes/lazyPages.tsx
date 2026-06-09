@@ -67,6 +67,7 @@ export const LazyPublicContract = lazyPage(
   () => import('../features/documents/ui/PublicContractPage'),
 );
 export const LazyClientPortal = lazyPage(() => import('../pages/ClientPortal'));
+export const LazyClientInvitePage = lazyPage(() => import('../pages/ClientInvitePage'));
 
 // Onboarding & chat
 export const LazyOnboardingFlow = lazyWithProps<{ onComplete: () => void }>(

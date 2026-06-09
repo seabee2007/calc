@@ -35,6 +35,7 @@ const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite');
+  const returnTo = searchParams.get('returnTo');
 
   const {
     register,
@@ -163,17 +164,18 @@ const SignUp: React.FC = () => {
         }
       }
 
-      navigate(
-        inviteToken
-          ? `/login?invite=${encodeURIComponent(inviteToken)}`
-          : '/login',
-        {
-          state: {
-            message: 'Account created successfully! Please sign in.',
-            inviteToken: inviteToken ?? undefined,
-          },
+      const loginPath = inviteToken
+        ? `/login?invite=${encodeURIComponent(inviteToken)}`
+        : returnTo
+          ? `/login?returnTo=${encodeURIComponent(returnTo)}`
+          : '/login';
+
+      navigate(loginPath, {
+        state: {
+          message: 'Account created successfully! Please sign in.',
+          inviteToken: inviteToken ?? undefined,
         },
-      );
+      });
     } catch {
       setError('root', {
         message: 'Error creating account. Please try again.',

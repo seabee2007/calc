@@ -28,6 +28,7 @@ const Layout: React.FC = () => {
     location.pathname === '/signup' ||
     location.pathname === '/auth/callback' ||
     location.pathname === '/reset-password' ||
+    location.pathname.startsWith('/invite/') ||
     isPublicProposal ||
     isPublicClientPortal;
 

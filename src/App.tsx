@@ -42,6 +42,7 @@ import {
   LazyPublicChangeOrder,
   LazyPublicContract,
   LazyClientPortal,
+  LazyClientInvitePage,
   LazyResources,
   LazyMixDesigns,
   LazyWeatherEffects,
@@ -511,6 +512,7 @@ function App() {
           <Route path="/change-order/:token" element={<LazyRoute Page={LazyPublicChangeOrder} />} />
           <Route path="/contract/:token" element={<LazyRoute Page={LazyPublicContract} />} />
           <Route path="/client/project/:token" element={<LazyRoute Page={LazyClientPortal} />} />
+          <Route path="/invite/:token" element={<LazyRoute Page={LazyClientInvitePage} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />

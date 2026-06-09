@@ -7,12 +7,14 @@ interface SocialLoginButtonsProps {
   disabled?: boolean;
   onError?: (message: string) => void;
   appearance?: 'default' | 'auth-dark';
+  onBeforeSignIn?: () => void;
 }
 
 export default function SocialLoginButtons({
   disabled = false,
   onError,
   appearance = 'default',
+  onBeforeSignIn,
 }: SocialLoginButtonsProps) {
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
   const buttonClassName = appearance === 'auth-dark' ? AUTH_ACCENT.socialButtonDark : undefined;
@@ -20,6 +22,7 @@ export default function SocialLoginButtons({
   const handleProviderClick = async (provider: OAuthProvider) => {
     try {
       setLoadingProvider(provider);
+      onBeforeSignIn?.();
       await signInWithProvider(provider);
     } catch {
       onError?.('Social login failed. Please try again.');

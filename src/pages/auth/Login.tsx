@@ -28,6 +28,7 @@ const Login: React.FC = () => {
     (location.state as { inviteToken?: string } | null)?.inviteToken ??
     new URLSearchParams(location.search).get('invite') ??
     undefined;
+  const returnTo = new URLSearchParams(location.search).get('returnTo') ?? undefined;
   const loginMessage = (location.state as { message?: string } | null)?.message;
   const oauthError = new URLSearchParams(location.search).get('error') === 'oauth';
   const [socialLoginError, setSocialLoginError] = React.useState<string | null>(null);
@@ -58,7 +59,7 @@ const Login: React.FC = () => {
           return;
         }
       }
-      navigate('/', { replace: true });
+      navigate(returnTo && returnTo.startsWith('/') ? returnTo : '/', { replace: true });
     } catch {
       setError('root', {
         message: 'Invalid email or password',
