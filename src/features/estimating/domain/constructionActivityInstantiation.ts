@@ -172,8 +172,12 @@ export function instantiateConstructionActivity(
     id: projectActivityId,
     projectId: input.projectId,
     estimateId: input.estimateId,
-    // Canonical DB field names:
-    activityTemplateId: input.template.id,
+    // activity_template_id is a DB FK to construction_activity_templates.
+    // It must remain null when the activity comes from the local TypeScript
+    // registry — registry keys are NOT valid FK values.
+    activityTemplateId: null,
+    // source_template_key stores the local registry/template key.
+    sourceTemplateKey: input.template.id,
     activityCode: input.template.code,
     title: resolvedTitle,
     // Legacy aliases (kept for backward compatibility):

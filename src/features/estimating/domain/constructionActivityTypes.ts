@@ -113,8 +113,18 @@ export interface ProjectConstructionActivity {
   id: string;
   projectId: string;
   estimateId?: string;
-  /** DB column: activity_template_id */
-  activityTemplateId?: string;
+  /**
+   * DB column: activity_template_id
+   * FK to construction_activity_templates(id).
+   * NULL / undefined when created from the local TypeScript registry.
+   * Only populated when created from a real seeded DB template row.
+   */
+  activityTemplateId?: string | null;
+  /**
+   * DB column: source_template_key
+   * Local registry key (e.g. "slab-on-grade") when activity_template_id is null.
+   */
+  sourceTemplateKey?: string | null;
   /** @deprecated use activityTemplateId */
   templateId?: string;
   divisionCode: string;

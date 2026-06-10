@@ -96,7 +96,8 @@ export function mapProjectActivityFromRow(
     id: row.id,
     projectId: row.project_id,
     estimateId: row.estimate_id ?? undefined,
-    activityTemplateId: row.activity_template_id ?? undefined,
+    activityTemplateId: row.activity_template_id ?? null,
+    sourceTemplateKey: row.source_template_key ?? null,
     divisionCode: row.division_code,
     divisionName: row.division_name,
     activityCode: row.activity_code,
@@ -157,7 +158,11 @@ export function mapProjectActivityToInsert(
   return {
     project_id: activity.projectId,
     estimate_id: activity.estimateId ?? null,
+    // activity_template_id is a FK to construction_activity_templates(id).
+    // Only set it when we have a confirmed DB UUID — never a registry key.
     activity_template_id: activity.activityTemplateId ?? null,
+    // source_template_key holds the local TypeScript registry key.
+    source_template_key: activity.sourceTemplateKey ?? null,
     division_code: activity.divisionCode,
     division_name: activity.divisionName,
     activity_code: activity.activityCode,
