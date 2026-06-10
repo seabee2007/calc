@@ -44,6 +44,9 @@ const LINE_ITEM_MAP = new Map<string, readonly ActivityLineItemTemplate[]>([
   ['asm-31-backfill-compact', BACKFILL_AND_COMPACT_LINE_ITEMS],
 ]);
 
+const DEFAULT_CREW_SIZE = 4;
+const DEFAULT_HOURS_PER_DAY = 8;
+
 type Step = 'select' | 'quantities';
 
 interface Props {
@@ -56,6 +59,26 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
   const [step, setStep] = useState<Step>('select');
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<string | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
+
+  // Crew settings — lifted here so preview and confirm share the same values
+  const [crewSizeStr, setCrewSizeStr] = useState(String(DEFAULT_CREW_SIZE));
+  const [hoursPerDayStr, setHoursPerDayStr] = useState(String(DEFAULT_HOURS_PER_DAY));
+  const [durationOverrideStr, setDurationOverrideStr] = useState('');
+
+  const crewSize = Math.max(1, parseInt(crewSizeStr) || DEFAULT_CREW_SIZE);
+  const hoursPerDay = Math.max(0.5, parseFloat(hoursPerDayStr) || DEFAULT_HOURS_PER_DAY);
+  const durationOverride = durationOverrideStr !== ''
+    ? Math.max(1, parseInt(durationOverrideStr) || 1)
+    : null;
+
+  // Validation errors
+  const crewSizeError = (parseInt(crewSizeStr) || 0) <= 0 ? 'Must be > 0' : null;
+  const hoursPerDayError = (parseFloat(hoursPerDayStr) || 0) <= 0 ? 'Must be > 0' : null;
+  const durationOverrideError =
+    durationOverrideStr !== '' && (parseInt(durationOverrideStr) || 0) <= 0
+      ? 'Must be > 0'
+      : null;
+  const hasValidationError = !!crewSizeError || !!hoursPerDayError || !!durationOverrideError;
 
   const assembly = useMemo(
     () => (selectedAssemblyId ? CA_ASSEMBLY_BY_ID.get(selectedAssemblyId) : null),
@@ -82,17 +105,25 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
       lineItemTemplates,
       productionRates: RATE_MAP,
       projectId: 'preview',
+      crewSize,
+      hoursPerDay,
+      durationDaysOverride: durationOverride,
     });
-  }, [assembly, inputValues]);
+  }, [assembly, inputValues, crewSize, hoursPerDay, durationOverride]);
 
   const handleSelectAssembly = useCallback((id: string) => {
+    const asm = CA_ASSEMBLY_BY_ID.get(id);
     setSelectedAssemblyId(id);
     setInputValues({});
+    // Seed crew defaults from the assembly template when available
+    setCrewSizeStr(String(asm?.defaultCrewSize ?? DEFAULT_CREW_SIZE));
+    setHoursPerDayStr(String(asm?.defaultHoursPerDay ?? DEFAULT_HOURS_PER_DAY));
+    setDurationOverrideStr('');
     setStep('quantities');
   }, []);
 
   const handleConfirm = useCallback(() => {
-    if (!assembly) return;
+    if (!assembly || hasValidationError) return;
     const division = DIVISION_MAP.get(assembly.divisionCode);
     const lineItemTemplates = LINE_ITEM_MAP.get(assembly.id);
     if (!division || !lineItemTemplates) return;
@@ -110,10 +141,11 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
       division,
       lineItemTemplates,
       productionRates: RATE_MAP,
-      crewSize: assembly.defaultCrewSize,
-      hoursPerDay: assembly.defaultHoursPerDay,
+      crewSize,
+      hoursPerDay,
+      durationDaysOverride: durationOverride,
     });
-  }, [assembly, inputValues, onConfirm]);
+  }, [assembly, inputValues, crewSize, hoursPerDay, durationOverride, hasValidationError, onConfirm]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -156,6 +188,15 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
               inputValues={inputValues}
               onInputChange={(id, val) => setInputValues((p) => ({ ...p, [id]: val }))}
               preview={preview}
+              crewSizeStr={crewSizeStr}
+              hoursPerDayStr={hoursPerDayStr}
+              durationOverrideStr={durationOverrideStr}
+              onCrewSizeChange={setCrewSizeStr}
+              onHoursPerDayChange={setHoursPerDayStr}
+              onDurationOverrideChange={setDurationOverrideStr}
+              crewSizeError={crewSizeError}
+              hoursPerDayError={hoursPerDayError}
+              durationOverrideError={durationOverrideError}
             />
           )}
         </div>
@@ -170,14 +211,21 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
                     {preview.rollup.totalManHours.toFixed(1)} MH
                   </strong>
                 </span>
-                <span>{preview.rollup.calculatedDurationDays}d estimated</span>
+                {durationOverride != null ? (
+                  <span>
+                    <strong className="text-amber-600 dark:text-amber-400">{durationOverride}d</strong>
+                    <span className="ml-1 text-xs text-slate-400">(override, calc {preview.rollup.calculatedDurationDays}d)</span>
+                  </span>
+                ) : (
+                  <span>{preview.rollup.calculatedDurationDays}d estimated</span>
+                )}
                 <span>{preview.projectLineItems.length} line items</span>
               </div>
             )}
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={saving}
+              disabled={saving || hasValidationError}
               className="ml-auto flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700 disabled:opacity-60 transition-colors"
             >
               <Plus size={15} />
@@ -235,12 +283,41 @@ interface QuantitiesStepProps {
   inputValues: Record<string, string>;
   onInputChange: (id: string, value: string) => void;
   preview: ReturnType<typeof instantiateFromAssemblySpec> | null;
+  // Crew settings
+  crewSizeStr: string;
+  hoursPerDayStr: string;
+  durationOverrideStr: string;
+  onCrewSizeChange: (v: string) => void;
+  onHoursPerDayChange: (v: string) => void;
+  onDurationOverrideChange: (v: string) => void;
+  crewSizeError: string | null;
+  hoursPerDayError: string | null;
+  durationOverrideError: string | null;
 }
 
-function QuantitiesStep({ assembly, inputValues, onInputChange, preview }: QuantitiesStepProps) {
+function QuantitiesStep({
+  assembly,
+  inputValues,
+  onInputChange,
+  preview,
+  crewSizeStr,
+  hoursPerDayStr,
+  durationOverrideStr,
+  onCrewSizeChange,
+  onHoursPerDayChange,
+  onDurationOverrideChange,
+  crewSizeError,
+  hoursPerDayError,
+  durationOverrideError,
+}: QuantitiesStepProps) {
+  const hasOverride = durationOverrideStr !== '' && !durationOverrideError;
+  const effectiveDuration = hasOverride
+    ? parseInt(durationOverrideStr)
+    : preview?.rollup.calculatedDurationDays ?? 0;
+
   return (
     <div className="space-y-4">
-      {/* Input fields */}
+      {/* Quantity input fields */}
       <div className="grid gap-3 sm:grid-cols-2">
         {assembly.quantityInputs.map((spec) => (
           <div key={spec.id}>
@@ -272,6 +349,89 @@ function QuantitiesStep({ assembly, inputValues, onInputChange, preview }: Quant
         ))}
       </div>
 
+      {/* ── Crew settings ─────────────────────────────────────────────────────── */}
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-3">
+        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
+          Crew &amp; Schedule
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          {/* Crew size */}
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+              Crew Size
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={crewSizeStr}
+              onChange={(e) => onCrewSizeChange(e.target.value)}
+              className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 ${
+                crewSizeError
+                  ? 'border-red-400 dark:border-red-500'
+                  : 'border-slate-300 dark:border-slate-600'
+              }`}
+            />
+            {crewSizeError && (
+              <p className="mt-0.5 text-[11px] text-red-500">{crewSizeError}</p>
+            )}
+          </div>
+
+          {/* Hours per day */}
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+              Hours / Day
+            </label>
+            <input
+              type="number"
+              min="0.5"
+              step="0.5"
+              value={hoursPerDayStr}
+              onChange={(e) => onHoursPerDayChange(e.target.value)}
+              className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 ${
+                hoursPerDayError
+                  ? 'border-red-400 dark:border-red-500'
+                  : 'border-slate-300 dark:border-slate-600'
+              }`}
+            />
+            {hoursPerDayError && (
+              <p className="mt-0.5 text-[11px] text-red-500">{hoursPerDayError}</p>
+            )}
+          </div>
+
+          {/* Duration override */}
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+              Duration Override
+              <span className="ml-1 font-normal text-slate-400">(days, optional)</span>
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={durationOverrideStr}
+              onChange={(e) => onDurationOverrideChange(e.target.value)}
+              placeholder="calc'd"
+              className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder:text-slate-400 ${
+                durationOverrideError
+                  ? 'border-red-400 dark:border-red-500'
+                  : durationOverrideStr !== ''
+                    ? 'border-amber-400 dark:border-amber-500'
+                    : 'border-slate-300 dark:border-slate-600'
+              }`}
+            />
+            {durationOverrideError && (
+              <p className="mt-0.5 text-[11px] text-red-500">{durationOverrideError}</p>
+            )}
+            {durationOverrideStr !== '' && !durationOverrideError && (
+              <p className="mt-0.5 text-[11px] text-amber-600 dark:text-amber-400">
+                Overrides calculated duration
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Live preview */}
       {preview && (
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-3">
@@ -280,23 +440,52 @@ function QuantitiesStep({ assembly, inputValues, onInputChange, preview }: Quant
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
             {[
-              { label: 'Man-Hours', value: preview.rollup.totalManHours.toFixed(1), unit: 'MH' },
-              { label: 'Man-Days', value: preview.rollup.totalManDays.toFixed(1), unit: 'MD' },
-              { label: 'Duration', value: `${preview.rollup.calculatedDurationDays}`, unit: 'days' },
-              { label: 'Line Items', value: `${preview.projectLineItems.length}`, unit: '' },
+              { label: 'Man-Hours', value: preview.rollup.totalManHours.toFixed(1), unit: 'MH', highlight: false },
+              { label: 'Man-Days', value: preview.rollup.totalManDays.toFixed(1), unit: 'MD', highlight: false },
+              {
+                label: hasOverride ? 'Duration*' : 'Duration',
+                value: `${effectiveDuration}`,
+                unit: hasOverride ? 'd*' : 'days',
+                highlight: hasOverride,
+              },
+              { label: 'Line Items', value: `${preview.projectLineItems.length}`, unit: '', highlight: false },
             ].map((s) => (
               <div
                 key={s.label}
-                className="rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 text-center"
+                className={`rounded border p-2 text-center ${
+                  s.highlight
+                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700'
+                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                }`}
               >
-                <p className="text-[10px] text-slate-400 uppercase">{s.label}</p>
-                <p className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                <p className={`text-[10px] uppercase ${s.highlight ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}>
+                  {s.label}
+                </p>
+                <p className={`text-lg font-bold ${s.highlight ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'}`}>
                   {s.value}
                   {s.unit && <span className="text-xs font-normal ml-1">{s.unit}</span>}
                 </p>
               </div>
             ))}
           </div>
+
+          {/* Calc breakdown line */}
+          {preview.rollup.totalManHours > 0 && (
+            <p className="text-[11px] text-slate-400 mb-2">
+              {preview.rollup.totalManHours.toFixed(1)} MH ÷ ({crewSizeStr} crew × {hoursPerDayStr}h/day)
+              {' = '}
+              <strong className="text-slate-600 dark:text-slate-300">
+                {preview.rollup.calculatedDurationDays}d calculated
+              </strong>
+              {hasOverride && (
+                <span className="text-amber-600 dark:text-amber-400">
+                  {' → '}
+                  <strong>{durationOverrideStr}d override</strong>
+                </span>
+              )}
+            </p>
+          )}
+
           {/* Line item preview list */}
           <div className="space-y-0.5">
             {preview.projectLineItems.map((li) => (
@@ -318,11 +507,10 @@ function QuantitiesStep({ assembly, inputValues, onInputChange, preview }: Quant
         </div>
       )}
 
-      {/* Assembly notes */}
-      <div className="text-[11px] text-slate-400 space-y-0.5">
-        <p>Crew: <strong>{assembly.defaultCrewSize}</strong> &bull; {assembly.defaultHoursPerDay}h/day</p>
-        <p>Source: NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12 (direct labor only, method-adjusted)</p>
-      </div>
+      {/* Assembly source note */}
+      <p className="text-[11px] text-slate-400">
+        Source: NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12 (direct labor only, method-adjusted)
+      </p>
     </div>
   );
 }
