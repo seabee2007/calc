@@ -28,9 +28,9 @@ describe('seabeeActivityInstantiation', () => {
   it('lookup helpers resolve seed records', () => {
     const rate = findProductionRateById(
       SEABEE_DIVISION_03_CONCRETE_SEED.productionRates,
-      '03-31-00-slab-on-grade-pump',
+      '03-31-05.70-0320',
     );
-    expect(rate?.unit).toBe('CY');
+    expect(rate?.unit).toBe('CYD');
 
     const template = findActivityTemplateById(
       [SEABEE_PLACE_SLAB_ON_GRADE_ACTIVITY],
@@ -186,18 +186,21 @@ describe('seabeeActivityInstantiation', () => {
       crewSize: 4,
     });
 
+    // Manual-sourced rates (NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12)
     const expectedManHours =
-      calculateLineItemManHours(200, 0.12) +
-      calculateLineItemManHours(3200, 0.004) +
-      calculateLineItemManHours(3200, 0.005) +
-      calculateLineItemManHours(32, 0.286) +
-      calculateLineItemManHours(3200, 0.016) +
-      calculateLineItemManHours(3200, 0.002) +
-      calculateLineItemManHours(160, 0.025);
+      calculateLineItemManHours(200, 0.071) +    // edge forms LF  (Fig 5-C-7,  03 11 13.65 line 0040)
+      calculateLineItemManHours(3200, 0.002) +   // vapor barrier  (Fig 5-C-9,  03 15 05.96 line 0220)
+      calculateLineItemManHours(3200, 0.008) +   // WWF SF         (Fig 5-C-11, 03 22 05.50 line 0010)
+      calculateLineItemManHours(32, 0.738) +     // place concrete (Fig 5-C-14, 03 31 05.70 line 0320)
+      calculateLineItemManHours(3200, 0.028) +   // finish SF      (Fig 5-C-15, 03 35 29.30 line 0040)
+      calculateLineItemManHours(3200, 0.0017) +  // cure SF        (Fig 5-C-15, 03 39 23.13 line 0010)
+      calculateLineItemManHours(160, 0.014);     // sawcut LF      (Fig 5-C-15, 03 35 29.35 line 0010)
 
+    // 14.2 + 6.4 + 25.6 + 23.616 + 89.6 + 5.44 + 2.24 = 167.096 MH
+    // duration = ceil(167.096 / (4 crew × 8 h/day)) = ceil(5.22) = 6 days
     expect(calculateActivityManHours(result.projectLineItems)).toBeCloseTo(expectedManHours, 5);
     expect(result.rollup.totalManHours).toBeCloseTo(expectedManHours, 5);
-    expect(result.rollup.calculatedDurationDays).toBe(4);
+    expect(result.rollup.calculatedDurationDays).toBe(6);
     expect(result.rollup.effectiveDurationDays).toBe(result.rollup.durationDays);
   });
 
@@ -209,7 +212,7 @@ describe('seabeeActivityInstantiation', () => {
       lineItemTemplates: SEABEE_PLACE_SLAB_ON_GRADE_LINE_ITEMS,
       productionRates: SEABEE_DIVISION_03_CONCRETE_SEED.productionRates,
       quantityMap: {
-        '03-31-00-slab-on-grade-pump': 25,
+        '03-31-05.70-0320': 25,
       },
       crewSize: 4,
     });

@@ -163,7 +163,7 @@ export function isSchedulableConstructionActivity(activity: ProjectConstructionA
 }
 
 export function manHoursPerUnitFromProductionRate(rate: ProductionRate): number {
-  return normalizeNonNegative(rate.manHoursPerUnit);
+  return normalizeNonNegative(rate.manHoursPerUnit ?? 0);
 }
 
 export function manHoursPerUnitFromLineItemTemplate(

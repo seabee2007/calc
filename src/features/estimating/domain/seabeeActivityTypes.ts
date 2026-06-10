@@ -15,17 +15,70 @@ export interface EstimateDivision {
   description?: string;
 }
 
-/** Reusable production-rate library record (typically man-hours per unit). */
+/**
+ * Reusable production-rate library record sourced from
+ * NTRP 4-04.2.3/TM 3-34.41/MCRP 3-40D.12, Construction Estimating.
+ *
+ * ID format: {divCode}-{masterFormatSection}-{lineNumber}
+ * Example:   "03-15-05.96-0220"  (Division 03, MF 03 15 05.96, line 0220)
+ */
 export interface ProductionRate {
+  /** Source-based ID: "{divCode}-{mfSection}-{lineNumber}" */
   id: string;
+
+  divisionCode: string;
+  divisionName: string;
+
+  /** CSI MasterFormat section, e.g. "03 15 05.96" */
+  masterFormatCode: string;
+  /** Line number within the figure, e.g. "0220" */
+  workElementLineNumber: string;
+
   description: string;
   unit: string;
-  /** Bare man-hours required per unit before crew size is applied. */
-  manHoursPerUnit: number;
-  defaultCrewSize?: number;
-  trade?: string;
-  sourceReference?: string;
-  notes?: string;
+
+  rateType: 'labor_production' | 'equipment_production' | 'weight_measure' | 'material_quantity';
+
+  /** Required when rateType = "labor_production" */
+  manHoursPerUnit?: number;
+  /** Required when rateType = "equipment_production" */
+  equipmentHoursPerUnit?: number;
+  /** Required when rateType = "weight_measure" | "material_quantity" */
+  quantityPerUnit?: number;
+
+  minimumCrewSize?: number;
+  crewComposition?: {
+    builder?: number;
+    electrician?: number;
+    equipmentOperator?: number;
+    steelworker?: number;
+    utilitiesman?: number;
+    laborer?: number;
+    welder?: number;
+  };
+
+  sourceManual: string;
+  sourceEdition: string;
+  sourceDivision: string;
+  sourceFigure: string;
+  sourcePage: string;
+  sourcePdfPage?: number;
+  sourceNotes?: string[];
+
+  /** Always true for Chapter 5 labor figures. */
+  directLaborOnly: boolean;
+  militaryAdjusted: boolean;
+  civilianConversionMultiplier?: number;
+
+  tags: string[];
+  applicableActivityTypes: string[];
+
+  /** References production_rate_import_batches.id */
+  importBatchId: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  isActive: boolean;
+  supersededById?: string;
 }
 
 /** Template for a schedulable construction activity under a division. */
