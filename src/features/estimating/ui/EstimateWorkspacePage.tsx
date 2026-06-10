@@ -82,6 +82,7 @@ import {
   type EstimateBuilderToolbarHandlers,
 } from './estimateWorkspaceToolbar';
 import EstimateImportModal from './EstimateImportModal';
+import ConstructionActivityBuilderPanel from './components/ConstructionActivityBuilderPanel';
 import { applyImportedEstimate } from '../importExport/estimateImportApply';
 import type { ImportedEstimateData } from '../importExport/estimateImportParser';
 import type { EstimateImportApplyMode } from '../importExport/estimateImportApply';
@@ -1834,6 +1835,21 @@ export default function EstimateWorkspacePage() {
             <EstimateWorkspaceEmptyState
               title="No estimate started"
               body={TAB_NO_ESTIMATE_MESSAGE}
+            />
+          )
+        ) : null}
+
+        {/* ── Construction Activities tab (Milestone 4) ─────────────────────── */}
+        {!loadError && !dataLoading && activeTab === 'activities' ? (
+          resolvedProjectId ? (
+            <ConstructionActivityBuilderPanel
+              projectId={resolvedProjectId}
+              estimateId={estimate?.id}
+            />
+          ) : (
+            <EstimateWorkspaceEmptyState
+              title="No project"
+              body="Open a project to manage construction activities."
             />
           )
         ) : null}

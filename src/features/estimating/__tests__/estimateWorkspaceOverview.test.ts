@@ -26,6 +26,7 @@ describe('estimate workspace overview tab', () => {
       'overview',
       'settings',
       'line-items',
+      'activities',
       'schedule-preview',
       'logic-network',
       'level-iii-gantt',

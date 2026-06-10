@@ -5,6 +5,7 @@ export const ESTIMATE_WORKSPACE_TAB_IDS = [
   'overview',
   'settings',
   'line-items',
+  'activities',
   'schedule-preview',
   'gantt-preview',
   'logic-network',

@@ -1,0 +1,185 @@
+/**
+ * Construction Activity Card — one expandable card per ProjectConstructionActivity.
+ *
+ * Header: activity code + title + rollup stats + schedule toggle + delete button.
+ * Body (expanded): column header row + ActivityLineItemRow per child line item.
+ *
+ * Line items are NEVER schedule activities — only the parent card has a schedule toggle.
+ */
+import { useState } from 'react';
+import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import ActivityLineItemRow from './ActivityLineItemRow';
+
+interface Props {
+  activity: ProjectConstructionActivity;
+  lineItems: ProjectActivityLineItem[];
+  onDelete?: (id: string) => void;
+  defaultExpanded?: boolean;
+}
+
+function StatChip({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div className="flex flex-col items-center rounded bg-slate-100 dark:bg-slate-700/60 px-2 py-1 min-w-[56px]">
+      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide leading-none mb-0.5">
+        {label}
+      </span>
+      <span className="tabular-nums text-sm font-bold text-slate-800 dark:text-slate-100 leading-none">
+        {value}
+        {unit && <span className="text-[10px] font-normal ml-0.5">{unit}</span>}
+      </span>
+    </div>
+  );
+}
+
+export default function ConstructionActivityCard({
+  activity,
+  lineItems,
+  onDelete,
+  defaultExpanded = false,
+}: Props) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  const mh = activity.calculatedManHours ?? 0;
+  const dur = activity.effectiveDurationDays ?? activity.calculatedDurationDays ?? 0;
+  const hasOverride = activity.durationDaysOverride != null;
+  const hasWarnings = (lineItems.length === 0) || mh === 0;
+
+  const totalCost = activity.totalCost ?? 0;
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/90 transition-shadow hover:shadow-md">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div
+        className="flex items-center gap-3 px-3 py-3 cursor-pointer select-none"
+        onClick={() => setExpanded((e) => !e)}
+        role="button"
+        aria-expanded={expanded}
+      >
+        {/* Expand chevron */}
+        <span className="shrink-0 text-slate-400">
+          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </span>
+
+        {/* Division badge + code */}
+        <span className="shrink-0 rounded bg-cyan-100 dark:bg-cyan-900/40 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-cyan-700 dark:text-cyan-300">
+          {activity.divisionCode}
+        </span>
+
+        {/* Title */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+            {activity.title ?? activity.name}
+          </p>
+          <p className="text-[10px] text-slate-400 font-mono">
+            {activity.activityCode ?? activity.code}
+          </p>
+        </div>
+
+        {/* Warning badge */}
+        {hasWarnings && (
+          <span className="shrink-0 text-amber-500" title="Missing quantities or rates">
+            <AlertTriangle size={14} />
+          </span>
+        )}
+
+        {/* Schedule badge */}
+        {activity.scheduleEnabled && (
+          <span className="shrink-0 rounded bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 text-[10px] text-blue-600 dark:text-blue-300 flex items-center gap-1">
+            <Calendar size={10} />
+            Scheduled
+          </span>
+        )}
+
+        {/* Rollup chips */}
+        <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <StatChip label="MH" value={mh.toFixed(1)} />
+          <StatChip
+            label="Duration"
+            value={`${dur}`}
+            unit={`d${hasOverride ? '*' : ''}`}
+          />
+          {lineItems.length > 0 && (
+            <StatChip label="Items" value={`${lineItems.length}`} />
+          )}
+          {totalCost > 0 && (
+            <StatChip label="Cost" value={`$${(totalCost / 1000).toFixed(1)}k`} />
+          )}
+        </div>
+
+        {/* Mobile stats */}
+        <div className="sm:hidden text-right shrink-0">
+          <p className="tabular-nums text-xs font-bold text-cyan-700 dark:text-cyan-400">
+            {mh.toFixed(1)} MH
+          </p>
+          <p className="text-[10px] text-slate-500">{dur}d • {lineItems.length} items</p>
+        </div>
+
+        {/* Delete */}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(activity.id);
+            }}
+            className="shrink-0 rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+            title="Remove activity"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* ── Expanded body ────────────────────────────────────────────────────── */}
+      {expanded && (
+        <div className="border-t border-slate-200 dark:border-slate-700">
+          {/* Column headers */}
+          <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-x-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Work Element
+            </span>
+            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Qty / Unit
+            </span>
+            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Rate
+            </span>
+            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Man-Hours
+            </span>
+            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Cost
+            </span>
+          </div>
+
+          {lineItems.length === 0 ? (
+            <div className="px-4 py-4 text-sm text-slate-400 italic">
+              No line items. Delete and re-add with quantities.
+            </div>
+          ) : (
+            lineItems.map((item, i) => (
+              <ActivityLineItemRow key={item.id} item={item} index={i} />
+            ))
+          )}
+
+          {/* Footer: rollup summary */}
+          <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-2">
+            <span className="text-xs text-slate-500">
+              Crew: <strong>{activity.crewSize}</strong> &bull; {activity.hoursPerDay}h/day
+            </span>
+            <span className="text-xs text-slate-500">
+              Calc duration: <strong>{activity.calculatedDurationDays ?? 0}d</strong>
+              {hasOverride && (
+                <> → Override: <strong className="text-amber-600">{activity.durationDaysOverride}d</strong></>
+              )}
+            </span>
+            <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-400 ml-auto">
+              {mh.toFixed(2)} MH total
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

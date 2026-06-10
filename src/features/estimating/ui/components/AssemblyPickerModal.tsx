@@ -1,0 +1,328 @@
+/**
+ * Assembly Picker Modal
+ *
+ * Step 1 — Select a division + assembly.
+ * Step 2 — Enter quantities for each assembly input.
+ * Step 3 — Preview rollup. Confirm adds to project.
+ */
+import { useCallback, useMemo, useState } from 'react';
+import { X, ChevronRight, ArrowLeft, Plus } from 'lucide-react';
+import { CA_ASSEMBLY_GROUPS, CA_ASSEMBLY_BY_ID } from '../../data/activityAssemblyRegistry';
+import {
+  DIV03_ALL_PRODUCTION_RATES,
+  DIV03_CONCRETE,
+  CONTINUOUS_FOOTING_LINE_ITEMS,
+  PLACE_SLAB_ON_GRADE_LINE_ITEMS,
+} from '../../data/div03ConcreteSeeds';
+import {
+  DIV31_EARTHWORK,
+  DIV31_PRODUCTION_RATES,
+  CLEAR_AND_GRUB_LINE_ITEMS,
+  EXCAVATE_FOOTINGS_LINE_ITEMS,
+  BACKFILL_AND_COMPACT_LINE_ITEMS,
+} from '../../data/div31EarthworkSeeds';
+import { instantiateFromAssemblySpec } from '../../domain/activityAssemblyInstantiation';
+import type { ActivityAssemblySpec, AssemblyUserInputs } from '../../domain/activityAssemblyTypes';
+import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate } from '../../domain/constructionActivityTypes';
+import type { AddFromAssemblyParams } from '../hooks/useConstructionActivities';
+
+const DIVISION_MAP = new Map<string, EstimateDivision>([
+  ['03', DIV03_CONCRETE],
+  ['31', DIV31_EARTHWORK],
+]);
+
+const RATE_MAP = new Map<string, ProductionRate>([
+  ...DIV03_ALL_PRODUCTION_RATES.map((r): [string, ProductionRate] => [r.id, r]),
+  ...DIV31_PRODUCTION_RATES.map((r): [string, ProductionRate] => [r.id, r]),
+]);
+
+const LINE_ITEM_MAP = new Map<string, readonly ActivityLineItemTemplate[]>([
+  ['asm-03-place-slab-on-grade', PLACE_SLAB_ON_GRADE_LINE_ITEMS],
+  ['asm-03-place-continuous-footing', CONTINUOUS_FOOTING_LINE_ITEMS],
+  ['asm-31-clear-and-grub', CLEAR_AND_GRUB_LINE_ITEMS],
+  ['asm-31-excavate-footings', EXCAVATE_FOOTINGS_LINE_ITEMS],
+  ['asm-31-backfill-compact', BACKFILL_AND_COMPACT_LINE_ITEMS],
+]);
+
+type Step = 'select' | 'quantities';
+
+interface Props {
+  onConfirm: (params: AddFromAssemblyParams) => void;
+  onCancel: () => void;
+  saving?: boolean;
+}
+
+export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Props) {
+  const [step, setStep] = useState<Step>('select');
+  const [selectedAssemblyId, setSelectedAssemblyId] = useState<string | null>(null);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+
+  const assembly = useMemo(
+    () => (selectedAssemblyId ? CA_ASSEMBLY_BY_ID.get(selectedAssemblyId) : null),
+    [selectedAssemblyId],
+  );
+
+  const preview = useMemo(() => {
+    if (!assembly) return null;
+    const division = DIVISION_MAP.get(assembly.divisionCode);
+    const lineItemTemplates = LINE_ITEM_MAP.get(assembly.id);
+    if (!division || !lineItemTemplates) return null;
+
+    const userInputs: AssemblyUserInputs = {};
+    for (const spec of assembly.quantityInputs) {
+      const raw = inputValues[spec.id];
+      const parsed = raw !== undefined && raw !== '' ? parseFloat(raw) : (spec.defaultValue ?? 0);
+      userInputs[spec.id] = isNaN(parsed) ? 0 : parsed;
+    }
+
+    return instantiateFromAssemblySpec({
+      assembly,
+      userInputs,
+      division,
+      lineItemTemplates,
+      productionRates: RATE_MAP,
+      projectId: 'preview',
+    });
+  }, [assembly, inputValues]);
+
+  const handleSelectAssembly = useCallback((id: string) => {
+    setSelectedAssemblyId(id);
+    setInputValues({});
+    setStep('quantities');
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    if (!assembly) return;
+    const division = DIVISION_MAP.get(assembly.divisionCode);
+    const lineItemTemplates = LINE_ITEM_MAP.get(assembly.id);
+    if (!division || !lineItemTemplates) return;
+
+    const userInputs: AssemblyUserInputs = {};
+    for (const spec of assembly.quantityInputs) {
+      const raw = inputValues[spec.id];
+      const parsed = raw !== undefined && raw !== '' ? parseFloat(raw) : 0;
+      userInputs[spec.id] = isNaN(parsed) ? 0 : parsed;
+    }
+
+    onConfirm({
+      assembly,
+      userInputs,
+      division,
+      lineItemTemplates,
+      productionRates: RATE_MAP,
+      crewSize: assembly.defaultCrewSize,
+      hoursPerDay: assembly.defaultHoursPerDay,
+    });
+  }, [assembly, inputValues, onConfirm]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl rounded-xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-5 py-4">
+          <div className="flex items-center gap-3">
+            {step === 'quantities' && (
+              <button
+                type="button"
+                onClick={() => setStep('select')}
+                className="rounded p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              >
+                <ArrowLeft size={16} />
+              </button>
+            )}
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+              {step === 'select' ? 'Add Construction Activity' : 'Enter Quantities'}
+            </h2>
+            {step === 'quantities' && assembly && (
+              <span className="text-sm text-slate-500">&mdash; {assembly.displayName}</span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 px-5 py-4">
+          {step === 'select' ? (
+            <SelectStep onSelect={handleSelectAssembly} />
+          ) : (
+            <QuantitiesStep
+              assembly={assembly!}
+              inputValues={inputValues}
+              onInputChange={(id, val) => setInputValues((p) => ({ ...p, [id]: val }))}
+              preview={preview}
+            />
+          )}
+        </div>
+
+        {/* Footer */}
+        {step === 'quantities' && (
+          <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 px-5 py-3 bg-slate-50 dark:bg-slate-800/50">
+            {preview && (
+              <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                <span>
+                  <strong className="text-cyan-700 dark:text-cyan-400">
+                    {preview.rollup.totalManHours.toFixed(1)} MH
+                  </strong>
+                </span>
+                <span>{preview.rollup.calculatedDurationDays}d estimated</span>
+                <span>{preview.projectLineItems.length} line items</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={saving}
+              className="ml-auto flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700 disabled:opacity-60 transition-colors"
+            >
+              <Plus size={15} />
+              {saving ? 'Saving…' : 'Add to Estimate'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Step 1: Select assembly ───────────────────────────────────────────────────
+
+function SelectStep({ onSelect }: { onSelect: (id: string) => void }) {
+  return (
+    <div className="space-y-5">
+      {CA_ASSEMBLY_GROUPS.map((group) => (
+        <div key={group.divisionCode}>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Division {group.divisionCode} — {group.divisionName}
+          </p>
+          <div className="space-y-1.5">
+            {group.assemblies.map((asm) => (
+              <button
+                key={asm.id}
+                type="button"
+                onClick={() => onSelect(asm.id)}
+                className="w-full flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 px-4 py-3 text-left hover:border-cyan-400 hover:bg-cyan-50 dark:hover:border-cyan-600 dark:hover:bg-cyan-900/20 transition-colors group"
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-800 dark:text-slate-100 group-hover:text-cyan-700 dark:group-hover:text-cyan-300">
+                    {asm.displayName}
+                  </p>
+                  {asm.description && (
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                      {asm.description}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight size={16} className="text-slate-400 group-hover:text-cyan-500 shrink-0 ml-3" />
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Step 2: Enter quantities ──────────────────────────────────────────────────
+
+interface QuantitiesStepProps {
+  assembly: ActivityAssemblySpec;
+  inputValues: Record<string, string>;
+  onInputChange: (id: string, value: string) => void;
+  preview: ReturnType<typeof instantiateFromAssemblySpec> | null;
+}
+
+function QuantitiesStep({ assembly, inputValues, onInputChange, preview }: QuantitiesStepProps) {
+  return (
+    <div className="space-y-4">
+      {/* Input fields */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {assembly.quantityInputs.map((spec) => (
+          <div key={spec.id}>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+              {spec.label}
+              <span className="ml-1.5 text-slate-400 font-normal">({spec.unit})</span>
+            </label>
+            {spec.description && (
+              <p className="text-[11px] text-slate-400 mb-1">{spec.description}</p>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={inputValues[spec.id] ?? ''}
+                onChange={(e) => onInputChange(spec.id, e.target.value)}
+                placeholder={spec.defaultValue?.toString() ?? '0'}
+                className="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+              <span className="shrink-0 text-xs text-slate-400">{spec.unit}</span>
+            </div>
+            {spec.formulaHint && (
+              <p className="mt-0.5 text-[11px] text-cyan-600 dark:text-cyan-400 italic">
+                {spec.formulaHint}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Live preview */}
+      {preview && (
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-3">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
+            Estimated Output
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            {[
+              { label: 'Man-Hours', value: preview.rollup.totalManHours.toFixed(1), unit: 'MH' },
+              { label: 'Man-Days', value: preview.rollup.totalManDays.toFixed(1), unit: 'MD' },
+              { label: 'Duration', value: `${preview.rollup.calculatedDurationDays}`, unit: 'days' },
+              { label: 'Line Items', value: `${preview.projectLineItems.length}`, unit: '' },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 text-center"
+              >
+                <p className="text-[10px] text-slate-400 uppercase">{s.label}</p>
+                <p className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                  {s.value}
+                  {s.unit && <span className="text-xs font-normal ml-1">{s.unit}</span>}
+                </p>
+              </div>
+            ))}
+          </div>
+          {/* Line item preview list */}
+          <div className="space-y-0.5">
+            {preview.projectLineItems.map((li) => (
+              <div key={li.id} className="flex justify-between text-xs text-slate-600 dark:text-slate-400 py-0.5">
+                <span className="truncate flex-1 mr-2">{li.name}</span>
+                <span className="tabular-nums shrink-0">
+                  {li.quantity.toLocaleString()} {li.unit} → {li.calculatedManHours.toFixed(2)} MH
+                </span>
+              </div>
+            ))}
+          </div>
+          {preview.rollup.warnings.length > 0 && (
+            <div className="mt-2 rounded bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-2">
+              {preview.rollup.warnings.map((w, i) => (
+                <p key={i} className="text-[11px] text-amber-700 dark:text-amber-400">• {w}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Assembly notes */}
+      <div className="text-[11px] text-slate-400 space-y-0.5">
+        <p>Crew: <strong>{assembly.defaultCrewSize}</strong> &bull; {assembly.defaultHoursPerDay}h/day</p>
+        <p>Source: NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12 (direct labor only, method-adjusted)</p>
+      </div>
+    </div>
+  );
+}

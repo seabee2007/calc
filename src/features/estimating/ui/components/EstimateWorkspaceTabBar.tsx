@@ -8,6 +8,7 @@ export type EstimateWorkspaceTabId =
   | 'overview'
   | 'settings'
   | 'line-items'
+  | 'activities'
   | 'schedule-preview'
   | 'gantt-preview'   // kept for redirect only — not shown in tab bar
   | 'logic-network'
@@ -22,6 +23,7 @@ export const ESTIMATE_WORKSPACE_TABS: EstimateWorkspaceTab[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'settings', label: 'Settings' },
   { id: 'line-items', label: 'Estimate' },
+  { id: 'activities', label: 'Activities' },
   { id: 'schedule-preview', label: 'Schedule Preview' },
   { id: 'logic-network', label: 'Logic Network' },
   { id: 'level-iii-gantt', label: 'Level III Gantt' },
