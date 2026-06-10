@@ -7,15 +7,19 @@
  * Line items are NEVER schedule activities — only the parent card has a schedule toggle.
  */
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList } from 'lucide-react';
 import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
 import ActivityLineItemRow from './ActivityLineItemRow';
+import ActivityProgressSummary from './ActivityProgressSummary';
+import ActivityProgressForm from './ActivityProgressForm';
+import { useActivityProgress } from '../hooks/useActivityProgress';
 
 interface Props {
   activity: ProjectConstructionActivity;
   lineItems: ProjectActivityLineItem[];
   onDelete?: (id: string) => void;
   defaultExpanded?: boolean;
+  currentProjectDay?: number;
 }
 
 function StatChip({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -37,8 +41,16 @@ export default function ConstructionActivityCard({
   lineItems,
   onDelete,
   defaultExpanded = false,
+  currentProjectDay = 0,
 }: Props) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [activeTab, setActiveTab] = useState<'estimate' | 'field'>('estimate');
+  const [showProgressForm, setShowProgressForm] = useState(false);
+
+  const { rollup, baseline, saving, submitUpdate } = useActivityProgress(
+    activity,
+    currentProjectDay,
+  );
 
   const mh = activity.calculatedManHours ?? 0;
   const dur = activity.effectiveDurationDays ?? activity.calculatedDurationDays ?? 0;
@@ -115,6 +127,16 @@ export default function ConstructionActivityCard({
           <p className="text-[10px] text-slate-500">{dur}d • {lineItems.length} items</p>
         </div>
 
+        {/* Field progress indicator */}
+        {rollup && rollup.updateCount > 0 && (
+          <span
+            className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+            title="Field progress logged"
+          >
+            {rollup.percentComplete}%
+          </span>
+        )}
+
         {/* Delete */}
         {onDelete && (
           <button
@@ -134,51 +156,128 @@ export default function ConstructionActivityCard({
       {/* ── Expanded body ────────────────────────────────────────────────────── */}
       {expanded && (
         <div className="border-t border-slate-200 dark:border-slate-700">
-          {/* Column headers */}
-          <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-x-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Work Element
-            </span>
-            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Qty / Unit
-            </span>
-            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Rate
-            </span>
-            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Man-Hours
-            </span>
-            <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Cost
-            </span>
+          {/* Tab bar */}
+          <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+            <button
+              type="button"
+              onClick={() => setActiveTab('estimate')}
+              className={`px-4 py-2 text-xs font-medium transition-colors ${
+                activeTab === 'estimate'
+                  ? 'border-b-2 border-cyan-500 text-cyan-700 dark:text-cyan-300'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              Estimate
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('field')}
+              className={`px-4 py-2 text-xs font-medium flex items-center gap-1 transition-colors ${
+                activeTab === 'field'
+                  ? 'border-b-2 border-cyan-500 text-cyan-700 dark:text-cyan-300'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              <ClipboardList size={11} />
+              Field Control
+              {rollup && rollup.updateCount > 0 && (
+                <span className="ml-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-1.5 text-[9px] font-bold">
+                  {rollup.updateCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          {lineItems.length === 0 ? (
-            <div className="px-4 py-4 text-sm text-slate-400 italic">
-              No line items. Delete and re-add with quantities.
-            </div>
-          ) : (
-            lineItems.map((item, i) => (
-              <ActivityLineItemRow key={item.id} item={item} index={i} />
-            ))
+          {activeTab === 'estimate' && (
+            <>
+              {/* Column headers */}
+              <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-x-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Work Element
+                </span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Qty / Unit
+                </span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Rate
+                </span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Man-Hours
+                </span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Cost
+                </span>
+              </div>
+
+              {lineItems.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-slate-400 italic">
+                  No line items. Delete and re-add with quantities.
+                </div>
+              ) : (
+                lineItems.map((item, i) => (
+                  <ActivityLineItemRow key={item.id} item={item} index={i} />
+                ))
+              )}
+
+              {/* Footer: rollup summary */}
+              <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-2">
+                <span className="text-xs text-slate-500">
+                  Crew: <strong>{activity.crewSize}</strong> &bull; {activity.hoursPerDay}h/day
+                </span>
+                <span className="text-xs text-slate-500">
+                  Calc duration: <strong>{activity.calculatedDurationDays ?? 0}d</strong>
+                  {hasOverride && (
+                    <> → Override: <strong className="text-amber-600">{activity.durationDaysOverride}d</strong></>
+                  )}
+                </span>
+                <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-400 ml-auto">
+                  {mh.toFixed(2)} MH total
+                </span>
+              </div>
+            </>
           )}
 
-          {/* Footer: rollup summary */}
-          <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-2">
-            <span className="text-xs text-slate-500">
-              Crew: <strong>{activity.crewSize}</strong> &bull; {activity.hoursPerDay}h/day
-            </span>
-            <span className="text-xs text-slate-500">
-              Calc duration: <strong>{activity.calculatedDurationDays ?? 0}d</strong>
-              {hasOverride && (
-                <> → Override: <strong className="text-amber-600">{activity.durationDaysOverride}d</strong></>
+          {activeTab === 'field' && (
+            <div className="p-3">
+              {rollup ? (
+                <ActivityProgressSummary
+                  rollup={rollup}
+                  baseline={baseline}
+                  onLogProgress={() => setShowProgressForm(true)}
+                />
+              ) : (
+                <div className="py-6 text-center space-y-3">
+                  <p className="text-sm text-slate-500">No field progress logged yet.</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowProgressForm(true)}
+                    className="rounded bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium px-4 py-2 transition-colors"
+                  >
+                    Log Today's Progress
+                  </button>
+                </div>
               )}
-            </span>
-            <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-400 ml-auto">
-              {mh.toFixed(2)} MH total
-            </span>
-          </div>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Progress form modal */}
+      {showProgressForm && (
+        <ActivityProgressForm
+          projectActivityId={activity.id}
+          projectId={activity.projectId}
+          activityTitle={activity.title ?? activity.name ?? ''}
+          unit="MH"
+          originalQuantity={activity.calculatedManHours ?? 0}
+          latestUpdate={rollup ? (rollup.updateCount > 0 ? null : null) : null}
+          saving={saving}
+          onSubmit={async (input) => {
+            const ok = await submitUpdate(input);
+            if (ok) setShowProgressForm(false);
+          }}
+          onCancel={() => setShowProgressForm(false)}
+        />
       )}
     </div>
   );
