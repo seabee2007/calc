@@ -79,6 +79,7 @@ import {
   LazyEmployeeUploadsPage,
   LazyOnboardingFlow,
   LazyConcreteChat,
+  LazySeabeeDevPreview,
 } from './routes/lazyPages';
 
 // Error boundary component
@@ -210,9 +211,11 @@ function App() {
   }, [user, authLoading, location.pathname, isNativePlatform]);
 
   const isLoggedOutLanding = location.pathname === '/' && !user && !authLoading;
+  const isOnboardingActive =
+    onboardingChecked && ((showOnboarding && user) || location.pathname === '/test-onboarding');
 
   useEffect(() => {
-    const shouldUseDark = isLoggedOutLanding || isDark;
+    const shouldUseDark = isLoggedOutLanding || isDark || isOnboardingActive;
 
     if (shouldUseDark) {
       document.documentElement.classList.add('dark');
@@ -221,7 +224,7 @@ function App() {
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark');
     }
-  }, [isDark, isLoggedOutLanding]);
+  }, [isDark, isLoggedOutLanding, isOnboardingActive]);
 
   const handleOnboardingComplete = () => {
     try {
@@ -525,6 +528,11 @@ function App() {
               </Suspense>
             }
           />
+          {/* Dev-only routes — only rendered in development builds */}
+          {import.meta.env.DEV && (
+            <Route path="/dev/seabee-preview" element={<LazyRoute Page={LazySeabeeDevPreview} />} />
+          )}
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 

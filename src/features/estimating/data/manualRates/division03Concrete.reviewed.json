@@ -233,6 +233,51 @@
       "applicableActivityTypes": ["Place Slab on Grade"]
     },
     {
+      "id": "03-21-10.60-0050",
+      "masterFormatCode": "03 21 10.60",
+      "workElementLineNumber": "0050",
+      "description": "Reinforcing steel in place, footings, bar size #4 to #7",
+      "unit": "Ton",
+      "rateType": "labor_production",
+      "manHoursPerUnit": 20.27,
+      "minimumCrewSize": 4,
+      "crewComposition": { "laborer": 4 },
+      "sourceFigure": "Figure 5-C-12",
+      "sourcePage": "5-C-10",
+      "sourcePdfPage": 67,
+      "sourceNotes": [
+        "Includes handling into place, tying, supporting, and cutting at site",
+        "Man-hours based on shop-fabricated rebar (cut to length and bent, ready to place)",
+        "If rebar to be welded in place, use 1.5 multiplier",
+        "Order three 4-pound rolls of tie wire per ton of rebar"
+      ],
+      "directLaborOnly": true,
+      "militaryAdjusted": false,
+      "tags": ["concrete", "reinforcing", "rebar", "footings"],
+      "applicableActivityTypes": ["Place Continuous Footing", "Place Spread Footing"]
+    },
+    {
+      "id": "03-21-10.60-0060",
+      "masterFormatCode": "03 21 10.60",
+      "workElementLineNumber": "0060",
+      "description": "Reinforcing steel in place, footings, bar size #8 to #18",
+      "unit": "Ton",
+      "rateType": "labor_production",
+      "manHoursPerUnit": 11.82,
+      "minimumCrewSize": 4,
+      "crewComposition": { "laborer": 4 },
+      "sourceFigure": "Figure 5-C-12",
+      "sourcePage": "5-C-10",
+      "sourcePdfPage": 67,
+      "sourceNotes": [
+        "Includes handling into place, tying, supporting, and cutting at site"
+      ],
+      "directLaborOnly": true,
+      "militaryAdjusted": false,
+      "tags": ["concrete", "reinforcing", "rebar", "footings", "heavy-rebar"],
+      "applicableActivityTypes": ["Place Continuous Footing", "Place Spread Footing"]
+    },
+    {
       "id": "03-31-05.70-0130",
       "masterFormatCode": "03 31 05.70",
       "workElementLineNumber": "0130",

@@ -310,14 +310,163 @@ export const SEABEE_PLACE_SLAB_ON_GRADE_LINE_ITEMS: readonly ActivityLineItemTem
   },
 ];
 
+// ── Place Continuous Footing ─────────────────────────────────────────────────
+
+export const SEABEE_CONTINUOUS_FOOTING_RATES: readonly ProductionRate[] = [
+  {
+    // Figure 5-C-7, 03 11 13.45 — Continuous wall footing form, plywood, 1 use
+    id: '03-11-13.45-0010',
+    divisionCode: '03',
+    divisionName: 'Concrete',
+    masterFormatCode: '03 11 13.45',
+    workElementLineNumber: '0010',
+    description: 'Footing, continuous wall, plywood, one use (fabricate, erect, strip, clean)',
+    unit: 'SF',
+    rateType: 'labor_production',
+    manHoursPerUnit: 0.113,
+    sourceManual: SOURCE_MANUAL,
+    sourceEdition: SOURCE_EDITION,
+    sourceDivision: '03',
+    sourceFigure: 'Figure 5-C-7',
+    sourcePage: '5-C-6',
+    sourcePdfPage: 63,
+    sourceNotes: [
+      'Total = 0.046 fabricate + 0.046 erect/strip + 0.021 clean/move',
+      'SF of contact surface',
+    ],
+    directLaborOnly: true,
+    militaryAdjusted: false,
+    tags: ['concrete', 'formwork', 'footing', 'continuous'],
+    applicableActivityTypes: ['Place Continuous Footing'],
+    importBatchId: IMPORT_BATCH_ID,
+    reviewedAt: '2026-06-10',
+    isActive: true,
+  },
+  {
+    // Figure 5-C-12, 03 21 10.60 — Reinforcing in place, footings, #4-#7
+    id: '03-21-10.60-0050',
+    divisionCode: '03',
+    divisionName: 'Concrete',
+    masterFormatCode: '03 21 10.60',
+    workElementLineNumber: '0050',
+    description: 'Reinforcing steel in place, footings, bar size #4 to #7',
+    unit: 'Ton',
+    rateType: 'labor_production',
+    manHoursPerUnit: 20.27,
+    minimumCrewSize: 4,
+    crewComposition: { laborer: 4 },
+    sourceManual: SOURCE_MANUAL,
+    sourceEdition: SOURCE_EDITION,
+    sourceDivision: '03',
+    sourceFigure: 'Figure 5-C-12',
+    sourcePage: '5-C-10',
+    sourcePdfPage: 67,
+    sourceNotes: [
+      'Includes handling into place, tying, supporting, and cutting at site',
+      'Based on shop-fabricated rebar (cut and bent ready to place)',
+      'If welded in place, use 1.5 multiplier',
+    ],
+    directLaborOnly: true,
+    militaryAdjusted: false,
+    tags: ['concrete', 'reinforcing', 'rebar', 'footings'],
+    applicableActivityTypes: ['Place Continuous Footing'],
+    importBatchId: IMPORT_BATCH_ID,
+    reviewedAt: '2026-06-10',
+    isActive: true,
+  },
+  {
+    // Figure 5-C-14, 03 31 05.70 — Place concrete, continuous footing, direct from chute
+    id: '03-31-05.70-0130',
+    divisionCode: '03',
+    divisionName: 'Concrete',
+    masterFormatCode: '03 31 05.70',
+    workElementLineNumber: '0130',
+    description: 'Place concrete, continuous footing, shallow, direct from chute',
+    unit: 'CYD',
+    rateType: 'labor_production',
+    manHoursPerUnit: 0.600,
+    minimumCrewSize: 9,
+    crewComposition: { laborer: 6, builder: 1, equipmentOperator: 2 },
+    sourceManual: SOURCE_MANUAL,
+    sourceEdition: SOURCE_EDITION,
+    sourceDivision: '03',
+    sourceFigure: 'Figure 5-C-14',
+    sourcePage: '5-C-12',
+    sourcePdfPage: 69,
+    directLaborOnly: true,
+    militaryAdjusted: false,
+    tags: ['concrete', 'placing', 'footing', 'continuous'],
+    applicableActivityTypes: ['Place Continuous Footing'],
+    importBatchId: IMPORT_BATCH_ID,
+    reviewedAt: '2026-06-10',
+    isActive: true,
+  },
+];
+
+export const SEABEE_PLACE_CONTINUOUS_FOOTING_ACTIVITY: ConstructionActivityTemplate = {
+  id: 'ca-03-place-continuous-footing',
+  divisionId: SEABEE_DIVISION_03_CONCRETE.id,
+  code: '03-02-01',
+  name: 'Place Continuous Footing',
+  description: 'Form, reinforce, and pour continuous wall footing',
+  scheduleEnabled: true,
+  defaultCrewSize: 4,
+  defaultHoursPerDay: 8,
+  defaultProductionFactor: 1,
+};
+
+export const SEABEE_CONTINUOUS_FOOTING_LINE_ITEMS: readonly ActivityLineItemTemplate[] = [
+  {
+    id: 'ali-footing-forms',
+    constructionActivityTemplateId: SEABEE_PLACE_CONTINUOUS_FOOTING_ACTIVITY.id,
+    name: 'Form continuous footing (1 use)',
+    unit: 'SF',
+    productionRateId: '03-11-13.45-0010',
+    defaultManHoursPerUnit: 0.113,
+    sortOrder: 1,
+  },
+  {
+    id: 'ali-footing-rebar',
+    constructionActivityTemplateId: SEABEE_PLACE_CONTINUOUS_FOOTING_ACTIVITY.id,
+    name: 'Place reinforcing steel (footings #4–#7)',
+    unit: 'Ton',
+    productionRateId: '03-21-10.60-0050',
+    defaultManHoursPerUnit: 20.27,
+    sortOrder: 2,
+  },
+  {
+    id: 'ali-footing-concrete',
+    constructionActivityTemplateId: SEABEE_PLACE_CONTINUOUS_FOOTING_ACTIVITY.id,
+    name: 'Place concrete, footing (direct from chute)',
+    unit: 'CYD',
+    productionRateId: '03-31-05.70-0130',
+    defaultManHoursPerUnit: 0.600,
+    sortOrder: 3,
+  },
+];
+
+export const SEABEE_DIVISION_03_ALL_PRODUCTION_RATES: readonly ProductionRate[] = [
+  ...SEABEE_DIVISION_03_PRODUCTION_RATES,
+  ...SEABEE_CONTINUOUS_FOOTING_RATES,
+];
+
 export const SEABEE_DIVISION_03_PRODUCTION_RATE_MAP = new Map<string, ProductionRate>(
-  SEABEE_DIVISION_03_PRODUCTION_RATES.map((rate) => [rate.id, rate]),
+  SEABEE_DIVISION_03_ALL_PRODUCTION_RATES.map((rate) => [rate.id, rate]),
 );
 
 /** Full Division 03 Concrete seed bundle for tests and future UI wiring. */
 export const SEABEE_DIVISION_03_CONCRETE_SEED = {
   division: SEABEE_DIVISION_03_CONCRETE,
-  productionRates: SEABEE_DIVISION_03_PRODUCTION_RATES,
+  productionRates: SEABEE_DIVISION_03_ALL_PRODUCTION_RATES,
+  activities: [
+    SEABEE_PLACE_SLAB_ON_GRADE_ACTIVITY,
+    SEABEE_PLACE_CONTINUOUS_FOOTING_ACTIVITY,
+  ],
+  lineItemGroups: {
+    slabOnGrade: SEABEE_PLACE_SLAB_ON_GRADE_LINE_ITEMS,
+    continuousFooting: SEABEE_CONTINUOUS_FOOTING_LINE_ITEMS,
+  },
+  // Legacy single-activity access for backward compatibility with existing tests
   constructionActivity: SEABEE_PLACE_SLAB_ON_GRADE_ACTIVITY,
   lineItemTemplates: SEABEE_PLACE_SLAB_ON_GRADE_LINE_ITEMS,
 } as const;

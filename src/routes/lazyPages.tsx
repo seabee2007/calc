@@ -156,3 +156,8 @@ export const LazyEmployeeMessagesPage = lazyPage(
 export const LazyEmployeeUploadsPage = lazyPage(
   () => import('../pages/employee/EmployeeUploadsPage'),
 );
+
+// Dev-only routes (never rendered in production builds)
+export const LazySeabeeDevPreview = lazyPage(
+  () => import('../features/estimating/ui/dev/SeabeeDevPreview'),
+);
