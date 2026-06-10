@@ -165,7 +165,8 @@ export function getProjectActivityLineItemWarning(item: ProjectActivityLineItem)
   }
   const hasRateReference =
     (typeof item.productionRateId === 'string' && item.productionRateId.length > 0) ||
-    (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0);
+    (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0) ||
+    item.pricingSource === 'manual';
   if (!hasRateReference) {
     return `Missing production rate source on "${item.name}".`;
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
@@ -32,9 +32,10 @@ import { applyMasterActivityToDraftLine } from '../../application/estimateActivi
 import type { MasterActivityDefaultField } from '../../application/estimateActivityCoding';
 import { getMasterActivityByCode } from '../../data/masterActivityIndex';
 import { getProductionRateDefaultsForActivity } from '../../data/productionRates';
-import ProductionRateLibraryModal from './ProductionRateLibraryModal';
 import type { ProductionRateLibraryEntry } from '../../data/productionRates/productionRateTypes';
 import { PRODUCTION_RATE_REFERENCE_NOTE } from '../../data/productionRates/mapToLibraryEntry';
+
+const ProductionRateLibraryModal = lazy(() => import('./ProductionRateLibraryModal'));
 import { getCsiDivisionByCode } from '../../domain/csiDivisions';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import {
@@ -830,12 +831,16 @@ export default function EstimateManualLineItemForm({
         </div>
       </section>
 
-      <ProductionRateLibraryModal
-        isOpen={productionLibraryOpen}
-        onClose={() => setProductionLibraryOpen(false)}
-        onSelect={applyProductionRateEntry}
-        initialDivisionCode={normalizedDivision || undefined}
-      />
+      {productionLibraryOpen ? (
+        <Suspense fallback={null}>
+          <ProductionRateLibraryModal
+            isOpen
+            onClose={() => setProductionLibraryOpen(false)}
+            onSelect={applyProductionRateEntry}
+            initialDivisionCode={normalizedDivision || undefined}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

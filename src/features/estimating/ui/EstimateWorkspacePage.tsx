@@ -159,6 +159,8 @@ import {
 
 const OVERVIEW_NO_ESTIMATE_MESSAGE =
   'No estimate started yet. Go to the Estimate tab to start one.';
+const TAB_NO_ESTIMATE_MESSAGE =
+  'Start an estimate on the Estimate tab before using this section.';
 const WORKFLOW_PLACEHOLDER_TAB_IDS: EstimateWorkspaceTabId[] = [
   'conceptual-budget',
   'assumptions-allowances',
@@ -876,8 +878,10 @@ export default function EstimateWorkspacePage() {
     }
   }, [resolvedProjectId]);
 
-  const handleStartEstimate = useCallback(async () => {
+  const handleStartEstimate = useCallback(async (estimateTypeOverride?: EstimateType) => {
     if (!resolvedProjectId || creating || estimate != null) return;
+
+    const estimateType = estimateTypeOverride ?? selectedEstimateMethod;
 
     setCreating(true);
     setCreateError(null);
@@ -886,7 +890,7 @@ export default function EstimateWorkspacePage() {
     const result = await createCurrentEstimate({
       projectId: resolvedProjectId,
       createdBy: user?.id ?? null,
-      estimateType: selectedEstimateMethod,
+      estimateType,
     });
 
     if (result.error) {
@@ -899,7 +903,7 @@ export default function EstimateWorkspacePage() {
       const nextVersion = currentEstimateToDomainVersion(result.data);
       setCurrentEstimate(result.data);
       setActiveEstimateType(result.data.estimateType);
-      estimateSetup.startSetup(selectedEstimateMethod);
+      estimateSetup.startSetup(estimateType);
       setAutoOpenScopeModalKey(result.data.id);
       lineItemDraft.rehydrateFromVersion(nextVersion);
       scheduleSettingsHook.rehydrateFromEstimate(
@@ -914,7 +918,7 @@ export default function EstimateWorkspacePage() {
     navigate(
       estimateWorkspaceHref(
         resolvedProjectId,
-        getDefaultWorkspaceTabForEstimateType(selectedEstimateMethod),
+        getDefaultWorkspaceTabForEstimateType(estimateType),
       ),
     );
     setCreating(false);
@@ -959,11 +963,17 @@ export default function EstimateWorkspacePage() {
   const handleEstimateTypeModalSelect = useCallback(
     (nextType: EstimateType) => {
       setEstimateTypeModalOpen(false);
+      if (!currentEstimate) {
+        setSelectedEstimateMethod(nextType);
+        setActiveEstimateType(nextType);
+        void handleStartEstimate(nextType);
+        return;
+      }
       if (nextType === resolvedEstimateType) return;
       setPendingEstimateTypeChange(nextType);
       setEstimateTypeChangeConfirmOpen(true);
     },
-    [resolvedEstimateType],
+    [currentEstimate, handleStartEstimate, resolvedEstimateType],
   );
 
   const pendingEstimateTypeWarning = useMemo(
@@ -1961,13 +1971,13 @@ export default function EstimateWorkspacePage() {
           visibleTabs={visibleWorkspaceTabs}
           onTabChange={handleTabChange}
           estimateTypeControl={
-            hasEstimate ? (
-              <EstimateTypeHeaderControl
-                estimateType={resolvedEstimateType}
-                onChangeClick={() => setEstimateTypeModalOpen(true)}
-                disabled={saving || changingEstimateType || dataLoading}
-              />
-            ) : null
+            <EstimateTypeHeaderControl
+              hasEstimate={hasEstimate}
+              estimateType={resolvedEstimateType}
+              schedulingEnabled={schedulingEnabled}
+              onActionClick={() => setEstimateTypeModalOpen(true)}
+              disabled={saving || changingEstimateType || dataLoading || creating}
+            />
           }
           rightActions={
             <EstimateWorkspaceToolbarActions

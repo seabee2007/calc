@@ -79,11 +79,13 @@ describe('production rate pipeline validation', () => {
 });
 
 describe('generated production rate library', () => {
-  it('loads only approved records from generated index', async () => {
-    const { getApprovedProductionRateLibrary } = await import('../productionRateLibrary');
-    const rates = getApprovedProductionRateLibrary();
-    expect(rates.length).toBeGreaterThan(0);
-    expect(rates.every((rate) => rate.manHoursPerUnit != null || rate.activityName)).toBe(true);
+  it('loads only approved records from generated index via lazy loader', async () => {
+    const { loadApprovedProductionRateLibrary, resetProductionRateLibraryLoaderForTests } =
+      await import('../productionRateLibraryLoader');
+    resetProductionRateLibraryLoaderForTests();
+    const loaded = await loadApprovedProductionRateLibrary();
+    expect(loaded.rates.length).toBeGreaterThan(0);
+    expect(loaded.rates.every((rate) => rate.manHoursPerUnit != null || rate.activityName)).toBe(true);
   });
 
   it('raw JSON is not imported by the library module', async () => {
@@ -94,5 +96,6 @@ describe('generated production rate library', () => {
       'utf8',
     );
     expect(librarySource).not.toContain('production-rates/raw');
+    expect(librarySource).not.toContain('./generated/generatedProductionRateIndex');
   });
 });

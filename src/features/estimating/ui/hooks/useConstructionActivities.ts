@@ -13,11 +13,15 @@ import type {
 } from '../../domain/constructionActivityTypes';
 import {
   instantiateAndSaveActivity,
+  instantiateAndSaveFromProductionRateAssembly,
+  instantiateAndSaveManualActivity,
   loadProjectActivitiesWithLineItems,
   removeProjectActivity,
   updateProjectConstructionActivity,
   type ActivityInstanceIdentityInput,
   type LoadedProjectActivity,
+  type SaveFromProductionRateAssemblyInput,
+  type SaveManualActivityInput,
   type UpdateProjectActivityInput,
 } from '../../application/constructionActivityService';
 import { useProjectLaborRates } from './useProjectLaborRates';
@@ -33,6 +37,12 @@ export interface ConstructionActivityState {
 export interface UseConstructionActivitiesReturn extends ConstructionActivityState {
   reload: () => void;
   addFromAssembly: (params: AddFromAssemblyParams) => Promise<void>;
+  addFromProductionRateAssembly: (
+    params: Omit<SaveFromProductionRateAssemblyInput, 'projectId' | 'projectLaborRates'>,
+  ) => Promise<void>;
+  addManualActivity: (
+    params: Omit<SaveManualActivityInput, 'projectId' | 'projectLaborRates'>,
+  ) => Promise<void>;
   updateActivity: (params: UpdateProjectActivityInput) => Promise<void>;
   remove: (activityId: string) => Promise<void>;
 }
@@ -49,6 +59,16 @@ export interface AddFromAssemblyParams {
   durationDaysOverride?: number | null;
   identity: ActivityInstanceIdentityInput;
 }
+
+export type AddFromProductionRateAssemblyParams = Omit<
+  SaveFromProductionRateAssemblyInput,
+  'projectId' | 'estimateId' | 'existingActivities' | 'projectLaborRates'
+>;
+
+export type AddManualActivityParams = Omit<
+  SaveManualActivityInput,
+  'projectId' | 'estimateId' | 'existingActivities' | 'projectLaborRates'
+>;
 
 export function useConstructionActivities(
   projectId: string | null | undefined,
@@ -127,6 +147,56 @@ export function useConstructionActivities(
     [projectId, estimateId, load, state.activities, defaultRate],
   );
 
+  const addFromProductionRateAssembly = useCallback(
+    async (params: Omit<SaveFromProductionRateAssemblyInput, 'projectId' | 'projectLaborRates'>) => {
+      if (!projectId) return;
+      setState((s) => ({ ...s, saving: true, error: null }));
+      const result = await instantiateAndSaveFromProductionRateAssembly({
+        ...params,
+        projectId,
+        estimateId: estimateId ?? undefined,
+        existingActivities: state.activities,
+        projectLaborRates: projectRates,
+      });
+      if (result.error || !result.data) {
+        setState((s) => ({
+          ...s,
+          saving: false,
+          error: result.error ?? 'Save failed',
+        }));
+      } else {
+        setState((s) => ({ ...s, saving: false }));
+        void load();
+      }
+    },
+    [projectId, estimateId, load, projectRates, state.activities],
+  );
+
+  const addManualActivity = useCallback(
+    async (params: Omit<SaveManualActivityInput, 'projectId' | 'projectLaborRates'>) => {
+      if (!projectId) return;
+      setState((s) => ({ ...s, saving: true, error: null }));
+      const result = await instantiateAndSaveManualActivity({
+        ...params,
+        projectId,
+        estimateId: estimateId ?? undefined,
+        existingActivities: state.activities,
+        projectLaborRates: projectRates,
+      });
+      if (result.error || !result.data) {
+        setState((s) => ({
+          ...s,
+          saving: false,
+          error: result.error ?? 'Save failed',
+        }));
+      } else {
+        setState((s) => ({ ...s, saving: false }));
+        void load();
+      }
+    },
+    [projectId, estimateId, load, projectRates, state.activities],
+  );
+
   const updateActivity = useCallback(
     async (params: UpdateProjectActivityInput) => {
       if (!projectId) return;
@@ -172,5 +242,13 @@ export function useConstructionActivities(
     [],
   );
 
-  return { ...state, reload, addFromAssembly, updateActivity, remove };
+  return {
+    ...state,
+    reload,
+    addFromAssembly,
+    addFromProductionRateAssembly,
+    addManualActivity,
+    updateActivity,
+    remove,
+  };
 }

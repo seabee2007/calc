@@ -36,6 +36,14 @@ import {
 } from '../infrastructure/activityRepository';
 import type { ProjectLaborRate } from '../domain/laborRateTypes';
 import type { RepositoryResult } from '../infrastructure/estimateDbTypes';
+import {
+  instantiateManualConstructionActivity,
+  instantiateProductionRateAssembly,
+  buildProductionRateCategorySourceTemplateKey,
+  MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
+  type ManualDraftLineItemInput,
+  type ProductionRateAssemblyGroup,
+} from './productionRateAssemblyBuilder';
 
 export interface InstantiateAndSaveInput {
   assembly: ActivityAssemblySpec;
@@ -53,6 +61,39 @@ export interface InstantiateAndSaveInput {
   existingActivities?: readonly ProjectConstructionActivity[];
   existingActivityId?: string;
   defaultLaborRate?: ProjectLaborRate;
+}
+
+export interface SaveFromProductionRateAssemblyInput {
+  group: ProductionRateAssemblyGroup;
+  selectedLineItems: Array<{
+    rateId: string;
+    quantity: number;
+    laborRoleId?: string | null;
+  }>;
+  projectId: string;
+  estimateId?: string;
+  crewSize?: number;
+  hoursPerDay?: number;
+  durationDaysOverride?: number | null;
+  scheduleEnabled?: boolean;
+  identity: ActivityInstanceIdentityInput;
+  existingActivities?: readonly ProjectConstructionActivity[];
+  projectLaborRates: readonly ProjectLaborRate[];
+}
+
+export interface SaveManualActivityInput {
+  divisionCode: string;
+  divisionName: string;
+  lineItems: ManualDraftLineItemInput[];
+  projectId: string;
+  estimateId?: string;
+  crewSize?: number;
+  hoursPerDay?: number;
+  durationDaysOverride?: number | null;
+  scheduleEnabled?: boolean;
+  identity: ActivityInstanceIdentityInput;
+  existingActivities?: readonly ProjectConstructionActivity[];
+  projectLaborRates: readonly ProjectLaborRate[];
 }
 
 export interface UpdateProjectActivityInput {
@@ -175,6 +216,125 @@ function buildAssignedIdentity(
   });
 
   return { assigned, validationError: null };
+}
+
+function buildAssignedForSourceTemplate(input: {
+  existingActivities: readonly ProjectConstructionActivity[];
+  divisionCode: string;
+  sourceTemplateKey: string;
+  identity: ActivityInstanceIdentityInput;
+  excludeActivityId?: string;
+}) {
+  const validationError = validateInstanceLabelForDuplicateTemplate({
+    existingActivities: input.existingActivities,
+    sourceTemplateKey: input.sourceTemplateKey,
+    instanceLabel: input.identity.instanceLabel,
+    excludeActivityId: input.excludeActivityId,
+  });
+  if (validationError) {
+    return { assigned: null, validationError };
+  }
+
+  const assigned = assignProjectActivityCode({
+    existingActivities: input.existingActivities,
+    divisionCode: input.divisionCode,
+    sourceTemplateKey: input.sourceTemplateKey,
+    identity: input.identity,
+    excludeActivityId: input.excludeActivityId,
+  });
+
+  return { assigned, validationError: null };
+}
+
+export async function instantiateAndSaveFromProductionRateAssembly(
+  input: SaveFromProductionRateAssemblyInput,
+): Promise<RepositoryResult<SavedActivityBundle>> {
+  const rateById = new Map(input.group.rates.map((rate) => [rate.id, rate]));
+  const selectedLineItems = input.selectedLineItems
+    .map((entry) => {
+      const rate = rateById.get(entry.rateId);
+      if (!rate) return null;
+      return {
+        rate,
+        quantity: entry.quantity,
+        laborRoleId: entry.laborRoleId,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null);
+
+  if (selectedLineItems.length === 0) {
+    return { data: null, error: 'Select at least one work element with quantity.' };
+  }
+
+  const { assigned, validationError } = buildAssignedForSourceTemplate({
+    existingActivities: input.existingActivities ?? [],
+    divisionCode: input.group.divisionCode,
+    sourceTemplateKey: buildProductionRateCategorySourceTemplateKey(
+      input.group.divisionCode,
+      input.group.category,
+    ),
+    identity: input.identity,
+  });
+
+  if (validationError || !assigned) {
+    return { data: null, error: validationError ?? 'Could not assign activity code.' };
+  }
+
+  const instantiationResult = instantiateProductionRateAssembly({
+    projectId: input.projectId,
+    estimateId: input.estimateId,
+    group: input.group,
+    selectedLineItems,
+    identity: input.identity,
+    assigned,
+    crewSize: input.crewSize ?? input.group.suggestedCrewSize,
+    hoursPerDay: input.hoursPerDay ?? input.group.suggestedHoursPerDay,
+    durationDaysOverride: input.durationDaysOverride,
+    scheduleEnabled: input.scheduleEnabled ?? true,
+    projectLaborRates: input.projectLaborRates,
+  });
+
+  const { projectActivity, projectLineItems } = instantiationResult;
+  const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
+  return saveActivityBundle(projectActivity, lineItemsForSave);
+}
+
+export async function instantiateAndSaveManualActivity(
+  input: SaveManualActivityInput,
+): Promise<RepositoryResult<SavedActivityBundle>> {
+  if (input.lineItems.length === 0) {
+    return { data: null, error: 'Add at least one manual line item.' };
+  }
+
+  const { assigned, validationError } = buildAssignedForSourceTemplate({
+    existingActivities: input.existingActivities ?? [],
+    divisionCode: input.divisionCode,
+    sourceTemplateKey: MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
+    identity: input.identity,
+  });
+
+  if (validationError || !assigned) {
+    return { data: null, error: validationError ?? 'Could not assign activity code.' };
+  }
+
+  const instantiationResult = instantiateManualConstructionActivity({
+    projectId: input.projectId,
+    estimateId: input.estimateId,
+    divisionCode: input.divisionCode,
+    divisionName: input.divisionName,
+    lineItems: input.lineItems,
+    identity: input.identity,
+    assigned,
+    crewSize: input.crewSize ?? 4,
+    hoursPerDay: input.hoursPerDay ?? 8,
+    durationDaysOverride: input.durationDaysOverride,
+    scheduleEnabled: input.scheduleEnabled ?? true,
+    projectLaborRates: input.projectLaborRates,
+  });
+
+  const { projectActivity, projectLineItems } = instantiationResult;
+  const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
+  return saveActivityBundle(projectActivity, lineItemsForSave);
 }
 
 export async function instantiateAndSaveActivity(

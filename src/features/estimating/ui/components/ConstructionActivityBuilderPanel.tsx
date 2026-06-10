@@ -9,16 +9,20 @@
  *  - Only ProjectConstructionActivity can be schedule-enabled.
  *  - Does not modify CPM, Logic Network, or existing estimate tables.
  */
-import { useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import { Plus, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import ConstructionActivityCard from './ConstructionActivityCard';
-import AssemblyPickerModal from './AssemblyPickerModal';
 import EditConstructionActivityModal from './EditConstructionActivityModal';
 import { useConstructionActivities } from '../hooks/useConstructionActivities';
 import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
-import type { AddFromAssemblyParams } from '../hooks/useConstructionActivities';
+import type {
+  AddFromProductionRateAssemblyParams,
+  AddManualActivityParams,
+} from '../hooks/useConstructionActivities';
 import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
 import type { UpdateProjectActivityInput } from '../../application/constructionActivityService';
+
+const AssemblyPickerModal = lazy(() => import('./AssemblyPickerModal'));
 
 interface Props {
   projectId: string;
@@ -45,9 +49,9 @@ function groupByDivision(
 }
 
 export default function ConstructionActivityBuilderPanel({ projectId, estimateId, onActivitiesChanged }: Props) {
-  const { activities, lineItemsMap, loading, saving, error, reload, addFromAssembly, updateActivity, remove } =
+  const { activities, lineItemsMap, loading, saving, error, reload, addFromProductionRateAssembly, addManualActivity, updateActivity, remove } =
     useConstructionActivities(projectId, estimateId);
-  const { defaultRate } = useProjectLaborRates(projectId);
+  const { projectRates } = useProjectLaborRates(projectId);
 
   const [showPicker, setShowPicker] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -73,13 +77,22 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
     [activities],
   );
 
-  const handleAdd = useCallback(
-    async (params: AddFromAssemblyParams) => {
-      await addFromAssembly(params);
+  const handleAddProductionRate = useCallback(
+    async (params: AddFromProductionRateAssemblyParams) => {
+      await addFromProductionRateAssembly(params);
       setShowPicker(false);
       onActivitiesChanged?.();
     },
-    [addFromAssembly, onActivitiesChanged],
+    [addFromProductionRateAssembly, onActivitiesChanged],
+  );
+
+  const handleAddManual = useCallback(
+    async (params: AddManualActivityParams) => {
+      await addManualActivity(params);
+      setShowPicker(false);
+      onActivitiesChanged?.();
+    },
+    [addManualActivity, onActivitiesChanged],
   );
 
   const handleEditSave = useCallback(
@@ -124,16 +137,19 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
         >
           <Plus size={16} /> Add First Activity
         </button>
-        {showPicker && (
-          <AssemblyPickerModal
-            projectId={projectId}
-            onConfirm={handleAdd}
-            onCancel={() => setShowPicker(false)}
-            saving={saving}
-            existingActivities={activities}
-            defaultLaborRate={defaultRate}
-          />
-        )}
+        {showPicker ? (
+          <Suspense fallback={null}>
+            <AssemblyPickerModal
+              projectId={projectId}
+              onConfirmProductionRate={handleAddProductionRate}
+              onConfirmManual={handleAddManual}
+              onCancel={() => setShowPicker(false)}
+              saving={saving}
+              existingActivities={activities}
+              projectLaborRates={projectRates}
+            />
+          </Suspense>
+        ) : null}
       </div>
     );
   }
@@ -222,16 +238,19 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
       )}
 
       {/* ── Assembly picker modal ────────────────────────────────────────────── */}
-        {showPicker && (
-          <AssemblyPickerModal
-            projectId={projectId}
-            onConfirm={handleAdd}
-            onCancel={() => setShowPicker(false)}
-            saving={saving}
-            existingActivities={[]}
-            defaultLaborRate={defaultRate}
-          />
-        )}
+        {showPicker ? (
+          <Suspense fallback={null}>
+            <AssemblyPickerModal
+              projectId={projectId}
+              onConfirmProductionRate={handleAddProductionRate}
+              onConfirmManual={handleAddManual}
+              onCancel={() => setShowPicker(false)}
+              saving={saving}
+              existingActivities={activities}
+              projectLaborRates={projectRates}
+            />
+          </Suspense>
+        ) : null}
 
       {/* ── Delete confirm dialog ────────────────────────────────────────────── */}
       {deleteConfirm && (

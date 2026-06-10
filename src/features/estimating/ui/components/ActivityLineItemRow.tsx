@@ -33,7 +33,11 @@ export default function ActivityLineItemRow({ item, index }: Props) {
       <div className="min-w-0">
         <p className="truncate text-sm text-slate-800 dark:text-slate-200">{item.name}</p>
         <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-          {item.sourceProductionRateKey ?? item.productionRateId ?? '—'}
+          {item.pricingSource === 'manual'
+            ? 'Manual'
+            : item.sourceFigure && item.sourcePage
+              ? `${item.sourceFigure} · p.${item.sourcePage}`
+              : (item.sourceProductionRateKey ?? item.productionRateId ?? '—')}
         </p>
         {missingLaborRate ? (
           <span

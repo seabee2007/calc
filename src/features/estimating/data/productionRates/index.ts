@@ -3,5 +3,7 @@ export * from './validateExtractedProductionRates';
 export * from './mapExtractedToReviewedRate';
 export * from './mapToLibraryEntry';
 export * from './productionRateLibrary';
+export * from './productionRateLibraryLoader';
+export * from './productionRateLibraryQueries';
 export * from './residentialProductionRates';
 export * from './productionRateHelpers';

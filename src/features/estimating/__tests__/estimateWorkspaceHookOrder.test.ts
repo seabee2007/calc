@@ -14,4 +14,13 @@ describe('EstimateWorkspacePage source order', () => {
     expect(usePos).toBeGreaterThan(-1);
     expect(hookPos).toBeLessThan(usePos);
   });
+
+  it('defines TAB_NO_ESTIMATE_MESSAGE used by gated workspace tabs', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/features/estimating/ui/EstimateWorkspacePage.tsx'),
+      'utf8',
+    );
+    expect(source).toContain('const TAB_NO_ESTIMATE_MESSAGE =');
+    expect(source).toContain('body={TAB_NO_ESTIMATE_MESSAGE}');
+  });
 });

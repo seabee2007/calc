@@ -123,7 +123,10 @@ export default function ConstructionActivityCard({
             <StatChip label="Items" value={`${lineItems.length}`} />
           )}
           {totalCost > 0 && (
-            <StatChip label="Cost" value={`$${(totalCost / 1000).toFixed(1)}k`} />
+            <StatChip
+              label="Labor"
+              value={`$${(activity.totalLaborCost ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+            />
           )}
         </div>
 
