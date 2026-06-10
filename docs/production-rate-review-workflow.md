@@ -38,6 +38,7 @@ When clean, promote with human sign-off:
 
 ```powershell
 npm run promote:production-rates -- --figure figure_5_C_7 --approve
+npm run promote:production-rates -- --all-divisions --approve
 npm run generate:production-rates
 npm run build
 ```

@@ -1953,10 +1953,6 @@ export default function EstimateWorkspacePage() {
     setSaveToastMessage('Select at least one new division');
   }, []);
 
-  // #region agent log
-  fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H1,H2,H3,H4',location:'EstimateWorkspacePage.tsx:1956',message:'estimate workspace render modal state',data:{activeTab,hasEstimate,dataLoading,saving,changingEstimateType,estimateTypeModalOpen,estimateTypeChangeConfirmOpen,pendingEstimateTypeChange,resolvedEstimateType,schedulingEnabled},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   return (
     <>
       <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
@@ -1968,12 +1964,7 @@ export default function EstimateWorkspacePage() {
             hasEstimate ? (
               <EstimateTypeHeaderControl
                 estimateType={resolvedEstimateType}
-                onChangeClick={() => {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H1,H2',location:'EstimateWorkspacePage.tsx:1967',message:'parent change click callback invoked',data:{estimateTypeModalOpenBefore:estimateTypeModalOpen,saving,changingEstimateType,dataLoading,hasEstimate,resolvedEstimateType},timestamp:Date.now()})}).catch(()=>{});
-                  // #endregion
-                  setEstimateTypeModalOpen(true);
-                }}
+                onChangeClick={() => setEstimateTypeModalOpen(true)}
                 disabled={saving || changingEstimateType || dataLoading}
               />
             ) : null

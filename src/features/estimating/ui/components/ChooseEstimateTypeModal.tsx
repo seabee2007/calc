@@ -25,10 +25,6 @@ export default function ChooseEstimateTypeModal({
 }: Props) {
   const options = listEstimateMethods();
 
-  // #region agent log
-  fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H2,H3',location:'ChooseEstimateTypeModal.tsx:29',message:'choose estimate type modal wrapper rendered',data:{open,currentType,optionCount:options.length,passesOpenPropName:true},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   return (
     <Modal
       isOpen={open}

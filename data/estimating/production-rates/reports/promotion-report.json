@@ -1,0 +1,1354 @@
+{
+  "generatedAt": "2026-06-10T22:01:23+00:00",
+  "sourceStage": "ai-reviewed",
+  "allowWarnings": false,
+  "divisionsProcessed": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "13",
+    "21",
+    "22",
+    "23",
+    "26",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "41",
+    "46"
+  ],
+  "filesPromoted": 95,
+  "recordsPromoted": 1205,
+  "filesSkipped": 111,
+  "recordsBlocked": 2102,
+  "warningsByDivision": {
+    "01": 24,
+    "02": 39,
+    "03": 71,
+    "04": 21,
+    "05": 33,
+    "06": 222,
+    "07": 104,
+    "08": 40,
+    "09": 61,
+    "10": 48,
+    "13": 154,
+    "21": 76,
+    "22": 33,
+    "23": 64,
+    "26": 379,
+    "31": 187,
+    "32": 113,
+    "33": 265,
+    "34": 42,
+    "35": 83,
+    "41": 25,
+    "46": 18
+  },
+  "promotedFiles": [
+    {
+      "file": "figure_5_A_2.ai_reviewed.json",
+      "division": "01",
+      "output": "figure_5_A_2.approved.json",
+      "recordsPromoted": 15,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_B_1.ai_reviewed.json",
+      "division": "02",
+      "output": "figure_5_B_1.approved.json",
+      "recordsPromoted": 19,
+      "recordsBlocked": 27
+    },
+    {
+      "file": "figure_5_B_2.ai_reviewed.json",
+      "division": "02",
+      "output": "figure_5_B_2.approved.json",
+      "recordsPromoted": 23,
+      "recordsBlocked": 10
+    },
+    {
+      "file": "figure_5_B_3.ai_reviewed.json",
+      "division": "02",
+      "output": "figure_5_B_3.approved.json",
+      "recordsPromoted": 4,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_C_13.ai_reviewed.json",
+      "division": "03",
+      "output": "figure_5_C_13.approved.json",
+      "recordsPromoted": 2,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_C_15.ai_reviewed.json",
+      "division": "03",
+      "output": "figure_5_C_15.approved.json",
+      "recordsPromoted": 22,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_C_5.ai_reviewed.json",
+      "division": "03",
+      "output": "figure_5_C_5.approved.json",
+      "recordsPromoted": 14,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_C_6.ai_reviewed.json",
+      "division": "03",
+      "output": "figure_5_C_6.approved.json",
+      "recordsPromoted": 14,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_C_7.ai_reviewed.json",
+      "division": "03",
+      "output": "figure_5_C_7.approved.json",
+      "recordsPromoted": 50,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_C_8.ai_reviewed.json",
+      "division": "03",
+      "output": "figure_5_C_8.approved.json",
+      "recordsPromoted": 14,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_D_10.ai_reviewed.json",
+      "division": "04",
+      "output": "figure_5_D_10.approved.json",
+      "recordsPromoted": 39,
+      "recordsBlocked": 10
+    },
+    {
+      "file": "figure_5_D_6.ai_reviewed.json",
+      "division": "04",
+      "output": "figure_5_D_6.approved.json",
+      "recordsPromoted": 9,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_D_7.ai_reviewed.json",
+      "division": "04",
+      "output": "figure_5_D_7.approved.json",
+      "recordsPromoted": 17,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_D_8.ai_reviewed.json",
+      "division": "04",
+      "output": "figure_5_D_8.approved.json",
+      "recordsPromoted": 10,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_D_9.ai_reviewed.json",
+      "division": "04",
+      "output": "figure_5_D_9.approved.json",
+      "recordsPromoted": 9,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_E_10.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_10.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_E_11.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_11.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_E_12.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_12.approved.json",
+      "recordsPromoted": 9,
+      "recordsBlocked": 1
+    },
+    {
+      "file": "figure_5_E_14.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_14.approved.json",
+      "recordsPromoted": 12,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_E_15.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_15.approved.json",
+      "recordsPromoted": 12,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_E_16.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_16.approved.json",
+      "recordsPromoted": 15,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_E_17.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_17.approved.json",
+      "recordsPromoted": 15,
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_E_9.ai_reviewed.json",
+      "division": "05",
+      "output": "figure_5_E_9.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_F_10.ai_reviewed.json",
+      "division": "06",
+      "output": "figure_5_F_10.approved.json",
+      "recordsPromoted": 21,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_F_11.ai_reviewed.json",
+      "division": "06",
+      "output": "figure_5_F_11.approved.json",
+      "recordsPromoted": 15,
+      "recordsBlocked": 10
+    },
+    {
+      "file": "figure_5_F_12.ai_reviewed.json",
+      "division": "06",
+      "output": "figure_5_F_12.approved.json",
+      "recordsPromoted": 7,
+      "recordsBlocked": 1
+    },
+    {
+      "file": "figure_5_F_7.ai_reviewed.json",
+      "division": "06",
+      "output": "figure_5_F_7.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_F_8.ai_reviewed.json",
+      "division": "06",
+      "output": "figure_5_F_8.approved.json",
+      "recordsPromoted": 13,
+      "recordsBlocked": 177
+    },
+    {
+      "file": "figure_5_F_9.ai_reviewed.json",
+      "division": "06",
+      "output": "figure_5_F_9.approved.json",
+      "recordsPromoted": 10,
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_G_2.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_2.approved.json",
+      "recordsPromoted": 20,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_G_3.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_3.approved.json",
+      "recordsPromoted": 20,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_G_4.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_4.approved.json",
+      "recordsPromoted": 20,
+      "recordsBlocked": 5
+    },
+    {
+      "file": "figure_5_G_5.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_5.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 5
+    },
+    {
+      "file": "figure_5_G_6.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_6.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 51
+    },
+    {
+      "file": "figure_5_G_7.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_7.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 29
+    },
+    {
+      "file": "figure_5_G_8.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_8.approved.json",
+      "recordsPromoted": 37,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_G_9.ai_reviewed.json",
+      "division": "07",
+      "output": "figure_5_G_9.approved.json",
+      "recordsPromoted": 37,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_H_1.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_1.approved.json",
+      "recordsPromoted": 13,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_H_2.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_2.approved.json",
+      "recordsPromoted": 15,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_H_3.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_3.approved.json",
+      "recordsPromoted": 7,
+      "recordsBlocked": 5
+    },
+    {
+      "file": "figure_5_H_4.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_4.approved.json",
+      "recordsPromoted": 21,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_H_5.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_5.approved.json",
+      "recordsPromoted": 27,
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_H_6.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_6.approved.json",
+      "recordsPromoted": 7,
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_H_7.ai_reviewed.json",
+      "division": "08",
+      "output": "figure_5_H_7.approved.json",
+      "recordsPromoted": 7,
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_J_10.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_10.approved.json",
+      "recordsPromoted": 24,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_J_11.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_11.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_J_12.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_12.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_J_13.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_13.approved.json",
+      "recordsPromoted": 14,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_J_14.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_14.approved.json",
+      "recordsPromoted": 5,
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_J_15.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_15.approved.json",
+      "recordsPromoted": 5,
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_J_16.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_16.approved.json",
+      "recordsPromoted": 16,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_J_17.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_17.approved.json",
+      "recordsPromoted": 56,
+      "recordsBlocked": 5
+    },
+    {
+      "file": "figure_5_J_18.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_18.approved.json",
+      "recordsPromoted": 19,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_J_19.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_19.approved.json",
+      "recordsPromoted": 5,
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_J_3.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_3.approved.json",
+      "recordsPromoted": 7,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_J_6.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_6.approved.json",
+      "recordsPromoted": 5,
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_J_7.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_7.approved.json",
+      "recordsPromoted": 28,
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_J_8.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_8.approved.json",
+      "recordsPromoted": 18,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_J_9.ai_reviewed.json",
+      "division": "09",
+      "output": "figure_5_J_9.approved.json",
+      "recordsPromoted": 7,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_K_1.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_1.approved.json",
+      "recordsPromoted": 13,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_K_10.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_10.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_K_11.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_11.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_K_2.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_2.approved.json",
+      "recordsPromoted": 13,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_K_3.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_3.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 5
+    },
+    {
+      "file": "figure_5_K_4.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_4.approved.json",
+      "recordsPromoted": 8,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_K_5.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_5.approved.json",
+      "recordsPromoted": 8,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_K_6.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_6.approved.json",
+      "recordsPromoted": 5,
+      "recordsBlocked": 11
+    },
+    {
+      "file": "figure_5_K_7.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_7.approved.json",
+      "recordsPromoted": 6,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_K_8.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_8.approved.json",
+      "recordsPromoted": 6,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_K_9.ai_reviewed.json",
+      "division": "10",
+      "output": "figure_5_K_9.approved.json",
+      "recordsPromoted": 6,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_L_1.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_1.approved.json",
+      "recordsPromoted": 1,
+      "recordsBlocked": 0
+    },
+    {
+      "file": "figure_5_L_2.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_2.approved.json",
+      "recordsPromoted": 11,
+      "recordsBlocked": 8
+    },
+    {
+      "file": "figure_5_L_3.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_3.approved.json",
+      "recordsPromoted": 37,
+      "recordsBlocked": 10
+    },
+    {
+      "file": "figure_5_L_4.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_4.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_L_5.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_5.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 31
+    },
+    {
+      "file": "figure_5_L_8.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_8.approved.json",
+      "recordsPromoted": 16,
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_L_9.ai_reviewed.json",
+      "division": "13",
+      "output": "figure_5_L_9.approved.json",
+      "recordsPromoted": 16,
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_M_3.ai_reviewed.json",
+      "division": "21",
+      "output": "figure_5_M_3.approved.json",
+      "recordsPromoted": 10,
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_M_4.ai_reviewed.json",
+      "division": "21",
+      "output": "figure_5_M_4.approved.json",
+      "recordsPromoted": 10,
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_N_10.ai_reviewed.json",
+      "division": "22",
+      "output": "figure_5_N_10.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 7
+    },
+    {
+      "file": "figure_5_N_11.ai_reviewed.json",
+      "division": "22",
+      "output": "figure_5_N_11.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_N_2.ai_reviewed.json",
+      "division": "22",
+      "output": "figure_5_N_2.approved.json",
+      "recordsPromoted": 19,
+      "recordsBlocked": 1
+    },
+    {
+      "file": "figure_5_P_1.ai_reviewed.json",
+      "division": "23",
+      "output": "figure_5_P_1.approved.json",
+      "recordsPromoted": 4,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_P_2.ai_reviewed.json",
+      "division": "23",
+      "output": "figure_5_P_2.approved.json",
+      "recordsPromoted": 4,
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_Q_17.ai_reviewed.json",
+      "division": "26",
+      "output": "figure_5_Q_17.approved.json",
+      "recordsPromoted": 1,
+      "recordsBlocked": 11
+    },
+    {
+      "file": "figure_5_S_1.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_1.approved.json",
+      "recordsPromoted": 8,
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_S_2.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_2.approved.json",
+      "recordsPromoted": 8,
+      "recordsBlocked": 15
+    },
+    {
+      "file": "figure_5_S_3.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_3.approved.json",
+      "recordsPromoted": 8,
+      "recordsBlocked": 15
+    },
+    {
+      "file": "figure_5_S_4.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_4.approved.json",
+      "recordsPromoted": 23,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_S_5.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_5.approved.json",
+      "recordsPromoted": 23,
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_S_6.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_6.approved.json",
+      "recordsPromoted": 2,
+      "recordsBlocked": 24
+    },
+    {
+      "file": "figure_5_S_7.ai_reviewed.json",
+      "division": "32",
+      "output": "figure_5_S_7.approved.json",
+      "recordsPromoted": 2,
+      "recordsBlocked": 24
+    },
+    {
+      "file": "figure_5_T_1.ai_reviewed.json",
+      "division": "33",
+      "output": "figure_5_T_1.approved.json",
+      "recordsPromoted": 5,
+      "recordsBlocked": 2
+    },
+    {
+      "file": "figure_5_U_1.ai_reviewed.json",
+      "division": "34",
+      "output": "figure_5_U_1.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 5
+    },
+    {
+      "file": "figure_5_U_2.ai_reviewed.json",
+      "division": "34",
+      "output": "figure_5_U_2.approved.json",
+      "recordsPromoted": 3,
+      "recordsBlocked": 5
+    }
+  ],
+  "skippedFiles": [
+    {
+      "file": "figure_5_A_1.ai_reviewed.json",
+      "division": "01",
+      "reason": "all records blocked",
+      "recordsBlocked": 8
+    },
+    {
+      "file": "figure_5_A_3.ai_reviewed.json",
+      "division": "01",
+      "reason": "all records blocked",
+      "recordsBlocked": 14
+    },
+    {
+      "file": "figure_5_C_1.ai_reviewed.json",
+      "division": "03",
+      "reason": "all records blocked",
+      "recordsBlocked": 14
+    },
+    {
+      "file": "figure_5_C_10.ai_reviewed.json",
+      "division": "03",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_C_11.ai_reviewed.json",
+      "division": "03",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_C_12.ai_reviewed.json",
+      "division": "03",
+      "reason": "all records blocked",
+      "recordsBlocked": 14
+    },
+    {
+      "file": "figure_5_C_14.ai_reviewed.json",
+      "division": "03",
+      "reason": "all records blocked",
+      "recordsBlocked": 13
+    },
+    {
+      "file": "figure_5_C_2.ai_reviewed.json",
+      "division": "03",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_C_3.ai_reviewed.json",
+      "division": "03",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_C_4.ai_reviewed.json",
+      "division": "03",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_C_9.ai_reviewed.json",
+      "division": "03",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_D_1.ai_reviewed.json",
+      "division": "04",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_D_2.ai_reviewed.json",
+      "division": "04",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_D_3.ai_reviewed.json",
+      "division": "04",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_D_4.ai_reviewed.json",
+      "division": "04",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_D_5.ai_reviewed.json",
+      "division": "04",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_1.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_13.ai_reviewed.json",
+      "division": "05",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_E_2.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_3.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_4.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_5.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_6.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_7.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_E_8.ai_reviewed.json",
+      "division": "05",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_F_1.ai_reviewed.json",
+      "division": "06",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_F_2.ai_reviewed.json",
+      "division": "06",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_F_3.ai_reviewed.json",
+      "division": "06",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_F_4.ai_reviewed.json",
+      "division": "06",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_F_5.ai_reviewed.json",
+      "division": "06",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_F_6.ai_reviewed.json",
+      "division": "06",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_G_1.ai_reviewed.json",
+      "division": "07",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_J_1.ai_reviewed.json",
+      "division": "09",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_J_2.ai_reviewed.json",
+      "division": "09",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_J_4.ai_reviewed.json",
+      "division": "09",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_J_5.ai_reviewed.json",
+      "division": "09",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_L_6.ai_reviewed.json",
+      "division": "13",
+      "reason": "all records blocked",
+      "recordsBlocked": 30
+    },
+    {
+      "file": "figure_5_L_7.ai_reviewed.json",
+      "division": "13",
+      "reason": "all records blocked",
+      "recordsBlocked": 30
+    },
+    {
+      "file": "figure_5_M_1.ai_reviewed.json",
+      "division": "21",
+      "reason": "all records blocked",
+      "recordsBlocked": 7
+    },
+    {
+      "file": "figure_5_M_2.ai_reviewed.json",
+      "division": "21",
+      "reason": "all records blocked",
+      "recordsBlocked": 31
+    },
+    {
+      "file": "figure_5_N_1.ai_reviewed.json",
+      "division": "22",
+      "reason": "all records blocked",
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_P_3.ai_reviewed.json",
+      "division": "23",
+      "reason": "all records blocked",
+      "recordsBlocked": 31
+    },
+    {
+      "file": "figure_5_P_4.ai_reviewed.json",
+      "division": "23",
+      "reason": "all records blocked",
+      "recordsBlocked": 27
+    },
+    {
+      "file": "figure_5_Q_1.ai_reviewed.json",
+      "division": "26",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_Q_10.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 22
+    },
+    {
+      "file": "figure_5_Q_11.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 31
+    },
+    {
+      "file": "figure_5_Q_12.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 21
+    },
+    {
+      "file": "figure_5_Q_13.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 21
+    },
+    {
+      "file": "figure_5_Q_14.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_Q_15.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_Q_16.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_Q_2.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_Q_3.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_Q_4.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 59
+    },
+    {
+      "file": "figure_5_Q_5.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 21
+    },
+    {
+      "file": "figure_5_Q_6.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 24
+    },
+    {
+      "file": "figure_5_Q_7.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 36
+    },
+    {
+      "file": "figure_5_Q_8.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_Q_9.ai_reviewed.json",
+      "division": "26",
+      "reason": "all records blocked",
+      "recordsBlocked": 22
+    },
+    {
+      "file": "figure_5_R_1.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_10.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 10
+    },
+    {
+      "file": "figure_5_R_11.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 51
+    },
+    {
+      "file": "figure_5_R_12.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_R_13.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_R_14.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 4
+    },
+    {
+      "file": "figure_5_R_15.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_16.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_17.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_18.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_R_19.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_R_2.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 15
+    },
+    {
+      "file": "figure_5_R_20.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 3
+    },
+    {
+      "file": "figure_5_R_21.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 7
+    },
+    {
+      "file": "figure_5_R_22.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 7
+    },
+    {
+      "file": "figure_5_R_23.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_R_24.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_R_25.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 15
+    },
+    {
+      "file": "figure_5_R_3.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_4.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_5.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_6.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_7.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_8.ai_reviewed.json",
+      "division": "31",
+      "reason": "zero records"
+    },
+    {
+      "file": "figure_5_R_9.ai_reviewed.json",
+      "division": "31",
+      "reason": "all records blocked",
+      "recordsBlocked": 36
+    },
+    {
+      "file": "figure_5_S_8.ai_reviewed.json",
+      "division": "32",
+      "reason": "all records blocked",
+      "recordsBlocked": 7
+    },
+    {
+      "file": "figure_5_T_10.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_T_11.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_T_12.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_T_13.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_T_14.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_T_15.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 15
+    },
+    {
+      "file": "figure_5_T_16.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 15
+    },
+    {
+      "file": "figure_5_T_2.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 23
+    },
+    {
+      "file": "figure_5_T_3.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 23
+    },
+    {
+      "file": "figure_5_T_4.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 23
+    },
+    {
+      "file": "figure_5_T_5.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 18
+    },
+    {
+      "file": "figure_5_T_6.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 18
+    },
+    {
+      "file": "figure_5_T_7.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_T_8.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 19
+    },
+    {
+      "file": "figure_5_T_9.ai_reviewed.json",
+      "division": "33",
+      "reason": "all records blocked",
+      "recordsBlocked": 20
+    },
+    {
+      "file": "figure_5_U_3.ai_reviewed.json",
+      "division": "34",
+      "reason": "all records blocked",
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_U_4.ai_reviewed.json",
+      "division": "34",
+      "reason": "all records blocked",
+      "recordsBlocked": 16
+    },
+    {
+      "file": "figure_5_V_1.ai_reviewed.json",
+      "division": "35",
+      "reason": "all records blocked",
+      "recordsBlocked": 6
+    },
+    {
+      "file": "figure_5_V_2.ai_reviewed.json",
+      "division": "35",
+      "reason": "all records blocked",
+      "recordsBlocked": 23
+    },
+    {
+      "file": "figure_5_V_3.ai_reviewed.json",
+      "division": "35",
+      "reason": "all records blocked",
+      "recordsBlocked": 23
+    },
+    {
+      "file": "figure_5_V_4.ai_reviewed.json",
+      "division": "35",
+      "reason": "all records blocked",
+      "recordsBlocked": 23
+    },
+    {
+      "file": "figure_5_V_5.ai_reviewed.json",
+      "division": "35",
+      "reason": "all records blocked",
+      "recordsBlocked": 8
+    },
+    {
+      "file": "figure_5_W_1.ai_reviewed.json",
+      "division": "41",
+      "reason": "all records blocked",
+      "recordsBlocked": 7
+    },
+    {
+      "file": "figure_5_W_2.ai_reviewed.json",
+      "division": "41",
+      "reason": "all records blocked",
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_W_3.ai_reviewed.json",
+      "division": "41",
+      "reason": "all records blocked",
+      "recordsBlocked": 9
+    },
+    {
+      "file": "figure_5_X_1.ai_reviewed.json",
+      "division": "46",
+      "reason": "all records blocked",
+      "recordsBlocked": 18
+    }
+  ]
+}

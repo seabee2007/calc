@@ -14,13 +14,6 @@ export default function EstimateTypeHeaderControl({
   onChangeClick,
   disabled = false,
 }: Props) {
-  const handleChangeClick = () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H1,H2',location:'EstimateTypeHeaderControl.tsx:17',message:'estimate type change button handler fired',data:{estimateType,disabled},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    onChangeClick();
-  };
-
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
       <span className={`${PLANNER_MUTED}`}>Estimate Type:</span>
@@ -32,7 +25,7 @@ export default function EstimateTypeHeaderControl({
         variant="outline"
         size="sm"
         disabled={disabled}
-        onClick={handleChangeClick}
+        onClick={onChangeClick}
       >
         Change
       </Button>
