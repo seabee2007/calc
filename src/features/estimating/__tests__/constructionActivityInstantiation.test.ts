@@ -172,6 +172,8 @@ describe('constructionActivityInstantiation', () => {
       crewSize: 2,
     });
 
+    expect(result.projectLineItems[0]?.productionRateId).toBeNull();
+    expect(result.projectLineItems[0]?.sourceProductionRateKey).toBe('missing-rate-id');
     expect(result.projectLineItems[0]?.manHoursPerUnit).toBe(0.5);
     expect(result.rollup.warnings.some((w) => w.includes('missing-rate-id'))).toBe(true);
     expect(result.rollup.totalManHours).toBe(calculateLineItemManHours(10, 0.5, 1));

@@ -127,7 +127,14 @@ export interface ProjectActivityLineItemRow {
   id: string;
   project_activity_id: string;
   project_id: string;
-  production_rate_id: string;
+  /** FK to production_rates(id). NULL for local/generated rate snapshots. */
+  production_rate_id: string | null;
+  source_production_rate_key: string | null;
+  source_production_rate_label: string | null;
+  source_figure: string | null;
+  source_page: string | null;
+  source_pdf_page: number | null;
+  source_document_code: string | null;
   name: string;
   description: string | null;
   quantity: number;

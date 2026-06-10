@@ -318,6 +318,7 @@ export async function saveActivityBundle(
 ): Promise<RepositoryResult<SavedActivityBundle>> {
   try {
     let savedActivity: ProjectConstructionActivity;
+    const isInsert = !activityId;
 
     if (activityId) {
       const updateResult = await updateProjectActivity(activityId, activity as ProjectConstructionActivity);
@@ -339,7 +340,14 @@ export async function saveActivityBundle(
 
     const lineItemResult = await replaceProjectLineItems(savedActivity.id, lineItemsWithActivityId);
     if (lineItemResult.error || !lineItemResult.data) {
-      return failure(lineItemResult.error ?? 'Line item save failed');
+      // Roll back a newly inserted parent so the UI does not show an activity with missing line items.
+      if (isInsert) {
+        await deleteProjectActivity(savedActivity.id);
+      }
+      return failure(
+        lineItemResult.error ??
+          'Line item save failed. The construction activity was not saved completely.',
+      );
     }
 
     return success({ activity: savedActivity, lineItems: lineItemResult.data });

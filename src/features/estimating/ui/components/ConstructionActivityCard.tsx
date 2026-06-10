@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList } from 'lucide-react';
 import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import { hasConstructionActivityEstimateWarnings } from '../../domain/constructionActivityCalculations';
 import ActivityLineItemRow from './ActivityLineItemRow';
 import ActivityProgressSummary from './ActivityProgressSummary';
 import ActivityProgressForm from './ActivityProgressForm';
@@ -55,7 +56,7 @@ export default function ConstructionActivityCard({
   const mh = activity.calculatedManHours ?? 0;
   const dur = activity.effectiveDurationDays ?? activity.calculatedDurationDays ?? 0;
   const hasOverride = activity.durationDaysOverride != null;
-  const hasWarnings = (lineItems.length === 0) || mh === 0;
+  const hasWarnings = hasConstructionActivityEstimateWarnings(activity, lineItems);
 
   const totalCost = activity.totalCost ?? 0;
 

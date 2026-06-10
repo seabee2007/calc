@@ -129,22 +129,59 @@ function resolveQuantityForLineItemTemplate(
   return 0;
 }
 
-function resolveManHoursPerUnit(
+export interface LineItemRateSnapshot {
+  manHoursPerUnit: number;
+  sourceProductionRateKey: string | null;
+  sourceProductionRateLabel: string | null;
+  sourceFigure: string | null;
+  sourcePage: string | null;
+  sourcePdfPage: number | null;
+  sourceDocumentCode: string | null;
+}
+
+function resolveLineItemRateSnapshot(
   template: ActivityLineItemTemplate,
   productionRatesById: Map<string, ProductionRate>,
   warnings: string[],
-): number {
-  if (template.productionRateId) {
-    const rate = productionRatesById.get(template.productionRateId);
+): LineItemRateSnapshot {
+  const rateKey = template.productionRateId ?? null;
+
+  if (rateKey) {
+    const rate = productionRatesById.get(rateKey);
     if (rate) {
-      return rate.manHoursPerUnit;
+      return {
+        manHoursPerUnit: rate.manHoursPerUnit ?? template.defaultManHoursPerUnit ?? 0,
+        sourceProductionRateKey: rateKey,
+        sourceProductionRateLabel: rate.description,
+        sourceFigure: rate.sourceFigure || null,
+        sourcePage: rate.sourcePage || null,
+        sourcePdfPage: rate.sourcePdfPage ?? null,
+        sourceDocumentCode: rate.sourceManual || null,
+      };
     }
     warnings.push(
-      `Production rate "${template.productionRateId}" not found for "${template.name}"; using template default.`,
+      `Production rate "${rateKey}" not found for "${template.name}"; using template default.`,
     );
+    return {
+      manHoursPerUnit: template.defaultManHoursPerUnit ?? 0,
+      sourceProductionRateKey: rateKey,
+      sourceProductionRateLabel: null,
+      sourceFigure: null,
+      sourcePage: null,
+      sourcePdfPage: null,
+      sourceDocumentCode: null,
+    };
   }
 
-  return template.defaultManHoursPerUnit ?? 0;
+  return {
+    manHoursPerUnit: template.defaultManHoursPerUnit ?? 0,
+    sourceProductionRateKey: null,
+    sourceProductionRateLabel: null,
+    sourceFigure: null,
+    sourcePage: null,
+    sourcePdfPage: null,
+    sourceDocumentCode: null,
+  };
 }
 
 /**
@@ -200,7 +237,8 @@ export function instantiateConstructionActivity(
 
   const projectLineItems: ProjectActivityLineItem[] = sortedTemplates.map((template) => {
     const quantity = resolveQuantityForLineItemTemplate(template, input.quantityMap, warnings);
-    const manHoursPerUnit = resolveManHoursPerUnit(template, productionRatesById, warnings);
+    const rateSnapshot = resolveLineItemRateSnapshot(template, productionRatesById, warnings);
+    const manHoursPerUnit = rateSnapshot.manHoursPerUnit;
 
     const calculatedManHours = calculateLineItemManHours(quantity, manHoursPerUnit, productionFactor);
 
@@ -209,7 +247,14 @@ export function instantiateConstructionActivity(
       // Canonical DB field names:
       projectActivityId,
       projectId: input.projectId,
-      productionRateId: template.productionRateId,
+      // production_rate_id is a DB FK — null for local/generated rates.
+      productionRateId: null,
+      sourceProductionRateKey: rateSnapshot.sourceProductionRateKey,
+      sourceProductionRateLabel: rateSnapshot.sourceProductionRateLabel,
+      sourceFigure: rateSnapshot.sourceFigure,
+      sourcePage: rateSnapshot.sourcePage,
+      sourcePdfPage: rateSnapshot.sourcePdfPage,
+      sourceDocumentCode: rateSnapshot.sourceDocumentCode,
       calculatedManHours,
       laborCost: 0,
       materialCost: 0,

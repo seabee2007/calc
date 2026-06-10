@@ -69,7 +69,13 @@ export async function instantiateAndSaveActivity(
 
   const lineItemsForSave = projectLineItems.map((li) => ({
     projectId: input.projectId,
-    productionRateId: li.productionRateId,
+    productionRateId: li.productionRateId ?? null,
+    sourceProductionRateKey: li.sourceProductionRateKey ?? null,
+    sourceProductionRateLabel: li.sourceProductionRateLabel ?? null,
+    sourceFigure: li.sourceFigure ?? null,
+    sourcePage: li.sourcePage ?? null,
+    sourcePdfPage: li.sourcePdfPage ?? null,
+    sourceDocumentCode: li.sourceDocumentCode ?? null,
     name: li.name,
     description: li.description,
     quantity: li.quantity,

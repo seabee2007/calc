@@ -152,6 +152,27 @@ export function rollupConstructionActivity(
   };
 }
 
+/** Whether a line item has valid estimate snapshot data (does not require production_rate_id FK). */
+export function isProjectActivityLineItemValid(item: ProjectActivityLineItem): boolean {
+  const hasUnit = typeof item.unit === 'string' && item.unit.trim().length > 0;
+  const hasQuantity = Number.isFinite(item.quantity) && item.quantity > 0;
+  const hasManHoursPerUnit = Number.isFinite(item.manHoursPerUnit) && item.manHoursPerUnit > 0;
+  const hasRateReference =
+    (typeof item.productionRateId === 'string' && item.productionRateId.length > 0) ||
+    (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0);
+  return hasUnit && hasQuantity && hasManHoursPerUnit && hasRateReference;
+}
+
+/** Whether an activity has incomplete line items or missing rollup man-hours. */
+export function hasConstructionActivityEstimateWarnings(
+  activity: ProjectConstructionActivity,
+  lineItems: ProjectActivityLineItem[],
+): boolean {
+  if (lineItems.length === 0) return true;
+  if ((activity.calculatedManHours ?? 0) <= 0) return true;
+  return lineItems.some((item) => !isProjectActivityLineItemValid(item));
+}
+
 /** Whether a line item type participates in scheduling (always false for activity line items). */
 export function isScheduleActivityLineItem(_item: ProjectActivityLineItem): boolean {
   return false;

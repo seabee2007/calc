@@ -166,8 +166,23 @@ export interface ProjectActivityLineItem {
   /** @deprecated use projectActivityId */
   constructionActivityId?: string;
   projectId: string;
-  productionRateId: string;
-  /** @deprecated use productionRateId */
+  /**
+   * FK to production_rates(id).
+   * NULL when the line item uses a local/generated rate not seeded in DB.
+   */
+  productionRateId?: string | null;
+  /**
+   * Local/generated production rate key snapshot (e.g. "03-11-13.65-0040").
+   */
+  sourceProductionRateKey?: string | null;
+  /** Human-readable rate description at time of estimate. */
+  sourceProductionRateLabel?: string | null;
+  sourceFigure?: string | null;
+  sourcePage?: string | null;
+  sourcePdfPage?: number | null;
+  /** Source manual / document code at time of estimate. */
+  sourceDocumentCode?: string | null;
+  /** @deprecated use productionRateId or sourceProductionRateKey */
   templateId?: string;
   name: string;
   description?: string;
