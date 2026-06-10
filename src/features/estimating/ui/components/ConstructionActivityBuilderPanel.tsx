@@ -15,6 +15,7 @@ import ConstructionActivityCard from './ConstructionActivityCard';
 import AssemblyPickerModal from './AssemblyPickerModal';
 import EditConstructionActivityModal from './EditConstructionActivityModal';
 import { useConstructionActivities } from '../hooks/useConstructionActivities';
+import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
 import type { AddFromAssemblyParams } from '../hooks/useConstructionActivities';
 import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
 import type { UpdateProjectActivityInput } from '../../application/constructionActivityService';
@@ -46,6 +47,7 @@ function groupByDivision(
 export default function ConstructionActivityBuilderPanel({ projectId, estimateId, onActivitiesChanged }: Props) {
   const { activities, lineItemsMap, loading, saving, error, reload, addFromAssembly, updateActivity, remove } =
     useConstructionActivities(projectId, estimateId);
+  const { defaultRate } = useProjectLaborRates(projectId);
 
   const [showPicker, setShowPicker] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -58,6 +60,11 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
 
   const totalMH = useMemo(
     () => activities.reduce((sum, a) => sum + (a.calculatedManHours ?? 0), 0),
+    [activities],
+  );
+
+  const totalLaborCost = useMemo(
+    () => activities.reduce((sum, a) => sum + (a.totalLaborCost ?? 0), 0),
     [activities],
   );
 
@@ -119,10 +126,12 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
         </button>
         {showPicker && (
           <AssemblyPickerModal
+            projectId={projectId}
             onConfirm={handleAdd}
             onCancel={() => setShowPicker(false)}
             saving={saving}
             existingActivities={activities}
+            defaultLaborRate={defaultRate}
           />
         )}
       </div>
@@ -177,6 +186,10 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
           <SummaryChip label="Total Activities" value={`${activities.length}`} />
           <SummaryChip label="Total Man-Hours" value={`${totalMH.toFixed(1)} MH`} accent />
           <SummaryChip
+            label="Total Labor Cost"
+            value={`$${totalLaborCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          />
+          <SummaryChip
             label="Scheduled"
             value={`${totalScheduled} / ${activities.length}`}
             icon={<CheckCircle2 size={12} className="text-blue-500" />}
@@ -211,10 +224,12 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
       {/* ── Assembly picker modal ────────────────────────────────────────────── */}
         {showPicker && (
           <AssemblyPickerModal
+            projectId={projectId}
             onConfirm={handleAdd}
             onCancel={() => setShowPicker(false)}
             saving={saving}
             existingActivities={[]}
+            defaultLaborRate={defaultRate}
           />
         )}
 

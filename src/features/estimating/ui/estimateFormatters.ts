@@ -1,5 +1,6 @@
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
-import type { EstimateLineCosts, EstimateLineMetrics, EstimateType } from '../domain/estimateTypes';
+import type { EstimateLineCosts, EstimateLineMetrics } from '../domain/estimateTypes';
+import { isQuickEstimateType } from '../domain/estimateMethods';
 
 export const ESTIMATE_BLANK = '—';
 
@@ -126,7 +127,7 @@ export interface EstimateWorkspaceSummaryValues {
 export function quickFeasibilityPlannedDurationDaysFromVersion(
   version: EstimateDomainVersion | null,
 ): number | null {
-  if (!version || version.estimateType !== 'quick_feasibility') return null;
+  if (!version || !isQuickEstimateType(version.estimateType)) return null;
   const snapshot = toRecord(version.snapshot);
   const snapshotMeta = toRecord(snapshot.meta);
   if (snapshotMeta.reset === true) return null;
@@ -161,7 +162,7 @@ export function buildWorkspaceSummaryValues(
     const snapshotTotals = toRecord(snapshot.totals);
     const snapshotLabor = toRecord(snapshot.labor);
     const quickFeasibilityTotal =
-      version.estimateType === 'quick_feasibility' && !isResetSnapshot
+      isQuickEstimateType(version.estimateType) && !isResetSnapshot
         ? toFiniteNumber(snapshotTotals.totalEstimate) ??
           toFiniteNumber(version.totals.finalSellPrice) ??
           toFiniteNumber(versionTotals.totalEstimate) ??

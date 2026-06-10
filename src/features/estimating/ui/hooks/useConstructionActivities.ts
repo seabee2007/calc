@@ -20,6 +20,7 @@ import {
   type LoadedProjectActivity,
   type UpdateProjectActivityInput,
 } from '../../application/constructionActivityService';
+import { useProjectLaborRates } from './useProjectLaborRates';
 
 export interface ConstructionActivityState {
   activities: ProjectConstructionActivity[];
@@ -53,6 +54,7 @@ export function useConstructionActivities(
   projectId: string | null | undefined,
   estimateId: string | null | undefined,
 ): UseConstructionActivitiesReturn {
+  const { defaultRate, projectRates } = useProjectLaborRates(projectId);
   const [state, setState] = useState<ConstructionActivityState>({
     activities: [],
     lineItemsMap: new Map(),
@@ -109,6 +111,7 @@ export function useConstructionActivities(
         projectId,
         estimateId: estimateId ?? undefined,
         existingActivities: state.activities,
+        defaultLaborRate: defaultRate,
       });
       if (result.error || !result.data) {
         setState((s) => ({
@@ -121,14 +124,14 @@ export function useConstructionActivities(
         void load();
       }
     },
-    [projectId, estimateId, load, state.activities],
+    [projectId, estimateId, load, state.activities, defaultRate],
   );
 
   const updateActivity = useCallback(
     async (params: UpdateProjectActivityInput) => {
       if (!projectId) return;
       setState((s) => ({ ...s, saving: true, error: null }));
-      const result = await updateProjectConstructionActivity(params);
+      const result = await updateProjectConstructionActivity(params, projectRates);
       if (result.error || !result.data) {
         setState((s) => ({
           ...s,
@@ -140,7 +143,7 @@ export function useConstructionActivities(
         void load();
       }
     },
-    [projectId, load],
+    [projectId, load, projectRates],
   );
 
   const remove = useCallback(

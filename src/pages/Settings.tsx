@@ -31,6 +31,7 @@ import TaxRatePercentInput from '../components/pricing/TaxRatePercentInput';
 import { useThemeStore } from '../store/themeStore';
 import { useSettingsStore, usePreferencesStore } from '../store';
 import USAddressFields from '../components/address/USAddressFields';
+import LaborRateLibrarySection from '../features/estimating/ui/components/LaborRateLibrarySection';
 import {
   EMPTY_US_ADDRESS,
   formatUSAddress,
@@ -614,6 +615,10 @@ const Settings: React.FC = () => {
             ]}
           />
         </div>
+      </Card>
+
+      <Card className="p-6">
+        <LaborRateLibrarySection />
       </Card>
 
       {/* User Preferences */}

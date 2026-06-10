@@ -1,45 +1,21 @@
 {
-  "generatedAt": "2026-06-10T20:10:07+00:00",
+  "generatedAt": "2026-06-10T21:29:10+00:00",
   "sourceDocument": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
   "dryRun": false,
-  "filesProcessed": 4,
-  "recordsProcessed": 96,
-  "recordsWithWarnings": 76,
-  "recordsWithUnitFixes": 1,
-  "recordsWithHierarchyChanges": 74,
-  "recordsNeedingHumanReview": 96,
+  "filesProcessed": 1,
+  "recordsProcessed": 18,
+  "recordsWithWarnings": 18,
+  "recordsWithUnitFixes": 0,
+  "recordsWithHierarchyChanges": 15,
+  "recordsNeedingHumanReview": 18,
   "files": [
     {
-      "file": "figure_5_M_1.json",
-      "recordsProcessed": 7,
-      "recordsWithWarnings": 7,
-      "recordsWithUnitFixes": 1,
-      "recordsWithHierarchyChanges": 7,
-      "recordsNeedingHumanReview": 7
-    },
-    {
-      "file": "figure_5_M_2.json",
-      "recordsProcessed": 31,
-      "recordsWithWarnings": 31,
+      "file": "figure_5_X_1.json",
+      "recordsProcessed": 18,
+      "recordsWithWarnings": 18,
       "recordsWithUnitFixes": 0,
-      "recordsWithHierarchyChanges": 31,
-      "recordsNeedingHumanReview": 31
-    },
-    {
-      "file": "figure_5_M_3.json",
-      "recordsProcessed": 29,
-      "recordsWithWarnings": 19,
-      "recordsWithUnitFixes": 0,
-      "recordsWithHierarchyChanges": 18,
-      "recordsNeedingHumanReview": 29
-    },
-    {
-      "file": "figure_5_M_4.json",
-      "recordsProcessed": 29,
-      "recordsWithWarnings": 19,
-      "recordsWithUnitFixes": 0,
-      "recordsWithHierarchyChanges": 18,
-      "recordsNeedingHumanReview": 29
+      "recordsWithHierarchyChanges": 15,
+      "recordsNeedingHumanReview": 18
     }
   ]
 }

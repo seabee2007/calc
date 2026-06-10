@@ -208,9 +208,34 @@ export interface ProjectActivityLineItem {
   equipmentCost: number;
   subcontractCost?: number;
   totalCost?: number;
+  /** FK to project_labor_rates(id) at time of pricing snapshot. */
+  laborRoleId?: string | null;
+  laborRoleKey?: string | null;
+  laborRoleName?: string | null;
+  tradeCategory?: string | null;
+  hourlyRateSnapshot: number;
+  burdenPercentSnapshot: number;
+  fullyBurdenedRateSnapshot: number;
+  billingRateSnapshot: number;
+  pricingSource?: 'project_rate' | 'manual' | 'unset';
+  pricingSnapshotAt?: string | null;
   sortOrder?: number;
   createdAt?: string;
 }
+
+/** Default labor pricing snapshot fields for new line items (no rate assigned). */
+export const EMPTY_LABOR_PRICING_SNAPSHOT = {
+  laborRoleId: null as string | null,
+  laborRoleKey: null as string | null,
+  laborRoleName: null as string | null,
+  tradeCategory: null as string | null,
+  hourlyRateSnapshot: 0,
+  burdenPercentSnapshot: 0,
+  fullyBurdenedRateSnapshot: 0,
+  billingRateSnapshot: 0,
+  pricingSource: 'unset' as const,
+  pricingSnapshotAt: null as string | null,
+};
 
 /** Rolled-up labor, cost, and duration for a construction activity. */
 export interface ActivityRollupResult {

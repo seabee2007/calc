@@ -16,7 +16,7 @@ import {
   type QuickFeasibilityInputs,
   type QuickFeasibilityResult,
 } from './estimateQuickFeasibility';
-import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
+import { DEFAULT_ESTIMATE_METHOD, getEstimateTypeLabel, normalizeEstimateMethod, resolveSchedulingEnabled } from '../domain/estimateMethods';
 import {
   estimateSettingsToAssumptions,
   normalizeEstimateSettings,
@@ -25,6 +25,7 @@ import {
 } from './estimateSettings';
 import type {
   EstimateCostTotals,
+  EstimateModeConfig,
   EstimateSelectedDivision,
   EstimateSnapshot,
   EstimateStatus,
@@ -40,6 +41,10 @@ export interface CurrentEstimate {
   id: string;
   projectId: string;
   estimateType: EstimateType | null;
+  estimateTypeLabel: string | null;
+  schedulingEnabled: boolean;
+  estimateModeConfig: EstimateModeConfig | null;
+  pricingMode: string | null;
   status: EstimateStatus;
   selectedDivisions: EstimateSelectedDivision[];
   lineItems: EstimateDomainTask[];
@@ -61,6 +66,9 @@ export interface SaveCurrentEstimateParams {
   estimateId?: string | null;
   projectId: string;
   estimateType: EstimateType;
+  schedulingEnabled?: boolean;
+  estimateModeConfig?: EstimateModeConfig | null;
+  pricingMode?: string | null;
   selectedDivisions?: readonly EstimateSelectedDivision[];
   lineItems?: EstimateDomainTask[];
   totals?: Record<string, unknown>;
@@ -74,6 +82,9 @@ export interface SaveCurrentEstimateWithLineItemsParams {
   estimateId?: string | null;
   projectId: string;
   estimateType: EstimateType;
+  schedulingEnabled?: boolean;
+  estimateModeConfig?: EstimateModeConfig | null;
+  pricingMode?: string | null;
   selectedDivisions: readonly EstimateSelectedDivision[];
   draftLines: EstimateDraftLine[];
   estimateSettings?: Partial<EstimateSettings> | null;
@@ -232,6 +243,27 @@ function hasMeaningfulCurrentEstimate(row: Record<string, unknown>): boolean {
   return hasType || hasDivisions || hasLineItems || hasTotals;
 }
 
+function parseEstimateModeConfig(value: unknown): EstimateModeConfig | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  return value as EstimateModeConfig;
+}
+
+function buildEstimateTypePayloadFields(params: {
+  estimateType: EstimateType;
+  schedulingEnabled?: boolean | null;
+  estimateModeConfig?: EstimateModeConfig | null;
+  pricingMode?: string | null;
+}) {
+  const estimateType = normalizeEstimateMethod(params.estimateType);
+  return {
+    estimate_type: estimateType,
+    estimate_type_label: getEstimateTypeLabel(estimateType),
+    scheduling_enabled: resolveSchedulingEnabled(estimateType, params.schedulingEnabled ?? null),
+    estimate_mode_config: params.estimateModeConfig ?? null,
+    pricing_mode: params.pricingMode ?? null,
+  };
+}
+
 function mapEstimateRowToCurrentEstimate(row: Record<string, unknown>): CurrentEstimate | null {
   if (!hasMeaningfulCurrentEstimate(row)) return null;
 
@@ -255,11 +287,24 @@ function mapEstimateRowToCurrentEstimate(row: Record<string, unknown>): CurrentE
       : null;
   const estimateType = rawEstimateType ?? (hasPersistedWork ? 'detailed' : null);
   const createdAt = typeof row.created_at === 'string' ? row.created_at : nowIso();
+  const schedulingEnabled = resolveSchedulingEnabled(
+    estimateType,
+    typeof row.scheduling_enabled === 'boolean' ? row.scheduling_enabled : null,
+  );
 
   return {
     id: String(row.id),
     projectId: String(row.project_id),
     estimateType,
+    estimateTypeLabel:
+      typeof row.estimate_type_label === 'string' && row.estimate_type_label.trim() !== ''
+        ? row.estimate_type_label
+        : estimateType
+          ? getEstimateTypeLabel(estimateType)
+          : null,
+    schedulingEnabled,
+    estimateModeConfig: parseEstimateModeConfig(row.estimate_mode_config),
+    pricingMode: typeof row.pricing_mode === 'string' ? row.pricing_mode : null,
     status: (typeof row.status === 'string' ? row.status : 'draft') as EstimateStatus,
     selectedDivisions,
     lineItems,
@@ -423,7 +468,12 @@ export async function saveCurrentEstimate(
     project_id: params.projectId,
     name: 'Project Estimate',
     status: params.status ?? 'draft',
-    estimate_type: estimateType,
+    ...buildEstimateTypePayloadFields({
+      estimateType,
+      schedulingEnabled: params.schedulingEnabled,
+      estimateModeConfig: params.estimateModeConfig,
+      pricingMode: params.pricingMode,
+    }),
     selected_divisions: selectedDivisions,
     line_items: params.lineItems ?? [],
     totals: params.totals ?? EMPTY_TOTALS,
@@ -471,7 +521,12 @@ export async function saveCurrentEstimateWithLineItems(
     project_id: params.projectId,
     name: 'Project Estimate',
     status: 'draft',
-    estimate_type: estimateType,
+    ...buildEstimateTypePayloadFields({
+      estimateType,
+      schedulingEnabled: params.schedulingEnabled,
+      estimateModeConfig: params.estimateModeConfig,
+      pricingMode: params.pricingMode,
+    }),
     selected_divisions: selectedDivisions,
     line_items: lineItems,
     totals: snapshot.totals,
@@ -552,7 +607,10 @@ export async function saveCurrentQuickFeasibilityEstimate(
     project_id: params.projectId,
     name: 'Project Estimate',
     status: 'draft',
-    estimate_type: 'quick_feasibility',
+    ...buildEstimateTypePayloadFields({
+      estimateType: 'quick',
+      schedulingEnabled: false,
+    }),
     selected_divisions: [],
     line_items: [],
     totals,

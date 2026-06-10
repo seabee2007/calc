@@ -4,6 +4,9 @@ import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import Button from '../../../../components/ui/Button';
 import type { EstimateSettings } from '../../domain/estimateTypes';
+import type { EstimateType } from '../../domain/estimateTypes';
+import { formatEstimateMethodLabel } from '../estimateMethodDisplay';
+import { getEstimateMethod } from '../../domain/estimateMethods';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import type { UseEstimateSettingsResult } from '../hooks/useEstimateSettings';
 import PositiveIntegerInput from './PositiveIntegerInput';
@@ -12,10 +15,16 @@ import {
   PLANNER_MUTED,
   PLANNER_SECTION_TITLE,
 } from '../estimateWorkspaceTheme';
+import ProjectLaborRateScheduleSection from './ProjectLaborRateScheduleSection';
 
 interface Props {
   settingsState: UseEstimateSettingsResult;
   canEdit: boolean;
+  projectId: string;
+  estimateType: EstimateType;
+  schedulingEnabled: boolean;
+  onEstimateTypeChange: () => void;
+  onSchedulingEnabledChange: (enabled: boolean) => void;
   projectCrewSize: number;
   onProjectCrewSizeChange: (value: number) => void;
   onProjectCrewSizeDraftChange?: (raw: string) => void;
@@ -67,6 +76,11 @@ function PercentInput({
 export default function EstimateSettingsPanel({
   settingsState,
   canEdit,
+  projectId,
+  estimateType,
+  schedulingEnabled,
+  onEstimateTypeChange,
+  onSchedulingEnabledChange,
   projectCrewSize,
   onProjectCrewSizeChange,
   onProjectCrewSizeDraftChange,
@@ -96,6 +110,50 @@ export default function EstimateSettingsPanel({
           Project-wide pricing and estimate rules.
         </p>
       </div>
+
+      <SettingsSection title="Estimate workflow">
+        <div className="sm:col-span-2 lg:col-span-3">
+          <p className={`text-sm ${PLANNER_MUTED}`}>Estimate type</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              {formatEstimateMethodLabel(estimateType)}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!canEdit}
+              onClick={onEstimateTypeChange}
+            >
+              Change
+            </Button>
+          </div>
+          <p className={`mt-2 text-xs ${PLANNER_MUTED}`}>
+            {getEstimateMethod(estimateType).shortDescription}
+          </p>
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={schedulingEnabled}
+              disabled={!canEdit}
+              onChange={(event) => onSchedulingEnabledChange(event.target.checked)}
+            />
+            <span>
+              <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+                Scheduling enabled
+              </span>
+              <span className={`mt-1 block text-xs ${PLANNER_MUTED}`}>
+                When enabled, construction activities can feed Schedule Preview, Logic Network,
+                CPM, and Level III Gantt. Turning this off hides schedule tabs but preserves
+                saved schedule data.
+              </span>
+            </span>
+          </label>
+        </div>
+      </SettingsSection>
 
       <SettingsSection title="Pricing">
         <Input
@@ -165,6 +223,8 @@ export default function EstimateSettingsPanel({
           onChange={(value) => patch({ taxPercent: value })}
         />
       </SettingsSection>
+
+      <ProjectLaborRateScheduleSection projectId={projectId} canEdit={canEdit} />
 
       <SettingsSection title="Schedule resources">
         <PositiveIntegerInput

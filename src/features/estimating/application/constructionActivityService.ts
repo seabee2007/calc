@@ -17,6 +17,11 @@ import {
   calculateLineItemManHours,
   rollupConstructionActivity,
 } from '../domain/constructionActivityCalculations';
+import { roundToTwo } from '../domain/estimateMath';
+import {
+  applyLaborRateToLineItem,
+  applyManualLaborPricingToLineItem,
+} from './laborPricingCalculator';
 import {
   assignProjectActivityCode,
   type ActivityInstanceIdentityInput,
@@ -29,6 +34,7 @@ import {
   deleteProjectActivity,
   type SavedActivityBundle,
 } from '../infrastructure/activityRepository';
+import type { ProjectLaborRate } from '../domain/laborRateTypes';
 import type { RepositoryResult } from '../infrastructure/estimateDbTypes';
 
 export interface InstantiateAndSaveInput {
@@ -46,6 +52,7 @@ export interface InstantiateAndSaveInput {
   identity: ActivityInstanceIdentityInput;
   existingActivities?: readonly ProjectConstructionActivity[];
   existingActivityId?: string;
+  defaultLaborRate?: ProjectLaborRate;
 }
 
 export interface UpdateProjectActivityInput {
@@ -57,11 +64,89 @@ export interface UpdateProjectActivityInput {
   durationDaysOverride?: number | null;
   scheduleEnabled: boolean;
   lineItemQuantities: Record<string, number>;
+  lineItemLaborRoles?: Record<string, string | null>;
+  lineItemManualRates?: Record<
+    string,
+    { hourlyRate: number; burdenPercent: number; billingRate?: number } | null
+  >;
 }
 
 export interface LoadedProjectActivity {
   activity: ProjectConstructionActivity;
   lineItems: ProjectActivityLineItem[];
+}
+
+function mapLineItemForSave(
+  li: ProjectActivityLineItem,
+  projectId: string,
+): Omit<ProjectActivityLineItem, 'id' | 'projectActivityId' | 'createdAt'> {
+  return {
+    projectId,
+    productionRateId: li.productionRateId ?? null,
+    sourceProductionRateKey: li.sourceProductionRateKey ?? null,
+    sourceProductionRateLabel: li.sourceProductionRateLabel ?? null,
+    sourceFigure: li.sourceFigure ?? null,
+    sourcePage: li.sourcePage ?? null,
+    sourcePdfPage: li.sourcePdfPage ?? null,
+    sourceDocumentCode: li.sourceDocumentCode ?? null,
+    name: li.name,
+    description: li.description,
+    quantity: li.quantity,
+    unit: li.unit,
+    manHoursPerUnit: li.manHoursPerUnit,
+    productionFactor: li.productionFactor,
+    calculatedManHours: li.calculatedManHours,
+    laborCost: li.laborCost,
+    materialCost: li.materialCost,
+    equipmentCost: li.equipmentCost,
+    subcontractCost: li.subcontractCost ?? 0,
+    totalCost: li.totalCost ?? 0,
+    laborRoleId: li.laborRoleId ?? null,
+    laborRoleKey: li.laborRoleKey ?? null,
+    laborRoleName: li.laborRoleName ?? null,
+    tradeCategory: li.tradeCategory ?? null,
+    hourlyRateSnapshot: li.hourlyRateSnapshot ?? 0,
+    burdenPercentSnapshot: li.burdenPercentSnapshot ?? 0,
+    fullyBurdenedRateSnapshot: li.fullyBurdenedRateSnapshot ?? 0,
+    billingRateSnapshot: li.billingRateSnapshot ?? 0,
+    pricingSource: li.pricingSource ?? 'unset',
+    pricingSnapshotAt: li.pricingSnapshotAt ?? null,
+    sortOrder: li.sortOrder ?? 0,
+  };
+}
+
+function applyPricingUpdates(
+  item: ProjectActivityLineItem,
+  projectRates: Map<string, ProjectLaborRate>,
+  laborRoleId?: string | null,
+  manualRate?: { hourlyRate: number; burdenPercent: number; billingRate?: number } | null,
+): ProjectActivityLineItem {
+  if (manualRate) {
+    return applyManualLaborPricingToLineItem(
+      item,
+      manualRate.hourlyRate,
+      manualRate.burdenPercent,
+      manualRate.billingRate,
+    );
+  }
+
+  if (laborRoleId) {
+    const rate = projectRates.get(laborRoleId);
+    if (rate) {
+      return applyLaborRateToLineItem(item, rate);
+    }
+  }
+
+  if (item.fullyBurdenedRateSnapshot > 0) {
+    const laborCost = roundToTwo(item.calculatedManHours * item.fullyBurdenedRateSnapshot);
+    return {
+      ...item,
+      laborCost,
+      totalCost: roundToTwo(laborCost + (item.materialCost ?? 0) + (item.equipmentCost ?? 0)),
+    };
+  }
+
+  return item;
 }
 
 function buildAssignedIdentity(
@@ -122,40 +207,22 @@ export async function instantiateAndSaveActivity(
     notes: input.identity.notes,
     activitySequence: assigned.activitySequence,
     instanceSequence: assigned.instanceSequence,
+    defaultLaborRate: input.defaultLaborRate,
   });
 
   const { projectActivity, projectLineItems } = instantiationResult;
 
-  const lineItemsForSave = projectLineItems.map((li) => ({
-    projectId: input.projectId,
-    productionRateId: li.productionRateId ?? null,
-    sourceProductionRateKey: li.sourceProductionRateKey ?? null,
-    sourceProductionRateLabel: li.sourceProductionRateLabel ?? null,
-    sourceFigure: li.sourceFigure ?? null,
-    sourcePage: li.sourcePage ?? null,
-    sourcePdfPage: li.sourcePdfPage ?? null,
-    sourceDocumentCode: li.sourceDocumentCode ?? null,
-    name: li.name,
-    description: li.description,
-    quantity: li.quantity,
-    unit: li.unit,
-    manHoursPerUnit: li.manHoursPerUnit,
-    productionFactor: li.productionFactor,
-    calculatedManHours: li.calculatedManHours,
-    laborCost: li.laborCost,
-    materialCost: li.materialCost,
-    equipmentCost: li.equipmentCost,
-    subcontractCost: li.subcontractCost ?? 0,
-    totalCost: li.totalCost ?? 0,
-    sortOrder: li.sortOrder ?? 0,
-  }));
+  const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
 
   return saveActivityBundle(projectActivity, lineItemsForSave, input.existingActivityId);
 }
 
 export async function updateProjectConstructionActivity(
   input: UpdateProjectActivityInput,
+  projectRates: ProjectLaborRate[] = [],
 ): Promise<RepositoryResult<SavedActivityBundle>> {
+  const rateMap = new Map(projectRates.map((rate) => [rate.id, rate]));
+
   const assigned = assignProjectActivityCode({
     existingActivities: [input.activity],
     divisionCode: input.activity.divisionCode,
@@ -165,7 +232,7 @@ export async function updateProjectConstructionActivity(
     excludeActivityId: input.activity.id,
   });
 
-  const updatedLineItems = input.lineItems.map((item) => {
+  let updatedLineItems = input.lineItems.map((item) => {
     const quantity =
       input.lineItemQuantities[item.id] ?? input.lineItemQuantities[item.name] ?? item.quantity;
     const calculatedManHours = calculateLineItemManHours(
@@ -179,6 +246,21 @@ export async function updateProjectConstructionActivity(
       calculatedManHours,
     };
   });
+
+  if (input.lineItemLaborRoles || input.lineItemManualRates) {
+    updatedLineItems = updatedLineItems.map((item) =>
+      applyPricingUpdates(
+        item,
+        rateMap,
+        input.lineItemLaborRoles?.[item.id],
+        input.lineItemManualRates?.[item.id] ?? null,
+      ),
+    );
+  } else {
+    updatedLineItems = updatedLineItems.map((item) =>
+      applyPricingUpdates(item, rateMap, undefined, undefined),
+    );
+  }
 
   const draftActivity: ProjectConstructionActivity = {
     ...input.activity,
@@ -210,29 +292,9 @@ export async function updateProjectConstructionActivity(
     totalCost: rollup.totalDirectCost,
   };
 
-  const lineItemsForSave = updatedLineItems.map((li) => ({
-    projectId: input.activity.projectId,
-    productionRateId: li.productionRateId ?? null,
-    sourceProductionRateKey: li.sourceProductionRateKey ?? null,
-    sourceProductionRateLabel: li.sourceProductionRateLabel ?? null,
-    sourceFigure: li.sourceFigure ?? null,
-    sourcePage: li.sourcePage ?? null,
-    sourcePdfPage: li.sourcePdfPage ?? null,
-    sourceDocumentCode: li.sourceDocumentCode ?? null,
-    name: li.name,
-    description: li.description,
-    quantity: li.quantity,
-    unit: li.unit,
-    manHoursPerUnit: li.manHoursPerUnit,
-    productionFactor: li.productionFactor,
-    calculatedManHours: li.calculatedManHours,
-    laborCost: li.laborCost,
-    materialCost: li.materialCost,
-    equipmentCost: li.equipmentCost,
-    subcontractCost: li.subcontractCost ?? 0,
-    totalCost: li.totalCost ?? 0,
-    sortOrder: li.sortOrder ?? 0,
-  }));
+  const lineItemsForSave = updatedLineItems.map((li) =>
+    mapLineItemForSave(li, input.activity.projectId),
+  );
 
   return saveActivityBundle(finalActivity, lineItemsForSave, input.activity.id);
 }

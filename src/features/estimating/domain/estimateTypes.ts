@@ -1,4 +1,21 @@
-export type EstimateType = 'quick_feasibility' | 'budget' | 'detailed' | 'bid';
+export type EstimateType =
+  | 'quick'
+  | 'conceptual'
+  | 'detailed'
+  | 'bid'
+  | 'change_order'
+  | 'unit_price'
+  | 'self_perform_labor'
+  | 'subcontractor_quote';
+
+/** Legacy DB values normalized to canonical {@link EstimateType} on read. */
+export type LegacyEstimateType = 'quick_feasibility' | 'budget';
+
+export type StoredEstimateType = EstimateType | LegacyEstimateType;
+
+export interface EstimateModeConfig {
+  [key: string]: unknown;
+}
 
 export type EstimateStatus =
   | 'draft'

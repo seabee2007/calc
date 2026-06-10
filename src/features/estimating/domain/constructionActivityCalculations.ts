@@ -172,6 +172,16 @@ export function getProjectActivityLineItemWarning(item: ProjectActivityLineItem)
   return null;
 }
 
+/** Labor pricing warning when man-hours exist but no labor cost snapshot is priced. */
+export function getProjectActivityLineItemLaborRateWarning(
+  item: ProjectActivityLineItem,
+): string | null {
+  if ((item.laborCost ?? 0) === 0 && (item.calculatedManHours ?? 0) > 0) {
+    return `Missing labor rate on "${item.name}". Assign a project labor role to price this work element.`;
+  }
+  return null;
+}
+
 /** Whether a line item has valid estimate snapshot data (does not require production_rate_id FK). */
 export function isProjectActivityLineItemValid(item: ProjectActivityLineItem): boolean {
   return getProjectActivityLineItemWarning(item) === null;

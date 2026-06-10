@@ -155,8 +155,54 @@ export interface ProjectActivityLineItemRow {
   equipment_cost: number;
   subcontract_cost: number;
   total_cost: number;
+  labor_role_id: string | null;
+  labor_role_key: string | null;
+  labor_role_name: string | null;
+  trade_category: string | null;
+  hourly_rate_snapshot: number;
+  burden_percent_snapshot: number;
+  fully_burdened_rate_snapshot: number;
+  billing_rate_snapshot: number;
+  pricing_source: string | null;
+  pricing_snapshot_at: string | null;
   sort_order: number;
   created_at: string;
+}
+
+export interface CompanyLaborRateRow {
+  id: string;
+  user_id: string;
+  role_key: string;
+  role_name: string;
+  trade_category: string;
+  hourly_rate: number;
+  burden_percent: number;
+  fully_burdened_rate: number;
+  billing_rate: number;
+  description: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectLaborRateRow {
+  id: string;
+  project_id: string;
+  company_labor_rate_id: string | null;
+  role_key: string;
+  role_name: string;
+  trade_category: string;
+  hourly_rate: number;
+  burden_percent: number;
+  fully_burdened_rate: number;
+  billing_rate: number;
+  description: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  is_override: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // ---------------------------------------------------------------------------

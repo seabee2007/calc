@@ -1,12 +1,25 @@
-import { normalizeSelectedDivisionCodes } from './estimateWorkBreakdown';
 import {
   buildSelectedDivisionsFromCodes,
   normalizeSelectedDivisions,
 } from './estimateWorkBreakdown';
 import type { EstimateSelectedDivision } from '../domain/estimateTypes';
-import type { EstimateType } from '../domain/estimateTypes';
+import type { EstimateType, StoredEstimateType } from '../domain/estimateTypes';
+import {
+  isConceptualEstimateType,
+  isQuickEstimateType,
+  normalizeEstimateMethod,
+  supportsConstructionActivitiesWorkflow,
+} from '../domain/estimateMethods';
 
-export type EstimateActiveStartMode = 'quick' | 'budget' | 'detailed' | 'bid';
+export type EstimateActiveStartMode =
+  | 'quick'
+  | 'conceptual'
+  | 'detailed'
+  | 'bid'
+  | 'change_order'
+  | 'unit_price'
+  | 'self_perform_labor'
+  | 'subcontractor_quote';
 
 export interface EstimateSetupSessionState {
   estimateSetupStarted: boolean;
@@ -16,11 +29,8 @@ export interface EstimateSetupSessionState {
   selectedDivisions: readonly EstimateSelectedDivision[];
 }
 
-export function resolveActiveStartMode(type: EstimateType): EstimateActiveStartMode {
-  if (type === 'quick_feasibility') return 'quick';
-  if (type === 'budget') return 'budget';
-  if (type === 'detailed') return 'detailed';
-  return 'bid';
+export function resolveActiveStartMode(type: StoredEstimateType): EstimateActiveStartMode {
+  return normalizeEstimateMethod(type);
 }
 
 export function createInitialEstimateSetupSession(
@@ -93,16 +103,22 @@ export function shouldShowEstimateStartPanel(state: EstimateSetupSessionState): 
 }
 
 export function shouldShowQuickFeasibilityPanel(state: EstimateSetupSessionState): boolean {
-  return state.estimateSetupStarted && state.activeStartMode === 'quick';
+  return state.estimateSetupStarted && isQuickEstimateType(state.selectedEstimateType);
 }
 
-export function supportsActivityWorkflow(type: EstimateType): boolean {
-  return type === 'budget' || type === 'detailed' || type === 'bid';
+export function supportsActivityWorkflow(type: StoredEstimateType): boolean {
+  const normalized = normalizeEstimateMethod(type);
+  return (
+    isConceptualEstimateType(normalized) ||
+    supportsConstructionActivitiesWorkflow(normalized) ||
+    normalized === 'change_order' ||
+    normalized === 'unit_price'
+  );
 }
 
 export function shouldShowActivityWorkflow(state: EstimateSetupSessionState): boolean {
   if (!state.estimateSetupStarted) return false;
-  if (state.activeStartMode === 'quick') return false;
+  if (isQuickEstimateType(state.selectedEstimateType)) return false;
   return supportsActivityWorkflow(state.selectedEstimateType);
 }
 
@@ -120,35 +136,47 @@ export function canResetEstimateSetup(state: EstimateSetupSessionState): boolean
   return state.estimateSetupStarted;
 }
 
-export function isQuickFeasibilityEstimateType(type: EstimateType): boolean {
-  return type === 'quick_feasibility';
+export function isQuickFeasibilityEstimateType(type: StoredEstimateType): boolean {
+  return isQuickEstimateType(type);
 }
 
-/** Budget, detailed, and bid estimates use the division scope modal. */
-export function shouldOpenBuildScopeModal(type: EstimateType): boolean {
-  return type === 'budget' || type === 'detailed' || type === 'bid';
+/** Conceptual, detailed, bid, and related types use the division scope modal. */
+export function shouldOpenBuildScopeModal(type: StoredEstimateType): boolean {
+  const normalized = normalizeEstimateMethod(type);
+  return (
+    normalized === 'conceptual' ||
+    normalized === 'detailed' ||
+    normalized === 'bid' ||
+    normalized === 'self_perform_labor' ||
+    normalized === 'change_order' ||
+    normalized === 'unit_price'
+  );
 }
 
-export function getBuildScopeModalTitle(type: EstimateType): string {
-  if (type === 'budget') return 'Build Budget Scope';
+export function getBuildScopeModalTitle(type: StoredEstimateType): string {
+  if (isConceptualEstimateType(type)) return 'Build Budget Scope';
+  if (normalizeEstimateMethod(type) === 'change_order') return 'Build Change Order Scope';
   return 'Build Project Scope';
 }
 
-export function getBuildScopeModalDescription(type: EstimateType): string {
-  if (type === 'budget') {
+export function getBuildScopeModalDescription(type: StoredEstimateType): string {
+  if (isConceptualEstimateType(type)) {
     return 'Choose the major divisions of work for rough budget planning.';
+  }
+  if (normalizeEstimateMethod(type) === 'change_order') {
+    return 'Choose the divisions affected by this change order.';
   }
   return 'Choose the major divisions of work. These become the top-level buckets for activities, estimating, scheduling, and Gantt planning.';
 }
 
 export type ScopeModalMode = 'create' | 'add';
 
-export function getScopeModalTitle(mode: ScopeModalMode, type: EstimateType): string {
+export function getScopeModalTitle(mode: ScopeModalMode, type: StoredEstimateType): string {
   if (mode === 'add') return 'Add Divisions';
   return getBuildScopeModalTitle(type);
 }
 
-export function getScopeModalDescription(mode: ScopeModalMode, type: EstimateType): string {
+export function getScopeModalDescription(mode: ScopeModalMode, type: StoredEstimateType): string {
   if (mode === 'add') {
     return 'Select additional divisions to add to this estimate.';
   }
@@ -171,7 +199,7 @@ export function buildEstimateSetupVersionKey(projectId: string, versionId: strin
 }
 
 export const QUICK_FEASIBILITY_TAB_HELPER =
-  'Quick Feasibility is a high-level rough estimate. It does not use detailed work activities.';
+  'Quick Estimate is a high-level rough estimate. It does not use detailed work activities.';
 
 export const ACTIVITY_WORKFLOW_TAB_HELPER =
   'Build your estimate by division of work, work package, and activity.';
@@ -182,15 +210,22 @@ export const ESTIMATE_SETUP_RESET_SAVED_VERSIONS_NOTE =
 export const ESTIMATE_SETUP_RESET_REPLACE_NOTE =
   'Resetting removes the current estimate so you can start again with a different estimate type.';
 
-export function getWorkBreakdownHelperText(type: EstimateType): string {
-  if (type === 'budget') {
+export function getWorkBreakdownHelperText(type: StoredEstimateType): string {
+  const normalized = normalizeEstimateMethod(type);
+  if (normalized === 'conceptual') {
     return 'Build a rough budget by division. Add division allowances and scope-level costs as needed.';
   }
-  if (type === 'bid') {
+  if (normalized === 'bid') {
     return 'Build proposal-ready scope by division. Add work activities, cost details, and markup support.';
   }
-  if (type === 'detailed') {
-    return 'Build your project work breakdown by division. Add work activities and cost details under each division of work.';
+  if (normalized === 'self_perform_labor') {
+    return 'Build self-perform labor scope by division. Add activities, crew planning, and durations.';
+  }
+  if (normalized === 'change_order') {
+    return 'Organize added, deleted, or revised scope by division for this change order.';
+  }
+  if (normalized === 'unit_price') {
+    return 'Organize repetitive unit-price scope by division or package.';
   }
   return 'Build your project work breakdown by division. Add work activities and cost details under each division of work.';
 }

@@ -8,6 +8,7 @@ import type {
   ProjectActivityLineItem,
   ProjectConstructionActivity,
 } from '../domain/constructionActivityTypes';
+import { EMPTY_LABOR_PRICING_SNAPSHOT } from '../domain/constructionActivityTypes';
 import type {
   ActivityLineItemTemplateRow,
   ConstructionActivityTemplateRow,
@@ -157,6 +158,19 @@ export function mapProjectLineItemFromRow(
     equipmentCost: row.equipment_cost,
     subcontractCost: row.subcontract_cost,
     totalCost: row.total_cost,
+    laborRoleId: row.labor_role_id ?? null,
+    laborRoleKey: row.labor_role_key ?? null,
+    laborRoleName: row.labor_role_name ?? null,
+    tradeCategory: row.trade_category ?? null,
+    hourlyRateSnapshot: row.hourly_rate_snapshot ?? EMPTY_LABOR_PRICING_SNAPSHOT.hourlyRateSnapshot,
+    burdenPercentSnapshot: row.burden_percent_snapshot ?? EMPTY_LABOR_PRICING_SNAPSHOT.burdenPercentSnapshot,
+    fullyBurdenedRateSnapshot:
+      row.fully_burdened_rate_snapshot ?? EMPTY_LABOR_PRICING_SNAPSHOT.fullyBurdenedRateSnapshot,
+    billingRateSnapshot: row.billing_rate_snapshot ?? EMPTY_LABOR_PRICING_SNAPSHOT.billingRateSnapshot,
+    pricingSource:
+      (row.pricing_source as ProjectActivityLineItem['pricingSource']) ??
+      EMPTY_LABOR_PRICING_SNAPSHOT.pricingSource,
+    pricingSnapshotAt: row.pricing_snapshot_at ?? null,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
   };
@@ -233,8 +247,18 @@ export function mapProjectLineItemToInsert(
     labor_cost: li.laborCost,
     material_cost: li.materialCost,
     equipment_cost: li.equipmentCost,
-    subcontract_cost: li.subcontractCost,
-    total_cost: li.totalCost,
+    subcontract_cost: li.subcontractCost ?? 0,
+    total_cost: li.totalCost ?? 0,
+    labor_role_id: li.laborRoleId ?? null,
+    labor_role_key: li.laborRoleKey ?? null,
+    labor_role_name: li.laborRoleName ?? null,
+    trade_category: li.tradeCategory ?? null,
+    hourly_rate_snapshot: li.hourlyRateSnapshot ?? 0,
+    burden_percent_snapshot: li.burdenPercentSnapshot ?? 0,
+    fully_burdened_rate_snapshot: li.fullyBurdenedRateSnapshot ?? 0,
+    billing_rate_snapshot: li.billingRateSnapshot ?? 0,
+    pricing_source: li.pricingSource ?? 'unset',
+    pricing_snapshot_at: li.pricingSnapshotAt ?? null,
     sort_order: li.sortOrder ?? 0,
   };
 }

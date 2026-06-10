@@ -17,8 +17,17 @@ import {
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { useProjectStore } from '../../../store';
-import { DEFAULT_ESTIMATE_METHOD, normalizeEstimateMethod } from '../domain/estimateMethods';
+import { DEFAULT_ESTIMATE_METHOD, isQuickEstimateType, normalizeEstimateMethod } from '../domain/estimateMethods';
 import type { EstimateSelectedDivision, EstimateType } from '../domain/estimateTypes';
+import {
+  getDefaultWorkspaceTabForEstimateType,
+  getEstimateTypeChangeWarning,
+  getEstimateTypeEmptyState,
+  getVisibleWorkspaceTabs,
+  isScheduleWorkspaceTab,
+  isTabVisibleForEstimateType,
+  resolveWorkspaceSchedulingEnabled,
+} from '../application/estimateWorkspaceTabPolicy';
 import {
   buildDomainTasksFromDraftLines,
   createCurrentEstimate,
@@ -88,6 +97,11 @@ import {
 } from './estimateWorkspaceToolbar';
 import EstimateImportModal from './EstimateImportModal';
 import ConstructionActivityBuilderPanel from './components/ConstructionActivityBuilderPanel';
+import ChooseEstimateTypeModal from './components/ChooseEstimateTypeModal';
+import ChangeEstimateTypeConfirmModal from './components/ChangeEstimateTypeConfirmModal';
+import EstimateTypeHeaderControl from './components/EstimateTypeHeaderControl';
+import EstimateQuickFeasibilityPanel from './components/EstimateQuickFeasibilityPanel';
+import { quickFeasibilityInputsFromSnapshot } from '../application/estimateQuickFeasibility';
 import { applyImportedEstimate } from '../importExport/estimateImportApply';
 import type { ImportedEstimateData } from '../importExport/estimateImportParser';
 import type { EstimateImportApplyMode } from '../importExport/estimateImportApply';
@@ -145,7 +159,20 @@ import {
 
 const OVERVIEW_NO_ESTIMATE_MESSAGE =
   'No estimate started yet. Go to the Estimate tab to start one.';
-const TAB_NO_ESTIMATE_MESSAGE = 'This project does not have a saved estimate yet.';
+const WORKFLOW_PLACEHOLDER_TAB_IDS: EstimateWorkspaceTabId[] = [
+  'conceptual-budget',
+  'assumptions-allowances',
+  'change-order-scope',
+  'pricing',
+  'unit-price-items',
+  'subcontractor-quotes',
+  'quote-comparison',
+];
+
+function renderScheduleDisabledEmptyState(estimateType: EstimateType) {
+  const empty = getEstimateTypeEmptyState(estimateType, 'schedule-preview');
+  return <EstimateWorkspaceEmptyState title={empty.title} body={empty.body} />;
+}
 const LOADING_ESTIMATE_MESSAGE = 'Loading estimate...';
 
 function renderScheduleSourceDevBadge(
@@ -210,6 +237,18 @@ function getTodayScheduleDateYmd(): string {
 // which would destabilise selectedDivisionCodes → workBreakdown → handleCollapseAll.
 const EMPTY_SELECTED_DIVISIONS: EstimateSelectedDivision[] = [];
 
+function buildEstimatePersistenceFields(estimate: CurrentEstimate) {
+  return {
+    estimateId: estimate.id,
+    projectId: estimate.projectId,
+    estimateType: normalizeEstimateMethod(estimate.estimateType ?? DEFAULT_ESTIMATE_METHOD),
+    schedulingEnabled: estimate.schedulingEnabled,
+    estimateModeConfig: estimate.estimateModeConfig,
+    pricingMode: estimate.pricingMode,
+    status: estimate.status,
+  };
+}
+
 export default function EstimateWorkspacePage() {
   const { projectId: routeProjectId, estimateTab } = useParams<{
     projectId: string;
@@ -250,6 +289,12 @@ export default function EstimateWorkspacePage() {
     string | null
   >(null);
   const [focusActivityCode, setFocusActivityCode] = useState<string | null>(null);
+  const [estimateTypeModalOpen, setEstimateTypeModalOpen] = useState(false);
+  const [estimateTypeChangeConfirmOpen, setEstimateTypeChangeConfirmOpen] = useState(false);
+  const [pendingEstimateTypeChange, setPendingEstimateTypeChange] = useState<EstimateType | null>(
+    null,
+  );
+  const [changingEstimateType, setChangingEstimateType] = useState(false);
   const [builderToolbarHandlers, setBuilderToolbarHandlers] =
     useState<EstimateBuilderToolbarHandlers | null>(null);
   const [schedulePlanControls, setSchedulePlanControls] = useState<EstimateSchedulePlanControlValues>(
@@ -271,6 +316,17 @@ export default function EstimateWorkspacePage() {
   );
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
+  const resolvedEstimateType = normalizeEstimateMethod(
+    currentEstimate?.estimateType ?? activeEstimateType ?? selectedEstimateMethod,
+  );
+  const schedulingEnabled = resolveWorkspaceSchedulingEnabled(
+    resolvedEstimateType,
+    currentEstimate?.schedulingEnabled,
+  );
+  const visibleWorkspaceTabs = useMemo(
+    () => getVisibleWorkspaceTabs(resolvedEstimateType, schedulingEnabled),
+    [resolvedEstimateType, schedulingEnabled],
+  );
 
   // Construction activities for schedule source (Milestone 5) — must be declared before
   // scheduleActivitiesResult reads constructionActivities.
@@ -295,6 +351,7 @@ export default function EstimateWorkspacePage() {
       estimateSettings: estimateSettings.settings,
       scheduleSettingsHoursPerDay: scheduleSettingsHook.scheduleSettings.hoursPerDay,
       enableLegacyEstimateScheduleFallback,
+      schedulingEnabled,
     });
   }, [
     constructionActivities,
@@ -303,6 +360,7 @@ export default function EstimateWorkspacePage() {
     estimateAdapter?.lineItems,
     estimateSettings.settings,
     scheduleSettingsHook.scheduleSettings.hoursPerDay,
+    schedulingEnabled,
   ]);
   const scheduleSourceRehydrateKeyRef = useRef<string | null>(null);
   const currentEstimateRef = useRef(currentEstimate);
@@ -626,6 +684,29 @@ export default function EstimateWorkspacePage() {
   scheduleSettingsRef.current = scheduleSettingsHook;
 
   useEffect(() => {
+    if (!resolvedProjectId || dataLoading) return;
+    if (
+      isTabVisibleForEstimateType(activeTab, resolvedEstimateType, schedulingEnabled)
+    ) {
+      return;
+    }
+    navigate(
+      estimateWorkspaceHref(
+        resolvedProjectId,
+        getDefaultWorkspaceTabForEstimateType(resolvedEstimateType),
+      ),
+      { replace: true },
+    );
+  }, [
+    activeTab,
+    dataLoading,
+    navigate,
+    resolvedEstimateType,
+    resolvedProjectId,
+    schedulingEnabled,
+  ]);
+
+  useEffect(() => {
     if (!resolvedProjectId) return;
     if (estimateTab === 'totals') {
       navigate(estimateWorkspaceHref(resolvedProjectId, 'overview'), { replace: true });
@@ -830,7 +911,12 @@ export default function EstimateWorkspacePage() {
       setLevelingModalResult(null);
     }
     setSaveToastMessage('Estimate started');
-    navigate(estimateWorkspaceHref(resolvedProjectId, 'activities'));
+    navigate(
+      estimateWorkspaceHref(
+        resolvedProjectId,
+        getDefaultWorkspaceTabForEstimateType(selectedEstimateMethod),
+      ),
+    );
     setCreating(false);
   }, [
     resolvedProjectId,
@@ -842,6 +928,118 @@ export default function EstimateWorkspacePage() {
     lineItemDraft,
     scheduleSettingsHook,
     navigate,
+  ]);
+
+  const handleSchedulingEnabledChange = useCallback(
+    async (enabled: boolean) => {
+      if (!currentEstimate) return;
+      const optimistic = { ...currentEstimate, schedulingEnabled: enabled };
+      setCurrentEstimate(optimistic);
+      const result = await saveCurrentEstimate({
+        ...buildEstimatePersistenceFields(optimistic),
+        selectedDivisions: optimistic.selectedDivisions,
+        lineItems: optimistic.lineItems,
+        totals: optimistic.totals,
+        summary: optimistic.summary,
+        assumptions: optimistic.assumptions,
+        createdBy: user?.id ?? null,
+      });
+      if (result.error) {
+        setSaveError(result.error);
+        setCurrentEstimate(currentEstimate);
+        return;
+      }
+      if (result.data) {
+        setCurrentEstimate(result.data);
+      }
+    },
+    [currentEstimate, user?.id],
+  );
+
+  const handleEstimateTypeModalSelect = useCallback(
+    (nextType: EstimateType) => {
+      setEstimateTypeModalOpen(false);
+      if (nextType === resolvedEstimateType) return;
+      setPendingEstimateTypeChange(nextType);
+      setEstimateTypeChangeConfirmOpen(true);
+    },
+    [resolvedEstimateType],
+  );
+
+  const pendingEstimateTypeWarning = useMemo(
+    () =>
+      pendingEstimateTypeChange
+        ? getEstimateTypeChangeWarning(
+            resolvedEstimateType,
+            pendingEstimateTypeChange,
+            schedulingEnabled,
+          )
+        : { showWarning: false, title: '', body: '' },
+    [pendingEstimateTypeChange, resolvedEstimateType, schedulingEnabled],
+  );
+
+  const handleConfirmEstimateTypeChange = useCallback(async () => {
+    if (!currentEstimate || !pendingEstimateTypeChange || changingEstimateType) return;
+
+    setChangingEstimateType(true);
+    setSaveError(null);
+
+    const nextEstimate: CurrentEstimate = {
+      ...currentEstimate,
+      estimateType: pendingEstimateTypeChange,
+    };
+
+    const result = await saveCurrentEstimate({
+      ...buildEstimatePersistenceFields(nextEstimate),
+      selectedDivisions: currentEstimate.selectedDivisions,
+      lineItems: currentEstimate.lineItems,
+      totals: currentEstimate.totals,
+      summary: currentEstimate.summary,
+      assumptions: currentEstimate.assumptions,
+      createdBy: user?.id ?? null,
+    });
+
+    if (result.error || !result.data) {
+      setSaveError(result.error ?? 'Could not change estimate type.');
+      setChangingEstimateType(false);
+      return;
+    }
+
+    const loadedType = normalizeEstimateMethod(result.data.estimateType ?? pendingEstimateTypeChange);
+    setCurrentEstimate(result.data);
+    setActiveEstimateType(result.data.estimateType);
+    setSelectedEstimateMethod(loadedType);
+    estimateSetup.restoreSavedSetup(loadedType, result.data.selectedDivisions);
+    lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
+    setEstimateTypeChangeConfirmOpen(false);
+    setPendingEstimateTypeChange(null);
+    setChangingEstimateType(false);
+    setSaveToastMessage('Estimate type updated');
+
+    if (
+      !isTabVisibleForEstimateType(
+        activeTab,
+        loadedType,
+        result.data.schedulingEnabled,
+      )
+    ) {
+      navigate(
+        estimateWorkspaceHref(
+          resolvedProjectId,
+          getDefaultWorkspaceTabForEstimateType(loadedType),
+        ),
+      );
+    }
+  }, [
+    activeTab,
+    changingEstimateType,
+    currentEstimate,
+    estimateSetup,
+    lineItemDraft,
+    navigate,
+    pendingEstimateTypeChange,
+    resolvedProjectId,
+    user?.id,
   ]);
 
   const canSave =
@@ -870,15 +1068,12 @@ export default function EstimateWorkspacePage() {
       setSaving(true);
 
       const result = await saveCurrentEstimate({
-        estimateId: currentEstimate.id,
-        projectId: currentEstimate.projectId,
-        estimateType: estimateAdapter.estimateType,
+        ...buildEstimatePersistenceFields(currentEstimate),
         selectedDivisions: divisions,
         lineItems: currentEstimate.lineItems,
         totals: currentEstimate.totals,
         summary: currentEstimate.summary,
         assumptions: currentEstimate.assumptions,
-        status: currentEstimate.status,
         createdBy: user?.id ?? null,
       });
 
@@ -972,6 +1167,13 @@ export default function EstimateWorkspacePage() {
       estimateId: estimate.id,
       projectId: estimate.projectId,
       estimateType: estimateAdapter.estimateType,
+      ...(currentEstimate
+        ? {
+            schedulingEnabled: currentEstimate.schedulingEnabled,
+            estimateModeConfig: currentEstimate.estimateModeConfig,
+            pricingMode: currentEstimate.pricingMode,
+          }
+        : {}),
       draftLines: lineItemDraft.draftLines,
       selectedDivisions: [
         ...(currentEstimate?.selectedDivisions ?? []),
@@ -1448,15 +1650,16 @@ export default function EstimateWorkspacePage() {
       );
 
       const result = await saveCurrentEstimate({
-        estimateId: estimate.id,
-        projectId: estimate.projectId,
-        estimateType: estimateAdapter.estimateType,
+        ...(currentEstimate ? buildEstimatePersistenceFields(currentEstimate) : {
+          estimateId: estimate.id,
+          projectId: estimate.projectId,
+          estimateType: normalizeEstimateMethod(estimateAdapter.estimateType),
+        }),
         selectedDivisions: estimate.selectedDivisions,
         lineItems: estimate.lineItems,
         totals: estimate.totals,
         summary: estimate.summary,
         assumptions: updatedAssumptions,
-        status: estimate.status,
         createdBy: user?.id ?? null,
       });
       if (result.error || !result.data) {
@@ -1694,9 +1897,7 @@ export default function EstimateWorkspacePage() {
     tabRenderOptions,
   );
   const showEstimateBuilder = shouldShowEstimateBuilderPanel(activeTab, tabRenderOptions);
-  const isQuickFeasibilityEstimate =
-    estimateAdapter?.estimateType === 'quick_feasibility' ||
-    activeEstimateType === 'quick_feasibility';
+  const isQuickFeasibilityEstimate = isQuickEstimateType(resolvedEstimateType);
   const canEditEstimate = hasEstimate && hasEstimateAdapter;
   const showCollapseAll = shouldShowCollapseAllAction(
     activeTab,
@@ -1721,7 +1922,6 @@ export default function EstimateWorkspacePage() {
     activeTab,
     builderToolbarHandlers?.showSaveQuick ?? false,
   );
-  const resolvedEstimateType = currentEstimate?.estimateType ?? activeEstimateType;
   const showAddDivision = shouldShowAddDivisionAction(
     activeTab,
     hasEstimate,
@@ -1753,12 +1953,31 @@ export default function EstimateWorkspacePage() {
     setSaveToastMessage('Select at least one new division');
   }, []);
 
+  // #region agent log
+  fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H1,H2,H3,H4',location:'EstimateWorkspacePage.tsx:1956',message:'estimate workspace render modal state',data:{activeTab,hasEstimate,dataLoading,saving,changingEstimateType,estimateTypeModalOpen,estimateTypeChangeConfirmOpen,pendingEstimateTypeChange,resolvedEstimateType,schedulingEnabled},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   return (
     <>
       <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
         <EstimateWorkspaceTabBar
           activeTabId={activeTab}
+          visibleTabs={visibleWorkspaceTabs}
           onTabChange={handleTabChange}
+          estimateTypeControl={
+            hasEstimate ? (
+              <EstimateTypeHeaderControl
+                estimateType={resolvedEstimateType}
+                onChangeClick={() => {
+                  // #region agent log
+                  fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H1,H2',location:'EstimateWorkspacePage.tsx:1967',message:'parent change click callback invoked',data:{estimateTypeModalOpenBefore:estimateTypeModalOpen,saving,changingEstimateType,dataLoading,hasEstimate,resolvedEstimateType},timestamp:Date.now()})}).catch(()=>{});
+                  // #endregion
+                  setEstimateTypeModalOpen(true);
+                }}
+                disabled={saving || changingEstimateType || dataLoading}
+              />
+            ) : null
+          }
           rightActions={
             <EstimateWorkspaceToolbarActions
               showAddDivision={showAddDivision}
@@ -1877,6 +2096,11 @@ export default function EstimateWorkspacePage() {
           <EstimateSettingsPanel
             settingsState={estimateSettings}
             canEdit={canEditEstimate}
+            projectId={resolvedProjectId}
+            estimateType={resolvedEstimateType}
+            schedulingEnabled={schedulingEnabled}
+            onEstimateTypeChange={() => setEstimateTypeModalOpen(true)}
+            onSchedulingEnabledChange={(enabled) => void handleSchedulingEnabledChange(enabled)}
             projectCrewSize={projectAvailableCrewSize}
             onProjectCrewSizeChange={(value) => void handleProjectCrewSizeChange(value)}
             onProjectCrewSizeDraftChange={handleProjectCrewSizeDraftChange}
@@ -1918,6 +2142,9 @@ export default function EstimateWorkspacePage() {
 
         {!loadError && !dataLoading && activeTab === 'schedule-preview' ? (
           hasEstimate && estimate ? (
+            !schedulingEnabled ? (
+              renderScheduleDisabledEmptyState(resolvedEstimateType)
+            ) : (
             <div className="space-y-4">
               {estimateAdapter && shouldShowRoughSchedulePreviewNote(estimateAdapter.estimateType) ? (
                 <div className={`${PLANNER_FORM_PANEL} text-sm ${TEXT_BODY}`}>
@@ -1936,6 +2163,7 @@ export default function EstimateWorkspacePage() {
                 legacyScheduleAvailable={legacyScheduleLineItemsAvailable}
               />
             </div>
+            )
           ) : (
             <EstimateWorkspaceEmptyState
               title="No estimate started"
@@ -1965,6 +2193,9 @@ export default function EstimateWorkspacePage() {
 
         {!loadError && !dataLoading && activeTab === 'logic-network' ? (
           hasEstimate ? (
+            !schedulingEnabled ? (
+              renderScheduleDisabledEmptyState(resolvedEstimateType)
+            ) : (
             (() => {
               const emptyState = resolveScheduleTabEmptyState(
                 constructionActivities.length,
@@ -2027,6 +2258,7 @@ export default function EstimateWorkspacePage() {
                 </div>
               );
             })()
+            )
           ) : (
             <EstimateWorkspaceEmptyState
               title="No estimate started"
@@ -2037,6 +2269,9 @@ export default function EstimateWorkspacePage() {
 
         {!loadError && !dataLoading && activeTab === 'level-iii-gantt' ? (
           hasEstimate ? (
+            !schedulingEnabled ? (
+              renderScheduleDisabledEmptyState(resolvedEstimateType)
+            ) : (
             (() => {
               const emptyState = resolveScheduleTabEmptyState(
                 constructionActivities.length,
@@ -2104,12 +2339,44 @@ export default function EstimateWorkspacePage() {
                 </div>
               );
             })()
+            )
           ) : (
             <EstimateWorkspaceEmptyState
               title="No estimate started"
               body={TAB_NO_ESTIMATE_MESSAGE}
             />
           )
+        ) : null}
+
+        {!loadError && !dataLoading && activeTab === 'quick-estimate' && hasEstimate ? (
+          <EstimateQuickFeasibilityPanel
+            disabled={!canEditEstimate || saving}
+            projectContext={
+              projectScopeContext
+                ? {
+                    projectName: projectScopeContext.projectName,
+                    projectDescription: projectScopeContext.projectDescription,
+                    locationLabel: projectScopeContext.locationLabel,
+                  }
+                : null
+            }
+            initialInputs={
+              estimateAdapter
+                ? quickFeasibilityInputsFromSnapshot(estimateAdapter.snapshot)
+                : null
+            }
+            initialInputsKey={estimateAdapter?.id ?? null}
+          />
+        ) : null}
+
+        {!loadError &&
+        !dataLoading &&
+        WORKFLOW_PLACEHOLDER_TAB_IDS.includes(activeTab) &&
+        hasEstimate ? (
+          (() => {
+            const empty = getEstimateTypeEmptyState(resolvedEstimateType, activeTab);
+            return <EstimateWorkspaceEmptyState title={empty.title} body={empty.body} />;
+          })()
         ) : null}
 
         {/* ── Construction Activities tab (Milestones 4 + 5) ─────────────────── */}
@@ -2130,6 +2397,22 @@ export default function EstimateWorkspacePage() {
 
         </div>
       </div>
+      <ChooseEstimateTypeModal
+        open={estimateTypeModalOpen}
+        currentType={resolvedEstimateType}
+        onClose={() => setEstimateTypeModalOpen(false)}
+        onSelect={handleEstimateTypeModalSelect}
+      />
+      <ChangeEstimateTypeConfirmModal
+        open={estimateTypeChangeConfirmOpen}
+        warning={pendingEstimateTypeWarning}
+        onCancel={() => {
+          setEstimateTypeChangeConfirmOpen(false);
+          setPendingEstimateTypeChange(null);
+        }}
+        onConfirm={() => void handleConfirmEstimateTypeChange()}
+        confirming={changingEstimateType}
+      />
       <EstimateResetSetupConfirmModal
         isOpen={resetModalOpen}
         hasSavedActivities={(estimateAdapter?.lineItems.length ?? 0) > 0}

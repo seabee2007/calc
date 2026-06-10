@@ -34,7 +34,7 @@ describe('estimateStartFlow', () => {
   });
 
   it('hides selector and shows quick panel after quick start', () => {
-    const session = createEstimateSetupStartState('quick_feasibility');
+    const session = createEstimateSetupStartState('quick');
     expect(session.estimateSetupStarted).toBe(true);
     expect(session.activeStartMode).toBe('quick');
     expect(shouldShowEstimateTypeSelector(session)).toBe(false);
@@ -52,7 +52,7 @@ describe('estimateStartFlow', () => {
   });
 
   it('quick feasibility never enables activity workflow or saved activities', () => {
-    const session = createEstimateSetupStartState('quick_feasibility');
+    const session = createEstimateSetupStartState('quick');
     expect(supportsActivityWorkflow(session.selectedEstimateType)).toBe(false);
     expect(shouldShowActivityWorkflow(session)).toBe(false);
     expect(shouldShowSavedActivities(session)).toBe(false);
@@ -64,13 +64,13 @@ describe('estimateStartFlow', () => {
     expect(shouldShowSavedActivities(session)).toBe(false);
   });
 
-  it('hides selector and activates budget scope workflow after budget start', () => {
-    const session = createEstimateSetupStartState('budget');
+  it('hides selector and activates conceptual scope workflow after conceptual start', () => {
+    const session = createEstimateSetupStartState('conceptual');
     expect(shouldShowEstimateTypeSelector(session)).toBe(false);
     expect(shouldShowQuickFeasibilityPanel(session)).toBe(false);
     expect(shouldShowDivisionBucketPanel(session)).toBe(false);
-    expect(session.activeStartMode).toBe('budget');
-    expect(shouldOpenBuildScopeModal('budget')).toBe(true);
+    expect(session.activeStartMode).toBe('conceptual');
+    expect(shouldOpenBuildScopeModal('conceptual')).toBe(true);
   });
 
   it('restores saved bid estimate workspace instead of showing type selection', () => {
@@ -125,7 +125,7 @@ describe('estimateStartFlow', () => {
   });
 
   it('allows reset only when setup has started', () => {
-    expect(canResetEstimateSetup(createEstimateSetupStartState('quick_feasibility'))).toBe(true);
+    expect(canResetEstimateSetup(createEstimateSetupStartState('quick'))).toBe(true);
     expect(canResetEstimateSetup(createInitialEstimateSetupSession('detailed'))).toBe(false);
   });
 
@@ -142,26 +142,27 @@ describe('estimateStartFlow', () => {
   });
 
   it('preserves local selected type in started session state', () => {
-    const session = createEstimateSetupStartState('quick_feasibility');
-    expect(session.selectedEstimateType).toBe('quick_feasibility');
+    const session = createEstimateSetupStartState('quick');
+    expect(session.selectedEstimateType).toBe('quick');
     expect(resolveActiveStartMode(session.selectedEstimateType)).toBe('quick');
   });
 
-  it('identifies quick feasibility as non-modal path', () => {
+  it('identifies quick estimates as non-modal path', () => {
+    expect(isQuickFeasibilityEstimateType('quick')).toBe(true);
     expect(isQuickFeasibilityEstimateType('quick_feasibility')).toBe(true);
-    expect(isQuickFeasibilityEstimateType('budget')).toBe(false);
-    expect(shouldOpenBuildScopeModal('quick_feasibility')).toBe(false);
+    expect(isQuickFeasibilityEstimateType('conceptual')).toBe(false);
+    expect(shouldOpenBuildScopeModal('quick')).toBe(false);
   });
 
-  it('opens build scope modal for budget, detailed, and bid', () => {
-    expect(shouldOpenBuildScopeModal('budget')).toBe(true);
+  it('opens build scope modal for conceptual, detailed, and bid', () => {
+    expect(shouldOpenBuildScopeModal('conceptual')).toBe(true);
     expect(shouldOpenBuildScopeModal('detailed')).toBe(true);
     expect(shouldOpenBuildScopeModal('bid')).toBe(true);
   });
 
-  it('uses budget-specific modal copy', () => {
-    expect(getBuildScopeModalTitle('budget')).toBe('Build Budget Scope');
-    expect(getBuildScopeModalDescription('budget')).toContain('rough budget planning');
+  it('uses conceptual-specific modal copy', () => {
+    expect(getBuildScopeModalTitle('conceptual')).toBe('Build Budget Scope');
+    expect(getBuildScopeModalDescription('conceptual')).toContain('rough budget planning');
   });
 
   it('uses project scope modal copy for detailed and bid', () => {
@@ -173,7 +174,7 @@ describe('estimateStartFlow', () => {
 
   it('uses add-mode scope modal copy', () => {
     expect(getScopeModalTitle('add', 'detailed')).toBe('Add Divisions');
-    expect(getScopeModalDescription('add', 'budget')).toBe(
+    expect(getScopeModalDescription('add', 'conceptual')).toBe(
       'Select additional divisions to add to this estimate.',
     );
     expect(getScopeModalSubmitLabel('add')).toBe('Add selected divisions');

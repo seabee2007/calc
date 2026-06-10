@@ -4,20 +4,28 @@ import {
   ESTIMATE_METHODS,
   ESTIMATE_TYPES,
   getEstimateMethod,
+  getEstimateTypeLabel,
+  isQuickEstimateType,
   listEstimateMethods,
   normalizeEstimateMethod,
+  resolveSchedulingEnabled,
+  supportsConstructionActivitiesWorkflow,
 } from '../domain/estimateMethods';
 
 describe('estimateMethods', () => {
-  it('defines all four estimate methods', () => {
+  it('defines all eight estimate methods', () => {
     expect(ESTIMATE_TYPES).toEqual([
-      'quick_feasibility',
-      'budget',
+      'quick',
+      'conceptual',
       'detailed',
       'bid',
+      'change_order',
+      'unit_price',
+      'self_perform_labor',
+      'subcontractor_quote',
     ]);
-    expect(ESTIMATE_METHODS).toHaveLength(4);
-    expect(listEstimateMethods()).toHaveLength(4);
+    expect(ESTIMATE_METHODS).toHaveLength(8);
+    expect(listEstimateMethods()).toHaveLength(8);
   });
 
   it('defaults to detailed', () => {
@@ -26,12 +34,17 @@ describe('estimateMethods', () => {
     expect(normalizeEstimateMethod(null)).toBe('detailed');
   });
 
-  it('includes workflow notes for each method', () => {
-    expect(getEstimateMethod('quick_feasibility').workflowNote).toBe(
+  it('normalizes legacy estimate types', () => {
+    expect(normalizeEstimateMethod('quick_feasibility')).toBe('quick');
+    expect(normalizeEstimateMethod('budget')).toBe('conceptual');
+  });
+
+  it('includes workflow notes for core methods', () => {
+    expect(getEstimateMethod('quick').workflowNote).toBe(
       'Fast rough number for early planning.',
     );
-    expect(getEstimateMethod('budget').workflowNote).toBe(
-      'Rough budget by division or scope.',
+    expect(getEstimateMethod('conceptual').workflowNote).toBe(
+      'Early budget with assumptions and allowances.',
     );
     expect(getEstimateMethod('detailed').workflowNote).toBe(
       'Activity-based estimating with schedule support.',
@@ -41,21 +54,36 @@ describe('estimateMethods', () => {
     );
   });
 
-  it('marks schedule and proposal recommendations correctly', () => {
-    expect(getEstimateMethod('quick_feasibility').schedulePreviewRecommended).toBe(false);
-    expect(getEstimateMethod('budget').schedulePreviewRecommended).toBe(false);
-    expect(getEstimateMethod('detailed').schedulePreviewRecommended).toBe(true);
-    expect(getEstimateMethod('bid').schedulePreviewRecommended).toBe(true);
+  it('marks schedule defaults correctly', () => {
+    expect(resolveSchedulingEnabled('quick', null)).toBe(false);
+    expect(resolveSchedulingEnabled('conceptual', null)).toBe(false);
+    expect(resolveSchedulingEnabled('detailed', null)).toBe(true);
+    expect(resolveSchedulingEnabled('bid', null)).toBe(true);
+    expect(resolveSchedulingEnabled('self_perform_labor', null)).toBe(true);
+    expect(resolveSchedulingEnabled('subcontractor_quote', null)).toBe(false);
+  });
 
-    expect(getEstimateMethod('quick_feasibility').proposalGenerationRecommended).toBe(false);
-    expect(getEstimateMethod('budget').proposalGenerationRecommended).toBe(false);
-    expect(getEstimateMethod('detailed').proposalGenerationRecommended).toBe(false);
-    expect(getEstimateMethod('bid').proposalGenerationRecommended).toBe(true);
+  it('supports construction activities workflow for detailed, bid, and self-perform', () => {
+    expect(supportsConstructionActivitiesWorkflow('detailed')).toBe(true);
+    expect(supportsConstructionActivitiesWorkflow('bid')).toBe(true);
+    expect(supportsConstructionActivitiesWorkflow('self_perform_labor')).toBe(true);
+    expect(supportsConstructionActivitiesWorkflow('quick')).toBe(false);
+  });
+
+  it('identifies quick estimates including legacy values', () => {
+    expect(isQuickEstimateType('quick')).toBe(true);
+    expect(isQuickEstimateType('quick_feasibility')).toBe(true);
+    expect(isQuickEstimateType('detailed')).toBe(false);
   });
 
   it('falls back safely for unknown methods', () => {
     const method = getEstimateMethod('unknown_type');
     expect(method.id).toBe('detailed');
     expect(normalizeEstimateMethod('unknown_type')).toBe('detailed');
+  });
+
+  it('returns labels for canonical types', () => {
+    expect(getEstimateTypeLabel('detailed')).toBe('Detailed Estimate');
+    expect(getEstimateTypeLabel('quick_feasibility')).toBe('Quick Estimate');
   });
 });

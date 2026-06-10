@@ -113,6 +113,7 @@ function RollupPanel({ result, assembly }: RollupPanelProps) {
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Total Man-Hours" value={r.totalManHours.toFixed(2)} unit="MH" />
         <StatCard label="Total Man-Days" value={r.totalManDays.toFixed(2)} unit="MD" />
+        <StatCard label="Total Labor Cost" value={`$${r.totalLaborCost.toFixed(2)}`} unit="USD" />
         <StatCard label="Calculated Duration" value={`${r.calculatedDurationDays}`} unit="days" />
         <StatCard label="Effective Duration" value={`${r.effectiveDurationDays}`} unit="days" />
       </div>

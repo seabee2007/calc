@@ -12,6 +12,7 @@ export interface EstimateGroupRollup {
   crewDays: number;
   durationDays: number;
   directCost: number;
+  laborCost: number;
   materialCost: number;
   equipmentCost: number;
   subcontractorCost: number;
@@ -52,6 +53,7 @@ export function emptyGroupRollup(): EstimateGroupRollup {
     crewDays: 0,
     durationDays: 0,
     directCost: 0,
+    laborCost: 0,
     materialCost: 0,
     equipmentCost: 0,
     subcontractorCost: 0,

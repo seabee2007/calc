@@ -30,6 +30,12 @@ const Modal: React.FC<ModalProps> = ({
   size = 'md',
   stackAboveDrawer = false,
 }) => {
+  if (title === 'Choose Estimate Type' || title === 'Change estimate type?' || title === 'Schedule tabs will be hidden') {
+    // #region agent log
+    fetch('http://127.0.0.1:7822/ingest/f8847b5c-ebf8-4ffb-8ef5-2ae8f29ce67d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0c8c0'},body:JSON.stringify({sessionId:'d0c8c0',runId:'change-button-pre-fix-1',hypothesisId:'H3,H4',location:'Modal.tsx:35',message:'shared modal received props',data:{title,isOpenType:typeof isOpen,isOpen:Boolean(isOpen),size,stackAboveDrawer},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  }
+
   const prevIsOpen = useRef(isOpen);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

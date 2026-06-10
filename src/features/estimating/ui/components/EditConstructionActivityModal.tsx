@@ -4,6 +4,8 @@ import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../..
 import { assignProjectActivityCode } from '../../application/constructionActivityCoding';
 import type { UpdateProjectActivityInput } from '../../application/constructionActivityService';
 import ActivityInstanceFields, { buildIdentityFromForm } from './ActivityInstanceFields';
+import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
+import { roundToTwo } from '../../domain/estimateMath';
 
 const FIELD_CLASS =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
@@ -37,6 +39,14 @@ export default function EditConstructionActivityModal({
   const [quantities, setQuantities] = useState<Record<string, string>>(
     Object.fromEntries(lineItems.map((item) => [item.id, String(item.quantity)])),
   );
+  const [expandedPricing, setExpandedPricing] = useState<Record<string, boolean>>({});
+  const [laborRoles, setLaborRoles] = useState<Record<string, string>>(
+    Object.fromEntries(
+      lineItems.map((item) => [item.id, item.laborRoleId ?? '']),
+    ),
+  );
+
+  const { projectRates, loading: ratesLoading } = useProjectLaborRates(activity.projectId);
 
   const identity = useMemo(
     () =>
@@ -72,9 +82,11 @@ export default function EditConstructionActivityModal({
         : Math.max(1, parseInt(durationOverrideStr, 10) || 1);
 
     const lineItemQuantities: Record<string, number> = {};
+    const lineItemLaborRoles: Record<string, string | null> = {};
     for (const item of lineItems) {
       const raw = quantities[item.id];
       lineItemQuantities[item.id] = raw !== undefined && raw !== '' ? parseFloat(raw) || 0 : item.quantity;
+      lineItemLaborRoles[item.id] = laborRoles[item.id] || null;
     }
 
     await onSave({
@@ -86,6 +98,7 @@ export default function EditConstructionActivityModal({
       durationDaysOverride,
       scheduleEnabled,
       lineItemQuantities,
+      lineItemLaborRoles,
     });
   }, [
     activity,
@@ -94,6 +107,7 @@ export default function EditConstructionActivityModal({
     hoursPerDayStr,
     identity,
     lineItems,
+    laborRoles,
     onSave,
     quantities,
     scheduleEnabled,
@@ -167,6 +181,118 @@ export default function EditConstructionActivityModal({
               </label>
             ))}
           </div>
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Pricing
+          </p>
+          {ratesLoading ? (
+            <p className="text-xs text-slate-500">Loading project labor rates…</p>
+          ) : projectRates.length === 0 ? (
+            <p className="text-xs text-amber-600 dark:text-amber-300">
+              No project labor rates yet. Initialize the schedule in Estimate Settings.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {lineItems.map((item) => {
+                const selectedRate = projectRates.find((rate) => rate.id === laborRoles[item.id]);
+                const quantity =
+                  quantities[item.id] !== undefined && quantities[item.id] !== ''
+                    ? parseFloat(quantities[item.id]) || 0
+                    : item.quantity;
+                const manHours = quantity * item.manHoursPerUnit * item.productionFactor;
+                const laborCost = selectedRate
+                  ? roundToTwo(manHours * selectedRate.fullyBurdenedRate)
+                  : item.laborCost;
+                const isOpen = expandedPricing[item.id] ?? false;
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border border-slate-200 dark:border-slate-700"
+                  >
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm"
+                      onClick={() =>
+                        setExpandedPricing((current) => ({
+                          ...current,
+                          [item.id]: !isOpen,
+                        }))
+                      }
+                    >
+                      <span className="truncate font-medium text-slate-700 dark:text-slate-200">
+                        {item.name}
+                      </span>
+                      <span className="text-xs text-cyan-700 dark:text-cyan-400">
+                        {laborCost > 0
+                          ? `$${laborCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} labor`
+                          : 'No labor cost'}
+                      </span>
+                    </button>
+                    {isOpen ? (
+                      <div className="grid gap-3 border-t border-slate-200 px-3 py-3 sm:grid-cols-2 dark:border-slate-700">
+                        <label className="block sm:col-span-2">
+                          <span className="mb-1 block text-xs text-slate-500">Labor role</span>
+                          <select
+                            className={FIELD_CLASS}
+                            value={laborRoles[item.id] ?? ''}
+                            onChange={(event) =>
+                              setLaborRoles((current) => ({
+                                ...current,
+                                [item.id]: event.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">Select role…</option>
+                            {projectRates.map((rate) => (
+                              <option key={rate.id} value={rate.id}>
+                                {rate.roleName} ({rate.tradeCategory})
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div>
+                          <p className="text-xs text-slate-500">Base rate</p>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                            {selectedRate
+                              ? `$${selectedRate.hourlyRate.toFixed(2)}/hr`
+                              : '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Burden</p>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                            {selectedRate ? `${selectedRate.burdenPercent}%` : '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Fully burdened rate</p>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                            {selectedRate
+                              ? `$${selectedRate.fullyBurdenedRate.toFixed(2)}/hr`
+                              : '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Man-hours</p>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                            {manHours.toFixed(2)} MH
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-slate-500">Labor cost</p>
+                          <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-400">
+                            ${laborCost.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">

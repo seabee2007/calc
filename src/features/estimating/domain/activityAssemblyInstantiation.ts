@@ -8,7 +8,7 @@
  *     → instantiateConstructionActivity(...)
  *     → InstantiateConstructionActivityResult
  */
-import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate } from './constructionActivityTypes';
+import type { ProjectLaborRate } from './laborRateTypes';
 import type { ActivityAssemblySpec, AssemblyUserInputs } from './activityAssemblyTypes';
 import {
   instantiateConstructionActivity,
@@ -38,6 +38,7 @@ export interface InstantiateFromAssemblyInput {
   activitySequence?: number;
   instanceSequence?: number;
   projectActivityId?: string;
+  defaultLaborRate?: ProjectLaborRate;
 }
 
 export interface AssemblyInstantiationResult extends InstantiateConstructionActivityResult {
@@ -105,6 +106,7 @@ export function instantiateFromAssemblySpec(
     activitySequence: input.activitySequence,
     instanceSequence: input.instanceSequence,
     projectActivityId: input.projectActivityId,
+    defaultLaborRate: input.defaultLaborRate,
   });
 
   return {

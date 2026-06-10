@@ -30,18 +30,16 @@ describe('estimate workspace — Activities as primary workflow', () => {
     expect(parseEstimateWorkspaceTabParam('line-items')).toBe('activities');
   });
 
-  it('does not show legacy Estimate tab in the tab bar', () => {
+  it('does not show a fixed tab list — tabs adapt by estimate type', () => {
+    expect(workspacePageSource).toContain('visibleTabs={visibleWorkspaceTabs}');
+    expect(workspacePageSource).toContain('ChooseEstimateTypeModal');
+    expect(workspacePageSource).toContain('EstimateTypeHeaderControl');
+  });
+
+  it('does not show legacy Estimate tab in the default detailed tab bar', () => {
     const visibleIds = ESTIMATE_WORKSPACE_TABS.map((tab) => tab.id);
     expect(visibleIds).not.toContain('line-items');
     expect(LEGACY_HIDDEN_ESTIMATE_WORKSPACE_TAB_IDS).toContain('line-items');
-    expect(visibleIds).toEqual([
-      'overview',
-      'settings',
-      'activities',
-      'schedule-preview',
-      'logic-network',
-      'level-iii-gantt',
-    ]);
   });
 
   it('bare estimate workspace href opens Activities', () => {

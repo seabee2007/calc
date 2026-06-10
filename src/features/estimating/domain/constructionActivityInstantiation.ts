@@ -21,6 +21,9 @@ import type {
   ProjectActivityLineItem,
   ProjectConstructionActivity,
 } from './constructionActivityTypes';
+import { EMPTY_LABOR_PRICING_SNAPSHOT } from './constructionActivityTypes';
+import type { ProjectLaborRate } from './laborRateTypes';
+import { applyLaborRateToLineItem } from '../application/laborPricingCalculator';
 
 /** Quantities keyed by line item template id and/or production rate id. */
 export type ActivityQuantityMap = Record<string, number>;
@@ -56,6 +59,8 @@ export interface InstantiateConstructionActivityInput {
   instanceSequence?: number;
   /** Optional stable id for tests; otherwise generated. */
   projectActivityId?: string;
+  /** When provided, snapshots the default labor rate onto each line item. */
+  defaultLaborRate?: ProjectLaborRate;
 }
 
 export interface InstantiateConstructionActivityResult {
@@ -270,6 +275,7 @@ export function instantiateConstructionActivity(
       sourcePdfPage: rateSnapshot.sourcePdfPage,
       sourceDocumentCode: rateSnapshot.sourceDocumentCode,
       calculatedManHours,
+      ...EMPTY_LABOR_PRICING_SNAPSHOT,
       laborCost: 0,
       materialCost: 0,
       equipmentCost: 0,
@@ -285,7 +291,11 @@ export function instantiateConstructionActivity(
     };
   });
 
-  const rollupBase = rollupConstructionActivity(projectActivity, projectLineItems);
+  const pricedLineItems = input.defaultLaborRate
+    ? projectLineItems.map((item) => applyLaborRateToLineItem(item, input.defaultLaborRate!))
+    : projectLineItems;
+
+  const rollupBase = rollupConstructionActivity(projectActivity, pricedLineItems);
   const rollup: ActivityRollupResult = {
     ...rollupBase,
     warnings: [...warnings, ...rollupBase.warnings],
@@ -307,7 +317,7 @@ export function instantiateConstructionActivity(
 
   return {
     projectActivity: finalActivity,
-    projectLineItems,
+    projectLineItems: pricedLineItems,
     rollup,
   };
 }

@@ -4,7 +4,7 @@ import Button from '../../../../components/ui/Button';
 import DrawerPanel from '../../../../components/ui/DrawerPanel';
 import { PLANNER_DRAWER_FOOTER } from '../../../../components/planner/plannerTheme';
 import type { EstimateDomainVersion, EstimateSummary } from '../../infrastructure/estimateDbTypes';
-import { normalizeEstimateMethod } from '../../domain/estimateMethods';
+import { isQuickEstimateType, normalizeEstimateMethod } from '../../domain/estimateMethods';
 import type { EstimateLineItemsFilter } from '../../domain/estimateLineItemTree';
 import {
   buildBuilderFilterGroups,
@@ -218,7 +218,7 @@ export default function EstimateLineItemsBuilderPanel({
 
   const savedQuickInputs = useMemo(
     () =>
-      version.estimateType === 'quick_feasibility'
+      isQuickEstimateType(version.estimateType)
         ? quickFeasibilityInputsFromSnapshot(version.snapshot)
         : null,
     [version.estimateType, version.snapshot],

@@ -24,6 +24,7 @@ import {
 import { instantiateFromAssemblySpec } from '../../domain/activityAssemblyInstantiation';
 import type { ActivityAssemblySpec, AssemblyUserInputs } from '../../domain/activityAssemblyTypes';
 import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type { ProjectLaborRate } from '../../domain/laborRateTypes';
 import {
   assignProjectActivityCode,
   validateInstanceLabelForDuplicateTemplate,
@@ -55,13 +56,22 @@ const DEFAULT_HOURS_PER_DAY = 8;
 type Step = 'select' | 'quantities';
 
 interface Props {
+  projectId: string;
   onConfirm: (params: AddFromAssemblyParams) => void;
   onCancel: () => void;
   saving?: boolean;
   existingActivities?: ProjectConstructionActivity[];
+  defaultLaborRate?: ProjectLaborRate;
 }
 
-export default function AssemblyPickerModal({ onConfirm, onCancel, saving, existingActivities = [] }: Props) {
+export default function AssemblyPickerModal({
+  projectId,
+  onConfirm,
+  onCancel,
+  saving,
+  existingActivities = [],
+  defaultLaborRate,
+}: Props) {
   const [step, setStep] = useState<Step>('select');
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<string | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
@@ -164,8 +174,9 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving, exist
       notes: identity.notes,
       activitySequence: assignedPreview.activitySequence,
       instanceSequence: assignedPreview.instanceSequence,
+      defaultLaborRate,
     });
-  }, [assembly, assignedPreview, crewSize, durationOverride, hoursPerDay, identity, inputValues]);
+  }, [assembly, assignedPreview, crewSize, defaultLaborRate, durationOverride, hoursPerDay, identity, inputValues]);
 
   const handleSelectAssembly = useCallback((id: string) => {
     const asm = CA_ASSEMBLY_BY_ID.get(id);

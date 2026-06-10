@@ -16,6 +16,7 @@ export interface ResolveEstimateWorkspaceScheduleActivitiesParams {
   estimateSettings: Pick<EstimateSettings, 'defaultCrewSize' | 'hoursPerDay'>;
   scheduleSettingsHoursPerDay?: number;
   enableLegacyEstimateScheduleFallback?: boolean;
+  schedulingEnabled?: boolean;
 }
 
 /**
@@ -29,6 +30,10 @@ export interface ResolveEstimateWorkspaceScheduleActivitiesParams {
 export function resolveEstimateWorkspaceScheduleActivities(
   params: ResolveEstimateWorkspaceScheduleActivitiesParams,
 ): ScheduleActivityAdapterResult {
+  if (params.schedulingEnabled === false) {
+    return { activities: [], warnings: [] };
+  }
+
   if (params.constructionActivities.length > 0) {
     return constructionActivitiesToScheduleActivities(params.constructionActivities);
   }

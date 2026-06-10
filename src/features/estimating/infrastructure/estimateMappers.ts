@@ -31,6 +31,7 @@ import {
   ESTIMATE_QUANTITY_FORMULAS,
   PRODUCTION_RATE_TYPES,
 } from './estimateDbTypes';
+import { isStoredEstimateType, normalizeEstimateMethod } from '../domain/estimateMethods';
 
 const EMPTY_TOTALS: EstimateCostTotals = {
   directCost: 0,
@@ -123,11 +124,11 @@ function isLineItemType(value: unknown): value is EstimateLineItemType {
   );
 }
 
-function isEstimateType(value: unknown): value is EstimateType {
-  return (
-    typeof value === 'string' &&
-    ['quick_feasibility', 'budget', 'detailed', 'bid'].includes(value)
-  );
+function parseEstimateType(value: unknown, fallback: EstimateType): EstimateType {
+  if (isStoredEstimateType(value)) {
+    return normalizeEstimateMethod(value);
+  }
+  return normalizeEstimateMethod(fallback);
 }
 
 function isEstimateStatus(value: unknown): value is EstimateStatus {
@@ -169,9 +170,10 @@ function parseSnapshotMeta(value: unknown, row: EstimateVersionRow): EstimateSna
     estimateId: toOptionalString(metaObj.estimateId ?? metaObj.estimate_id) ?? row.estimate_id,
     projectId: toOptionalString(metaObj.projectId ?? metaObj.project_id) ?? row.project_id,
     version: toNumber(metaObj.version, row.version_number),
-    estimateType: isEstimateType(metaObj.estimateType ?? metaObj.estimate_type)
-      ? (metaObj.estimateType ?? metaObj.estimate_type)
-      : row.estimate_type,
+    estimateType: parseEstimateType(
+      metaObj.estimateType ?? metaObj.estimate_type,
+      row.estimate_type,
+    ),
     status: isEstimateStatus(metaObj.status) ? metaObj.status : row.status,
     currencyCode: toOptionalString(metaObj.currencyCode ?? metaObj.currency_code) ?? 'USD',
     preparedAtIso:
