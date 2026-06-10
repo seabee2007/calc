@@ -113,33 +113,66 @@ export interface ProjectConstructionActivity {
   id: string;
   projectId: string;
   estimateId?: string;
+  /** DB column: activity_template_id */
+  activityTemplateId?: string;
+  /** @deprecated use activityTemplateId */
   templateId?: string;
   divisionCode: string;
   divisionName: string;
-  code: string;
-  name: string;
+  /** DB column: activity_code */
+  activityCode: string;
+  /** @deprecated use activityCode */
+  code?: string;
+  /** DB column: title */
+  title: string;
+  /** @deprecated use title */
+  name?: string;
+  description?: string;
   scheduleEnabled: boolean;
   crewSize: number;
   hoursPerDay: number;
   productionFactor: number;
-  /** Future override for calculated duration (days). */
+  calculatedManHours?: number;
+  calculatedManDays?: number;
+  calculatedDurationDays?: number;
+  /** User-set override for scheduled duration (days). */
   durationDaysOverride?: number | null;
+  effectiveDurationDays?: number;
+  totalLaborCost?: number;
+  totalMaterialCost?: number;
+  totalEquipmentCost?: number;
+  totalSubcontractCost?: number;
+  totalCost?: number;
+  sortOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-/** Project-scoped activity line item — not a schedule activity. */
+/** Project-scoped activity line item — never a schedule activity. */
 export interface ProjectActivityLineItem {
   id: string;
-  constructionActivityId: string;
+  /** DB column: project_activity_id */
+  projectActivityId: string;
+  /** @deprecated use projectActivityId */
+  constructionActivityId?: string;
+  projectId: string;
+  productionRateId: string;
+  /** @deprecated use productionRateId */
   templateId?: string;
   name: string;
+  description?: string;
   unit: string;
   quantity: number;
   manHoursPerUnit: number;
   productionFactor: number;
-  laborCost?: number;
-  materialCost?: number;
-  equipmentCost?: number;
+  calculatedManHours: number;
+  laborCost: number;
+  materialCost: number;
+  equipmentCost: number;
+  subcontractCost?: number;
+  totalCost?: number;
   sortOrder?: number;
+  createdAt?: string;
 }
 
 /** Rolled-up labor, cost, and duration for a construction activity. */

@@ -5,6 +5,7 @@ import {
   SEABEE_PLACE_SLAB_ON_GRADE_LINE_ITEMS,
 } from '../data/seabeeConcreteSeeds';
 import {
+  calculateLineItemManHours,
   isScheduleActivityLineItem,
   isSchedulableConstructionActivity,
   manHoursPerUnitFromLineItemTemplate,
@@ -165,15 +166,22 @@ export function instantiateConstructionActivity(
 
   const projectActivityId = input.projectActivityId ?? createId('pca');
 
+  const resolvedTitle = input.activityTitleOverride?.trim() || input.template.name;
+
   const projectActivity: ProjectConstructionActivity = {
     id: projectActivityId,
     projectId: input.projectId,
     estimateId: input.estimateId,
+    // Canonical DB field names:
+    activityTemplateId: input.template.id,
+    activityCode: input.template.code,
+    title: resolvedTitle,
+    // Legacy aliases (kept for backward compatibility):
     templateId: input.template.id,
+    code: input.template.code,
+    name: resolvedTitle,
     divisionCode: input.division.code,
     divisionName: input.division.name,
-    code: input.template.code,
-    name: input.activityTitleOverride?.trim() || input.template.name,
     scheduleEnabled: input.template.scheduleEnabled,
     crewSize,
     hoursPerDay,
@@ -190,8 +198,19 @@ export function instantiateConstructionActivity(
     const quantity = resolveQuantityForLineItemTemplate(template, input.quantityMap, warnings);
     const manHoursPerUnit = resolveManHoursPerUnit(template, productionRatesById, warnings);
 
+    const calculatedManHours = calculateLineItemManHours(quantity, manHoursPerUnit, productionFactor);
+
     return {
       id: createId('pali'),
+      // Canonical DB field names:
+      projectActivityId,
+      projectId: input.projectId,
+      productionRateId: template.productionRateId,
+      calculatedManHours,
+      laborCost: 0,
+      materialCost: 0,
+      equipmentCost: 0,
+      // Legacy aliases:
       constructionActivityId: projectActivityId,
       templateId: template.id,
       name: template.name,
@@ -209,8 +228,22 @@ export function instantiateConstructionActivity(
     warnings: [...warnings, ...rollupBase.warnings],
   };
 
+  // Back-fill canonical DB fields on the activity so repository can save directly.
+  const finalActivity: ProjectConstructionActivity = {
+    ...projectActivity,
+    calculatedManHours: rollup.totalManHours,
+    calculatedManDays: rollup.totalManDays,
+    calculatedDurationDays: rollup.calculatedDurationDays,
+    effectiveDurationDays: rollup.effectiveDurationDays,
+    totalLaborCost: rollup.totalLaborCost,
+    totalMaterialCost: rollup.totalMaterialCost,
+    totalEquipmentCost: rollup.totalEquipmentCost,
+    totalSubcontractCost: 0,
+    totalCost: rollup.totalDirectCost,
+  };
+
   return {
-    projectActivity,
+    projectActivity: finalActivity,
     projectLineItems,
     rollup,
   };
