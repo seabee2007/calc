@@ -1,0 +1,17 @@
+figure,Figure 5-Q-3
+figureTitle,Underground Power System Production .............................................................................. 5-Q-4
+division,26
+divisionName,Electrical
+sourcePage,5-Q-3
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 05 13.00\nMedium-Voltage Cables,,
+Excavate trench for duct or direct burial of cable\n(0010) Hand excavating\n(0020) Machine excavating,CYD\nLF,13.60\n0.0110
+"Install 4-inch-diameter conduit in trench, rigid galvanized steel\n(0030) One conduit without concrete (includes terminations and fittings)",LF,0.240
+(0040) Underground duct bank,LF,0.1330
+Install direct burial cable in trench\n(0050) Up to AWG #0 1/0—three conductors\n(0060) AWG #00 2/0 to 500 MCM—three conductors,LF\nLF,0.0860\n0.1790
+Pull cable into duct\n(0070) AWG #6—three conductors\n(0080) AWG #2—three conductors\n(0090) AWG #0000 4/0—three conductors\n(0100) 500 MCM—four conductors,LF\nLF\nLF\nLF,0.0580\n0.110\n0.1950\n0.350
+Pull cable into duct underground service to building\n(0110) AWG #2—four conductors\n(0120) AWG #0—four conductors,LF\nLF,0.1440\n0.2240
+Minimum suggested crew size: two electricians.,,
+"Notes:\n1. All excavating is figured on average soil conditions.\n2. Duct man-hour figures allow for a normal number of bends, bells, and fittings, and installing pull line.\n3. Direct burial cable in trench requires a sand bed.\n4. Concrete encasement under roadway requires reinforcing steel.\n5. When using mechanical cable-puller, use 0.85 multiplier.",,
+Legend: MCM = one thousand circular mils,,

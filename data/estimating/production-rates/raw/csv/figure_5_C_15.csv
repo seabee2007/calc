@@ -1,0 +1,15 @@
+figure,Figure 5-C-15
+figureTitle,Finishing and Curing Concrete Production ........................................................................ 5-C-13
+division,03
+divisionName,Concrete
+sourcePage,5-C-15
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"03 35 29.30\nFinishing Floors\nManual screed finish\n(0010) manual screed and bull float\n(0020) manual screed, bull float, manual float\n(0030) manual screed, bull float, manual float, broom finish\n(0040) manual screed, bull float, manual float, manual steel trowel\n(0050) manual screed, bull float, machine float, trowel (walk-behind)\n(0060) Power screed, bull float, machine float, trowel (walk-behind)\n(0070) Power screed, bull float, machine float, trowel (ride-on)\n(0080) Dustproofing, solvent-based, one coat\n(0090) Stair finish, float\n(0100) steel trowel finish\n(0110) silicon carbide finish, (0.25 pounds per SF)",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.009\n0.018\n0.020\n0.028\n0.021\n0.015\n0.009\n0.006\n0.043\n0.060\n0.080
+"03 35 29.35\nControl Joints, Saw Cut\n(0010) Saw cut in green concrete, 1-inch up to 2-inch depth, average\n(0020) clean out control joint of debris\njoint sealant\n(0030) backer rod, polyethylene, 1/4-inch diameter\n(0040) 08081500\nsealant polyethylene, 1/4-inch diameter",LF\nLF\nLF\nLF,0.014\n0.002\n0.026\n0.045
+"03 35 29.60\nFinishing Walls\n(0010) Break ties and patch voids\n(0020) Burlap rub with grout\n(0030) Carborundum rub, dry\n(0040) wet\n(0050) Bush hammer, green concrete\n(0060) cured concrete\n(0070) Float finish, 1/16 inch thick\n(0080) Grind form fins flush",SF\nSF\nSF\nSF\nSF\nSF\nSF\nLF,0.023\n0.027\n0.045\n0.070\n0.072\n0.111\n0.041\n0.017
+"03 39 13.50\nWater Curing\n(0010) Liquid spray, membrane, burlap, water spray",SF,0.004
+03 39 23.13\n(0010) Sprayed membrane curing compound,SF,.0017
+03 45 13.50\nPrecast Wall Panels *\n(0010) 20 ft x 10 ft x 6-inch thick,SF,0.0760
+"Minimum suggested crew size: two builders and six laborers, depending on size of pour and type of finish.\n* Crew size, one equipment operator, six steelworkers",,
+Note: Refer to TM 3-34.44/FM 5-428/MCRP 3-40D.4 for further information on cold weather protection\nprocedures.,,

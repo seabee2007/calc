@@ -1,0 +1,27 @@
+figure,Figure 5-N-11
+figureTitle,Finished Plumbing ............................................................................................................... 5-N-9
+division,22
+divisionName,Plumbing
+sourcePage,5-N-11
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"22 32 19.10\nWater Filters\n(0510) Diatomite filter, 660 gallons per hour, 1 inch pipe",Each,10.6667
+"22 32 33.00\nWater Heaters\n(0010) Electric or gas, 30 gallons\n(0020) 80 gallons",Each\nEach,4.2560\n21.2800
+Minimum suggested crew size: one utilitiesman and one laborer.,,
+"Note: Installation of specialties includes unloading, storing at site, handling into place, and installing\nfastening devices, including drilling, plugging, anchoring, and leveling as needed.",,
+,,Rough-in,Finish
+"22 41 13.40\nWater Closets\nTank type, wall hung\nFloor mounted, one piece\nBowl only, wall hung\nBowl only, floor mount\nWater conserving type",Each\nEach\nEach\nEach\nEach,(0010)\n7.7950\n(0030)\n6.9770\n(0050)\n8.3120\n(0070)\n7.4930\n(0090)\n10.9720,(0020)\n4.0150\n(0040)\n4.0150\n(0060)\n3.6700\n(0080)\n3.6700\n(0100)\n3.9410
+22 41 16.10\nLavatories\nVanity top\nWall hung,Each\nEach,(0010)\n9.2570\n(0030)\n12.8210,(0020)\n3.3250\n(0040)\n2.6600
+"22 41 16.30\nSinks\nCorrosion resistant\nKitchen, countertop\nKitchen, raised deck",Each\nEach\nEach,(0010)\n10.5340\n(0030)\n9.9480\n(0050)\n11.5040,(0020)\n4.4330\n(0040)\n4.4290\n(0060)\n8.1850
+Minimum suggested crew size: one utilitiesman and one laborer.,,,
+"Notes:\n1. Rough-in includes supply, waste, and vent piping.\n2. Work includes setting and connecting all supply piping, plumbing fixtures, and trim.",,,
+,,Rough-in,Finish
+22 41 19.10\nBath Tubs,Each,(0010)\n10.2810,(0020)\n4.8360
+22 41 23.20\nShowers,Each,(0010)\n10.3740,(0020)\n3.8690
+22 41 36.10\nLaundry Sinks,Each,(0010)\n9.9480,(0020)\n3.5470
+"22 42 13.30\nUrinals, Commercial\nWall hung\nStall type",Each\nEach,(0010)\n7.5140\n(0025)\n10.6930,(0020)\n7.0930\n(0026)\n8.5120
+22 42 16.40\nService Sinks\nFloor type\nWall hung,Each\nEach,(0010)\n12.981\n(0030)\n16.3720,(0020)\n4.841\n(0040)\n5.3200
+22 47 13.10\nDrinking Water Fountains,Each,(0010)\n5.8120,(0020)\n3.3250
+22 47 16.10\nElectric Water Coolers,Each,(0010)\n4.8150,(0020)\n5.3200
+Minimum suggested crew size: one utilitiesman and one laborer.,,,
+"Notes:\n1. Rough-in includes supply, waste, and vent piping.\n2. Work includes setting and connecting all supply piping, plumbing fixtures, and trim.",,,

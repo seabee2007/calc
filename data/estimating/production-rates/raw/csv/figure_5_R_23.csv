@@ -1,0 +1,13 @@
+figure,Figure 5-R-23
+figureTitle,Gabion Production ............................................................................................................. 5-R-13
+division,31
+divisionName,Earthwork
+sourcePage,5-R-23
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"31 36 00.00\nHESCO Concertainer Description (Install only, no fill)",,,Bottom Layer,Upper Layer
+"MIL 1, 54 in by 42 in by 32 ft 9 in, 9 cell, straight section\nMIL 1, 54 in by 42 in by 32 ft 9 in, 9 cell, corner section\nMIL 1, 108 in by 42 in by 10 ft 6 in, 3 cell, straight section\nMIL 2, 24 in by 24 in by 4 ft, 2 cell, straight section\nMIL 3, 39 in by 39 in by 32 ft, 10 cell, straight section\nMIL 3, 39 in by 39 in by 32 ft, 10 cell, corner section\nMIL 4, 39 in by 60 in by 32 ft, 10 cell, straight section\nMIL 4, 39 in by 60 in by 32 ft, 10 cell, corner section\nMIL 5, 24 in by 24 in by 10 ft, 5 cell, straight section\nMIL 5, 24 in by 24 in by 10 ft, 5 cell, corner section\nMIL 6, 66 in by 24 in by 10 ft, 5 cell, straight section\nMIL 7, 87 in by 84 in by 90 ft, 13 cell, straight section\nMIL 7, 87 in by 84 in by 90 ft, 13 cell, corner section\nMIL 8, 54 in by 48 in by 32 ft, 9 cell, straight section\nMIL 8, 54 in by 48 in by 32 ft, 9 cell, corner section\nMIL 9, 39 in by 30 in by 30 ft, 12 cell, straight section\nMIL 9, 39 in by 30 in by 30 ft, 12 cell, corner section\nMIL 10, 87 in by 60 in by 95 ft, 20 cell, straight section\nMIL 10, 87 in by 60 in by 95 ft, 20 cell, corner section\nEPW 1, 84 in by 42 in by 108 ft, 30 cell, straight section",,Each\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach,(0010) 0.3333\n(0030) 0.4667\n(0050) 0.0333\n(0090) 0.01333\n(0110) 0.2667\n(0130) 0.2000\n(0150) 0.4000\n(0170) 0.0667\n(0190) 0.1333\n(0210) 0.2000\n(0230) 1.5000\n(0250) 2.0000\n(0270) 0.3333\n(0290) 0.4667\n(0310) 0.1333\n(0330) 0.2667\n(0350) 1.500\n(0370) 2.000\n(0390) 1.000,(0020) 0.6667\n(0040) 0.9333\n(0045) 0.2000\n(0060) 0.0667\n(0100) 0.2667\n(0120) 0.5333\n(0140) 0.4000\n(0160) 0.8000\n(0180) 0.1333\n(0200) 0.2667\n(0220) 0.4000\n(0240) 3.0000\n(0260) 4.0000\n(0280) 0.6667\n(0300) 0.9333\n(0320) 0.2667\n(0340) 0.5333\n(0360) 3.000\n(0380) 4.000\n(0400) 1.3333
+Suggested crew size: two to six laborers,,,,
+Install fill in Consertainers\nManual fill\nMachine fill,,Unit\nCYD\nCYD,Bottom Layer\n(0900) 0.9333\n(0920) 0.0489,Upper Layer\n(0910) 1.3253\n(0930) 0.0575
+"Suggested crew size one equipment operator, four laborers",,,,
+Legend: EPW = enhanced protective wall\nft = feet,in = inches,,,

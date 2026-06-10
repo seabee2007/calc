@@ -1,0 +1,16 @@
+figure,Figure 5-Q-11
+figureTitle,Packaged Generator Assembly Production ........................................................................ 5-Q-12
+division,26
+divisionName,Electrical
+sourcePage,5-Q-11
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 32 13.13\nPackaged Generator Assemblies,,
+Diesel Engine Driven Generator Sets\n(0010) 3 kW\n(0020) 12 kW\n(0030) 50 kW\n(0040) 300 kW\n(0050) 400 kW\n(0060) 500 kW,Each\nEach\nEach\nEach\nEach\nEach,24.0000\n28.1600\n47.6000\n90.9000\n105.0000\n111.0000
+Minimum suggested crew size: two electricians,,
+Tactical Generator Sets\n(0100) 2 kW\n(0110) 3 kW\n(0120) 5 kW\n(0130) 10 kW\n(0140) 15 kW\n(0150) 30 kW\n(0160) 60 kW\n(0170) 100 kW\n(0180) 200 kW,Each\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach,0.2500\n0.2500\n0.5000\n0.6000\n0.7500\n0.8000\n1\n1\n1
+Minimum suggested crew size: two laborers,,
+Tactical Generator Sets (USMC)\n(0220) 5 kW\n(0230) 10 kW\n(0240) 15 kW\n(0250) 30 kW\n(0260) 60 kW\n(0270) 100 kW\n(0280) 200 kW,Each\nEach\nEach\nEach\nEach\nEach\nEach,0.5000\n0.6000\n0.7500\n0.8000\n1\n1\n1
+"Minimum suggested crew size: one electrician, one operator",,
+"Tactical Generator Sets (USN)\n(0300) 10 kW\n(0310) 15 kW\n(0320) 30 kW\n(0330) 60 kW\n(0340) 60 kW(2) with distribution, USN",Each\nEach\nEach\nEach\nEach,1.5000\n1.5000\n1.5000\n1.5000\n3.0000
+"Minimum suggested crew size: one electrician, one operator, one\nlaborer electrician.",,

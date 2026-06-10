@@ -1,0 +1,19 @@
+figure,Figure 5-N-7
+figureTitle,Plastic Pipe and Fittings Production .................................................................................... 5-N-6
+division,22
+divisionName,Plumbing
+sourcePage,5-N-7
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+,,Pipe Diameter in Inches,,,,,,,,,
+,,1/2 &\n3/4,1,1 1/4,1 1/2,2,2 1/2,3,4,5,6
+22 11 13.74\nPlastic Pipe,,,,,,,,,,,
+"PVC, schedule 40,\ncouplings 10 feet on\ncenter, clevis hanger\nassemblies, 3 per 10 feet",LF,(0010)\n0.2090,(0020)\n0.2310,(0030)\n0.2530,(0040)\n0.2950,(0050)\n0.3600,(0060)\n0.3800,(0070)\n0.4020,(0080)\n0.4430,(0090)\n0.4950,(0100)\n0.5450
+"Acrylonitrile-butadiene-\nstyrene (plastic) (ABS)\nand PVC, for DWV,\nschedule 40, couplings\n10 feet on center, clevis\nhanger assemblies,\n3 per 10 feet",LF,,,(0110)\n0.2530,(0120)\n0.2950,(0130)\n0.3600,,(0140)\n0.4020,(0150)\n0.4430,,(0160)\n0.5450
+"CPVC, schedule 40,\ncouplings 10 feet on\ncenter, clevis hanger\nassemblies, 3 per 10 feet",LF,(0170)\n0.2090,(0180)\n0.2310,(0190)\n0.2530,(0200)\n0.2950,(0210)\n0.3600,(0220)\n0.3800,(0230)\n0.4020,,,
+22 11 13.74\nPlastic Pipe,,,,,,,,,,,
+"PVC, schedule 40,\ncouplings 10 feet on\ncenter.",LF,(0310)\n0.0752,(0320)\n0.0832,(0330)\n0.0911,(0340)\n0.1564,(0350)\n0.1908,(0360)\n0.2014,(0370)\n0.2131,(0380)\n0.2348,(0390)\n0.2624,(0400)\n0.2889
+"ABS and PVC, for DWV,\nschedule 40, couplings\n10 feet on center.",LF,,,(0410)\n0.1265,(0420)\n0.1475,(0430)\n0.2016,,(0440)\n0.2251,(0450)\n0.2481,,(0460)\n0.3052
+"CPVC, schedule 40,\ncouplings 10 feet on\ncenter.",LF,(0470)\n0.2090,(0480)\n0.2310,(0490)\n0.2530,(0500)\n0.2950,(05210)\n0.3600,(0520)\n0.3800,(0530)\n0.4020,,,
+Minimum suggested crew size: one utilitiesman and one laborer.,,,,,,,,,,,
+"Notes:\n1. Used for facility water distribution piping.\n2. The installation of plastic water pipe includes cutting, cleaning, cementing, plumbing and grading pipe, and installing\npipe hangers and straps.\n3. PVC solvent will not work with CPVC piping. Each materiel must have its own solvent cement.\n4. Types of plastic pipe:\na. PVC. Used with water, gas, and drainage systems, but not with hot water system.\nb. CPVC. Similar to PVC, but designed for piping water at up 180 degrees Fahrenheit.\nc. ABS. Most common usage is for DWV pipes.",,,,,,,,,,,

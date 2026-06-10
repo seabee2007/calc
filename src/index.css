@@ -29,7 +29,12 @@
   .auth-page input:-webkit-autofill:hover,
   .auth-page input:-webkit-autofill:focus,
   .auth-page textarea:-webkit-autofill,
-  .auth-page select:-webkit-autofill {
+  .auth-page select:-webkit-autofill,
+  .onboarding-page input:-webkit-autofill,
+  .onboarding-page input:-webkit-autofill:hover,
+  .onboarding-page input:-webkit-autofill:focus,
+  .onboarding-page textarea:-webkit-autofill,
+  .onboarding-page select:-webkit-autofill {
     -webkit-text-fill-color: #f8fafc;
     -webkit-box-shadow: 0 0 0 1000px #020617 inset;
     box-shadow: 0 0 0 1000px #020617 inset;

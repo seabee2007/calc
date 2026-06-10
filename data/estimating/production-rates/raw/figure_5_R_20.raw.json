@@ -1,0 +1,99 @@
+{
+  "batchMeta": {
+    "sourceDocumentCode": "MCRP 3-40D.12",
+    "sourceDocumentTitle": "Construction Estimating",
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "division": "31",
+    "divisionName": "Earthwork",
+    "figure": "Figure 5-R-20",
+    "figureTitle": "Dump Truck Production ..................................................................................................... 5-R-11",
+    "extractedAt": "2026-06-10",
+    "sourceCsv": "figure_5_R_20.csv"
+  },
+  "records": [
+    {
+      "sourceDocumentCode": "MCRP 3-40D.12",
+      "division": "31",
+      "divisionName": "Earthwork",
+      "figure": "Figure 5-R-20",
+      "figureTitle": "Dump Truck Production ..................................................................................................... 5-R-11",
+      "workElementNumber": "31 23 23.13",
+      "workElementLineNumber": null,
+      "activityName": "Backfill",
+      "description": "31 23 23.13 Backfill",
+      "unitOfMeasure": "Each",
+      "manHoursPerUnit": null,
+      "crewSize": null,
+      "skilledTrade": null,
+      "laborerCount": null,
+      "equipment": null,
+      "notes": null,
+      "sourcePage": "5-R-20",
+      "sourcePdfPage": null,
+      "confidence": "needs_review",
+      "fabricateHours": null,
+      "erectStripHours": null,
+      "cleanMoveHours": null,
+      "extractionWarnings": [
+        "Missing numeric man-hours per unit",
+        "Missing work element line number"
+      ]
+    },
+    {
+      "sourceDocumentCode": "MCRP 3-40D.12",
+      "division": "31",
+      "divisionName": "Earthwork",
+      "figure": "Figure 5-R-20",
+      "figureTitle": "Dump Truck Production ..................................................................................................... 5-R-11",
+      "workElementNumber": null,
+      "workElementLineNumber": "0010",
+      "activityName": "Backfill by hand, light soil, no compaction",
+      "description": null,
+      "unitOfMeasure": "CYD",
+      "manHoursPerUnit": 0.571,
+      "crewSize": null,
+      "skilledTrade": null,
+      "laborerCount": null,
+      "equipment": null,
+      "notes": null,
+      "sourcePage": "5-R-20",
+      "sourcePdfPage": null,
+      "confidence": "needs_review",
+      "fabricateHours": 0.571,
+      "erectStripHours": null,
+      "cleanMoveHours": null,
+      "extractionWarnings": [
+        "Missing MasterFormat work element number"
+      ]
+    },
+    {
+      "sourceDocumentCode": "MCRP 3-40D.12",
+      "division": "31",
+      "divisionName": "Earthwork",
+      "figure": "Figure 5-R-20",
+      "figureTitle": "Dump Truck Production ..................................................................................................... 5-R-11",
+      "workElementNumber": null,
+      "workElementLineNumber": "0020",
+      "activityName": "Backfill by hand, 12 inch lifts w/hand tamp compaction, light soil",
+      "description": null,
+      "unitOfMeasure": "Each",
+      "manHoursPerUnit": null,
+      "crewSize": null,
+      "skilledTrade": null,
+      "laborerCount": null,
+      "equipment": null,
+      "notes": null,
+      "sourcePage": "5-R-20",
+      "sourcePdfPage": null,
+      "confidence": "needs_review",
+      "fabricateHours": null,
+      "erectStripHours": null,
+      "cleanMoveHours": null,
+      "extractionWarnings": [
+        "Missing numeric man-hours per unit",
+        "Missing MasterFormat work element number"
+      ]
+    }
+  ]
+}

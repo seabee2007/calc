@@ -2,35 +2,46 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Phone, MapPin, FileText, Save, ArrowLeft } from 'lucide-react';
-import Button from '../ui/Button';
 import Input from '../ui/Input';
-import Card from '../ui/Card';
 import { useSettingsStore } from '../../store';
+import OnboardingShell from './OnboardingShell';
+import OnboardingStepHeader from './OnboardingStepHeader';
+import {
+  ONBOARDING_CARD,
+  ONBOARDING_FIELD_GROUP,
+  ONBOARDING_HELP_TEXT,
+  ONBOARDING_INPUT,
+  ONBOARDING_PRIMARY_BUTTON,
+  ONBOARDING_SECONDARY_BUTTON,
+  ONBOARDING_SKIP_BUTTON,
+} from './onboardingTheme';
 
 interface ProfileSetupProps {
   onBack: () => void;
   onComplete: () => void;
 }
 
+const inputClassName = `${ONBOARDING_INPUT} !rounded-xl !border-white/10 !bg-slate-950/70 !px-4 !py-3 !text-white placeholder:!text-slate-500 focus:!border-cyan-400/60 focus:!ring-2 focus:!ring-cyan-400/20 !shadow-none [&+p]:text-slate-400`;
+
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
   const navigate = useNavigate();
   const { companySettings, updateCompanySettings } = useSettingsStore();
-  
+
   const [formData, setFormData] = useState({
     companyName: companySettings.companyName || '',
     email: companySettings.email || '',
     phone: companySettings.phone || '',
     address: companySettings.address || '',
     licenseNumber: companySettings.licenseNumber || '',
-    motto: companySettings.motto || ''
+    motto: companySettings.motto || '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -39,7 +50,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
     setIsLoading(true);
 
     try {
-      // Update company settings
       await updateCompanySettings(
         {
           ...companySettings,
@@ -48,14 +58,12 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
         { allowEmptyTextOverwrite: true },
       );
 
-      // Mark onboarding as complete with error handling
       try {
         localStorage.setItem('onboarding_completed', 'true');
       } catch (storageError) {
         console.error('LocalStorage error:', storageError);
-        // Continue even if localStorage fails
       }
-      
+
       setTimeout(() => {
         setIsLoading(false);
         onComplete();
@@ -78,7 +86,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
     } catch (error) {
       console.error('LocalStorage error:', error);
     }
-    
+
     try {
       navigate('/');
     } catch (error) {
@@ -88,34 +96,31 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-blue-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <OnboardingShell>
+      <div className="flex flex-1 flex-col py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          className="flex flex-1 flex-col"
         >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Setup Your Profile
-            </h1>
-            <p className="text-gray-600">
-              Tell us about your business to personalize your experience
-            </p>
-          </div>
+          <div className={`${ONBOARDING_CARD} mb-6`}>
+            <OnboardingStepHeader
+              title="Setup Your Profile"
+              description="Tell us about your business to personalize your experience"
+            />
 
-          {/* Form Card */}
-          <Card className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className={`${ONBOARDING_FIELD_GROUP} space-y-6`}>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Input
                   label="Company Name"
                   placeholder="Your Construction Company"
                   value={formData.companyName}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  icon={<Building2 size={18} />}
+                  icon={<Building2 size={18} className="text-slate-400" />}
                   required
+                  fullWidth
+                  className={inputClassName}
                 />
 
                 <Input
@@ -124,8 +129,10 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
                   placeholder="contact@yourcompany.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  icon={<Mail size={18} />}
+                  icon={<Mail size={18} className="text-slate-400" />}
                   required
+                  fullWidth
+                  className={inputClassName}
                 />
 
                 <Input
@@ -133,7 +140,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
                   placeholder="(555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  icon={<Phone size={18} />}
+                  icon={<Phone size={18} className="text-slate-400" />}
+                  fullWidth
+                  className={inputClassName}
                 />
 
                 <Input
@@ -141,7 +150,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
                   placeholder="License #123456"
                   value={formData.licenseNumber}
                   onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                  icon={<FileText size={18} />}
+                  icon={<FileText size={18} className="text-slate-400" />}
+                  fullWidth
+                  className={inputClassName}
                 />
               </div>
 
@@ -150,7 +161,9 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
                 placeholder="123 Main St, Your City, State ZIP"
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                icon={<MapPin size={18} />}
+                icon={<MapPin size={18} className="text-slate-400" />}
+                fullWidth
+                className={inputClassName}
               />
 
               <Input
@@ -158,58 +171,52 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
                 placeholder="Quality concrete solutions since 1995"
                 value={formData.motto}
                 onChange={(e) => handleInputChange('motto', e.target.value)}
+                fullWidth
+                className={inputClassName}
               />
 
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onBack}
-                  icon={<ArrowLeft size={18} />}
-                  className="sm:w-auto"
-                >
+              <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center">
+                <button type="button" onClick={onBack} className={ONBOARDING_SECONDARY_BUTTON}>
+                  <ArrowLeft size={18} />
                   Back
-                </Button>
+                </button>
 
-                <div className="flex-1 flex flex-col sm:flex-row gap-4">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={handleSkip}
-                    className="sm:w-auto text-gray-500 hover:text-gray-700"
-                  >
+                <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+                  <button type="button" onClick={handleSkip} className={ONBOARDING_SKIP_BUTTON}>
                     Skip for now
-                  </Button>
+                  </button>
 
-                  <Button
+                  <button
                     type="submit"
-                    variant="primary"
                     disabled={isLoading || !formData.companyName || !formData.email}
-                    isLoading={isLoading}
-                    icon={!isLoading ? <Save size={18} /> : undefined}
-                    className="flex-1"
+                    className={`${ONBOARDING_PRIMARY_BUTTON} flex-1`}
                   >
-                    {isLoading ? 'Saving...' : 'Save & Continue'}
-                  </Button>
+                    {isLoading ? (
+                      'Saving...'
+                    ) : (
+                      <>
+                        <Save size={18} />
+                        Save &amp; Continue
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </form>
-          </Card>
+          </div>
 
-          {/* Footer */}
-          <motion.div 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-center mt-8 text-sm text-gray-500"
+            className={`${ONBOARDING_HELP_TEXT} text-center`}
           >
             You can always update this information later in Settings
-          </motion.div>
+          </motion.p>
         </motion.div>
       </div>
-    </div>
+    </OnboardingShell>
   );
 };
 
-export default ProfileSetup; 
+export default ProfileSetup;

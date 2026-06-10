@@ -1,0 +1,26 @@
+figure,Figure 5-R-24
+figureTitle,Sheeting and Shoring Excavations Production .................................................................. 5-R-14
+division,31
+divisionName,Earthwork
+sourcePage,5-R-24
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+31 41 16.10\nSheet Piling Systems,,
+(0005) Installation and removal of solid 2-inch sheeting for\ntrenches 5 to 10 feet deep and 42 inches to 12 feet wide,SF of\nbank surface,0.1600
+"(0010) Sheet piling, no wales, 22 psf, 15 ft excavation, left in place",Ton,8.8800
+"(0020) Sheet piling, no wales, 22 psf, 15 ft excavation, drive,\nextract and salvage",Ton,16.0005
+"(0030) Sheet piling, no wales, 27 psf, 20 ft excavation, left in place",Ton,7.4130
+"(0040) Sheet piling, no wales, 27 psf, 20 ft excavation, drive,\nextract and salvage",Ton,14.6565
+"(0050) Sheet piling, no wales, 38 psf, 25 ft excavation, left in place",Ton,5.0520
+"(0060) Sheet piling, no wales, 38 psf, 25 ft excavation, drive,\nextract and salvage",Ton,9.1420
+"(0070) Sheet piling, no wales, 38 psf, 40 ft excavation, left in place",Ton,4.5285
+"(0080) Sheet piling, no wales, 38 psf, 40 ft excavation, drive,\nextract and salvage",Ton,7.8360
+"(0110) Sheet piling, no wales, 22 psf, 15 ft excavation, left in place",SF,0.0975
+"(0120) Sheet piling, no wales, 22 psf, 15 ft excavation, drive,\nextract and salvage",SF,0.1755
+"(0130) Sheet piling, no wales, 27 psf, 20 ft excavation, left in place",SF,0.1005
+"(0140) Sheet piling, no wales, 27 psf, 20 ft excavation, drive,\nextract and salvage",SF,0.1980
+"(0150) Sheet piling, no wales, 38 psf, 25 ft excavation, left in place",SF,0.0960
+"(0160) Sheet piling, no wales, 38 psf, 25 ft excavation, drive,\nextract and salvage",SF,0.1740
+Minimum suggested crew size: three crane crew operators and five pile drivers,,
+"Notes:\n1. Work for typical unstable soil includes: solid sheeting; 4- by 6-inch stringers; 4-foot center-to-center\nhangers; cleats and 4- by 6-inch cross bracing spaced 7 feet center to center.\n2. Design of shoring and sheeting will vary with soil conditions, width, and depth of trench, etc.\n3. Installation should be in accordance with the EM 385-1-1.",,
+Legend: psf = pounds per square foot,,

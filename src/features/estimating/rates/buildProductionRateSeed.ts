@@ -9,7 +9,7 @@
  * The generated file is checked in and used as the authoritative TypeScript source.
  * Never edit generated files manually — edit the reviewed JSON and regenerate.
  */
-import type { ProductionRate } from '../domain/seabeeActivityTypes';
+import type { ProductionRate } from '../domain/constructionActivityTypes';
 import type { ReviewedProductionRateEntry, ReviewedRateFile } from './manualRateTypes';
 import { validateReviewedRateFile } from './validateProductionRates';
 
@@ -93,7 +93,7 @@ export function generateSeedFileText(rates: ProductionRate[], exportName: string
   const lines: string[] = [
     '// AUTO-GENERATED — do not edit manually.',
     '// Regenerate by running: npx ts-node scripts/generateRateSeeds.ts',
-    "import type { ProductionRate } from '../../domain/seabeeActivityTypes';",
+    "import type { ProductionRate } from '../../domain/constructionActivityTypes';",
     '',
     `export const ${exportName}: readonly ProductionRate[] = ${JSON.stringify(rates, null, 2)} as const;`,
     '',

@@ -1,0 +1,18 @@
+figure,Figure 5-R-11
+figureTitle,Trench and Footing Excavation Production ......................................................................... 5-R-7
+division,31
+divisionName,Earthwork
+sourcePage,5-R-11
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"31 23 16.13\nExcavating, Trench, or continuous footing,",,
+"Common earth with no sheeting or dewatering included\n(0010) 1 to 4 feet deep, 3/8 CYD excavator\n(0020) 1/2 CYD excavator\nLoam and sandy clay with no sheeting or dewatering included\n(0030) 1 to 4 feet deep, 3/8 CYD tractor loader/backhoe\n(0040) 1/2 CYD excavator\nSand and gravel with no sheeting or dewatering included\n(0050) 1 to 4 feet deep, 3/8 CYD excavator\n(0060) 1/2 CYD excavator\nDense hard clay with no sheeting or dewatering included\n(0070) 1 to 4 feet deep, 3/8 CYD excavator\n(0080) 1/2 CYD excavator\n(0090) Backfill trench, front end loader, wheel mounted, 1 CYD, 100 foot haul",Bank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nCYD,0.142\n0.106\n0.132\n0.098\n0.129\n0.097\n0.161\n0.121\n0.06
+"31 23 16.14\nExcavating, Utility Trench",,
+"Common earth, chain trencher, 12 horsepower, operator walking\n(0010) 4-inch-wide trench, 12 to 24 inches deep\n(0020) 6-inch-wide trench, 12 to 24 inches deep\n(0030) 36 inches deep\n(0040) 8-inch-wide trench, 12 inches deep\n(0050) 18 inches deep\n(0060) 24 inches deep\n(0070) 36 inches deep\nBackfill by hand including compaction, add\n(0080) 4-inch-wide trench, 12 inches deep, minimum\n(0090) 8-inch-wide trench, 36 inches deep, maximum\nChain trencher, 40 horsepower, operator riding\n(0100) 6-inch-wide trench and backfill, 12 inches deep\n(0110) 60 inches deep\n(0120) 16-inch-wide trench, 12 to 24 inches deep\nHand excavation, trim for pipe bells\n(0130) 8-inch pipe\n(0140) 18-inch pipe",LF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF,0.015\n0.020\n0.024\n0.023\n0.027\n0.031\n0.036\n0.013\n0.078\n0.009\n0.016\n0.015\n0.069\n0.082
+31 23 16.16\nExcavation for Minor Structures,,
+"(0010) Hand digging, pits to 6 feet deep, sandy soil\n(0020) Hand digging, pits to 6 feet deep, heavy soil or clay\n(0030) Hand digging, pits 6 to 12 feet deep, sandy soil\n(0040) Hand digging, pits 6 to 12 feet deep, heavy soil or clay\n(0050) Hand digging, pits 12 to 18 feet deep, sandy soil\n(0060) Hand digging, pits 12 to 18 feet deep, heavy soil or clay\n(0070) Hand loading trucks from stock pile, heavy soil or clay\n(0080) Hand compact with pneumatic\n(0090) Hand compact with vibratory",Bank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD,1.330\n2.660\n2.128\n3.547\n2.660\n5.320\n1.330\n0.8\n0.200
+"For wet or muck hand excavation, multiply by 1.50.",,
+"Machine excavation, for spread footings and small building foundations",,
+"(0100) Common earth, hydraulic backhoe, 1/2 CYD bucket\n(0110) 1 CYD bucket\n(0120) 2 CYD bucket\n(0130) Sand and gravel, 3/4 CYD bucket\n(0140) 1 CYD bucket\n(0150) 2 CYD bucket\n(0160) Clay, till, or blasted rock, 3/4 CYD bucket\n(0170) 1 CYD bucket\n(0180) 2 CYD bucket\n(0190) Sandy clay and loam, hydraulic backhoe, 1/2 CYD bucket\n(0200) 1 CYD bucket\n(0210) 1 1/2 CYD bucket",Bank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD\nBank CYD,0.387\n0.197\n0.106\n0.213\n1.769\n0.097\n2.6600\n0.223\n0.121\n0.355\n0.184\n0.137
+"For loading onto trucks, multiply by 1.15.",,
+Minimum suggested crew size: one equipment operator and one laborer.,,

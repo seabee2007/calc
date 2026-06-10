@@ -1,10 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import Button from '../ui/Button';
 import Input from '../ui/Input';
 import USAddressFields from '../address/USAddressFields';
 import { EMPTY_US_ADDRESS, type USAddress } from '../../types/address';
+import OnboardingStepHeader from './OnboardingStepHeader';
+import OnboardingFooterNav from './OnboardingFooterNav';
+import { ONBOARDING_CARD, ONBOARDING_FIELD_GROUP, ONBOARDING_INPUT } from './onboardingTheme';
 
 interface OnboardingStepProps {
   title: string;
@@ -83,76 +83,45 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-4 py-8">
-      <div className="max-w-2xl mx-auto w-full">
-        <div className="mb-8">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold text-gray-900 mb-4"
-          >
-            {title}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-gray-600 leading-relaxed"
-          >
-            {description}
-          </motion.p>
+    <div className="flex flex-1 flex-col py-6">
+      <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
+        <div className={`${ONBOARDING_CARD} flex-1`}>
+          <OnboardingStepHeader title={title} description={description} />
+
+          <div className="space-y-6">
+            {isAddressStep ? (
+              <div className={ONBOARDING_FIELD_GROUP}>
+                <USAddressFields
+                  value={addressFromPipe(value)}
+                  onChange={(addr) => onChange(addressToPipe(addr))}
+                  showStreet2
+                  idPrefix="onboarding"
+                />
+              </div>
+            ) : (
+              <Input
+                type={type}
+                value={value}
+                onChange={handleInputChange}
+                onKeyDown={type === 'tel' ? handleKeyDown : undefined}
+                placeholder={placeholder}
+                required={required}
+                autoFocus
+                maxLength={type === 'tel' ? 14 : undefined}
+                className={`${ONBOARDING_INPUT} !rounded-xl !border-white/10 !bg-slate-950/70 !px-4 !py-3 !text-lg !text-white placeholder:!text-slate-500 focus:!border-cyan-400/60 focus:!ring-2 focus:!ring-cyan-400/20 !shadow-none`}
+              />
+            )}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {isAddressStep ? (
-            <USAddressFields
-              value={addressFromPipe(value)}
-              onChange={(addr) => onChange(addressToPipe(addr))}
-              showStreet2
-              idPrefix="onboarding"
-            />
-          ) : (
-            <Input
-              type={type}
-              value={value}
-              onChange={handleInputChange}
-              onKeyDown={type === 'tel' ? handleKeyDown : undefined}
-              placeholder={placeholder}
-              required={required}
-              autoFocus
-              maxLength={type === 'tel' ? 14 : undefined}
-              className="!bg-gray-100 !text-gray-900 w-full p-4 text-xl border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            />
-          )}
-
-          <div className="flex justify-between items-center pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onBack}
-              icon={<ArrowLeft className="h-5 w-5" />}
-              className="px-6 py-3"
-            >
-              Back
-            </Button>
-
-            <div className="flex gap-3">
-              {onSkip && (
-                <Button type="button" variant="ghost" onClick={onSkip} className="px-6 py-3">
-                  Skip
-                </Button>
-              )}
-              <Button
-                type="submit"
-                icon={<ArrowRight className="h-5 w-5" />}
-                className="px-8 py-3"
-              >
-                {isLastStep ? 'Finish' : 'Continue'}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </div>
+        <OnboardingFooterNav
+          onBack={onBack}
+          onNext={onNext}
+          onSkip={onSkip}
+          nextLabel={isLastStep ? 'Finish' : 'Continue'}
+          nextType="submit"
+        />
+      </form>
     </div>
   );
 };

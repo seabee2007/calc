@@ -1,0 +1,9 @@
+figure,Figure 5-N-2
+figureTitle,Piping Insulation Production ................................................................................................ 5-N-3
+division,22
+divisionName,Plumbing
+sourcePage,5-N-2
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"22 07 19.00 Piping Insulation\nFiberglass, with all-service jacket\n1-inch wall,\n(0010) 1/2-inch-iron pipe size\n(0020) 1-inch-iron-pipe size\n(0030) 2-inch-iron-pipe size\n(0040) 3-inch-iron-pipe size\n(0050) 4-inch-iron-pipe size\n2-inch wall,\n(0060) 1/2-inch-iron pipe\n(0070) 6-inch-iron-pipe size\n(0080) 8-inch-iron-pipe\n(0090) 10-inch-iron-pipe size\n(0100) 12-inch-iron-pipe size\nFor fittings, add 3 LF for each fitting plus 4 LF for each flange of the fitting\nFinishes,\n(0110) for 0.010-inch or 0.016-inch-aluminum jacket, add\n(0120) for 0.010-inch stainless steel, add\nFor single layer of felt or roofing paper, multiply by 1.10.\nRubber tubing, flexible closed cell foam\n3/8-inch wall,\n(0130) 1/4-inch-iron-pipe size\n(0140) 1/2-inch or 3/4-inch-iron-pipe size\n(0150) 1-inch or 1 1/2-inch-iron-pipe size\n1/2-inch, 3/4-inch or 1-inch wall\n(0160) 1/4-inch-iron-pipe size (1/2-inch wall only)\n(0170) 1/2 or 3/4-inch-iron-pipe size\n(0180) 1-inch-iron-pipe size\n(0190) 1 1/4-inch-iron-pipe size (1-inch wall only)\n(0200) 1 1/2-inch-iron-pipe\n(0210) 2-inch-iron-pipe size\n(0220) 2 1/2-inch-iron-pipe size (1-inch wall only)\n(0230) 3-inch-iron-pipe size (1/2 and 3/4-inch wall only)",LF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nSF\nSF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF,0.0890\n0.0970\n0.1060\n0.1180\n0.1420\n0.0970\n0.2130\n0.2660\n0.3050\n0.3270\n0.1060\n0.1330\n0.0890\n0.0930\n0.0970\n0.1180\n0.1200\n0.1210\n0.1300\n0.1220\n0.1240\n0.1330\n0.1250
+Minimum suggested crew size: two utilitiesmen.,,

@@ -1,0 +1,16 @@
+figure,Figure 5-Q-8
+figureTitle,Motor Control Centers Production ..................................................................................... 5-Q-10
+division,26
+divisionName,Electrical
+sourcePage,5-Q-8
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 24 19.40\nMotor Starters and Controllers,,
+"Connect light equipment\n(0010) (bench tools, table-mounted galley equipment)",Each,2.20
+Connect heavy equipment\n(0020) (large floor-mounted machines and galley equipment),Each,4.0
+"Motor starters and controls, magnetic full voltage\nnon-reversing (FVNR) with heaters and enclosures\n(0030) 5 horsepower, size 0\n(0040) 10 horsepower, size 1\n(0050) 25 horsepower, size 2\n(0060) 50 horsepower, size 3\n(0070) 100 horsepower, size 4",Each\nEach\nEach\nEach\nEach,3.20\n5.60\n10.40\n12.80\n21.60
+"Combination starters, magnetic FVNR with circuit breaker or\nfused switch and heater\n(0080) 5 horsepower, size 0\n(0090) 10 horsepower, size 1\n(0100) 25 horsepower, size 2\n(0110) 50 horsepower, size 3\n(0120) 100 horsepower, size 4",Each\nEach\nEach\nEach\nEach,5.60\n8.0\n12.0\n15.20\n23.20
+"Control stations, heavy duty\n(0130) Start and stop\n(0140) Start, stop, and pilot light\n(0150) Hand, off, automatic\n(0160) Stop, start, and reverse",Each\nEach\nEach\nEach,0.80\n1.60\n1.60\n1.60
+(0170) Circuit testing and balance three-phase circuit,Each,1.60
+Minimum suggested crew size: two electricians.,,
+"Note: For combination reversing type controls, use 1.2 multiplier.",,

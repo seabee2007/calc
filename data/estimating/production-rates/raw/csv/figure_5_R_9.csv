@@ -1,0 +1,43 @@
+figure,Figure 5-R-9
+figureTitle,Clearing and Grubbing Production ...................................................................................... 5-R-6
+division,31
+divisionName,Earthwork
+sourcePage,5-R-9
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+31 11 10.10\nClear and Grub Site,,
+"Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws",,
+(0010) light trees to 6-inch diameter,Acre,64.0
+(0020) grub stumps and remove,Acre,16.0
+(0030) medium trees to 12-inch diameter,Acre,92.0
+(0040) grub stumps and remove,Acre,32.0
+(0050) heavy trees to 24-inch diameter,Acre,213.0
+(0060) grub stumps and remove,Acre,64.0
+Minimum suggested crew size: one equipment operator and one laborer.,,
+31 13 13.10\nSelective Clearing,,
+(0010) Clearing brush with brush saw,Acre,42.6
+(0020) by hand,Acre,88.7
+"(0030) with dozer, ball and chain, light clearing",Acre,10.6
+(0040) medium clearing,Acre,14.2
+"(0050) with dozer, brush rake, light brush",Acre,2.1
+(0060) medium brush to 4-inch diameter,Acre,2.7
+(0070) heavy brush to 4-inch diameter,Acre,3.3
+"Brush mowing, tractor with rotary mower",,
+(0080) light density,Acre,5.3
+(0090) medium density,Acre,7.2
+(0100) heavy density,Acre,10.6
+Minimum suggested crew size: one equipment operator and one laborer.,,
+31 13 13.20\nSelective Tree Removal,,
+"Remove selective trees, onsite using chain saws and chipper,",,
+"(0010) not including stumps, up to 6-inch diameter",Each,3.547
+(0020) 8- to 12-inch diameter,Each,5.320
+(0030) 13- to 24-inch diameter,Each,6.384
+(0040) 25- to 36-inch diameter,Each,7.980
+"Stump removal onsite by hydraulic backhoe, 1 1/2 CYD",Each,
+(0050) 4- to 12-inch diameter,Each,0.967
+(0060) 13- to 36-inch diameter,Each,1.995
+Minimum suggested crew size: one equipment operators and one laborer.,,
+31 14 13.23\nTopsoil Stripping and Stockpiling,,
+"(0010 Loam or topsoil, remove and stockpile onsite, 6 inches deep,\n200-foot haul",CYD,0.020
+Minimum suggested crew size: one equipment operator and one laborer.,,
+"Note: One acre = 43,560 SF or 4,840 SY",,

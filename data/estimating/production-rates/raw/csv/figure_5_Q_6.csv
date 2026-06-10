@@ -1,0 +1,17 @@
+figure,Figure 5-Q-6
+figureTitle,Medium Voltage Electrical Distribution .............................................................................. 5-Q-8
+division,26
+divisionName,Electrical
+sourcePage,5-Q-6
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 12 19.00\nTransformers and Switches,,
+"(0010) Install and wire complete dry transformer, 1 kVA",Each,4
+"Install and wire complete oil-filled transformer\n(0020) 300 kVA and smaller\n(0030) 500 kVA\n(0040) 750 kVA\n(0050) 1,000 kVA\n(0060) 2,000 kVA",Each\nEach\nEach\nEach\nEach,36.0\n60.0\n63.20\n95.20\n100.0
+Install and wire complete three-phase dry-type air cooled\ntransformer in vault or building\n(0070) Up to 150 kVA\n(0080) 151 kVA and larger,Each\nEach\nEach,24.8000\n24.80\n45.60
+"Medium Voltage Switchgear\n(0090) Install three-phase metal-clad switch gear unit\nInstall oil circuit breakers\n(0100) 100 to 600 ampere, single circuit\n(0110) 601 to 1200 ampere, single circuit\nInstall open or enclosed disconnect switches\n(0120) 100 ampere and smaller, single circuit\n(0130) 150 ampere and larger, single circuit",Each\nEach\nEach\nEach\nEach\nEach\nEach,16.0\n8.4000\n8.40\n24.0\n8.8000\n8.80\n12.80
+"Install air-break switches and components\n(0140) 100 to 600 ampere, single pole, single throw\n(0150) 601 to 1,200 ampere, single pole, single throw",Each\nEach\nEach,8.8000\n8.80\n12.80
+Install capacitor bank with associated equipment\n(0160) 3 to 9 capacitor bank\n(0170) 12 to 24 capacitor bank,Each\nEach,27.20\n42.40
+26 13 16.00 Medium Voltage Lightning Arrester,,
+"(0150) Lightning arrester, intermediate class or line Type 4, 8 kilovolt\n(0160) Lightning arrester, intermediate class or line Type 13, 8 kilovolt\n(0170) Lightning arrester, station class 4, 8 kilovolt\n(0180) Lightning arrester, station class 13, 8 kilovolt",Each\nEach\nEach\nEach,4.4445\n6.0000\n4.4445\n6.0000
+Minimum suggested crew size: two electricians.,,

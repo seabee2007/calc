@@ -1,0 +1,15 @@
+{
+  "batchMeta": {
+    "sourceDocumentCode": "MCRP 3-40D.12",
+    "sourceDocumentTitle": "Construction Estimating",
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "division": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "figure": "Figure 5-F-2",
+    "figureTitle": "Board Foot Content ............................................................................................................... 5-F-2",
+    "extractedAt": "2026-06-10",
+    "sourceCsv": "figure_5_F_2.csv"
+  },
+  "records": []
+}

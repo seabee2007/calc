@@ -1,0 +1,25 @@
+figure,Figure 5-Q-4
+figureTitle,Electrical Rough-in Production ............................................................................................ 5-Q-5
+division,26
+divisionName,Electrical
+sourcePage,5-Q-4
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 05 19.00\nLow Voltage Electrical Power Conductors and Cables,,
+"Install Service Entrance, Four- Conductor\n(0010) 60 ampere\n(0020) 100 ampere\n(0030) 200 ampere\n(0040) 400 ampere",Each\nEach\nEach\nEach,11.2\n13.8\n15.2\n19.2
+Install Rigid Steel Conduit\n(0050) 1/2 to 3/4 inch\n(0060) 1 to 1 1/2 inches\n(0070) 2 to 3 inches\n(0080) 3 1/2 to 4 inches,LF\nLF\nLF\nLF,0.16\n0.20\n0.3040\n0.3520
+Install Thin Wall and Flexible Conduit\n(0090) 1/2 inch to 3/4 inch\n(0100) 1 to 1 1/2 inches\n(0110) 2 to 2 1/2 inches\n(0120) 3 to 4 inches,LF\nLF\nLF\nLF,0.072\n0.096\n0.1360\n0.1920
+Grounding and Bonding for Electrical Systems\n(0130) Install 8-foot ground rod and ground wire\n(0140) Install 10-foot ground rod and ground wire,Each\nEach,2.4\n3.0
+Install Type non-metallic cable\n(0150) AWG # 10/3 with ground and smaller\n(0160) AWG # 8/2 with ground and larger,LF\nLF,0.0260\n0.0560
+Install Boxes for non-metallic cable\n(0170) Boxes for non-metallic cable,Each,0.032
+"Install Pull Boxes\n(0180) 12 by 12 by 6 inches, National Electrical Manufacturers\nAssociation (NEMA) Type 1\n(0190) 16 by 20 by 8 inches, NEMA Type 1\n(0200) 24 by 36 by 8 inches, NEMA Type 1\n(0210) 6 by 6 by 6 inches, NEMA Type 3R and 4\n(0220) 10 by 6 by 6 inches, NEMA Type 3R and 4\n(0230) 16 by 16 by 6 inches, NEMA Type 3R and 4\n(0240) 24 by 18 by 8 inches, NEMA Type 3R and 4",Each\nEach\nEach\nEach\nEach\nEach\nEach,2.4\n3.2\n4.8\n2.4\n4.8\n7.2\n12
+Pull Wire in Conduit\n(0250) AWG #12\n(0260) AWG #10\n(0270) AWG #8\n(0280) AWG #6\n(0290) AWG #4\n(0300) AWG #1\n(0310) AWG #1/0\n(0320) AWG #2/0\n(0330) AWG #3/0\n(0340) AWG #4/0\n(0350) 350 MCM\n(0360) 500 MCM,LF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF\nLF,0.0030\n0.0033\n0.0400\n0.0530\n0.0700\n0.1100\n0.1300\n0.1430\n0.1630\n0.1930\n0.2600\n0.3200
+Minimum suggested crew: two electricians,,
+Cable Connectors\n26 05 19.25,,
+"(0040) 600 volts, Non-metallic, AWG#10-3 wire to #14-4 and #12-4 wire\n(0320) 600 volts, PVC jacket, AWG#0-3 wire\n(0580) 15 kV armored, AWG#0 or #1",Each\nEach\nEach,0.0800\n0.7270\n2.0000
+"Cable Splicing\n26 05 19.30\n(0010) 15 kV, #1 stranded to 4/0 stranded",Each,2.5000
+26 05 33.00\nBoxes for Electrical Systems,,
+Outlet Boxes for Low Voltage Applications,,
+"(0510) Install box, pressed steel, 4 inch square or octagon\n(0520) Install box, pressed steel, 4 inch cover, blank or raised device\n(0530) Install box, pressed steel, 1 gang handy or switch box\n(0550) Install box, cast, 1 gang\n(0555) Install box, cast, 2 gang\n(0565) Install box, cast cover, 1 gang all types, including weatherproof\n(0570) Install box, cast cover, 2 gang all types, including weatherproof",Each\nEach\nEach\nEach\nEach\nEach\nEach,0.4000\n0.1250\n0.2960\n0.6670\n0.8000\n0.1250\n0.1510
+"Install Pull Boxes\n(0080) 12 by 12 by 6 inches, NEMA Type 1\n(0090) 16 by 20 by 8 inches, NEMA Type 1\n(0100) 24 by 36 by 8 inches, NEMA Type 1\n(0110) 6 by 6 by 6 inches, NEMA Type 3R and 4\n(0120) 10 by 6 by 6 inches, NEMA Type 3R and 4\n(0130) 16 by 16 by 6 inches, NEMA Type 3R and 4\n(0140) 24 by 18 by 8 inches, NEMA Type 3R and 4",Each\nEach\nEach\nEach\nEach\nEach\nEach,2.4000\n3.2000\n4.8000\n2.4000\n4.8000\n7.2000\n12.000
+Minimum suggested crew size: one electrician.,,

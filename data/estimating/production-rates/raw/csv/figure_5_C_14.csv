@@ -1,0 +1,20 @@
+figure,Figure 5-C-14
+figureTitle,Placing Concrete Production .............................................................................................. 5-C-12
+division,03
+divisionName,Concrete
+sourcePage,5-C-14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+03 31 05.70\nPlacing Concrete,,,,,
+"Lintel or sill, 8 x 8, Cast in\nplace, including forming",LF,*,(0005) 0.5,*,*
+"Beams, elevated",CYD,*,*,(0010) 1.60,(0020) 2.40
+"Columns, square or round\n12 inches thick\n18 inches thick\n24 inches thick",CYD\nCYD\nCYD,*,*,(0030) 1.60\n(0050) 1.066\n(0070) 1.044,(0040) 2.70\n(0060) 1.963\n(0080) 1.543
+Elevated slabs\nless than 6 inches thick\n6 to 10 inches thick,CYD\nCYD,*,*,(0090) 0.685\n(0110) 0.60,(0100) 1.137\n(0120) 0.982
+"Footings, continuous\nShallow\ndeep\nFootings, spread\nunder 1 CYD\nover 5 CYDs",CYD\nCYD\nCYD\nCYD,(0130) 0.600\n(0160) 0.514\n(0190) 1.309\n(0220) 0.600,*,(0140) 0.641\n(0170) 0.600\n(0200) 1.477\n(0230) 0.641,(0150) 1.200\n(0180) 0.982\n(0210) 2.400\n(0240) 1.080
+Grade beams,CYD,(0250) 0.480,*,(0260) 0.536,(0270) 0.900
+Pile caps,CYD,(0280) 0.800,*,(0290) 0.873,(0300) 1.359
+Slabs on grade\nup to 6 inches thick\nover 6 inches thick,CYD\nCYD,(0310) 0.654\n(0340) 0.436,*,(0320) 0.738\n(0350) 0.520,(0330) 0.983\n(0360) 0.750
+Walls\n8 inches thick\n12 inches thick\n1 inch thick,CYD\nCYD\nCYD,(0370) 0.800\n(0400) 0.720\n(0430) 0.700,*,(0380) 0.960\n(0410) 0.873\n(0440) 0.800,(0390) 1.350\n(0420) 1.200\n(0450) 1.137
+"Wheeled concrete dumping,\nadd to placing time above,\nwalking cart\nup to 50-foot haul, add\nup to 150-foot haul, add\nup to 250-foot haul, add",CYD\nCYD\nCYD,*,(0460) 0.422\n(0470) 0.563\n(0480) 0.750,*,*
+"Minimum suggested crew size: one crew leader, two skilled and six unskilled laborers, and two equipment operators.",,,,,
+"Notes:\n1. This figure provides man-hours for labor and equipment to place and vibrate concrete.\n2. For upper stories, add per story: placed by pump, use a 1.07 multiplier; placed by bucket or crane, use a\n1.05 multiplier.\n3. Construction that moves in and out of ramps, runways, or staging is not included. For moving and in and out,\nuse 0.22 man-hours per linear foot.\n4. Major considerations in planning concrete placement are: method of placement, accessibility, rate of\nplacement in regard to form design, amount and frequency of delivery governed by the ability to screed, tamp,\nand finish.",,,,,

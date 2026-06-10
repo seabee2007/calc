@@ -5,6 +5,7 @@ import WelcomeScreen from './WelcomeScreen';
 import { useSettingsStore } from '../../store';
 import { useThemeStore } from '../../store/themeStore';
 import OnboardingStep from './OnboardingStep';
+import OnboardingShell from './OnboardingShell';
 import ThemeSelector from './ThemeSelector';
 
 type OnboardingStepType = 'welcome' | 'company-name' | 'email' | 'phone' | 'address' | 'license' | 'motto' | 'theme';
@@ -163,35 +164,37 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   };
 
   return (
-    <AnimatePresence mode="wait">
-      {currentStep === 'welcome' ? (
-        <WelcomeScreen key="welcome" onNext={handleNext} onSkip={handleSkip} />
-      ) : currentStep === 'theme' ? (
-        <ThemeSelector
-          key="theme"
-          value={formData.theme}
-          onChange={(theme: 'light' | 'dark') => setFormData(prev => ({ ...prev, theme }))}
-          onNext={handleNext}
-          onBack={handleBack}
-        />
-      ) : (
-        <OnboardingStep
-          key={currentStep}
-          title={stepConfig[currentStep].title}
-          description={stepConfig[currentStep].description}
-          placeholder={stepConfig[currentStep].placeholder}
-          value={getCurrentValue(currentStep)}
-          onChange={handleInputChange}
-          onNext={handleNext}
-          onBack={handleBack}
-          onSkip={currentStep === 'motto' ? undefined : handleSkip}
-          required={stepConfig[currentStep].required}
-          type={stepConfig[currentStep].type}
-          isLastStep={false}
-          isAddressStep={currentStep === 'address'}
-        />
-      )}
-    </AnimatePresence>
+    <OnboardingShell>
+      <AnimatePresence mode="wait">
+        {currentStep === 'welcome' ? (
+          <WelcomeScreen key="welcome" onNext={handleNext} onSkip={handleSkip} />
+        ) : currentStep === 'theme' ? (
+          <ThemeSelector
+            key="theme"
+            value={formData.theme}
+            onChange={(theme: 'light' | 'dark') => setFormData(prev => ({ ...prev, theme }))}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        ) : (
+          <OnboardingStep
+            key={currentStep}
+            title={stepConfig[currentStep].title}
+            description={stepConfig[currentStep].description}
+            placeholder={stepConfig[currentStep].placeholder}
+            value={getCurrentValue(currentStep)}
+            onChange={handleInputChange}
+            onNext={handleNext}
+            onBack={handleBack}
+            onSkip={currentStep === 'motto' ? undefined : handleSkip}
+            required={stepConfig[currentStep].required}
+            type={stepConfig[currentStep].type}
+            isLastStep={false}
+            isAddressStep={currentStep === 'address'}
+          />
+        )}
+      </AnimatePresence>
+    </OnboardingShell>
   );
 };
 

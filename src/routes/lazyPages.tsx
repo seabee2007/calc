@@ -158,6 +158,6 @@ export const LazyEmployeeUploadsPage = lazyPage(
 );
 
 // Dev-only routes (never rendered in production builds)
-export const LazySeabeeDevPreview = lazyPage(
-  () => import('../features/estimating/ui/dev/SeabeeDevPreview'),
+export const LazyActivityEstimatePreview = lazyPage(
+  () => import('../features/estimating/ui/dev/ActivityEstimatePreview'),
 );

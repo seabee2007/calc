@@ -12,6 +12,7 @@
     "build": "vite build",
     "lint": "eslint src",
     "test": "vitest run",
+    "generate:production-rates": "node --import tsx scripts/generateProductionRateSeeds.ts",
     "preview": "vite preview",
     "serve:prod": "node csp-server.js",
     "upload-sounds": "ts-node scripts/uploadSounds.ts"

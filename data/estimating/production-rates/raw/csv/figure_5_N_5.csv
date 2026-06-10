@@ -1,0 +1,26 @@
+figure,Figure 5-N-5
+figureTitle,Welded Steel Pipe Production .............................................................................................. 5-N-5
+division,22
+divisionName,Plumbing
+sourcePage,5-N-5
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+,,Pipe Diameter in Inches,,,,,,,,
+,,1,2,3,4,5,6,8,10,12
+"22 11 13.44\nSteel Pipe, Welded",,(0100),(0110),(0120),(0130),(0140),(0150),(0160),(0170),(0180)
+Schedule 40,LF,0.344,0.524,0.744,0.864,1.000,1.334,1.656,2.000,2.526
+"Minimum suggested crew size: one utilitiesman, one laborer, and one welder.",,,,,,,,,,
+"Notes:\n1. Used for facility water distribution piping.\n2. Estimate includes use of yoke and roll hanger assemblies, sized for covering 10 feet on center.\n3. A multiplier of 2.0 was used to convert civilian production rates to military production rates in this figure.\nNo further adjustment required for military production.\n4. Use a 1.60 multiplier for schedule 80 pipe.",,,,,,,,,,
+,,Pipe Diameter in Inches,,,,,,,,,,
+,,1,2,4,5,6,8,10,12,14,16,18
+"22 11 13.48\nSteel,\nGrooved-joint Pipe,\nFittings and Valves",,,,,,,,,,,,
+"Elbows, reducers",Each,(0010)\n0.16,(0020)\n0.21,(0030)\n0.42,(0040)\n0.60,(0050)\n0.62,(0060)\n0.83,(0070)\n0.96,(0080)\n1.08,(0090)\n1.37,(0100)\n1.58,(0110)\n1.79
+Tees,Each,(0120)\n0.23,(0130)\n0.31,(0140)\n0.62,(0150)\n0.90,(0160)\n0.94,(0170)\n1.25,(0180)\n1.44,(0190)\n1.62,(0200)\n2.03,(0210)\n2.37,(0220)\n2.68
+Adapters,Each,(0230)\n0.13,(0240)\n0.16,(0250)\n0.40,(0260)\n0.59,(0270)\n0.61,(0280)\n0.66,(0290)\n0.77,(0300)\n0.98,(0310)\n1.16,(0320)\n1.34,(0330)\n1.48
+Crosses,Each,(0340)\n0.29,(0350)\n0.39,(0360)\n0.80,(0370)\n1.10,(0380)\n1.19,(0390)\n1.59,(0400)\n1.84,(0410)\n2.06,(0420)\n2.59,(0430)\n3.01,(0440)\n3.39
+Valves,Each,(0450)\n0.16,(0460)\n0.21,(0470)\n0.42,(0480)\n0.60,(0490)\n0.63,(0500)\n0.83,(0510)\n0.96,(0520)\n1.08,(0530)\n1.29,(0540)\n1.58,(0550)\n1.79
+Rigid couplings,Each,(0560)\n0.08,(0570)\n0.10,(0580)\n0.21,(0590)\n0.30,(0600)\n0.31,(0610)\n0.42,(0620)\n0.48,(0630)\n0.54,(0640)\n0.68,(0650)\n0.79,(0660)\n0.89
+Flexible couplings,Each,(0670)\n0.06,(0680)\n0.07,(0690)\n0.16,(0700)\n0.23,(0710)\n0.24,(0720)\n0.31,(0730)\n0.36,(0740)\n0.40,(0750)\n0.51,(0760)\n0.59,(0770)\n0.66
+Wyes,Each,(0780)\n0.24,(0790)\n0.35,(0800)\n0.60,(0810)\n0.88,(0820)\n0.90,(0830)\n1.19,(0840)\n1.38,(0850)\n1.51,(0860)\n1.91,(0870)\n2.21,(0880)\n2.52
+Minimum suggested crew size: one utilitiesman and one laborer.,,,,,,,,,,,,
+Notes:\n1. Used for fire protection only!\n2. Lifting equipment will be required on large-sized pipes (12 inches and above).\n3. Time includes placing and leveling pipes.,,,,,,,,,,,,

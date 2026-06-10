@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
+import {
+  ONBOARDING_BRAND_GRADIENT,
+  ONBOARDING_CARD,
+  ONBOARDING_PRIMARY_BUTTON,
+  ONBOARDING_SKIP_BUTTON,
+  ONBOARDING_SUBTITLE,
+  ONBOARDING_TITLE,
+} from './onboardingTheme';
 
 interface WelcomeScreenProps {
   onNext: () => void;
@@ -13,12 +20,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    // Start title animation after a brief delay
     const titleTimer = setTimeout(() => {
       setShowTitle(true);
     }, 500);
 
-    // Show content after title animation
     const contentTimer = setTimeout(() => {
       setShowContent(true);
     }, 3500);
@@ -30,96 +35,94 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-blue-50 flex items-center justify-center relative overflow-hidden">
-      <div className="relative z-10 text-center px-6 max-w-lg mx-auto">
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden py-8">
+      <div className="relative z-10 mx-auto w-full max-w-lg px-2 text-center">
         <AnimatePresence mode="wait">
           {!showTitle && !showContent ? (
-            <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-24" aria-hidden />
+            <motion.div
+              key="placeholder"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="h-24"
+              aria-hidden
+            />
           ) : null}
-          {/* Title Animation */}
+
           {showTitle && !showContent && (
             <motion.div
               key="title"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ 
+              transition={{
                 duration: 1.2,
-                ease: "easeInOut"
+                ease: 'easeInOut',
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <h1 className="text-7xl md:text-8xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 bg-clip-text text-transparent">
+              <h1 className={`text-6xl font-bold sm:text-7xl md:text-8xl ${ONBOARDING_BRAND_GRADIENT}`}>
                 Concrete Calc
               </h1>
             </motion.div>
           )}
 
-          {/* Content */}
           {showContent && (
             <motion.div
               key="content"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ 
+              transition={{
                 duration: 0.8,
-                ease: "easeOut"
+                ease: 'easeOut',
               }}
-              className="space-y-10"
+              className={`${ONBOARDING_CARD} space-y-10`}
             >
-              {/* Welcome Message */}
               <div className="space-y-6">
-                <motion.h2 
+                <motion.h2
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.6 }}
-                  className="text-4xl md:text-5xl font-bold text-gray-900"
+                  className={ONBOARDING_TITLE}
                 >
                   Welcome to Concrete Calc
                 </motion.h2>
-                
-                <motion.p 
+
+                <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.6 }}
-                  className="text-2xl text-gray-600 leading-relaxed"
+                  className={`${ONBOARDING_SUBTITLE} text-2xl`}
                 >
-                  Let's get you started
+                  Let&apos;s get you started
                 </motion.p>
-                
-                <motion.p 
+
+                <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.7, duration: 0.6 }}
-                  className="text-xl text-gray-500"
+                  className="text-lg text-slate-400"
                 >
                   Take a moment to set up your profile for the best experience
                 </motion.p>
               </div>
 
-              {/* Action Buttons */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.9, duration: 0.6 }}
                 className="space-y-4"
               >
-                <Button
-                  variant="primary"
-                  onClick={onNext}
-                  size="lg"
-                  fullWidth
-                  className="text-xl py-6 shadow-lg"
-                  icon={<ArrowRight size={24} />}
-                >
+                <button type="button" onClick={onNext} className={`${ONBOARDING_PRIMARY_BUTTON} w-full py-4 text-lg`}>
                   Set Up Profile
-                </Button>
+                  <ArrowRight className="h-6 w-6" />
+                </button>
 
                 <motion.button
+                  type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onSkip}
-                  className="text-gray-600 hover:text-gray-800 text-lg font-medium transition-colors duration-200 underline underline-offset-2"
+                  className={`${ONBOARDING_SKIP_BUTTON} w-full text-lg underline underline-offset-2`}
                 >
                   Skip for now
                 </motion.button>
@@ -132,4 +135,4 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
   );
 };
 
-export default WelcomeScreen; 
+export default WelcomeScreen;

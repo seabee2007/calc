@@ -1,0 +1,16 @@
+figure,Figure 5-Q-15
+figureTitle,"Division 27, Overhead Telephone Line Construction ........................................................ 5-Q-14"
+division,26
+divisionName,Electrical
+sourcePage,5-Q-15
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+27 13 00.00\nCommunications Cabling,,
+"Pull cable in conduit\n(0020) Polyethylene sheath, 100 pair\n(0030) Install exposed interior cable, 26 pair\n(0040) Install telephone terminal box\n(0050) Install CAT 5 connector\n(0060) Install polyethylene cable terminal, 26 pair\n(0070) Connect terminal stub to cable, polyethylene sheath, 26 pair\n(0080) Install telephone, complete, any style, one line\n(0090) Splice telephone cable in building, vault, or manhole\npolyethylene sheath\n(0100) Testing",LF\nLF\nEach\nEach\nEach\nEach\nEach\nSplice\nEach,0.4000\n0.3200\n2.4000\n0.1000\n1.6000\n2.4000\n3.2000\n5.6000\n0.4000
+Minimum suggested crew size: one electrician and one laborer.,,
+27 15 00.00\nCommunications Horizontal Cabling,,
+(0010) Install messenger suspension clamps\n(0020) Attach messenger to suspension clamps\n(0030) Splicing overhead cable (straight splice) polyethylene sheath and\ninsulation—100 pair\n(0040) Terminating cable at terminal box or main distribution frame (tag\nsplice) polyethylene sheath and insulation—100 pair,Each\nFeet\nSplice\nSplice,0.1600\n0.0320\n5.6000\n8.0000
+Minimum suggested crew size: one electrician and one helper.,,
+27 15 13.13\nCommunications Copper Horizontal Cabling,,
+"(0010) Install CAT 6 cable\n(0100) Install connector RJ45, CAT 5 or 6\n(0120) Install jack RJ45, CAT 5 or 6",LF\nEach\nEach,0.0171\n0.1500\n0.1845
+Minimum suggested crew size: one electrician.,,

@@ -1,0 +1,18 @@
+figure,Figure 5-Q-13
+figureTitle,Street and Security Lighting .............................................................................................. 5-Q-13
+division,26
+divisionName,Electrical
+sourcePage,5-Q-13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 36 13.10\nManual Transfer Switches,,
+"(0100) Manual operated, NEMA 3R, 480 volt, 3 pole, 100 amp\n(0020) Manual operated, NEMA 3R, 480 volt, 3 pole, 200 amp\n(0030) Manual operated, NEMA 3R, 480 volt, 3 pole, 400 amp",Each\nEach\nEach,9.0000\n12.0000\n15.0000
+Minimum suggested crew size: two electricians,,
+26 36 23.10\nAutomatic Transfer Switches,,
+"(0100) Manual operated, NEMA 3R, 480 volt, 3 pole, 100 amp\n(0020) Manual operated, NEMA 3R, 480 volt, 3 pole, 200 amp\n(0030) Manual operated, NEMA 3R, 480 volt, 3 pole, 400 amp",Each\nEach\nEach,9.0000\n12.0000\n15.0000
+Minimum suggested crew size: two electricians.,,
+26 56 00.00\nExterior Lighting,,
+"(0010) Install foundations for metal standards (See Note 1)\nInstall metal light standards (30 feet) (See Note 2)\n(0020) aluminum standard\n(0030) steel standard\n(0040) Install wooden pole with street light (See Notes 3, 4)\n(0050) Install wooden pole with two flood lights (See Notes 3, 4)\n(0055) Install precast concrete pole\n(0060)String one conductor for series lighting\n(0070) Connect streetlight/floodlight to power\n(0080) Install lighting transformer",Each\nEach\nEach\nEach\nEach\nEach\nLF\nEach\nEach,12.0\n11.20\n12.0\n9.60\n11.20\n9.60\n0.02\n4.80\n12.0
+Install constant current regulator and control devices for street lighting\n(0090) Installed in vault\n(0100) installed on pole,Each\nEach,6.40\n8.0
+Minimum suggested crew size: two electricians and one equipment operator.,,
+"Notes:\n1. To install foundations for metal standards, increase crew size to include one builder.\n2. Electrician’s work includes approximately 10 feet of 2-inch rigid steel conduit and pull box.\n3. Assembly and wiring are performed on the ground.\n4. Work is the same as overhead power construction if light is to be added to existing pole.\n5. Work is approximately the same as overhead power construction. Use 30 percent of primary conductor’s\nman-hours for series circuits. Secondary installation of floodlights is the same as secondary conductors\nand service drops.\n6. Refer to Division 31, earthwork, for excavating and Division 33, utilities, for man-hour figures for burial of\npower cables.\n7. Work does not include installation of power source.",,

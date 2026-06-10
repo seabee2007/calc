@@ -1,0 +1,13 @@
+figure,Figure 5-Q-16
+figureTitle,"Division 27, Installing Intercommunication System .......................................................... 5-Q-15"
+division,26
+divisionName,Electrical
+sourcePage,5-Q-16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+27 51 00\nAudio-Video Communications Systems,,
+Public address system conventional\n(0010) office\n(0020) industrial,Each\nEach,2.4000\n4.0000
+"Sound system\n(0030) speakers, ceiling, or wall mounted\n(0040) speakers\n(0050) volume control\n(0060) amplifier, 250 watt\n(0070) cabinets",Each\nEach\nEach\nEach\nEach,1.6000\n3.2000\n1.6000\n9.6000\n9.6000
+"Intercom, master\n(0080) up to 25 station capacity\n(0090) remote station",Each\nEach,9.6000\n1.6000
+"Emergency call system\n(0100) 12 zones, annunciator\n(0110) bell\n(0120) light or relay\n(0130) transformer\n(0170) Terminal box\n(0180) Amplifier or power supply\n(0190) Annunciator, master intercom, and amplifier\n(0200) Testing and other devices",Each\nEach\nEach\nEach\nEach\nEach\nEach\nEach,11.2000\n1.6000\n1.6000\n4.0000\n3.2000\n4.8000\n1.0000\n0.1600
+Minimum suggested crew size: one electrician and one helper.,,

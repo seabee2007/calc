@@ -1,0 +1,13 @@
+figure,Figure 5-Q-17
+figureTitle,"Division 28, Fire Detection and Alarm Production ........................................................... 5-Q-16"
+division,26
+divisionName,Electrical
+sourcePage,5-Q-17
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+28 31 23.50\nAlarm Panels and Devices,,
+"Fire alarm control panel,\n(0010) 4 zones\n(0020) 8 zones\n(0030) 12 zones\n(0035) Fire alarm actuating device\n(0040) Battery and rack\n(0050) Warning device, bell, strobe etc.",Each\nEach\nEach\nEach\nEach\nEach,8.0000\n16.0000\n23.9880\n1.0000\n2.0000\n2.0000
+"28 31 43.50\nFire and Heat Detectors\n(0010) Detector, rate of rise",Each,1.0000
+28 31 46.50\nSmoke Detectors,,
+"(0010) Detector, smoke, ceiling type\n(0020) Duct type",Each\nEach,1.2900\n2.5000
+Minimum suggested crew size: one electrician.,,

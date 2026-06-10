@@ -1,0 +1,20 @@
+figure,Figure 5-Q-7
+figureTitle,Panelboards Production ........................................................................................................ 5-Q-9
+division,26
+divisionName,Electrical
+sourcePage,5-Q-7
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 24 16.00\nPanelboards,,
+"Install safety switch, three poles, general or heavy duty\n(0010) 30 ampere\n(0020) 60 ampere\n(0030) 100 ampere\n(0040) 225 ampere\n(0050) 400 ampere\n(0060) 600 ampere",Each\nEach\nEach\nEach\nEach\nEach,2.40\n3.20\n4.0\n7.20\n11.20\n17.60
+"Install circuit breakers, enclosed, NEMA type 1,\n600 volt, three poles\n(0065) 20 ampere\n(0070) 30 ampere\n(0080) 60 ampere\n(0090) 100 ampere\n(0100) 225 ampere\n(0110) 400 ampere\n(0120) 600 ampere",Each\nEach\nEach\nEach\nEach\nEach\nEach,2.40\n2.40\n3.20\n4.80\n6.40\n11.20\n17.60
+"Install panel boards, lighting, and power\nfour-wire, three-phase, 100 to 225 ampere main lugs\n(0130) 12 circuits or less\n(0140) 13 to 20 circuits\n(0150) 21 to 24 circuits\n(0160) 25 to 30 circuits\n(0170) 31 to 36 circuits\n(0180) 37 to 42 circuits",Each\nEach\nEach\nEach\nEach\nEach,9.60\n16.0\n17.60\n20.0\n23.20\n26.40
+Minimum suggested crew size: two electricians.,,
+"Install Tactical Distribution Load Centers\n(0400) 40A, PDISE M40\n(0410) 60A, PDISE M60\n(0420) 100A, PDISE M100\n(0430) 200A, PDISE M200",Each\nEach\nEach\nEach,1.0\n1.0\n1.50\n1.50
+Minimum suggested crew size: two laborers.,,
+"(0500) 5kW MEPDIS-R, USMC\n(0510) 15kW MEPDIS-R, USMC\n(0520) 30kW MEPDIS-R, USMC\n(0530) 100kW MEPDIS-R, USMC\n(0540) 300kW MEPDIS-R, USMC",Each\nEach\nEach\nEach\nEach,1.0\n1.0\n1.50\n1.50\n1.50
+"Minimum suggested crew size: one electrician, one operator.",,
+"(0700) 200A, Power Distribution Box (PDB), USN\n(0710) 800A, PDB, USN",Each\nEach,1.0\n1.0
+"Minimum suggested crew size: one electrician, one laborer.",,
+"Notes:\n1. For explosion-proof work, use 3.0 multiplier.\n2. All work estimates based on surface mounting.\n3. For aluminum cable trays, use 1.05 multiplier.",,
+"Legend: MEPDIS-R = mobile electric power distribution system-replacement\nPDISE = power distribution illumination system, electrical",,

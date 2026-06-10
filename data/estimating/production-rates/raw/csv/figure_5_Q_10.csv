@@ -1,0 +1,17 @@
+figure,Figure 5-Q-10
+figureTitle,Safety Switch Production ................................................................................................... 5-Q-11
+division,26
+divisionName,Electrical
+sourcePage,5-Q-10
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 25 13\nBus Duct/Busway and Fittings,,
+"Install wire way,\n5-foot length, screw cover with fittings and supports\n(0010) 4 by 4 inches\n(0020) 6 by 6 inches\n(0030) 8 by 8 inches",LF\nLF\nLF,0.320\n0.320\n0.480
+"Install cable trays,\nLadder type, galvanized steel with fittings and supports\n(0040) 12 inches wide\n(0050) 18 inches wide\n(0060) 24 inches wide",LF\nLF\nLF,0.2480\n0.280\n0.320
+Minimum suggested crew size: two electricians.,,
+"Notes:\n1. For explosion-proof work, use 3.0 multiplier.\n2. All work estimates based on surface mounting.\n3. For aluminum cable trays, use 1.05 multiplier.",,
+26 28 16.20\nSafety Switches,,
+"General Duty 240V, 3 Pole NEMA 1, fusible\n(0010) 30 amp\n(0020) 60 amp\n(0030) 100 amp\n(0040) 200 amp\n(0050) 400 amp",Each\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach,3.0\n4.0\n4.750\n9.0\n12.0\n3.0\n4.0\n5.0\n3.0\n4.50
+"Heavy Duty, 600V, 3 Pole NEMA 1, nonfusible\n(0210) 30 amp\n(0220) 60 amp\n(0230) 100 amp\nHeavy Duty, 240V, 3 Pole NEMA 3R, fusible\n(0310) 30 amp\n(0320) 60 amp",,
+Minimum suggested crew size: two electricians.,,
+"Notes:\n1. For explosion-proof work, use 3.0 multiplier.\n2. All work estimates based on surface mounting.\n3. For aluminum cable trays, use 1.05 multiplier.",,

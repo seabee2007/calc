@@ -79,7 +79,7 @@ import {
   LazyEmployeeUploadsPage,
   LazyOnboardingFlow,
   LazyConcreteChat,
-  LazySeabeeDevPreview,
+  LazyActivityEstimatePreview,
 } from './routes/lazyPages';
 
 // Error boundary component
@@ -530,7 +530,7 @@ function App() {
           />
           {/* Dev-only routes — only rendered in development builds */}
           {import.meta.env.DEV && (
-            <Route path="/dev/seabee-preview" element={<LazyRoute Page={LazySeabeeDevPreview} />} />
+            <Route path="/dev/activity-preview" element={<LazyRoute Page={LazyActivityEstimatePreview} />} />
           )}
 
           <Route path="*" element={<Navigate to="/" replace />} />

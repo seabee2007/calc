@@ -1,0 +1,23 @@
+figure,Figure 5-S-3
+figureTitle,Sealcoat Production............................................................................................................... 5-S-2
+division,32
+divisionName,Exterior Improvements
+sourcePage,5-S-3
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+32 01 11.00\nPavement Cleaning (Snow Removal),,,
+Sidewalks:,,,
+Light snowfall (less than 2 inches),(0110) Men\n(0120) Sidewalk tractor,"1,000 LF\n1,000 LF",1.80\n0.25
+Medium snowfall (2 inches),(0130) Men\n(0140) Sidewalk tractor,,2.00\n0.2500
+Medium snowfall (4 inches),(0150) Men\n(0160) Sidewalk tractor,"1,000 LF",3.00\n0.3000
+Medium snowfall (6 inches),(0170) Men\n(0180) Sidewalk tractor,"1,000 LF",4.00\n0.3500
+Heavy snowfall (over 6 inches),(0190) Men\n(0200) Sidewalk tractor,"1,000 LF",4.0 + 0.5 per inch over 6 inches\n0.35 + 0.06 per inch over 6 inches
+"Note: Estimate does not include refueling, maintenance, time reloading, etc.",,,
+32 01 29\nRigid Pavement Repair,,
+"(0500) Polymer grout patch, 4 inches thick 15 to 40 SF",Each,8.00
+"(0510) Polymer grout patch, 4 inches thick 50 to 75 SF",Each,10.6670
+"(0520) Polymer grout patch, 4 inches thick 80 to 100 SF",Each,12.8000
+Minimum suggested crew: One builder and two laborers.,,
+"32 11 13.66\nSealcoat\n(0010) Sealcoating, 2 coat, coal tar pitch emulsion, under 1,000 SY\n(0020) 1,000 to 10,000 SY\n(0030) over 10,000 SY\n(0040) Prepare and clean surface\n(0050) Hand seal asphalt curbing\n(0060) Asphalt surface treatment, single course, small area\n(0065) Road or large area\n(0070) Asphalt surface treatment, single course for shoulders",SY\nSY\nSY\nSY\nLF\nSY\nSY\nSY,0.035\n0.007\n0.004\n0.004\n0.007\n0.019\n0.009\n0.014
+Minimum suggested crew size: two equipment operators.,,
+Note: A multiplier of 1.5 was used to convert civilian production rates to military production rates in this figure.\nNo further adjustment required for military production.,,

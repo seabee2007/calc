@@ -1,0 +1,17 @@
+figure,Figure 5-Q-2
+figureTitle,Overhead Primary and Secondary Conductors and Devices Production ............................. 5-Q-3
+division,26
+divisionName,Electrical
+sourcePage,5-Q-2
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+26 05 00\nCommon Work Results for Electrical,,
+(0010) Construct H-frame and install three-phase transformer bank,Each,132.0
+String Primary Conductors\n(0020) American Wire Gage (AWG) #6 to AWG #1 bare copper\n(0030) AWG #0 to AWG #0000 bare copper\n(0040) Larger than AWG #0000 bare copper,LF\nLF\nLF,0.0160\n0.0232\n0.0238
+Install Transformer on Poles\n(0050) Single transformer 10 to 75 kilovolt-ampere (kVA)\n(0060) Three single-phase transformers 10 to 75 kVA,Each\nBank,12.0\n16.0
+Install secondary racks,Each,2.4
+"Install Secondary Conductors and Service Drops\n(0080) AWG #4 and smaller: four-wire, weatherproof\n(0090) AWG #2 to AWG # 0: four-wire, weatherproof",LF\nLF,0.0530\n0.0690
+"Install Voltage Regulators\n(0100) 25 kVA, single-phase, pole mounted\n(0110) 75 to 125 kVA, three-phase, slab mounted\n(0120) Capacitor units, pole mounted, factory preassembled, all kVA\nratings",Each\nEach\nEach,17.60\n81.60\n16.80
+"Install Primary Protective Devices\n(0130) Pole top air break switches, three poles\n(0140) Enclosed-fused disconnect switch\n(0150) Open-fused disconnect switch",Each\nEach\nEach,43.20\n8.0\n8.0
+"Minimum suggested crew size:\nCapacitor units: two linemen and one ground man H-frame: six electricians\nInstall primary protective devices: four electricians\nInstall secondary conductors and service Drop #4 and smaller: two electricians\nInstall secondary conductors and service Drop #2 to #0: two electricians, one equipment operator\nInstall secondary racks: two electricians\nInstall transformers on poles: three electricians, one equipment operator\nInstall voltage regulators: three electricians\nInstall wire guys: three electricians\nString primary conductors: ten electricians, one equipment operator\nSingle cross assembly installation: two electricians.",,
+"Notes:\n1. Cross arm assembly figures are based on work being done before pole is set. If work must be done\nafter pole is set, use 1.15 multiplier.\n2. When using bucket truck, use 0.85 multiplier.",,

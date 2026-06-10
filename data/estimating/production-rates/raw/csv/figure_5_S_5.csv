@@ -1,0 +1,13 @@
+figure,Figure 5-S-5
+figureTitle,Asphalt Paving Production .................................................................................................... 5-S-3
+division,32
+divisionName,Exterior Improvements
+sourcePage,5-S-5
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"32 11 23.23\nAggregate Base Courses\n(0010) Crushed 3/4 inch stone base, for roadways and large areas, compacted,\n6 inch deep\n(0100) Prepare and roll subbase, large area over 2,500 cubic yards\n(0110) Prepare and roll subbase, for roadways\n(0300) Crushed 1-1/2 inch stone base, for airfield construction, compacted to\n8 inch deep\n(0400) Crushed 1-1/2 inch stone base, for airfield construction, compacted to\n12 inch deep",SY\nSY\nSY\nSY,0.035\n0.007\n0.004\n0.004
+Minimum suggested crew size: three equipment operators and one laborer.,,
+"32 12 16.13\nPlant-Mix Asphalt Paving\n(0010) Binder course, 1 1/2 inches thick\n(0020) 2 inches thick\n(0030) 4 inches thick\n(0040) Wearing course, 1 inch thick\n(0050) 2 inches thick\n(0060) 3 inches thick\n(0070) 4 inches thick\n(0300) Emulsion, prime coat, .30 gallons per SY\n(0310) Emulsion. tack coat, .10 gallons per SY",SY\nSY\nSY\nSY\nSY\nSY\nSY\nSY\nSY,0.017\n0.021\n0.032\n0.014\n0.023\n0.030\n0.035\n0.01200\n0.01200
+"32 12 16.14\nAsphaltic Paving, Parking Lots, and Driveways\n(0010) Binder course, 1 1/2 inches thick\n(0020) 2 inches thick\n(0030) 4 inches thick\n(0040) Sand finish course, 3/4 or 1 inch thick\n(0050) Fill pot holes, hot mix, 2 inches thick\n(0060) 4 inches thick\n(0070) 6 inches thick\n(0080) Cold patch, 2 inches thick\n(0090) 4 inches thick\n(0100) 6 inches thick",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.002\n0.003\n0.006\n0.002\n0.012\n0.013\n0.015\n0.024\n0.027\n0.038
+Minimum suggested crew size: four equipment operators and six laborers.,,
+Notes:\n1. A multiplier of 1.5 was used to convert civilian production rates to military production rates in this\nfigure. No further adjustment required for military production.\n2. Estimate does not include hauling. Refer to Division 31 23 23.20 for hauling production times.,,

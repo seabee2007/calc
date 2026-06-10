@@ -1,5 +1,5 @@
 /**
- * Types for the Seabee production-rate import pipeline.
+ * Types for the Production-rate import pipeline.
  *
  * Pipeline:
  *   Manual PDF → extracted CSV → reviewed JSON → buildProductionRateSeed → TypeScript seeds → DB
@@ -15,7 +15,7 @@ export type RateType =
   | 'weight_measure'        // weight or measure factor — quantityPerUnit required
   | 'material_quantity';    // material quantity factor — quantityPerUnit required
 
-/** Crew composition breakdown by Seabee trade. */
+/** Crew composition breakdown by NTRP trade. */
 export interface CrewComposition {
   builder?: number;
   electrician?: number;
@@ -101,7 +101,7 @@ export interface RateValidationWarning {
   message: string;
 }
 
-/** Recognised measurement units from the Seabee manual. */
+/** Recognised measurement units from the NTRP manual. */
 export const RECOGNISED_UNITS = new Set([
   'SF', 'SY', 'LF', 'CYD', 'CY', 'CF', 'EA', 'Each',
   'Ton', 'LB', 'Acre', 'Feet', 'Foot', 'MBF',
