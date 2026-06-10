@@ -20,6 +20,8 @@ import type { ProjectConstructionActivity } from '../../domain/constructionActiv
 interface Props {
   projectId: string;
   estimateId?: string;
+  /** Called after any add/delete so the workspace can refresh its schedule source. */
+  onActivitiesChanged?: () => void;
 }
 
 /** Group activities by divisionCode for the accordion. */
@@ -39,7 +41,7 @@ function groupByDivision(
     .map(([divisionCode, v]) => ({ divisionCode, ...v }));
 }
 
-export default function ConstructionActivityBuilderPanel({ projectId, estimateId }: Props) {
+export default function ConstructionActivityBuilderPanel({ projectId, estimateId, onActivitiesChanged }: Props) {
   const { activities, lineItemsMap, loading, saving, error, reload, addFromAssembly, remove } =
     useConstructionActivities(projectId, estimateId);
 
@@ -62,8 +64,9 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
     async (params: AddFromAssemblyParams) => {
       await addFromAssembly(params);
       setShowPicker(false);
+      onActivitiesChanged?.();
     },
-    [addFromAssembly],
+    [addFromAssembly, onActivitiesChanged],
   );
 
   const handleDeleteRequest = useCallback((id: string) => {
@@ -74,8 +77,9 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
     if (deleteConfirm) {
       await remove(deleteConfirm);
       setDeleteConfirm(null);
+      onActivitiesChanged?.();
     }
-  }, [deleteConfirm, remove]);
+  }, [deleteConfirm, remove, onActivitiesChanged]);
 
   // ── Empty state ─────────────────────────────────────────────────────────────
   if (!loading && activities.length === 0 && !error) {

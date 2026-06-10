@@ -99,6 +99,8 @@ import {
 } from '../schedule/ganttExportValidation';
 import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
 import { estimateLineItemsToScheduleActivities } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import { constructionActivitiesToScheduleActivities } from '../scheduling/adapters/constructionActivitiesToScheduleActivities';
+import { useProjectConstructionActivitiesForSchedule } from './hooks/useProjectConstructionActivitiesForSchedule';
 import { runCpmCalculation } from '../scheduling/cpm/calculateCpm';
 import type {
   CpmLogicLink,
@@ -239,16 +241,26 @@ export default function EstimateWorkspacePage() {
     });
   }, [schedulePlan, schedulePlanControls]);
 
-  // Schedule activities and CPM — derived from line items + logic links
+  // Schedule activities and CPM.
+  // Source priority:
+  //   1. Construction activities (scheduleEnabled only) — when any exist.
+  //      ProjectActivityLineItem objects NEVER become schedule nodes.
+  //   2. Legacy EstimateDomainTask line items — for existing estimates without
+  //      construction activities.
+  const hasConstructionActivities = constructionActivities.length > 0;
   const scheduleActivitiesResult = useMemo(
-    () =>
-      estimateAdapter
+    () => {
+      if (hasConstructionActivities) {
+        return constructionActivitiesToScheduleActivities(constructionActivities);
+      }
+      return estimateAdapter
         ? estimateLineItemsToScheduleActivities(
             estimateAdapter.lineItems,
             estimateSettings.settings,
           )
-        : { activities: [], warnings: [] },
-    [estimateAdapter, estimateSettings.settings],
+        : { activities: [], warnings: [] };
+    },
+    [hasConstructionActivities, constructionActivities, estimateAdapter, estimateSettings.settings],
   );
 
   const cpmResult = scheduleSettingsHook.committedCpmResult;
@@ -396,6 +408,11 @@ export default function EstimateWorkspacePage() {
   }, [scheduleSettingsHook.scheduleSettings.projectStartDate]);
 
   const resolvedProjectId = projectId ?? routeProjectId ?? '';
+
+  // Construction activities for schedule source (Milestone 5)
+  const { constructionActivities, reloadConstructionActivities } =
+    useProjectConstructionActivitiesForSchedule(resolvedProjectId, estimate?.id);
+
   const estimateSetup = useEstimateSetupSession(
     resolvedProjectId,
     estimateAdapter?.id,
@@ -1839,12 +1856,13 @@ export default function EstimateWorkspacePage() {
           )
         ) : null}
 
-        {/* ── Construction Activities tab (Milestone 4) ─────────────────────── */}
+        {/* ── Construction Activities tab (Milestones 4 + 5) ─────────────────── */}
         {!loadError && !dataLoading && activeTab === 'activities' ? (
           resolvedProjectId ? (
             <ConstructionActivityBuilderPanel
               projectId={resolvedProjectId}
               estimateId={estimate?.id}
+              onActivitiesChanged={reloadConstructionActivities}
             />
           ) : (
             <EstimateWorkspaceEmptyState
