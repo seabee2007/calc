@@ -15,18 +15,21 @@ export interface EstimateSchedulePlanControlValues {
   projectStartDate: string;
   dependencyMode: EstimateScheduleDependencyMode;
   includeWeekends: boolean;
+  useLegacyEstimateSchedule?: boolean;
 }
 
 interface Props {
   values: EstimateSchedulePlanControlValues;
   onChange: (patch: Partial<EstimateSchedulePlanControlValues>) => void;
   disabled?: boolean;
+  legacyScheduleAvailable?: boolean;
 }
 
 export default function EstimateSchedulePlanControls({
   values,
   onChange,
   disabled = false,
+  legacyScheduleAvailable = false,
 }: Props) {
   const dependencyOptions = listScheduleDependencyModeOptions();
   const selectedDependency =
@@ -38,7 +41,7 @@ export default function EstimateSchedulePlanControls({
       <div>
         <p className={PLANNER_SECTION_TITLE}>Date planning</p>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Adjust the project start date and dependency rules to preview planned task dates.
+          Adjust the project start date and dependency rules to preview draft activity dates.
         </p>
       </div>
 
@@ -93,6 +96,25 @@ export default function EstimateSchedulePlanControls({
       </div>
 
       <p className={`text-xs ${PLANNER_MUTED}`}>{selectedDependency.description}</p>
+
+      {legacyScheduleAvailable ? (
+        <label className={`flex items-start gap-2 text-sm ${TEXT_BODY}`}>
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600"
+            checked={values.useLegacyEstimateSchedule ?? false}
+            disabled={disabled}
+            onChange={(event) => onChange({ useLegacyEstimateSchedule: event.target.checked })}
+          />
+          <span>
+            Use legacy estimate schedule
+            <span className={`mt-0.5 block text-xs ${PLANNER_MUTED}`}>
+              Load schedule preview from saved estimate line items instead of construction
+              activities.
+            </span>
+          </span>
+        </label>
+      ) : null}
     </div>
   );
 }

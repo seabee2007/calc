@@ -1,0 +1,12 @@
+figure,Figure 5-D-7
+figureTitle,Masonry Mortaring and Grouting Production ...................................................................... 5-D-6
+division,04
+divisionName,Masonry
+sourcePage,5-D-7
+sourcePdfPage,12
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+04 05 13.30\nMortar\n(0010) Mixing,CF,0.083
+"04 05 16.30\nGrouting\n(0010) Bond beams and lintels, 8 inches deep, 6 inches thick, 0.15 CF per LF\n(0020) 8 inches thick, 0.2 CF per LF\n(0030) 10 inches thick, 0.25 CF per LF\n(0040) 12 inches thick, 0.3 CF per LF\n(0050) Concrete block cores, solid, 4 inches thick, by hand, 0.067 CF per SF of wall\n(0060) 6 inches thick, pumped, 0.175 CF per SF\n(0070) 8 inches thick, pumped, 0.258 CF per SF\n(0080) 10 inches thick, pumped, 0.340 CF per SF\n(0090) 12 inches thick, pumped, 0.422 CF per SF\n(0100) Cavity walls, 2-inch space, pumped, 0.167 CF per SF of wall\n(0110) 3-inch space, 0.250 CF per SF\n(0120) 4-inch space, 0.333 CF per SF\n(0130) 6-inch space, 0.500 CF per SF\n(0140) Door frames, 3- by 7-foot opening, 2.5 CF per opening\n(0150) 6- by 7-foot opening, 3.5 CF per opening\n(0160) Grout, for bond beams, lintels, and concrete masonry unit cores",LF\nLF\nLF\nLF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nEach\nEach\nCF,0.033\n0.034\n0.041\n0.046\n0.054\n0.066\n0.071\n0.072\n0.075\n0.028\n0.040\n0.042\n0.060\n0.800\n1.070\n0.136
+Minimum suggested crew size: one builder skilled and two laborers.,,
+Notes: A multiplier of 1.5 was used to convert civilian production rates to military production rates in this figure. No\nfurther adjustment required for military production.,,

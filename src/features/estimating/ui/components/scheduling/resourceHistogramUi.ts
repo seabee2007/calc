@@ -18,6 +18,8 @@ export const RESOURCE_HISTOGRAM_TOOLTIP_CLASS =
 
 export const RESOURCE_HISTOGRAM_MIN_BAR_HEIGHT = 2;
 export const RESOURCE_HISTOGRAM_BAR_MAX_HEIGHT = 80;
+export const RESOURCE_HISTOGRAM_Y_AXIS_GUTTER_PX = 52;
+export const RESOURCE_HISTOGRAM_PLOT_TOP_PADDING_PX = 4;
 
 export interface ResourceHistogramBarSegments {
   totalHeightPx: number;
@@ -54,28 +56,30 @@ export function formatResourceHistogramCalendarDate(dateYmd: string): string {
   });
 }
 
+import { crewValueToPlotHeightPx } from './resourceHistogramScale';
+
 export function computeResourceHistogramBarSegments(
   day: ResourceHistogramDay,
-  maxScale: number,
-  barMaxHeight: number = RESOURCE_HISTOGRAM_BAR_MAX_HEIGHT,
+  chartMax: number,
+  plotHeightPx: number = RESOURCE_HISTOGRAM_BAR_MAX_HEIGHT,
 ): ResourceHistogramBarSegments {
-  const scale = (crew: number) =>
-    crew <= 0 ? 0 : Math.max(0, Math.round((crew / maxScale) * barMaxHeight));
+  const scalePx = (crew: number) =>
+    crew <= 0 ? 0 : crewValueToPlotHeightPx(crew, chartMax, plotHeightPx);
 
   const totalHeightPx = Math.max(
     day.requiredCrew > 0 ? RESOURCE_HISTOGRAM_MIN_BAR_HEIGHT : 0,
-    scale(day.requiredCrew),
+    scalePx(day.requiredCrew),
   );
-  const availableLineFromBottomPx = scale(day.availableCrew);
-  const overallocatedHeightPx = scale(day.overallocatedAmount);
+  const availableLineFromBottomPx = scalePx(day.availableCrew);
+  const overallocatedHeightPx = scalePx(day.overallocatedAmount);
   const withinLimitCrew = Math.min(day.requiredCrew, day.availableCrew);
   const withinNoncritical = Math.min(day.noncriticalRequiredCrew, withinLimitCrew);
   const withinCritical = withinLimitCrew - withinNoncritical;
 
   return {
     totalHeightPx,
-    noncriticalHeightPx: scale(withinNoncritical),
-    criticalWithinLimitHeightPx: scale(withinCritical),
+    noncriticalHeightPx: scalePx(withinNoncritical),
+    criticalWithinLimitHeightPx: scalePx(withinCritical),
     overallocatedHeightPx,
     availableLineFromBottomPx,
   };

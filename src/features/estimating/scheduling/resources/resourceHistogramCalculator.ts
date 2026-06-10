@@ -1,6 +1,8 @@
 import { addDaysToScheduleDate } from '../../application/mapScheduleCandidateToScheduleEventInput';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
-import type { CpmActivityResult, ResourceHistogramDay } from '../cpmTypes';
+import { isDisplayCritical } from '../cpm/cpmDisplayCritical';
+import type { CpmActivityResult, CpmResult, ResourceHistogramDay } from '../cpmTypes';
+import { resolveScheduleActivityCrewSize } from './scheduleActivityCrewSize';
 
 export interface ResourceHistogramParams {
   activities: ScheduleActivity[];
@@ -8,22 +10,75 @@ export interface ResourceHistogramParams {
   projectStartDate: string;
   availableCrewSize: number;
   leveledOffsets?: Record<string, number>;
+  cpmResult?: CpmResult | null;
+}
+
+function buildScheduleActivityIndex(activities: ScheduleActivity[]): Map<string, ScheduleActivity> {
+  const index = new Map<string, ScheduleActivity>();
+  for (const activity of activities) {
+    index.set(activity.activityCode, activity);
+    const runtimeId = activity.runtimeActivityId?.trim();
+    if (runtimeId) {
+      index.set(runtimeId, activity);
+    }
+  }
+  return index;
+}
+
+function resolveActivityCrewSize(activity: ScheduleActivity): number {
+  return resolveScheduleActivityCrewSize({
+    crewSize: activity.crewSize,
+    laborHours: activity.laborHours,
+    manDays: activity.manDays,
+    durationDays: activity.durationDays,
+    hoursPerDay: activity.hoursPerDay,
+  }).crewSize;
+}
+
+function resolveOffset(
+  cpm: CpmActivityResult,
+  leveledOffsets: Record<string, number>,
+  activity: ScheduleActivity,
+): number {
+  return (
+    leveledOffsets[cpm.activityCode] ??
+    (activity.runtimeActivityId ? leveledOffsets[activity.runtimeActivityId] : undefined) ??
+    0
+  );
+}
+
+function isActivityCriticalForHistogram(
+  cpmResult: CpmResult | null | undefined,
+  cpm: CpmActivityResult,
+  activity: ScheduleActivity,
+): boolean {
+  if (cpmResult?.hasRunCpm) {
+    return isDisplayCritical(cpmResult, activity.activityCode);
+  }
+  return cpm.isCritical;
 }
 
 export function calculateResourceHistogram(
   params: ResourceHistogramParams,
 ): ResourceHistogramDay[] {
-  const { activities, cpmActivities, projectStartDate, availableCrewSize, leveledOffsets = {} } =
-    params;
+  const {
+    activities,
+    cpmActivities,
+    projectStartDate,
+    availableCrewSize,
+    leveledOffsets = {},
+    cpmResult = null,
+  } = params;
 
   if (cpmActivities.length === 0) return [];
 
-  const actByCode = new Map(activities.map((a) => [a.activityCode, a]));
+  const actIndex = buildScheduleActivityIndex(activities);
   const projectDuration = Math.max(
     1,
-    ...cpmActivities.map((a) => {
-      const offset = leveledOffsets[a.activityCode] ?? 0;
-      return a.earlyStart + offset + (actByCode.get(a.activityCode)?.durationDays ?? 1);
+    ...cpmActivities.map((cpm) => {
+      const activity = actIndex.get(cpm.activityCode);
+      const offset = activity ? resolveOffset(cpm, leveledOffsets, activity) : 0;
+      return cpm.earlyFinish + offset;
     }),
   );
 
@@ -36,27 +91,32 @@ export function calculateResourceHistogram(
     const activeActivities: ResourceHistogramDay['activeActivities'] = [];
 
     for (const cpm of cpmActivities) {
-      const activity = actByCode.get(cpm.activityCode);
+      const activity = actIndex.get(cpm.activityCode);
       if (!activity) continue;
-      const offset = leveledOffsets[cpm.activityCode] ?? 0;
+
+      const offset = resolveOffset(cpm, leveledOffsets, activity);
       const es = cpm.earlyStart + offset;
-      const ef = es + activity.durationDays;
-      if (day >= es && day < ef) {
-        requiredCrew += activity.crewSize;
-        if (cpm.isCritical) {
-          criticalRequiredCrew += activity.crewSize;
-        } else {
-          noncriticalRequiredCrew += activity.crewSize;
-        }
-        activeActivities.push({
-          activityCode: activity.activityCode,
-          activityTitle: activity.activityDescription,
-          crewSize: activity.crewSize,
-          isCritical: cpm.isCritical,
-          scheduledStartDay: es,
-          scheduledFinishDay: ef - 1,
-        });
+      const ef = cpm.earlyFinish + offset;
+      if (day < es || day >= ef) continue;
+
+      const crewSize = resolveActivityCrewSize(activity);
+      const isCritical = isActivityCriticalForHistogram(cpmResult, cpm, activity);
+
+      requiredCrew += crewSize;
+      if (isCritical) {
+        criticalRequiredCrew += crewSize;
+      } else {
+        noncriticalRequiredCrew += crewSize;
       }
+
+      activeActivities.push({
+        activityCode: activity.activityCode,
+        activityTitle: activity.activityDescription,
+        crewSize,
+        isCritical,
+        scheduledStartDay: es,
+        scheduledFinishDay: ef - 1,
+      });
     }
 
     activeActivities.sort((left, right) => left.activityCode.localeCompare(right.activityCode));

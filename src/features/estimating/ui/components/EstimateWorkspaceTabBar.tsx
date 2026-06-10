@@ -14,19 +14,33 @@ export type EstimateWorkspaceTabId =
   | 'logic-network'
   | 'level-iii-gantt';
 
+/** Default workspace tab — Construction Activities is the primary estimating workflow. */
+export const DEFAULT_ESTIMATE_WORKSPACE_TAB: EstimateWorkspaceTabId = 'activities';
+
+/**
+ * Legacy Estimate/Line Items tab hidden while Construction Activities become the
+ * primary estimating workflow. Tab id remains in routes/types for fallback rendering.
+ */
+export const LEGACY_HIDDEN_ESTIMATE_WORKSPACE_TAB_IDS = ['line-items'] as const;
+
 export interface EstimateWorkspaceTab {
   id: EstimateWorkspaceTabId;
   label: string;
 }
 
+/** Tabs shown in the workspace sub-navigation. */
 export const ESTIMATE_WORKSPACE_TABS: EstimateWorkspaceTab[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'settings', label: 'Settings' },
-  { id: 'line-items', label: 'Estimate' },
   { id: 'activities', label: 'Activities' },
   { id: 'schedule-preview', label: 'Schedule Preview' },
   { id: 'logic-network', label: 'Logic Network' },
   { id: 'level-iii-gantt', label: 'Level III Gantt' },
+];
+
+/** Legacy tab definitions kept for fallback code paths (not rendered in the tab bar). */
+export const LEGACY_ESTIMATE_WORKSPACE_TABS: EstimateWorkspaceTab[] = [
+  { id: 'line-items', label: 'Estimate' },
 ];
 
 export const REMOVED_ESTIMATE_WORKSPACE_TAB_IDS = ['totals'] as const;

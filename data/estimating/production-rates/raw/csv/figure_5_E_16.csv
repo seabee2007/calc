@@ -1,0 +1,14 @@
+figure,Figure 5-E-16
+figureTitle,Structural Metal Stud Framing Stud Walls ......................................................................... 5-E-11
+division,05
+divisionName,Metals
+sourcePage,5-E-16
+sourcePdfPage,12
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"05 41 13.30\nStructural Metal Stud Framing Stud Walls\n(0010) 10 feet high, Top and bottom track, no openings, 16 GA 3-5/8 inch\nstuds at 16 inch OC\n(0210) 10 feet high, Top and bottom track, no openings, 16 GA 6 inch studs\nat 16 inch OC\n(0220) 10 feet high, Top and bottom track, no openings, 16 GA 6 inch studs\nat 24 inch OC\n(0410) 12 feet high, Top and bottom track, no openings, 16 GA 6 inch studs\nat 16 inch OC\n(0420) 12 feet high, Top and bottom track, no openings, 16 GA 6 inch studs\nat 24 inch OC\n(0450) 12 feet high, Top and bottom track, no openings, 14 GA 3-5/8 inch\nstuds at 16 inch OC\n(0500) 20 feet high, Top and bottom track, no openings, 14 GA 3-5/8 inch\nstuds at 16 inch OC\n(0510) 20 feet high, Top and bottom track, no openings, 14 GA 6 inch studs\nat 16 inch OC",LF\nLF\nLF\nLF\nLF\nLF\nLF\nLF,0.242\n0.250\n0.182\n0.314\n0.229\n0.333\n0.391\n0.381
+"05 42 13.40 Cold Formed Metal Joist Framing\n(0010) Installation to band joists, beams, or headers,\n18 GA x 6 inch x 2 inch flange",Each,0.145
+"05 42 23.05 Cold Formed Metal Roof Joist Framing Bracing\n(0010) Framing, Bracing 16 GA x 1 1/2 inch channel thru trusses or rafters\n16 inch OC",LF,0.0178
+"05 42 23.10 Cold Formed Metal Roof Joist Framing Bridging\n(0100) Framing, Bridging, Solid between rafters, Rafters at 16 inch OC,\n18 GA by 4 inch deep",Each,0.1333
+"05 42 23.60 Cold Formed Metal Roof Joist Framing Roof Rafters\n(0100) Boxed ridge beam, 18 GA, 6 inches deep\n(0200) Rafters, 2 inch flange, 18 GA, 6 inches deep",LF\nEach,0.1000\n0.4570
+"05 42 23.70 Cold Formed Metal Roof Joist Framing Soffits and Canopies\n(0010) Continuous ledger track at wall, studs 16 inch OC, 18 GA x 6 inch\nwide\n(0100) Horizontal soffit and canopy members, 18 GA 1 5/8 inch flange by\n6 inch deep",LF\nEach,0.3200\n0.1450

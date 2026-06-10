@@ -51,6 +51,8 @@ describe('schedule start date sync wiring', () => {
     );
     expect(saveEstimateBody).toContain('precedenceDiagram: precedenceDiagramForSave');
     expect(saveEstimateBody).toContain('existingAssumptions: saveAssumptions');
+    expect(saveEstimateBody).not.toContain('rehydrateScheduleFromEstimate');
+    expect(saveEstimateBody).not.toContain('navigate(');
   });
 
   it('Gantt Preview export uses scheduleSettings.projectStartDate, not schedulePlanControls', () => {

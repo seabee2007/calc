@@ -135,6 +135,18 @@ export interface ProjectConstructionActivity {
   code?: string;
   /** DB column: title */
   title: string;
+  /** Template/base title before instance suffix. */
+  baseTitle?: string | null;
+  /** User label for repeated instances (F-1, Area C-2). */
+  instanceLabel?: string | null;
+  location?: string | null;
+  drawingReference?: string | null;
+  phase?: string | null;
+  notes?: string | null;
+  /** DD-AA segment of activity_code. */
+  activitySequence?: number | null;
+  /** Instance segment (II) within template group. */
+  instanceSequence?: number | null;
   /** @deprecated use title */
   name?: string;
   description?: string;

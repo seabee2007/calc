@@ -1,0 +1,25 @@
+figure,Figure 5-M-3
+figureTitle,Fire Extinguishing System Components Production ...........................................................5-M-3
+division,21
+divisionName,Fire Suppression
+sourcePage,5-M-3
+sourcePdfPage,14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"21 22 16.50\nFM200 Fire Extinguishing System\n(0010) Alarm, audio",Each,1.5880
+"(0020) Control panel, single zone\n(0030) Control panel, multizone, four each",Each\nEach,10.6400\n21.2800
+(0040) Discharge nozzle,Each,0.7580
+(0050) Electro/mechanical release,Each,5.3200
+"FM200 system, filled, including mounting bracket",,
+(0060) 26 pound cylinder\n(0070) 44 pound cylinder\n(0080) 63 pound cylinder\n(0090) 101 pound cylinder\n(0100) 196 pound cylinder,Each\nEach\nEach\nEach\nEach,2.6600\n3.0400\n3.5470\n4.2560\n5.3200
+(0110) Heat detector,Each,1.3300
+(0120) Manual pull station,Each,1.7730
+(0130) Pneumatic damper release,Each,1.3300
+(0140) Smoke detector,Each,1.7160
+"0150) Standby power, battery",Each,3.7370
+Minimum suggested crew size: two utilitiesmen.,,
+Note: Refer to Division 22 11 13 for further information on facility water distribution piping.,,
+"21 31 13.50\nElectric-Drive Fire Pumps\nIncluding controller, fittings, and relief valve\n(0010) 2-inch pump, 250 gallons per minute, 15 horsepower\n(0020) 4-inch pump, 500 gallons per minute, 27 horsepower\n(0030) 5-inch pump, 750 gallons per minute, 44 horsepower\n(0040) 4-inch pump, 750 gallons per minute, 66 horsepower",Each\nEach\nEach\nEach,60.7800\n62.5900\n66.5000\n73.3790
+"21 31 16.50\nDiesel-Drive Fire Pumps\nIncluding controller, fittings, and relief valve\n(0010) 4-inch pump, 500 gallons per minute, 27 horsepower\n(0020) 5-inch pump, 750 gallons per minute, 44 horsepower\n(0030) 4-inch pump, 1,000 gallons per minute, 89 horsepower\n(0040) 6-inch pump, 2,000 gallons per minute, 167 horsepower\n(0050) 10-inch pump, 3,500 gallons per minute, 300 horsepower",Each\nEach\nEach\nEach\nEach,66.5000\n70.9330\n76.0000\n125.1770\n176.9000
+Minimum suggested crew size: three utilitiesmen and one laborer.,,
+Note: Refer to Division 09 22 26.13 for carrier channels for ceiling suspension systems.,,

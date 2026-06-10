@@ -1,0 +1,16 @@
+{
+  "batchMeta": {
+    "sourceDocumentCode": "MCRP 3-40D.12",
+    "sourceDocumentTitle": "Construction Estimating",
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "division": "05",
+    "divisionName": "Metals",
+    "figure": "Figure 5-E-7",
+    "figureTitle": "Weights of Standard Channels",
+    "extractedAt": "2026-06-10",
+    "sourceCsv": "figure_5_E_7.csv",
+    "annexKWarning": null
+  },
+  "records": []
+}

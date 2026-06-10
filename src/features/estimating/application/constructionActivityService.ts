@@ -3,15 +3,25 @@
  *
  * High-level operations combining the assembly instantiation layer with
  * the NTRP repository. This is the primary entry point for UI actions.
- *
- * Guardrails:
- *   - Does not touch calculateCpm.ts or autoLayoutLogicNetwork.ts.
- *   - Does not modify the live estimator EstimateDomainTask model.
- *   - Never stores ActivityLineItems as schedule activities.
  */
 import type { ActivityAssemblySpec, AssemblyUserInputs } from '../domain/activityAssemblyTypes';
-import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate } from '../domain/constructionActivityTypes';
+import type {
+  ActivityLineItemTemplate,
+  EstimateDivision,
+  ProductionRate,
+  ProjectActivityLineItem,
+  ProjectConstructionActivity,
+} from '../domain/constructionActivityTypes';
 import { instantiateFromAssemblySpec } from '../domain/activityAssemblyInstantiation';
+import {
+  calculateLineItemManHours,
+  rollupConstructionActivity,
+} from '../domain/constructionActivityCalculations';
+import {
+  assignProjectActivityCode,
+  type ActivityInstanceIdentityInput,
+  validateInstanceLabelForDuplicateTemplate,
+} from './constructionActivityCoding';
 import {
   saveActivityBundle,
   fetchProjectActivities,
@@ -20,11 +30,6 @@ import {
   type SavedActivityBundle,
 } from '../infrastructure/activityRepository';
 import type { RepositoryResult } from '../infrastructure/estimateDbTypes';
-import type { ProjectConstructionActivity, ProjectActivityLineItem } from '../domain/constructionActivityTypes';
-
-// ---------------------------------------------------------------------------
-// Primary: instantiate an assembly and save to the database
-// ---------------------------------------------------------------------------
 
 export interface InstantiateAndSaveInput {
   assembly: ActivityAssemblySpec;
@@ -38,18 +43,63 @@ export interface InstantiateAndSaveInput {
   hoursPerDay?: number;
   productionFactor?: number;
   durationDaysOverride?: number | null;
-  activityTitleOverride?: string;
-  /** Provide to update an existing activity; omit to insert. */
+  identity: ActivityInstanceIdentityInput;
+  existingActivities?: readonly ProjectConstructionActivity[];
   existingActivityId?: string;
 }
 
-/**
- * Instantiate an assembly from user inputs, calculate rollups, and persist to
- * project_construction_activities + project_activity_line_items.
- */
+export interface UpdateProjectActivityInput {
+  activity: ProjectConstructionActivity;
+  lineItems: ProjectActivityLineItem[];
+  identity: ActivityInstanceIdentityInput;
+  crewSize: number;
+  hoursPerDay: number;
+  durationDaysOverride?: number | null;
+  scheduleEnabled: boolean;
+  lineItemQuantities: Record<string, number>;
+}
+
+export interface LoadedProjectActivity {
+  activity: ProjectConstructionActivity;
+  lineItems: ProjectActivityLineItem[];
+}
+
+function buildAssignedIdentity(
+  input: InstantiateAndSaveInput,
+): { assigned: ReturnType<typeof assignProjectActivityCode> | null; validationError: string | null } {
+  const validationError = validateInstanceLabelForDuplicateTemplate({
+    existingActivities: input.existingActivities ?? [],
+    sourceTemplateKey: input.assembly.activityTemplateId,
+    instanceLabel: input.identity.instanceLabel,
+    excludeActivityId: input.existingActivityId,
+  });
+  if (validationError) {
+    return { assigned: null, validationError };
+  }
+
+  const assigned = assignProjectActivityCode({
+    existingActivities: input.existingActivities ?? [],
+    divisionCode: input.division.code,
+    sourceTemplateKey: input.assembly.activityTemplateId,
+    templateMasterCode: input.assembly.templateMasterCode,
+    identity: input.identity,
+    preserveActivityCode: input.existingActivityId
+      ? input.existingActivities?.find((a) => a.id === input.existingActivityId)?.activityCode
+      : null,
+    excludeActivityId: input.existingActivityId,
+  });
+
+  return { assigned, validationError: null };
+}
+
 export async function instantiateAndSaveActivity(
   input: InstantiateAndSaveInput,
 ): Promise<RepositoryResult<SavedActivityBundle>> {
+  const { assigned, validationError } = buildAssignedIdentity(input);
+  if (validationError || !assigned) {
+    return { data: null, error: validationError ?? 'Could not assign activity code.' };
+  }
+
   const instantiationResult = instantiateFromAssemblySpec({
     assembly: input.assembly,
     userInputs: input.userInputs,
@@ -62,7 +112,16 @@ export async function instantiateAndSaveActivity(
     hoursPerDay: input.hoursPerDay,
     productionFactor: input.productionFactor,
     durationDaysOverride: input.durationDaysOverride,
-    activityTitleOverride: input.activityTitleOverride,
+    activityTitleOverride: assigned.title,
+    activityCode: assigned.activityCode,
+    baseTitle: assigned.baseTitle,
+    instanceLabel: input.identity.instanceLabel,
+    location: input.identity.location,
+    drawingReference: input.identity.drawingReference,
+    phase: input.identity.phase,
+    notes: input.identity.notes,
+    activitySequence: assigned.activitySequence,
+    instanceSequence: assigned.instanceSequence,
   });
 
   const { projectActivity, projectLineItems } = instantiationResult;
@@ -91,26 +150,93 @@ export async function instantiateAndSaveActivity(
     sortOrder: li.sortOrder ?? 0,
   }));
 
-  return saveActivityBundle(
-    projectActivity,
-    lineItemsForSave,
-    input.existingActivityId,
-  );
+  return saveActivityBundle(projectActivity, lineItemsForSave, input.existingActivityId);
 }
 
-// ---------------------------------------------------------------------------
-// Load: activities for a project/estimate with their line items
-// ---------------------------------------------------------------------------
+export async function updateProjectConstructionActivity(
+  input: UpdateProjectActivityInput,
+): Promise<RepositoryResult<SavedActivityBundle>> {
+  const assigned = assignProjectActivityCode({
+    existingActivities: [input.activity],
+    divisionCode: input.activity.divisionCode,
+    sourceTemplateKey: input.activity.sourceTemplateKey ?? input.activity.templateId ?? '',
+    identity: input.identity,
+    preserveActivityCode: input.activity.activityCode,
+    excludeActivityId: input.activity.id,
+  });
 
-export interface LoadedProjectActivity {
-  activity: ProjectConstructionActivity;
-  lineItems: ProjectActivityLineItem[];
+  const updatedLineItems = input.lineItems.map((item) => {
+    const quantity =
+      input.lineItemQuantities[item.id] ?? input.lineItemQuantities[item.name] ?? item.quantity;
+    const calculatedManHours = calculateLineItemManHours(
+      quantity,
+      item.manHoursPerUnit,
+      item.productionFactor,
+    );
+    return {
+      ...item,
+      quantity,
+      calculatedManHours,
+    };
+  });
+
+  const draftActivity: ProjectConstructionActivity = {
+    ...input.activity,
+    title: assigned.title,
+    baseTitle: assigned.baseTitle,
+    instanceLabel: input.identity.instanceLabel ?? null,
+    location: input.identity.location ?? null,
+    drawingReference: input.identity.drawingReference ?? null,
+    phase: input.identity.phase ?? null,
+    notes: input.identity.notes ?? null,
+    crewSize: input.crewSize,
+    hoursPerDay: input.hoursPerDay,
+    durationDaysOverride: input.durationDaysOverride ?? null,
+    scheduleEnabled: input.scheduleEnabled,
+    activityCode: input.activity.activityCode,
+  };
+
+  const rollup = rollupConstructionActivity(draftActivity, updatedLineItems);
+  const finalActivity: ProjectConstructionActivity = {
+    ...draftActivity,
+    calculatedManHours: rollup.totalManHours,
+    calculatedManDays: rollup.totalManDays,
+    calculatedDurationDays: rollup.calculatedDurationDays,
+    effectiveDurationDays: rollup.effectiveDurationDays,
+    totalLaborCost: rollup.totalLaborCost,
+    totalMaterialCost: rollup.totalMaterialCost,
+    totalEquipmentCost: rollup.totalEquipmentCost,
+    totalSubcontractCost: 0,
+    totalCost: rollup.totalDirectCost,
+  };
+
+  const lineItemsForSave = updatedLineItems.map((li) => ({
+    projectId: input.activity.projectId,
+    productionRateId: li.productionRateId ?? null,
+    sourceProductionRateKey: li.sourceProductionRateKey ?? null,
+    sourceProductionRateLabel: li.sourceProductionRateLabel ?? null,
+    sourceFigure: li.sourceFigure ?? null,
+    sourcePage: li.sourcePage ?? null,
+    sourcePdfPage: li.sourcePdfPage ?? null,
+    sourceDocumentCode: li.sourceDocumentCode ?? null,
+    name: li.name,
+    description: li.description,
+    quantity: li.quantity,
+    unit: li.unit,
+    manHoursPerUnit: li.manHoursPerUnit,
+    productionFactor: li.productionFactor,
+    calculatedManHours: li.calculatedManHours,
+    laborCost: li.laborCost,
+    materialCost: li.materialCost,
+    equipmentCost: li.equipmentCost,
+    subcontractCost: li.subcontractCost ?? 0,
+    totalCost: li.totalCost ?? 0,
+    sortOrder: li.sortOrder ?? 0,
+  }));
+
+  return saveActivityBundle(finalActivity, lineItemsForSave, input.activity.id);
 }
 
-/**
- * Load all construction activities for a project, each with their line items.
- * Line items are fetched in parallel.
- */
 export async function loadProjectActivitiesWithLineItems(
   projectId: string,
   estimateId?: string,
@@ -135,27 +261,14 @@ export async function loadProjectActivitiesWithLineItems(
   return { data: loaded, error: null };
 }
 
-// ---------------------------------------------------------------------------
-// Delete
-// ---------------------------------------------------------------------------
-
-/**
- * Delete a project construction activity and all its line items (CASCADE).
- */
 export async function removeProjectActivity(id: string): Promise<RepositoryResult<null>> {
   return deleteProjectActivity(id);
 }
 
-// ---------------------------------------------------------------------------
-// Schedule-enabled filter (used by Schedule Engine adapter in M5)
-// ---------------------------------------------------------------------------
-
-/**
- * Filter a list of project activities to those eligible for Logic Network cards.
- * Line items are never included — only schedule-enabled ProjectConstructionActivities.
- */
 export function filterScheduleEligibleActivities(
   activities: ProjectConstructionActivity[],
 ): ProjectConstructionActivity[] {
   return activities.filter((a) => a.scheduleEnabled === true);
 }
+
+export type { ActivityInstanceIdentityInput };

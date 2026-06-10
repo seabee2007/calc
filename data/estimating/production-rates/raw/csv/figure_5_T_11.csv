@@ -1,0 +1,22 @@
+figure,Figure 5-T-11
+figureTitle,Diesel Fuel Distribution Production ..................................................................................... 5-T-6
+division,33
+divisionName,Utilities
+sourcePage,5-T-11
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+33 52 19.00\nDiesel Fuel Distribution,,
+"(0010) Install assault hoseline system, 2-1/2 miles\nMinimum suggested crew size: six laborers",Each,24.0
+(0020) Install forward area refueling equipment\nMinimum suggested crew size: four laborers,Each,1.0
+(0030) Install advanced aviation forward area refueling system\nMinimum suggested crew size: four laborers,Each,1.3330
+(0040) Install HEMTT tanker aviation refueling system\nMinimum suggested crew size: two laborers,Each,1.0
+"(0050) Install fuel distribution system with 1,000 gallon bag\nMinimum suggested crew size: one laborer",Each,2.0
+"(0100) Filter separator, 350 GPM\nMinimum suggested crew size: two laborers",Each,0.50
+(0200) Install 120K fuel system supply point (FSSP)\n(0210) Install 300K FSSP\n(0220) Install 800K FSSP,Each\nEach\nEach,172.0\n284.0\n748.0
+"Minimum suggested crew size: two equipment operators,\n28 laborers",,
+"(0600) Assemble and install fuel valve manifold, USN\nMinimum suggested crew size: one laborer.",Each,0.7500
+Legend: HEMTT = heavy expanded mobility tactical truck\nK = thousand,,
+"33 56 00.00\nPlastic Coated, Fabric, Pillow Fuel Tanks",,
+"(0005) 250 gallon drum, USN\n(0010) 500 gallon drum\n(0020) 20,000 gallon tank\n(0030) 50,000 gallon tank\n(0040) 210,000 gallon tank",Each\nEach\nEach\nEach\nEach,0.7500\n1.0\n24.0\n42.6670\n180.0
+Minimum suggested crew size: one equipment operator and one to nine laborers.,,

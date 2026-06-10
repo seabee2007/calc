@@ -19,10 +19,10 @@ export const CPM_INVALID_SAVED_MESSAGE =
 
 export function buildCpmActivitySignature(activities: ScheduleActivity[]): string {
   return activities
-    .map(
-      (activity) =>
-        `${activity.activityCode}|${activity.durationDays}|${activity.activityDescription}`,
-    )
+    .map((activity) => {
+      const stableId = activity.runtimeActivityId?.trim() || activity.activityCode.trim();
+      return `${stableId}|${activity.activityCode}|${activity.durationDays}`;
+    })
     .sort()
     .join(';;');
 }
@@ -132,6 +132,17 @@ export function currentPrecedenceDiagramSignaturesMatch(input: {
     input.saved.scheduleSettingsSignature ===
       buildScheduleSettingsCpmSignature(input.scheduleSettings)
   );
+}
+
+/** Estimate bucket save should not invalidate CPM when only non-schedule fields changed. */
+export function shouldInvalidateCpmOnEstimateSave(input: {
+  estimateSettingsDirty: boolean;
+  lineItemDraftDirty: boolean;
+  usesConstructionActivities: boolean;
+}): boolean {
+  if (input.estimateSettingsDirty) return true;
+  if (input.lineItemDraftDirty && !input.usesConstructionActivities) return true;
+  return false;
 }
 
 export interface RecomputeCommittedCpmResult {

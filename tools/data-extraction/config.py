@@ -16,11 +16,19 @@ DEFAULT_PDF_PATH = Path.home() / "Downloads" / "MCRP 3-40D.12.pdf"
 
 RAW_CSV_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "raw" / "csv"
 RAW_JSON_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "raw"
+NEEDS_REVIEW_JSON_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "needs-review"
+AI_REVIEWED_JSON_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "ai-reviewed"
 REVIEWED_JSON_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "reviewed"
 APPROVED_JSON_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "approved"
+REJECTED_JSON_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "rejected"
+REPORTS_DIR = REPO_ROOT / "data" / "estimating" / "production-rates" / "reports"
+ENV_LOCAL_PATH = REPO_ROOT / ".env.local"
+GENERATED_TS_DIR = REPO_ROOT / "src" / "features" / "estimating" / "data" / "productionRates" / "generated"
 SCHEMA_PATH = REPO_ROOT / "tools" / "data-extraction" / "schemas" / "productionRate.schema.json"
 
-CONFIDENCE_VALUES = ("raw", "needs_review", "reviewed", "approved")
+QA_STATUSES = ("raw", "needs_review", "ai_reviewed", "reviewed", "approved", "rejected")
+# Backward compatibility alias
+CONFIDENCE_VALUES = QA_STATUSES
 
 # Chapter 5 annex letter -> CSI division metadata (from manual table of contents).
 ANNEX_DIVISIONS: dict[str, dict[str, str]] = {
@@ -48,19 +56,24 @@ ANNEX_DIVISIONS: dict[str, dict[str, str]] = {
     "X": {"division": "46", "divisionName": "Water Treatment Equipment"},
 }
 
-# Initial rollout priority divisions.
+# Reverse lookup: CSI division code -> Chapter 5 annex letter.
 DIVISION_TO_ANNEX: dict[str, str] = {
-    "03": "C",
-    "06": "F",
-    "31": "R",
-    "32": "S",
-    "26": "Q",
-    "22": "N",
+    meta["division"]: annex for annex, meta in ANNEX_DIVISIONS.items()
 }
 
+# Initial Concrete Calc rollout — extract/review these first.
+PRIORITY_DIVISION_CODES: tuple[str, ...] = ("03", "06", "31", "32", "26", "22")
+
 PRIORITY_DIVISIONS: dict[str, dict[str, str]] = {
-    code: ANNEX_DIVISIONS[annex] for code, annex in DIVISION_TO_ANNEX.items()
+    code: ANNEX_DIVISIONS[DIVISION_TO_ANNEX[code]] for code in PRIORITY_DIVISION_CODES
 }
+
+# Every division represented in Chapter 5 of the manual (22 annexes, 218 figures).
+ALL_DIVISION_CODES: tuple[str, ...] = tuple(
+    sorted({meta["division"] for meta in ANNEX_DIVISIONS.values()}, key=lambda code: int(code))
+)
+
+ALL_ANNEX_LETTERS: tuple[str, ...] = tuple(sorted(ANNEX_DIVISIONS.keys()))
 
 
 @dataclass(frozen=True)

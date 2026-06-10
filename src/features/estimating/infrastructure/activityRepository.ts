@@ -193,6 +193,15 @@ export async function updateProjectActivity(
     const payload: Record<string, unknown> = {};
 
     if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.baseTitle !== undefined) payload.base_title = updates.baseTitle ?? null;
+    if (updates.instanceLabel !== undefined) payload.instance_label = updates.instanceLabel ?? null;
+    if (updates.location !== undefined) payload.location = updates.location ?? null;
+    if (updates.drawingReference !== undefined) payload.drawing_reference = updates.drawingReference ?? null;
+    if (updates.phase !== undefined) payload.phase = updates.phase ?? null;
+    if (updates.notes !== undefined) payload.notes = updates.notes ?? null;
+    if (updates.activitySequence !== undefined) payload.activity_sequence = updates.activitySequence ?? null;
+    if (updates.instanceSequence !== undefined) payload.instance_sequence = updates.instanceSequence ?? null;
+    if (updates.description !== undefined) payload.description = updates.description ?? null;
     if (updates.scheduleEnabled !== undefined) payload.schedule_enabled = updates.scheduleEnabled;
     if (updates.crewSize !== undefined) payload.crew_size = updates.crewSize;
     if (updates.hoursPerDay !== undefined) payload.hours_per_day = updates.hoursPerDay;

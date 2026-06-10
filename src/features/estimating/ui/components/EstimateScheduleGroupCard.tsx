@@ -35,8 +35,8 @@ export default function EstimateScheduleGroupCard({ division }: Props) {
                 {formatScheduleGroupLabel(scope.key, scope.label)}
               </h4>
               <p className={`text-xs ${PLANNER_MUTED}`}>
-                {formatEstimateNumber(scope.rollup.itemCount, { decimals: 0 })} candidate
-                {scope.rollup.itemCount === 1 ? '' : 's'}
+                {formatEstimateNumber(scope.rollup.itemCount, { decimals: 0 })} activit
+                {scope.rollup.itemCount === 1 ? 'y' : 'ies'}
               </p>
             </div>
 

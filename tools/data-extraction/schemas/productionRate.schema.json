@@ -1,100 +1,64 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://concretecalc.app/schemas/productionRate.schema.json",
-  "title": "ExtractedProductionRateRecord",
+  "title": "NormalizedProductionRateRecord",
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "id",
     "sourceDocumentCode",
+    "sourceDocumentTitle",
+    "sourceDocumentFull",
+    "sourceEdition",
     "division",
     "divisionName",
     "figure",
+    "figureTitle",
+    "sourcePage",
     "activityName",
     "unitOfMeasure",
-    "sourcePage",
-    "confidence"
+    "qaStatus",
+    "createdAt",
+    "updatedAt"
   ],
   "properties": {
-    "sourceDocumentCode": {
+    "id": { "type": "string", "minLength": 1 },
+    "sourceDocumentCode": { "type": "string", "const": "MCRP 3-40D.12" },
+    "sourceDocumentTitle": { "type": "string", "minLength": 1 },
+    "sourceDocumentFull": { "type": "string", "minLength": 1 },
+    "sourceEdition": { "type": "string", "minLength": 1 },
+    "division": { "type": "string", "pattern": "^\\d{2}$" },
+    "divisionName": { "type": "string", "minLength": 1 },
+    "figure": { "type": "string", "pattern": "^Figure 5-[A-Z]-\\d+$" },
+    "figureTitle": { "type": "string", "minLength": 1 },
+    "sourcePage": { "type": "string", "minLength": 1 },
+    "sourcePdfPage": { "type": ["integer", "null"], "minimum": 1 },
+    "workElementNumber": { "type": ["string", "null"], "pattern": "^\\d{2}\\s\\d{2}\\s\\d{2}\\.\\d{2}$" },
+    "workElementLineNumber": { "type": ["string", "null"], "pattern": "^\\d{4}$" },
+    "category": { "type": ["string", "null"] },
+    "subcategory": { "type": ["string", "null"] },
+    "activityName": { "type": "string", "minLength": 1 },
+    "description": { "type": ["string", "null"] },
+    "unitOfMeasure": { "type": "string", "minLength": 1 },
+    "manHoursPerUnit": { "type": ["number", "null"] },
+    "fabricateHours": { "type": ["number", "null"] },
+    "erectStripHours": { "type": ["number", "null"] },
+    "cleanMoveHours": { "type": ["number", "null"] },
+    "crewSize": { "type": ["number", "null"] },
+    "skilledTrade": { "type": ["string", "null"] },
+    "skilledCount": { "type": ["number", "null"] },
+    "laborerCount": { "type": ["number", "null"] },
+    "equipmentOperatorCount": { "type": ["number", "null"] },
+    "equipment": { "type": ["string", "null"] },
+    "figureCrewNotes": { "type": ["array", "null"], "items": { "type": "string" } },
+    "figureNotes": { "type": ["array", "null"], "items": { "type": "string" } },
+    "rowNotes": { "type": ["string", "null"] },
+    "qaStatus": {
       "type": "string",
-      "const": "MCRP 3-40D.12"
+      "enum": ["raw", "needs_review", "ai_reviewed", "reviewed", "approved", "rejected"]
     },
-    "division": {
-      "type": "string",
-      "pattern": "^\\d{2}$"
-    },
-    "divisionName": {
-      "type": "string",
-      "minLength": 1
-    },
-    "figure": {
-      "type": "string",
-      "pattern": "^Figure 5-[A-Z]-\\d+$"
-    },
-    "figureTitle": {
-      "type": ["string", "null"]
-    },
-    "workElementNumber": {
-      "type": ["string", "null"],
-      "pattern": "^\\d{2}\\s\\d{2}\\s\\d{2}\\.\\d{2}$"
-    },
-    "workElementLineNumber": {
-      "type": ["string", "null"],
-      "pattern": "^\\d{4}$"
-    },
-    "activityName": {
-      "type": "string",
-      "minLength": 1
-    },
-    "description": {
-      "type": ["string", "null"]
-    },
-    "unitOfMeasure": {
-      "type": "string",
-      "minLength": 1
-    },
-    "manHoursPerUnit": {
-      "type": ["number", "null"]
-    },
-    "crewSize": {
-      "type": ["number", "null"]
-    },
-    "skilledTrade": {
-      "type": ["string", "null"]
-    },
-    "laborerCount": {
-      "type": ["number", "null"]
-    },
-    "equipment": {
-      "type": ["string", "null"]
-    },
-    "notes": {
-      "type": ["string", "null"]
-    },
-    "sourcePage": {
-      "type": "string",
-      "minLength": 1
-    },
-    "sourcePdfPage": {
-      "type": ["integer", "null"],
-      "minimum": 1
-    },
-    "confidence": {
-      "type": "string",
-      "enum": ["raw", "needs_review", "reviewed", "approved"]
-    },
-    "fabricateHours": {
-      "type": ["number", "null"]
-    },
-    "erectStripHours": {
-      "type": ["number", "null"]
-    },
-    "cleanMoveHours": {
-      "type": ["number", "null"]
-    },
-    "extractionWarnings": {
-      "type": "array",
-      "items": { "type": "string" }
-    }
+    "extractionWarnings": { "type": "array", "items": { "type": "string" } },
+    "createdAt": { "type": "string", "minLength": 1 },
+    "updatedAt": { "type": "string", "minLength": 1 }
   }
 }

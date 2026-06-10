@@ -1,0 +1,18 @@
+figure,Figure 5-T-3
+figureTitle,Bolted Steel Tank Production ............................................................................................... 5-T-2
+division,33
+divisionName,Utilities
+sourcePage,5-T-3
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+33 12 19.10\nFire Hydrants,,
+"(0010) 5-1/4 in valve size, 2 ft depth\n(0020) 5-1/4 in valve size, 4 ft depth\n(0030) 5-1/4 in valve size, 6 ft depth",Each\nEach\nEach,4.20\n4.6665\n6.0
+"Minimum suggested crew size: one utilitiesman, one equipment operator, two laborers",,
+33 16 13.13\nSteel Water Storage Tanks,,
+"(0010) 100 barrel tank\n(0020) 250 barrel tank\n(0030) 500 barrel tank\n(0040) 1,000 barrel tank\n(0050) 3,000 barrel tank\n(0060) 10,000 barrel tank\n(0070) 50,000 barrel tank",Each\nEach\nEach\nEach\nEach\nEach\nEach,"55\n130\n220\n440\n750\n1,600\n6,660"
+Minimum suggested crew size: six steelworkers.,,
+Note: Basis: tank erection only; does not include site preparation or uncrating.,,
+33 16 13.23\nFabric Pillow Water Storage Tanks,,
+"(0010) 500 gallon drum\n(0020) 3,000 gallon tank\n(0030) 5,000 gallon tank\n(0040) 10,000 gallon tank\n(0050) 20,000 gallon tank\n(0060) 50,000 Gallon tank",Each\nEach\nEach\nEach\nEach\nEach,1.0\n3.0\n6.0\n12.0\n24.0\n42.6670
+Minimum suggested crew size: one equipment operator and two to eight laborers.,,

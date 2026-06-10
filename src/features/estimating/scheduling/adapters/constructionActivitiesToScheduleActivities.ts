@@ -15,6 +15,7 @@
  *    undefined here and populated by the Logic Network UI.
  */
 import type { ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import { resolveScheduleActivityCrewSize } from '../resources/scheduleActivityCrewSize';
 import type {
   ScheduleActivity,
   ScheduleActivityAdapterResult,
@@ -65,7 +66,15 @@ export function constructionActivitiesToScheduleActivities(
     }
 
     // ── Crew size ─────────────────────────────────────────────────────────────
-    const crewSize = Math.max(1, activity.crewSize ?? 1);
+    const hoursPerDay = activity.hoursPerDay ?? 8;
+    const resolvedCrew = resolveScheduleActivityCrewSize({
+      crewSize: activity.crewSize,
+      laborHours: activity.calculatedManHours,
+      manDays: activity.calculatedManDays,
+      durationDays,
+      hoursPerDay,
+    });
+    const crewSize = resolvedCrew.crewSize;
 
     if ((activity.crewSize ?? 0) < 1) {
       warnings.push({
@@ -92,6 +101,7 @@ export function constructionActivitiesToScheduleActivities(
       manDays,
       crewDays,
       crewSize,
+      hoursPerDay,
       totalCost: activity.totalCost ?? 0,
       // Predecessor / relationship fields are managed by the Logic Network.
       // Do NOT pre-populate them here — that would bypass the user's logic links.

@@ -95,8 +95,7 @@ describe('levelThreeGanttFullscreen helpers', () => {
 describe('Level III Gantt workspace fullscreen UI', () => {
   it('shows Full screen button in normal toolbar', () => {
     expect(workspaceSource).toContain('Full screen');
-    expect(workspaceSource).toContain('Export PDF');
-    expect(workspaceSource).toContain('Export Excel');
+    expect(workspaceSource).toContain('LevelThreeGanttExportMenu');
     expect(workspacePageSource).toContain('LevelThreeGanttWorkspace');
   });
 
@@ -109,8 +108,7 @@ describe('Level III Gantt workspace fullscreen UI', () => {
 
   it('fullscreen toolbar shows title and export actions', () => {
     expect(toolbarSource).toContain('Level III Gantt');
-    expect(toolbarSource).toContain('Export PDF');
-    expect(toolbarSource).toContain('Export Excel');
+    expect(toolbarSource).toContain('LevelThreeGanttExportMenu');
     expect(toolbarSource).toContain('Fit width');
     expect(toolbarSource).toContain('Exit full screen');
   });

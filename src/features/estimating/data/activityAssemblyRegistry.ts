@@ -106,6 +106,7 @@ export const ASSEMBLY_PLACE_SLAB_ON_GRADE: ActivityAssemblySpec = {
   ],
   defaultCrewSize: 4,
   defaultHoursPerDay: 8,
+  templateMasterCode: PLACE_SLAB_ON_GRADE_ACTIVITY.code,
   keyProductionRateIds: ['03-31-05.70-0320', '03-35-29.30-0040'],
 };
 
@@ -158,6 +159,7 @@ export const ASSEMBLY_PLACE_CONTINUOUS_FOOTING: ActivityAssemblySpec = {
   ],
   defaultCrewSize: 4,
   defaultHoursPerDay: 8,
+  templateMasterCode: PLACE_CONTINUOUS_FOOTING_ACTIVITY.code,
   keyProductionRateIds: ['03-31-05.70-0130'],
 };
 
@@ -194,6 +196,7 @@ export const ASSEMBLY_CLEAR_AND_GRUB: ActivityAssemblySpec = {
   ],
   defaultCrewSize: 4,
   defaultHoursPerDay: 8,
+  templateMasterCode: CLEAR_AND_GRUB_ACTIVITY.code,
   keyProductionRateIds: ['31-11-10.10-0010'],
 };
 
@@ -235,6 +238,7 @@ export const ASSEMBLY_EXCAVATE_FOOTINGS: ActivityAssemblySpec = {
   ],
   defaultCrewSize: 2,
   defaultHoursPerDay: 8,
+  templateMasterCode: EXCAVATE_FOOTINGS_ACTIVITY.code,
   keyProductionRateIds: ['31-23-16.13-0010'],
 };
 
@@ -262,6 +266,7 @@ export const ASSEMBLY_BACKFILL_AND_COMPACT: ActivityAssemblySpec = {
   ],
   defaultCrewSize: 2,
   defaultHoursPerDay: 8,
+  templateMasterCode: BACKFILL_AND_COMPACT_ACTIVITY.code,
   keyProductionRateIds: ['31-23-16.13-0090'],
 };
 

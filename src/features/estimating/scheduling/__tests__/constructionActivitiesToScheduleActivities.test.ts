@@ -137,10 +137,10 @@ describe('constructionActivitiesToScheduleActivities — warnings', () => {
     expect(warnings.some((w) => w.activityCode === '03-30-01')).toBe(true);
   });
 
-  it('warns when crewSize is missing and defaults to 1', () => {
+  it('warns when crewSize is missing and derives fallback from man-hours', () => {
     const activity = makeActivity({ crewSize: 0 });
     const { activities, warnings } = constructionActivitiesToScheduleActivities([activity]);
-    expect(activities[0].crewSize).toBe(1);
+    expect(activities[0].crewSize).toBe(3);
     expect(warnings.some((w) => w.activityCode === '03-30-01')).toBe(true);
   });
 

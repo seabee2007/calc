@@ -1,0 +1,24 @@
+figure,Figure 5-L-5
+figureTitle,Pre-engineered Steel Building Production ............................................................................ 5-L-4
+division,13
+divisionName,Special Construction
+sourcePage,5-L-5
+sourcePdfPage,14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+13 36 13.00\nSteel Towers\n(0010) Standard heights,Each,20
+"33 81 13.10\nAntenna, Radio Tower\n(0010) Guyed, 50 feet high, 40 pound section, wind load 70 miles per hour\n(0020) Self-supporting, 60 feet high, wind load 70 miles per hour",Each\nEach,22.0\n40.0
+"Minimum suggested crew size: two steelworkers, one equipment operator.",,
+13 34 19.50\nPre-engineered Steel Buildings,,
+"Clear span rigid frame, 26-gauge roofing and siding\n20-foot width\n(0010) 10-foot-eave height\n(0020) 14-foot-eave height",SF Floor\nSF Floor,0.1760\n0.2130
+30- to 40-foot width\n(0030) 10-foot-eave height\n(0040) 14-foot-eave height,SF Floor\nSF Floor,0.1400\n0.1650
+50- to 100-foot width\n(0050) 10-foot-eave height\n(0060) 14-foot-eave height,SF Floor\nSF Floor,0.0860\n0.0970
+"Clear span tapered beam frame, 26-gauge roofing and siding\n30-foot width\n(0070) 10-foot-eave height\n(0080) 14-foot-eave height",SF Floor\nSF Floor,0.1400\n0.1650
+40-foot width\n(0090) 10-foot-eave height\n(0100) 14-foot-eave height,SF Floor\nSF Floor,0.1240\n0.1460
+50- to 80-foot width\n(0110) 10-foot-eave height\n(0120) 14-foot-eave height,SF Floor\nSF Floor,0.0970\n0.1100
+"Minimum suggested crew size: one steelworker (crew leader), four laborers, and two equipment operators.",,
+"Notes:\n1. These estimates are for frame and shell only. Windows, doors, skylights, vents, gutters, and\ndownspouts are not included.\n2. Refer to manufacturers’ specifications and installation instructions.\n3. Standard bay length is 20 feet. To get square feet of floor, multiply width by length. Length is the\nnumber of bays. The true building length is equal to the number of 20-foot bays plus 6 inches; each\nend bay is 20 feet 3 inches.",,
+"Shelter, aluminum frame\n(0200) 3 feet by 9 feet by 8 feet high\n(0210) 3 feet by 12 feet by 8 feet high",Each\nEach,18.7\n29.2
+Minimum suggested crew size: one builder and one steelworker.,,
+"Notes:\n1. These estimates are for frame and shell only. Windows, doors, skylights, vents, gutters, and\ndownspouts are not included.\n2. Refer to manufacturers’ specifications and installation instructions.",,
+"P-Model (Straight sidewalls and arched roof. Optimizes useable space by\nraising the arch to above the sidewalls.) Typical ultimate building machine\ntype. Unlimited length\n(0010) 14-foot width\n(0020) 30-foot width\n(0030) 14 foot width, end wall\n(0035) 30 foot width, end wall\nA-Model (high-pitched roof) unlimited length\n(0040) 20 foot width, high pitched roof\n(0045) 40 foot width, high pitched roof\n(0050) 20 foot width, end wall, high pitched roof\n(0055) 40 foot width, end wall, high pitched roof\nS-Model (high, straight sidewalls and curved arch roof) unlimited length\n(0060) 20-foot width\n(0065) 40-foot width\n(0070) 20-foot width, end wall\n(0075) 40-foot width, end wall\nQ-Model (Maximize usable interior space with no poles or beams), typical\nK-Span, arch style otherwise known as Quonset hut, unlimited length\n(0080) 50-foot width\n(0085) 100-foot width",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.0130\n0.0124\n0.0140\n0.0020\n0.0122\n0.0126\n0.0016\n0.0024\n0.0122\n0.0126\n0.0016\n0.0024\n0.0144\n0.0174

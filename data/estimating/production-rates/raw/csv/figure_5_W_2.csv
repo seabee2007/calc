@@ -1,0 +1,17 @@
+figure,Figure 5-W-2
+figureTitle,Asphalt Plant Operation ...................................................................................................... 5-W-2
+division,41
+divisionName,Materiel Processing and Handling
+sourcePage,5-W-2
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+41 14 00\nBatching Equipment,,
+(0010) Setup and dismantle plant,Each,120.000
+(0020) Operation of asphalt plant,Ton,0.080
+(0030) Haul asphalt to job,Ton per mile,0.048
+"Minimum suggested crew size:\nSetup and dismantle plant—five equipment operators, one electrician, one steelworker, and one\nmechanic. Asphalt plant operation and maintenance—two equipment operators, one electrician, and one\nmechanic.",,
+"Notes:\n1. Figures are based on drum mix plant, 70 tons per hour.\n2. Site preparation and concrete curing time not included in table.",,
+41 22 23.10\nHoisting Equipment,,
+(0100) Setup overhead crane 5T,Each,34.0
+"Minimum suggested crew size:\nSetup hoist—seven equipment operators, one electrician, one steelworker",,

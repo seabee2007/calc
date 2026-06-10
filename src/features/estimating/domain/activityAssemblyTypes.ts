@@ -58,6 +58,8 @@ export interface ActivityAssemblySpec {
   defaultProductionFactor?: number;
   /** Key rates shown in the summary section of the UI. */
   keyProductionRateIds?: string[];
+  /** CSI master activity code from template (e.g. 03-02-01) for project instance coding. */
+  templateMasterCode?: string;
 }
 
 /**

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { CurrentEstimate } from '../../application/currentEstimateService';
 import { estimateLineItemsToScheduleActivities } from '../../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import type { ScheduleActivity } from '../../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import {
   DEFAULT_SCHEDULE_SETTINGS,
   type CpmLogicLink,
@@ -25,6 +26,7 @@ import {
   parseLeveledOffsetsFromAssumptions,
   parseLogicReviewIgnoredFromAssumptions,
   parseScheduleSettingsFromAssumptions,
+  reconcileLogicLinksWithScheduleActivities,
   sanitizeScheduleAssumptionsForLineItems,
   seedLogicLinksFromLineItems,
 } from '../../scheduling/scheduleAssumptions';
@@ -55,6 +57,10 @@ export interface UseScheduleSettingsResult {
   rehydrateFromEstimate: (
     estimate: CurrentEstimate | null,
     lineItems: EstimateDomainTask[],
+    scheduleActivities?: ScheduleActivity[],
+    options?: {
+      enableLegacyEstimateScheduleFallback?: boolean;
+    },
   ) => void;
 }
 
@@ -74,7 +80,14 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
   const [cpmWarningMessage, setCpmWarningMessageState] = useState<string | null>(null);
 
   const rehydrateFromEstimate = useCallback(
-    (estimate: CurrentEstimate | null, lineItems: EstimateDomainTask[]) => {
+    (
+      estimate: CurrentEstimate | null,
+      lineItems: EstimateDomainTask[],
+      scheduleActivities?: ScheduleActivity[],
+      options?: {
+        enableLegacyEstimateScheduleFallback?: boolean;
+      },
+    ) => {
       if (!estimate) {
         setScheduleSettings(DEFAULT_SCHEDULE_SETTINGS);
         setLogicLinksState([]);
@@ -96,6 +109,7 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
       const sanitizedAssumptions = sanitizeScheduleAssumptionsForLineItems(
         estimate.assumptions,
         lineItems,
+        scheduleActivities,
       );
       const parsedSettings = parseScheduleSettingsFromAssumptions(sanitizedAssumptions);
       const hasExplicitScheduleSettings =
@@ -114,11 +128,20 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
 
       const initialized = parseLogicNetworkInitializedFromAssumptions(sanitizedAssumptions);
       const hasLinksKey = hasLogicLinksKey(estimate.assumptions);
-      const existingLinks = parseLogicLinksFromAssumptions(sanitizedAssumptions);
+      const parsedLinks = parseLogicLinksFromAssumptions(sanitizedAssumptions);
+      const legacyFallbackEnabled = options?.enableLegacyEstimateScheduleFallback === true;
+
+      const linksForState =
+        scheduleActivities !== undefined && scheduleActivities.length > 0
+          ? reconcileLogicLinksWithScheduleActivities(parsedLinks, scheduleActivities).links
+          : parsedLinks;
+
       if (initialized || hasLinksKey) {
-        setLogicLinksState(existingLinks);
-      } else {
+        setLogicLinksState(linksForState);
+      } else if (legacyFallbackEnabled && scheduleActivities === undefined) {
         setLogicLinksState(seedLogicLinksFromLineItems(lineItems));
+      } else {
+        setLogicLinksState([]);
       }
       setLogicNetworkInitializedState(initialized || hasLinksKey);
 
@@ -127,23 +150,32 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
       setLogicReviewIgnoredState(parseLogicReviewIgnoredFromAssumptions(sanitizedAssumptions));
 
       const savedViewMode = parseLogicNetworkViewModeFromAssumptions(sanitizedAssumptions);
-      const { activities } = estimateLineItemsToScheduleActivities(lineItems, {
-        defaultCrewSize: estimateSettings.defaultCrewSize,
-        hoursPerDay: parsedSettings.hoursPerDay,
-      });
+      const { activities: lineItemScheduleActivities } = estimateLineItemsToScheduleActivities(
+        lineItems,
+        {
+          defaultCrewSize: estimateSettings.defaultCrewSize,
+          hoursPerDay: parsedSettings.hoursPerDay,
+        },
+      );
+      const activitiesForCpm =
+        scheduleActivities !== undefined
+          ? scheduleActivities
+          : legacyFallbackEnabled
+            ? lineItemScheduleActivities
+            : [];
       const savedPrecedenceDiagram =
         parsePrecedenceDiagramFromAssumptions(sanitizedAssumptions) ??
         rawPrecedenceDiagram ??
         migratePrecedenceDiagramFromLegacyCpmCache({
           assumptions: estimate.assumptions as Record<string, unknown> | undefined,
-          activities,
-          logicLinks: existingLinks,
+          activities: activitiesForCpm,
+          logicLinks: linksForState,
           scheduleSettings: parsedSettings,
         });
       const recompute = recomputeCommittedCpmFromSavedState({
         precedenceDiagram: savedPrecedenceDiagram,
-        activities,
-        logicLinks: existingLinks,
+        activities: activitiesForCpm,
+        logicLinks: linksForState,
         scheduleSettings: parsedSettings,
       });
 
@@ -151,11 +183,11 @@ export function useScheduleSettings(): UseScheduleSettingsResult {
       setCommittedCpmResultState(recompute.cpmResult);
       setCpmWarningMessageState(recompute.warningMessage);
 
-      const resolvedViewMode =
-        recompute.cpmResult?.hasRunCpm && savedViewMode === 'precedence-diagram'
-          ? 'precedence-diagram'
-          : 'logic-network';
-      setLogicNetworkViewModeState(resolvedViewMode);
+      // Honor the persisted diagram mode; layout-only saves must not bounce the user
+      // back to Logic Network when CPM is still valid or only appearance changed.
+      setLogicNetworkViewModeState(
+        savedViewMode === 'precedence-diagram' ? 'precedence-diagram' : 'logic-network',
+      );
     },
     [],
   );

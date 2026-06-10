@@ -23,8 +23,13 @@ import {
 } from '../../data/div31EarthworkSeeds';
 import { instantiateFromAssemblySpec } from '../../domain/activityAssemblyInstantiation';
 import type { ActivityAssemblySpec, AssemblyUserInputs } from '../../domain/activityAssemblyTypes';
-import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate } from '../../domain/constructionActivityTypes';
+import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import {
+  assignProjectActivityCode,
+  validateInstanceLabelForDuplicateTemplate,
+} from '../../application/constructionActivityCoding';
 import type { AddFromAssemblyParams } from '../hooks/useConstructionActivities';
+import ActivityInstanceFields, { buildIdentityFromForm } from './ActivityInstanceFields';
 
 const DIVISION_MAP = new Map<string, EstimateDivision>([
   ['03', DIV03_CONCRETE],
@@ -53,9 +58,10 @@ interface Props {
   onConfirm: (params: AddFromAssemblyParams) => void;
   onCancel: () => void;
   saving?: boolean;
+  existingActivities?: ProjectConstructionActivity[];
 }
 
-export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Props) {
+export default function AssemblyPickerModal({ onConfirm, onCancel, saving, existingActivities = [] }: Props) {
   const [step, setStep] = useState<Step>('select');
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<string | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
@@ -64,6 +70,12 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
   const [crewSizeStr, setCrewSizeStr] = useState(String(DEFAULT_CREW_SIZE));
   const [hoursPerDayStr, setHoursPerDayStr] = useState(String(DEFAULT_HOURS_PER_DAY));
   const [durationOverrideStr, setDurationOverrideStr] = useState('');
+
+  const [activityName, setActivityName] = useState('');
+  const [instanceLabel, setInstanceLabel] = useState('');
+  const [location, setLocation] = useState('');
+  const [drawingReference, setDrawingReference] = useState('');
+  const [notes, setNotes] = useState('');
 
   const crewSize = Math.max(1, parseInt(crewSizeStr) || DEFAULT_CREW_SIZE);
   const hoursPerDay = Math.max(0.5, parseFloat(hoursPerDayStr) || DEFAULT_HOURS_PER_DAY);
@@ -85,8 +97,42 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
     [selectedAssemblyId],
   );
 
-  const preview = useMemo(() => {
+  const identity = useMemo(
+    () =>
+      buildIdentityFromForm({
+        activityName: activityName || assembly?.displayName || '',
+        instanceLabel,
+        location,
+        drawingReference,
+        notes,
+      }),
+    [activityName, assembly?.displayName, drawingReference, instanceLabel, location, notes],
+  );
+
+  const duplicateTemplateWarning = useMemo(() => {
     if (!assembly) return null;
+    return validateInstanceLabelForDuplicateTemplate({
+      existingActivities,
+      sourceTemplateKey: assembly.activityTemplateId,
+      instanceLabel,
+    });
+  }, [assembly, existingActivities, instanceLabel]);
+
+  const assignedPreview = useMemo(() => {
+    if (!assembly) return null;
+    const division = DIVISION_MAP.get(assembly.divisionCode);
+    if (!division) return null;
+    return assignProjectActivityCode({
+      existingActivities,
+      divisionCode: division.code,
+      sourceTemplateKey: assembly.activityTemplateId,
+      templateMasterCode: assembly.templateMasterCode,
+      identity,
+    });
+  }, [assembly, existingActivities, identity]);
+
+  const preview = useMemo(() => {
+    if (!assembly || !assignedPreview) return null;
     const division = DIVISION_MAP.get(assembly.divisionCode);
     const lineItemTemplates = LINE_ITEM_MAP.get(assembly.id);
     if (!division || !lineItemTemplates) return null;
@@ -108,14 +154,28 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
       crewSize,
       hoursPerDay,
       durationDaysOverride: durationOverride,
+      activityTitleOverride: assignedPreview.title,
+      activityCode: assignedPreview.activityCode,
+      baseTitle: assignedPreview.baseTitle,
+      instanceLabel: identity.instanceLabel,
+      location: identity.location,
+      drawingReference: identity.drawingReference,
+      phase: identity.phase,
+      notes: identity.notes,
+      activitySequence: assignedPreview.activitySequence,
+      instanceSequence: assignedPreview.instanceSequence,
     });
-  }, [assembly, inputValues, crewSize, hoursPerDay, durationOverride]);
+  }, [assembly, assignedPreview, crewSize, durationOverride, hoursPerDay, identity, inputValues]);
 
   const handleSelectAssembly = useCallback((id: string) => {
     const asm = CA_ASSEMBLY_BY_ID.get(id);
     setSelectedAssemblyId(id);
     setInputValues({});
-    // Seed crew defaults from the assembly template when available
+    setActivityName(asm?.displayName ?? '');
+    setInstanceLabel('');
+    setLocation('');
+    setDrawingReference('');
+    setNotes('');
     setCrewSizeStr(String(asm?.defaultCrewSize ?? DEFAULT_CREW_SIZE));
     setHoursPerDayStr(String(asm?.defaultHoursPerDay ?? DEFAULT_HOURS_PER_DAY));
     setDurationOverrideStr('');
@@ -123,7 +183,7 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
   }, []);
 
   const handleConfirm = useCallback(() => {
-    if (!assembly || hasValidationError) return;
+    if (!assembly || hasValidationError || duplicateTemplateWarning) return;
     const division = DIVISION_MAP.get(assembly.divisionCode);
     const lineItemTemplates = LINE_ITEM_MAP.get(assembly.id);
     if (!division || !lineItemTemplates) return;
@@ -144,8 +204,19 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
       crewSize,
       hoursPerDay,
       durationDaysOverride: durationOverride,
+      identity,
     });
-  }, [assembly, inputValues, crewSize, hoursPerDay, durationOverride, hasValidationError, onConfirm]);
+  }, [
+    assembly,
+    crewSize,
+    durationOverride,
+    duplicateTemplateWarning,
+    hasValidationError,
+    hoursPerDay,
+    identity,
+    inputValues,
+    onConfirm,
+  ]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -188,6 +259,19 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
               inputValues={inputValues}
               onInputChange={(id, val) => setInputValues((p) => ({ ...p, [id]: val }))}
               preview={preview}
+              activityName={activityName}
+              instanceLabel={instanceLabel}
+              location={location}
+              drawingReference={drawingReference}
+              notes={notes}
+              onActivityNameChange={setActivityName}
+              onInstanceLabelChange={setInstanceLabel}
+              onLocationChange={setLocation}
+              onDrawingReferenceChange={setDrawingReference}
+              onNotesChange={setNotes}
+              duplicateTemplateWarning={duplicateTemplateWarning}
+              assignedCode={assignedPreview?.activityCode}
+              assignedTitle={assignedPreview?.title}
               crewSizeStr={crewSizeStr}
               hoursPerDayStr={hoursPerDayStr}
               durationOverrideStr={durationOverrideStr}
@@ -225,7 +309,7 @@ export default function AssemblyPickerModal({ onConfirm, onCancel, saving }: Pro
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={saving || hasValidationError}
+              disabled={saving || hasValidationError || !!duplicateTemplateWarning}
               className="ml-auto flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700 disabled:opacity-60 transition-colors"
             >
               <Plus size={15} />
@@ -283,7 +367,19 @@ interface QuantitiesStepProps {
   inputValues: Record<string, string>;
   onInputChange: (id: string, value: string) => void;
   preview: ReturnType<typeof instantiateFromAssemblySpec> | null;
-  // Crew settings
+  activityName: string;
+  instanceLabel: string;
+  location: string;
+  drawingReference: string;
+  notes: string;
+  onActivityNameChange: (value: string) => void;
+  onInstanceLabelChange: (value: string) => void;
+  onLocationChange: (value: string) => void;
+  onDrawingReferenceChange: (value: string) => void;
+  onNotesChange: (value: string) => void;
+  duplicateTemplateWarning?: string | null;
+  assignedCode?: string;
+  assignedTitle?: string;
   crewSizeStr: string;
   hoursPerDayStr: string;
   durationOverrideStr: string;
@@ -300,6 +396,19 @@ function QuantitiesStep({
   inputValues,
   onInputChange,
   preview,
+  activityName,
+  instanceLabel,
+  location,
+  drawingReference,
+  notes,
+  onActivityNameChange,
+  onInstanceLabelChange,
+  onLocationChange,
+  onDrawingReferenceChange,
+  onNotesChange,
+  duplicateTemplateWarning,
+  assignedCode,
+  assignedTitle,
   crewSizeStr,
   hoursPerDayStr,
   durationOverrideStr,
@@ -317,6 +426,22 @@ function QuantitiesStep({
 
   return (
     <div className="space-y-4">
+      <ActivityInstanceFields
+        activityName={activityName}
+        instanceLabel={instanceLabel}
+        location={location}
+        drawingReference={drawingReference}
+        notes={notes}
+        onActivityNameChange={onActivityNameChange}
+        onInstanceLabelChange={onInstanceLabelChange}
+        onLocationChange={onLocationChange}
+        onDrawingReferenceChange={onDrawingReferenceChange}
+        onNotesChange={onNotesChange}
+        duplicateTemplateWarning={duplicateTemplateWarning}
+        previewCode={assignedCode}
+        previewTitle={assignedTitle}
+      />
+
       {/* Quantity input fields */}
       <div className="grid gap-3 sm:grid-cols-2">
         {assembly.quantityInputs.map((spec) => (

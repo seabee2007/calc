@@ -1,0 +1,12 @@
+figure,Figure 5-J-6
+figureTitle,Coating Coverage of Structural Steel .....................................................................................5-J-3
+division,09
+divisionName,Finishes
+sourcePage,5-J-6
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"09 97 13.23\nExterior Steel Coatings\n(0010) Cold galvanizing, brush in field\nPaints and protective coatings, sprayed in field\n(0020) alkyds\n(0030) epoxy\n(0040) latex\n(0050) zinc-rich primers",SF\nSF\nSF\nSF\nSF,0.0090\n0.0070\n0.0080\n0.0070\n0.0120
+"Miscellaneous Iron and Steel, per coat\nStructural steel, per coat\n(0060) brush\n(0070) spray\n(0080) wire brush clean\n(0090) sandblasting",Ton\nTon\nTon\nTon,3.0000\n2.0000\n4.0000\n6.0000
+Minimum suggested crew size: one painter and one laborer.,,
+"Notes:\n1. Structural steel painting includes removing rust, scale, oil, grease, and dirt; mixing and applying\npaint; and sanding between coats when required.\n2. Refer to Division 09 91 03.30 for steel surface preparation treatments such as wire brushing,\npressure washing, and steam cleaning.\n3. Refer to Figure 5-J-6 for surface area (SF) coverage per ton of steel.\n4. For work above one story, spray painting simple structures, multiply by 1.25.\n5. For work involving intricate structures, multiply by 1.50.",,

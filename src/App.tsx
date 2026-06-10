@@ -80,6 +80,7 @@ import {
   LazyOnboardingFlow,
   LazyConcreteChat,
   LazyActivityEstimatePreview,
+  LazyProductionRateReviewPage,
 } from './routes/lazyPages';
 
 // Error boundary component
@@ -530,7 +531,10 @@ function App() {
           />
           {/* Dev-only routes — only rendered in development builds */}
           {import.meta.env.DEV && (
-            <Route path="/dev/activity-preview" element={<LazyRoute Page={LazyActivityEstimatePreview} />} />
+            <>
+              <Route path="/dev/activity-preview" element={<LazyRoute Page={LazyActivityEstimatePreview} />} />
+              <Route path="/dev/production-rate-review" element={<LazyRoute Page={LazyProductionRateReviewPage} />} />
+            </>
           )}
 
           <Route path="*" element={<Navigate to="/" replace />} />

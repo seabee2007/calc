@@ -27,13 +27,24 @@ import EstimateSchedulePlanControls, {
 import EstimateSchedulePlanSummary from './EstimateSchedulePlanSummary';
 import EstimateDependencyPreviewPanel from './EstimateDependencyPreviewPanel';
 
+export type EstimateSchedulePreviewSource = 'construction_activities' | 'legacy_line_items';
+
 const NO_VERSION_MESSAGE = 'This estimate does not have saved activity details yet.';
 
-const NO_SCHEDULABLE_MESSAGE =
-  'No schedulable activities yet. Enable scheduling on activities to build a schedule preview.';
+const NO_CONSTRUCTION_ACTIVITIES_TITLE = 'No construction activities yet.';
+const NO_CONSTRUCTION_ACTIVITIES_BODY =
+  'Add activities to build an estimate and preview a schedule.';
+
+const NO_SCHEDULE_ENABLED_TITLE = 'No schedule-enabled activities yet.';
+const NO_SCHEDULE_ENABLED_BODY =
+  'Enable scheduling on activities you want included in the schedule preview.';
+
+const LEGACY_EMPTY_TITLE = 'No schedulable legacy estimate lines';
+const LEGACY_EMPTY_BODY =
+  'Enable scheduling on estimate line items or switch back to construction activities.';
 
 const PREVIEW_NOTE =
-  'This is a draft schedule preview only. It has not been published to the Planner schedule. For CPM critical path, open Logic Network or Level III Gantt.';
+  'This is a planning preview from saved construction activities. For CPM dates and critical path, use the Logic Network and Level III Gantt.';
 
 interface Props {
   version: EstimateDomainVersion | null;
@@ -42,16 +53,25 @@ interface Props {
   planControls: EstimateSchedulePlanControlValues;
   onPlanControlsChange: (patch: Partial<EstimateSchedulePlanControlValues>) => void;
   loading?: boolean;
+  totalConstructionActivityCount: number;
+  schedulePreviewSource: EstimateSchedulePreviewSource;
+  legacyScheduleAvailable: boolean;
 }
 
 const LABOR_SUMMARY_CARDS = [
-  { key: 'schedulableTasksDisplay', label: 'Schedulable activities' },
+  { key: 'schedulableTasksDisplay', label: 'Scheduled activities' },
   { key: 'excludedTasksDisplay', label: 'Excluded activities' },
   { key: 'totalLaborHoursDisplay', label: 'Total labor hours' },
   { key: 'totalManDaysDisplay', label: 'Total man-days' },
   { key: 'totalCrewDaysDisplay', label: 'Total crew-days' },
-  { key: 'totalDurationDaysDisplay', label: 'Estimated duration total' },
+  { key: 'totalDurationDaysDisplay', label: 'Estimated duration' },
 ] as const;
+
+function resolveSourceBadgeLabel(source: EstimateSchedulePreviewSource): string {
+  return source === 'legacy_line_items'
+    ? 'Source: Legacy estimate line items'
+    : 'Source: Construction Activities';
+}
 
 export default function EstimateSchedulePreviewPanel({
   version,
@@ -60,6 +80,9 @@ export default function EstimateSchedulePreviewPanel({
   planControls,
   onPlanControlsChange,
   loading = false,
+  totalConstructionActivityCount,
+  schedulePreviewSource,
+  legacyScheduleAvailable,
 }: Props) {
   const laborSummary = useMemo(() => extractSchedulePreviewSummary(plan), [plan]);
   const datePlanSummary = useMemo(
@@ -84,11 +107,30 @@ export default function EstimateSchedulePreviewPanel({
     );
   }
 
-  if (!loading && plan && !hasSchedulableSchedulePreview(plan)) {
+  if (
+    !loading &&
+    schedulePreviewSource === 'construction_activities' &&
+    totalConstructionActivityCount === 0
+  ) {
     return (
       <EstimateWorkspaceEmptyState
-        title="No schedulable activities"
-        body={NO_SCHEDULABLE_MESSAGE}
+        title={NO_CONSTRUCTION_ACTIVITIES_TITLE}
+        body={NO_CONSTRUCTION_ACTIVITIES_BODY}
+      />
+    );
+  }
+
+  if (!loading && plan && !hasSchedulableSchedulePreview(plan)) {
+    if (schedulePreviewSource === 'legacy_line_items') {
+      return (
+        <EstimateWorkspaceEmptyState title={LEGACY_EMPTY_TITLE} body={LEGACY_EMPTY_BODY} />
+      );
+    }
+
+    return (
+      <EstimateWorkspaceEmptyState
+        title={NO_SCHEDULE_ENABLED_TITLE}
+        body={NO_SCHEDULE_ENABLED_BODY}
       />
     );
   }
@@ -96,10 +138,10 @@ export default function EstimateSchedulePreviewPanel({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className={PLANNER_SECTION_TITLE}>Schedule preview</h2>
+        <h2 className={PLANNER_SECTION_TITLE}>Draft Schedule Preview</h2>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Planned dates from the current saved estimate. Dates update automatically from
-          activities and planning controls below.
+          Draft planned dates from saved construction activities and planning controls below.
+          This is not the CPM schedule until you run CPM from the Logic Network.
         </p>
       </div>
 
@@ -109,9 +151,13 @@ export default function EstimateSchedulePreviewPanel({
           <span
             className={`${BADGE_BASE} border border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300`}
           >
-            Preview only
+            {resolveSourceBadgeLabel(schedulePreviewSource)}
           </span>
-          Publishing to Planner will be added later.
+          <span
+            className={`${BADGE_BASE} border border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200`}
+          >
+            Draft preview only
+          </span>
         </p>
       </div>
 
@@ -119,6 +165,9 @@ export default function EstimateSchedulePreviewPanel({
         values={planControls}
         onChange={onPlanControlsChange}
         disabled={loading}
+        legacyScheduleAvailable={
+          legacyScheduleAvailable && totalConstructionActivityCount === 0
+        }
       />
 
       <div className="space-y-2">
@@ -147,7 +196,7 @@ export default function EstimateSchedulePreviewPanel({
       </div>
 
       <div className="space-y-4">
-        <h3 className={PLANNER_SECTION_TITLE}>Grouped schedule candidates</h3>
+        <h3 className={PLANNER_SECTION_TITLE}>Activities by Division</h3>
         {loading ? (
           <div className="space-y-3">
             {[0, 1].map((key) => (

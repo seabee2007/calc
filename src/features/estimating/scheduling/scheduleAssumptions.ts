@@ -1,4 +1,6 @@
 import type { EstimateDomainTask } from '../infrastructure/estimateDbTypes';
+import { parseActivityCode } from '../application/estimateActivityCoding';
+import type { ScheduleActivity } from './adapters/estimateLineItemsToScheduleActivities';
 import {
   parsePrecedenceDiagramFromAssumptions,
   type PrecedenceDiagramState,
@@ -332,6 +334,30 @@ export function parseCpmResultCacheFromAssumptions(
   });
 }
 
+/** Persist canvas node positions only — never overwrite logic links or CPM metadata. */
+export function mergeLogicLayoutAssumptionsOnly(
+  layout: LogicNetworkLayout[],
+  existingAssumptions: Record<string, unknown> = {},
+  options: {
+    logicNetworkViewMode?: LogicNetworkViewMode;
+    precedenceDiagram?: PrecedenceDiagramState;
+  } = {},
+): Record<string, unknown> {
+  return mergeScheduleAssumptions(
+    {
+      logicNetworkLayout: layout,
+      logicNetworkInitialized: true,
+      ...(options.logicNetworkViewMode !== undefined
+        ? { logicNetworkViewMode: options.logicNetworkViewMode }
+        : {}),
+      ...(options.precedenceDiagram !== undefined
+        ? { precedenceDiagram: options.precedenceDiagram }
+        : {}),
+    },
+    existingAssumptions,
+  );
+}
+
 export function mergeScheduleAssumptions(
   patch: Partial<{
     scheduleSettings: ScheduleSettings;
@@ -458,6 +484,121 @@ export function getValidScheduleActivityCodes(
   return codes;
 }
 
+/** Schedule-enabled construction activity codes (Logic Network / CPM source). */
+export function getValidScheduleActivityCodesFromScheduleActivities(
+  scheduleActivities: readonly Pick<ScheduleActivity, 'activityCode'>[],
+): Set<string> {
+  const codes = new Set<string>();
+  for (const activity of scheduleActivities) {
+    const code = activity.activityCode?.trim();
+    if (code) codes.add(code);
+  }
+  return codes;
+}
+
+function isConstructionActivityScheduleCode(code: string): boolean {
+  if (code.startsWith('ca-')) return true;
+  return parseActivityCode(code.trim()) !== null;
+}
+
+/**
+ * When saved logic links or layout reference construction activity codes that are not on
+ * estimate line items, defer endpoint filtering until construction activities load as the
+ * schedule source (avoids wiping persisted links on refresh).
+ */
+export function shouldDeferScheduleLayerActivityCodeFiltering(
+  assumptions: Record<string, unknown> | undefined | null,
+  lineItemCodes: Set<string>,
+): boolean {
+  const links = parseLogicLinksFromAssumptions(assumptions);
+  const layout = parseLogicNetworkLayoutFromAssumptions(assumptions);
+  const referencedCodes = new Set<string>();
+  for (const link of links) {
+    referencedCodes.add(link.predecessorActivityCode);
+    referencedCodes.add(link.successorActivityCode);
+  }
+  for (const entry of layout) {
+    referencedCodes.add(entry.activityCode);
+  }
+
+  for (const code of referencedCodes) {
+    if (isConstructionActivityScheduleCode(code) && !lineItemCodes.has(code)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export interface ReconcileLogicLinksResult {
+  links: CpmLogicLink[];
+  preservedCount: number;
+  prunedCount: number;
+}
+
+/**
+ * Keep manual logic links when schedule activities reload.
+ * Matches endpoints by stable activityCode; refreshes runtime IDs for canvas/CPM identity.
+ */
+export function reconcileLogicLinksWithScheduleActivities(
+  links: CpmLogicLink[],
+  scheduleActivities: readonly Pick<ScheduleActivity, 'activityCode' | 'runtimeActivityId'>[],
+): ReconcileLogicLinksResult {
+  const activityByCode = new Map<
+    string,
+    Pick<ScheduleActivity, 'activityCode' | 'runtimeActivityId'>
+  >();
+  for (const activity of scheduleActivities) {
+    const code = activity.activityCode?.trim();
+    if (code && !activityByCode.has(code)) {
+      activityByCode.set(code, activity);
+    }
+  }
+  const validCodes = new Set(activityByCode.keys());
+  const sanitized = sanitizeLogicLinks(links);
+  const reconciled: CpmLogicLink[] = [];
+  let prunedCount = 0;
+
+  for (const link of sanitized) {
+    if (
+      !validCodes.has(link.predecessorActivityCode) ||
+      !validCodes.has(link.successorActivityCode)
+    ) {
+      prunedCount += 1;
+      continue;
+    }
+    const pred = activityByCode.get(link.predecessorActivityCode);
+    const succ = activityByCode.get(link.successorActivityCode);
+    reconciled.push({
+      ...link,
+      predecessorRuntimeId: pred?.runtimeActivityId ?? link.predecessorRuntimeId,
+      successorRuntimeId: succ?.runtimeActivityId ?? link.successorRuntimeId,
+    });
+  }
+
+  return {
+    links: reconciled,
+    preservedCount: reconciled.length,
+    prunedCount,
+  };
+}
+
+function logicLinksEqual(a: CpmLogicLink[], b: CpmLogicLink[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((link, index) => {
+    const other = b[index];
+    return (
+      link.predecessorActivityCode === other.predecessorActivityCode &&
+      link.successorActivityCode === other.successorActivityCode &&
+      link.relationshipType === other.relationshipType &&
+      link.lagDays === other.lagDays &&
+      (link.predecessorRuntimeId ?? '') === (other.predecessorRuntimeId ?? '') &&
+      (link.successorRuntimeId ?? '') === (other.successorRuntimeId ?? '')
+    );
+  });
+}
+
+export { logicLinksEqual };
+
 function exactLogicLinkKey(link: CpmLogicLink): string {
   return `${link.predecessorActivityCode}|${link.successorActivityCode}|${link.relationshipType}|${link.lagDays}`;
 }
@@ -534,17 +675,28 @@ function filterLogicReviewIgnoredForActivityCodes(
   });
 }
 
-/** Remove schedule-layer data that no longer matches the current line items. */
+/** Remove schedule-layer data that no longer matches the current schedule source. */
 export function sanitizeScheduleAssumptionsForLineItems(
   assumptions: Record<string, unknown> | undefined | null,
   lineItems: readonly EstimateDomainTask[],
+  scheduleActivities?: readonly Pick<ScheduleActivity, 'activityCode' | 'runtimeActivityId'>[],
 ): Record<string, unknown> {
   const base = assumptions && typeof assumptions === 'object' ? { ...assumptions } : {};
-  const validActivityCodes = getValidScheduleActivityCodes(lineItems);
+  const validLineItemCodes = getValidScheduleActivityCodes(lineItems);
+  const validScheduleCodes =
+    scheduleActivities && scheduleActivities.length > 0
+      ? getValidScheduleActivityCodesFromScheduleActivities(scheduleActivities)
+      : new Set<string>();
+  const useConstructionScheduleSource = validScheduleCodes.size > 0;
+  const validCodes = useConstructionScheduleSource ? validScheduleCodes : validLineItemCodes;
+  const deferActivityCodeFiltering = useConstructionScheduleSource
+    ? false
+    : shouldDeferScheduleLayerActivityCodeFiltering(base, validLineItemCodes);
 
-  const logicLinks = sanitizeLogicLinks(
-    filterLogicLinksForActivityCodes(parseLogicLinksFromAssumptions(base), validActivityCodes),
-  );
+  const parsedLinks = parseLogicLinksFromAssumptions(base);
+  const logicLinks = deferActivityCodeFiltering
+    ? sanitizeLogicLinks(parsedLinks)
+    : sanitizeLogicLinks(filterLogicLinksForActivityCodes(parsedLinks, validCodes));
 
   if (
     logicLinks.length > 0 &&
@@ -554,18 +706,24 @@ export function sanitizeScheduleAssumptionsForLineItems(
       '[scheduleAssumptions] Circular dependency detected after sanitizing logic links.',
     );
   }
-  const logicNetworkLayout = filterLogicNetworkLayoutForActivityCodes(
-    parseLogicNetworkLayoutFromAssumptions(base),
-    validActivityCodes,
-  );
-  const leveledActivityOffsets = filterLeveledOffsetsForActivityCodes(
-    parseLeveledOffsetsFromAssumptions(base),
-    validActivityCodes,
-  );
-  const logicReviewIgnored = filterLogicReviewIgnoredForActivityCodes(
-    parseLogicReviewIgnoredFromAssumptions(base),
-    validActivityCodes,
-  );
+  const logicNetworkLayout = deferActivityCodeFiltering
+    ? parseLogicNetworkLayoutFromAssumptions(base)
+    : filterLogicNetworkLayoutForActivityCodes(
+        parseLogicNetworkLayoutFromAssumptions(base),
+        validCodes,
+      );
+  const leveledActivityOffsets = deferActivityCodeFiltering
+    ? parseLeveledOffsetsFromAssumptions(base)
+    : filterLeveledOffsetsForActivityCodes(
+        parseLeveledOffsetsFromAssumptions(base),
+        validCodes,
+      );
+  const logicReviewIgnored = deferActivityCodeFiltering
+    ? parseLogicReviewIgnoredFromAssumptions(base)
+    : filterLogicReviewIgnoredForActivityCodes(
+        parseLogicReviewIgnoredFromAssumptions(base),
+        validCodes,
+      );
 
   const logicNetworkInitialized = parseLogicNetworkInitializedFromAssumptions(base);
   const precedenceDiagram = parsePrecedenceDiagramFromAssumptions(base);

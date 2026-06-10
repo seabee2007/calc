@@ -1,0 +1,14 @@
+figure,Figure 5-J-13
+figureTitle,Resilient Flooring Production ..............................................................................................5-J-10
+division,09
+divisionName,Finishes
+sourcePage,5-J-13
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"09 65 10.10\nLatex Underlayment\n(0010) 1/8 inch thick, cementitious for resilient flooring, liquid",SF,0.0670
+"09 65 13.13\nResilient Base\n(0010) Base, cove, rubber or vinyl, 2 1/2, 4, or 6 inches high\n(0020) Corners, 2 1/2, 4, or 6 inches high",LF\nEach,0.0330\n0.0330
+"09 65 16.10\nRubber and Vinyl Sheet Flooring\n(0010) Linoleum\n(0020) Rubber, 36 inches wide, 0.125 inch thick\n(0030) Rubber, 36 inches wide, 0.187 inch thick\n(0040) Rubber, 36 inches wide, 0.250 inch thick\n(0050) Vinyl, backed, 0.065 inch thick\n(0060) Vinyl, backed, 0.080 inch thick\n(0070) Vinyl, backed, 0.125 inch thick",SF\nSF\nSF\nSF\nSF\nSF\nSF,0.0290\n0.0890\n0.1060\n0.1180\n0.0430\n0.0460\n0.0530
+"09 65 19.10\nMiscellaneous Resilient Tile Flooring\n(0010) Rubber tile, various types, 12 by 12 inches, 1/8 inch thick\n(0020) Synthetic turf, 3/8 inch thick\n(0030) interlocking 2- by 2-foot squares, 1/2 inch thick, not cemented\n(0040) Vinyl composition tile, various types and sizes, 12 by 12 inches,\n1/16 inch thick",SF\nSF\nSF\nSF,0.0150\n0.1180\n0.0630\n0.0210
+Minimum suggested crew size: one builder and one laborer.,,
+"Notes:\n1. The above options provide only a small sample of the myriad of possibilities. They provide a cross\nsection of average labor times required for resilient flooring.\n2. Adhesive cement, one gallon per 200 to 300 SF.\n3. Asphalt primer, one gallon per 300 SF.\n4. Emulsion, one gallon per 140 SF.",,

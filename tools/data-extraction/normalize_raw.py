@@ -11,7 +11,8 @@ from pathlib import Path
 
 from config import RAW_CSV_DIR, RAW_JSON_DIR, SOURCE_DOCUMENT_FULL, SOURCE_EDITION
 from parse_table_row import parse_production_table_row
-from validate_records import validate_record
+from text_utils import clean_figure_title
+from validate_production_rates import validate_record
 
 
 def read_figure_csv(csv_path: Path) -> tuple[dict[str, str], list[list[str]]]:
@@ -45,18 +46,25 @@ def normalize_csv_file(csv_path: Path) -> dict:
 
     pdf_page_raw = metadata.get("sourcePdfPage")
     source_pdf_page = int(pdf_page_raw) if pdf_page_raw and pdf_page_raw.isdigit() else None
+    cleaned_title = clean_figure_title(metadata.get("figureTitle", ""))
 
     for row in rows:
         parsed = parse_production_table_row(
             row,
             figure=figure,
-            figure_title=metadata.get("figureTitle", ""),
+            figure_title=cleaned_title,
             division=metadata.get("division", ""),
             division_name=metadata.get("divisionName", ""),
             source_page=metadata.get("sourcePage", figure.replace("Figure ", "")),
             source_pdf_page=source_pdf_page,
         )
         records.extend(parsed)
+
+    annex_warning = None
+    if metadata.get("division") == "10":
+        annex_warning = (
+            "Annex K covers divisions 10, 11, and 12. Verify row-level division assignment during review."
+        )
 
     return {
         "batchMeta": {
@@ -67,9 +75,10 @@ def normalize_csv_file(csv_path: Path) -> dict:
             "division": metadata.get("division", ""),
             "divisionName": metadata.get("divisionName", ""),
             "figure": figure,
-            "figureTitle": metadata.get("figureTitle", ""),
+            "figureTitle": cleaned_title,
             "extractedAt": date.today().isoformat(),
             "sourceCsv": csv_path.name,
+            "annexKWarning": annex_warning,
         },
         "records": records,
     }
@@ -91,14 +100,14 @@ def main() -> None:
         payload = normalize_csv_file(csv_path)
         errors = []
         for record in payload["records"]:
-            result = validate_record(record, allow_confidence={"raw", "needs_review"})
+            result = validate_record(record)
             if not result["valid"]:
                 errors.extend(result["errors"])
 
-        out_path = args.output_dir / f"{csv_path.stem}.raw.json"
+        out_path = args.output_dir / f"{csv_path.stem}.json"
         out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         total_records += len(payload["records"])
-        status = "OK" if not errors else f"{len(errors)} validation issues"
+        status = "OK" if not errors else f"{len(errors)} schema issues"
         print(f"Wrote {out_path} ({len(payload['records'])} records, {status})")
 
     print(f"Normalized {len(csv_files)} files / {total_records} records into {args.output_dir}")

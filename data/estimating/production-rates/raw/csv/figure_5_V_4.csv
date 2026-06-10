@@ -1,0 +1,24 @@
+figure,Figure 5-V-4
+figureTitle,Marine Underwater Structures Production (Surveys) .......................................................... 5-V-2
+division,35
+divisionName,Waterway and Marine Construction
+sourcePage,5-V-4
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+35 59 13\nMarine Fenders\n(0010) Place in leads and drive\n(0020) Lash with wire rope\n(0030) Install fenders\n(0040) Fender pile,Each\nEach\nEach\nEach,0.800\n0.750\n0.600\n0.750
+"Minimum suggested crew size: two equipment operators, two engineering aides, and six builders.",,
+Note: Based on 50-foot piles.,,
+35 59 33\nMarine Bollards and Cleats\n(0010) Bits\n(0020) Bollards\n(0030) Chocks\n(0040) Cleats\n(0050) Pad eyes,Each\nEach\nEach\nEach\nEach,13.00\n16.00\n13.00\n11.00\n2.50
+Minimum suggested crew size: one equipment operator and two builders.,,
+35 59 53.01\nUnderwater Structures Construction (Surveys),,
+(0010) Bathometric survey,SM,0.00014
+(0020) Side scan survey,SM,0.00014
+Minimum suggested crew for above elements 3 divers.,,
+(0030) Post process of bathometric/side scan survey,SM,0.00014
+(0040) Rapid penetration test soil density test includes drive and\nextraction (18 inch rod),Each,1.57
+(0050) Shear-vain test (soil density test),Each,0.3
+(0060) Remote operated vehicles inspection of chain/cable,LF,0.2
+"Note: Sea state of 2 or less, no current, minimum visibility of 5 feet, average water depth of 45 feet, water\ntemperature above 60 degrees Fahrenheit.",,
+Minimum suggested crew size of six second class divers and one first class diver,,
+Legend: SM = square meters,,

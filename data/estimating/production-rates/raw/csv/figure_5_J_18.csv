@@ -1,0 +1,15 @@
+figure,Figure 5-J-18
+figureTitle,Interior Painting Production .................................................................................................5-J-15
+division,09
+divisionName,Finishes
+sourcePage,5-J-18
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+09 91 03.40\nInterior Surface Preparation\nAverage times for various surfaces\n(0010) Scrape and sand\n(0020) Wire brush\n(0030) Wash walls\n(0040) Masking with paper\n(0050) Volume cover up (drop cloths or plastic sheathing),SF\nSF\nSF\nSF\nSF,0.0290\n0.0200\n0.0040\n0.0160\n0.0030
+"09 91 23.20\nCabinets and Casework\n(0010) Paint or stain, brushwork, each coat",SF,0.0160
+"09 91 23.35\nDoors and Windows, Interior\nDoors, flush, 3 by 7 feet, both sides, including frame and trim,\n(0010) roll and brush, each coat\n(0020) spray, each coat\nDoors, panel, or French, both sides, including frame and trim\n(0030) roll and brush, each coat\n(0040) Doors, louvered, both sides, including frame and trim, brushwork,\n(0050) Doors, louvered, both sides, including frame and trim, spray, each coat\nWindows, per side, single lite type, brushwork\n(0060) 2 foot × 3 foot opening\n(0070) 3 foot × 5 foot opening\n(0080) 4 foot × 8 foot opening",Each\nEach\nEach\nEach\nEach\nEach\nEach\nEach,1.0640\n0.5320\n1.7730\n1.5200\n0.5320\n0.3220\n0.5320\n0.7600
+"09 91 23.40\nFloors, Interior\nConcrete or wood, oil base primer/sealer coat or latex\n(0010) brushwork, each coat\n(0020) roll, each coat\n(0030) spray, each coat",SF\nSF\nSF,0.0120\n0.0040\n0.0040
+"09 91 23.72\nWalls and Ceilings, Interior\nDrywall, concrete, masonry, or plaster, smooth finish, each coat\n(0010) brushwork, each coat\n(0020) roll, each coat\n(0030) spray, each coat",SF\nSF\nSF,0.0090\n0.0080\n0.0040
+Minimum suggested crew size: one painter and one laborer.,,
+"Notes:\n1. The painting of interior surfaces includes surface preparation, mixing paint materiels, and application of\npaint to surface.\n2. For ceiling installations, multiply by 1.25.\n3. For work 8 feet to 15 feet high, multiply by 1.10.\n4. For work over 15 feet high, multiply by 1.20.\n5. For light textured surfaces, multiply by 1.10.\n6. For heavy textured surfaces, multiply by 1.25.",,

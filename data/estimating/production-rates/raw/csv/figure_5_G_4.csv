@@ -1,0 +1,20 @@
+figure,Figure 5-G-4
+figureTitle,Thermal Insulation Production ............................................................................................. 5-G-3
+division,07
+divisionName,Thermal and Moisture Protection
+sourcePage,5-G-4
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"07 21 13.10\nRigid Insulation\nVarious materiels, e.g., fiberglass, unfaced or faced; Isocyanurate\n(4 by 8 sheet) foil faced both sides; perlite; etc.\n(0010) minimum\n(0020) average\n(0030) maximum",SF\nSF\nSF,0.0110\n0.0150\n0.0200
+"07 21 13.13\nFoam Board Insulation\n(0010) Polystyrene, expanded, 1 or 2 inches thick",SF,0.0160
+"07 21 16.20\nBlanket Insulation for Walls\n(0010) Batt insulation, kraft-faced fiberglass, various materiels, widths\nand thicknesses; average",SF,0.0090
+"07 21 23.10\nPoured Loose-Fill Insulation\n(0010) Various materiels, e.g., cellulose fiber, perlite, fiberglass wool,\nmineral wool, polystyrene, etc., average",SF,0.0530
+"07 21 26.10\nBlown Insulation\nVarious materiels, i.e., cellulose, fiberglass, or mineral wool; average\nfor thickness indicated\n(0010) 3 1/2 inches\n(0020) 9 or 10 inches thick\n(0030) 20 inches thick\nWall installation, includes drilling and patching from outside, two\n1-inch-diameter holes at 16 inches on center, top and middle point of\nwall, add to above for:\n(0040) masonry\n(0050) wood siding\n(0060) stucco/plaster",SF\nSF\nSF\nSF\nSF\nSF,0.0070\n0.0190\n0.0350\n0.0770\n0.0390\n0.0480
+"07 21 29.10\nSprayed-On Insulation\n(0010) Fibrous/cementitious, finished wall, 1 inch thick attic\n(0020) 5.2 inches thick attic\nClosed cell, spray polyurethane foam, 2 pounds per CF density\n(0030) 1 inch thick\n(0040) 4 inches thick\n(0050) 6 inches thick",SF\nSF\nSF\nSF\nSF,0.0160\n0.0200\n0.0050\n0.0210\n0.0320
+"07 22 16.10\nRoof Deck Insulation\nVarious materiels, e.g., fiberboard, fiberglass, perlite, extruded\npolystyrene, etc., based on thickness\n(0010) minimum\n(0020) average\n(0030) maximum",SF\nSF\nSF,0.0110\n0.0130\n0.0150
+Minimum suggested crew size: one builder and one laborer.,,
+"Notes:\n1. The installation of insulation includes scaffolding when required, fastening insulation into place, and\ncut-outs in insulation, as required.\n2. One hundred sixty staples are required per 100 SF.",,
+"07 26 10.10\nVapor Retarders\n(0010) Various materiels, e.g., aluminum and kraft, foil one side or two\nsides; asphalt felt sheathing paper; polyethylene vapor barrier, etc.",Square,0.2870
+Minimum suggested crew size: one skilled laborer and one unskilled laborer.,,
+Note: A square = 100 SF of area.,,

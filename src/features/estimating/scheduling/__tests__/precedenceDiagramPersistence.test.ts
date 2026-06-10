@@ -231,8 +231,10 @@ describe('precedenceDiagram workspace wiring', () => {
       workspacePageSource.match(
         /const persistLogicNetworkLayout = useCallback\([\s\S]*?\n  \);/,
       )?.[0] ?? '';
+    expect(persistBody).toContain('mergeLogicLayoutAssumptionsOnly');
     expect(persistBody).toContain('precedenceDiagram: scheduleSettingsHook.precedenceDiagram');
     expect(persistBody).not.toContain('cpmResultCache: null');
+    expect(persistBody).not.toContain('logicLinks: scheduleSettingsHook.logicLinks');
   });
 
   it('save estimate preserves precedenceDiagram state', () => {

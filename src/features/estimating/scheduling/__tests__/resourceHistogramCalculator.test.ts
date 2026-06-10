@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { calculateResourceHistogram } from '../resources/resourceHistogramCalculator';
 import type { ScheduleActivity } from '../adapters/estimateLineItemsToScheduleActivities';
-import type { CpmActivityResult } from '../cpmTypes';
+import type { CpmActivityResult, CpmResult } from '../cpmTypes';
 
 function makeAct(
   code: string,
   durationDays: number,
   crewSize: number,
+  overrides: Partial<ScheduleActivity> = {},
 ): ScheduleActivity {
   return {
     activityCode: code,
@@ -21,6 +22,7 @@ function makeAct(
     totalCost: 0,
     relationshipType: 'FS',
     lagDays: 0,
+    ...overrides,
   };
 }
 
@@ -28,6 +30,7 @@ function makeCpm(
   code: string,
   earlyStart: number,
   earlyFinish: number,
+  overrides: Partial<CpmActivityResult> = {},
 ): CpmActivityResult {
   return {
     activityCode: code,
@@ -38,6 +41,26 @@ function makeCpm(
     totalFloat: 0,
     freeFloat: 0,
     isCritical: true,
+    ...overrides,
+  };
+}
+
+function makeCpmResult(activities: CpmActivityResult[]): CpmResult {
+  return {
+    activities,
+    projectDurationDays: Math.max(...activities.map((activity) => activity.earlyFinish)),
+    criticalPathActivityCodes: activities.filter((a) => a.isCritical).map((a) => a.activityCode),
+    warnings: [],
+    hasRunCpm: true,
+    hasValidPrecedenceDiagram: true,
+    hasValidCriticalPath: true,
+    validCriticalPathActivityCodes: activities.filter((a) => a.isCritical).map((a) => a.activityCode),
+    displayCriticalActivityCodes: activities.filter((a) => a.isCritical).map((a) => a.activityCode),
+    criticalPathStatus: 'valid',
+    criticalPathContinuityWarnings: [],
+    openStartActivityCodes: [],
+    openFinishActivityCodes: [],
+    hardErrors: [],
   };
 }
 
@@ -158,5 +181,132 @@ describe('calculateResourceHistogram', () => {
     expect(result[1].activeActivities.map((activity) => activity.activityCode)).toEqual(['A', 'B']);
     expect(result[1].activeActivities[0]?.isCritical).toBe(true);
     expect(result[1].activeActivities[1]?.scheduledStartDay).toBe(1);
+  });
+
+  it('repeats one activity crew only on its active days', () => {
+    const activities = [makeAct('CLEAR', 11, 7, { laborHours: 616, hoursPerDay: 8 })];
+    const cpmActivities = [makeCpm('CLEAR', 0, 11)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result.slice(0, 11).every((day) => day.requiredCrew === 7)).toBe(true);
+    expect(result[10].requiredCrew).toBe(7);
+    expect(result[11]?.requiredCrew ?? 0).toBe(0);
+  });
+
+  it('shows sequential non-overlapping activities on different days', () => {
+    const activities = [
+      makeAct('CLEAR', 11, 7, { laborHours: 616, hoursPerDay: 8 }),
+      makeAct('SLAB', 1, 4),
+    ];
+    const cpmActivities = [makeCpm('CLEAR', 0, 11), makeCpm('SLAB', 11, 12)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result[0].requiredCrew).toBe(7);
+    expect(result[10].requiredCrew).toBe(7);
+    expect(result[11].requiredCrew).toBe(4);
+  });
+
+  it('returns zero required crew when no activities are active', () => {
+    const activities = [makeAct('A', 2, 5)];
+    const cpmActivities = [makeCpm('A', 3, 5)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result[0].requiredCrew).toBe(0);
+    expect(result[1].requiredCrew).toBe(0);
+    expect(result[2].requiredCrew).toBe(0);
+  });
+
+  it('uses display-critical path membership when cpmResult is provided', () => {
+    const activities = [makeAct('A', 2, 4), makeAct('B', 2, 3)];
+    const cpmActivities = [
+      { ...makeCpm('A', 0, 2), isCritical: false },
+      { ...makeCpm('B', 0, 2), isCritical: false },
+    ];
+    const cpmResult = makeCpmResult([
+      { ...makeCpm('A', 0, 2), isCritical: false },
+      { ...makeCpm('B', 0, 2), isCritical: false },
+    ]);
+    cpmResult.validCriticalPathActivityCodes = ['A'];
+    cpmResult.displayCriticalActivityCodes = ['A'];
+
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+      cpmResult,
+    });
+
+    expect(result[0].criticalRequiredCrew).toBe(4);
+    expect(result[0].noncriticalRequiredCrew).toBe(3);
+  });
+
+  it('derives crew size from man-hours when saved crew matches man-days', () => {
+    const activities = [
+      makeAct('CLEAR', 11, 33, {
+        laborHours: 616,
+        manDays: 33,
+        hoursPerDay: 8,
+      }),
+    ];
+    const cpmActivities = [makeCpm('CLEAR', 0, 11)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result[0].requiredCrew).toBe(7);
+    expect(result[0].activeActivities[0]?.crewSize).toBe(7);
+  });
+
+  it('uses fallback crew size when crew size is missing', () => {
+    const activities = [
+      makeAct('A', 4, 0, {
+        laborHours: 96,
+        hoursPerDay: 8,
+      }),
+    ];
+    const cpmActivities = [makeCpm('A', 0, 4)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result[0].requiredCrew).toBe(3);
+  });
+
+  it('matches activities by runtime id when cpm uses graph keys', () => {
+    const activities = [
+      makeAct('31-01-01', 2, 5, { runtimeActivityId: 'runtime-clear' }),
+    ];
+    const cpmActivities = [makeCpm('runtime-clear', 0, 2)];
+    const result = calculateResourceHistogram({
+      activities,
+      cpmActivities,
+      projectStartDate: '2025-01-01',
+      availableCrewSize: 10,
+    });
+
+    expect(result[0].requiredCrew).toBe(5);
+    expect(result[0].activeActivities[0]?.activityCode).toBe('31-01-01');
   });
 });

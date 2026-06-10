@@ -1,0 +1,14 @@
+figure,Figure 5-T-1
+figureTitle,Tactical Water Distribution Production ................................................................................ 5-T-1
+division,33
+divisionName,Utilities
+sourcePage,5-T-1
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"33 11 13.00\nWater Supply Tactical Hoseline\n(0010) Install tactical water distribution system, 10 miles",Each,180
+"33 11 13.05\nWater Supply Miscellaneous\n(0010) Flush, chlorinate and test distribution mains",LF,0.0040
+33 11 13.06\nTactical Water Distribution System\n(0010) Install expeditionary water distribution,Each,1.50
+"33 11 13.25\nWater Supply PVC Pipe\n(0010) Pressure pipe, Class 150, SDR 18, AWWA C900, 4 inch diameter\n(0020) Pressure pipe, Class 150, SDR 18, AWWA C900, 6 inch diameter",LF\nLF,0.0840\n0.1010
+"Minimum suggested crew size: one utilitiesman, one laborer.",,
+Legend: AWWA = American Water Works Association\nSDR = standard dimension ratio,,

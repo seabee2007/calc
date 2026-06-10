@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type Ref } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from 'react';
 import { createPortal } from 'react-dom';
 import type { ScheduleActivity } from '../../../scheduling/adapters/estimateLineItemsToScheduleActivities';
 import type {
@@ -17,19 +17,24 @@ import {
   setLevelThreeGanttFullscreenTipDismissed,
 } from '../../../scheduling/levelThreeGanttFullscreen';
 import {
+  computeLevelThreeGanttWorkspaceSummary,
+  formatLevelThreeGanttWorkspaceSummary,
+} from '../../../scheduling/levelThreeGanttWorkspaceSummary';
+import {
   DEFAULT_PIXELS_PER_DAY,
   LEFT_TABLE_WIDTH,
   ZOOM_LEVELS,
 } from '../../../scheduling/levelThreeGanttGrid';
 import type { EstimateDomainTask } from '../../../infrastructure/estimateDbTypes';
-import Button from '../../../../../components/ui/Button';
 import LevelThreeGantt from './LevelThreeGantt';
+import LevelThreeGanttExportMenu from './LevelThreeGanttExportMenu';
 import LevelThreeGanttFullscreenToolbar from './LevelThreeGanttFullscreenToolbar';
+import LevelThreeGanttLegend from './LevelThreeGanttLegend';
 import LevelThreeGanttWorkspaceOnboardingModal from './LevelThreeGanttWorkspaceOnboardingModal';
 import ResourceHistogram from './ResourceHistogram';
 
 const TOOLBAR_BUTTON_CLASS =
-  'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
+  'rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
 
 interface Props {
   activities: ScheduleActivity[];
@@ -44,6 +49,9 @@ interface Props {
   exportReady?: boolean;
   chartExportRef?: Ref<HTMLDivElement>;
   resourceHistogram?: ResourceHistogramDay[];
+  onResourceLevel?: () => void;
+  onClearLeveling?: () => void;
+  showClearLeveling?: boolean;
 }
 
 export default function LevelThreeGanttWorkspace({
@@ -59,6 +67,9 @@ export default function LevelThreeGanttWorkspace({
   exportReady = false,
   chartExportRef,
   resourceHistogram = [],
+  onResourceLevel,
+  onClearLeveling,
+  showClearLeveling = false,
 }: Props) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(
@@ -70,6 +81,14 @@ export default function LevelThreeGanttWorkspace({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const projectDuration = cpmResult?.projectDurationDays ?? 0;
+  const scheduleSummary = useMemo(
+    () => computeLevelThreeGanttWorkspaceSummary(activities, cpmResult, resourceHistogram),
+    [activities, cpmResult, resourceHistogram],
+  );
+  const scheduleSummaryText = useMemo(
+    () => formatLevelThreeGanttWorkspaceSummary(scheduleSummary),
+    [scheduleSummary],
+  );
 
   const dismissOnboarding = useCallback(() => {
     setShowOnboarding(false);
@@ -95,7 +114,6 @@ export default function LevelThreeGanttWorkspace({
     setPixelsPerDay((prev) => {
       const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
       if (idx === -1) {
-        // snap to nearest level above
         const next = ZOOM_LEVELS.find((z) => z > prev);
         return next ?? ZOOM_LEVELS[ZOOM_LEVELS.length - 1];
       }
@@ -107,7 +125,6 @@ export default function LevelThreeGanttWorkspace({
     setPixelsPerDay((prev) => {
       const idx = ZOOM_LEVELS.indexOf(prev as (typeof ZOOM_LEVELS)[number]);
       if (idx === -1) {
-        // snap to nearest level below
         const candidates = ZOOM_LEVELS.filter((z) => z < prev);
         return candidates.length > 0 ? candidates[candidates.length - 1] : ZOOM_LEVELS[0];
       }
@@ -121,7 +138,6 @@ export default function LevelThreeGanttWorkspace({
     const availableWidth = el.clientWidth - LEFT_TABLE_WIDTH;
     if (availableWidth <= 0) return;
     const fitted = availableWidth / projectDuration;
-    // Clamp to zoom range
     const clamped = Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitted));
     setPixelsPerDay(clamped);
     el.scrollLeft = 0;
@@ -191,15 +207,14 @@ export default function LevelThreeGanttWorkspace({
   const hasChart = Boolean(cpmResult?.hasRunCpm && activities.length > 0);
   const showResourceHistogram = resourceHistogram.length > 0;
 
-  /** Zoom toolbar rendered in both embedded and fullscreen modes. */
   const zoomControls = hasChart ? (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center gap-1">
       <button
         type="button"
         className={TOOLBAR_BUTTON_CLASS}
         onClick={zoomOut}
         disabled={isAtMinZoom}
-        title="Zoom out — show more of the timeline"
+        title="Zoom out"
         aria-label="Zoom out"
       >
         −
@@ -209,7 +224,7 @@ export default function LevelThreeGanttWorkspace({
         className={TOOLBAR_BUTTON_CLASS}
         onClick={zoomIn}
         disabled={isAtMaxZoom}
-        title="Zoom in — show more detail"
+        title="Zoom in"
         aria-label="Zoom in"
       >
         +
@@ -218,7 +233,7 @@ export default function LevelThreeGanttWorkspace({
         type="button"
         className={TOOLBAR_BUTTON_CLASS}
         onClick={fitChartWidth}
-        title="Fit the full project duration into view"
+        title="Fit full project duration into view"
       >
         Fit width
       </button>
@@ -226,90 +241,92 @@ export default function LevelThreeGanttWorkspace({
         type="button"
         className={TOOLBAR_BUTTON_CLASS}
         onClick={() => scrollToToday()}
-        title="Scroll timeline to today"
+        title="Scroll to today"
       >
         Today
       </button>
     </div>
   ) : null;
 
-  const shell = (
-    <div
-      ref={shellRef}
-      className={isFullscreen ? LEVEL_THREE_GANTT_FULLSCREEN_OVERLAY_CLASS : 'flex w-full flex-col gap-3'}
-      data-level-three-gantt-workspace
-      data-level-three-gantt-fullscreen={isFullscreen ? 'true' : 'false'}
-    >
-      {isFullscreen ? (
-        <LevelThreeGanttFullscreenToolbar
-          exportReady={exportReady}
-          onExportPdf={onExportPdf}
-          onExportExcel={onExportExcel}
-          onFitWidth={fitChartWidth}
-          onZoomIn={zoomIn}
-          onZoomOut={zoomOut}
-          onScrollToToday={() => scrollToToday()}
-          isAtMinZoom={isAtMinZoom}
-          isAtMaxZoom={isAtMaxZoom}
-          onExitFullscreen={() => void exitFullscreen()}
-        />
-      ) : hasChart ? (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+  const embeddedHeader = hasChart ? (
+    <div className="space-y-1">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
               Level III Gantt
             </h2>
-            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-              Activities sorted by early start · Press F for full screen
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {zoomControls}
             <button
               type="button"
-              className={TOOLBAR_BUTTON_CLASS}
-              onClick={() => void enterFullscreen()}
-            >
-              Full screen
-            </button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!exportReady}
-              title={!exportReady ? 'Run CPM before exporting.' : undefined}
-              onClick={onExportPdf}
-            >
-              Export PDF
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!exportReady}
-              title={!exportReady ? 'Run CPM before exporting.' : undefined}
-              onClick={onExportExcel}
-            >
-              Export Excel
-            </Button>
-            <button
-              type="button"
-              className={TOOLBAR_BUTTON_CLASS}
-              title="Workspace tips"
+              className="rounded border border-slate-300 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+              title="Sorted by early start · Press F for full screen · Click ? for workspace tips"
               aria-label="Show Level III Gantt workspace tips"
               onClick={() => setShowOnboarding(true)}
             >
               ?
             </button>
           </div>
+          <p
+            className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400"
+            data-testid="level-three-gantt-summary"
+          >
+            {scheduleSummaryText}
+          </p>
         </div>
-      ) : null}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {zoomControls}
+          <button
+            type="button"
+            className={TOOLBAR_BUTTON_CLASS}
+            onClick={() => void enterFullscreen()}
+          >
+            Full screen
+          </button>
+          <LevelThreeGanttExportMenu
+            exportReady={exportReady}
+            onExportPdf={onExportPdf}
+            onExportExcel={onExportExcel}
+          />
+        </div>
+      </div>
+      <LevelThreeGanttLegend />
+    </div>
+  ) : null;
+
+  const shell = (
+    <div
+      ref={shellRef}
+      className={isFullscreen ? LEVEL_THREE_GANTT_FULLSCREEN_OVERLAY_CLASS : 'flex w-full flex-col gap-2'}
+      data-level-three-gantt-workspace
+      data-level-three-gantt-fullscreen={isFullscreen ? 'true' : 'false'}
+    >
+      {isFullscreen ? (
+        <>
+          <LevelThreeGanttFullscreenToolbar
+            exportReady={exportReady}
+            onExportPdf={onExportPdf}
+            onExportExcel={onExportExcel}
+            onFitWidth={fitChartWidth}
+            onZoomIn={zoomIn}
+            onZoomOut={zoomOut}
+            onScrollToToday={() => scrollToToday()}
+            isAtMinZoom={isAtMinZoom}
+            isAtMaxZoom={isAtMaxZoom}
+            onExitFullscreen={() => void exitFullscreen()}
+          />
+          {hasChart ? (
+            <LevelThreeGanttLegend className="shrink-0 border-b border-slate-300 px-4 py-1.5 dark:border-slate-800" />
+          ) : null}
+        </>
+      ) : (
+        embeddedHeader
+      )}
 
       <div
         className={
           isFullscreen
             ? `${LEVEL_THREE_GANTT_FULLSCREEN_CHART_WRAPPER_CLASS} flex flex-col`
-            : 'space-y-6'
+            : 'space-y-3'
         }
       >
         <div className={isFullscreen ? 'min-h-0 flex-1 overflow-auto' : undefined}>
@@ -330,10 +347,13 @@ export default function LevelThreeGanttWorkspace({
         </div>
 
         {showResourceHistogram ? (
-          <div className={isFullscreen ? 'shrink-0 border-t border-slate-300 px-4 py-3 dark:border-slate-800' : undefined}>
+          <div className={isFullscreen ? 'shrink-0 border-t border-slate-300 px-4 py-2 dark:border-slate-800' : undefined}>
             <ResourceHistogram
               histogram={resourceHistogram}
               projectDurationDays={cpmResult?.projectDurationDays ?? 0}
+              onResourceLevel={onResourceLevel}
+              onClearLeveling={onClearLeveling}
+              showClearLeveling={showClearLeveling}
             />
           </div>
         ) : null}

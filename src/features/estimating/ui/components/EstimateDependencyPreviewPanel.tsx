@@ -38,7 +38,7 @@ export default function EstimateDependencyPreviewPanel({
   return (
     <div className={`${PLANNER_FORM_PANEL} space-y-3`}>
       <div>
-        <p className={PLANNER_SECTION_TITLE}>Dependency preview</p>
+        <p className={PLANNER_SECTION_TITLE}>Draft Dependency Preview</p>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
           Finish-to-start links derived from the selected dependency mode.
         </p>

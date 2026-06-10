@@ -44,6 +44,16 @@ export interface InstantiateConstructionActivityInput {
   productionFactor?: number;
   durationDaysOverride?: number | null;
   activityTitleOverride?: string;
+  /** Project activity code (DD-AA-II). Falls back to template.code when omitted (tests/seeds). */
+  activityCode?: string;
+  baseTitle?: string;
+  instanceLabel?: string | null;
+  location?: string | null;
+  drawingReference?: string | null;
+  phase?: string | null;
+  notes?: string | null;
+  activitySequence?: number;
+  instanceSequence?: number;
   /** Optional stable id for tests; otherwise generated. */
   projectActivityId?: string;
 }
@@ -203,23 +213,27 @@ export function instantiateConstructionActivity(
 
   const projectActivityId = input.projectActivityId ?? createId('pca');
 
-  const resolvedTitle = input.activityTitleOverride?.trim() || input.template.name;
+  const resolvedTitle = input.activityTitleOverride?.trim() || input.baseTitle?.trim() || input.template.name;
+  const resolvedBaseTitle = input.baseTitle?.trim() || input.template.name;
 
   const projectActivity: ProjectConstructionActivity = {
     id: projectActivityId,
     projectId: input.projectId,
     estimateId: input.estimateId,
-    // activity_template_id is a DB FK to construction_activity_templates.
-    // It must remain null when the activity comes from the local TypeScript
-    // registry — registry keys are NOT valid FK values.
     activityTemplateId: null,
-    // source_template_key stores the local registry/template key.
     sourceTemplateKey: input.template.id,
-    activityCode: input.template.code,
+    activityCode: input.activityCode ?? input.template.code,
     title: resolvedTitle,
-    // Legacy aliases (kept for backward compatibility):
+    baseTitle: resolvedBaseTitle,
+    instanceLabel: input.instanceLabel ?? null,
+    location: input.location ?? null,
+    drawingReference: input.drawingReference ?? null,
+    phase: input.phase ?? null,
+    notes: input.notes ?? null,
+    activitySequence: input.activitySequence ?? null,
+    instanceSequence: input.instanceSequence ?? null,
     templateId: input.template.id,
-    code: input.template.code,
+    code: input.activityCode,
     name: resolvedTitle,
     divisionCode: input.division.code,
     divisionName: input.division.name,
@@ -326,6 +340,10 @@ export function createSampleSlabOnGradeActivity(
     productionFactor: inputs.productionFactor,
     durationDaysOverride: inputs.durationDaysOverride,
     activityTitleOverride: inputs.activityTitleOverride,
+    activityCode: PLACE_SLAB_ON_GRADE_ACTIVITY.code,
+    baseTitle: inputs.activityTitleOverride?.trim() || PLACE_SLAB_ON_GRADE_ACTIVITY.name,
+    activitySequence: 1,
+    instanceSequence: 1,
   });
 }
 

@@ -1,0 +1,15 @@
+figure,Figure 5-J-16
+figureTitle,Wall Coverings Production ..................................................................................................5-J-12
+division,09
+divisionName,Finishes
+sourcePage,5-J-16
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"09 72 23.10\nWallpaper\n(0010) Average workmanship, solid pattern\n(0020) Basic patterns, matching required",SF\nSF,0.0170\n0.0200
+Minimum suggested crew size: one skilled paper hanger and one unskilled laborer.,,
+"09 77 33.10\nFiberglass Reinforced Plastic Panels\n(0010) On walls, 0.090 inch thick, adhesive mounted\n(0020) On walls, 0.090 inch thick, nylon rivet mounted, on drywall\n(0030) On walls, 0.090 inch thick, nylon rivet mounted, on masonry\n(0040) On walls, 0.090 inch thick, nylon rivet and adhesive mounted, on drywall\n(0050) On walls, 0.090 inch thick, nylon rivet and adhesive mounted, on masonry",SF\nSF\nSF\nSF\nSF,0.0330\n0.0440\n0.0670\n0.0890\n0.1120
+Minimum suggested crew size: one builder and one laborer.,,
+Notes:\n1. The above options provide only a small sample of the myriad of possibilities. They provide a cross\nsection of average labor times required for plaster and gypsum board assemblies.\n2. A multiplier of 1.5 was used to convert civilian production rates to military production rates in this figure.\nNo further adjustment required for military production.\n3. Refer to Division 09 29 10.30 for gypsum board installation.,,
+"09 91 03.30\nExterior Surface Preparation\nAverage times for various surfaces, including steel\n(0010) scrape and sand\n(0020) wire brush\n(0030) power tool\n(0040) pressure/power wash (2,800 to 6,000 SF per day)\n(0050) steam cleaning (2,800 to 4,000 SF per day)\n(0060) water blasting\n(0070) masking with paper\n(0080) volume cover up (drop cloths or plastic sheathing)",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.0330\n0.0150\n0.0150\n0.0020\n0.0050\n0.0040\n0.0130\n0.0020
+"09 91 13.30\nFences\nChain link or wire metal, picket, and stockade; one side, water base\n(0010) roll and brush, first coat\n(0020) second coat\n(0030) spray, first coat\n(0040) second coat",SF\nSF\nSF\nSF,0.0120\n0.0120\n0.0050\n0.0040

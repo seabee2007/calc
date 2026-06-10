@@ -7,9 +7,9 @@
  * Line items are NEVER schedule activities — only the parent card has a schedule toggle.
  */
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList } from 'lucide-react';
+import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList, Pencil } from 'lucide-react';
 import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
-import { hasConstructionActivityEstimateWarnings } from '../../domain/constructionActivityCalculations';
+import { getConstructionActivityWarnings, hasConstructionActivityEstimateWarnings } from '../../domain/constructionActivityCalculations';
 import ActivityLineItemRow from './ActivityLineItemRow';
 import ActivityProgressSummary from './ActivityProgressSummary';
 import ActivityProgressForm from './ActivityProgressForm';
@@ -19,6 +19,7 @@ interface Props {
   activity: ProjectConstructionActivity;
   lineItems: ProjectActivityLineItem[];
   onDelete?: (id: string) => void;
+  onEdit?: (activity: ProjectConstructionActivity, lineItems: ProjectActivityLineItem[]) => void;
   defaultExpanded?: boolean;
   currentProjectDay?: number;
 }
@@ -41,6 +42,7 @@ export default function ConstructionActivityCard({
   activity,
   lineItems,
   onDelete,
+  onEdit,
   defaultExpanded = false,
   currentProjectDay = 0,
 }: Props) {
@@ -57,6 +59,7 @@ export default function ConstructionActivityCard({
   const dur = activity.effectiveDurationDays ?? activity.calculatedDurationDays ?? 0;
   const hasOverride = activity.durationDaysOverride != null;
   const hasWarnings = hasConstructionActivityEstimateWarnings(activity, lineItems);
+  const warningMessages = getConstructionActivityWarnings(activity, lineItems);
 
   const totalCost = activity.totalCost ?? 0;
 
@@ -87,11 +90,15 @@ export default function ConstructionActivityCard({
           <p className="text-[10px] text-slate-400 font-mono">
             {activity.activityCode ?? activity.code}
           </p>
+          {(activity.instanceLabel || activity.location || activity.drawingReference) && (
+            <p className="truncate text-[10px] text-slate-500">
+              {[activity.instanceLabel, activity.location, activity.drawingReference].filter(Boolean).join(' • ')}
+            </p>
+          )}
         </div>
 
-        {/* Warning badge */}
         {hasWarnings && (
-          <span className="shrink-0 text-amber-500" title="Missing quantities or rates">
+          <span className="shrink-0 text-amber-500" title={warningMessages.join(' ')}>
             <AlertTriangle size={14} />
           </span>
         )}
@@ -136,6 +143,21 @@ export default function ConstructionActivityCard({
           >
             {rollup.percentComplete}%
           </span>
+        )}
+
+        {/* Edit */}
+        {onEdit && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(activity, lineItems);
+            }}
+            className="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-cyan-600 dark:hover:bg-slate-800 dark:hover:text-cyan-300 transition-colors"
+            title="Edit activity"
+          >
+            <Pencil size={14} />
+          </button>
         )}
 
         {/* Delete */}

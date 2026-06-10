@@ -1,120 +1,102 @@
 #!/usr/bin/env node
 /**
- * Generate TypeScript seed files (and optional Supabase SQL) from approved production-rate JSON.
- *
- * Usage:
- *   npx tsx scripts/generateProductionRateSeeds.ts
- *   npx tsx scripts/generateProductionRateSeeds.ts --sql
- *
- * Only reads from data/estimating/production-rates/approved/.
- * Raw and reviewed files are never consumed by this script.
+ * Generate approved-only production rate seed bundles for the estimator.
+ * Hard safety gate: fails if any non-approved record is present.
  */
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, basename } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildProductionRateSeedBundle, generateSeedFileText } from '../src/features/estimating/rates/buildProductionRateSeed';
+import { mapRecordToLibraryEntry, mapRecordToProductionRate } from '../src/features/estimating/data/productionRates/mapToLibraryEntry';
 import {
-  divisionSeedExportName,
-  mapExtractedFileToReviewedRateFile,
-} from '../src/features/estimating/data/productionRates/mapExtractedToReviewedRate';
-import type { ExtractedProductionRateFile } from '../src/features/estimating/data/productionRates/productionRateTypes';
+  ESTIMATOR_ALLOWED_QA_STATUS,
+  type NormalizedProductionRateFile,
+  type NormalizedProductionRateRecord,
+} from '../src/features/estimating/data/productionRates/productionRateTypes';
 import { assertApprovedProductionRateFile } from '../src/features/estimating/data/productionRates/validateExtractedProductionRates';
 
-const repoRoot = join(import.meta.dirname, '..');
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const approvedDir = join(repoRoot, 'data/estimating/production-rates/approved');
-const generatedDir = join(repoRoot, 'src/features/estimating/data/generated');
-const sqlDir = join(repoRoot, 'supabase/seeds/production_rates');
+const generatedDir = join(repoRoot, 'src/features/estimating/data/productionRates/generated');
 
-const writeSql = process.argv.includes('--sql');
+function loadApprovedRecords(): NormalizedProductionRateRecord[] {
+  const files = readdirSync(approvedDir).filter((name) => name.endsWith('.approved.json'));
+  const records: NormalizedProductionRateRecord[] = [];
 
-function loadApprovedFiles(): ExtractedProductionRateFile[] {
-  let files: string[];
-  try {
-    files = readdirSync(approvedDir).filter((name) => name.endsWith('.approved.json'));
-  } catch {
-    console.warn(`No approved directory found at ${approvedDir}. Nothing to generate.`);
-    return [];
-  }
-
-  return files.map((name) => {
-    const payload = JSON.parse(readFileSync(join(approvedDir, name), 'utf8')) as ExtractedProductionRateFile;
+  for (const name of files) {
+    const payload = JSON.parse(
+      readFileSync(join(approvedDir, name), 'utf8'),
+    ) as NormalizedProductionRateFile;
     assertApprovedProductionRateFile(payload);
-    return payload;
-  });
-}
-
-function groupByDivision(files: ExtractedProductionRateFile[]): Map<string, ExtractedProductionRateFile[]> {
-  const groups = new Map<string, ExtractedProductionRateFile[]>();
-  for (const file of files) {
-    const key = file.batchMeta.division;
-    const bucket = groups.get(key) ?? [];
-    bucket.push(file);
-    groups.set(key, bucket);
+    records.push(...payload.records);
   }
-  return groups;
+
+  return records;
 }
 
-function mergeRecords(files: ExtractedProductionRateFile[]): ExtractedProductionRateFile {
-  const [first] = files;
-  return {
-    batchMeta: first.batchMeta,
-    records: files.flatMap((file) => file.records),
-  };
-}
-
-function sqlEscape(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-function generateSqlInsert(file: ExtractedProductionRateFile, importBatchId: string): string {
-  const reviewed = mapExtractedFileToReviewedRateFile(file, file.batchMeta.reviewedBy ?? 'approved-pipeline');
-  const bundle = buildProductionRateSeedBundle(reviewed, importBatchId);
-  const lines = [
-    '-- AUTO-GENERATED from approved production-rate JSON. Do not edit manually.',
-    `-- batch: ${importBatchId}`,
-    'BEGIN;',
-  ];
-
-  for (const rate of bundle.rates) {
-    lines.push(
-      "INSERT INTO production_rates (id, division_code, division_name, master_format_code, work_element_line_number, description, unit, rate_type, man_hours_per_unit, source_manual, source_edition, source_figure, source_page, import_batch_id, payload) VALUES (",
-      `'${sqlEscape(rate.id)}', '${sqlEscape(rate.divisionCode)}', '${sqlEscape(rate.divisionName)}', '${sqlEscape(rate.masterFormatCode)}', '${sqlEscape(rate.workElementLineNumber)}', '${sqlEscape(rate.description)}', '${sqlEscape(rate.unit)}', '${sqlEscape(rate.rateType)}', ${rate.manHoursPerUnit ?? 'NULL'}, '${sqlEscape(rate.sourceManual)}', '${sqlEscape(rate.sourceEdition)}', '${sqlEscape(rate.sourceFigure)}', '${sqlEscape(rate.sourcePage)}', '${sqlEscape(importBatchId)}', '${sqlEscape(JSON.stringify(rate))}'::jsonb`,
-      ') ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, import_batch_id = EXCLUDED.import_batch_id;',
+function enforceSafetyGate(records: NormalizedProductionRateRecord[]): void {
+  const unsafe = records.filter((record) => !ESTIMATOR_ALLOWED_QA_STATUS.includes(record.qaStatus));
+  if (unsafe.length > 0) {
+    const sample = unsafe
+      .slice(0, 5)
+      .map((r) => `${r.id} (${r.qaStatus})`)
+      .join(', ');
+    throw new Error(
+      `SAFETY GATE FAILED: ${unsafe.length} non-approved record(s) would enter generated output. Sample: ${sample}`,
     );
   }
-
-  lines.push('COMMIT;');
-  return lines.join('\n');
 }
 
 function main(): void {
-  const approvedFiles = loadApprovedFiles();
-  if (approvedFiles.length === 0) {
-    console.log('No approved JSON files found. Seed generation skipped.');
+  const records = loadApprovedRecords();
+  if (records.length === 0) {
+    console.log('No approved records found. Seed generation skipped.');
     return;
   }
 
+  enforceSafetyGate(records);
+
+  const importBatchId = `approved-library-${new Date().toISOString().slice(0, 10)}`;
+  const libraryEntries = records.map(mapRecordToLibraryEntry);
+  const productionRates = records.map((record) => mapRecordToProductionRate(record, importBatchId));
+  const indexWithStatus = records.map((record) => ({
+    qaStatus: record.qaStatus,
+    ...mapRecordToLibraryEntry(record),
+  }));
+
   mkdirSync(generatedDir, { recursive: true });
-  if (writeSql) mkdirSync(sqlDir, { recursive: true });
 
-  const groups = groupByDivision(approvedFiles);
-  for (const [divisionCode, files] of groups.entries()) {
-    const merged = mergeRecords(files);
-    const reviewedBy = merged.batchMeta.reviewedBy ?? 'approved-pipeline';
-    const reviewed = mapExtractedFileToReviewedRateFile(merged, reviewedBy);
-    const importBatchId = `approved-div${divisionCode}-${new Date().toISOString().slice(0, 10)}`;
-    const bundle = buildProductionRateSeedBundle(reviewed, importBatchId);
-    const exportName = divisionSeedExportName(divisionCode, merged.batchMeta.divisionName);
-    const outFile = join(generatedDir, `${exportName}.generated.ts`);
-    writeFileSync(outFile, generateSeedFileText(bundle.rates, exportName), 'utf8');
-    console.log(`Wrote ${outFile} (${bundle.rates.length} rates)`);
+  const ratesPath = join(generatedDir, 'generatedProductionRates.ts');
+  const indexPath = join(generatedDir, 'generatedProductionRateIndex.ts');
 
-    if (writeSql) {
-      const sqlFile = join(sqlDir, `${exportName}.sql`);
-      writeFileSync(sqlFile, generateSqlInsert(merged, importBatchId), 'utf8');
-      console.log(`Wrote ${sqlFile}`);
-    }
-  }
+  writeFileSync(
+    ratesPath,
+    `// AUTO-GENERATED — do not edit. Regenerate: npm run generate:production-rates
+import type { ProductionRate } from '../../domain/constructionActivityTypes';
+
+export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = ${JSON.stringify(productionRates, null, 2)} as const;
+
+export const GENERATED_PRODUCTION_RATE_MAP = new Map<string, ProductionRate>(
+  GENERATED_PRODUCTION_RATES.map((rate) => [rate.id, rate]),
+);
+`,
+    'utf8',
+  );
+
+  writeFileSync(
+    indexPath,
+    `// AUTO-GENERATED — do not edit. Regenerate: npm run generate:production-rates
+import type { ProductionRateLibraryEntry } from '../productionRateTypes';
+
+type IndexedLibraryEntry = ProductionRateLibraryEntry & { qaStatus: 'approved' };
+
+export const GENERATED_PRODUCTION_RATE_INDEX: readonly IndexedLibraryEntry[] = ${JSON.stringify(indexWithStatus, null, 2)} as const;
+`,
+    'utf8',
+  );
+
+  console.log(`Wrote ${ratesPath} (${productionRates.length} rates)`);
+  console.log(`Wrote ${indexPath} (${libraryEntries.length} library entries)`);
+  console.log('Safety gate passed: all records are approved.');
 }
 
 main();

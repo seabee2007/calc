@@ -28,6 +28,15 @@ export interface InstantiateFromAssemblyInput {
   productionFactor?: number;
   durationDaysOverride?: number | null;
   activityTitleOverride?: string;
+  activityCode?: string;
+  baseTitle?: string;
+  instanceLabel?: string | null;
+  location?: string | null;
+  drawingReference?: string | null;
+  phase?: string | null;
+  notes?: string | null;
+  activitySequence?: number;
+  instanceSequence?: number;
   projectActivityId?: string;
 }
 
@@ -86,6 +95,15 @@ export function instantiateFromAssemblySpec(
     productionFactor: input.productionFactor ?? assembly.defaultProductionFactor ?? 1,
     durationDaysOverride: input.durationDaysOverride,
     activityTitleOverride: input.activityTitleOverride,
+    activityCode: input.activityCode,
+    baseTitle: input.baseTitle,
+    instanceLabel: input.instanceLabel,
+    location: input.location,
+    drawingReference: input.drawingReference,
+    phase: input.phase,
+    notes: input.notes,
+    activitySequence: input.activitySequence,
+    instanceSequence: input.instanceSequence,
     projectActivityId: input.projectActivityId,
   });
 

@@ -32,6 +32,9 @@ import { applyMasterActivityToDraftLine } from '../../application/estimateActivi
 import type { MasterActivityDefaultField } from '../../application/estimateActivityCoding';
 import { getMasterActivityByCode } from '../../data/masterActivityIndex';
 import { getProductionRateDefaultsForActivity } from '../../data/productionRates';
+import ProductionRateLibraryModal from './ProductionRateLibraryModal';
+import type { ProductionRateLibraryEntry } from '../../data/productionRates/productionRateTypes';
+import { PRODUCTION_RATE_REFERENCE_NOTE } from '../../data/productionRates/mapToLibraryEntry';
 import { getCsiDivisionByCode } from '../../domain/csiDivisions';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import {
@@ -103,6 +106,7 @@ export default function EstimateManualLineItemForm({
   formError = null,
 }: Props) {
   const [laborHelpOpen, setLaborHelpOpen] = useState(false);
+  const [productionLibraryOpen, setProductionLibraryOpen] = useState(false);
   const touchedDefaultFieldsRef = useRef<Set<MasterActivityDefaultField>>(new Set());
   const { task } = draft;
   const labor = task.lineItem.labor ?? {};
@@ -254,6 +258,19 @@ export default function EstimateManualLineItemForm({
   const showProductionDefaultsNote =
     selectedProductionDefaults != null &&
     Math.abs((labor.productionRate ?? 0) - selectedProductionDefaults.productionRate) < 0.000001;
+
+  const applyProductionRateEntry = (entry: ProductionRateLibraryEntry) => {
+    patchLabor({
+      productionRate: entry.manHoursPerUnit ?? 0,
+      ntrpProductionRateId: entry.id,
+      productionRateSourceFigure: entry.figure,
+      productionRateSourcePage: entry.sourcePage,
+      crewSize: entry.crewSize ?? labor.crewSize,
+    });
+    if (entry.unitOfMeasure) {
+      onChange({ ...draft, unit: entry.unitOfMeasure });
+    }
+  };
 
   const selectMaster = (activityCode: string) => {
     const master = getMasterActivityByCode(activityCode);
@@ -601,12 +618,21 @@ export default function EstimateManualLineItemForm({
           onClose={() => setLaborHelpOpen(false)}
         />
         <FieldGrid>
-          <div>
-            <FieldLabelWithTooltip
-              htmlFor="production-rate"
-              label="Man-hours per unit"
-              tooltip={laborTooltip('production_rate')}
-            />
+          <div className="sm:col-span-2">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <FieldLabelWithTooltip
+                htmlFor="production-rate"
+                label="Man-hours per unit"
+                tooltip={laborTooltip('production_rate')}
+              />
+              <button
+                type="button"
+                onClick={() => setProductionLibraryOpen(true)}
+                className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition hover:border-cyan-400/50 hover:bg-cyan-500/20"
+              >
+                Browse production rates
+              </button>
+            </div>
             <Input
               id="production-rate"
               type="number"
@@ -621,11 +647,21 @@ export default function EstimateManualLineItemForm({
               }
               fullWidth
             />
+            {labor.ntrpProductionRateId ? (
+              <p className="mt-1 text-xs text-cyan-300/90">
+                NTRP rate {labor.ntrpProductionRateId}
+                {labor.productionRateSourceFigure ? ` · ${labor.productionRateSourceFigure}` : ''}
+                {labor.productionRateSourcePage ? ` · p. ${labor.productionRateSourcePage}` : ''}
+              </p>
+            ) : null}
             {showProductionDefaultsNote && selectedProductionDefaults ? (
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Loaded from {selectedProductionDefaults.sourceCsiCode} —{' '}
                 {selectedProductionDefaults.sourceDescription}
               </p>
+            ) : null}
+            {labor.ntrpProductionRateId ? (
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{PRODUCTION_RATE_REFERENCE_NOTE}</p>
             ) : null}
           </div>
           <div>
@@ -793,6 +829,13 @@ export default function EstimateManualLineItemForm({
           />
         </div>
       </section>
+
+      <ProductionRateLibraryModal
+        isOpen={productionLibraryOpen}
+        onClose={() => setProductionLibraryOpen(false)}
+        onSelect={applyProductionRateEntry}
+        initialDivisionCode={normalizedDivision || undefined}
+      />
     </div>
   );
 }

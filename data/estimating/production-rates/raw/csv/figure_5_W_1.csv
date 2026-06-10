@@ -1,0 +1,15 @@
+figure,Figure 5-W-1
+figureTitle,Rock Crushing Plant Operation .......................................................................................... 5-W-1
+division,41
+divisionName,Materiel Processing and Handling
+sourcePage,5-W-1
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+41 11 00\nBulk Materiel Sizing Equipment,,
+(0010) Setup and dismantle,Each,320.000
+(0020) Operate crushing plant,CYD,0.160
+(0030) Stockpile crushed materiel,CYD,0.024
+(0040) Haul crushed materiel to job,CYD,0.048
+"Minimum suggested crew size:\nSetup and dismantle plant—seven equipment operators, one electrician, one steelworker, and one\nmechanic. Plant operation and maintenance—two equipment operators, one electrician, one\nsteelworker, and one mechanic. Stockpile crushed materiel—four equipment operators.",,
+"Notes:\n1. The production figure is based upon 75 tons per hour, plant operating at 50 percent of rated\ncapacity crushing granite at 3,000 pounds per CYD. For plants of other sizes use 50 percent of\nrated capacity and the size of your crew for calculations.\n2. Production figures may have to be adjusted in accordance with the type of materiel being\nprocessed and with other varying circumstances. For example: Coral weights (approximately\n2,000 pounds per loose CYD).",,

@@ -1,6 +1,7 @@
 import type { NavigateFunction } from 'react-router-dom';
 import type { EstimateWorkspaceTabId } from '../features/estimating/ui/components/EstimateWorkspaceTabBar';
 import {
+  DEFAULT_ESTIMATE_WORKSPACE_TAB,
   estimateWorkspaceHref,
   isEstimateWorkspaceTabId,
 } from '../features/estimating/utils/estimateRoutes';
@@ -62,7 +63,7 @@ export function plannerBoardHref(projectId: string, taskId?: string): string {
 }
 
 export function plannerEstimateHref(projectId: string, tabId?: EstimateWorkspaceTabId): string {
-  return estimateWorkspaceHref(projectId, tabId ?? 'overview');
+  return estimateWorkspaceHref(projectId, tabId ?? DEFAULT_ESTIMATE_WORKSPACE_TAB);
 }
 
 const SAFE_PROJECT_PLANNER_SEGMENTS = new Set([

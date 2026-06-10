@@ -1,0 +1,15 @@
+figure,Figure 5-L-2
+figureTitle,Tension Fabric Structures Production ................................................................................... 5-L-2
+division,13
+divisionName,Special Construction
+sourcePage,5-L-2
+sourcePdfPage,14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"13 31 23.50\nTension Fabric Structures\nFabric shell, 60-foot-clear span, not including foundation or floors\n(0010) 6,000 SF\n(0020) 12,000 SF\nFabric shell, 80-foot-clear span, not including foundation or floors\n(0030) 20,800 SF",SF Floor\nSF Floor\nSF Floor,0.0880\n0.0800\n0.0720
+"Minimum suggested crew size:\nStructure installation: one steelworker (crew leader), four laborers, two equipment operators.",,
+Roll-up door (minimum)\n(0040) 12 by 14 feet,Each,20.0000
+Minimum suggested crew size: Roll-up door: two builders.,,
+"Notes:\n1. These estimates are for frame and shell only.\n2. Duckbill anchors furnished with basic tension fabric structures are for unpaved surfaces only.\n3. For asphalt and concrete surfaces, use expansion-type anchors.\n4. Refer to other divisions for estimates on footings, utilities, and other components of work.\n5. Refer to manufacturers’ specifications and installation instructions.",,
+"13 31 33.00\nFramed Fabric Structures\n(0010) MGPTS, Small, 18 by 18 feet, erect and strike\n(0020) MGPTS, Medium, 18 by 36 feet, erect and strike\n(0030) MGPTS, Large, 18 by 54 feet, erect\n(0035) MGPTS, Large, 18 by 54 feet, strike\n(0100) TEMPER, Small, 20 by 16 feet, erect\n(0110) TEMPER, Medium, 20 by 32 feet, erect\n(0120) TEMPER, Large, 20 by 48 feet, erect\n(0150) ALASKA, United States Air Force (USAF), Small, 20 by 33 feet,\nerect and strike\n(0160) ALASKA, AMEDD, Small, 20 by 20 feet, erect\n(0170) ALASKA, AMEDD, Medium, 20 by 65 feet, erect\n(0200) Airbeam TEMPER, Medium, 20 by 32 feet, erect\n(0210) Expeditionary Shelter System, USMC, Medium, 18 by 25 feet, erect",Each\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach\nEach,1.8000\n2.4000\n4.4700\n3.0000\n1.5000\n3.3300\n4.1000\n2.0000\n4.0000\n4.0000\n1.0000\n0.8000
+"Legend: AMEDD = Army Medical Department\nMGPTS = Modular general purpose tent system\nTEMPER = tent, expendable modular personnel",,

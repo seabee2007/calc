@@ -1,18 +1,24 @@
 /**
  * Hook: manages the lifecycle of project construction activities for a
  * given project + estimate.
- *
- * Provides load, save (instantiate + persist), and delete operations,
- * exposing simple state: activities[], lineItemsMap, loading, error.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActivityAssemblySpec, AssemblyUserInputs } from '../../domain/activityAssemblyTypes';
-import type { ActivityLineItemTemplate, EstimateDivision, ProductionRate, ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type {
+  ActivityLineItemTemplate,
+  EstimateDivision,
+  ProductionRate,
+  ProjectActivityLineItem,
+  ProjectConstructionActivity,
+} from '../../domain/constructionActivityTypes';
 import {
   instantiateAndSaveActivity,
   loadProjectActivitiesWithLineItems,
   removeProjectActivity,
+  updateProjectConstructionActivity,
+  type ActivityInstanceIdentityInput,
   type LoadedProjectActivity,
+  type UpdateProjectActivityInput,
 } from '../../application/constructionActivityService';
 
 export interface ConstructionActivityState {
@@ -26,6 +32,7 @@ export interface ConstructionActivityState {
 export interface UseConstructionActivitiesReturn extends ConstructionActivityState {
   reload: () => void;
   addFromAssembly: (params: AddFromAssemblyParams) => Promise<void>;
+  updateActivity: (params: UpdateProjectActivityInput) => Promise<void>;
   remove: (activityId: string) => Promise<void>;
 }
 
@@ -39,8 +46,7 @@ export interface AddFromAssemblyParams {
   hoursPerDay?: number;
   productionFactor?: number;
   durationDaysOverride?: number | null;
-  activityTitleOverride?: string;
-  existingActivityId?: string;
+  identity: ActivityInstanceIdentityInput;
 }
 
 export function useConstructionActivities(
@@ -102,6 +108,7 @@ export function useConstructionActivities(
         ...params,
         projectId,
         estimateId: estimateId ?? undefined,
+        existingActivities: state.activities,
       });
       if (result.error || !result.data) {
         setState((s) => ({
@@ -110,12 +117,30 @@ export function useConstructionActivities(
           error: result.error ?? 'Save failed',
         }));
       } else {
-        // Optimistically update state then reload for consistency
         setState((s) => ({ ...s, saving: false }));
         void load();
       }
     },
-    [projectId, estimateId, load],
+    [projectId, estimateId, load, state.activities],
+  );
+
+  const updateActivity = useCallback(
+    async (params: UpdateProjectActivityInput) => {
+      if (!projectId) return;
+      setState((s) => ({ ...s, saving: true, error: null }));
+      const result = await updateProjectConstructionActivity(params);
+      if (result.error || !result.data) {
+        setState((s) => ({
+          ...s,
+          saving: false,
+          error: result.error ?? 'Update failed',
+        }));
+      } else {
+        setState((s) => ({ ...s, saving: false }));
+        void load();
+      }
+    },
+    [projectId, load],
   );
 
   const remove = useCallback(
@@ -144,5 +169,5 @@ export function useConstructionActivities(
     [],
   );
 
-  return { ...state, reload, addFromAssembly, remove };
+  return { ...state, reload, addFromAssembly, updateActivity, remove };
 }

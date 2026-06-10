@@ -13,9 +13,11 @@ import { useCallback, useMemo, useState } from 'react';
 import { Plus, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import ConstructionActivityCard from './ConstructionActivityCard';
 import AssemblyPickerModal from './AssemblyPickerModal';
+import EditConstructionActivityModal from './EditConstructionActivityModal';
 import { useConstructionActivities } from '../hooks/useConstructionActivities';
 import type { AddFromAssemblyParams } from '../hooks/useConstructionActivities';
-import type { ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type { UpdateProjectActivityInput } from '../../application/constructionActivityService';
 
 interface Props {
   projectId: string;
@@ -42,11 +44,15 @@ function groupByDivision(
 }
 
 export default function ConstructionActivityBuilderPanel({ projectId, estimateId, onActivitiesChanged }: Props) {
-  const { activities, lineItemsMap, loading, saving, error, reload, addFromAssembly, remove } =
+  const { activities, lineItemsMap, loading, saving, error, reload, addFromAssembly, updateActivity, remove } =
     useConstructionActivities(projectId, estimateId);
 
   const [showPicker, setShowPicker] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [editingActivity, setEditingActivity] = useState<{
+    activity: ProjectConstructionActivity;
+    lineItems: ProjectActivityLineItem[];
+  } | null>(null);
 
   const groups = useMemo(() => groupByDivision(activities), [activities]);
 
@@ -67,6 +73,15 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
       onActivitiesChanged?.();
     },
     [addFromAssembly, onActivitiesChanged],
+  );
+
+  const handleEditSave = useCallback(
+    async (params: UpdateProjectActivityInput) => {
+      await updateActivity(params);
+      setEditingActivity(null);
+      onActivitiesChanged?.();
+    },
+    [onActivitiesChanged, updateActivity],
   );
 
   const handleDeleteRequest = useCallback((id: string) => {
@@ -93,7 +108,7 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md">
           Add activities from the production-rate assembly library. Each activity includes
-          pre-built line items (work elements) sourced from NTRP 4-04.2.3 / TM 3-34.41.
+          pre-built line items (work elements)
         </p>
         <button
           type="button"
@@ -107,6 +122,7 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
             onConfirm={handleAdd}
             onCancel={() => setShowPicker(false)}
             saving={saving}
+            existingActivities={activities}
           />
         )}
       </div>
@@ -187,18 +203,20 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
             activities={group.items}
             lineItemsMap={lineItemsMap}
             onDelete={handleDeleteRequest}
+            onEdit={(activity, lineItems) => setEditingActivity({ activity, lineItems })}
           />
         ))
       )}
 
       {/* ── Assembly picker modal ────────────────────────────────────────────── */}
-      {showPicker && (
-        <AssemblyPickerModal
-          onConfirm={handleAdd}
-          onCancel={() => setShowPicker(false)}
-          saving={saving}
-        />
-      )}
+        {showPicker && (
+          <AssemblyPickerModal
+            onConfirm={handleAdd}
+            onCancel={() => setShowPicker(false)}
+            saving={saving}
+            existingActivities={[]}
+          />
+        )}
 
       {/* ── Delete confirm dialog ────────────────────────────────────────────── */}
       {deleteConfirm && (
@@ -206,6 +224,16 @@ export default function ConstructionActivityBuilderPanel({ projectId, estimateId
           activity={activities.find((a) => a.id === deleteConfirm)}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteConfirm(null)}
+          saving={saving}
+        />
+      )}
+
+      {editingActivity && (
+        <EditConstructionActivityModal
+          activity={editingActivity.activity}
+          lineItems={editingActivity.lineItems}
+          onSave={handleEditSave}
+          onCancel={() => setEditingActivity(null)}
           saving={saving}
         />
       )}
@@ -250,12 +278,14 @@ function DivisionSection({
   activities,
   lineItemsMap,
   onDelete,
+  onEdit,
 }: {
   divisionCode: string;
   divisionName: string;
   activities: ProjectConstructionActivity[];
-  lineItemsMap: Map<string, import('../../domain/constructionActivityTypes').ProjectActivityLineItem[]>;
+  lineItemsMap: Map<string, ProjectActivityLineItem[]>;
   onDelete: (id: string) => void;
+  onEdit: (activity: ProjectConstructionActivity, lineItems: ProjectActivityLineItem[]) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const divMH = activities.reduce((s, a) => s + (a.calculatedManHours ?? 0), 0);
@@ -288,6 +318,7 @@ function DivisionSection({
               activity={activity}
               lineItems={lineItemsMap.get(activity.id) ?? []}
               onDelete={onDelete}
+              onEdit={onEdit}
             />
           ))}
         </div>

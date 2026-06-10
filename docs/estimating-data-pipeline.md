@@ -7,9 +7,10 @@ This pipeline converts Chapter 5 production tables from **NTRP 4-04.2.3 / TM 3-3
 ## Design principles
 
 1. **Never hardcode unverified PDF values in application code.**
-2. **Raw extraction is machine output only** — it may contain OCR/table parsing errors.
-3. **Only `approved` records may feed seed generation** or the production estimator.
-4. **Existing curated files** under `src/features/estimating/data/manualRates/` remain valid until replaced through this workflow.
+2. **Raw extraction is machine output only** — do not manually edit `raw/` files.
+3. **Only `qaStatus: "approved"` records** may feed seed generation or the estimator UI.
+4. **Safety gate** — `npm run generate:production-rates` fails if any non-approved record is present.
+5. **Existing curated files** under `manualRates/` can be bootstrapped into `approved/` via `npm run bootstrap:production-rates`.
 
 ## Directory layout
 
@@ -23,9 +24,15 @@ tools/data-extraction/                 Python extraction + validation tools
 
 data/estimating/production-rates/
   raw/csv/                             Machine-extracted CSV per figure
-  raw/                                 Normalized JSON (`confidence: raw|needs_review`)
-  reviewed/                            Human-reviewed JSON (`confidence: reviewed`)
-  approved/                            Estimator-approved JSON (`confidence: approved`)
+  raw/                                 Normalized JSON (`qaStatus: raw|needs_review`)
+  needs-review/                        Parser-flagged rows
+  reviewed/                            Human-reviewed JSON (`qaStatus: reviewed`)
+  approved/                            Estimator-approved JSON (`qaStatus: approved`)
+  rejected/                            Rejected rows (audit trail)
+
+src/features/estimating/data/productionRates/generated/
+  generatedProductionRates.ts          Approved ProductionRate[] bundle
+  generatedProductionRateIndex.ts      Approved library index (UI picker)
 
 src/features/estimating/data/productionRates/
   productionRateTypes.ts               Pipeline TypeScript types
@@ -35,16 +42,38 @@ src/features/estimating/data/productionRates/
 scripts/generateProductionRateSeeds.ts   approved JSON → TS seeds (+ optional SQL)
 ```
 
-## Priority divisions (initial rollout)
+## Division coverage
 
-| Division | Name |
-|----------|------|
-| 03 | Concrete |
-| 06 | Wood, Plastics, and Composites |
-| 31 | Earthwork |
-| 32 | Exterior Improvements |
-| 26 | Electrical |
-| 22 | Plumbing |
+The manual’s Chapter 5 production figures cover **22 annexes** mapped to these CSI divisions:
+
+| Annex | Division | Name |
+|-------|----------|------|
+| A | 01 | General Requirements |
+| B | 02 | Existing Conditions |
+| C | 03 | Concrete |
+| D | 04 | Masonry |
+| E | 05 | Metals |
+| F | 06 | Wood, Plastics, and Composites |
+| G | 07 | Thermal and Moisture Protection |
+| H | 08 | Openings |
+| J | 09 | Finishes |
+| K | 10 | Specialties (also includes Div 11/12 figures) |
+| L | 13 | Special Construction |
+| M | 21 | Fire Suppression |
+| N | 22 | Plumbing |
+| P | 23 | HVAC |
+| Q | 26 | Electrical |
+| R | 31 | Earthwork |
+| S | 32 | Exterior Improvements |
+| T | 33 | Utilities |
+| U | 34 | Transportation |
+| V | 35 | Waterway and Marine Construction |
+| W | 41 | Materiel Processing and Handling |
+| X | 46 | Water Treatment Equipment |
+
+**Priority divisions** (review first): 03, 06, 22, 26, 31, 32.
+
+The same extract → review → approve workflow applies to every division above.
 
 ## 1. Extract raw CSV from the PDF
 
@@ -56,11 +85,17 @@ scripts/generateProductionRateSeeds.ts   approved JSON → TS seeds (+ optional 
 ```powershell
 cd calc
 python -m pip install -r tools/data-extraction/requirements.txt
+
+# Priority divisions only (default)
 python tools/data-extraction/extract_chapter5.py --pdf "C:\Users\terre\Downloads\MCRP 3-40D.12.pdf"
+
+# All manual divisions (~218 figures)
+python tools/data-extraction/extract_chapter5.py --pdf "C:\Users\terre\Downloads\MCRP 3-40D.12.pdf" --all-divisions
 ```
 
 Options:
 
+- `--all-divisions` — extract every Chapter 5 annex in the manual
 - `--divisions 03 31` — limit extraction to specific CSI divisions
 - `--output-dir data/estimating/production-rates/raw/csv`
 
@@ -82,6 +117,17 @@ Each record includes:
 - `extractionWarnings` when parsing was uncertain
 
 ## 3. Review workflow
+
+### AI-assisted review (recommended)
+
+```powershell
+npm run ai-review:production-rates -- --figure figure_5_C_7
+npm run validate:production-rates
+npm run promote:production-rates -- --figure figure_5_C_7 --approve
+```
+
+AI output lands in `data/estimating/production-rates/ai-reviewed/` with `qaStatus: "ai_reviewed"`.
+Only human promotion to `approved/` may feed the estimator. See [production-rate-review-workflow.md](./production-rate-review-workflow.md).
 
 ### Human review checklist
 
@@ -181,8 +227,19 @@ This throws if any record is not `confidence: "approved"`.
 | Duplicate IDs after mapping | Ensure unique `workElementNumber` + `workElementLineNumber` pairs |
 | Seed build fails validation | Approved JSON must map to valid `ReviewedRateFile` entries (see existing `manualRates` examples) |
 
-## Related files
+## npm scripts
 
+```powershell
+npm run extract:production-rates      # PDF → raw CSV (all divisions)
+npm run normalize:production-rates    # CSV → raw JSON
+npm run validate:production-rates     # Validate raw folder
+npm run bootstrap:production-rates    # Curated Div 03/31 → approved JSON
+npm run generate:production-rates     # approved → generated TS (safety gate)
+```
+
+## Related docs
+
+- [production-rate-review-workflow.md](./production-rate-review-workflow.md)
+- [production-rate-library-integration.md](./production-rate-library-integration.md)
 - Existing curated rates: `src/features/estimating/data/manualRates/`
-- Seed builder: `src/features/estimating/rates/buildProductionRateSeed.ts`
 - Estimating blueprint: `docs/estimating-engine-blueprint.md`

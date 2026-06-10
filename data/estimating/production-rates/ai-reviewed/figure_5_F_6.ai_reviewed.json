@@ -1,0 +1,19 @@
+{
+  "batchMeta": {
+    "sourceDocumentCode": "MCRP 3-40D.12",
+    "sourceDocumentTitle": "Construction Estimating",
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "division": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "figure": "Figure 5-F-6",
+    "figureTitle": "Nail Spacing Criteria for Plywood Flooring",
+    "extractedAt": "2026-06-10",
+    "sourceCsv": "figure_5_F_6.csv",
+    "annexKWarning": null,
+    "aiReviewedAt": "2026-06-10",
+    "aiReviewModel": "gpt-4o-mini",
+    "aiReviewSource": "C:\\dev\\calc\\data\\estimating\\production-rates\\raw\\figure_5_F_6.json"
+  },
+  "records": []
+}

@@ -11,7 +11,16 @@ from pathlib import Path
 
 import pdfplumber
 
-from config import ANNEX_DIVISIONS, DEFAULT_PDF_PATH, DIVISION_TO_ANNEX, PRIORITY_DIVISIONS, RAW_CSV_DIR, FigureRef, division_for_annex
+from config import (
+    ALL_ANNEX_LETTERS,
+    ANNEX_DIVISIONS,
+    DEFAULT_PDF_PATH,
+    DIVISION_TO_ANNEX,
+    PRIORITY_DIVISION_CODES,
+    RAW_CSV_DIR,
+    FigureRef,
+    division_for_annex,
+)
 
 FIGURE_RE = re.compile(r"Figure\s+5-([A-Z])-(\d+)(?:\.\s*([^\n]+))?", re.I)
 
@@ -108,8 +117,13 @@ def main() -> None:
     parser.add_argument(
         "--divisions",
         nargs="*",
-        default=list(PRIORITY_DIVISIONS.keys()),
+        default=None,
         help="CSI division codes to extract (default: priority rollout divisions)",
+    )
+    parser.add_argument(
+        "--all-divisions",
+        action="store_true",
+        help="Extract all Chapter 5 annexes in the manual (22 divisions, ~218 figures)",
     )
     parser.add_argument("--output-dir", type=Path, default=RAW_CSV_DIR)
     args = parser.parse_args()
@@ -117,7 +131,13 @@ def main() -> None:
     if not args.pdf.exists():
         raise SystemExit(f"PDF not found: {args.pdf}")
 
-    selected_annexes = annex_letters_for_divisions(args.divisions)
+    if args.all_divisions:
+        selected_annexes = set(ALL_ANNEX_LETTERS)
+        scope_label = f"all manual divisions ({len(ALL_ANNEX_LETTERS)} annexes)"
+    else:
+        division_codes = args.divisions if args.divisions else list(PRIORITY_DIVISION_CODES)
+        selected_annexes = annex_letters_for_divisions(division_codes)
+        scope_label = f"divisions {', '.join(division_codes)}"
     figure_pages = discover_figure_pages(args.pdf, selected_annexes)
     if not figure_pages:
         raise SystemExit("No Chapter 5 figures found for selected divisions.")
@@ -131,7 +151,7 @@ def main() -> None:
         written.append(csv_path)
         print(f"Wrote {csv_path}")
 
-    print(f"Extracted {len(written)} figure CSV files to {args.output_dir}")
+    print(f"Extracted {len(written)} figure CSV files ({scope_label}) to {args.output_dir}")
 
 
 if __name__ == "__main__":

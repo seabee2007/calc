@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ALLOW_PROJECT_EXTENSION_LABEL,
   PROJECT_EXTENSION_DISABLED_WARNING,
+  RESOURCE_LEVELING_SCOPE_NOTE,
 } from '../ui/components/scheduling/resourceLevelingModalCopy';
 
 const uiRoot = join(dirname(fileURLToPath(import.meta.url)), '..', 'ui');
@@ -78,6 +79,9 @@ describe('schedule settings and resource leveling UI', () => {
 
     expect(ALLOW_PROJECT_EXTENSION_LABEL).toBe('Allow project extension beyond float');
     expect(modalSource).toContain('ALLOW_PROJECT_EXTENSION_LABEL');
+    expect(modalSource).toContain('RESOURCE_LEVELING_SCOPE_NOTE');
+    expect(modalSource).toContain('CREW_OPTIMIZATION_FUTURE_NOTE');
+    expect(RESOURCE_LEVELING_SCOPE_NOTE).toContain('does not change crew sizes');
     expect(modalSource).toContain('allowProjectExtension');
     expect(modalSource).toContain('onAllowProjectExtensionChange');
     expect(modalSource).toContain('disabled={!canApply}');

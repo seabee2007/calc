@@ -9,10 +9,16 @@ if (!globalThis.crypto) {
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { productionRateReviewDevServer } from './vite-plugins/productionRateReviewDevServer';
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)));
 
 export default defineConfig({
   plugins: [
     react(),
+    productionRateReviewDevServer(repoRoot),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],

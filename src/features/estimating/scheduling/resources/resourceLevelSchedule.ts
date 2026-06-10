@@ -15,6 +15,12 @@ import {
   peakRequiredCrew,
 } from './resourceHistogramCalculator';
 
+/**
+ * Resource leveling — shifts activities within float to reduce daily crew over-allocation.
+ * Does not change crew size or activity duration. Crew optimization / crashing is separate
+ * (see scheduling/crewOptimizationTypes.ts).
+ */
+
 export interface ResourceLevelScheduleParams {
   activities: ScheduleActivity[];
   logicLinks: CpmLogicLink[];

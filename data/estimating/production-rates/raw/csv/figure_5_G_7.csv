@@ -1,0 +1,21 @@
+figure,Figure 5-G-7
+figureTitle,Roof Tiles and Panels Production ........................................................................................ 5-G-6
+division,07
+divisionName,Thermal and Moisture Protection
+sourcePage,5-G-7
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"07 31 29.13\nWood Shingles\n(0010) 16 inches, number 1 red cedar shingles, 5-inch exposure on roof\n(0020) Pneumatic nailed\n(0030) 16 inches, number 1 red cedar shingles, 7 1/2-inch exposure on walls\n(0040) Pneumatic nailed\n(0050) 15 pound organic felt underlayment on roof, one layer, add\n(0060) two layers, add",Square\nSquare\nSquare\nSquare\nSquare\nSquare,4.2560\n3.2740\n5.1900\n3.9850\n0.1660\n0.3320
+"07 31 29.16\nWood Shakes (Hand-split red cedar shakes)\n(0010) 1/2 inch thick by 24 inches long 10-inch exposure on roof\n(0020) Pneumatic nailed\n(0030) 3/4 inch thick by 24 inches long, 10-inch exposure on roof\n(0040) Pneumatic nailed\n(0050) 1/2 to 3/4 inch thick by 24 inches long, 10 inch exposure on walls\n(0060) Pneumatic nailed\n(0070) Ridge shakes",Square\nSquare\nSquare\nSquare\nSquare\nSquare\nLF,4.2560\n3.2740\n7.7290\n3.6440\n5.3200\n4.0920\n0.0300
+"Note:\nFor steep roofs, 7 in 12 pitch or greater, multiply by 1.50.\nA square = 100 SF of area.",,
+Minimum suggested crew size: one builder and one laborer.,,
+"07 32 13.10\nClay Tiles\n(0010) Minimum, i.e., Spanish tile, 171 pieces per square\n(0020) Average, i.e., Lanai tile or Classic tile, 158 pieces per square\n(0030) Maximum, i.e., Mission tile, 192 pieces per square\n(0040) 15 pound felt underlayment\n(0050) 30 pound felt underlayment\n(0060) Self-adhering polyethylene and rubberized asphalt underlayment",Square\nSquare\nSquare\nSquare\nSquare\nSquare,5.9100\n6.4480\n9.2530\n0.1660\n0.1840\n0.4840
+"07 32 16.10\nConcrete Tiles\n(0010) Corrugated, 13 by 16 1/2 inches, 90 per square, 950 pounds per square\n(0020) Shakes, 13 by 16 1/2 inches, 90 per square, 950 pounds per square",Square\nSquare,7.8820\n7.0930
+"07 32 19.10\nMetal Roof Tiles\n(0010) Mission tile, accessories included, 0.032-inch-thick aluminum\n(0020) Spanish tile, accessories included, 0.032-inch-thick aluminum",Square\nSquare,4.2560\n3.5470
+"07 41 13.10\nAluminum Roof Panels\n(0010) Corrugated or ribbed, various thicknesses\n(0020) Corrugated or ribbed, various thicknesses for roofing on wood frame,\ndeduct\n(0030) Ridge cap",SF\nSF\nLF,0.0360\n0.0090\n0.0530
+"07 41 13.20\nSteel Roofing Panels\nCorrugated or flat profile, on steel framing\n(0010) Minimum, i.e., 30 gauge\n(0020) Average, i.e., 24 gauge\n(0030) Maximum, i.e., 22 gauge\n(0040) Ridge, galvanized, 10 inches wide\n(0050) Ridge, galvanized, 10 inches wide, minimum, i.e., 30 gauge",SF\nSF\nSF\nLF\nLF,0.0390\n0.0450\n0.0480\n0.0530\n0.0570
+"07 41 33.10\nFiberglass Panels\n(0010) Corrugated panels, roofing, various weights\n(0020) Corrugated panels, siding, and flat panels, various weights",SF\nSF,0.0430\n0.0480
+"07 61 13.10\nStanding Seam Sheet Metal Roofing\nCopper standing seam roofing, over 10 squares,\n(0010) Minimum, i.e., 16 ounces, 125 pounds per square\n(0020) Average, i.e., 18 ounces, 140 pounds per square\n(0030) Maximum, i.e., 20 ounces, 150 pounds per square\nAlso apply to batten seam and flat seam roofing materiels",Square\nSquare\nSquare,8.1850\n8.8670\n9.6730
+Minimum suggested crew size: one builder and one laborer.,,
+Notes:\n1. A square = 100 SF of area.\n2. Refer to RSMeans for information on built-up bituminous roofing and elastomeric membrane roofing.\nRemember to apply a conversion factor to convert civilian labor production figures to reasonable\nproduction figures for military labor (man-hours/man-days) as discussed in 5.2.2.,,

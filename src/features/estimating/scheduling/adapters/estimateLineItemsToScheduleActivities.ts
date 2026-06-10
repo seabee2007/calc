@@ -1,6 +1,7 @@
 import { backfillActivityCodesForDomainTasks } from '../../application/estimateActivityCoding';
 import { extractScheduleLaborPlan } from '../../application/extractScheduleLaborPlan';
 import { computeTaskRollupSlice } from '../../application/estimateGroupRollups';
+import { resolveScheduleActivityCrewSize } from '../resources/scheduleActivityCrewSize';
 import type { EstimateActivityType, EstimateSettings } from '../../domain/estimateTypes';
 import type { EstimateDomainTask } from '../../infrastructure/estimateDbTypes';
 import type { CpmRelationshipType } from '../cpmTypes';
@@ -18,6 +19,8 @@ export interface ScheduleActivity {
   crewDays: number;
   crewSize: number;
   totalCost: number;
+  /** Hours per crew day used for crew-size fallback calculations. */
+  hoursPerDay?: number;
   predecessorActivityCode?: string;
   relationshipType: CpmRelationshipType;
   lagDays: number;
@@ -103,13 +106,30 @@ export function estimateLineItemsToScheduleActivities(
     const extractedCrew = extraction?.labor.crewSize ?? 0;
     const lineItemCrew =
       typeof task.lineItem?.crewSize === 'number' ? task.lineItem.crewSize : 0;
+    const hoursPerDay =
+      extraction?.labor.hoursPerDay ??
+      (typeof task.lineItem?.hoursPerDay === 'number' ? task.lineItem.hoursPerDay : undefined) ??
+      estimateSettings?.hoursPerDay ??
+      8;
 
-    const crewSize =
-      extractedCrew > 0
-        ? extractedCrew
-        : lineItemCrew > 0
-          ? lineItemCrew
-          : (estimateSettings?.defaultCrewSize ?? 1);
+    const resolvedCrew = resolveScheduleActivityCrewSize({
+      crewSize:
+        extractedCrew > 0
+          ? extractedCrew
+          : lineItemCrew > 0
+            ? lineItemCrew
+            : (estimateSettings?.defaultCrewSize ?? 0),
+      laborHours:
+        extraction?.labor.adjustedLaborHours ||
+        extraction?.labor.laborHours ||
+        (typeof task.lineItem?.laborHours === 'number' ? task.lineItem.laborHours : 0),
+      manDays:
+        extraction?.labor.manDays ??
+        (typeof task.lineItem?.manDays === 'number' ? task.lineItem.manDays : 0),
+      durationDays,
+      hoursPerDay,
+    });
+    const crewSize = resolvedCrew.crewSize;
 
     const activityCode = task.activityCode?.trim() ?? '';
 
@@ -153,7 +173,8 @@ export function estimateLineItemsToScheduleActivities(
       crewDays:
         extraction?.labor.crewDays ??
         (typeof task.lineItem?.crewDays === 'number' ? task.lineItem.crewDays : 0),
-      crewSize: Math.max(1, Math.ceil(crewSize)),
+      crewSize,
+      hoursPerDay,
       totalCost: rollup?.directCost ?? 0,
       predecessorActivityCode: task.predecessorActivityCode?.trim() || undefined,
       relationshipType: normalizeRelType(task.relationshipType),

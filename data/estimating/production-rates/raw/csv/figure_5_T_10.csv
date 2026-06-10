@@ -1,0 +1,24 @@
+figure,Figure 5-T-10
+figureTitle,Bulk Fuel Receiving and Dispensing Equipment Production ............................................... 5-T-5
+division,33
+divisionName,Utilities
+sourcePage,5-T-10
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"33 49 13.10\nStorm Drainage Manholes, Frames, Covers",,
+"(0110) Install precast 48 inch ID x 48 inches deep\n(0120) Install precast 48 inch ID x 72 inches deep\n(0130) Install precast 48 inch ID x 96 inches deep\n(0300) Slab top, precast, 8 inch thick, with casting\n(0400) Steps, heavyweight cast iron 7 inches x 9 inches",Each\nEach\nEach\nEach\nEach,10.0\n12.0\n15.0\n3.0\n0.2000
+"Minimum suggested crew size: one builder, one equipment operator and one laborer.",,
+Legend: ID = inside diameter,,
+33 52 00.00\nBulk Fuel Receiving and Dispensing,,
+"(0110) Install tactical petroleum terminal (TPT) fuel unit\nCrew size: one equipment operator, 29 laborers",Each,1080.0
+"(0120) Install pipeline connection assembly\nCrew size: one equipment operator, nine laborers",Each,200.0
+"(0130) Petroleum, oil, lubricant (POL) Pipeline, pipeline\nsupport equipment\nCrew size: one equipment operator, one laborer",Each,2.0
+"(0140) POL pipeline, pump station\nCrew size: two equipment operator, eight laborers",Each,40.0
+"(0150) POL pipeline, five mile pipeline set\nCrew size: 25 equipment operators, six laborers",Each,720.0
+"(0170) POL pipeline, pressure reducing station\nCrew size: one equipment operator, one laborer",Each,2.0
+"(0180) POL pipeline, suspension bridge, 100-foot span\nCrew size: one equipment operator, nine laborers",Each,80.0
+"(0181) POL pipeline, suspension bridge, 200-foot span\nCrew size: one equipment operator, nine laborers",Each,90.0
+"(0182) POL pipeline, suspension bridge, 400-foot span\nCrew size: one equipment operator, nine laborers",Each,100.0
+33 52 16.13\nGasoline Distribution,,
+"(0010) Install portable 50 gallons per minute pump, tactical\nCrew size: 2 laborers",Each,1.0

@@ -1,0 +1,26 @@
+figure,Figure 5-U-5
+figureTitle,Vehicle Barriers ................................................................................................................... 5-U-3
+division,34
+divisionName,Transportation
+sourcePage,5-U-5
+sourcePdfPage,16
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"34 71 13.16\nVehicle Crash Barriers\n(0005) Portable wedge barrier, towable\n(0010) Jersey concrete barrier, 10 feet long, 2 feet by 6 inches wide by 30 inches high;\naverage time for various sizes\n(0011) Tall concrete barriers, 6 ft to 8 ft long, 3 ft to 4 ft wide by 10 ft high; average time\n(0012) Panel and base concrete barrier, 8 ft long, 4 ft 5 in wide by 5 ft high; average\ntime\n(0020) Pipe bollards, steel, concrete filled, painted, 8-foot length by 4-foot-deep hole,\n8-inch diameter\n(0030) Bollards, wood, 8-foot length by 4-foot-deep hole, 12-inch diameter\n(0040) Move and place barrier, up to 100 pounds",Each\nEach\nEach\nEach\nEach\nEach\nEach,0.50\n0.210\n0.420\n0.310\n2.40\n1.60\n0.040
+"34 71 13.26\nVehicle Guide Rails\n(0010) Corrugated steel, galvanized, posts, 6 feet 3 inches on center\n(0020) End sections, galvanized, flared\n(0030) Guide rail, steel box beam, 6 by 6 inches\n(0040) Concrete posts, individual, 6-foot-5-inch square",LF\nEach\nLF\nEach,0.057\n0.960\n0.400\n0.436
+"Minimum suggested crew size: one auger truck or crane operator, one flatbed truck operator, and two laborers.",,
+Note: A multiplier of 1.5 was used to convert civilian production rates to military production rates in this figure.\nNo further adjustment required for military production.,,
+"34 73 26.00 Manufactured Helipads\n(0010) AM2 matting, placement\nSuggested crew size: one equipment operator, nine laborers\n(0020) AM2 matting, anchoring, 10 foot spacing\nSuggested crew size: one equipment operator, four laborers\n(0030) AM2 matting, recovery\nSuggested crew size: one equipment operator, nine laborers\n(0040) AM2 matting, anchor removal\n(0050) AM2 matting, keylock installation\n(0060) AM2 matting, aircraft tie down installation\n(0110) Fabric helipad, placement\n(0120) Fabric helipad, anchoring\n(0130) Fabric helipad, recovery\n(0140) Fabric helipad, anchor removal",,
+,SF,0.0035
+,,
+,Each,0.70
+,,
+,SF,0.0004
+,,
+,Each,0.10
+,Each,0.050
+,Each,0.670
+,SF,0.0008
+,Each,0.80
+,LF\nEach,0.400\n0.030
+"Suggested crew size: one equipment operator, up to eight laborers",,

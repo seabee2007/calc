@@ -1,0 +1,18 @@
+figure,Figure 5-J-14
+figureTitle,Carpeting Production ...........................................................................................................5-J-11
+division,09
+divisionName,Finishes
+sourcePage,5-J-14
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"09 68 05.11\nFlooring Transition Strip\n(0010) Clamp down brass divider, 12-foot strip, vinyl to carpet",Each,0.3400
+"09 68 10.10\nCommercial Grade Carpet Pad\n(0010)Variety of types (e.g., sponge rubber, felt, and bonded urethane)",SY,0.0710
+"09 68 13.10\nCarpet Tile\n(0010) Tufted nylon, 18 by 18 inches, hard back or cushion back, 20 ounce\nor 26 ounce\n(0020) Tufted nylon, 24 by 24 inches, 24 ounce, 35 ounce, or 42 ounce",SY\nSY,0.0710\n0.1330
+"09 68 16.10\nSheet Carpeting\n(0010) Nylon, level loop, 26 ounce, light to medium traffic\n(0020) Nylon, plush, 60 ounce, heavy traffic\nFor small rooms, less than 12 feet wide, multiply by 1.25.\nFor large open areas (no cuts), multiply by 0.75.",SY\nSY,0.1420\n0.1520
+"09 68 20.10\nIndoor Athletic Carpet\n(0010) Nylon, level loop, 26 ounce, light to medium traffic",SF,0.0390
+Minimum suggested crew size: one builder and one laborer.,,
+Note: The above options provide only a small sample of the myriad of possibilities. They provide a cross\nsection of average labor times required for plaster and gypsum board assemblies.,,
+"09 69 13.10\nAccess Floors\n(0010) Access floor package including panel, pedestal, stringers, and\nlaminate cover, (i.e., computer room)",SF,.0650
+Minimum suggested crew size: four builders.,,
+Note: A multiplier of 1.5 was used to convert civilian production rates to military production rates in this figure.,,

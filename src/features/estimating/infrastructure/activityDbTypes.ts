@@ -101,6 +101,14 @@ export interface ProjectConstructionActivityRow {
   division_name: string;
   activity_code: string;
   title: string;
+  base_title: string | null;
+  instance_label: string | null;
+  location: string | null;
+  drawing_reference: string | null;
+  phase: string | null;
+  notes: string | null;
+  activity_sequence: number | null;
+  instance_sequence: number | null;
   description: string | null;
   schedule_enabled: boolean;
   crew_size: number;

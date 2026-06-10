@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildEstimateSchedulePlan } from '../application/buildEstimateSchedulePlan';
+import { buildConstructionActivitySchedulePlan } from '../application/buildConstructionActivitySchedulePlan';
+import {
+  resolveEstimateWorkspaceScheduleActivities,
+} from '../application/estimateWorkspaceScheduleSource';
 import {
   planEstimateScheduleDates,
   type EstimateScheduleDependencyMode,
@@ -8,6 +12,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   estimateWorkspaceHref,
   parseEstimateWorkspaceTabParam,
+  DEFAULT_ESTIMATE_WORKSPACE_TAB,
 } from '../utils/estimateRoutes';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
@@ -98,8 +103,6 @@ import {
   prepareGanttExport,
 } from '../schedule/ganttExportValidation';
 import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
-import { estimateLineItemsToScheduleActivities } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
-import { constructionActivitiesToScheduleActivities } from '../scheduling/adapters/constructionActivitiesToScheduleActivities';
 import { useProjectConstructionActivitiesForSchedule } from './hooks/useProjectConstructionActivitiesForSchedule';
 import { runCpmCalculation } from '../scheduling/cpm/calculateCpm';
 import type {
@@ -111,14 +114,18 @@ import type {
 import { validateCpmReadiness } from '../scheduling/logic/validateCpmReadiness';
 import type { LogicBatchSnapshot } from '../scheduling/logic/logicTypes';
 import {
+  buildCpmActivitySignature,
   buildPrecedenceDiagramRunState,
   currentPrecedenceDiagramSignaturesMatch,
   markPrecedenceDiagramStale,
+  shouldInvalidateCpmOnEstimateSave,
 } from '../scheduling/precedenceDiagram';
 import {
-  buildScheduleActivitySignature,
+  logicLinksEqual,
+  mergeLogicLayoutAssumptionsOnly,
   mergeScheduleAssumptions,
   mergeScheduleAssumptionsForAddImport,
+  reconcileLogicLinksWithScheduleActivities,
   resetScheduleAssumptionsForReplacement,
   sanitizeLogicLinksForActivities,
 } from '../scheduling/scheduleAssumptions';
@@ -140,6 +147,56 @@ const OVERVIEW_NO_ESTIMATE_MESSAGE =
   'No estimate started yet. Go to the Estimate tab to start one.';
 const TAB_NO_ESTIMATE_MESSAGE = 'This project does not have a saved estimate yet.';
 const LOADING_ESTIMATE_MESSAGE = 'Loading estimate...';
+
+function renderScheduleSourceDevBadge(
+  activityCount: number,
+  legacyFallbackEnabled: boolean,
+) {
+  if (!import.meta.env.DEV) return null;
+  return (
+    <p className={`text-xs ${PLANNER_MUTED}`}>
+      Source: Construction Activities · Activity count: {activityCount} · Legacy fallback:{' '}
+      {legacyFallbackEnabled ? 'enabled' : 'disabled'}
+    </p>
+  );
+}
+
+function resolveScheduleTabEmptyState(
+  totalConstructionActivityCount: number,
+  scheduleActivityCount: number,
+  tab: 'logic-network' | 'level-iii-gantt',
+  hasRunCpm: boolean,
+): { title: string; body: string } | null {
+  if (tab === 'level-iii-gantt' && scheduleActivityCount > 0 && !hasRunCpm) {
+    return {
+      title: 'No CPM schedule available yet.',
+      body: 'Add scheduled activities, build logic, then run CPM.',
+    };
+  }
+
+  if (scheduleActivityCount > 0) {
+    return null;
+  }
+
+  if (totalConstructionActivityCount === 0) {
+    return {
+      title: 'No construction activities yet.',
+      body: 'Add activities first to preview a schedule and build the logic network.',
+    };
+  }
+
+  if (tab === 'level-iii-gantt') {
+    return {
+      title: 'No CPM schedule available yet.',
+      body: 'Add scheduled activities, build logic, then run CPM.',
+    };
+  }
+
+  return {
+    title: 'No schedule-enabled construction activities yet.',
+    body: 'Add scheduled activities before building the logic network.',
+  };
+}
 
 function getTodayScheduleDateYmd(): string {
   const now = new Date();
@@ -173,7 +230,7 @@ export default function EstimateWorkspacePage() {
   const [projectCrewSizeDraftDirty, setProjectCrewSizeDraftDirty] = useState(false);
   const projectCrewSizeInputRef = useRef<PositiveIntegerInputHandle>(null);
   const parsedTab = parseEstimateWorkspaceTabParam(estimateTab);
-  const activeTab: EstimateWorkspaceTabId = parsedTab ?? 'overview';
+  const activeTab: EstimateWorkspaceTabId = parsedTab ?? DEFAULT_ESTIMATE_WORKSPACE_TAB;
   const [dataLoading, setDataLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -200,6 +257,7 @@ export default function EstimateWorkspacePage() {
       projectStartDate: getTodayScheduleDateYmd(),
       dependencyMode: 'sequential_by_project' satisfies EstimateScheduleDependencyMode,
       includeWeekends: false,
+      useLegacyEstimateSchedule: false,
     }),
   );
   const loadTokenRef = useRef(0);
@@ -211,26 +269,158 @@ export default function EstimateWorkspacePage() {
     () => (currentEstimate ? currentEstimateToDomainVersion(currentEstimate) : null),
     [currentEstimate],
   );
+
+  const resolvedProjectId = projectId ?? routeProjectId ?? '';
+
+  // Construction activities for schedule source (Milestone 5) — must be declared before
+  // scheduleActivitiesResult reads constructionActivities.
+  const { constructionActivities, constructionActivitiesLoading, reloadConstructionActivities } =
+    useProjectConstructionActivitiesForSchedule(resolvedProjectId, estimate?.id);
+
+  const enableLegacyEstimateScheduleFallback =
+    schedulePlanControls.useLegacyEstimateSchedule === true;
+
   const estimateSettings = useEstimateSettings();
   const lineItemDraft = useEstimateLineItemDraft(estimateAdapter, estimateSettings.settings);
   const rehydrateDraftFromVersion = lineItemDraft.rehydrateFromVersion;
   const scheduleSettingsHook = useScheduleSettings();
+
+  const resolvedScheduleActivitiesBundle = useMemo(() => {
+    if (constructionActivitiesLoading) {
+      return { activities: [], warnings: [] as const };
+    }
+    return resolveEstimateWorkspaceScheduleActivities({
+      constructionActivities,
+      lineItems: estimateAdapter?.lineItems ?? [],
+      estimateSettings: estimateSettings.settings,
+      scheduleSettingsHoursPerDay: scheduleSettingsHook.scheduleSettings.hoursPerDay,
+      enableLegacyEstimateScheduleFallback,
+    });
+  }, [
+    constructionActivities,
+    constructionActivitiesLoading,
+    enableLegacyEstimateScheduleFallback,
+    estimateAdapter?.lineItems,
+    estimateSettings.settings,
+    scheduleSettingsHook.scheduleSettings.hoursPerDay,
+  ]);
+  const scheduleSourceRehydrateKeyRef = useRef<string | null>(null);
   const currentEstimateRef = useRef(currentEstimate);
   useEffect(() => {
     currentEstimateRef.current = currentEstimate;
   }, [currentEstimate]);
+
+  const rehydrateScheduleFromEstimate = useCallback(
+    (estimate: CurrentEstimate | null) => {
+      if (!estimate) {
+        scheduleSettingsHook.rehydrateFromEstimate(null, []);
+        return;
+      }
+      if (constructionActivitiesLoading) return;
+      const lineItems = (estimate.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[];
+      scheduleSettingsHook.rehydrateFromEstimate(
+        estimate,
+        lineItems,
+        resolvedScheduleActivitiesBundle.activities,
+        { enableLegacyEstimateScheduleFallback },
+      );
+    },
+    [
+      constructionActivitiesLoading,
+      enableLegacyEstimateScheduleFallback,
+      resolvedScheduleActivitiesBundle.activities,
+      scheduleSettingsHook.rehydrateFromEstimate,
+    ],
+  );
+
+  useEffect(() => {
+    const estimate = currentEstimateRef.current;
+    if (!estimate || constructionActivitiesLoading) return;
+
+    const lineItems = (estimate.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[];
+    const scheduleActivities = resolvedScheduleActivitiesBundle.activities;
+    const rehydrateKey = enableLegacyEstimateScheduleFallback
+      ? `${estimate.id}:legacy:${scheduleActivities.map((activity) => activity.runtimeActivityId ?? activity.activityCode).join('|')}`
+      : `${estimate.id}:ca:${constructionActivities.length}:${scheduleActivities.map((activity) => activity.runtimeActivityId ?? activity.activityCode).join('|')}`;
+
+    if (scheduleSourceRehydrateKeyRef.current === rehydrateKey) return;
+    scheduleSourceRehydrateKeyRef.current = rehydrateKey;
+    scheduleSettingsHook.rehydrateFromEstimate(estimate, lineItems, scheduleActivities, {
+      enableLegacyEstimateScheduleFallback,
+    });
+  }, [
+    constructionActivities.length,
+    constructionActivitiesLoading,
+    currentEstimate?.id,
+    enableLegacyEstimateScheduleFallback,
+    resolvedScheduleActivitiesBundle.activities,
+    scheduleSettingsHook.rehydrateFromEstimate,
+  ]);
   const ganttExportRef = useRef<HTMLDivElement>(null);
   const [levelingModalResult, setLevelingModalResult] = useState<import('../scheduling/cpmTypes').ResourceLevelingResult | null>(null);
   const [levelingAllowProjectExtension, setLevelingAllowProjectExtension] = useState(false);
 
+  const legacyScheduleLineItemsAvailable = useMemo(() => {
+    if (!estimateAdapter) return false;
+    return estimateAdapter.lineItems.some(
+      (task) => (task.lineType === 'task' || task.lineType == null) && task.scheduleEnabled,
+    );
+  }, [estimateAdapter]);
+
+  const schedulePreviewSource = useMemo(() => {
+    if (constructionActivities.length > 0) return 'construction_activities' as const;
+    if (
+      schedulePlanControls.useLegacyEstimateSchedule &&
+      legacyScheduleLineItemsAvailable
+    ) {
+      return 'legacy_line_items' as const;
+    }
+    return 'construction_activities' as const;
+  }, [
+    constructionActivities.length,
+    legacyScheduleLineItemsAvailable,
+    schedulePlanControls.useLegacyEstimateSchedule,
+  ]);
+
   const schedulePlan = useMemo(() => {
     if (!estimateAdapter || !estimate) return null;
-    return buildEstimateSchedulePlan({
-      version: estimateAdapter,
+
+    const versionMeta = {
       estimateId: estimate.id,
       projectId: estimate.projectId,
+      estimateVersionId: estimateAdapter.id,
+      estimateVersionNumber: estimateAdapter.versionNumber,
+    };
+
+    if (constructionActivities.length > 0) {
+      return buildConstructionActivitySchedulePlan({
+        activities: constructionActivities,
+        ...versionMeta,
+      });
+    }
+
+    if (
+      schedulePlanControls.useLegacyEstimateSchedule &&
+      legacyScheduleLineItemsAvailable
+    ) {
+      return buildEstimateSchedulePlan({
+        version: estimateAdapter,
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+      });
+    }
+
+    return buildConstructionActivitySchedulePlan({
+      activities: [],
+      ...versionMeta,
     });
-  }, [estimateAdapter, estimate]);
+  }, [
+    constructionActivities,
+    estimate,
+    estimateAdapter,
+    legacyScheduleLineItemsAvailable,
+    schedulePlanControls.useLegacyEstimateSchedule,
+  ]);
 
   const scheduleDatePlanResult = useMemo(() => {
     if (!schedulePlan) return null;
@@ -241,27 +431,8 @@ export default function EstimateWorkspacePage() {
     });
   }, [schedulePlan, schedulePlanControls]);
 
-  // Schedule activities and CPM.
-  // Source priority:
-  //   1. Construction activities (scheduleEnabled only) — when any exist.
-  //      ProjectActivityLineItem objects NEVER become schedule nodes.
-  //   2. Legacy EstimateDomainTask line items — for existing estimates without
-  //      construction activities.
-  const hasConstructionActivities = constructionActivities.length > 0;
-  const scheduleActivitiesResult = useMemo(
-    () => {
-      if (hasConstructionActivities) {
-        return constructionActivitiesToScheduleActivities(constructionActivities);
-      }
-      return estimateAdapter
-        ? estimateLineItemsToScheduleActivities(
-            estimateAdapter.lineItems,
-            estimateSettings.settings,
-          )
-        : { activities: [], warnings: [] };
-    },
-    [hasConstructionActivities, constructionActivities, estimateAdapter, estimateSettings.settings],
-  );
+  // Schedule activities and CPM — construction activities are the default source of truth.
+  const scheduleActivitiesResult = resolvedScheduleActivitiesBundle;
 
   const cpmResult = scheduleSettingsHook.committedCpmResult;
 
@@ -274,13 +445,12 @@ export default function EstimateWorkspacePage() {
     [scheduleActivitiesResult.activities, scheduleSettingsHook.logicLinks],
   );
 
-  const scheduleActivitySignature = useMemo(
-    () =>
-      estimateAdapter
-        ? buildScheduleActivitySignature(estimateAdapter.lineItems)
-        : '',
-    [estimateAdapter],
-  );
+  const scheduleActivitySignature = useMemo(() => {
+    if (scheduleActivitiesResult.activities.length > 0) {
+      return buildCpmActivitySignature(scheduleActivitiesResult.activities);
+    }
+    return '';
+  }, [scheduleActivitiesResult.activities]);
 
   const projectAvailableCrewSize = useMemo(
     () =>
@@ -303,6 +473,39 @@ export default function EstimateWorkspacePage() {
       setOptimisticProjectCrewSize(null);
     }
   }, [optimisticProjectCrewSize, project?.projectCrewSize]);
+
+  useEffect(() => {
+    if (constructionActivitiesLoading) return;
+    if (scheduleActivitiesResult.activities.length === 0) return;
+
+    const { links: reconciled, preservedCount, prunedCount } =
+      reconcileLogicLinksWithScheduleActivities(
+        scheduleSettingsHook.logicLinks,
+        scheduleActivitiesResult.activities,
+      );
+
+    if (logicLinksEqual(reconciled, scheduleSettingsHook.logicLinks)) {
+      return;
+    }
+
+    if (import.meta.env.DEV) {
+      console.info('[Logic Network] Reconciled logic links with schedule activities', {
+        scheduleActivityIds: scheduleActivitiesResult.activities.map(
+          (activity) => activity.runtimeActivityId ?? activity.activityCode,
+        ),
+        savedLinkCount: scheduleSettingsHook.logicLinks.length,
+        preservedCount,
+        prunedCount,
+      });
+    }
+
+    scheduleSettingsHook.setLogicLinks(reconciled);
+  }, [
+    constructionActivitiesLoading,
+    scheduleActivitiesResult.activities,
+    scheduleSettingsHook.logicLinks,
+    scheduleSettingsHook.setLogicLinks,
+  ]);
 
   const handleProjectCrewSizeChange = useCallback(
     async (nextValue: number) => {
@@ -348,6 +551,7 @@ export default function EstimateWorkspacePage() {
         getTodayScheduleDateYmd(),
       availableCrewSize: projectAvailableCrewSize,
       leveledOffsets: scheduleSettingsHook.leveledOffsets,
+      cpmResult,
     });
   }, [
     cpmResult,
@@ -407,12 +611,6 @@ export default function EstimateWorkspacePage() {
     );
   }, [scheduleSettingsHook.scheduleSettings.projectStartDate]);
 
-  const resolvedProjectId = projectId ?? routeProjectId ?? '';
-
-  // Construction activities for schedule source (Milestone 5)
-  const { constructionActivities, reloadConstructionActivities } =
-    useProjectConstructionActivitiesForSchedule(resolvedProjectId, estimate?.id);
-
   const estimateSetup = useEstimateSetupSession(
     resolvedProjectId,
     estimateAdapter?.id,
@@ -433,8 +631,14 @@ export default function EstimateWorkspacePage() {
       navigate(estimateWorkspaceHref(resolvedProjectId, 'overview'), { replace: true });
       return;
     }
+    if (estimateTab === 'line-items') {
+      navigate(estimateWorkspaceHref(resolvedProjectId, 'activities'), { replace: true });
+      return;
+    }
     if (estimateTab && parsedTab == null) {
-      navigate(estimateWorkspaceHref(resolvedProjectId, 'overview'), { replace: true });
+      navigate(estimateWorkspaceHref(resolvedProjectId, DEFAULT_ESTIMATE_WORKSPACE_TAB), {
+        replace: true,
+      });
     }
   }, [estimateTab, parsedTab, resolvedProjectId, navigate]);
 
@@ -450,7 +654,7 @@ export default function EstimateWorkspacePage() {
     (activityCode: string) => {
       if (!resolvedProjectId) return;
       setFocusActivityCode(activityCode);
-      navigate(estimateWorkspaceHref(resolvedProjectId, 'line-items'));
+      navigate(estimateWorkspaceHref(resolvedProjectId, 'activities'));
     },
     [navigate, resolvedProjectId],
   );
@@ -479,6 +683,7 @@ export default function EstimateWorkspacePage() {
     setActiveEstimateType(null);
     setAutoOpenScopeModalKey(null);
     setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
+    scheduleSourceRehydrateKeyRef.current = null;
     estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
     lineItemDraftRef.current.resetDraftSetup();
     estimateSettingsRef.current.rehydrateFromEstimate(null);
@@ -502,10 +707,7 @@ export default function EstimateWorkspacePage() {
         if (loadedEstimate) {
           setCurrentEstimate(loadedEstimate);
           estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
-          scheduleSettingsRef.current.rehydrateFromEstimate(
-            loadedEstimate,
-            (loadedEstimate.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
-          );
+          scheduleSourceRehydrateKeyRef.current = null;
           const loadedType = loadedEstimate.estimateType
             ? normalizeEstimateMethod(loadedEstimate.estimateType)
             : DEFAULT_ESTIMATE_METHOD;
@@ -554,6 +756,7 @@ export default function EstimateWorkspacePage() {
     setCurrentEstimate(null);
     setActiveEstimateType(null);
     setSelectedEstimateMethod(DEFAULT_ESTIMATE_METHOD);
+    scheduleSourceRehydrateKeyRef.current = null;
     estimateSetupRef.current.resetSetup(DEFAULT_ESTIMATE_METHOD);
     lineItemDraftRef.current.resetDraftSetup();
     estimateSettingsRef.current.rehydrateFromEstimate(null);
@@ -565,10 +768,7 @@ export default function EstimateWorkspacePage() {
 
       setCurrentEstimate(loadedEstimate);
       estimateSettingsRef.current.rehydrateFromEstimate(loadedEstimate);
-      scheduleSettingsRef.current.rehydrateFromEstimate(
-        loadedEstimate,
-        (loadedEstimate?.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
-      );
+      scheduleSourceRehydrateKeyRef.current = null;
       if (loadedEstimate) {
         const loadedType = loadedEstimate.estimateType
           ? normalizeEstimateMethod(loadedEstimate.estimateType)
@@ -624,11 +824,13 @@ export default function EstimateWorkspacePage() {
       scheduleSettingsHook.rehydrateFromEstimate(
         result.data,
         (result.data.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
+        [],
+        { enableLegacyEstimateScheduleFallback: false },
       );
       setLevelingModalResult(null);
     }
     setSaveToastMessage('Estimate started');
-    navigate(estimateWorkspaceHref(resolvedProjectId, 'line-items'));
+    navigate(estimateWorkspaceHref(resolvedProjectId, 'activities'));
     setCreating(false);
   }, [
     resolvedProjectId,
@@ -723,18 +925,26 @@ export default function EstimateWorkspacePage() {
       return;
     }
 
-    const precedenceDiagramForSave = scheduleSettingsHook.precedenceDiagram.hasRunCpm
-      ? currentPrecedenceDiagramSignaturesMatch({
-          saved: scheduleSettingsHook.precedenceDiagram,
-          activities: scheduleActivitiesResult.activities,
-          logicLinks: scheduleSettingsHook.logicLinks,
-          scheduleSettings: scheduleSettingsHook.scheduleSettings,
-        })
-        ? scheduleSettingsHook.precedenceDiagram
-        : markPrecedenceDiagramStale(scheduleSettingsHook.precedenceDiagram)
-      : scheduleSettingsHook.precedenceDiagram;
+    const invalidateCpmOnSave = shouldInvalidateCpmOnEstimateSave({
+      estimateSettingsDirty: estimateSettings.dirty,
+      lineItemDraftDirty: lineItemDraft.dirty,
+      usesConstructionActivities: constructionActivities.length > 0,
+    });
+
+    const precedenceDiagramForSave =
+      invalidateCpmOnSave && scheduleSettingsHook.precedenceDiagram.hasRunCpm
+        ? currentPrecedenceDiagramSignaturesMatch({
+            saved: scheduleSettingsHook.precedenceDiagram,
+            activities: scheduleActivitiesResult.activities,
+            logicLinks: scheduleSettingsHook.logicLinks,
+            scheduleSettings: scheduleSettingsHook.scheduleSettings,
+          })
+          ? scheduleSettingsHook.precedenceDiagram
+          : markPrecedenceDiagramStale(scheduleSettingsHook.precedenceDiagram)
+        : scheduleSettingsHook.precedenceDiagram;
 
     if (
+      invalidateCpmOnSave &&
       precedenceDiagramForSave.hasRunCpm !== scheduleSettingsHook.precedenceDiagram.hasRunCpm
     ) {
       scheduleSettingsHook.setPrecedenceDiagram(precedenceDiagramForSave);
@@ -779,22 +989,37 @@ export default function EstimateWorkspacePage() {
     }
 
     setSaveToastMessage(createEstimateSaveSuccessToast().message);
-    setCurrentEstimate(result.data);
+    setCurrentEstimate((previous) =>
+      previous && result.data
+        ? {
+            ...previous,
+            lineItems: result.data.lineItems,
+            totals: result.data.totals,
+            summary: result.data.summary,
+            assumptions: result.data.assumptions,
+            selectedDivisions: result.data.selectedDivisions,
+            updatedAt: result.data.updatedAt,
+          }
+        : result.data,
+    );
     lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
     estimateSettings.rehydrateFromEstimate(result.data);
-    scheduleSettingsHook.rehydrateFromEstimate(
-      result.data,
-      (result.data.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
+    estimateSetup.restoreSavedSetup(
+      normalizeEstimateMethod(result.data.estimateType ?? estimateAdapter.estimateType),
+      result.data.selectedDivisions,
     );
 
     setSaving(false);
   }, [
+    constructionActivities.length,
     estimate,
     estimateAdapter,
     canSave,
     saving,
     lineItemDraft,
     estimateSettings,
+    estimateSetup,
+    scheduleActivitiesResult.activities,
     scheduleSettingsHook,
     currentEstimate?.assumptions,
     currentEstimate?.selectedDivisions,
@@ -959,10 +1184,8 @@ export default function EstimateWorkspacePage() {
       );
       lineItemDraft.rehydrateFromVersion(currentEstimateToDomainVersion(result.data));
       estimateSettings.rehydrateFromEstimate(result.data);
-      scheduleSettingsHook.rehydrateFromEstimate(
-        result.data,
-        (result.data.lineItems ?? []) as import('../infrastructure/estimateDbTypes').EstimateDomainTask[],
-      );
+      scheduleSourceRehydrateKeyRef.current = null;
+      rehydrateScheduleFromEstimate(result.data);
       setLevelingModalResult(null);
       setImportCollapseDivisionCodesKey(
         `import-${Date.now()}-${applied.importedDivisionCodes.join(',')}`,
@@ -980,7 +1203,7 @@ export default function EstimateWorkspacePage() {
       estimateSettings,
       lineItemDraft,
       currentEstimate?.assumptions,
-      scheduleSettingsHook,
+      rehydrateScheduleFromEstimate,
       user?.id,
     ],
   );
@@ -1214,53 +1437,45 @@ export default function EstimateWorkspacePage() {
         throw new Error('No estimate available');
       }
       scheduleSettingsHook.setLogicNetworkLayout(layout);
-      const updatedAssumptions = mergeScheduleAssumptions(
+      // Layout-only save: positions + view mode + CPM metadata — never logic links or line items.
+      const updatedAssumptions = mergeLogicLayoutAssumptionsOnly(
+        layout,
+        estimate.assumptions as Record<string, unknown>,
         {
-          logicLinks: scheduleSettingsHook.logicLinks,
-          logicNetworkLayout: layout,
-          scheduleSettings: scheduleSettingsHook.scheduleSettings,
-          leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
-          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
-          logicNetworkInitialized: true,
           logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
           precedenceDiagram: scheduleSettingsHook.precedenceDiagram,
         },
-        estimate.assumptions as Record<string, unknown>,
       );
 
-      const result = await saveCurrentEstimateWithLineItems({
+      const result = await saveCurrentEstimate({
         estimateId: estimate.id,
         projectId: estimate.projectId,
         estimateType: estimateAdapter.estimateType,
-        draftLines: lineItemDraft.draftLines,
         selectedDivisions: estimate.selectedDivisions,
-        estimateSettings: estimateSettings.settings,
-        existingAssumptions: updatedAssumptions,
+        lineItems: estimate.lineItems,
+        totals: estimate.totals,
+        summary: estimate.summary,
+        assumptions: updatedAssumptions,
+        status: estimate.status,
         createdBy: user?.id ?? null,
       });
       if (result.error || !result.data) {
         throw new Error(result.error ?? 'Failed to save logic layout');
       }
-      setCurrentEstimate(result.data);
+      setCurrentEstimate((previous) =>
+        previous && result.data
+          ? { ...previous, assumptions: result.data.assumptions }
+          : result.data,
+      );
     },
-    [
-      estimateAdapter,
-      lineItemDraft.draftLines,
-      estimateSettings.settings,
-      scheduleSettingsHook,
-      user?.id,
-    ],
+    [estimateAdapter, scheduleSettingsHook, user?.id],
   );
 
   const handleLogicNetworkLayoutChange = useCallback(
-    async (layout: LogicNetworkLayout[]) => {
-      try {
-        await persistLogicNetworkLayout(layout);
-      } catch (error) {
-        console.error('[Logic Network] Layout auto-save failed', error);
-      }
+    (layout: LogicNetworkLayout[]) => {
+      scheduleSettingsHook.setLogicNetworkLayout(layout);
     },
-    [persistLogicNetworkLayout],
+    [scheduleSettingsHook.setLogicNetworkLayout],
   );
 
   const handleSaveLogicNetworkLayout = useCallback(
@@ -1716,6 +1931,9 @@ export default function EstimateWorkspacePage() {
                 planControls={schedulePlanControls}
                 onPlanControlsChange={handleSchedulePlanControlsChange}
                 loading={dataLoading}
+                totalConstructionActivityCount={constructionActivities.length}
+                schedulePreviewSource={schedulePreviewSource}
+                legacyScheduleAvailable={legacyScheduleLineItemsAvailable}
               />
             </div>
           ) : (
@@ -1747,40 +1965,68 @@ export default function EstimateWorkspacePage() {
 
         {!loadError && !dataLoading && activeTab === 'logic-network' ? (
           hasEstimate ? (
-            <div className="space-y-4">
-              {scheduleActivitiesResult.warnings.length > 0 ? (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                  {scheduleActivitiesResult.warnings.map((w, i) => (
-                    <div key={`schedule-${i}`}>{w}</div>
-                  ))}
+            (() => {
+              const emptyState = resolveScheduleTabEmptyState(
+                constructionActivities.length,
+                scheduleActivitiesResult.activities.length,
+                'logic-network',
+                Boolean(cpmResult?.hasRunCpm),
+              );
+              if (emptyState) {
+                return (
+                  <div className="space-y-3">
+                    {renderScheduleSourceDevBadge(
+                      scheduleActivitiesResult.activities.length,
+                      enableLegacyEstimateScheduleFallback,
+                    )}
+                    <EstimateWorkspaceEmptyState
+                      title={emptyState.title}
+                      body={emptyState.body}
+                    />
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-4">
+                  {renderScheduleSourceDevBadge(
+                    scheduleActivitiesResult.activities.length,
+                    enableLegacyEstimateScheduleFallback,
+                  )}
+                  {scheduleActivitiesResult.warnings.length > 0 ? (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                      {scheduleActivitiesResult.warnings.map((w, i) => (
+                        <div key={`schedule-${i}`}>{w.message}</div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {scheduleSettingsHook.cpmWarningMessage ? (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                      {scheduleSettingsHook.cpmWarningMessage}
+                    </div>
+                  ) : null}
+                  <LogicNetworkWorkspace
+                    canvasKey={resolvedProjectId ?? 'no-project'}
+                    activitySignature={scheduleActivitySignature}
+                    activities={scheduleActivitiesResult.activities}
+                    logicLinks={scheduleSettingsHook.logicLinks}
+                    cpmResult={cpmResult}
+                    layout={scheduleSettingsHook.logicNetworkLayout}
+                    viewMode={scheduleSettingsHook.logicNetworkViewMode}
+                    onViewModeChange={handleLogicNetworkViewModeChange}
+                    cpmReadiness={cpmReadiness}
+                    onRunCpm={handleRunCpm}
+                    runCpmBusy={runCpmBusy}
+                    onLinksChange={handleLogicLinksChange}
+                    onLayoutChange={handleLogicNetworkLayoutChange}
+                    onSaveLayout={handleSaveLogicNetworkLayout}
+                    logicNetworkInitialized={scheduleSettingsHook.logicNetworkInitialized}
+                    scheduleSettings={scheduleSettingsHook.scheduleSettings}
+                    projectAvailableCrewSize={projectAvailableCrewSize}
+                    projectName={project?.name}
+                  />
                 </div>
-              ) : null}
-              {scheduleSettingsHook.cpmWarningMessage ? (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-                  {scheduleSettingsHook.cpmWarningMessage}
-                </div>
-              ) : null}
-              <LogicNetworkWorkspace
-                canvasKey={resolvedProjectId ?? 'no-project'}
-                activitySignature={scheduleActivitySignature}
-                activities={scheduleActivitiesResult.activities}
-                logicLinks={scheduleSettingsHook.logicLinks}
-                cpmResult={cpmResult}
-                layout={scheduleSettingsHook.logicNetworkLayout}
-                viewMode={scheduleSettingsHook.logicNetworkViewMode}
-                onViewModeChange={handleLogicNetworkViewModeChange}
-                cpmReadiness={cpmReadiness}
-                onRunCpm={handleRunCpm}
-                runCpmBusy={runCpmBusy}
-                onLinksChange={handleLogicLinksChange}
-                onLayoutChange={handleLogicNetworkLayoutChange}
-                onSaveLayout={handleSaveLogicNetworkLayout}
-                logicNetworkInitialized={scheduleSettingsHook.logicNetworkInitialized}
-                scheduleSettings={scheduleSettingsHook.scheduleSettings}
-                projectAvailableCrewSize={projectAvailableCrewSize}
-                projectName={project?.name}
-              />
-            </div>
+              );
+            })()
           ) : (
             <EstimateWorkspaceEmptyState
               title="No estimate started"
@@ -1791,63 +2037,73 @@ export default function EstimateWorkspacePage() {
 
         {!loadError && !dataLoading && activeTab === 'level-iii-gantt' ? (
           hasEstimate ? (
-            <div className="space-y-6">
-              {!cpmResult?.hasRunCpm ? (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-                  Draft schedule only. Critical path is unavailable until you run CPM from a valid
-                  precedence diagram in Logic Network.
-                </div>
-              ) : cpmResult && !cpmResult.hasValidCriticalPath ? (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-                  No valid critical path yet. Complete the logic network from project start to
-                  project finish.
-                </div>
-              ) : null}
-              {scheduleActivitiesResult.warnings.length > 0 ? (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                  {scheduleActivitiesResult.warnings.map((w, i) => (
-                    <div key={`schedule-${i}`}>{w}</div>
-                  ))}
-                </div>
-              ) : null}
-              <LevelThreeGanttWorkspace
-                chartExportRef={ganttExportRef}
-                activities={scheduleActivitiesResult.activities}
-                cpmResult={cpmResult}
-                scheduleSettings={scheduleSettingsHook.scheduleSettings}
-                leveledOffsets={scheduleSettingsHook.leveledOffsets}
-                logicLinks={scheduleSettingsHook.logicLinks}
-                lineItems={estimateAdapter?.lineItems ?? []}
-                onEditActivity={handleEditActivityFromGantt}
-                exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
-                onExportPdf={() => void runCpmGanttExport('pdf')}
-                onExportExcel={() => void runCpmGanttExport('excel')}
-                resourceHistogram={resourceHistogram}
-              />
-              {cpmResult?.hasRunCpm && scheduleActivitiesResult.activities.length > 0 && (
-                <div className="flex">
-                  <button
-                    type="button"
-                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                    onClick={handleRunResourceLeveling}
-                  >
-                    Resource level schedule
-                  </button>
-                  {Object.keys(scheduleSettingsHook.leveledOffsets).length > 0 && (
-                    <button
-                      type="button"
-                      className="ml-2 rounded-lg px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                      onClick={() => {
-                        scheduleSettingsHook.setLeveledOffsets({});
-                        void handleApplyResourceLeveling();
-                      }}
-                    >
-                      Clear leveling
-                    </button>
+            (() => {
+              const emptyState = resolveScheduleTabEmptyState(
+                constructionActivities.length,
+                scheduleActivitiesResult.activities.length,
+                'level-iii-gantt',
+                Boolean(cpmResult?.hasRunCpm),
+              );
+              if (emptyState) {
+                return (
+                  <div className="space-y-3">
+                    {renderScheduleSourceDevBadge(
+                      scheduleActivitiesResult.activities.length,
+                      enableLegacyEstimateScheduleFallback,
+                    )}
+                    <EstimateWorkspaceEmptyState
+                      title={emptyState.title}
+                      body={emptyState.body}
+                    />
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-6">
+                  {renderScheduleSourceDevBadge(
+                    scheduleActivitiesResult.activities.length,
+                    enableLegacyEstimateScheduleFallback,
                   )}
+                  {cpmResult && !cpmResult.hasValidCriticalPath ? (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                      No valid critical path yet. Complete the logic network from project start to
+                      project finish.
+                    </div>
+                  ) : null}
+                  {scheduleActivitiesResult.warnings.length > 0 ? (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                      {scheduleActivitiesResult.warnings.map((w, i) => (
+                        <div key={`schedule-${i}`}>{w.message}</div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <LevelThreeGanttWorkspace
+                    chartExportRef={ganttExportRef}
+                    activities={scheduleActivitiesResult.activities}
+                    cpmResult={cpmResult}
+                    scheduleSettings={scheduleSettingsHook.scheduleSettings}
+                    leveledOffsets={scheduleSettingsHook.leveledOffsets}
+                    logicLinks={scheduleSettingsHook.logicLinks}
+                    lineItems={estimateAdapter?.lineItems ?? []}
+                    onEditActivity={handleEditActivityFromGantt}
+                    exportReady={Boolean(cpmResult?.hasRunCpm && cpmResult.hasValidPrecedenceDiagram)}
+                    onExportPdf={() => void runCpmGanttExport('pdf')}
+                    onExportExcel={() => void runCpmGanttExport('excel')}
+                    resourceHistogram={resourceHistogram}
+                    onResourceLevel={
+                      cpmResult?.hasRunCpm && scheduleActivitiesResult.activities.length > 0
+                        ? handleRunResourceLeveling
+                        : undefined
+                    }
+                    onClearLeveling={() => {
+                      scheduleSettingsHook.setLeveledOffsets({});
+                      void handleApplyResourceLeveling();
+                    }}
+                    showClearLeveling={Object.keys(scheduleSettingsHook.leveledOffsets).length > 0}
+                  />
                 </div>
-              )}
-            </div>
+              );
+            })()
           ) : (
             <EstimateWorkspaceEmptyState
               title="No estimate started"

@@ -24,6 +24,10 @@ describe('resource histogram display', () => {
     expect(source).toContain('RESOURCE_HISTOGRAM_LEGEND_CRITICAL');
     expect(source).toContain('RESOURCE_HISTOGRAM_LEGEND_OVERALLOCATED');
     expect(source).toContain('data-testid="resource-histogram-tooltip"');
+    expect(source).toContain('computeResourceHistogramScale');
+    expect(source).toContain('resource-histogram-y-axis-tick-');
+    expect(source).toContain('resource-histogram-baseline');
+    expect(source).toContain('resource-histogram-grid-');
     expect(source).toContain('buildResourceHistogramTooltipContent');
     expect(source).toContain('onMouseEnter');
     expect(source).toContain('onFocus');

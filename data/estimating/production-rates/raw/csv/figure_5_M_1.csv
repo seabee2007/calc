@@ -1,0 +1,16 @@
+figure,Figure 5-M-1
+figureTitle,Fire Suppression Standpipe System Production ..................................................................5-M-1
+division,21
+divisionName,Fire Suppression
+sourcePage,5-M-1
+sourcePdfPage,14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+,,4-inch Pipe,6-inch Pipe,8-inch Pipe
+21 12 10.00\nFire Suppression Standpipe System,,,,
+Black steel pipe,LF,(0010) 0.5750,(0020) 0.8870,(0030) 1.1010
+"Pipe tee\nPipe elbow\nPipe nipple, 2 1/2 inches",Each\nEach\nEach,(0040) 5.3200\n(0070) 3.5470\n(0100) 1.3300,(0050) 7.9800\n(0080) 4.5610\n(0110) 1.3300,(0060) 10.6400\n(0090) 5.3200\n(0120) 1.3300
+"Hose valve, 2 1/2 inches\nPressure restricting valve, 2 1/2 inches\nCheck valve with ball drip",Each\nEach\nEach,(0130) 1.5160\n(0160) 1.5160\n(0190) 7.0930,(0140) 1.5160\n(0170) 1.5160\n(0200) 10.6400,(0150) 1.5160\n(0180) 1.5160\n(0210) 14.1870
+Siamese inlet\nRoof manifold with valves,Each\nEach,(0220) 4.2560\n(0250) 4.4330,(0230) 4.6260\n(0260) 4.6260,(0240) 4.6260\n(0270) 4.6260
+21 12 13.00\nFire Suppression Standpipe System\n(0010) Fire Hose,LF,0.0070,,
+Note: Refer to Division 22 11 13 for further information on facility water distribution piping.,,,,

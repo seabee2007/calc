@@ -1,0 +1,19 @@
+figure,Figure 5-J-7
+figureTitle,Plaster and Gypsum Board Assemblies Production ...............................................................5-J-4
+division,09
+divisionName,Finishes
+sourcePage,5-J-7
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"09 21 16.33\nPartition Wall, Gypsum Board\nStud wall, 8 to 12 feet high, interior, gypsum board, standard, tape and finish two\nsides\n1/2 inch thick on\n(0010) 2- by 4-inch or 6-inch wood studs, 16 inches on center\n(0020) 3 5/8 inches wide, metal studs, non-load bearing, 16 inches on center\n5/8 inch thick on\n(0030) 2- by 4-inch wood studs, 16 inches on center\n(0040) 2- by 4-inch wood studs, 24 inches on center\n(0050) 3 5/8 inches wide, metal studs, non-load bearing, 16 inches on center",SF\nSF\nSF\nSF\nSF,0.0690\n0.0610\n0.0710\n0.0640\n0.0620
+"09 22 13.13\nMetal Channel Furring\n(0010) Beams and columns, 7/8-inch channels galvanized, 16 inches on center\n(0020) Ceilings, on steel, 7/8-inch channels, galvanized, 16 inches on center\n(0030) Walls, 7/8-inch channels galvanized, 16 inches on center",SF\nSF\nSF,0.0620\n0.0370\n0.0400
+09 22 16.13\nMetal Studs and Track,,
+"(0010) 8 feet high, non-load bearing, galvanized, 3 5/8 inches wide, 16 inches on\ncenter\n(0020) 24 inches on center\n(0030) 10 feet high, non-load bearing, galvanized, 3 5/8 inches wide, 16 inches on\ncenter\n(0040) 24 inches on center\n(0050) 12 feet high, non-load bearing, galvanized, 3 5/8 inches wide, 16 inches on\ncenter\n(0060) 24 inches on center",SF\nSF\nSF\nSF\nSF\nSF,0.017\n0.012\n0.023\n0.015\n0.027\n0.017
+"09 22 26.13\nCeiling Suspension System\nSuspended ceiling, for gypsum board or plaster, 1 1/2- or 2-inch carriers\n(0010) 7/8-inch carrier channels, 16 inches on center\n(0020) 24 inches on center\n(0030) 1 5/8-inch carrier channels, 16 inches on center\n(0040) 24 inches on center",SF\nSF\nSF\nSF,0.052\n0.040\n0.055\n0.041
+"09 22 36.13\nGypsum Lath\n(0010) Plain or perforated, nailed, 3/8 inch thick\n(0020) Plain or perforated, nailed, 1/2 inch thick\n(0030) Clipped to steel studs, 3/8 inch thick\n(0040) 1/2 inch thick\n(0050) For ceiling installations, add\n(0060) For columns and beams, add",SY\nSY\nSY\nSY\nSY\nSY,0.1250\n0.1330\n0.1420\n0.1520\n0.0490\n0.0620
+"09 22 36.23\nMetal Lath\n(0010) Mesh, nailed to wood, 1.8 pounds\n(0020) Mesh, nailed to wood, 3.6 pounds\n(0030) Wired to steel, 1.8 pounds\n(0040) Wired to steel, 3.6 pounds\n(0050)Hollow metal stud partitions, 3.4 pounds lath both sides, non-load bearing,\nvarious configurations, average",SY\nSY\nSY\nSY\nSY,0.1770\n0.1930\n0.2010\n0.2130\n0.5320
+"09 22 36.43\nSecurity Mesh\nExpanded metal, flat, screwed to framing, 3/4 inch, 1.76 pounds per SF\n(0010) on walls\n(0020) on ceilings",SF\nSF,0.0150\n0.0160
+"09 22 36.83\nAccessories, Plaster\n(0010) Casing bead, expanded flange, galvanized\n(0020) Corner bead, expanded bullnose\n(0030) Expansion joint, 3/4-inch grounds, limited expansion, galvanized",LF\nLF\nLF,0.0400\n0.0410\n0.0400
+Minimum suggested crew size: one builder and one laborer.,,
+"Notes:\n1. The above options provide only a small sample of the myriad of possibilities. They provide a cross\nsection of average labor times required for plaster and gypsum board assemblies.\n2. Fasteners are screws or blued, ring shank nails for wood framing and screws for metal framing.\n3. Accessories are not included in plaster or stucco line items.",,

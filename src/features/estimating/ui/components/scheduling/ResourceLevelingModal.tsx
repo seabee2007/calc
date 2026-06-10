@@ -1,8 +1,12 @@
 import type { ResourceLevelingResult } from '../../../scheduling/cpmTypes';
 import {
   ALLOW_PROJECT_EXTENSION_LABEL,
+  CREW_OPTIMIZATION_FUTURE_NOTE,
   PROJECT_EXTENSION_DISABLED_HELPER,
   PROJECT_EXTENSION_ENABLED_HELPER,
+  RESOURCE_LEVELING_BALANCED_MESSAGE,
+  RESOURCE_LEVELING_NO_FLOAT_MESSAGE,
+  RESOURCE_LEVELING_SCOPE_NOTE,
 } from './resourceLevelingModalCopy';
 import { RESOURCE_HISTOGRAM_HELPER_TEXT } from './resourceHistogramUi';
 
@@ -25,8 +29,8 @@ export default function ResourceLevelingModal({
   const canApply = result.movedActivities.length > 0;
   const noMovesMessage =
     result.overallocatedDaysAfter > 0 || result.unmovedActivities.length > 0
-      ? 'No activities were moved within available total float.'
-      : 'No activities were moved. Schedule is already resource-balanced.';
+      ? RESOURCE_LEVELING_NO_FLOAT_MESSAGE
+      : RESOURCE_LEVELING_BALANCED_MESSAGE;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -36,12 +40,18 @@ export default function ResourceLevelingModal({
             Resource leveling preview
           </h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {RESOURCE_LEVELING_SCOPE_NOTE}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Deterministic float-based schedule shift. CPM dates, durations, and activity crew sizes
             are preserved until you apply leveled offsets. Daily crew counts reflect total workers
             required per project day.
           </p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {RESOURCE_HISTOGRAM_HELPER_TEXT}
+          </p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            {CREW_OPTIMIZATION_FUTURE_NOTE}
           </p>
         </div>
 
@@ -182,7 +192,16 @@ export default function ResourceLevelingModal({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{noMovesMessage}</p>
+            <div className="space-y-2">
+              <p className="text-sm text-slate-500 dark:text-slate-400">{noMovesMessage}</p>
+              {result.peakCrewBefore <= result.availableCrewSize ? (
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  Peak crew demand ({result.peakCrewBefore}) is at or below available crew (
+                  {result.availableCrewSize}). Resource leveling only resolves days where demand
+                  exceeds the limit.
+                </p>
+              ) : null}
+            </div>
           )}
 
           {result.unmovedActivities.length > 0 ? (

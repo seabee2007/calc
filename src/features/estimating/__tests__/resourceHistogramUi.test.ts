@@ -72,7 +72,8 @@ describe('resourceHistogramUi', () => {
     expect(segments.noncriticalHeightPx).toBeGreaterThan(0);
     expect(segments.criticalWithinLimitHeightPx).toBeGreaterThan(0);
     expect(segments.overallocatedHeightPx).toBeGreaterThan(0);
-    expect(segments.availableLineFromBottomPx).toBeGreaterThan(0);
+    expect(segments.totalHeightPx).toBe(80);
+    expect(segments.availableLineFromBottomPx).toBe(67);
   });
 
   it('uses readable tooltip classes for light and dark mode', () => {

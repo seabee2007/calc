@@ -55,7 +55,7 @@ describe('Logic Network save layout feedback', () => {
     expect(logicNetworkCanvasSource).toContain('x: n.position.x');
     expect(logicNetworkCanvasSource).toContain('y: n.position.y');
     expect(estimateWorkspacePageSource).toContain('handleSaveLogicNetworkLayout');
-    expect(estimateWorkspacePageSource).toContain('logicNetworkLayout: layout');
+    expect(estimateWorkspacePageSource).toContain('mergeLogicLayoutAssumptionsOnly');
   });
 
   it('shows success and error toasts with auto-dismiss', () => {

@@ -1,0 +1,27 @@
+figure,Figure 5-H-5
+figureTitle,Door Hardware Production .................................................................................................. 5-H-5
+division,08
+divisionName,Openings
+sourcePage,5-H-5
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"08 71 20.10\nBolts, Flush\n(0010) Standard, concealed\n(0020) Automatic fire exit\n(0030) For electric release, add\n(0040) Barrel, brass, 2 to 6 inches long",Each\nEach\nEach\nEach,1.5200\n2.1280\n3.5470\n0.3270
+"08 71 20.30\nDoor Closers\n(0010) Various types, standard minimum\n(0020) Maximum",Each\nEach,1.6370\n1.7730
+"08 71 20.35\nPanic Devices\n(0010) Various types, minimum\n(0020) Maximum",Each\nEach,1.7730\n2.1280
+"08 71 20.40\nLockset\n(0010) Various types, maximum",Each,1.0640
+"08 71 20.41\nDead Locks\n(0010) Various types, maximum",Each,1.1820
+"08 71 20.42\nMortise Locksets\n(0010) Commercial, wrought knobs and full escutcheon trim, various types,\nmaximum",Each,1.5200
+08 71 20.50\nDoor Stops\n(0010) Various types,Each,0.3320
+"08 71 20.55\nPush-Pull Plates\n(0010) Push plate, 0.050 thick, 4- by 16-inch aluminum or bronze\n(0020) Pull handle and push bar, aluminum\n(0030) Pull handle and push bar, bronze",Each\nEach\nEach,0.8870\n0.9670\n1.0640
+"08 71 20.65\nThresholds\n(0010) Threshold, 3-foot-long saddles, aluminum,\n(0020) Threshold, aluminum 8 inches wide by 1/2 inch thick\n(0030) Threshold, bronze 8 inches wide by 1/2 inch thick\n(0040) Bronze, panic threshold, 5 inches wide by 1/2 inch thick\n(0050) Rubber, 5 1/2 inches wide by 1/2 inch thick",LF\nEach\nLF\nEach\nEach,0.2220\n0.8870\n0.1770\n0.8870\n0.5320
+"08 71 20.95\nKick Plates\n(0010) Various types and sizes, average",Each,0.7090
+Minimum suggested crew size: one builder and one laborer.,,
+"Note: Installation includes drilling for fasteners, expansion shields, installing plugs, toggle bolts, blocking,\nhinges, locks, and other hardware.",,
+"08 71 25.10\nDoors—Mechanical Seals, Weatherstripping\n(0010) Doors, wood frame, interlocking, for 3- by 7-foot door, zinc or bronze\n(0020) 6- by 7-foot opening, zinc or bronze\n(0030) Threshold weatherstripping, door sweep, flush mounted\n(0040) Garage door bottom weatherstrip, 12-foot aluminum, rubber, etc.",Opening\nOpening\nEach\nEach,3.5470\n5.3200\n0.4260\n0.7600
+"08 75 30.10\nWindows—Mechanical Weather Seals\n(0010) Window, double hung, 3 by 5 feet, zinc or bronze\n(0020) heavy duty zinc or bronze",Opening\nOpening,1.4780\n2.3130
+Minimum suggested crew size: one builder and one laborer.,,
+"08 91 19.10\nAluminum Louvers\n(0010) Aluminum with screen, residential, 8 by 8 inches, minimum\n(0020) 24 by 30 inches, maximum",Each\nEach,0.2810\n0.7090
+"08 95 13.10\nWall Louvers\n(0010) Soffit vent, continuous, 3 inches wide, aluminum\n(0020) Under eaves vent, aluminum, 16 by 4 inches and 16 by 8 inches",LF\nEach,0.0530\n0.2220
+"08 95 16.10\nLouvers\nRedwood, 2-foot diameter, full circle and other shapes\nVinyl gable vent, 8 by 8 inches and 12 by 12 inches\n12 by 18 inches\n18 by 24 inches",Each\nEach\nEach\nEach,0.6650\n0.2810\n0.3040\n0.3550
+Minimum suggested crew size: one builder and one laborer.,,

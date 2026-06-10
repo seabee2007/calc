@@ -22,14 +22,14 @@ export default function EstimateNextAvailableActions({ onNavigate }: Props) {
           <button
             type="button"
             className="font-medium text-cyan-700 underline-offset-2 hover:underline dark:text-cyan-400"
-            onClick={() => onNavigate('line-items')}
+            onClick={() => onNavigate('activities')}
           >
-            Estimate
+            Construction Activities
           </button>
           <span className={PLANNER_MUTED}>
             {' '}
-            — select divisions of work, then add activities and cost details. They become the
-            foundation for estimate totals, schedule preview, and Gantt planning.
+            — add construction activities, work elements, and production-rate rollups. These drive
+            estimate totals, schedule preview, and Gantt planning.
           </span>
         </li>
         <li>

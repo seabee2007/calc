@@ -152,15 +152,49 @@ export function rollupConstructionActivity(
   };
 }
 
-/** Whether a line item has valid estimate snapshot data (does not require production_rate_id FK). */
-export function isProjectActivityLineItemValid(item: ProjectActivityLineItem): boolean {
-  const hasUnit = typeof item.unit === 'string' && item.unit.trim().length > 0;
-  const hasQuantity = Number.isFinite(item.quantity) && item.quantity > 0;
-  const hasManHoursPerUnit = Number.isFinite(item.manHoursPerUnit) && item.manHoursPerUnit > 0;
+/** Specific validation messages for line item estimate completeness. */
+export function getProjectActivityLineItemWarning(item: ProjectActivityLineItem): string | null {
+  if (!validateProductionRateUnit(item.unit)) {
+    return `Missing unit on "${item.name}".`;
+  }
+  if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
+    return `Missing quantity on "${item.name}".`;
+  }
+  if (!Number.isFinite(item.manHoursPerUnit) || item.manHoursPerUnit <= 0) {
+    return `Missing man-hour rate on "${item.name}".`;
+  }
   const hasRateReference =
     (typeof item.productionRateId === 'string' && item.productionRateId.length > 0) ||
     (typeof item.sourceProductionRateKey === 'string' && item.sourceProductionRateKey.length > 0);
-  return hasUnit && hasQuantity && hasManHoursPerUnit && hasRateReference;
+  if (!hasRateReference) {
+    return `Missing production rate source on "${item.name}".`;
+  }
+  return null;
+}
+
+/** Whether a line item has valid estimate snapshot data (does not require production_rate_id FK). */
+export function isProjectActivityLineItemValid(item: ProjectActivityLineItem): boolean {
+  return getProjectActivityLineItemWarning(item) === null;
+}
+
+/** Collect specific warnings for an activity and its line items. */
+export function getConstructionActivityWarnings(
+  activity: ProjectConstructionActivity,
+  lineItems: ProjectActivityLineItem[],
+): string[] {
+  const warnings: string[] = [];
+  if (lineItems.length === 0) {
+    warnings.push('No work elements on this activity.');
+    return warnings;
+  }
+  for (const item of lineItems) {
+    const itemWarning = getProjectActivityLineItemWarning(item);
+    if (itemWarning) warnings.push(itemWarning);
+  }
+  if ((activity.calculatedManHours ?? 0) <= 0 && warnings.length === 0) {
+    warnings.push('Activity man-hours are zero — check quantities and rates.');
+  }
+  return warnings;
 }
 
 /** Whether an activity has incomplete line items or missing rollup man-hours. */

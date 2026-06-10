@@ -1,0 +1,21 @@
+figure,Figure 5-G-8
+figureTitle,Siding Production ................................................................................................................. 5-G-8
+division,07
+divisionName,Thermal and Moisture Protection
+sourcePage,5-G-8
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"06 16 23.10\nSubfloor\n(0010) Plywood, 1/2 inch thick\n(0020) pneumatic nailed\n(0030) Plywood, 5/8 inch thick\n(0040) pneumatic nailed\n(0050) Plywood, 3/4 inch thick\n(0060) pneumatic nailed\nWith boards, 1 inch by 6 to 10 inches laid regular or diagonal, average\nSubfloor adhesive, 3/8-inch bead",SF\nSF\nSF\nSF\nSF\nSF\nSF\nLF,0.0150\n0.0120\n0.0160\n0.0130\n0.0170\n0.0130\n0.0230\n0.0040
+"06 16 26.10\nUnderlayment\n(0010) Plywood and particle board underlayment, average from 3/8 to\n3/4 inch thick\n(0020) pneumatic nailed",SF\nSF,0.0150\n0.0120
+"06 16 36.10\nSheathing\nRoofs,\n(0010) Plywood, average from 5/16 to 3/4 inch thick\n(0020) pneumatic nailed\n(0030) with boards, 1 by 6 inches laid horizontal\n(0040) laid diagonal\n(0050) 1 by 8 inches laid horizontal\n(0060) laid diagonal\nFor steep roofs, multiply by 1.40.\nFor dormers, hips, and valleys, multiply by 1.50.\nWalls,\n(0070) Plywood and oriented strand board, average from 3/8 to 3/4 inch\nthick\n(0080) pneumatic nailed\n(0090) with boards, 1 by 6 inches laid\n(0100) horizontal laid diagonal\n(0110) by 8 inches laid horizontal\n(0120) laid diagonal\n(0130) Other miscellaneous materiel",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.0170\n0.0150\n0.0310\n0.0330\n0.0240\n0.0310\n0.021\n0.017\n0.036\n0.033\n0.027\n0.033\n0.017
+Minimum suggested crew size: two builders.,,
+Notes:\n1. Scaffolding is not included.\n2. Clean-up is included.\n3. Refer to Figure 5-G-8 for siding.,,
+"07 42 13.20\nAluminum Siding Panels\n(0010) Corrugated on steel frame, various thicknesses,\n(0020) Average for roofing on wood frame, deduct",SF\nSF,0.0540\n0.0150
+"07 42 13.30\nSteel Siding\n(0010) Galvanized, corrugated or ribbed, 30 to 20 gauge,\n(0020) Average factory sandwich panel, 26 to 22 gauge, average",SF\nSF,0.0540\n0.1180
+"07 46 23.10\nWood Board Siding\nVarious types, e.g., wood, cedar bevel;\n(0010) Minimum, i.e., 4 to 6 inches wide\n(0020) Average, i.e., 8 inches wide\n(0030) Maximum, i.e., 10 inches wide",SF\nSF\nSF,0.0480\n0.0320\n0.0280
+"07 46 29.10\nPlywood Siding Option\nVarious types;\n(0010) Minimum, i.e., 3/8 inch thick\n(0020) Average, i.e., 1/2 or 5/8 inch thick\n(0030) Maximum, i.e., 3/4 inch thick",SF\nSF\nSF,0.0280\n0.0320\n0.0330
+07 46 33.10\nVinyl Siding\nVarious types;\n(0010) Minimum\n(0020) Maximum,SF\nSF,0.0400\n0.0530
+Minimum suggested crew size: one builder and one laborer.,,
+"07 65 10.10\nSheet Metal Flashing and Counter Flashing\n(0010) Aluminum, various thicknesses\n(0020) Copper, by weight of sheets in ounces, average\n(0030) Stainless steel sheets, various thicknesses",SF\nSF\nSF,0.0730\n0.0930\n0.0690
+"07 65 23.10\nRubber Sheet Flashing and Counter Flashing\n(0010) Rubber, butyl and neoprene, various thicknesses",SF,0.0370

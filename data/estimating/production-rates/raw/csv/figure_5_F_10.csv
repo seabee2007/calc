@@ -3,6 +3,7 @@ figureTitle,Sheathing Production ...............................................
 division,06
 divisionName,"Wood, Plastics, and Composites"
 sourcePage,5-F-10
+sourcePdfPage,12
 
 Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
 "06 16 23.10\nSubfloor\n(0010) Plywood, 1/2 inch thick\n(0020) pneumatic nailed\n(0030) Plywood, 5/8 inch thick\n(0040) pneumatic nailed\n(0050) Plywood, 3/4 inch thick\n(0060) pneumatic nailed\nWith boards, 1 inch by 6 to 10 inches laid regular or diagonal, average\nSubfloor adhesive, 3/8-inch bead",SF\nSF\nSF\nSF\nSF\nSF\nSF\nLF,0.0150\n0.0120\n0.0160\n0.0130\n0.0170\n0.0130\n0.0230\n0.0040

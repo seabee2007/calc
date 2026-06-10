@@ -1,0 +1,25 @@
+figure,Figure 5-D-10
+figureTitle,Concrete Unit Masonry Production ..................................................................................... 5-D-8
+division,04
+divisionName,Masonry
+sourcePage,5-D-10
+sourcePdfPage,12
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"04 21 13.13\nBrick Veneer Masonry\n(0010) Common bond, standard, 4 by 2 2/3 by 8 inches (7.88 per SF)\n(0020) Stack bond, standard, (6.75 per SF)\n(0030) Backup, 4 inches, running bond, standard brick, (6.75 per SF)\nNote: Plan for 3 percent brick and 25 percent mortar waste",SF\nSF\nSF,0.500\n0.400\n0.334
+"04 21 26.10\nGlazed Structural Clay Masonry Tile\n(0010) Structural facing tile, (excluding scaffolding, grout, and reinforcing)\nvarious types, average\nPlan for 3 percent waste",SF,0.250
+"04 21 29.10\nTerra Cotta Masonry Components\n(0010) Coping, split type, not glazed, various types, average\n(0020) Partition or backup blocks, various types, average",LF\nSF,0.356\n0.160
+"04 21 29.20\nTerra Cotta Tile\n(0010) On walls, dry set, 1/2 inch thick, various types, average",SF,0.118
+Minimum suggested crew size: one builder and two laborers.,,
+Notes: A multiplier of 2.0 was used to convert civilian production rates to military production rates in this figure. No\nfurther adjustment required for military production.,,
+"04 22 10.14\nConcrete Block, Back-up\nNormal weight, 8- by 16-inch units, tooled one side, not reinforced\n(0010) 8 inches thick\nReinforced, alternate courses\n(0020) 4 inches thick\n(0030) 8 inches thick\n(0040) 12 inches thick",SF\nSF\nSF\nSF,0.200\n0.178\n0.202\n0.320
+"04 22 10.16\nConcrete Block, Bond Beam\nRegular block, 8 inches high, including reinforcing (two #5 bars) and grout\n(0010) 8 inches thick\n(0020) 12 inches thick",LF\nLF,0.266\n0.384
+"04 22 10.18\nConcrete Block, Column or Pilaster\nIncluding vertical reinforcing (four #4 bars) and grout\n(0010) 1-piece unit, 16 by 16 inches\n(0020) 1-piece unit, 16 by 20 inches\n(0030) 2-piece unit, 16 by 20 inches",vertical\nLF\nLF\nLF,1.230\n1.334\n1.454
+"04 22 10.24\nConcrete Block, Exterior\n(0010) Normal weight, tooled two sides, reinforced, alternate courses 8- by\n16-inch units, 8 inches thick\n(0020) 12 inches thick",SF\nSF,0.222\n0.384
+"04 22 10.26\nConcrete Block, Foundation Wall\nNormal weight, cut joints, horizontal joint reinforcing, no vertical reinforcing,\nhollow or solid\n(0010) 8- by 16-inch units, 8 inches thick\n(0020) 10 inches thick\n(0030) 12 inches thick",SF\nSF\nSF,0.188\n0.228\n0.320
+"04 22 10.30\nConcrete Block, Interlocking\nNot including reinforcing and grout\n(0010) 8- by 16-inch units, 8 inches thick\n(0020) 12 inches thick\n(0030) 16 inches thick\nIncluding reinforcing and grout\n(0040) 8- by 16-inch units, 8 inches thick\n(0050) 12 inches thick\n(0060) 16 inches thick",SF\nSF\nSF\nSF\nSF\nSF,0.130\n0.146\n0.172\n0.262\n0.290\n0.346
+"04 22 10.32\nConcrete Block, Lintels\nIncluding horizontal reinforcing and grout\n(0010) 8- by 8-inch units, 8 inches thick, (one #4 bar)\n(0020) 8- by 8-inch units, 8 inches thick, (two #4 bars)\n(0030) 8- by 16-inch units, 8 inches thick, (one #4 bar)\n(0040) 8- by 16-inch units, 8 inches thick, (two #4 bars)\n(0050) 12- by 16-inch units, 8 inches thick, (one #4 bar)",LF\nLF\nLF\nLF\nLF,0.214\n0.216\n0.232\n0.238\n0.256
+"04 22 10.19\nConcrete Block, Partitions\nRegular block, tooled joints, two sides, excludes scaffolding\nHollow, not reinforced,\n(0010) 8- by 16-inch units, 4 inches thick\n(0020) 6 inches thick\n(0030) 8 inches thick\n(0040) 10 inches thick\n(0050) 12 inches thick\nHollow, reinforced alternate courses\n(0060) 8- by 16-inch units, 4 inches thick\n(0070) 6 inches thick\n(0080) 8 inches thick\n(0090) 10 inches thick\n(0100) 12 inches thick",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.186\n0.200\n0.214\n0.222\n0.282\n0.188\n0.202\n0.216\n0.226\n0.286
+"04 22 10.19\nConcrete Block, Partitions\nRegular block, tooled joints, two sides, excludes scaffolding\nSolid, not reinforced,\n(0110) 8- by 16-inch units, 2 inches thick\n(0120) 4 inches thick\n(0130) 6 inches thick\n(0140) 8 inches thick\n(0150) 12 inches thick\nSolid, reinforced alternate courses\n(0160) 8- by 16-inch units, 4 inches thick\n(0170) 6 inches thick\n(0180) 8 inches thick\n(0190) 12 inches thick",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nSF,0.184\n0.192\n0.208\n0.222\n0.296\n0.190\n0.210\n0.226\n0.300
+Minimum suggested crew size: one builder and two laborers.,,
+Notes:\n1. A multiplier of 2.0 was used to convert civilian production rates to military production rates in this figure.\nNo further adjustment required for military production.\n2. The masonry estimates are based on the following conditions:\na. All joints are 3/8 inch.\nb. Units laid in running bond or stack bond.\nc. All mortar is mixed by machine.\n3. All special blocks that require field cutting shall be ordered as full size blocks.,,

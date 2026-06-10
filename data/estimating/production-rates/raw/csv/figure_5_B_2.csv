@@ -1,0 +1,20 @@
+figure,Figure 5-B-2
+figureTitle,Structure Demolition Production ......................................................................................... 5-B-2
+division,02
+divisionName,Existing Conditions
+sourcePage,5-B-2
+sourcePdfPage,11
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+02 41 13.60,Foot,0.049
+"Fencing, Selective Demolish",,
+"(0010) Fencing, barbed wire, 3 strand",,
+"(0020) Fencing, barbed wire, 5 strand",LF,0.076
+"(0030) Chain link, posts and fabric, 8 to 10 feet high, remove only",LF,0.072
+"(0040) Chain link, posts and fabric, 8 to 10 feet high, remove and reset",LF,0.456
+02 41 16.17\nBuilding Demolition Footings and Foundations\n(0010) Concrete foundations\n(0020) Concrete walls\n(0030) Concrete slabs on grade with no reinforcing\n(0040) Concrete slabs on grade with wire mesh reinforcing\n(0050) Concrete slabs on grade with rebar and mesh reinforcing,CYD\nCYD\nCYD\nCYD\nCYD,5.000\n6.000\n4.000\n4.000\n6.000
+"02 41 19.16\nSelective Demolition, Cutout\n(0010) Ceilings, sheetrock\n(0020) Ceilings, suspended acoustic\n(0030) Doors and frames, wood 3 by 7 feet\n(0040) Doors and frames, steel 3 by 7 feet\n(0050) Flooring, ceramic or quarry tile\n(0060) Flooring, resilient tile\n(0070) Flooring, wood floor finish\n(0080) Flooring, wood subfloor\n(0090) Framing, steel\n(0100) Framing, wood\n(0110) Wallboard, gypsum\n(0120) Wallboard, plywood\n(0130) Roofing, corrugated\n(0140) Roofing, buildup five-ply\n(0150) Windows, metal\n(0160) Windows, wood",SF\nSF\nEach\nEach\nSF\nSF\nSF\nSF\nLF of wall\nLF of wall\nSF\nSF\nSF\nSF\nSF\nSF,0.024\n0.024\n0.550\n0.730\n0.050\n0.040\n0.060\n0.030\n0.240\n0.072\n0.030\n0.030\n0.030\n0.030\n0.096\n0.100
+"02 41 19.27\nSelective Demolition, Torch Cutting\n(0010) Steel, 1-inch-thick plate\n(0020) 1-inch-diameter bar\nOxygen lance cutting, reinforced concrete walls,\n(0030) 12- to 16-inch-thick walls",LF\nEach\nLF,0.030\n0.050\n1.064
+"Crew sizes are dictated by safety, scope of the project, weight, and bulk of materiels handled.",,
+"Notes:\n1. Work includes removal of item and stacking or piling onsite for removal at ground level.\n2. Second floor or upper story work includes dumping into rubbish chutes.\n3. Concrete demolition is figured on using pneumatic tools with average crew of two tool operators and\nthree to five laborers.\n4. Work includes salvage of materiels (e.g., cleaning and pulling nails).",,
+"02 58 13.10\nSnow Fencing System\n(0010) Snow fence on steel posts 10 feet on center, 4 feet high",LF,0.064

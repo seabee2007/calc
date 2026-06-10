@@ -1,0 +1,18 @@
+figure,Figure 5-P-6
+figureTitle,Install Forced Air Furnaces ................................................................................................... 5-P-4
+division,23
+divisionName,"Heating, Ventilating, and Air Conditioning"
+sourcePage,5-P-6
+sourcePdfPage,14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+23 52 13\nBoilers,,
+"Set and connect iron sectional boilers with insulating jacket and\nsafety devices\n(0010) 95,000 British thermal unit (BTU)/hour and smaller\n(0020)100,000 to 250,000 BTU/hour\n(0030) 260,000 to 450,000 BTU/hour\n(0040) 500,000 to 750,000 BTU/hour\n(0050) 800,000 to 1,000,000 BTU/hour\n(0060) 1,050,000 to 1,500,000 BTU/hour",Each\nEach\nEach\nEach\nEach\nEach,21.0\n29.0\n43.0\n60.0\n90.0\n127.0
+Set and connect expansion tanks\n(0070) 50 gallons and smaller\n(0080) 55 to 100 gallons,Each\nEach,8.0\n13.0
+Install and plumb hot water storage tanks\n(0090) 80 gallons and smaller\n(0100) 81 to 150 gallons\n(0110) 151 to 300 gallons\n(0120) Steel above ground fuel tank 450 gallons,Each\nEach\nEach\nEach,12.0\n17.0\n33.0\n5.9200
+"Minimum suggested crew size: one utilitiesman, one electrician, and one laborer.",,
+23 54 00\nFurnaces,,
+"Set and connect forced air furnaces complete (less duct, diffusers,\nand hard wiring)\n(0010) 100,000 BTU and smaller\n(0020) 105,000 BTU to 145,000 BTU\n(0030) 145,000 BTU to 280,000 BTU\n(0040) 450,000 BTU to 750,000 BTU\n(0050) 1,000,000 BTU to 2,000,000 BTU",Each\nEach\nEach\nEach\nEach,17.0\n36.0\n56.0\n109.0\n159.0
+"Fuel oil storage tanks set on floor\n(0060) 275 to 500 gallons\n(0070) 1,000 to 2,000 gallons\n(0080) 5,000 gallons",Each\nEach\nEach,15.0\n28.0\n55.0
+"Minimum suggested crew size: one utilitiesman, one electrician, and one laborer.",,
+"Notes:\n1. Man-hour figures include the positioning and connecting of units complete with fans, filters, safety\ncontrols, and light oil burners.\n2. Man-hour figures for installation of fuel storage tanks set on floors include supports, saddles,\ncoatings, and fittings.",,

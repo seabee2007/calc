@@ -6,6 +6,7 @@ import {
 } from '../ui/components/EstimateTotalsReviewPanel';
 import {
   ESTIMATE_WORKSPACE_TABS,
+  LEGACY_HIDDEN_ESTIMATE_WORKSPACE_TAB_IDS,
   REMOVED_ESTIMATE_WORKSPACE_TAB_IDS,
 } from '../ui/components/EstimateWorkspaceTabBar';
 import { buildEstimateTotalsReview } from '../ui/estimateTotalsDisplay';
@@ -20,12 +21,12 @@ import {
 } from '../utils/estimateRoutes';
 
 describe('estimate workspace overview tab', () => {
-  it('removes the totals tab from sub-navigation', () => {
+  it('removes the totals tab from sub-navigation and hides legacy Estimate tab', () => {
     expect(REMOVED_ESTIMATE_WORKSPACE_TAB_IDS).toContain('totals');
+    expect(LEGACY_HIDDEN_ESTIMATE_WORKSPACE_TAB_IDS).toContain('line-items');
     expect(ESTIMATE_WORKSPACE_TABS.map((tab) => tab.id)).toEqual([
       'overview',
       'settings',
-      'line-items',
       'activities',
       'schedule-preview',
       'logic-network',
@@ -34,8 +35,9 @@ describe('estimate workspace overview tab', () => {
     expect(ESTIMATE_WORKSPACE_TAB_IDS).not.toContain('totals');
   });
 
-  it('maps legacy totals URLs to overview', () => {
+  it('maps legacy totals URLs to overview and line-items URLs to Activities', () => {
     expect(parseEstimateWorkspaceTabParam('totals')).toBe('overview');
+    expect(parseEstimateWorkspaceTabParam('line-items')).toBe('activities');
   });
 
   it('shows financial summary on overview when an estimate exists', () => {

@@ -66,6 +66,10 @@ export interface EstimateQuantityInput {
 export interface EstimateLaborInput {
   productionRate?: number;
   productionRateType?: ProductionRateType;
+  /** Approved NTRP/MCRP library rate id (reference only; math still uses productionRate). */
+  ntrpProductionRateId?: string;
+  productionRateSourceFigure?: string;
+  productionRateSourcePage?: string;
   hoursPerDay?: number;
   crewSize?: number;
   parallelCrews?: number;

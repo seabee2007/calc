@@ -1,0 +1,15 @@
+figure,Figure 5-H-4
+figureTitle,Windows Production ............................................................................................................ 5-H-4
+division,08
+divisionName,Openings
+sourcePage,5-H-4
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"08 51 13.20\nAluminum Windows\nStock units, casement\n(0010) 3-foot-1-inch by 3-foot-2-inch opening\n(0020) 3-foot-4-inch by 5-foot opening\n(0030) 8- by 4-foot opening",Each\nEach\nEach,2.1280\n2.3650\n3.5470
+"08 52 10.30\nWood Windows\nDouble hung, sash, single lite\n(0010) 2 feet by 2 feet high\n(0020) 2 feet 6 inches by 2 feet high\n(0030) 2 feet 6 inches by 2 feet 6 inches high\n(0040) 3 feet by 2 feet high",Each\nEach\nEach\nEach,0.5320\n0.5600\n0.5900\n0.6260
+"08 52 10.50\nDouble Hung\nSolid vinyl, average quality, double insulated glass\n(0010) 2 feet by 3 feet\n(0020) 3 feet by 4 feet\n(0030) 4 feet by 4 feet 6 inches",Each\nEach\nEach,1.0640\n1.1820\n1.3300
+"08 52 66.10\nWood Screens\n(0010) Over 3 SF, 3/4- and 1 1/8-inch frames",SF,0.0570
+"08 62 13.20\nSkylights\nPlastic domes, flush or curb mounted\n(0010) Normal size under 10 SF, double\n(0020) Normal size under 10 SF, single\n(0030) 10 SF to 20 SF, double\n(0040) 10 SF to 20 SF, single\n(0050) 20 SF to 30 SF, double\n(0060) 20 SF to 30 SF, single\n(0070) 30 SF to 65 SF, double\n(0080) 30 SF to 65 SF, single\n(0090) Ventilating insulated Plexiglas dome with curb mounting\n36 by 36 inches and 52 by 52 inches\n(0100) Ventilating insulated Plexiglas dome with curb mounting\n28 by 52 inches and 36 by 52 inches\nDoes not include electric operating system",SF\nSF\nSF\nSF\nSF\nSF\nSF\nSF\nEach\nEach,0.3270\n0.2660\n0.1360\n0.1080\n0.1080\n0.0920\n0.0920\n0.0690\n3.5470\n4.2560
+Minimum suggested crew size: one builder and one laborer.,,
+Note: The above options provide only a small sample of the myriad of possibilities. They provide a cross\nsection of average labor times required for window installation.,,

@@ -98,13 +98,18 @@ function buildCodeToGraphKey(activities: ScheduleActivity[]): Map<string, string
   return map;
 }
 
-/** Resolves a link endpoint to its node graph key, preferring the runtime id. */
+/** Resolves a link endpoint to its node graph key, preferring a current runtime id. */
 function resolveEndpointKey(
   runtimeId: string | undefined,
   activityCode: string,
   codeToGraphKey: Map<string, string>,
+  validGraphKeys?: Set<string>,
 ): string {
-  return runtimeId?.trim() || codeToGraphKey.get(activityCode) || activityCode;
+  const trimmedRuntime = runtimeId?.trim();
+  if (trimmedRuntime && (!validGraphKeys || validGraphKeys.has(trimmedRuntime))) {
+    return trimmedRuntime;
+  }
+  return codeToGraphKey.get(activityCode) || activityCode;
 }
 
 export function linkToEdge(
@@ -112,6 +117,7 @@ export function linkToEdge(
   cpmResult: CpmResult | null,
   viewMode: LogicNetworkViewMode = 'logic-network',
   codeToGraphKey: Map<string, string> = new Map(),
+  validGraphKeys?: Set<string>,
 ): Edge {
   const label =
     link.lagDays > 0 ? `${link.relationshipType}+${link.lagDays}d` : link.relationshipType;
@@ -121,8 +127,18 @@ export function linkToEdge(
     isDisplayCritical(cpmResult, link.predecessorActivityCode) &&
     isDisplayCritical(cpmResult, link.successorActivityCode);
   const stroke = onDisplayCriticalPath ? '#ef4444' : '#64748b';
-  const predKey = resolveEndpointKey(link.predecessorRuntimeId, link.predecessorActivityCode, codeToGraphKey);
-  const succKey = resolveEndpointKey(link.successorRuntimeId, link.successorActivityCode, codeToGraphKey);
+  const predKey = resolveEndpointKey(
+    link.predecessorRuntimeId,
+    link.predecessorActivityCode,
+    codeToGraphKey,
+    validGraphKeys,
+  );
+  const succKey = resolveEndpointKey(
+    link.successorRuntimeId,
+    link.successorActivityCode,
+    codeToGraphKey,
+    validGraphKeys,
+  );
   return {
     id: buildEdgeId(predKey, succKey),
     source: buildNodeId(predKey),
@@ -145,8 +161,9 @@ export function mapLogicLinksToEdges(
   cpmResult: CpmResult | null,
   viewMode: LogicNetworkViewMode = 'logic-network',
   codeToGraphKey: Map<string, string> = new Map(),
+  validGraphKeys?: Set<string>,
 ): Edge[] {
-  return links.map((link) => linkToEdge(link, cpmResult, viewMode, codeToGraphKey));
+  return links.map((link) => linkToEdge(link, cpmResult, viewMode, codeToGraphKey, validGraphKeys));
 }
 
 export function buildLogicNetworkNodes(
@@ -373,14 +390,26 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
 
   const codeToGraphKey = useMemo(() => buildCodeToGraphKey(activities), [activities]);
 
+  const validGraphKeys = useMemo(
+    () => new Set(activities.map((activity) => getActivityGraphKey(activity))),
+    [activities],
+  );
+
   const sanitizedLogicLinks = useMemo(() => {
     const activityCodes = new Set(activities.map((activity) => activity.activityCode));
     return sanitizeLogicLinksForActivities(logicLinks, activityCodes);
   }, [activities, logicLinks]);
 
   const mappedEdges = useMemo(
-    () => mapLogicLinksToEdges(sanitizedLogicLinks, activeCpmResult, viewMode, codeToGraphKey),
-    [activeCpmResult, sanitizedLogicLinks, viewMode, codeToGraphKey],
+    () =>
+      mapLogicLinksToEdges(
+        sanitizedLogicLinks,
+        activeCpmResult,
+        viewMode,
+        codeToGraphKey,
+        validGraphKeys,
+      ),
+    [activeCpmResult, sanitizedLogicLinks, viewMode, codeToGraphKey, validGraphKeys],
   );
 
   useEffect(() => {
@@ -548,8 +577,18 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
       const succRuntimeId = succActivity?.runtimeActivityId;
 
       const alreadyExists = logicLinks.some((l) => {
-        const lPred = l.predecessorRuntimeId ?? l.predecessorActivityCode;
-        const lSucc = l.successorRuntimeId ?? l.successorActivityCode;
+        const lPred = resolveEndpointKey(
+          l.predecessorRuntimeId,
+          l.predecessorActivityCode,
+          codeToGraphKey,
+          validGraphKeys,
+        );
+        const lSucc = resolveEndpointKey(
+          l.successorRuntimeId,
+          l.successorActivityCode,
+          codeToGraphKey,
+          validGraphKeys,
+        );
         return lPred === predKey && lSucc === succKey;
       });
       if (alreadyExists) {
@@ -573,7 +612,7 @@ const CanvasInner = forwardRef<LogicNetworkCanvasHandle, Props>(function CanvasI
 
       onLinksChange([...logicLinks, newLink]);
     },
-    [activityByGraphKey, logicLinks, onLinksChange, showToast],
+    [activityByGraphKey, codeToGraphKey, logicLinks, onLinksChange, showToast, validGraphKeys],
   );
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {

@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-06-10T20:10:07+00:00",
+  "sourceDocument": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+  "dryRun": false,
+  "filesProcessed": 4,
+  "recordsProcessed": 96,
+  "recordsWithWarnings": 76,
+  "recordsWithUnitFixes": 1,
+  "recordsWithHierarchyChanges": 74,
+  "recordsNeedingHumanReview": 96,
+  "files": [
+    {
+      "file": "figure_5_M_1.json",
+      "recordsProcessed": 7,
+      "recordsWithWarnings": 7,
+      "recordsWithUnitFixes": 1,
+      "recordsWithHierarchyChanges": 7,
+      "recordsNeedingHumanReview": 7
+    },
+    {
+      "file": "figure_5_M_2.json",
+      "recordsProcessed": 31,
+      "recordsWithWarnings": 31,
+      "recordsWithUnitFixes": 0,
+      "recordsWithHierarchyChanges": 31,
+      "recordsNeedingHumanReview": 31
+    },
+    {
+      "file": "figure_5_M_3.json",
+      "recordsProcessed": 29,
+      "recordsWithWarnings": 19,
+      "recordsWithUnitFixes": 0,
+      "recordsWithHierarchyChanges": 18,
+      "recordsNeedingHumanReview": 29
+    },
+    {
+      "file": "figure_5_M_4.json",
+      "recordsProcessed": 29,
+      "recordsWithWarnings": 19,
+      "recordsWithUnitFixes": 0,
+      "recordsWithHierarchyChanges": 18,
+      "recordsNeedingHumanReview": 29
+    }
+  ]
+}

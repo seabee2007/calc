@@ -1,0 +1,18 @@
+figure,Figure 5-P-4
+figureTitle,Install Exhaust Vents/Ducts and Motors ............................................................................... 5-P-3
+division,23
+divisionName,"Heating, Ventilating, and Air Conditioning"
+sourcePage,5-P-4
+sourcePdfPage,14
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"Airfoil, motor and drive complete\n(0110) 1,000 CFM\n(0120) 2,000 CFM\n(0130) 4,000 CFM\n(0140) 8,000 CFM\n(0150) 12,000 CFM",Each\nEach\nEach\nEach\nEach,12.0000\n15.0000\n16.6665\n21.4290\n30.0000
+"Roof exhaust, direct drive\n(0410) 320 CFM\n(0420) 600 CFM\n(0430) 815 CFM\n(0440) 1,450 CFM\n(0450) 2,050 CFM",Each\nEach\nEach\nEach\nEach,4.2855\n4.9995\n6.0000\n7.1430\n7.5000
+Install Sheet Metal Duct (round)\nSee section 23 31 13.00,,
+23 34 23.10\nHVAC Power Circulators,,
+"Install circulators\n(0110) Propeller exhaust, wall shutter, direct drive, 375 CFM\n(0120) Propeller exhaust, wall shutter, direct drive, 730 CFM\n(0130) Propeller exhaust, wall shutter, direct drive, 1,000 CFM\n(0140) Propeller exhaust, wall shutter, direct drive, 1,890 CFM\n(0150) Propeller exhaust, wall shutter, direct drive, 3,275 CFM\n(0160) Propeller exhaust, wall shutter, direct drive, 4,720 CFM",Each\nEach\nEach\nEach\nEach\nEach,3.0000\n3.3330\n3.7500\n4.2855\n4.9995\n6.0000
+"Minimum suggested crew size: one builder, one steelworker, one electrician",,
+23 38 13.10\nHood and Ventilation Equipment,LF\nLF\nLF\nLF\nEach,1.9995\n1.8000\n2.5710\n2.2500\n8.0000
+"(0030) Vent hood, wall canopy with fire protection\n(0040) Vent hood, wall canopy without fire protection\n(0050) Vent hood, island canopy with fire protection\n(0060) Vent hood, island canopy without fire protection\n(0090) Range hood and carbon dioxide system",,
+Minimum suggested crew size: one builder,,
+Legend: CFM = cubic feet per minute,,

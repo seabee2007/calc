@@ -161,3 +161,6 @@ export const LazyEmployeeUploadsPage = lazyPage(
 export const LazyActivityEstimatePreview = lazyPage(
   () => import('../features/estimating/ui/dev/ActivityEstimatePreview'),
 );
+export const LazyProductionRateReviewPage = lazyPage(
+  () => import('../features/estimating/ui/dev/ProductionRateReviewPage'),
+);

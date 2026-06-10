@@ -1,0 +1,13 @@
+figure,Figure 5-D-6
+figureTitle,Masonry Maintenance and Cleaning Production ................................................................. 5-D-5
+division,04
+divisionName,Masonry
+sourcePage,5-D-6
+sourcePdfPage,12
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"04 01 20.20\nPointing Masonry\n(0010) Cut and repoint brick, hard mortar, running bond\n(0020) Repoint, mask, and grout method, running bond\n(0030) Scrub coat, sand grout on walls, minimum",SF\nSF\nSF,0.150\n0.126\n0.101
+"04 01 30.20\nCleaning Masonry\n(0100) Chemical cleaning, new construction, brush and wash,\naverage\n(0020) High-pressure water only, average\n(0030) Steam cleaning, average",SF\nSF\nSF,0.024\n0.041\n0.024
+"04 01 30.60\nBrick Washing\n(0010) Acid cleanser, smooth brick\n(0020) rough brick\n(0030) Stone, acid wash",SF\nSF\nSF,0.021\n0.030\n0.019
+Minimum suggested crew size: one builder and laborer.,,
+"Notes:\n1. A multiplier of 1.5 was used to convert civilian production rates to military production rates in this\nfigure. No further adjustment required for military production.\n2. Scaffolding is not included.\n3. Clean-up is included.\n4. A person can clean 50 SF per hour on smooth brick and 35 SF per hour on rough brick. Do not\nuse acid solution until wall is at least 7 days old.\n5. Recommend use of 1 gallon muriatic acid to 20 gallons of water for 1,000 SF.",,

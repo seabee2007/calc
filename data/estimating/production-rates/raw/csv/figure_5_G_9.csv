@@ -1,0 +1,26 @@
+figure,Figure 5-G-9
+figureTitle,Flashing and Roof Specialties Production ........................................................................... 5-G-8
+division,07
+divisionName,Thermal and Moisture Protection
+sourcePage,5-G-9
+sourcePdfPage,13
+
+Work Element Description,Unit,Fabricate,Erect and Strip,Clean and Move,Total Hours
+"07 42 13.20\nAluminum Siding Panels\n(0010) Corrugated on steel frame, various thicknesses,\n(0020) Average for roofing on wood frame, deduct",SF\nSF,0.0540\n0.0150
+"07 42 13.30\nSteel Siding\n(0010) Galvanized, corrugated or ribbed, 30 to 20 gauge,\n(0020) Average factory sandwich panel, 26 to 22 gauge, average",SF\nSF,0.0540\n0.1180
+"07 46 23.10\nWood Board Siding\nVarious types, e.g., wood, cedar bevel;\n(0010) Minimum, i.e., 4 to 6 inches wide\n(0020) Average, i.e., 8 inches wide\n(0030) Maximum, i.e., 10 inches wide",SF\nSF\nSF,0.0480\n0.0320\n0.0280
+"07 46 29.10\nPlywood Siding Option\nVarious types;\n(0010) Minimum, i.e., 3/8 inch thick\n(0020) Average, i.e., 1/2 or 5/8 inch thick\n(0030) Maximum, i.e., 3/4 inch thick",SF\nSF\nSF,0.0280\n0.0320\n0.0330
+07 46 33.10\nVinyl Siding\nVarious types;\n(0010) Minimum\n(0020) Maximum,SF\nSF,0.0400\n0.0530
+Minimum suggested crew size: one builder and one laborer.,,
+"07 65 10.10\nSheet Metal Flashing and Counter Flashing\n(0010) Aluminum, various thicknesses\n(0020) Copper, by weight of sheets in ounces, average\n(0030) Stainless steel sheets, various thicknesses",SF\nSF\nSF,0.0730\n0.0930\n0.0690
+"07 65 23.10\nRubber Sheet Flashing and Counter Flashing\n(0010) Rubber, butyl and neoprene, various thicknesses",SF,0.0370
+"07 71 19.10\nGravel Stop\nVarious types, e.g., aluminum, galvanized steel, PVC, and stainless steel at\n(0010) 4-inch-face height\n(0020) 6-inch-face height\n(0030) 8-inch-face height\n(0040) 12-inch-face height",LF\nLF\nLF\nLF,0.0400\n0.0780\n0.0850\n0.1060
+"07 71 23.10\nDownspouts\nVarious types, e.g., aluminum, copper, steel, etc.\n(0010) Minimum, i.e., 2 by 6 inches, 28 gauge\n(0020) Average, i.e., 3 by 4 inches, various thicknesses\n(0030) Maximum, i.e., 6-inch diameter, 26 gauge",LF\nLF\nLF,0.0560\n0.0400\n0.1010
+"07 71 23.20\nDownspout Elbows\n(0010) Elbows, various types",Each,0.1060
+"07 71 23.30\nGutters\n(0010) Aluminum, copper, galvanized and stainless steel of various\nthicknesses and widths, average\n(0020) Vinyl, at various widths\n(0030) Wood, clear treated cedar, fir or hemlock, 3 by 4 inches",LF\nLF\nLF,0.0890\n0.0970\n0.1060
+"07 71 26.10\nReglets and Accessories\n(0010) Aluminum, copper, galvanized and stainless steel of various\nthicknesses, average\n(0020) Counter flashing for above, 12 inches wide, at various thicknesses",LF\nLF,0.0480\n0.0700
+"07 72 23.10\nRoof Vents\n(0010) Mushroom shape, for built-up roofs, aluminum\n(0020) Mushroom shape, for built-up roofs, PVC, 6 inches high",Each\nEach,0.3550\n0.3550
+07 72 53.10\nSnow Guard\n(0010) Double rail pipe type,LF,0.082
+"07 92 10.10\nCaulking and Sealant Options\nAcrylic latex caulk, 11 ounce cartridge\n(0010) 1/4 by 1/2 inch and 1/2 by 1/2 inch\n(0020) 3/4 by 3/4 inch\n(0030) 3/4 by 1 inch\n(0040) 1 by 1 inch\n(0050) Backer rod, polyethylene, 1/4-inch through 1-inch diameter",LF\nLF\nLF\nLF\nLF,0.0430\n0.0460\n0.0530\n0.0580\n0.0230
+Minimum suggested crew size: one builder and one laborer.,,
+"Note: Installation includes unloading, storing onsite, handling into place, hanging, fastening, and sealing.",,
