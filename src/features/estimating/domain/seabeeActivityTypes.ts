@@ -94,6 +94,8 @@ export interface ActivityRollupResult {
   totalManHours: number;
   totalManDays: number;
   calculatedDurationDays: number;
+  /** Effective duration after optional override (same as durationDays). */
+  effectiveDurationDays: number;
   /** Effective duration after optional override. */
   durationDays: number;
   totalLaborCost: number;

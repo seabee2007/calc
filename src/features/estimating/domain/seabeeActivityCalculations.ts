@@ -141,6 +141,7 @@ export function rollupConstructionActivity(
     totalManHours,
     totalManDays,
     calculatedDurationDays,
+    effectiveDurationDays: durationDays,
     durationDays,
     totalLaborCost,
     totalMaterialCost,
