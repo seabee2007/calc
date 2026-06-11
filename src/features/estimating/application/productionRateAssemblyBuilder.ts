@@ -12,7 +12,10 @@ import type {
 import { EMPTY_LABOR_PRICING_SNAPSHOT } from '../domain/constructionActivityTypes';
 import type { ProjectLaborRate } from '../domain/laborRateTypes';
 import { applyLaborRateToLineItem } from './laborPricingCalculator';
-import { resolveLaborRoleForProductionRate } from './laborRoleMapping';
+import {
+  applyResolvedLaborRateToLineItem,
+  resolveLaborRateForWorkElement,
+} from './laborRateResolver';
 import type {
   ActivityInstanceIdentityInput,
   AssignedProjectActivityCode,
@@ -308,34 +311,26 @@ export function createDraftActivityFromAssemblyCategory(
   };
 }
 
-function findProjectRateById(
-  projectRates: readonly ProjectLaborRate[],
-  roleId: string | null | undefined,
-): ProjectLaborRate | undefined {
-  if (!roleId) return undefined;
-  return projectRates.find((rate) => rate.id === roleId);
-}
-
 function priceLineItemFromRate(
   item: ProjectActivityLineItem,
   rateEntry: ProductionRateLibraryEntry,
   projectLaborRates: readonly ProjectLaborRate[],
   laborRoleId?: string | null,
 ): { item: ProjectActivityLineItem; warning: string | null } {
-  const explicitRate = findProjectRateById(projectLaborRates, laborRoleId);
-  if (explicitRate) {
-    return { item: applyLaborRateToLineItem(item, explicitRate), warning: null };
+  const resolved = resolveLaborRateForWorkElement({
+    workElement: rateEntry,
+    projectLaborRates,
+    preferredRoleId: laborRoleId,
+  });
+
+  if (!resolved.projectRate) {
+    return { item, warning: resolved.warning ?? 'Missing labor rate' };
   }
 
-  const mapping = resolveLaborRoleForProductionRate(rateEntry, projectLaborRates);
-  if (mapping.projectRate) {
-    return {
-      item: applyLaborRateToLineItem(item, mapping.projectRate),
-      warning: mapping.warning,
-    };
-  }
-
-  return { item, warning: mapping.warning ?? 'Missing labor rate' };
+  return {
+    item: applyResolvedLaborRateToLineItem(item, resolved),
+    warning: null,
+  };
 }
 
 function finalizeActivityRollup(
@@ -522,10 +517,18 @@ export function instantiateManualConstructionActivity(
       sortOrder: index + 1,
     };
 
-    const explicitRate = findProjectRateById(input.projectLaborRates, entry.laborRoleId);
-    if (explicitRate) {
+    const resolved = resolveLaborRateForWorkElement({
+      workElement: {
+        activityName: entry.description.trim(),
+        description: entry.description.trim(),
+      },
+      projectLaborRates: input.projectLaborRates,
+      preferredRoleId: entry.laborRoleId,
+    });
+
+    if (resolved.projectRate) {
       item = {
-        ...applyLaborRateToLineItem(item, explicitRate),
+        ...applyResolvedLaborRateToLineItem(item, resolved),
         pricingSource: 'manual',
       };
     } else if (item.calculatedManHours > 0) {

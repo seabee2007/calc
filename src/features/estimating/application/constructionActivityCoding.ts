@@ -30,6 +30,14 @@ export interface AssignedProjectActivityCode {
   title: string;
 }
 
+export interface GenerateNextProjectActivityCodeInput {
+  divisionCode: string;
+  existingActivities: readonly ProjectConstructionActivity[];
+  preferredCategoryKey?: string | null;
+  preferredTitle?: string | null;
+  excludeActivityId?: string;
+}
+
 /** Display title: "Place Continuous Footing — F-1" */
 export function buildConstructionActivityDisplayTitle(
   baseTitle: string,
@@ -66,50 +74,44 @@ export function requiresInstanceLabelForTemplate(
   return countTemplateInstances(activities, sourceTemplateKey) > 0;
 }
 
-function resolveTemplateActivitySequence(
+function normalizeCategoryKey(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? '';
+}
+
+function matchesPreferredCategory(
+  activity: ProjectConstructionActivity,
+  preferredCategoryKey?: string | null,
+  preferredTitle?: string | null,
+): boolean {
+  const categoryKey = normalizeCategoryKey(preferredCategoryKey);
+  if (categoryKey) {
+    const activityCategory = normalizeCategoryKey(activity.sourceTemplateKey ?? activity.templateId);
+    if (activityCategory === categoryKey) return true;
+  }
+
+  const titleKey = normalizeCategoryKey(preferredTitle);
+  if (!titleKey) return false;
+  return (
+    normalizeCategoryKey(activity.baseTitle) === titleKey ||
+    normalizeCategoryKey(activity.title) === titleKey ||
+    normalizeCategoryKey(activity.name) === titleKey
+  );
+}
+
+function nextAvailableInstanceSequence(
+  usedCodes: ReadonlySet<string>,
   divisionCode: string,
-  templateMasterCode: string | null | undefined,
-  existingActivities: readonly ProjectConstructionActivity[],
-  sourceTemplateKey: string,
-): number {
-  const parsed = templateMasterCode ? parseActivityCode(templateMasterCode) : null;
-  if (parsed) return parsed.activitySequence;
-
-  let max = 0;
-  for (const activity of existingActivities) {
-    if ((activity.sourceTemplateKey ?? activity.templateId) !== sourceTemplateKey) continue;
-    const seq =
-      activity.activitySequence ??
-      parseActivityCode(activity.activityCode)?.activitySequence ??
-      0;
-    if (seq > max) max = seq;
-  }
-  if (max > 0) return max;
-
-  return nextActivitySequenceForDivision(existingActivities, divisionCode);
-}
-
-function nextInstanceSequenceForTemplate(
-  existingActivities: readonly ProjectConstructionActivity[],
-  sourceTemplateKey: string,
   activitySequence: number,
-  excludeActivityId?: string,
 ): number {
-  let max = 0;
-  for (const activity of existingActivities) {
-    if (activity.id === excludeActivityId) continue;
-    if ((activity.sourceTemplateKey ?? activity.templateId) !== sourceTemplateKey) continue;
-    const parsed = parseActivityCode(activity.activityCode);
-    const seq =
-      activity.instanceSequence ??
-      parsed?.lineSequence ??
-      (parsed?.activitySequence === activitySequence ? parsed.lineSequence : 0);
-    if (seq > max) max = seq;
+  for (let instanceSequence = 1; instanceSequence <= 99; instanceSequence += 1) {
+    if (!usedCodes.has(buildActivityCode(divisionCode, activitySequence, instanceSequence))) {
+      return instanceSequence;
+    }
   }
-  return max + 1;
+  return 100;
 }
 
-function nextActivitySequenceForDivision(
+function nextUnusedActivitySequence(
   existingActivities: readonly ProjectConstructionActivity[],
   divisionCode: string,
 ): number {
@@ -121,7 +123,47 @@ function nextActivitySequenceForDivision(
     const seq = activity.activitySequence ?? parsed?.activitySequence ?? 0;
     if (seq > max) max = seq;
   }
-  return max > 0 ? max : 1;
+  return max + 1 || 1;
+}
+
+/**
+ * Generate the next unused stable project activity code in DD-AA-II format.
+ *
+ * Same project category/template gets another instance under its existing AA
+ * sequence. New categories get the next AA sequence for the division. In all
+ * cases the final DD-AA-II code is checked against every existing activity in
+ * the project/division before it is returned.
+ */
+export function generateNextProjectActivityCode(
+  input: GenerateNextProjectActivityCodeInput,
+): Pick<AssignedProjectActivityCode, 'activityCode' | 'activitySequence' | 'instanceSequence'> {
+  const divisionCode = pad2(normalizeCsiDivisionCode(input.divisionCode));
+  const existingInDivision = input.existingActivities.filter(
+    (activity) =>
+      activity.id !== input.excludeActivityId &&
+      pad2(normalizeCsiDivisionCode(activity.divisionCode)) === divisionCode,
+  );
+  const usedCodes = new Set(
+    existingInDivision
+      .map((activity) => activity.activityCode?.trim())
+      .filter((code): code is string => Boolean(code)),
+  );
+
+  const categoryMatch = existingInDivision.find((activity) =>
+    matchesPreferredCategory(activity, input.preferredCategoryKey, input.preferredTitle),
+  );
+  const matchedParsed = categoryMatch ? parseActivityCode(categoryMatch.activityCode) : null;
+  const activitySequence =
+    categoryMatch?.activitySequence ??
+    matchedParsed?.activitySequence ??
+    nextUnusedActivitySequence(existingInDivision, divisionCode);
+  const instanceSequence = nextAvailableInstanceSequence(usedCodes, divisionCode, activitySequence);
+
+  return {
+    activityCode: buildActivityCode(divisionCode, activitySequence, instanceSequence),
+    activitySequence,
+    instanceSequence,
+  };
 }
 
 /**
@@ -156,28 +198,18 @@ export function assignProjectActivityCode(input: {
     };
   }
 
-  const activitySequence = resolveTemplateActivitySequence(
-    input.divisionCode,
-    input.templateMasterCode,
-    input.existingActivities,
-    input.sourceTemplateKey,
-  );
-  const instanceSequence = nextInstanceSequenceForTemplate(
-    input.existingActivities,
-    input.sourceTemplateKey,
-    activitySequence,
-    input.excludeActivityId,
-  );
-  const activityCode = buildActivityCode(
-    input.divisionCode,
-    activitySequence,
-    instanceSequence,
-  );
+  const generated = generateNextProjectActivityCode({
+    existingActivities: input.existingActivities,
+    divisionCode: input.divisionCode,
+    preferredCategoryKey: input.sourceTemplateKey,
+    preferredTitle: baseTitle,
+    excludeActivityId: input.excludeActivityId,
+  });
 
   return {
-    activityCode,
-    activitySequence,
-    instanceSequence,
+    activityCode: generated.activityCode,
+    activitySequence: generated.activitySequence,
+    instanceSequence: generated.instanceSequence,
     baseTitle,
     title: title || baseTitle,
   };

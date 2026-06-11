@@ -34,6 +34,7 @@ import { getMasterActivityByCode } from '../../data/masterActivityIndex';
 import { getProductionRateDefaultsForActivity } from '../../data/productionRates';
 import type { ProductionRateLibraryEntry } from '../../data/productionRates/productionRateTypes';
 import { PRODUCTION_RATE_REFERENCE_NOTE } from '../../data/productionRates/mapToLibraryEntry';
+import { parseWorkElementFromProductionRateKey } from '../../data/productionRates/productionRateDisplayFormatters';
 
 const ProductionRateLibraryModal = lazy(() => import('./ProductionRateLibraryModal'));
 import { getCsiDivisionByCode } from '../../domain/csiDivisions';
@@ -650,9 +651,17 @@ export default function EstimateManualLineItemForm({
             />
             {labor.ntrpProductionRateId ? (
               <p className="mt-1 text-xs text-cyan-300/90">
-                NTRP rate {labor.ntrpProductionRateId}
-                {labor.productionRateSourceFigure ? ` · ${labor.productionRateSourceFigure}` : ''}
-                {labor.productionRateSourcePage ? ` · p. ${labor.productionRateSourcePage}` : ''}
+                {(() => {
+                  const parsed = parseWorkElementFromProductionRateKey(labor.ntrpProductionRateId ?? '');
+                  if (parsed.workElementNumber) {
+                    const parts = [`Work Element ${parsed.workElementNumber}`];
+                    if (parsed.workElementLineNumber) {
+                      parts.push(`Line ${parsed.workElementLineNumber}`);
+                    }
+                    return parts.join(' · ');
+                  }
+                  return labor.ntrpProductionRateId;
+                })()}
               </p>
             ) : null}
             {showProductionDefaultsNote && selectedProductionDefaults ? (

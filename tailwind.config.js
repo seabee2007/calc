@@ -18,6 +18,19 @@ export default {
           dark: '#020617',
         },
       },
+      borderRadius: {
+        card: '0.75rem',
+        modal: '1rem',
+      },
+      boxShadow: {
+        card: '0 4px 16px rgba(0, 0, 0, 0.1)',
+        elevated: '0 8px 32px rgba(0, 0, 0, 0.16)',
+      },
+      spacing: {
+        page: '2rem',
+        section: '1.5rem',
+        card: '1.25rem',
+      },
       zIndex: {
         modal: '9999',
         'modal-overlay': '9998',

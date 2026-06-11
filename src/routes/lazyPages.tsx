@@ -61,6 +61,7 @@ export const LazyPourPlanner = lazyPage(() => import('../pages/PourPlanner'));
 export const LazyMixDesignAdvisor = lazyPage(() => import('../pages/MixDesignAdvisor'));
 export const LazyProposalGenerator = lazyPage(() => import('../pages/ProposalGenerator'));
 export const LazyProposals = lazyPage(() => import('../pages/Proposals'));
+export const LazyFinancialDetailsPage = lazyPage(() => import('../pages/FinancialDetailsPage'));
 export const LazyPublicProposal = lazyPage(() => import('../pages/PublicProposal'));
 export const LazyPublicChangeOrder = lazyPage(() => import('../pages/PublicChangeOrder'));
 export const LazyPublicContract = lazyPage(

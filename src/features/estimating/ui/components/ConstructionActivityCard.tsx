@@ -217,7 +217,7 @@ export default function ConstructionActivityCard({
           {activeTab === 'estimate' && (
             <>
               {/* Column headers */}
-              <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-x-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5">
+              <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-x-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                   Work Element
                 </span>
@@ -225,13 +225,19 @@ export default function ConstructionActivityCard({
                   Qty / Unit
                 </span>
                 <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Rate
+                  MH / Unit
                 </span>
                 <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                   Man-Hours
                 </span>
                 <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Cost
+                  Labor Role
+                </span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Labor
+                </span>
+                <span className="text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Total
                 </span>
               </div>
 

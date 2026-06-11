@@ -6,6 +6,7 @@ import {
   fetchCompanyLaborRates,
   fetchProjectLaborRates,
   resetProjectLaborRateToCompany,
+  seedStarterLaborRates,
   upsertProjectLaborRate,
 } from '../../application/laborRateService';
 import { findDefaultProjectLaborRate } from '../../application/laborPricingCalculator';
@@ -18,6 +19,7 @@ export interface UseProjectLaborRatesResult {
   saving: boolean;
   error: string | null;
   reload: () => void;
+  ensureProjectLaborRatesReady: () => Promise<ProjectLaborRate[]>;
   initializeFromCompany: () => Promise<void>;
   saveProjectRate: (input: ProjectLaborRateInput) => Promise<ProjectLaborRate | null>;
   resetToCompany: (projectRate: ProjectLaborRate) => Promise<void>;
@@ -71,6 +73,44 @@ export function useProjectLaborRates(projectId: string | null | undefined): UseP
     setSaving(false);
   }, [companyRates, projectId]);
 
+  const ensureProjectLaborRatesReady = useCallback(async (): Promise<ProjectLaborRate[]> => {
+    if (!projectId) return [];
+
+    const projectResult = await fetchProjectLaborRates(projectId);
+    if (projectResult.error) {
+      setError(projectResult.error);
+    }
+    if (projectResult.data && projectResult.data.length > 0) {
+      setProjectRates(projectResult.data);
+      return projectResult.data;
+    }
+
+    let company = companyRates;
+    if (company.length === 0 && user?.id) {
+      const seeded = await seedStarterLaborRates(user.id);
+      company = seeded.data ?? [];
+      if (seeded.error) {
+        setError(seeded.error);
+      }
+      if (company.length > 0) {
+        setCompanyRates(company);
+      }
+    }
+
+    if (company.length > 0) {
+      const copied = await copyCompanyRatesToProject(projectId, company);
+      if (copied.error) {
+        setError(copied.error);
+      }
+      if (copied.data && copied.data.length > 0) {
+        setProjectRates(copied.data);
+        return copied.data;
+      }
+    }
+
+    return [];
+  }, [companyRates, projectId, user?.id]);
+
   const saveProjectRate = useCallback(
     async (input: ProjectLaborRateInput): Promise<ProjectLaborRate | null> => {
       if (!projectId) return null;
@@ -117,6 +157,7 @@ export function useProjectLaborRates(projectId: string | null | undefined): UseP
     saving,
     error,
     reload: load,
+    ensureProjectLaborRatesReady,
     initializeFromCompany,
     saveProjectRate,
     resetToCompany,

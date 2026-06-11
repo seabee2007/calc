@@ -1,6 +1,14 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import {
+  BORDER_DEFAULT,
+  FOCUS_RING,
+  MODAL_CLOSE_BTN,
+  SURFACE_ELEVATED,
+  TEXT_BODY,
+  TEXT_FOREGROUND,
+} from '../../theme/appTheme';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -21,10 +29,10 @@ const toastIcons = {
 };
 
 const toastStyles = {
-  success: 'border-green-500 bg-green-50 dark:bg-green-900/50',
-  error: 'border-red-500 bg-red-50 dark:bg-red-900/50',
-  info: 'border-blue-500 bg-blue-50 dark:bg-blue-900/50',
-  warning: 'border-amber-500 bg-amber-50 dark:bg-amber-900/50',
+  success: `border-emerald-500 ${SURFACE_ELEVATED}`,
+  error: `border-red-500 ${SURFACE_ELEVATED}`,
+  info: `border-blue-500 ${SURFACE_ELEVATED}`,
+  warning: `border-amber-500 ${SURFACE_ELEVATED}`,
 };
 
 const Toast: React.FC<ToastProps> = ({
@@ -35,6 +43,8 @@ const Toast: React.FC<ToastProps> = ({
   duration = 3000,
   onClose,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+
   useEffect(() => {
     // Remove toast sound - user requested no toast sounds
     // soundService.play(type);
@@ -49,26 +59,28 @@ const Toast: React.FC<ToastProps> = ({
   }, [duration, id, onClose, type]);
   
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <motion.div
-        className={`max-w-sm w-full shadow-lg rounded-lg pointer-events-auto overflow-hidden border ${toastStyles[type]} mx-4`}
-        initial={{ scale: 0.9, opacity: 0 }}
+        className={`pointer-events-auto mx-4 w-full max-w-sm overflow-hidden rounded-lg border shadow-lg ${toastStyles[type]} ${BORDER_DEFAULT}`}
+        initial={prefersReducedMotion ? false : { scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        exit={prefersReducedMotion ? undefined : { scale: 0.9, opacity: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 200, damping: 20 }}
       >
         <div className="p-4">
           <div className="flex items-start">
-            <div className="flex-shrink-0 mr-3">
+            <div className="mr-3 flex-shrink-0">
               {toastIcons[type]}
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h3>
-              {message && <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{message}</p>}
+              <h3 className={`text-lg font-medium ${TEXT_FOREGROUND}`}>{title}</h3>
+              {message ? <p className={`mt-1 text-sm ${TEXT_BODY}`}>{message}</p> : null}
             </div>
             <button
+              type="button"
               onClick={() => onClose(id)}
-              className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
+              aria-label="Dismiss notification"
+              className={`ml-4 flex-shrink-0 ${MODAL_CLOSE_BTN} ${FOCUS_RING}`}
             >
               <X className="h-5 w-5" />
             </button>

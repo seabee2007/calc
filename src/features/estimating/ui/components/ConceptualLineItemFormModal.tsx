@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import Modal from '../../../../components/ui/Modal';
+import ModalShell from '../../../../components/ui/ModalShell';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
 import Button from '../../../../components/ui/Button';
@@ -148,11 +148,22 @@ export default function ConceptualLineItemFormModal({
   };
 
   return (
-    <Modal
+    <ModalShell
       isOpen={open}
       onClose={onClose}
       title={editingItem ? 'Edit line item' : `Add ${LINE_ITEM_TYPE_LABELS[values.type]}`}
       size="lg"
+      stackAboveDrawer
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={!values.title.trim()}>
+            {editingItem ? 'Save changes' : 'Add item'}
+          </Button>
+        </>
+      }
     >
       <div className="space-y-4">
         {!editingItem ? (
@@ -300,17 +311,8 @@ export default function ConceptualLineItemFormModal({
         <p className={`text-sm ${PLANNER_FORM_LABEL}`}>
           Calculated amount: {formatEstimateCurrency(previewAmount)}
         </p>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={!values.title.trim()}>
-            {editingItem ? 'Save changes' : 'Add item'}
-          </Button>
-        </div>
       </div>
-    </Modal>
+    </ModalShell>
   );
 }
 

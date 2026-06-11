@@ -18,6 +18,8 @@ import {
   loadProjectActivitiesWithLineItems,
   removeProjectActivity,
   updateProjectConstructionActivity,
+  DUPLICATE_ACTIVITY_CODE_MESSAGE,
+  isDuplicateProjectActivityCodeError,
   type ActivityInstanceIdentityInput,
   type LoadedProjectActivity,
   type SaveFromProductionRateAssemblyInput,
@@ -25,6 +27,12 @@ import {
   type UpdateProjectActivityInput,
 } from '../../application/constructionActivityService';
 import { useProjectLaborRates } from './useProjectLaborRates';
+import { useEstimateWorkspaceSaveStatusReporter } from './useEstimateWorkspaceSaveStatus';
+
+function displaySaveError(error: string | null | undefined, fallback: string): string {
+  if (isDuplicateProjectActivityCodeError(error)) return DUPLICATE_ACTIVITY_CODE_MESSAGE;
+  return error ?? fallback;
+}
 
 export interface ConstructionActivityState {
   activities: ProjectConstructionActivity[];
@@ -74,7 +82,8 @@ export function useConstructionActivities(
   projectId: string | null | undefined,
   estimateId: string | null | undefined,
 ): UseConstructionActivitiesReturn {
-  const { defaultRate, projectRates } = useProjectLaborRates(projectId);
+  const { defaultRate, projectRates, ensureProjectLaborRatesReady } = useProjectLaborRates(projectId);
+  const saveStatus = useEstimateWorkspaceSaveStatusReporter();
   const [state, setState] = useState<ConstructionActivityState>({
     activities: [],
     lineItemsMap: new Map(),
@@ -126,6 +135,7 @@ export function useConstructionActivities(
     async (params: AddFromAssemblyParams) => {
       if (!projectId) return;
       setState((s) => ({ ...s, saving: true, error: null }));
+      saveStatus?.markSaving();
       const result = await instantiateAndSaveActivity({
         ...params,
         projectId,
@@ -134,48 +144,56 @@ export function useConstructionActivities(
         defaultLaborRate: defaultRate,
       });
       if (result.error || !result.data) {
+        saveStatus?.markError(result.error);
         setState((s) => ({
           ...s,
           saving: false,
-          error: result.error ?? 'Save failed',
+          error: displaySaveError(result.error, 'Save failed'),
         }));
       } else {
+        saveStatus?.markSaved();
         setState((s) => ({ ...s, saving: false }));
         void load();
       }
     },
-    [projectId, estimateId, load, state.activities, defaultRate],
+    [projectId, estimateId, load, state.activities, defaultRate, saveStatus],
   );
 
   const addFromProductionRateAssembly = useCallback(
     async (params: Omit<SaveFromProductionRateAssemblyInput, 'projectId' | 'projectLaborRates'>) => {
       if (!projectId) return;
       setState((s) => ({ ...s, saving: true, error: null }));
+      saveStatus?.markSaving();
+      const laborRates =
+        projectRates.length > 0 ? projectRates : await ensureProjectLaborRatesReady();
       const result = await instantiateAndSaveFromProductionRateAssembly({
         ...params,
         projectId,
         estimateId: estimateId ?? undefined,
         existingActivities: state.activities,
-        projectLaborRates: projectRates,
+        projectLaborRates: laborRates,
       });
       if (result.error || !result.data) {
+        saveStatus?.markError(result.error);
         setState((s) => ({
           ...s,
           saving: false,
-          error: result.error ?? 'Save failed',
+          error: displaySaveError(result.error, 'Save failed'),
         }));
       } else {
+        saveStatus?.markSaved();
         setState((s) => ({ ...s, saving: false }));
         void load();
       }
     },
-    [projectId, estimateId, load, projectRates, state.activities],
+    [projectId, estimateId, load, projectRates, ensureProjectLaborRatesReady, state.activities, saveStatus],
   );
 
   const addManualActivity = useCallback(
     async (params: Omit<SaveManualActivityInput, 'projectId' | 'projectLaborRates'>) => {
       if (!projectId) return;
       setState((s) => ({ ...s, saving: true, error: null }));
+      saveStatus?.markSaving();
       const result = await instantiateAndSaveManualActivity({
         ...params,
         projectId,
@@ -184,49 +202,57 @@ export function useConstructionActivities(
         projectLaborRates: projectRates,
       });
       if (result.error || !result.data) {
+        saveStatus?.markError(result.error);
         setState((s) => ({
           ...s,
           saving: false,
-          error: result.error ?? 'Save failed',
+          error: displaySaveError(result.error, 'Save failed'),
         }));
       } else {
+        saveStatus?.markSaved();
         setState((s) => ({ ...s, saving: false }));
         void load();
       }
     },
-    [projectId, estimateId, load, projectRates, state.activities],
+    [projectId, estimateId, load, projectRates, state.activities, saveStatus],
   );
 
   const updateActivity = useCallback(
     async (params: UpdateProjectActivityInput) => {
       if (!projectId) return;
       setState((s) => ({ ...s, saving: true, error: null }));
+      saveStatus?.markSaving();
       const result = await updateProjectConstructionActivity(params, projectRates);
       if (result.error || !result.data) {
+        saveStatus?.markError(result.error);
         setState((s) => ({
           ...s,
           saving: false,
-          error: result.error ?? 'Update failed',
+          error: displaySaveError(result.error, 'Update failed'),
         }));
       } else {
+        saveStatus?.markSaved();
         setState((s) => ({ ...s, saving: false }));
         void load();
       }
     },
-    [projectId, load, projectRates],
+    [projectId, load, projectRates, saveStatus],
   );
 
   const remove = useCallback(
     async (activityId: string) => {
       setState((s) => ({ ...s, saving: true }));
+      saveStatus?.markSaving();
       const result = await removeProjectActivity(activityId);
       if (result.error) {
+        saveStatus?.markError(result.error);
         setState((s) => ({
           ...s,
           saving: false,
           error: result.error,
         }));
       } else {
+        saveStatus?.markSaved();
         setState((s) => {
           const map = new Map(s.lineItemsMap);
           map.delete(activityId);
@@ -239,7 +265,7 @@ export function useConstructionActivities(
         });
       }
     },
-    [],
+    [saveStatus],
   );
 
   return {

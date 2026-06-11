@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Modal from '../ui/Modal';
+import ModalShell from '../ui/ModalShell';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import Select from '../ui/Select';
@@ -105,14 +105,24 @@ export default function CreateFieldAdjustmentModal({
     'flex items-center gap-2 text-sm text-gray-800 dark:text-slate-200';
 
   return (
-    <Modal
+    <ModalShell
       isOpen={isOpen}
       onClose={onClose}
       title="Field adjustment request"
       size="md"
       stackAboveDrawer={stackAboveDrawer}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
+            Cancel
+          </Button>
+          <Button type="submit" form="create-far-form" variant="accent" disabled={busy} className="min-h-11">
+            Submit request
+          </Button>
+        </>
+      }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      <form id="create-far-form" onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <Input
           label="Title"
           value={title}
@@ -213,15 +223,7 @@ export default function CreateFieldAdjustmentModal({
           fullWidth
           placeholder="Next step for the owner"
         />
-        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={onClose} className="min-h-11">
-            Cancel
-          </Button>
-          <Button type="submit" variant="accent" disabled={busy} className="min-h-11">
-            Submit request
-          </Button>
-        </div>
       </form>
-    </Modal>
+    </ModalShell>
   );
 }

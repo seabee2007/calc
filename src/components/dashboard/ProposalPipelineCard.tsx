@@ -1,33 +1,49 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FileStack } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import { OPS_PANEL_INNER, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
-import {
-  PROPOSAL_PIPELINE_STATUSES,
-  PROPOSAL_STATUS_LABELS,
-  type ProposalStatus,
-} from '../../types/proposalTracking';
+import type { TrackedProposalRow } from '../../types/proposalTracking';
 import type {
   ProposalPipelineCounts,
-  ProposalPipelineRevenue,
 } from '../../utils/proposalKpis';
 import { formatProposalMoney } from '../../utils/proposalKpis';
+import { buildCrmRevenueMetrics } from '../../utils/proposalCrm';
 
 interface ProposalPipelineCardProps {
   pipeline: ProposalPipelineCounts;
-  pendingRevenue: number;
+  pipelineValue: number;
   weightedForecast: number;
-  pipelineRevenue: ProposalPipelineRevenue;
+  proposals: TrackedProposalRow[];
+  winRate: number;
+  wonThisMonth: number;
 }
 
 const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
   pipeline,
-  pendingRevenue,
+  pipelineValue,
   weightedForecast,
-  pipelineRevenue,
+  proposals,
+  winRate,
+  wonThisMonth,
 }) => {
   const navigate = useNavigate();
+
+  const needFollowUpCount = useMemo(
+    () => buildCrmRevenueMetrics(proposals, winRate, wonThisMonth).needFollowUpCount,
+    [proposals, winRate, wonThisMonth],
+  );
+
+  const sentCount = pipeline.sent + pipeline.viewed + pipeline.opened;
+  const acceptedCount =
+    pipeline.accepted + pipeline.deposit_paid + pipeline.scheduled;
+
+  const statusChips = [
+    { label: 'Needs follow-up', value: String(needFollowUpCount), highlight: needFollowUpCount > 0 },
+    { label: 'Draft', value: String(pipeline.draft) },
+    { label: 'In review', value: String(sentCount) },
+    { label: 'Accepted', value: String(acceptedCount) },
+  ];
 
   return (
     <OpsCard className="rounded-2x1 overflow-hidden">
@@ -39,41 +55,43 @@ const ProposalPipelineCard: React.FC<ProposalPipelineCardProps> = ({
         <button
           type="button"
           onClick={() => navigate('/proposals')}
-          className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline"
+          className="text-sm text-cyan-700 hover:underline dark:text-cyan-400"
         >
           Manage proposals →
         </button>
       </header>
 
-      <div className={`${OPS_PANEL_INNER} p-3 mb-4 grid grid-cols-2 gap-3`}>
+      <div className={`${OPS_PANEL_INNER} mb-4 grid grid-cols-2 gap-3 p-3`}>
         <div>
-          <p className={`text-xs uppercase ${OPS_SUBTLE}`}>Awaiting decision</p>
-          <p className="text-lg font-bold text-emerald-400">
-            {formatProposalMoney(pendingRevenue)}
+          <p className={`text-xs uppercase ${OPS_SUBTLE}`}>Pipeline value</p>
+          <p className="text-lg font-bold tabular-nums text-emerald-400">
+            {formatProposalMoney(pipelineValue)}
           </p>
-          <p className={`text-[10px] mt-0.5 ${OPS_SUBTLE}`}>Sent · viewed · opened</p>
+          <p className={`mt-0.5 text-[10px] ${OPS_SUBTLE}`}>Active proposals</p>
         </div>
         <div>
           <p className={`text-xs uppercase ${OPS_SUBTLE}`}>Weighted forecast</p>
-          <p className="text-lg font-bold text-cyan-400">
+          <p className="text-lg font-bold tabular-nums text-cyan-400">
             {formatProposalMoney(weightedForecast)}
           </p>
-          <p className={`text-[10px] mt-0.5 ${OPS_SUBTLE}`}>Updates with each stage</p>
+          <p className={`mt-0.5 text-[10px] ${OPS_SUBTLE}`}>Probability-weighted</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-        {PROPOSAL_PIPELINE_STATUSES.map((status: ProposalStatus) => (
-          <div key={status} className={`${OPS_PANEL_INNER} p-2 text-center`}>
-            <p className={`text-lg font-bold ${OPS_TITLE}`}>{pipeline[status]}</p>
-            {pipelineRevenue[status] > 0 && (
-              <p className="text-[10px] font-semibold text-emerald-400/90 tabular-nums">
-                {formatProposalMoney(pipelineRevenue[status])}
-              </p>
-            )}
-            <p className={`text-[10px] uppercase leading-tight ${OPS_SUBTLE}`}>
-              {PROPOSAL_STATUS_LABELS[status]}
+      <div className="flex flex-wrap gap-2">
+        {statusChips.map((chip) => (
+          <div
+            key={chip.label}
+            className={`${OPS_PANEL_INNER} min-w-[4.5rem] flex-1 px-3 py-2 text-center`}
+          >
+            <p
+              className={`text-lg font-bold tabular-nums ${
+                chip.highlight ? 'text-amber-400' : OPS_TITLE
+              }`}
+            >
+              {chip.value}
             </p>
+            <p className={`text-[10px] uppercase leading-tight ${OPS_SUBTLE}`}>{chip.label}</p>
           </div>
         ))}
       </div>

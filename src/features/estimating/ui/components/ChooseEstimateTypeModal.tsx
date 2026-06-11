@@ -1,6 +1,6 @@
 import { listEstimateMethods } from '../../domain/estimateMethods';
 import type { EstimateType } from '../../domain/estimateTypes';
-import Modal from '../../../../components/ui/Modal';
+import ModalShell from '../../../../components/ui/ModalShell';
 import Button from '../../../../components/ui/Button';
 import {
   BADGE_BASE,
@@ -26,11 +26,17 @@ export default function ChooseEstimateTypeModal({
   const options = listEstimateMethods();
 
   return (
-    <Modal
+    <ModalShell
       isOpen={open}
       onClose={onClose}
       title="Choose Estimate Type"
       size="xl"
+      stackAboveDrawer
+      footer={
+        <Button type="button" variant="outline" size="sm" onClick={onClose}>
+          Cancel
+        </Button>
+      }
     >
       <p className={`mb-4 text-sm ${PLANNER_MUTED}`}>
         Tabs adapt to the estimate type. Your saved activities, costs, markup, and schedule data
@@ -76,11 +82,6 @@ export default function ChooseEstimateTypeModal({
           );
         })}
       </div>
-      <div className="mt-4 flex justify-end">
-        <Button type="button" variant="outline" size="sm" onClick={onClose}>
-          Cancel
-        </Button>
-      </div>
-    </Modal>
+    </ModalShell>
   );
 }

@@ -373,6 +373,7 @@ describe('laborRoleMapping', () => {
     expect(mapping.resolvedRoleKey).toBe('general_trade');
     expect(mapping.projectRate?.roleKey).toBe('general_trade');
     expect(mapping.usedFallback).toBe(true);
+    expect(mapping.warning).toBeNull();
   });
 
   it('totalManHours × hourly burdened rate = laborCost', () => {
@@ -407,6 +408,46 @@ describe('laborRoleMapping', () => {
       projectLaborRates,
     });
     expect(result.projectLineItems[0].laborCost).toBeCloseTo(laborCost, 2);
+    expect(result.projectLineItems[0].laborRoleKey).toBe('general_trade');
+    expect(result.projectLineItems[0].fullyBurdenedRateSnapshot).toBe(42);
+    expect(result.laborRoleWarnings).toHaveLength(0);
+  });
+
+  it('crew size changes duration only and does not change labor cost', () => {
+    const rate = sampleRate({ manHoursPerUnit: 0.654 });
+    const group: ProductionRateAssemblyGroup = {
+      divisionCode: '03',
+      divisionName: 'Concrete',
+      category: 'Place Slab on Grade',
+      rates: [rate],
+      defaultTitle: 'Place Slab on Grade',
+      suggestedCrewSize: 4,
+      suggestedHoursPerDay: 8,
+    };
+    const baseInput = {
+      projectId: 'project-1',
+      group,
+      selectedLineItems: [{ rate, quantity: 100 }],
+      identity: { activityName: 'Place Slab on Grade' },
+      assigned: {
+        activityCode: '03-01-01',
+        activitySequence: 1,
+        instanceSequence: 1,
+        baseTitle: 'Place Slab on Grade',
+        title: 'Place Slab on Grade',
+      },
+      hoursPerDay: 8,
+      scheduleEnabled: true,
+      projectLaborRates,
+    };
+
+    const crew4 = instantiateProductionRateAssembly({ ...baseInput, crewSize: 4 });
+    const crew8 = instantiateProductionRateAssembly({ ...baseInput, crewSize: 8 });
+
+    expect(crew4.projectLineItems[0].laborCost).toBe(crew8.projectLineItems[0].laborCost);
+    expect(crew4.projectActivity.effectiveDurationDays).toBeGreaterThan(
+      crew8.projectActivity.effectiveDurationDays,
+    );
   });
 
   it('calculateActivityDurationDays matches rollup formula', () => {

@@ -10,7 +10,10 @@ import type { ProductionRateLibraryEntry } from '../../data/productionRates/prod
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useProductionRateLibrary } from '../hooks/useProductionRateLibrary';
 import {
-  getProductionRateDisplayTitle,
+  formatProductionRateDisplayTitle,
+  formatProductionRateSubtitle,
+} from '../../data/productionRates/productionRateDisplayFormatters';
+import {
   ProductionRateSourceDetails,
   ProductionRateVariantSelector,
 } from './ProductionRateCanonicalControls';
@@ -22,30 +25,17 @@ interface Props {
   initialDivisionCode?: string;
 }
 
-function formatRateSummary(entry: ProductionRateLibraryEntry): string {
-  const parts: string[] = [];
-  if (entry.manHoursPerUnit != null) {
-    parts.push(`${entry.manHoursPerUnit.toFixed(3)} MH/${entry.unitOfMeasure}`);
-  }
-  if (entry.crewSize != null) {
-    parts.push(`Crew ${entry.crewSize}`);
-  }
-  parts.push(`${entry.figure} · Page ${entry.sourcePage}`);
-  if (entry.workElementNumber) {
-    parts.push(entry.workElementNumber);
-  }
-  return parts.join(' · ');
-}
-
 function ProductionRateCard({
   entry,
   onSelect,
+  showDevSourceDetails,
 }: {
   entry: ProductionRateLibraryEntry;
   onSelect: (entry: ProductionRateLibraryEntry) => void;
+  showDevSourceDetails: boolean;
 }) {
   const [selectedEntry, setSelectedEntry] = useState(entry);
-  const title = getProductionRateDisplayTitle(selectedEntry);
+  const title = formatProductionRateDisplayTitle(selectedEntry);
 
   return (
     <li className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-cyan-400/30 hover:bg-cyan-400/5">
@@ -62,19 +52,17 @@ function ProductionRateCard({
             ) : null}
           </div>
           <p className="font-medium text-white">{title}</p>
-          {selectedEntry.canonicalDescription &&
-          selectedEntry.canonicalDescription !== title ? (
-            <p className="text-sm text-slate-400">{selectedEntry.canonicalDescription}</p>
-          ) : selectedEntry.activityName !== title ? (
-            <p className="text-sm text-slate-400">{selectedEntry.activityName}</p>
-          ) : null}
-          <p className="text-sm text-cyan-200/90">{formatRateSummary(selectedEntry)}</p>
+          <p className="text-sm text-cyan-200/90">{formatProductionRateSubtitle(selectedEntry)}</p>
           <ProductionRateVariantSelector
             entry={selectedEntry}
             onVariantChange={setSelectedEntry}
             className="max-w-md"
           />
-          <ProductionRateSourceDetails entry={selectedEntry} variant="dark" />
+          <ProductionRateSourceDetails
+            entry={selectedEntry}
+            variant="dark"
+            enabled={showDevSourceDetails}
+          />
         </div>
         <button
           type="button"
@@ -99,6 +87,7 @@ export default function ProductionRateLibraryModal({
     divisionCode: initialDivisionCode || undefined,
   }));
   const [searchInput, setSearchInput] = useState('');
+  const [showDevSourceDetails, setShowDevSourceDetails] = useState(false);
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
   const {
@@ -182,15 +171,26 @@ export default function ProductionRateLibraryModal({
           </div>
           <div className="flex items-center gap-3">
             {import.meta.env.DEV ? (
-              <label className="flex items-center gap-2 text-xs text-slate-400">
-                <input
-                  type="checkbox"
-                  checked={showSourceRecords}
-                  onChange={(event) => setShowSourceRecords(event.target.checked)}
-                  className="rounded border-white/20 bg-slate-950 text-cyan-400 focus:ring-cyan-500/30"
-                />
-                Source records
-              </label>
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={showSourceRecords}
+                    onChange={(event) => setShowSourceRecords(event.target.checked)}
+                    className="rounded border-white/20 bg-slate-950 text-cyan-400 focus:ring-cyan-500/30"
+                  />
+                  Source records
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={showDevSourceDetails}
+                    onChange={(event) => setShowDevSourceDetails(event.target.checked)}
+                    className="rounded border-white/20 bg-slate-950 text-cyan-400 focus:ring-cyan-500/30"
+                  />
+                  Source details
+                </label>
+              </div>
             ) : null}
             <button
             type="button"
@@ -233,7 +233,7 @@ export default function ProductionRateLibraryModal({
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <select
                   value={filters.divisionCode ?? ''}
                   onChange={(event) => {
@@ -293,23 +293,25 @@ export default function ProductionRateLibraryModal({
                   ))}
                 </select>
 
-                <select
-                  value={filters.figure ?? ''}
-                  onChange={(event) =>
-                    setFilters((current) => ({
-                      ...current,
-                      figure: event.target.value || undefined,
-                    }))
-                  }
-                  className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/60"
-                >
-                  <option value="">All figures</option>
-                  {figures.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
+                {import.meta.env.DEV ? (
+                  <select
+                    value={filters.figure ?? ''}
+                    onChange={(event) =>
+                      setFilters((current) => ({
+                        ...current,
+                        figure: event.target.value || undefined,
+                      }))
+                    }
+                    className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/60"
+                  >
+                    <option value="">All figures (debug)</option>
+                    {figures.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -364,6 +366,7 @@ export default function ProductionRateLibraryModal({
                                 key={entry.id}
                                 entry={entry}
                                 onSelect={handleSelect}
+                                showDevSourceDetails={showDevSourceDetails}
                               />
                             ))}
                           </ul>

@@ -67,3 +67,15 @@ export const OPS_ATTENTION_CHIP =
 
 export const OPS_HOVER_ROW =
   'text-sm text-slate-600 hover:text-gray-900 transition-colors dark:text-slate-300 dark:hover:text-white';
+
+/** KPI strip metric chip — compact dashboard header stats. */
+export const OPS_KPI_CHIP =
+  'rounded-lg border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700/70 dark:bg-slate-800/50';
+
+/** Compact section card — less padding than OPS_SECTION. */
+export const OPS_COMPACT_CARD =
+  'rounded-xl border border-slate-200 bg-white/90 p-4 dark:border-slate-700/70 dark:bg-slate-900/90';
+
+/** Next-action list row. */
+export const OPS_ACTION_ITEM =
+  'rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 transition-colors hover:bg-slate-100 dark:border-slate-700/80 dark:bg-slate-800/50 dark:hover:bg-slate-800/80';

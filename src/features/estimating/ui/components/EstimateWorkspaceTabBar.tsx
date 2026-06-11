@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
-import {
-  PLANNER_NAV_TAB_LABEL,
-  PLANNER_NAV_TAB_LABEL_ACTIVE,
-} from '../../../../components/planner/plannerTheme';
+import Tabs from '../../../../components/ui/Tabs';
+import { FOCUS_RING } from '../../../../theme/appTheme';
 
 export type EstimateWorkspaceTabId =
   | 'overview'
@@ -71,40 +69,24 @@ export default function EstimateWorkspaceTabBar({
   estimateTypeControl,
 }: Props) {
   return (
-    <div className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+    <div className="sticky top-0 z-20 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
       {estimateTypeControl ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-100 px-2 py-2 sm:px-4 dark:border-slate-800">
           {estimateTypeControl}
         </div>
       ) : null}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <nav
-        className="flex min-w-0 flex-1 gap-0 overflow-x-auto px-2 sm:px-4"
-        aria-label="Estimate workspace sections"
-      >
-        {visibleTabs.map((tab) => {
-          const isActive = tab.id === activeTabId;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onTabChange(tab.id)}
-              aria-current={isActive ? 'page' : undefined}
-              className={[
-                'shrink-0 border-b-2 px-3 py-2.5 text-sm transition-colors sm:px-4',
-                isActive
-                  ? `border-cyan-600 dark:border-cyan-400 ${PLANNER_NAV_TAB_LABEL_ACTIVE}`
-                  : `border-transparent hover:text-gray-900 dark:hover:text-slate-200 ${PLANNER_NAV_TAB_LABEL}`,
-              ].join(' ')}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
-      {rightActions ? (
-        <div className="flex shrink-0 items-center sm:px-4">{rightActions}</div>
-      ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-2 sm:px-4">
+        <nav className="min-w-0 flex-1 overflow-x-auto" aria-label="Estimate workspace sections">
+          <Tabs
+            tabs={visibleTabs.map((tab) => ({ id: tab.id, label: tab.label }))}
+            activeTabId={activeTabId}
+            onChange={(id) => onTabChange(id as EstimateWorkspaceTabId)}
+            variant="default"
+          />
+        </nav>
+        {rightActions ? (
+          <div className={`flex shrink-0 items-center gap-2 ${FOCUS_RING}`}>{rightActions}</div>
+        ) : null}
       </div>
     </div>
   );

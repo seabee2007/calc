@@ -19,7 +19,11 @@ import ConcreteDeliveryScheduleCard from '../components/dashboard/ConcreteDelive
 import SmartPourAssistant from '../components/dashboard/SmartPourAssistant';
 import ActiveProjectsPanel from '../components/dashboard/ActiveProjectsPanel';
 import ProposalPipelineCard from '../components/dashboard/ProposalPipelineCard';
-import FinancialSnapshotCard from '../components/dashboard/FinancialSnapshotCard';
+import BusinessSnapshotCard from '../components/dashboard/BusinessSnapshotCard';
+import DashboardNextActionsCard, {
+  type DashboardExtraAction,
+} from '../components/dashboard/DashboardNextActionsCard';
+import { buildCrmRevenueMetrics } from '../utils/proposalCrm';
 import { fetchChangeOrdersForProjectIds } from '../services/changeOrderService';
 import {
   enrichEventsWithProjectNames,
@@ -32,12 +36,10 @@ import type { ChangeOrder } from '../types/changeOrder';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
 import QcAlertsCard from '../components/dashboard/QcAlertsCard';
 import OwnerActivityFeed from '../components/owner/OwnerActivityFeed';
-import Button from '../components/ui/Button';
+import EmptyState from '../components/ui/EmptyState';
 import { useAuth } from '../hooks/useAuth';
-import {
-  OPS_EMPTY_STATE,
-  OPS_SHELL,
-} from '../components/dashboard/opsTheme';
+import { OPS_SHELL } from '../components/dashboard/opsTheme';
+import { PAGE_GUTTER, PAGE_MAX_WIDTH } from '../theme/appTheme';
 import { formatPlacementPourDateTime } from '../utils/placementPourDate';
 
 const OperationsDashboard: React.FC = () => {
@@ -113,10 +115,36 @@ const OperationsDashboard: React.FC = () => {
     [projects, proposals],
   );
 
-  const { pipeline, pipelineRevenue, financial } = snapshot.proposalMetrics;
+  const { pipeline, financial } = snapshot.proposalMetrics;
   const { financial: coFinancial } = snapshot.changeOrderMetrics;
-  const proposalPendingRevenue = financial.pendingRevenue - coFinancial.pendingRevenue;
   const proposalWeightedForecast = financial.weightedForecast - coFinancial.weightedForecast;
+
+  const crmRevenueMetrics = useMemo(
+    () => buildCrmRevenueMetrics(proposals, financial.winRate, financial.monthlyRevenue),
+    [proposals, financial.winRate, financial.monthlyRevenue],
+  );
+
+  const dashboardExtraActions = useMemo((): DashboardExtraAction[] => {
+    const actions: DashboardExtraAction[] = [];
+    if (qcStats.qcTestsOverdue > 0) {
+      actions.push({
+        id: 'qc-overdue',
+        title: 'Review overdue QC tests',
+        detail: `${qcStats.qcTestsOverdue} test(s) overdue`,
+        onClick: () => navigate('/'),
+      });
+    }
+    const todayEventCount = scheduleSnapshot?.todayEvents.length ?? 0;
+    if (todayEventCount > 0) {
+      actions.push({
+        id: 'schedule-today',
+        title: "Open today's schedule",
+        detail: `${todayEventCount} event(s) scheduled today`,
+        onClick: () => navigate('/planner/schedule'),
+      });
+    }
+    return actions;
+  }, [navigate, qcStats.qcTestsOverdue, scheduleSnapshot?.todayEvents.length]);
   const primaryPourToday = snapshot.todayPours[0];
   const nextUpcomingPlacement = resolveNextUpcomingPlacement(
     snapshot.upcomingPlacements,
@@ -228,29 +256,62 @@ const OperationsDashboard: React.FC = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className={`${OPS_SHELL} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
+      className={`${OPS_SHELL} ${PAGE_MAX_WIDTH} ${PAGE_GUTTER} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
     >
-      <DashboardHero
-        activeProjects={snapshot.activeProjectCount}
-        placementsToday={snapshot.todayPourCount}
-        proposalsSent={snapshot.proposalsSentCount}
-        onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
-        onQuickQuote={() => navigate('/proposal-generator')}
-      />
-
-      {isOwner && <ScheduleOperationsSection snapshot={scheduleSnapshot} />}
-
-      {isOwner && <OwnerActivityFeed limit={8} />}
-
-      <section className="space-y-4 lg:hidden">
-        <FinancialSnapshotCard financial={financial} />
-        <ActiveProjectsPanel projects={snapshot.projects} compact />
-        <ProposalPipelineCard
-          pipeline={pipeline}
-          pendingRevenue={proposalPendingRevenue}
-          weightedForecast={proposalWeightedForecast}
-          pipelineRevenue={pipelineRevenue}
+      <div data-testid="dashboard-todays-operations">
+        <DashboardHero
+          activeProjects={snapshot.activeProjectCount}
+          placementsToday={snapshot.todayPourCount}
+          proposalsSent={snapshot.proposalsSentCount}
+          onStartProject={() => navigate('/projects', { state: { openCreate: true } })}
+          onQuickQuote={() => navigate('/proposal-generator')}
         />
+      </div>
+
+      {isOwner ? (
+        <div data-testid="dashboard-operations-schedule">
+          <ScheduleOperationsSection snapshot={scheduleSnapshot} />
+        </div>
+      ) : null}
+
+      {isOwner ? (
+        <div data-testid="dashboard-field-activity">
+          <OwnerActivityFeed limit={8} />
+        </div>
+      ) : null}
+
+      <div data-testid="dashboard-business-snapshot">
+        <BusinessSnapshotCard financial={financial} />
+      </div>
+
+      <section
+        data-testid="dashboard-active-proposals-grid"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-2"
+      >
+        <ActiveProjectsPanel projects={snapshot.projects} />
+        <div className="space-y-5">
+          <ProposalPipelineCard
+            pipeline={pipeline}
+            pipelineValue={crmRevenueMetrics.pipelineValue}
+            weightedForecast={proposalWeightedForecast}
+            proposals={proposals}
+            winRate={financial.winRate}
+            wonThisMonth={financial.monthlyRevenue}
+          />
+          {isOwner ? (
+            <DashboardNextActionsCard
+              proposals={proposals}
+              extraActions={dashboardExtraActions}
+              maxItems={5}
+            />
+          ) : null}
+        </div>
+      </section>
+
+      <section
+        data-testid="dashboard-placement-qc-grid"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-2"
+      >
         <FeaturedPlacementConditions
           snapshot={snapshot}
           hasPlacementsToday={snapshot.hasPlacementsToday}
@@ -260,6 +321,12 @@ const OperationsDashboard: React.FC = () => {
           testsOverdue={qcStats.qcTestsOverdue}
           totalRecords={totalQcRecords}
         />
+      </section>
+
+      <section
+        data-testid="dashboard-lower-three-grid"
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      >
         <SmartPourAssistant
           projectId={prePlacement.projectId}
           projectName={prePlacement.projectName}
@@ -282,68 +349,16 @@ const OperationsDashboard: React.FC = () => {
         />
       </section>
 
-      <div className="hidden lg:block space-y-5">
-        <section>
-          <FinancialSnapshotCard financial={financial} />
-        </section>
-        <section className="grid grid-cols-2 gap-5">
-          <ActiveProjectsPanel projects={snapshot.projects} />
-          <ProposalPipelineCard
-            pipeline={pipeline}
-            pendingRevenue={proposalPendingRevenue}
-            weightedForecast={proposalWeightedForecast}
-            pipelineRevenue={pipelineRevenue}
-          />
-        </section>
-        <section className="grid grid-cols-2 gap-5">
-          <FeaturedPlacementConditions
-            snapshot={snapshot}
-            hasPlacementsToday={snapshot.hasPlacementsToday}
-          />
-          <QcAlertsCard
-            testsDue={qcStats.qcTestsDue}
-            testsOverdue={qcStats.qcTestsOverdue}
-            totalRecords={totalQcRecords}
-          />
-        </section>
-        <section className="grid grid-cols-3 gap-5">
-          <SmartPourAssistant
-            projectId={prePlacement.projectId}
-            projectName={prePlacement.projectName}
-            pourDateLabel={prePlacement.pourDateLabel}
-            checks={prePlacement.checks}
-            attention={prePlacement.attention}
-            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-          />
-          <ProjectHealthCard
-            review={projectRiskReview}
-            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-          />
-          <ConcreteDeliveryScheduleCard
-            schedule={snapshot.deliverySchedule}
-            timeline={snapshot.timeline}
-            hasPlacementsToday={snapshot.hasPlacementsToday}
-            nextPlacement={nextUpcomingPlacement}
-            primaryProjectId={primaryPourToday?.id}
-            emptyMessage={allProjectsClosedOut ? QUEUE_EMPTY_MESSAGE : undefined}
-          />
-        </section>
-      </div>
-
       {projects.length === 0 && (
-        <div className={OPS_EMPTY_STATE}>
-          <FolderKanban className="h-10 w-10 mx-auto text-slate-500 mb-3" />
-          <p className="font-medium text-gray-900 dark:text-slate-200">No active projects</p>
-          <p className="text-sm text-slate-600 dark:text-slate-500 mt-1 mb-4">
-            Start a project to populate placement risk, delivery schedule, and proposal
-            pipeline.
-          </p>
-          <Button
-            onClick={() => navigate('/projects', { state: { openCreate: true } })}
-          >
-            Start Project
-          </Button>
-        </div>
+        <EmptyState
+          icon={<FolderKanban className="h-10 w-10" />}
+          title="No active projects"
+          description="Start a project to populate placement risk, delivery schedule, and proposal pipeline."
+          action={{
+            label: 'Start Project',
+            onClick: () => navigate('/projects', { state: { openCreate: true } }),
+          }}
+        />
       )}
     </motion.div>
   );

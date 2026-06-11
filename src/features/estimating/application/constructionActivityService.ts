@@ -19,9 +19,13 @@ import {
 } from '../domain/constructionActivityCalculations';
 import { roundToTwo } from '../domain/estimateMath';
 import {
-  applyLaborRateToLineItem,
   applyManualLaborPricingToLineItem,
 } from './laborPricingCalculator';
+import {
+  applyResolvedLaborRateToLineItem,
+  resolveLaborRateForWorkElement,
+  workElementFromLineItem,
+} from './laborRateResolver';
 import {
   assignProjectActivityCode,
   type ActivityInstanceIdentityInput,
@@ -117,6 +121,9 @@ export interface LoadedProjectActivity {
   lineItems: ProjectActivityLineItem[];
 }
 
+export const DUPLICATE_ACTIVITY_CODE_MESSAGE =
+  'Could not create activity because the activity code is already in use. Refresh and try again.';
+
 function mapLineItemForSave(
   li: ProjectActivityLineItem,
   projectId: string,
@@ -171,11 +178,18 @@ function applyPricingUpdates(
     );
   }
 
-  if (laborRoleId) {
-    const rate = projectRates.get(laborRoleId);
-    if (rate) {
-      return applyLaborRateToLineItem(item, rate);
+  const projectLaborRates = [...projectRates.values()];
+
+  if (laborRoleId !== undefined) {
+    const resolved = resolveLaborRateForWorkElement({
+      workElement: workElementFromLineItem(item),
+      projectLaborRates,
+      preferredRoleId: laborRoleId || null,
+    });
+    if (resolved.projectRate) {
+      return applyResolvedLaborRateToLineItem(item, resolved);
     }
+    return item;
   }
 
   if (item.fullyBurdenedRateSnapshot > 0) {
@@ -188,6 +202,58 @@ function applyPricingUpdates(
   }
 
   return item;
+}
+
+export function isDuplicateProjectActivityCodeError(error: string | null | undefined): boolean {
+  if (!error) return false;
+  return (
+    error.includes('idx_project_construction_activities_code_unique') ||
+    (/duplicate key value/i.test(error) && /activity(?:_|C)?code/i.test(error))
+  );
+}
+
+function mergeExistingActivities(
+  ...activityLists: Array<readonly ProjectConstructionActivity[] | null | undefined>
+): ProjectConstructionActivity[] {
+  const byKey = new Map<string, ProjectConstructionActivity>();
+  for (const activities of activityLists) {
+    for (const activity of activities ?? []) {
+      const key = activity.id?.trim() || activity.activityCode?.trim();
+      if (!key) continue;
+      byKey.set(key, activity);
+    }
+  }
+  return [...byKey.values()];
+}
+
+function reserveFailedActivityCode(
+  activity: ProjectConstructionActivity,
+): ProjectConstructionActivity {
+  return {
+    ...activity,
+    sourceTemplateKey: `__reserved_activity_code__:${activity.activityCode}`,
+    templateId: undefined,
+    baseTitle: `Reserved activity code ${activity.activityCode}`,
+    title: `Reserved activity code ${activity.activityCode}`,
+  };
+}
+
+async function loadExistingActivitiesForCodeAssignment(input: {
+  projectId: string;
+  existingActivities?: readonly ProjectConstructionActivity[];
+}): Promise<RepositoryResult<ProjectConstructionActivity[]>> {
+  const persistedResult = await fetchProjectActivities(input.projectId);
+  if (persistedResult.error || !persistedResult.data) {
+    return {
+      data: null,
+      error: persistedResult.error ?? 'Could not load existing project activities before saving.',
+    };
+  }
+
+  return {
+    data: mergeExistingActivities(persistedResult.data, input.existingActivities),
+    error: null,
+  };
 }
 
 function buildAssignedIdentity(
@@ -266,37 +332,57 @@ export async function instantiateAndSaveFromProductionRateAssembly(
     return { data: null, error: 'Select at least one work element with quantity.' };
   }
 
-  const { assigned, validationError } = buildAssignedForSourceTemplate({
-    existingActivities: input.existingActivities ?? [],
-    divisionCode: input.group.divisionCode,
-    sourceTemplateKey: buildProductionRateCategorySourceTemplateKey(
-      input.group.divisionCode,
-      input.group.category,
-    ),
-    identity: input.identity,
-  });
-
-  if (validationError || !assigned) {
-    return { data: null, error: validationError ?? 'Could not assign activity code.' };
+  const sourceTemplateKey = buildProductionRateCategorySourceTemplateKey(
+    input.group.divisionCode,
+    input.group.category,
+  );
+  const loadedExisting = await loadExistingActivitiesForCodeAssignment(input);
+  if (loadedExisting.error || !loadedExisting.data) {
+    return { data: null, error: loadedExisting.error };
   }
 
-  const instantiationResult = instantiateProductionRateAssembly({
-    projectId: input.projectId,
-    estimateId: input.estimateId,
-    group: input.group,
-    selectedLineItems,
-    identity: input.identity,
-    assigned,
-    crewSize: input.crewSize ?? input.group.suggestedCrewSize,
-    hoursPerDay: input.hoursPerDay ?? input.group.suggestedHoursPerDay,
-    durationDaysOverride: input.durationDaysOverride,
-    scheduleEnabled: input.scheduleEnabled ?? true,
-    projectLaborRates: input.projectLaborRates,
-  });
+  let existingActivities = loadedExisting.data;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { assigned, validationError } = buildAssignedForSourceTemplate({
+      existingActivities,
+      divisionCode: input.group.divisionCode,
+      sourceTemplateKey,
+      identity: input.identity,
+    });
 
-  const { projectActivity, projectLineItems } = instantiationResult;
-  const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
-  return saveActivityBundle(projectActivity, lineItemsForSave);
+    if (validationError || !assigned) {
+      return { data: null, error: validationError ?? 'Could not assign activity code.' };
+    }
+
+    const instantiationResult = instantiateProductionRateAssembly({
+      projectId: input.projectId,
+      estimateId: input.estimateId,
+      group: input.group,
+      selectedLineItems,
+      identity: input.identity,
+      assigned,
+      crewSize: input.crewSize ?? input.group.suggestedCrewSize,
+      hoursPerDay: input.hoursPerDay ?? input.group.suggestedHoursPerDay,
+      durationDaysOverride: input.durationDaysOverride,
+      scheduleEnabled: input.scheduleEnabled ?? true,
+      projectLaborRates: input.projectLaborRates,
+    });
+
+    const { projectActivity, projectLineItems } = instantiationResult;
+    const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
+    const saveResult = await saveActivityBundle(projectActivity, lineItemsForSave);
+    if (!isDuplicateProjectActivityCodeError(saveResult.error)) return saveResult;
+    if (attempt === 1) return { data: null, error: DUPLICATE_ACTIVITY_CODE_MESSAGE };
+
+    const refreshedExisting = await loadExistingActivitiesForCodeAssignment(input);
+    existingActivities = mergeExistingActivities(
+      existingActivities,
+      refreshedExisting.data,
+      [reserveFailedActivityCode(projectActivity)],
+    );
+  }
+
+  return { data: null, error: DUPLICATE_ACTIVITY_CODE_MESSAGE };
 }
 
 export async function instantiateAndSaveManualActivity(
@@ -306,75 +392,124 @@ export async function instantiateAndSaveManualActivity(
     return { data: null, error: 'Add at least one manual line item.' };
   }
 
-  const { assigned, validationError } = buildAssignedForSourceTemplate({
-    existingActivities: input.existingActivities ?? [],
-    divisionCode: input.divisionCode,
-    sourceTemplateKey: MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
-    identity: input.identity,
-  });
-
-  if (validationError || !assigned) {
-    return { data: null, error: validationError ?? 'Could not assign activity code.' };
+  const loadedExisting = await loadExistingActivitiesForCodeAssignment(input);
+  if (loadedExisting.error || !loadedExisting.data) {
+    return { data: null, error: loadedExisting.error };
   }
 
-  const instantiationResult = instantiateManualConstructionActivity({
-    projectId: input.projectId,
-    estimateId: input.estimateId,
-    divisionCode: input.divisionCode,
-    divisionName: input.divisionName,
-    lineItems: input.lineItems,
-    identity: input.identity,
-    assigned,
-    crewSize: input.crewSize ?? 4,
-    hoursPerDay: input.hoursPerDay ?? 8,
-    durationDaysOverride: input.durationDaysOverride,
-    scheduleEnabled: input.scheduleEnabled ?? true,
-    projectLaborRates: input.projectLaborRates,
-  });
+  let existingActivities = loadedExisting.data;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { assigned, validationError } = buildAssignedForSourceTemplate({
+      existingActivities,
+      divisionCode: input.divisionCode,
+      sourceTemplateKey: MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
+      identity: input.identity,
+    });
 
-  const { projectActivity, projectLineItems } = instantiationResult;
-  const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
-  return saveActivityBundle(projectActivity, lineItemsForSave);
+    if (validationError || !assigned) {
+      return { data: null, error: validationError ?? 'Could not assign activity code.' };
+    }
+
+    const instantiationResult = instantiateManualConstructionActivity({
+      projectId: input.projectId,
+      estimateId: input.estimateId,
+      divisionCode: input.divisionCode,
+      divisionName: input.divisionName,
+      lineItems: input.lineItems,
+      identity: input.identity,
+      assigned,
+      crewSize: input.crewSize ?? 4,
+      hoursPerDay: input.hoursPerDay ?? 8,
+      durationDaysOverride: input.durationDaysOverride,
+      scheduleEnabled: input.scheduleEnabled ?? true,
+      projectLaborRates: input.projectLaborRates,
+    });
+
+    const { projectActivity, projectLineItems } = instantiationResult;
+    const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
+    const saveResult = await saveActivityBundle(projectActivity, lineItemsForSave);
+    if (!isDuplicateProjectActivityCodeError(saveResult.error)) return saveResult;
+    if (attempt === 1) return { data: null, error: DUPLICATE_ACTIVITY_CODE_MESSAGE };
+
+    const refreshedExisting = await loadExistingActivitiesForCodeAssignment(input);
+    existingActivities = mergeExistingActivities(
+      existingActivities,
+      refreshedExisting.data,
+      [reserveFailedActivityCode(projectActivity)],
+    );
+  }
+
+  return { data: null, error: DUPLICATE_ACTIVITY_CODE_MESSAGE };
 }
 
 export async function instantiateAndSaveActivity(
   input: InstantiateAndSaveInput,
 ): Promise<RepositoryResult<SavedActivityBundle>> {
-  const { assigned, validationError } = buildAssignedIdentity(input);
-  if (validationError || !assigned) {
-    return { data: null, error: validationError ?? 'Could not assign activity code.' };
+  const loadedExisting = input.existingActivityId
+    ? { data: input.existingActivities ?? [], error: null }
+    : await loadExistingActivitiesForCodeAssignment(input);
+  if (loadedExisting.error || !loadedExisting.data) {
+    return { data: null, error: loadedExisting.error };
   }
 
-  const instantiationResult = instantiateFromAssemblySpec({
-    assembly: input.assembly,
-    userInputs: input.userInputs,
-    division: input.division,
-    lineItemTemplates: input.lineItemTemplates,
-    productionRates: input.productionRates,
-    projectId: input.projectId,
-    estimateId: input.estimateId,
-    crewSize: input.crewSize,
-    hoursPerDay: input.hoursPerDay,
-    productionFactor: input.productionFactor,
-    durationDaysOverride: input.durationDaysOverride,
-    activityTitleOverride: assigned.title,
-    activityCode: assigned.activityCode,
-    baseTitle: assigned.baseTitle,
-    instanceLabel: input.identity.instanceLabel,
-    location: input.identity.location,
-    drawingReference: input.identity.drawingReference,
-    phase: input.identity.phase,
-    notes: input.identity.notes,
-    activitySequence: assigned.activitySequence,
-    instanceSequence: assigned.instanceSequence,
-    defaultLaborRate: input.defaultLaborRate,
-  });
+  let existingActivities = loadedExisting.data;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { assigned, validationError } = buildAssignedIdentity({
+      ...input,
+      existingActivities,
+    });
+    if (validationError || !assigned) {
+      return { data: null, error: validationError ?? 'Could not assign activity code.' };
+    }
 
-  const { projectActivity, projectLineItems } = instantiationResult;
+    const instantiationResult = instantiateFromAssemblySpec({
+      assembly: input.assembly,
+      userInputs: input.userInputs,
+      division: input.division,
+      lineItemTemplates: input.lineItemTemplates,
+      productionRates: input.productionRates,
+      projectId: input.projectId,
+      estimateId: input.estimateId,
+      crewSize: input.crewSize,
+      hoursPerDay: input.hoursPerDay,
+      productionFactor: input.productionFactor,
+      durationDaysOverride: input.durationDaysOverride,
+      activityTitleOverride: assigned.title,
+      activityCode: assigned.activityCode,
+      baseTitle: assigned.baseTitle,
+      instanceLabel: input.identity.instanceLabel,
+      location: input.identity.location,
+      drawingReference: input.identity.drawingReference,
+      phase: input.identity.phase,
+      notes: input.identity.notes,
+      activitySequence: assigned.activitySequence,
+      instanceSequence: assigned.instanceSequence,
+      defaultLaborRate: input.defaultLaborRate,
+    });
 
-  const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
+    const { projectActivity, projectLineItems } = instantiationResult;
 
-  return saveActivityBundle(projectActivity, lineItemsForSave, input.existingActivityId);
+    const lineItemsForSave = projectLineItems.map((li) => mapLineItemForSave(li, input.projectId));
+
+    const saveResult = await saveActivityBundle(
+      projectActivity,
+      lineItemsForSave,
+      input.existingActivityId,
+    );
+    if (input.existingActivityId || !isDuplicateProjectActivityCodeError(saveResult.error)) {
+      return saveResult;
+    }
+    if (attempt === 1) return { data: null, error: DUPLICATE_ACTIVITY_CODE_MESSAGE };
+
+    const refreshedExisting = await loadExistingActivitiesForCodeAssignment(input);
+    existingActivities = mergeExistingActivities(
+      existingActivities,
+      refreshedExisting.data,
+      [reserveFailedActivityCode(projectActivity)],
+    );
+  }
+
+  return { data: null, error: DUPLICATE_ACTIVITY_CODE_MESSAGE };
 }
 
 export async function updateProjectConstructionActivity(

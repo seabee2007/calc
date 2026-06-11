@@ -5,6 +5,7 @@ import { assignProjectActivityCode } from '../../application/constructionActivit
 import type { UpdateProjectActivityInput } from '../../application/constructionActivityService';
 import ActivityInstanceFields, { buildIdentityFromForm } from './ActivityInstanceFields';
 import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
+import { resolveLaborRateForWorkElement, workElementFromLineItem } from '../../application/laborRateResolver';
 import { roundToTwo } from '../../domain/estimateMath';
 
 const FIELD_CLASS =
@@ -196,15 +197,20 @@ export default function EditConstructionActivityModal({
           ) : (
             <div className="space-y-2">
               {lineItems.map((item) => {
-                const selectedRate = projectRates.find((rate) => rate.id === laborRoles[item.id]);
                 const quantity =
                   quantities[item.id] !== undefined && quantities[item.id] !== ''
                     ? parseFloat(quantities[item.id]) || 0
                     : item.quantity;
                 const manHours = quantity * item.manHoursPerUnit * item.productionFactor;
-                const laborCost = selectedRate
-                  ? roundToTwo(manHours * selectedRate.fullyBurdenedRate)
-                  : item.laborCost;
+                const resolved = resolveLaborRateForWorkElement({
+                  workElement: workElementFromLineItem(item),
+                  projectLaborRates: projectRates,
+                  preferredRoleId: laborRoles[item.id] || null,
+                });
+                const laborCost =
+                  resolved.fullyBurdenedRateSnapshot > 0
+                    ? roundToTwo(manHours * resolved.fullyBurdenedRateSnapshot)
+                    : 0;
                 const isOpen = expandedPricing[item.id] ?? false;
                 return (
                   <div
@@ -255,23 +261,29 @@ export default function EditConstructionActivityModal({
                         <div>
                           <p className="text-xs text-slate-500">Base rate</p>
                           <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                            {selectedRate
-                              ? `$${selectedRate.hourlyRate.toFixed(2)}/hr`
+                            {resolved.projectRate
+                              ? `$${resolved.projectRate.hourlyRate.toFixed(2)}/hr`
                               : '—'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500">Burden</p>
                           <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                            {selectedRate ? `${selectedRate.burdenPercent}%` : '—'}
+                            {resolved.projectRate ? `${resolved.projectRate.burdenPercent}%` : '—'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500">Fully burdened rate</p>
                           <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                            {selectedRate
-                              ? `$${selectedRate.fullyBurdenedRate.toFixed(2)}/hr`
+                            {resolved.fullyBurdenedRateSnapshot > 0
+                              ? `$${resolved.fullyBurdenedRateSnapshot.toFixed(2)}/hr`
                               : '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Resolved role</p>
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                            {resolved.laborRoleName}
                           </p>
                         </div>
                         <div>

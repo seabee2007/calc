@@ -6,7 +6,9 @@ import {
   buildEstimateWorkspaceActionsMenuItems,
   type EstimateBuilderToolbarHandlers,
 } from '../estimateWorkspaceToolbar';
+import type { EstimateWorkspaceSaveStatusValue } from '../estimateWorkspaceSaveStatus';
 import EstimateWorkspaceActionsMenu from './EstimateWorkspaceActionsMenu';
+import EstimateWorkspaceSaveStatusControl from './EstimateWorkspaceSaveStatusControl';
 
 interface Props {
   showAddDivision: boolean;
@@ -17,12 +19,16 @@ interface Props {
   showImportExport: boolean;
   showConvertToDetailed?: boolean;
   canEdit: boolean;
-  canSave: boolean;
   canSaveQuick: boolean;
   saving: boolean;
+  saveStatus: EstimateWorkspaceSaveStatusValue;
+  saveStatusActiveOperations: number;
+  hasPendingEstimateChanges: boolean;
+  saveStatusErrorMessage?: string | null;
   handlers: EstimateBuilderToolbarHandlers | null;
   onReset: () => void;
   onSave: () => void;
+  onRetrySave: () => void;
   onImportEstimate: () => void;
   onExportEstimate: () => void;
   onDownloadImportTemplate: () => void;
@@ -41,12 +47,16 @@ export default function EstimateWorkspaceToolbarActions({
   showImportExport,
   showConvertToDetailed = false,
   canEdit,
-  canSave,
   canSaveQuick,
   saving,
+  saveStatus,
+  saveStatusActiveOperations,
+  hasPendingEstimateChanges,
+  saveStatusErrorMessage,
   handlers,
   onReset,
   onSave,
+  onRetrySave,
   onImportEstimate,
   onExportEstimate,
   onDownloadImportTemplate,
@@ -125,18 +135,15 @@ export default function EstimateWorkspaceToolbarActions({
         </Button>
       ) : null}
       {showSaveBucket ? (
-        <Button
-          variant="accent"
-          size="sm"
-          disabled={!canSave || saving}
-          isLoading={saving}
-          className={COMPACT_ICON_BUTTON_CLASS}
-          aria-label="Save estimate"
-          title="Save estimate"
-          onClick={onSave}
-        >
-          {!saving ? <Save className="h-4 w-4" aria-hidden /> : null}
-        </Button>
+        <EstimateWorkspaceSaveStatusControl
+          show
+          status={saveStatus}
+          activeOperations={saveStatusActiveOperations}
+          hasPendingEstimateChanges={hasPendingEstimateChanges}
+          errorMessage={saveStatusErrorMessage}
+          onSave={onSave}
+          onRetry={onRetrySave}
+        />
       ) : null}
       {showDesktopActionsDropdown ? (
         <div className="hidden sm:block">

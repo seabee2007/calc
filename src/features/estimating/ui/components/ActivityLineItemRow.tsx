@@ -4,6 +4,7 @@
  */
 import type { ProjectActivityLineItem } from '../../domain/constructionActivityTypes';
 import { getProjectActivityLineItemLaborRateWarning } from '../../domain/constructionActivityCalculations';
+import { BADGE_BASE, BADGE_INFO } from '../../../../theme/statusColors';
 
 interface Props {
   item: ProjectActivityLineItem;
@@ -19,26 +20,23 @@ export default function ActivityLineItemRow({ item, index }: Props) {
   const warning = getProjectActivityLineItemLaborRateWarning(item);
   const missingLaborRate =
     (item.laborCost ?? 0) === 0 && (item.calculatedManHours ?? 0) > 0;
+  const laborRoleLabel =
+    item.laborRoleName && item.fullyBurdenedRateSnapshot > 0
+      ? `${item.laborRoleName} · $${fmt(item.fullyBurdenedRateSnapshot)}/hr`
+      : item.laborRoleName ?? '—';
 
   return (
     <div
       className={[
-        'grid grid-cols-[1fr_auto] items-start gap-x-3 px-3 py-2 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr]',
+        'grid grid-cols-[1fr_auto] items-start gap-x-3 px-3 py-2 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr]',
         isEven
           ? 'bg-white dark:bg-slate-900/70'
           : 'bg-slate-50/80 dark:bg-slate-800/40',
       ].join(' ')}
     >
-      {/* Description + rate source */}
+      {/* Work element */}
       <div className="min-w-0">
         <p className="truncate text-sm text-slate-800 dark:text-slate-200">{item.name}</p>
-        <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-          {item.pricingSource === 'manual'
-            ? 'Manual'
-            : item.sourceFigure && item.sourcePage
-              ? `${item.sourceFigure} · p.${item.sourcePage}`
-              : (item.sourceProductionRateKey ?? item.productionRateId ?? '—')}
-        </p>
         {missingLaborRate ? (
           <span
             className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
@@ -72,19 +70,23 @@ export default function ActivityLineItemRow({ item, index }: Props) {
         </p>
       </div>
 
+      {/* Labor role / rate */}
+      <div className="hidden text-right sm:block">
+        {item.laborRoleName && item.fullyBurdenedRateSnapshot > 0 ? (
+          <span className={`${BADGE_BASE} ${BADGE_INFO} text-[10px]`}>
+            {laborRoleLabel}
+          </span>
+        ) : (
+          <p className="truncate text-xs text-slate-600 dark:text-slate-400">{laborRoleLabel}</p>
+        )}
+      </div>
+
       {/* Labor cost */}
       <div className="hidden text-right sm:block">
         {item.laborCost > 0 ? (
-          <span
-            className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-            title={
-              item.laborRoleName
-                ? `${item.laborRoleName} @ $${fmt(item.fullyBurdenedRateSnapshot)}/hr burdened`
-                : undefined
-            }
-          >
-            ${fmt(item.laborCost)} labor
-          </span>
+          <p className="tabular-nums text-xs font-medium text-emerald-700 dark:text-emerald-300">
+            ${fmt(item.laborCost)}
+          </p>
         ) : (
           <p className="text-xs text-slate-400">—</p>
         )}
@@ -105,6 +107,7 @@ export default function ActivityLineItemRow({ item, index }: Props) {
         <p className="tabular-nums text-xs font-semibold text-cyan-700 dark:text-cyan-400">
           {fmt(item.calculatedManHours)} MH
         </p>
+        <p className="truncate text-xs text-slate-500">{laborRoleLabel}</p>
         {item.laborCost > 0 ? (
           <p className="tabular-nums text-xs text-emerald-700 dark:text-emerald-300">
             ${fmt(item.laborCost)} labor

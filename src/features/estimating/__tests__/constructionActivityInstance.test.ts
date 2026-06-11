@@ -4,6 +4,7 @@ import {
   assignProjectActivityCode,
   buildConstructionActivityDisplayTitle,
   countTemplateInstances,
+  generateNextProjectActivityCode,
   validateInstanceLabelForDuplicateTemplate,
 } from '../application/constructionActivityCoding';
 import { constructionActivitiesToScheduleActivities } from '../scheduling/adapters/constructionActivitiesToScheduleActivities';
@@ -32,6 +33,17 @@ function makeActivity(
 }
 
 describe('construction activity instance coding', () => {
+  it('assigns the first Concrete project activity as 03-01-01', () => {
+    const assigned = generateNextProjectActivityCode({
+      divisionCode: '03',
+      existingActivities: [],
+      preferredCategoryKey: 'concrete:slab-on-grade',
+      preferredTitle: 'Slab on grade, Forms in Place',
+    });
+
+    expect(assigned.activityCode).toBe('03-01-01');
+  });
+
   it('assigns unique DD-AA-II codes for duplicate templates', () => {
     const existing = [
       makeActivity({
@@ -56,6 +68,113 @@ describe('construction activity instance coding', () => {
 
     expect(second.activityCode).toBe('03-02-02');
     expect(second.title).toBe('Place Continuous Footing — F-2');
+  });
+
+  it('adds the same template twice with unique project activity codes', () => {
+    const existing = [
+      makeActivity({
+        id: 'a1',
+        activityCode: '03-01-01',
+        sourceTemplateKey: 'concrete:slab-on-grade',
+        activitySequence: 1,
+        instanceSequence: 1,
+      }),
+    ];
+
+    const second = generateNextProjectActivityCode({
+      divisionCode: '03',
+      existingActivities: existing,
+      preferredCategoryKey: 'concrete:slab-on-grade',
+      preferredTitle: 'Slab on grade, Forms in Place',
+    });
+
+    expect(second.activityCode).toBe('03-01-02');
+  });
+
+  it('adds a different Concrete category without duplicating 03-01-01', () => {
+    const existing = [
+      makeActivity({
+        id: 'a1',
+        activityCode: '03-01-01',
+        sourceTemplateKey: 'concrete:slab-on-grade',
+        activitySequence: 1,
+        instanceSequence: 1,
+      }),
+    ];
+
+    const nextCategory = generateNextProjectActivityCode({
+      divisionCode: '03',
+      existingActivities: existing,
+      preferredCategoryKey: 'concrete:walls',
+      preferredTitle: 'Walls, Forms in Place',
+    });
+
+    expect(nextCategory.activityCode).toBe('03-02-01');
+  });
+
+  it('starts Division 09 activities independently at 09-01-01', () => {
+    const division09 = generateNextProjectActivityCode({
+      divisionCode: '09',
+      existingActivities: [
+        makeActivity({
+          id: 'a1',
+          activityCode: '03-01-01',
+          sourceTemplateKey: 'concrete:slab-on-grade',
+        }),
+      ],
+      preferredCategoryKey: 'finishes:drywall',
+      preferredTitle: 'Drywall',
+    });
+
+    expect(division09.activityCode).toBe('09-01-01');
+  });
+
+  it('fills gaps for repeated instances in the same category', () => {
+    const existing = [
+      makeActivity({
+        id: 'a1',
+        activityCode: '03-01-01',
+        sourceTemplateKey: 'concrete:slab-on-grade',
+        activitySequence: 1,
+        instanceSequence: 1,
+      }),
+      makeActivity({
+        id: 'a3',
+        activityCode: '03-01-03',
+        sourceTemplateKey: 'concrete:slab-on-grade',
+        activitySequence: 1,
+        instanceSequence: 3,
+      }),
+    ];
+
+    const next = generateNextProjectActivityCode({
+      divisionCode: '03',
+      existingActivities: existing,
+      preferredCategoryKey: 'concrete:slab-on-grade',
+      preferredTitle: 'Slab on grade, Forms in Place',
+    });
+
+    expect(next.activityCode).toBe('03-01-02');
+  });
+
+  it('ignores an edited activity when checking for the next code', () => {
+    const activity = makeActivity({
+      id: 'stable-id',
+      activityCode: '03-01-01',
+      sourceTemplateKey: 'concrete:slab-on-grade',
+      activitySequence: 1,
+      instanceSequence: 1,
+    });
+
+    const assigned = generateNextProjectActivityCode({
+      divisionCode: '03',
+      existingActivities: [activity],
+      preferredCategoryKey: 'concrete:slab-on-grade',
+      preferredTitle: 'Slab on grade, Forms in Place',
+      excludeActivityId: activity.id,
+    });
+
+    expect(assigned.activityCode).toBe('03-01-01');
   });
 
   it('builds display title with instance label', () => {

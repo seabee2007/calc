@@ -45,6 +45,7 @@ export const STARTER_LABOR_ROLES: Pick<
   { roleKey: 'concrete_finisher', roleName: 'Concrete Finisher', tradeCategory: 'Concrete' },
   { roleKey: 'foreman', roleName: 'Foreman', tradeCategory: 'General' },
   { roleKey: 'equipment_operator', roleName: 'Equipment Operator', tradeCategory: 'Equipment' },
+  { roleKey: 'ironworker', roleName: 'Ironworker', tradeCategory: 'Structural' },
   { roleKey: 'plumber', roleName: 'Plumber', tradeCategory: 'Plumbing' },
   { roleKey: 'electrician', roleName: 'Electrician', tradeCategory: 'Electrical' },
   { roleKey: 'hvac_technician', roleName: 'HVAC Technician', tradeCategory: 'HVAC' },

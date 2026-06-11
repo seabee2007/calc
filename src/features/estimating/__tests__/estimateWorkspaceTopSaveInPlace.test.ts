@@ -76,9 +76,10 @@ describe('top-right Estimate Workspace save stays in place', () => {
   });
 
   it('toolbar save button wires to handleSaveEstimate without tab changes', () => {
-    expect(workspacePageSource).toContain('onSave={handleSaveEstimate}');
+    expect(workspacePageSource).toContain('onSave={() => void handleSaveEstimate()}');
+    expect(workspacePageSource).toContain('onRetrySave={handleRetrySave}');
     expect(workspacePageSource).not.toMatch(
-      /onSave=\{handleSaveEstimate\}[\s\S]{0,200}navigate\(/,
+      /onSave=\{\(\) => void handleSaveEstimate\(\)\}[\s\S]{0,200}navigate\(/,
     );
   });
 

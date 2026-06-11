@@ -6,7 +6,9 @@
  *  - Manual / Custom Activity
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { X, ArrowLeft, Plus, BookOpen, PenLine, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Plus, BookOpen, PenLine, AlertTriangle } from 'lucide-react';
+import ModalShell from '../../../../components/ui/ModalShell';
+import Button from '../../../../components/ui/Button';
 import {
   assignProjectActivityCode,
   validateInstanceLabelForDuplicateTemplate,
@@ -22,7 +24,8 @@ import {
   type DraftProductionRateLineItem,
   MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
 } from '../../application/productionRateAssemblyBuilder';
-import { resolveLaborRoleForProductionRate } from '../../application/laborRoleMapping';
+import { mapProductionRateToLaborRoleKey } from '../../application/laborRoleMapping';
+import { useProjectLaborRates } from '../hooks/useProjectLaborRates';
 import { getAvailableDivisions } from '../../data/productionRates/productionRateLibraryQueries';
 import type { ProductionRateLibraryEntry } from '../../data/productionRates/productionRateTypes';
 import { CSI_DIVISIONS } from '../../domain/csiDivisions';
@@ -35,7 +38,10 @@ import type {
 } from '../hooks/useConstructionActivities';
 import ActivityInstanceFields, { buildIdentityFromForm } from './ActivityInstanceFields';
 import {
-  getProductionRateDisplayTitle,
+  formatProductionRateDisplayTitle,
+  formatProductionRateSubtitle,
+} from '../../data/productionRates/productionRateDisplayFormatters';
+import {
   ProductionRateSourceDetails,
   ProductionRateVariantSelector,
 } from './ProductionRateCanonicalControls';
@@ -45,6 +51,7 @@ const DEFAULT_HOURS_PER_DAY = 8;
 
 type SourceMode = 'choose' | 'production_rate' | 'manual';
 type Step = 'choose' | 'configure';
+type WizardStep = 1 | 2 | 3;
 
 interface Props {
   projectId: string;
@@ -83,12 +90,39 @@ export default function AssemblyPickerModal({
   onCancel,
   saving,
   existingActivities = [],
-  projectLaborRates = [],
+  projectLaborRates: projectLaborRatesProp = [],
 }: Props) {
   const library = useProductionRateLibrary(true);
+  const {
+    projectRates: loadedProjectRates,
+    loading: laborRatesLoading,
+    ensureProjectLaborRatesReady,
+  } = useProjectLaborRates(projectId);
+  const [laborRatesReady, setLaborRatesReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (projectLaborRatesProp.length > 0) {
+        setLaborRatesReady(true);
+        return;
+      }
+      await ensureProjectLaborRatesReady();
+      if (!cancelled) {
+        setLaborRatesReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ensureProjectLaborRatesReady, projectId, projectLaborRatesProp.length]);
+
+  const projectLaborRates =
+    projectLaborRatesProp.length > 0 ? projectLaborRatesProp : loadedProjectRates;
 
   const [sourceMode, setSourceMode] = useState<SourceMode>('choose');
   const [step, setStep] = useState<Step>('choose');
+  const [wizardStep, setWizardStep] = useState<WizardStep>(1);
 
   const [divisionCode, setDivisionCode] = useState('');
   const [category, setCategory] = useState('');
@@ -237,6 +271,8 @@ export default function AssemblyPickerModal({
     draft,
     durationOverride,
     hoursPerDay,
+    laborRatesLoading,
+    laborRatesReady,
     projectLaborRates,
     scheduleEnabled,
     sourceMode,
@@ -295,6 +331,7 @@ export default function AssemblyPickerModal({
       setDivisionCode('');
       setCategory('');
       setDraft(null);
+      setWizardStep(1);
     } else {
       setManualLines([emptyManualLine()]);
       setManualDivisionCode('03');
@@ -455,161 +492,164 @@ export default function AssemblyPickerModal({
         ? 'Build from Production Rate Library'
         : 'Manual / Custom Activity';
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            {step === 'configure' && (
-              <button
-                type="button"
-                onClick={() => {
-                  setStep('choose');
-                  setSourceMode('choose');
-                }}
-                className="rounded p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-              >
-                <ArrowLeft size={16} />
-              </button>
-            )}
-            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-              {headerTitle}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-          >
-            <X size={18} />
-          </button>
-        </div>
+  const progressLabel =
+    step === 'configure' && sourceMode === 'production_rate'
+      ? `Step ${wizardStep} of 3`
+      : undefined;
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {step === 'choose' ? (
-            <SourceChoiceStep onChoose={handleChooseSource} />
-          ) : sourceMode === 'production_rate' ? (
-            <ProductionRateConfigureStep
-              libraryLoading={library.loading}
-              libraryError={library.error}
-              totalRates={library.totalCount}
-              showSourceRecords={library.showSourceRecords}
-              onShowSourceRecordsChange={library.setShowSourceRecords}
-              isSourceIndex={library.isSourceIndex}
-              divisionOptions={divisionOptions}
-              categoryOptions={categoryOptions}
-              divisionCode={divisionCode}
-              category={category}
-              draft={draft}
-              preview={preview}
-              projectLaborRates={projectLaborRates}
-              activityName={activityName}
-              instanceLabel={instanceLabel}
-              location={location}
-              drawingReference={drawingReference}
-              notes={notes}
-              onDivisionChange={handleDivisionChange}
-              onCategoryChange={handleCategoryChange}
-              onToggleWorkElement={toggleWorkElement}
-              onQuantityChange={setWorkElementQuantity}
-              onVariantChange={setWorkElementVariant}
-              onActivityNameChange={setActivityName}
-              onInstanceLabelChange={setInstanceLabel}
-              onLocationChange={setLocation}
-              onDrawingReferenceChange={setDrawingReference}
-              onNotesChange={setNotes}
-              duplicateTemplateWarning={duplicateTemplateWarning}
-              assignedCode={assignedPreview?.activityCode}
-              assignedTitle={assignedPreview?.title}
-              crewSizeStr={crewSizeStr}
-              hoursPerDayStr={hoursPerDayStr}
-              durationOverrideStr={durationOverrideStr}
-              scheduleEnabled={scheduleEnabled}
-              onCrewSizeChange={setCrewSizeStr}
-              onHoursPerDayChange={setHoursPerDayStr}
-              onDurationOverrideChange={setDurationOverrideStr}
-              onScheduleEnabledChange={setScheduleEnabled}
-              crewSizeError={crewSizeError}
-              hoursPerDayError={hoursPerDayError}
-              durationOverrideError={durationOverrideError}
-            />
+  const canAdvanceWizard =
+    wizardStep === 1
+      ? Boolean(divisionCode)
+      : wizardStep === 2
+        ? Boolean(category && draft?.lineItems.some((item) => item.selected))
+        : canConfirm;
+
+  const modalFooter =
+    step === 'configure' ? (
+      <>
+        <div className="flex flex-wrap items-center gap-2">
+          {sourceMode === 'production_rate' && wizardStep > 1 ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              icon={<ArrowLeft className="h-4 w-4" />}
+              onClick={() => setWizardStep((s) => (s > 1 ? ((s - 1) as WizardStep) : s))}
+            >
+              Back
+            </Button>
           ) : (
-            <ManualConfigureStep
-              divisionCode={manualDivisionCode}
-              divisionName={selectedDivisionName}
-              lines={manualLines}
-              preview={manualPreview}
-              projectLaborRates={projectLaborRates}
-              activityName={activityName}
-              instanceLabel={instanceLabel}
-              location={location}
-              drawingReference={drawingReference}
-              notes={notes}
-              onDivisionChange={setManualDivisionCode}
-              onLinesChange={setManualLines}
-              onActivityNameChange={setActivityName}
-              onInstanceLabelChange={setInstanceLabel}
-              onLocationChange={setLocation}
-              onDrawingReferenceChange={setDrawingReference}
-              onNotesChange={setNotes}
-              duplicateTemplateWarning={duplicateTemplateWarning}
-              assignedCode={assignedPreview?.activityCode}
-              assignedTitle={assignedPreview?.title}
-              crewSizeStr={crewSizeStr}
-              hoursPerDayStr={hoursPerDayStr}
-              durationOverrideStr={durationOverrideStr}
-              scheduleEnabled={scheduleEnabled}
-              onCrewSizeChange={setCrewSizeStr}
-              onHoursPerDayChange={setHoursPerDayStr}
-              onDurationOverrideChange={setDurationOverrideStr}
-              onScheduleEnabledChange={setScheduleEnabled}
-              crewSizeError={crewSizeError}
-              hoursPerDayError={hoursPerDayError}
-              durationOverrideError={durationOverrideError}
-            />
+            <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+              Cancel
+            </Button>
           )}
         </div>
-
-        {step === 'configure' && (
-          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-5 py-3 dark:border-slate-700 dark:bg-slate-800/50">
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              {sourceMode === 'production_rate' && preview ? (
-                <span>
-                  <strong className="text-cyan-700 dark:text-cyan-400">
-                    {preview.rollup.totalManHours.toFixed(1)} MH
-                  </strong>
-                  {' · '}
-                  <strong>${preview.rollup.totalLaborCost.toFixed(2)}</strong> labor
-                  {' · '}
-                  {selectedCount} work elements
-                  {' · '}
-                  {durationOverride ?? preview.rollup.calculatedDurationDays}d
-                </span>
-              ) : sourceMode === 'manual' && manualPreview ? (
-                <span>
-                  <strong className="text-cyan-700 dark:text-cyan-400">
-                    {manualPreview.totalManHours.toFixed(1)} MH
-                  </strong>
-                  {' · '}
-                  {manualPreview.lineCount} line items
-                  {' · '}
-                  {manualPreview.effectiveDurationDays}d
-                </span>
-              ) : null}
-            </div>
-            <button
+        <div className="flex flex-wrap items-center gap-2">
+          {sourceMode === 'production_rate' && wizardStep < 3 ? (
+            <Button
               type="button"
-              onClick={handleConfirm}
-              disabled={saving || !canConfirm}
-              className="ml-auto flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-700 disabled:opacity-60"
+              variant="accent"
+              size="sm"
+              disabled={!canAdvanceWizard || library.loading}
+              onClick={() => setWizardStep((s) => (s < 3 ? ((s + 1) as WizardStep) : s))}
             >
-              <Plus size={15} />
+              Next
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              icon={<Plus className="h-4 w-4" />}
+              disabled={saving || !canConfirm}
+              onClick={handleConfirm}
+            >
               {saving ? 'Saving…' : 'Add to Estimate'}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+            </Button>
+          )}
+        </div>
+      </>
+    ) : (
+      <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+        Cancel
+      </Button>
+    );
+
+  return (
+    <ModalShell
+      isOpen
+      onClose={onCancel}
+      title={headerTitle}
+      progressLabel={progressLabel}
+      size="xl"
+      stackAboveDrawer
+      footer={modalFooter}
+    >
+      {step === 'choose' ? (
+        <SourceChoiceStep onChoose={handleChooseSource} />
+      ) : sourceMode === 'production_rate' ? (
+        <ProductionRateConfigureStep
+          wizardStep={wizardStep}
+          libraryLoading={library.loading}
+          libraryError={library.error}
+          totalRates={library.totalCount}
+          showSourceRecords={library.showSourceRecords}
+          onShowSourceRecordsChange={library.setShowSourceRecords}
+          isSourceIndex={library.isSourceIndex}
+          divisionOptions={divisionOptions}
+          categoryOptions={categoryOptions}
+          divisionCode={divisionCode}
+          category={category}
+          draft={draft}
+          preview={preview}
+          projectLaborRates={projectLaborRates}
+          laborRatesLoading={laborRatesLoading && !laborRatesReady}
+          activityName={activityName}
+          instanceLabel={instanceLabel}
+          location={location}
+          drawingReference={drawingReference}
+          notes={notes}
+          onDivisionChange={handleDivisionChange}
+          onCategoryChange={handleCategoryChange}
+          onToggleWorkElement={toggleWorkElement}
+          onQuantityChange={setWorkElementQuantity}
+          onVariantChange={setWorkElementVariant}
+          onActivityNameChange={setActivityName}
+          onInstanceLabelChange={setInstanceLabel}
+          onLocationChange={setLocation}
+          onDrawingReferenceChange={setDrawingReference}
+          onNotesChange={setNotes}
+          duplicateTemplateWarning={duplicateTemplateWarning}
+          assignedCode={assignedPreview?.activityCode}
+          assignedTitle={assignedPreview?.title}
+          crewSizeStr={crewSizeStr}
+          hoursPerDayStr={hoursPerDayStr}
+          durationOverrideStr={durationOverrideStr}
+          scheduleEnabled={scheduleEnabled}
+          onCrewSizeChange={setCrewSizeStr}
+          onHoursPerDayChange={setHoursPerDayStr}
+          onDurationOverrideChange={setDurationOverrideStr}
+          onScheduleEnabledChange={setScheduleEnabled}
+          crewSizeError={crewSizeError}
+          hoursPerDayError={hoursPerDayError}
+          durationOverrideError={durationOverrideError}
+        />
+      ) : (
+        <ManualConfigureStep
+          divisionCode={manualDivisionCode}
+          divisionName={selectedDivisionName}
+          lines={manualLines}
+          preview={manualPreview}
+          projectLaborRates={projectLaborRates}
+          activityName={activityName}
+          instanceLabel={instanceLabel}
+          location={location}
+          drawingReference={drawingReference}
+          notes={notes}
+          onDivisionChange={setManualDivisionCode}
+          onLinesChange={setManualLines}
+          onActivityNameChange={setActivityName}
+          onInstanceLabelChange={setInstanceLabel}
+          onLocationChange={setLocation}
+          onDrawingReferenceChange={setDrawingReference}
+          onNotesChange={setNotes}
+          duplicateTemplateWarning={duplicateTemplateWarning}
+          assignedCode={assignedPreview?.activityCode}
+          assignedTitle={assignedPreview?.title}
+          crewSizeStr={crewSizeStr}
+          hoursPerDayStr={hoursPerDayStr}
+          durationOverrideStr={durationOverrideStr}
+          scheduleEnabled={scheduleEnabled}
+          onCrewSizeChange={setCrewSizeStr}
+          onHoursPerDayChange={setHoursPerDayStr}
+          onDurationOverrideChange={setDurationOverrideStr}
+          onScheduleEnabledChange={setScheduleEnabled}
+          crewSizeError={crewSizeError}
+          hoursPerDayError={hoursPerDayError}
+          durationOverrideError={durationOverrideError}
+        />
+      )}
+    </ModalShell>
   );
 }
 
@@ -742,6 +782,7 @@ function NumberField({
 }
 
 function ProductionRateConfigureStep({
+  wizardStep = 3,
   libraryLoading,
   libraryError,
   totalRates,
@@ -755,6 +796,7 @@ function ProductionRateConfigureStep({
   draft,
   preview,
   projectLaborRates,
+  laborRatesLoading,
   activityName,
   instanceLabel,
   location,
@@ -785,6 +827,7 @@ function ProductionRateConfigureStep({
   hoursPerDayError,
   durationOverrideError,
 }: {
+  wizardStep?: WizardStep;
   libraryLoading: boolean;
   libraryError: string | null;
   totalRates: number;
@@ -798,6 +841,7 @@ function ProductionRateConfigureStep({
   draft: DraftProductionRateActivity | null;
   preview: ReturnType<typeof previewDraftProductionRateActivity> | null;
   projectLaborRates: ProjectLaborRate[];
+  laborRatesLoading: boolean;
   activityName: string;
   instanceLabel: string;
   location: string;
@@ -828,6 +872,8 @@ function ProductionRateConfigureStep({
   hoursPerDayError: string | null;
   durationOverrideError: string | null;
 }) {
+  const [showDevSourceDetails, setShowDevSourceDetails] = useState(false);
+
   if (libraryLoading) {
     return <p className="text-sm text-slate-500">Loading approved production rates…</p>;
   }
@@ -847,18 +893,96 @@ function ProductionRateConfigureStep({
           {isSourceIndex ? ' (source records — debug)' : ''}
         </p>
         {import.meta.env.DEV ? (
-          <label className="flex items-center gap-2 text-[11px] text-slate-500">
-            <input
-              type="checkbox"
-              checked={showSourceRecords}
-              onChange={(e) => onShowSourceRecordsChange(e.target.checked)}
-              className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
-            />
-            Show source records (debug)
-          </label>
+          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showSourceRecords}
+                onChange={(e) => onShowSourceRecordsChange(e.target.checked)}
+                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+              />
+              Show source records (debug)
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showDevSourceDetails}
+                onChange={(e) => setShowDevSourceDetails(e.target.checked)}
+                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+              />
+              Show source details (debug)
+            </label>
+          </div>
         ) : null}
       </div>
 
+      {wizardStep === 1 ? (
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Division
+          </label>
+          <select
+            value={divisionCode}
+            onChange={(e) => onDivisionChange(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="">Select division…</option>
+            {divisionOptions.map((option) => (
+              <option key={option.divisionCode} value={option.divisionCode}>
+                Division {option.divisionCode} — {option.divisionName} ({option.count})
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
+      {wizardStep === 2 ? (
+        <>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Activity Category
+            </label>
+            <select
+              value={category}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              disabled={!divisionCode}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            >
+              <option value="">Select category…</option>
+              {categoryOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          {draft ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Work Elements
+              </p>
+              {draft.lineItems.map((item) => (
+                <WorkElementRow
+                  key={item.draftId}
+                  item={item}
+                  projectLaborRates={projectLaborRates}
+                  laborRatesLoading={laborRatesLoading}
+                  showDevSourceDetails={showDevSourceDetails}
+                  showQuantity={false}
+                  previewLineItem={preview?.projectLineItems.find(
+                    (line) => line.sourceProductionRateKey === item.rate.id,
+                  )}
+                  onToggle={(selected) => onToggleWorkElement(item.draftId, selected)}
+                  onQuantityChange={(value) => onQuantityChange(item.draftId, value)}
+                  onVariantChange={(nextRate) => onVariantChange(item.draftId, nextRate)}
+                />
+              ))}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {wizardStep >= 3 ? (
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
@@ -896,8 +1020,9 @@ function ProductionRateConfigureStep({
           </select>
         </div>
       </div>
+      ) : null}
 
-      {draft && (
+      {wizardStep >= 3 && draft && (
         <>
           <ActivityInstanceFields
             activityName={activityName}
@@ -924,12 +1049,15 @@ function ProductionRateConfigureStep({
                 key={item.draftId}
                 item={item}
                 projectLaborRates={projectLaborRates}
+                laborRatesLoading={laborRatesLoading}
+                showDevSourceDetails={showDevSourceDetails}
                 previewLineItem={preview?.projectLineItems.find(
                   (line) => line.sourceProductionRateKey === item.rate.id,
                 )}
                 onToggle={(selected) => onToggleWorkElement(item.draftId, selected)}
                 onQuantityChange={(value) => onQuantityChange(item.draftId, value)}
                 onVariantChange={(nextRate) => onVariantChange(item.draftId, nextRate)}
+                showQuantity
               />
             ))}
           </div>
@@ -966,25 +1094,42 @@ function ProductionRateConfigureStep({
 function WorkElementRow({
   item,
   projectLaborRates,
+  laborRatesLoading,
+  showDevSourceDetails,
   previewLineItem,
   onToggle,
   onQuantityChange,
   onVariantChange,
+  showQuantity = true,
 }: {
   item: DraftProductionRateLineItem;
   projectLaborRates: ProjectLaborRate[];
+  laborRatesLoading: boolean;
+  showDevSourceDetails: boolean;
+  showQuantity?: boolean;
   previewLineItem?: {
     calculatedManHours: number;
     laborCost: number;
     laborRoleName?: string | null;
+    laborRoleKey?: string | null;
     fullyBurdenedRateSnapshot: number;
   };
   onToggle: (selected: boolean) => void;
   onQuantityChange: (value: string) => void;
   onVariantChange: (nextRate: ProductionRateLibraryEntry) => void;
 }) {
-  const mapping = resolveLaborRoleForProductionRate(item.rate, projectLaborRates);
-  const displayTitle = getProductionRateDisplayTitle(item.rate);
+  const mappedRoleKey = mapProductionRateToLaborRoleKey(item.rate);
+  const displayTitle = formatProductionRateDisplayTitle(item.rate);
+  const subtitle = formatProductionRateSubtitle(item.rate, { includeCrew: true });
+  const missingLaborRate =
+    !laborRatesLoading &&
+    !!previewLineItem &&
+    previewLineItem.calculatedManHours > 0 &&
+    previewLineItem.fullyBurdenedRateSnapshot <= 0;
+  const usingFallback =
+    !!previewLineItem?.laborRoleKey &&
+    mappedRoleKey !== previewLineItem.laborRoleKey &&
+    previewLineItem.fullyBurdenedRateSnapshot > 0;
 
   return (
     <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
@@ -997,25 +1142,24 @@ function WorkElementRow({
         />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{displayTitle}</p>
-          <p className="mt-0.5 text-[11px] text-slate-400">
-            {item.rate.workElementNumber ?? item.rate.id} · {item.rate.figure} · p.
-            {item.rate.sourcePage} · crew {item.rate.crewSize ?? '—'} ·{' '}
-            {(item.rate.manHoursPerUnit ?? 0).toFixed(3)} MH/{item.rate.unitOfMeasure}
-            {item.rate.variantLabel ? ` · ${item.rate.variantLabel}` : ''}
-          </p>
+          <p className="mt-0.5 text-[11px] text-slate-400">{subtitle}</p>
           <ProductionRateVariantSelector
             entry={item.rate}
             onVariantChange={onVariantChange}
             className="mt-2 max-w-md"
           />
-          <ProductionRateSourceDetails entry={item.rate} className="mt-2" />
-          {mapping.warning && item.selected && (
+          <ProductionRateSourceDetails
+            entry={item.rate}
+            className="mt-2"
+            enabled={showDevSourceDetails}
+          />
+          {missingLaborRate && item.selected && (
             <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
-              <AlertTriangle size={11} /> {mapping.warning}
+              <AlertTriangle size={11} /> Missing labor rate
             </p>
           )}
         </div>
-        {item.selected && (
+        {item.selected && showQuantity ? (
           <div className="w-28 shrink-0">
             <label className="mb-1 block text-[10px] text-slate-500">
               Quantity ({item.rate.unitOfMeasure})
@@ -1029,15 +1173,18 @@ function WorkElementRow({
               className="w-full rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             />
           </div>
-        )}
+        ) : null}
       </div>
-      {item.selected && item.quantity > 0 && previewLineItem && (
+      {showQuantity && item.selected && item.quantity > 0 && previewLineItem && (
         <div className="mt-2 flex flex-wrap gap-3 border-t border-slate-100 pt-2 text-[11px] text-slate-500 dark:border-slate-800">
           <span>{previewLineItem.calculatedManHours.toFixed(2)} MH</span>
           <span>
-            {previewLineItem.laborRoleName ?? mapping.resolvedRoleName} @ $
+            Labor: {previewLineItem.laborRoleName ?? '—'} · $
             {previewLineItem.fullyBurdenedRateSnapshot.toFixed(2)}/hr
           </span>
+          {usingFallback ? (
+            <span className="text-slate-400">Using {previewLineItem.laborRoleName}</span>
+          ) : null}
           <span>${previewLineItem.laborCost.toFixed(2)} labor</span>
         </div>
       )}

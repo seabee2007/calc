@@ -15,6 +15,19 @@ export const Z_MODAL = 9999;
 export const Z_PLANNER_DRAWER = 10050;
 export const Z_MODAL_ABOVE_DRAWER = 10101;
 
+// --- Layout ---
+
+export const FOCUS_RING =
+  'focus-visible:ring-2 focus-visible:ring-cyan-500/60 focus-visible:outline-none';
+
+export const PAGE_MAX_WIDTH = 'max-w-7xl mx-auto';
+
+export const PAGE_GUTTER = 'px-4 sm:px-6 lg:px-8';
+
+export const SECTION_SPACING = 'space-y-6';
+
+export const CARD_PADDING = 'p-5';
+
 // --- Surfaces ---
 
 export const SURFACE =
@@ -37,6 +50,17 @@ export const BORDER_DEFAULT =
 
 export const BORDER_SUBTLE =
   'border-slate-100 dark:border-slate-800';
+
+// --- Elevation tiers ---
+
+/** Base page canvas — no elevation. */
+export const SURFACE_0 = 'bg-slate-50 dark:bg-slate-950';
+
+/** Standard cards and panels. */
+export const SURFACE_1 = SURFACE;
+
+/** Raised panels, popovers, dropdowns. */
+export const SURFACE_2 = SURFACE_ELEVATED;
 
 // --- Typography ---
 

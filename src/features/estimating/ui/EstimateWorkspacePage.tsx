@@ -110,6 +110,11 @@ import ConceptualScenariosPanel from './components/ConceptualScenariosPanel';
 import ConceptualRisksContingencyPanel from './components/ConceptualRisksContingencyPanel';
 import ConvertToDetailedEstimateModal from './components/ConvertToDetailedEstimateModal';
 import { useConceptualEstimate } from './hooks/useConceptualEstimate';
+import {
+  EstimateWorkspaceSaveStatusProvider,
+  useEstimateWorkspaceSaveStatus,
+} from './hooks/useEstimateWorkspaceSaveStatus';
+import { friendlyEstimateWorkspaceSaveError } from './estimateWorkspaceSaveStatus';
 import { quickFeasibilityInputsFromSnapshot } from '../application/estimateQuickFeasibility';
 import { applyImportedEstimate } from '../importExport/estimateImportApply';
 import type { ImportedEstimateData } from '../importExport/estimateImportParser';
@@ -1067,17 +1072,23 @@ export default function EstimateWorkspacePage() {
     user?.id,
   ]);
 
+  const hasPendingEstimateChanges = isConceptualEstimate
+    ? conceptualEstimate.dirty || estimateSettings.dirty
+    : lineItemDraft.dirty ||
+      estimateSettings.dirty ||
+      estimateSetup.session.selectedDivisions.length > 0 ||
+      (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
+      projectCrewSizeDraftDirty;
+
+  const workspaceSaveStatus = useEstimateWorkspaceSaveStatus({
+    hasPendingEstimateChanges,
+  });
+
   const canSave =
     estimate != null &&
     estimateAdapter != null &&
     !saving &&
-    (isConceptualEstimate
-      ? conceptualEstimate.dirty || estimateSettings.dirty
-      : (lineItemDraft.dirty ||
-          estimateSettings.dirty ||
-          estimateSetup.session.selectedDivisions.length > 0 ||
-          (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
-          projectCrewSizeDraftDirty));
+    hasPendingEstimateChanges;
 
   const handleSaveSelectedDivisions = useCallback(
     async (divisions: EstimateSelectedDivision[]) => {
@@ -1130,6 +1141,7 @@ export default function EstimateWorkspacePage() {
       if (!conceptualEstimate.dirty && !estimateSettings.dirty) return;
 
       setSaving(true);
+      workspaceSaveStatus.markSaving();
       setSaveError(null);
       setSaveToastMessage(null);
 
@@ -1160,7 +1172,8 @@ export default function EstimateWorkspacePage() {
       });
 
       if (result.error || !result.data) {
-        setSaveError(result.error ?? 'Failed to save conceptual estimate.');
+        workspaceSaveStatus.markError(result.error);
+        setSaveError(friendlyEstimateWorkspaceSaveError(result.error ?? 'Failed to save conceptual estimate.'));
         setSaving(false);
         return;
       }
@@ -1169,15 +1182,12 @@ export default function EstimateWorkspacePage() {
       setCurrentEstimate(result.data);
       conceptualEstimate.markSaved(result.data);
       estimateSettings.rehydrateFromEstimate(result.data);
+      workspaceSaveStatus.markSaved();
       setSaving(false);
       return;
     }
 
     if (!canSave) return;
-
-    setSaving(true);
-    setSaveError(null);
-    setSaveToastMessage(null);
 
     const pendingCrewCommit = projectCrewSizeInputRef.current?.flushCommit() ?? null;
     if (pendingCrewCommit !== null) {
@@ -1192,9 +1202,13 @@ export default function EstimateWorkspacePage() {
       (currentEstimate?.selectedDivisions.length ?? 0) > 0;
 
     if (!hasEstimateChanges) {
-      setSaving(false);
       return;
     }
+
+    setSaving(true);
+    workspaceSaveStatus.markSaving();
+    setSaveError(null);
+    setSaveToastMessage(null);
 
     const invalidateCpmOnSave = shouldInvalidateCpmOnEstimateSave({
       estimateSettingsDirty: estimateSettings.dirty,
@@ -1261,7 +1275,8 @@ export default function EstimateWorkspacePage() {
     });
 
     if (result.error || !result.data) {
-      setSaveError(result.error ?? 'Failed to save estimate.');
+      workspaceSaveStatus.markError(result.error);
+      setSaveError(friendlyEstimateWorkspaceSaveError(result.error ?? 'Failed to save estimate.'));
       setSaving(false);
       return;
     }
@@ -1287,6 +1302,7 @@ export default function EstimateWorkspacePage() {
       result.data.selectedDivisions,
     );
 
+    workspaceSaveStatus.markSaved();
     setSaving(false);
   }, [
     constructionActivities.length,
@@ -1310,7 +1326,13 @@ export default function EstimateWorkspacePage() {
     user?.id,
     projectCrewSizeDraftDirty,
     handleProjectCrewSizeChange,
+    workspaceSaveStatus,
   ]);
+
+  const handleRetrySave = useCallback(() => {
+    workspaceSaveStatus.clearError();
+    void handleSaveEstimate();
+  }, [handleSaveEstimate, workspaceSaveStatus]);
 
   const handleSaveQuickEstimate = useCallback(
     async (payload: { inputs: QuickFeasibilityInputs; result: QuickFeasibilityResult }) => {
@@ -1571,6 +1593,7 @@ export default function EstimateWorkspacePage() {
         });
       }
 
+      workspaceSaveStatus.markSaving();
       const result = await saveCurrentEstimateWithLineItems({
         estimateId: estimate.id,
         projectId: estimate.projectId,
@@ -1583,8 +1606,12 @@ export default function EstimateWorkspacePage() {
       });
 
       if (result.error || !result.data) {
-        setSaveToastMessage(result.error ?? 'Failed to save logic links');
+        workspaceSaveStatus.markError(result.error);
+        setSaveToastMessage(
+          friendlyEstimateWorkspaceSaveError(result.error ?? 'Failed to save logic links'),
+        );
       } else {
+        workspaceSaveStatus.markSaved();
         setCurrentEstimate(result.data);
       }
     },
@@ -1597,6 +1624,7 @@ export default function EstimateWorkspacePage() {
       scheduleActivitiesResult.activities,
       scheduleSettingsHook,
       user?.id,
+      workspaceSaveStatus,
     ],
   );
 
@@ -1730,6 +1758,7 @@ export default function EstimateWorkspacePage() {
         },
       );
 
+      workspaceSaveStatus.markSaving();
       const result = await saveCurrentEstimate({
         ...(currentEstimate ? buildEstimatePersistenceFields(currentEstimate) : {
           estimateId: estimate.id,
@@ -1744,15 +1773,17 @@ export default function EstimateWorkspacePage() {
         createdBy: user?.id ?? null,
       });
       if (result.error || !result.data) {
-        throw new Error(result.error ?? 'Failed to save logic layout');
+        workspaceSaveStatus.markError(result.error);
+        throw new Error(friendlyEstimateWorkspaceSaveError(result.error ?? 'Failed to save logic layout'));
       }
+      workspaceSaveStatus.markSaved();
       setCurrentEstimate((previous) =>
         previous && result.data
           ? { ...previous, assumptions: result.data.assumptions }
           : result.data,
       );
     },
-    [estimateAdapter, scheduleSettingsHook, user?.id],
+    [estimateAdapter, scheduleSettingsHook, user?.id, workspaceSaveStatus],
   );
 
   const handleLogicNetworkLayoutChange = useCallback(
@@ -2040,6 +2071,7 @@ export default function EstimateWorkspacePage() {
   }, []);
 
   return (
+    <EstimateWorkspaceSaveStatusProvider value={workspaceSaveStatus}>
     <>
       <div className={`${PLANNER_PAGE_BG} flex min-h-0 flex-1 flex-col overflow-hidden`}>
         <EstimateWorkspaceTabBar
@@ -2065,9 +2097,12 @@ export default function EstimateWorkspacePage() {
               showImportExport={showImportExport}
               showConvertToDetailed={showConvertToDetailed}
               canEdit={canEditEstimate || activeEstimateType != null}
-              canSave={canSave}
               canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
               saving={saving}
+              saveStatus={workspaceSaveStatus.status}
+              saveStatusActiveOperations={workspaceSaveStatus.activeOperations}
+              hasPendingEstimateChanges={hasPendingEstimateChanges}
+              saveStatusErrorMessage={workspaceSaveStatus.errorMessage ?? saveError}
               handlers={builderToolbarHandlers}
               onReset={() => {
                 if (activeTab === 'settings') {
@@ -2076,7 +2111,8 @@ export default function EstimateWorkspacePage() {
                 }
                 setResetModalOpen(true);
               }}
-              onSave={handleSaveEstimate}
+              onSave={() => void handleSaveEstimate()}
+              onRetrySave={handleRetrySave}
               onImportEstimate={() => setImportModalOpen(true)}
               onExportEstimate={handleExportEstimate}
               onDownloadImportTemplate={handleDownloadImportTemplate}
@@ -2561,5 +2597,6 @@ export default function EstimateWorkspacePage() {
         onDismiss={() => setSaveToastMessage(null)}
       />
     </>
+    </EstimateWorkspaceSaveStatusProvider>
   );
 }

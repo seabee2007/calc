@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Upload,
@@ -19,11 +18,15 @@ import {
   formatWinRate,
 } from '../utils/proposalKpis';
 import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
+import ModalShell from '../components/ui/ModalShell';
 import Card from '../components/ui/Card';
+import PageHeader from '../components/ui/PageHeader';
+import KpiStrip from '../components/ui/KpiStrip';
+import FilterBar from '../components/ui/FilterBar';
+import EmptyState from '../components/ui/EmptyState';
+import InlineNotice from '../components/ui/InlineNotice';
+import AppPage from '../components/ui/AppPage';
 import { soundService } from '../services/soundService';
-import KPIStatCard from '../components/proposals/KPIStatCard';
-import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
 import ProposalPipelineBoard from '../components/proposals/ProposalPipelineBoard';
 import ProposalNextActionsPanel from '../components/proposals/ProposalNextActionsPanel';
@@ -31,6 +34,7 @@ import ProposalPipelineCard from '../components/proposals/ProposalPipelineCard';
 import {
   buildCrmNextActions,
   buildCrmRevenueMetrics,
+  CRM_PIPELINE_COLUMNS,
   proposalMatchesPipelineFilter,
   type CrmPipelineFilter,
 } from '../utils/proposalCrm';
@@ -284,6 +288,11 @@ const Proposals: React.FC = () => {
     },
   ];
 
+  const pipelineFilterOptions = useMemo(
+    () => CRM_PIPELINE_COLUMNS.map((col) => ({ id: col.id, label: col.label })),
+    [],
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center">
@@ -297,78 +306,81 @@ const Proposals: React.FC = () => {
   }
 
   return (
-    <div className="w-full">
-      <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-        >
-          <div>
-            <h1 className={CC_PAGE_HERO_TITLE}>Proposal Pipeline</h1>
-            <p className={CC_PAGE_HERO_SUBTITLE}>
-              CRM-style pipeline — see what&apos;s stuck, what&apos;s won, and what to do next.
-            </p>
-          </div>
+    <AppPage
+      className="pt-6"
+      header={
+        <PageHeader
+          title="Proposal Pipeline"
+          subtitle="CRM-style pipeline — see what's stuck, what's won, and what to do next."
+          actions={
+            <>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleImport}
+                className="sr-only"
+                aria-hidden
+                tabIndex={-1}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                icon={<Upload size={18} />}
+                disabled={importing}
+                isLoading={importing}
+                onClick={() => importInputRef.current?.click()}
+              >
+                Import
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => navigate('/proposal-generator')}
+                icon={<Plus size={18} />}
+              >
+                New Proposal
+              </Button>
+            </>
+          }
+          className="!px-0"
+        />
+      }
+    >
+      <KpiStrip
+        className="mb-6"
+        metrics={[
+          {
+            label: 'Pipeline value',
+            value: formatProposalMoney(crmRevenue.pipelineValue),
+            change: 'All active proposals',
+          },
+          {
+            label: 'Weighted forecast',
+            value: formatProposalMoney(crmRevenue.weightedForecast),
+          },
+          {
+            label: 'Won this month',
+            value: formatProposalMoney(crmRevenue.wonThisMonth),
+            highlight: true,
+          },
+          {
+            label: 'Average margin',
+            value: formatWinRate(crmRevenue.averageMargin),
+            change: `Win rate ${formatWinRate(crmRevenue.winRate)}`,
+          },
+        ]}
+      />
 
-          <div className="flex items-center gap-3 shrink-0">
-            <input
-              ref={importInputRef}
-              type="file"
-              accept=".json,application/json"
-              onChange={handleImport}
-              className="sr-only"
-              aria-hidden
-              tabIndex={-1}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              icon={<Upload size={18} />}
-              disabled={importing}
-              isLoading={importing}
-              onClick={() => importInputRef.current?.click()}
-            >
-              Import
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/proposal-generator')}
-              icon={<Plus size={18} />}
-            >
-              New Proposal
-            </Button>
-          </div>
-        </motion.div>
-
-        <Card className="p-5 sm:p-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-slate-200/80 dark:border-gray-700">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KPIStatCard
-              label="Pipeline Value"
-              value={formatProposalMoney(crmRevenue.pipelineValue)}
-              hint="All active proposals"
-            />
-            <KPIStatCard
-              label="Weighted Forecast"
-              value={formatProposalMoney(crmRevenue.weightedForecast)}
-              hint="Draft 10% · Sent 25% · Viewed 50% · Won 100%"
-            />
-            <KPIStatCard
-              label="Won This Month"
-              value={formatProposalMoney(crmRevenue.wonThisMonth)}
-            />
-            <KPIStatCard
-              label="Average Margin"
-              value={formatWinRate(crmRevenue.averageMargin)}
-              hint={`Win rate ${formatWinRate(crmRevenue.winRate)} · Need follow-up ${crmRevenue.needFollowUpCount}${
-                crmRevenue.oldestFollowUpDays != null
-                  ? ` · Oldest ${crmRevenue.oldestFollowUpDays}d`
-                  : ''
-              }`}
-            />
-          </div>
+      <Card className="border border-slate-200/80 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/90 sm:p-6">
+          <FilterBar
+            options={pipelineFilterOptions}
+            value={pipelineFilter}
+            onChange={(id) => setPipelineFilter(id as CrmPipelineFilter)}
+            aria-label="Proposal pipeline stage"
+            className="mb-5"
+          />
 
           <ProposalPipelineBoard
             proposals={proposals}
@@ -382,89 +394,41 @@ const Proposals: React.FC = () => {
           />
 
           {importMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/20"
-            >
-              <p className="text-emerald-800 dark:text-emerald-200">{importMessage}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="mt-2"
-                onClick={() => setImportMessage(null)}
-              >
-                Dismiss
-              </Button>
-            </motion.div>
+            <InlineNotice
+              variant="success"
+              title={importMessage}
+              className="mt-5"
+            />
           )}
 
-          {/* Error Message */}
           {displayError && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
-            >
-              <p className="text-red-700 dark:text-red-300">{displayError}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="mt-2"
-                onClick={() => setError(null)}
-              >
-                Dismiss
-              </Button>
-            </motion.div>
+            <InlineNotice
+              variant="danger"
+              title={displayError}
+              className="mt-5"
+            />
           )}
 
-          {/* Proposals Grid */}
           {proposals.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="py-12 text-center"
-            >
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
-                No proposals yet
-              </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-gray-300">
-                Create your first proposal to start tracking bids and revenue.
-              </p>
-              <div className="mt-6">
-                <Button
-                  variant="primary"
-                  onClick={() => navigate('/proposal-generator')}
-                  icon={<Plus size={18} />}
-                >
-                  New Proposal
-                </Button>
-              </div>
-            </motion.div>
+            <EmptyState
+              className="mt-5"
+              title="No proposals yet"
+              description="Create your first proposal to start tracking bids and revenue."
+              action={{
+                label: 'New Proposal',
+                onClick: () => navigate('/proposal-generator'),
+              }}
+            />
           ) : filteredProposals.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="py-12 text-center"
-            >
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                No proposals in this stage
-              </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-gray-300">
-                Try another pipeline stage or create a new proposal.
-              </p>
-              <div className="mt-6">
-                <Button
-                  variant="primary"
-                  onClick={() => navigate('/proposal-generator')}
-                  icon={<Plus size={18} />}
-                >
-                  New Proposal
-                </Button>
-              </div>
-            </motion.div>
+            <EmptyState
+              className="mt-5"
+              title="No proposals in this stage"
+              description="Try another pipeline stage or create a new proposal."
+              action={{
+                label: 'New Proposal',
+                onClick: () => navigate('/proposal-generator'),
+              }}
+            />
           ) : (
             <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
               {filteredProposals.map((proposal) => (
@@ -495,28 +459,30 @@ const Proposals: React.FC = () => {
 
         </Card>
 
-        <Modal
+        <ModalShell
           isOpen={Boolean(deleteConfirm)}
           onClose={() => setDeleteConfirm(null)}
           title="Delete proposal"
           size="sm"
+          footer={
+            <>
+              <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => deleteConfirm && void handleDelete(deleteConfirm)}
+              >
+                Delete
+              </Button>
+            </>
+          }
         >
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="mb-2 text-gray-600 dark:text-gray-300">
             Are you sure you want to delete this proposal? This action cannot be undone.
           </p>
-          <div className="flex flex-wrap justify-end gap-3">
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => deleteConfirm && void handleDelete(deleteConfirm)}
-            >
-              Delete
-            </Button>
-          </div>
-        </Modal>
+        </ModalShell>
 
         <ProposalSentLinkModal
           isOpen={Boolean(linkModal)}
@@ -524,8 +490,7 @@ const Proposals: React.FC = () => {
           proposalUrl={linkModal?.url ?? ''}
           title={linkModal?.title}
         />
-      </div>
-    </div>
+    </AppPage>
   );
 };
 

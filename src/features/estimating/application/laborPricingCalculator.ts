@@ -89,3 +89,9 @@ export function findDefaultProjectLaborRate(
   const active = rates.filter((rate) => rate.isActive);
   return active.find((rate) => rate.isDefault) ?? active[0];
 }
+
+export function findFirstActiveProjectLaborRate(
+  rates: readonly ProjectLaborRate[],
+): ProjectLaborRate | undefined {
+  return rates.find((rate) => rate.isActive);
+}

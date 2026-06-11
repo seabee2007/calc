@@ -2,10 +2,11 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import type { ProductionRateLibraryEntry } from '../../data/productionRates/productionRateTypes';
 import { applyVariantFromEntry } from '../../data/productionRates/mapCanonicalToLibraryEntry';
+import {
+  formatVariantDisplayLabel,
+} from '../../data/productionRates/productionRateDisplayFormatters';
 
-export function getProductionRateDisplayTitle(entry: ProductionRateLibraryEntry): string {
-  return entry.canonicalTitle?.trim() || entry.activityName;
-}
+export { getProductionRateDisplayTitle } from '../../data/productionRates/productionRateDisplayFormatters';
 
 interface ProductionRateVariantSelectorProps {
   entry: ProductionRateLibraryEntry;
@@ -36,7 +37,8 @@ export function ProductionRateVariantSelector({
       >
         {variants.map((variant) => (
           <option key={variant.sourceProductionRateKey} value={variant.sourceProductionRateKey}>
-            {variant.label} · {variant.manHoursPerUnit.toFixed(3)} MH/{variant.unitOfMeasure}
+            {formatVariantDisplayLabel(variant.label)} · {variant.manHoursPerUnit.toFixed(3)} MH/
+            {variant.unitOfMeasure}
           </option>
         ))}
       </select>
@@ -49,16 +51,19 @@ interface ProductionRateSourceDetailsProps {
   className?: string;
   /** Dark modal styling vs light picker styling */
   variant?: 'light' | 'dark';
+  /** Dev-only explicit opt-in; never shown in production builds */
+  enabled?: boolean;
 }
 
 export function ProductionRateSourceDetails({
   entry,
   className = '',
   variant = 'light',
+  enabled = false,
 }: ProductionRateSourceDetailsProps) {
   const refs = entry.sourceReferences ?? [];
   const [open, setOpen] = useState(false);
-  if (refs.length === 0) return null;
+  if (!import.meta.env.DEV || !enabled || refs.length === 0) return null;
 
   const isDark = variant === 'dark';
   const buttonClass = isDark

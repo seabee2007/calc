@@ -38,6 +38,7 @@ import {
   LazyMixDesignAdvisor,
   LazyProposalGenerator,
   LazyProposals,
+  LazyFinancialDetailsPage,
   LazyPublicProposal,
   LazyPublicChangeOrder,
   LazyPublicContract,
@@ -390,6 +391,14 @@ function App() {
               element={
                 <AuthGuard>
                   <LazyRoute Page={LazyProposals} />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="financials"
+              element={
+                <AuthGuard>
+                  <LazyRoute Page={LazyFinancialDetailsPage} />
                 </AuthGuard>
               }
             />

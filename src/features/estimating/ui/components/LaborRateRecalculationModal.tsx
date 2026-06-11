@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Modal from '../../../../components/ui/Modal';
+import ModalShell from '../../../../components/ui/ModalShell';
 import Button from '../../../../components/ui/Button';
 import type { ProjectLaborRate } from '../../domain/laborRateTypes';
 import {
@@ -123,7 +123,27 @@ export default function LaborRateRecalculationModal({
   }, [affected, mode, onClose, projectId, rate, selectedActivityIds]);
 
   return (
-    <Modal isOpen onClose={onClose} title="Recalculate Labor Costs?" size="md">
+    <ModalShell
+      isOpen
+      onClose={onClose}
+      title="Recalculate Labor Costs?"
+      size="md"
+      stackAboveDrawer
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={() => void handleConfirm()} disabled={saving || loading}>
+            {saving
+              ? 'Recalculating…'
+              : mode === 'future_only'
+                ? 'Keep Existing Snapshots'
+                : `Recalculate ${previewCount} Activit${previewCount === 1 ? 'y' : 'ies'}`}
+          </Button>
+        </>
+      }
+    >
       <div className="space-y-4">
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60">
           <p className="font-medium text-slate-800 dark:text-slate-100">{rate.roleName}</p>
@@ -204,20 +224,7 @@ export default function LaborRateRecalculationModal({
         ) : null}
 
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
-
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={() => void handleConfirm()} disabled={saving || loading}>
-            {saving
-              ? 'Recalculating…'
-              : mode === 'future_only'
-                ? 'Keep Existing Snapshots'
-                : `Recalculate ${previewCount} Activit${previewCount === 1 ? 'y' : 'ies'}`}
-          </Button>
-        </div>
       </div>
-    </Modal>
+    </ModalShell>
   );
 }

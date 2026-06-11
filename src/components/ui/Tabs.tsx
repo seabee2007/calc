@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import {
+  BORDER_DEFAULT,
+  FOCUS_RING,
+  SURFACE,
+  SURFACE_MUTED,
+  TEXT_ACCENT,
+  TEXT_BODY,
+} from '../../theme/appTheme';
 
 interface Tab {
   id: string;
@@ -10,6 +18,8 @@ interface Tab {
 interface TabsProps {
   tabs: Tab[];
   initialTabId?: string;
+  /** Controlled active tab (optional). */
+  activeTabId?: string;
   onChange?: (tabId: string) => void;
   variant?: 'default' | 'pill';
   fullWidth?: boolean;
@@ -18,14 +28,19 @@ interface TabsProps {
 const Tabs: React.FC<TabsProps> = ({
   tabs,
   initialTabId,
+  activeTabId: controlledActiveTabId,
   onChange,
   variant = 'default',
   fullWidth = false,
 }) => {
-  const [activeTabId, setActiveTabId] = useState(initialTabId || tabs[0].id);
+  const [internalActiveTabId, setInternalActiveTabId] = useState(initialTabId || tabs[0].id);
+  const activeTabId = controlledActiveTabId ?? internalActiveTabId;
+  const prefersReducedMotion = useReducedMotion();
   
   const handleTabClick = (tabId: string) => {
-    setActiveTabId(tabId);
+    if (controlledActiveTabId === undefined) {
+      setInternalActiveTabId(tabId);
+    }
     if (onChange) {
       onChange(tabId);
     }
@@ -45,16 +60,16 @@ const Tabs: React.FC<TabsProps> = ({
   // Variant-specific styles
   const variantStyles = {
     default: {
-      container: 'border-b border-slate-200',
-      tab: 'px-4 py-2 text-sm text-slate-700 hover:text-slate-900',
-      activeTab: 'text-blue-600 border-b-2 border-blue-600',
+      container: `border-b ${BORDER_DEFAULT}`,
+      tab: `px-4 py-2 text-sm ${TEXT_BODY} hover:text-slate-900 dark:hover:text-slate-100`,
+      activeTab: `${TEXT_ACCENT} border-b-2 border-cyan-600 dark:border-cyan-400`,
       inactiveTab: 'border-b-2 border-transparent',
     },
     pill: {
-      container: 'p-1 bg-slate-100 rounded-lg',
-      tab: 'px-4 py-2 text-sm rounded-md text-slate-700',
-      activeTab: 'bg-white text-slate-900 shadow-sm',
-      inactiveTab: 'hover:bg-slate-200',
+      container: `rounded-lg p-1 ${SURFACE_MUTED}`,
+      tab: `rounded-md px-4 py-2 text-sm ${TEXT_BODY}`,
+      activeTab: `${SURFACE} text-slate-900 shadow-sm dark:text-slate-100`,
+      inactiveTab: 'hover:bg-slate-200 dark:hover:bg-slate-700',
     },
   };
 
@@ -62,19 +77,14 @@ const Tabs: React.FC<TabsProps> = ({
     <div className={`${containerStyles} ${variantStyles[variant].container}`}>
       {tabs.map((tab) => {
         const isActive = activeTabId === tab.id;
-        const tabStyles = `
-          ${baseTabItem} 
-          ${variantStyles[variant].tab} 
-          ${isActive ? variantStyles[variant].activeTab : variantStyles[variant].inactiveTab}
-          ${tabWidthStyle}
-        `;
-        
+
         return (
           <motion.button
             key={tab.id}
-            className={tabStyles}
+            type="button"
+            className={`${baseTabItem} ${variantStyles[variant].tab} ${isActive ? variantStyles[variant].activeTab : variantStyles[variant].inactiveTab} ${tabWidthStyle} ${FOCUS_RING}`}
             onClick={() => handleTabClick(tab.id)}
-            whileTap={{ scale: 0.97 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
           >
             {tab.icon && <span className="mr-2">{tab.icon}</span>}
             {tab.label}
