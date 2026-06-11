@@ -1,37 +1,42 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { Plus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { fetchAssignedProjects } from '../../services/employeeService';
 import { resolveProjectWorkflow } from '../../utils/projectWorkflow';
-import { PLANNER_PAGE_BG } from '../../components/planner/plannerTheme';
+import { PLANNER_PAGE_BG, PLANNER_SECTION_TITLE } from '../../components/planner/plannerTheme';
 import PlannerRecordsQuickNav from '../../components/planner/PlannerRecordsQuickNav';
+
+
+
 import PlannerHubProjectCard, {
   PlannerHubProjectCardSkeleton,
   type PlannerHubProjectCardData,
 } from '../../components/planner/PlannerHubProjectCard';
+
 import AppPage from '../../components/ui/AppPage';
 import PageHeader from '../../components/ui/PageHeader';
 import EmptyState from '../../components/ui/EmptyState';
 import InlineNotice from '../../components/ui/InlineNotice';
 import Button from '../../components/ui/Button';
-import KpiStrip from '../../components/ui/KpiStrip';
 
 export const PLANNER_HUB_LAST_PROJECT_KEY = 'plannerHubLastProjectId';
-
 export default function PlannerHubPage() {
+
   const navigate = useNavigate();
   const { user, isOwner, isEmployee } = useAuth();
   const [projects, setProjects] = useState<PlannerHubProjectCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const loadProjects = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     setError(null);
+
     try {
+
       if (isEmployee && !isOwner) {
         const rows = await fetchAssignedProjects(user.id);
         setProjects(
@@ -53,7 +58,6 @@ export default function PlannerHubPage() {
       if (fetchError) {
         throw fetchError;
       }
-
       setProjects(
         (data ?? [])
           .map((row) => {
@@ -98,12 +102,12 @@ export default function PlannerHubPage() {
   };
 
   const headerActions = (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-2 lg:justify-end">
+    <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-2 lg:justify-end">
       <PlannerRecordsQuickNav />
       <Button
-        variant="outline"
+        variant="accent"
         size="sm"
-        
+        icon={<Plus size={16} aria-hidden />}
         onClick={openNewProjectPlan}
         data-testid="planner-hub-new-project-plan"
       >
@@ -132,40 +136,15 @@ export default function PlannerHubPage() {
             </Button>
           </div>
         ) : null}
-
-        {loading ? (
-          <div
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
-            aria-busy="true"
-            aria-label="Loading project plans"
-          >
-            {Array.from({ length: 6 }, (_, index) => (
-              <PlannerHubProjectCardSkeleton key={index} />
-            ))}
-          </div>
-        ) : null}
-
-        {!loading && !error && projects.length === 0 ? (
-          <EmptyState
-            title="No project plans yet"
-            description="Create a project plan to start managing field tasks."
-          />
-        ) : null}
-
         {!loading && !error && projects.length > 0 ? (
-          <>
-            <KpiStrip
-              className="mb-6"
-              metrics={[
-                {
-                  label: 'Active plans',
-                  value: projects.length,
-                  change: 'Open a board to manage field tasks',
-                },
-              ]}
-            />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <section aria-labelledby="planner-hub-project-plans-heading">
+            <h2 id="planner-hub-project-plans-heading" className={`mb-4 ${PLANNER_SECTION_TITLE}`}>
+              Project Plans
+            </h2>
+            <div
+              data-testid="planner-hub-project-grid"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            >
               {projects.map((project) => (
                 <PlannerHubProjectCard
                   key={project.id}
@@ -174,7 +153,46 @@ export default function PlannerHubPage() {
                 />
               ))}
             </div>
-          </>
+          </section>
+        ) : null}
+
+        {loading ? (
+          <section aria-labelledby="planner-hub-project-plans-heading-loading">
+            <h2
+              id="planner-hub-project-plans-heading-loading"
+              className={`mb-4 ${PLANNER_SECTION_TITLE}`}
+            >
+              Project Plans
+            </h2>
+            <div
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+              aria-busy="true"
+              aria-label="Loading project plans"
+            >
+              {Array.from({ length: 6 }, (_, index) => (
+                <PlannerHubProjectCardSkeleton key={index} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {!loading && !error && projects.length === 0 ? (
+          <section aria-labelledby="planner-hub-project-plans-heading-empty">
+            <h2
+              id="planner-hub-project-plans-heading-empty"
+              className={`mb-4 ${PLANNER_SECTION_TITLE}`}
+            >
+              Project Plans
+            </h2>
+            <EmptyState
+              title="No project plans yet"
+              description="Create a project plan to start managing field tasks, assignments, and field updates."
+              action={{
+                label: 'New Project Plan',
+                onClick: openNewProjectPlan,
+              }}
+            />
+          </section>
         ) : null}
       </AppPage>
     </div>
