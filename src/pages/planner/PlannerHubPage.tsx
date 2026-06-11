@@ -97,6 +97,21 @@ export default function PlannerHubPage() {
     navigate('/projects', { state: { openCreate: true } });
   };
 
+  const headerActions = (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-2 lg:justify-end">
+      <PlannerRecordsQuickNav />
+      <Button
+        variant="accent"
+        size="sm"
+        icon={<Plus size={16} aria-hidden />}
+        onClick={openNewProjectPlan}
+        data-testid="planner-hub-new-project-plan"
+      >
+        New Project Plan
+      </Button>
+    </div>
+  );
+
   return (
     <div className={`overflow-y-auto ${PLANNER_PAGE_BG}`}>
       <AppPage
@@ -105,7 +120,7 @@ export default function PlannerHubPage() {
           <PageHeader
             title="Planner Hub"
             subtitle="Open a project plan board to manage field tasks, assignments, and field updates."
-            actions={<PlannerRecordsQuickNav />}
+            actions={headerActions}
           />
         }
       >
@@ -134,10 +149,6 @@ export default function PlannerHubPage() {
           <EmptyState
             title="No project plans yet"
             description="Create a project plan to start managing field tasks."
-            action={{
-              label: 'New Project Plan',
-              onClick: openNewProjectPlan,
-            }}
           />
         ) : null}
 
@@ -162,12 +173,6 @@ export default function PlannerHubPage() {
                   onOpen={rememberProject}
                 />
               ))}
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <Button variant="outline" size="sm" icon={<Plus size={16} />} onClick={openNewProjectPlan}>
-                New Project Plan
-              </Button>
             </div>
           </>
         ) : null}

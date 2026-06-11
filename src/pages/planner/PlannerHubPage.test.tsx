@@ -178,7 +178,7 @@ describe('PlannerHubPage', () => {
     expect(
       screen.getByText('Create a project plan to start managing field tasks.'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'New Project Plan' })).toBeInTheDocument();
+    expect(screen.getByTestId('planner-hub-new-project-plan')).toBeInTheDocument();
   });
 
   it('renders error state with retry', async () => {
@@ -210,7 +210,7 @@ describe('PlannerHubPage', () => {
     });
   });
 
-  it('opens new project plan from empty state action', async () => {
+  it('opens new project plan from header action', async () => {
     const user = userEvent.setup();
     mockProjectsQuery([]);
 
@@ -220,7 +220,25 @@ describe('PlannerHubPage', () => {
       </MemoryRouter>,
     );
 
-    await user.click(await screen.findByRole('button', { name: 'New Project Plan' }));
+    await user.click(await screen.findByTestId('planner-hub-new-project-plan'));
     expect(mockNavigate).toHaveBeenCalledWith('/projects', { state: { openCreate: true } });
+  });
+
+  it('shows New Project Plan only in the header when projects are loaded', async () => {
+    mockProjectsQuery([{ id: 'proj-1', name: 'Riverfront Slab' }]);
+
+    render(
+      <MemoryRouter>
+        <PlannerHubPage />
+      </MemoryRouter>,
+    );
+
+    await screen.findByTestId('planner-hub-project-proj-1');
+
+    expect(screen.getByTestId('planner-hub-new-project-plan')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'New Project Plan' })).toHaveLength(1);
+
+    const header = screen.getByRole('heading', { name: 'Planner Hub' }).closest('header');
+    expect(header).toContainElement(screen.getByTestId('planner-hub-new-project-plan'));
   });
 });
