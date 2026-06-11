@@ -17,6 +17,7 @@ import {
   getAssemblyGroupForCategory,
   previewDraftProductionRateActivity,
   updateDraftLineItemQuantity,
+  updateDraftLineItemVariant,
   type DraftProductionRateActivity,
   type DraftProductionRateLineItem,
   MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
@@ -33,6 +34,11 @@ import type {
   AddFromProductionRateAssemblyParams,
 } from '../hooks/useConstructionActivities';
 import ActivityInstanceFields, { buildIdentityFromForm } from './ActivityInstanceFields';
+import {
+  getProductionRateDisplayTitle,
+  ProductionRateSourceDetails,
+  ProductionRateVariantSelector,
+} from './ProductionRateCanonicalControls';
 
 const DEFAULT_CREW_SIZE = 4;
 const DEFAULT_HOURS_PER_DAY = 8;
@@ -310,6 +316,21 @@ export default function AssemblyPickerModal({
     [],
   );
 
+  const setWorkElementVariant = useCallback(
+    (draftId: string, nextRate: ProductionRateLibraryEntry) => {
+      setDraft((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          lineItems: current.lineItems.map((item) =>
+            item.draftId === draftId ? updateDraftLineItemVariant(item, nextRate) : item,
+          ),
+        };
+      });
+    },
+    [],
+  );
+
   const toggleWorkElement = useCallback((rateId: string, selected: boolean) => {
     setDraft((current) => {
       if (!current) return current;
@@ -472,6 +493,9 @@ export default function AssemblyPickerModal({
               libraryLoading={library.loading}
               libraryError={library.error}
               totalRates={library.totalCount}
+              showSourceRecords={library.showSourceRecords}
+              onShowSourceRecordsChange={library.setShowSourceRecords}
+              isSourceIndex={library.isSourceIndex}
               divisionOptions={divisionOptions}
               categoryOptions={categoryOptions}
               divisionCode={divisionCode}
@@ -488,6 +512,7 @@ export default function AssemblyPickerModal({
               onCategoryChange={handleCategoryChange}
               onToggleWorkElement={toggleWorkElement}
               onQuantityChange={setWorkElementQuantity}
+              onVariantChange={setWorkElementVariant}
               onActivityNameChange={setActivityName}
               onInstanceLabelChange={setInstanceLabel}
               onLocationChange={setLocation}
@@ -720,6 +745,9 @@ function ProductionRateConfigureStep({
   libraryLoading,
   libraryError,
   totalRates,
+  showSourceRecords,
+  onShowSourceRecordsChange,
+  isSourceIndex,
   divisionOptions,
   categoryOptions,
   divisionCode,
@@ -736,6 +764,7 @@ function ProductionRateConfigureStep({
   onCategoryChange,
   onToggleWorkElement,
   onQuantityChange,
+  onVariantChange,
   onActivityNameChange,
   onInstanceLabelChange,
   onLocationChange,
@@ -759,6 +788,9 @@ function ProductionRateConfigureStep({
   libraryLoading: boolean;
   libraryError: string | null;
   totalRates: number;
+  showSourceRecords: boolean;
+  onShowSourceRecordsChange: (value: boolean) => void;
+  isSourceIndex: boolean;
   divisionOptions: ReturnType<typeof getAvailableDivisions>;
   categoryOptions: string[];
   divisionCode: string;
@@ -775,6 +807,7 @@ function ProductionRateConfigureStep({
   onCategoryChange: (category: string) => void;
   onToggleWorkElement: (rateId: string, selected: boolean) => void;
   onQuantityChange: (rateId: string, value: string) => void;
+  onVariantChange: (draftId: string, nextRate: ProductionRateLibraryEntry) => void;
   onActivityNameChange: (value: string) => void;
   onInstanceLabelChange: (value: string) => void;
   onLocationChange: (value: string) => void;
@@ -808,9 +841,23 @@ function ProductionRateConfigureStep({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">
-        {totalRates.toLocaleString()} approved production rates available
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-slate-500">
+          {totalRates.toLocaleString()} approved production rates available
+          {isSourceIndex ? ' (source records — debug)' : ''}
+        </p>
+        {import.meta.env.DEV ? (
+          <label className="flex items-center gap-2 text-[11px] text-slate-500">
+            <input
+              type="checkbox"
+              checked={showSourceRecords}
+              onChange={(e) => onShowSourceRecordsChange(e.target.checked)}
+              className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+            />
+            Show source records (debug)
+          </label>
+        ) : null}
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -882,6 +929,7 @@ function ProductionRateConfigureStep({
                 )}
                 onToggle={(selected) => onToggleWorkElement(item.draftId, selected)}
                 onQuantityChange={(value) => onQuantityChange(item.draftId, value)}
+                onVariantChange={(nextRate) => onVariantChange(item.draftId, nextRate)}
               />
             ))}
           </div>
@@ -921,6 +969,7 @@ function WorkElementRow({
   previewLineItem,
   onToggle,
   onQuantityChange,
+  onVariantChange,
 }: {
   item: DraftProductionRateLineItem;
   projectLaborRates: ProjectLaborRate[];
@@ -932,8 +981,10 @@ function WorkElementRow({
   };
   onToggle: (selected: boolean) => void;
   onQuantityChange: (value: string) => void;
+  onVariantChange: (nextRate: ProductionRateLibraryEntry) => void;
 }) {
   const mapping = resolveLaborRoleForProductionRate(item.rate, projectLaborRates);
+  const displayTitle = getProductionRateDisplayTitle(item.rate);
 
   return (
     <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
@@ -945,14 +996,19 @@ function WorkElementRow({
           className="mt-1 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
         />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-            {item.rate.activityName}
-          </p>
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{displayTitle}</p>
           <p className="mt-0.5 text-[11px] text-slate-400">
             {item.rate.workElementNumber ?? item.rate.id} · {item.rate.figure} · p.
             {item.rate.sourcePage} · crew {item.rate.crewSize ?? '—'} ·{' '}
             {(item.rate.manHoursPerUnit ?? 0).toFixed(3)} MH/{item.rate.unitOfMeasure}
+            {item.rate.variantLabel ? ` · ${item.rate.variantLabel}` : ''}
           </p>
+          <ProductionRateVariantSelector
+            entry={item.rate}
+            onVariantChange={onVariantChange}
+            className="mt-2 max-w-md"
+          />
+          <ProductionRateSourceDetails entry={item.rate} className="mt-2" />
           {mapping.warning && item.selected && (
             <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
               <AlertTriangle size={11} /> {mapping.warning}

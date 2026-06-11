@@ -33,7 +33,7 @@
     "figureTitle": { "type": "string", "minLength": 1 },
     "sourcePage": { "type": "string", "minLength": 1 },
     "sourcePdfPage": { "type": ["integer", "null"], "minimum": 1 },
-    "workElementNumber": { "type": ["string", "null"], "pattern": "^\\d{2}\\s\\d{2}\\s\\d{2}\\.\\d{2}$" },
+    "workElementNumber": { "type": ["string", "null"], "pattern": "^\\d{2}\\s\\d{2}\\s\\d{2}(?:\\.\\d{2})?$" },
     "workElementLineNumber": { "type": ["string", "null"], "pattern": "^\\d{4}$" },
     "category": { "type": ["string", "null"] },
     "subcategory": { "type": ["string", "null"] },
@@ -58,6 +58,8 @@
       "enum": ["raw", "needs_review", "ai_reviewed", "reviewed", "approved", "rejected"]
     },
     "extractionWarnings": { "type": "array", "items": { "type": "string" } },
+    "extractionSource": { "type": "string", "minLength": 1 },
+    "reviewStatus": { "type": "string", "minLength": 1 },
     "createdAt": { "type": "string", "minLength": 1 },
     "updatedAt": { "type": "string", "minLength": 1 }
   }

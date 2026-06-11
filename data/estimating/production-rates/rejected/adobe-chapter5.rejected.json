@@ -1,0 +1,2822 @@
+{
+  "generatedAt": "2026-06-11T08:18:37.585Z",
+  "sourceFile": "data/estimating/production-rates/normalized/chapter5-production-rates.final-reviewed.json",
+  "inputRowCount": 2014,
+  "rejectedRowCount": 64,
+  "records": [
+    {
+      "id": "03-11-13.25-round-fiber-tube-recycled-paper-one-use-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart48.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 14,
+      "sourceAdobePageIndex": 62,
+      "sourcePageNumberApprox": 63,
+      "division": "03",
+      "divisionName": "Concrete",
+      "sectionCode": "03 11 13.25",
+      "sectionTitle": "Columns, Forms in Place",
+      "itemCode": null,
+      "workElementDescription": "Round fiber tube, recycled paper, one use",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.274,
+      "rateComponents": [
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.274
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.274
+        }
+      ],
+      "rawRow": [
+        "Round fiber tube, recycled paper, one use",
+        "LF",
+        "*",
+        "0.274",
+        "*",
+        "0.274"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "03-11-13.25-0070-12-by-12-inches-surface",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart48.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 22,
+      "sourceAdobePageIndex": 62,
+      "sourcePageNumberApprox": 63,
+      "division": "03",
+      "divisionName": "Concrete",
+      "sectionCode": "03 11 13.25",
+      "sectionTitle": "Plywood (job-built), one use",
+      "itemCode": "0070",
+      "workElementDescription": "12 by 12 inches",
+      "unitOriginal": "surface",
+      "unit": "SURFACE",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.237,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.085
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.137
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.015
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.237
+        }
+      ],
+      "rawRow": [
+        "(0070) 12 by 12 inches",
+        "surface",
+        "0.085",
+        "0.137",
+        "0.015",
+        "0.237"
+      ],
+      "rejectionReasons": [
+        "unitOfMeasure cannot be \"surface\""
+      ]
+    },
+    {
+      "id": "03-11-13.85-0010-wall-job-built-plywood-to-8-feet-sf-contact-surface",
+      "sourceDocument": "MCRP 3-40D.12 / NTRP 4-04.2.3 / TM 3-34.41, Construction Estimating",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart52.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": null,
+      "sourcePageNumberApprox": 65,
+      "division": "03",
+      "divisionName": "Concrete",
+      "sectionCode": "03 11 13.85",
+      "sectionTitle": "Walls, Forms in Place",
+      "itemCode": "0010",
+      "workElementDescription": "Wall, job-built plywood, to 8 feet",
+      "unitOriginal": "SF of contact surface",
+      "unit": "SF_CONTACT_SURFACE",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.173,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.066
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.087
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.021
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.173
+        }
+      ],
+      "reviewStatus": "FIXED_FROM_SOURCE_PDF",
+      "reviewNotes": "",
+      "replacesReviewRows": [
+        "03-11-13.85-0010-walls-forms-in-place-0010-wall-job-built-plywood-to-8-feet-0020-wall-over-8-to-16-feet-hig-sf-of-contact-surface"
+      ],
+      "rawRow": null,
+      "rejectionReasons": [
+        "manHoursPerUnit: manHoursPerUnit must equal fabricate + erect/strip + clean within 0.001"
+      ]
+    },
+    {
+      "id": "03-30-53.10-transit-mix-truck-8-cyd-capacity-cyd",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart64.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sourceAdobePageIndex": 68,
+      "sourcePageNumberApprox": 69,
+      "division": "03",
+      "divisionName": "Concrete",
+      "sectionCode": "03 30 53.10",
+      "sectionTitle": "Tailor to 1 CF of capacity",
+      "itemCode": null,
+      "workElementDescription": "Transit mix truck (8 CYD capacity)",
+      "unitOriginal": "CYD",
+      "unit": "CY",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.56,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.56
+        }
+      ],
+      "rawRow": [
+        "Transit mix truck (8 CYD capacity)",
+        "CYD",
+        "0.56"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "06-16-23.10-subfloor-adhesive-3-8-inch-bead-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart160.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 105,
+      "sourcePageNumberApprox": 106,
+      "division": "06",
+      "divisionName": "Wood, Plastics, and Composites",
+      "sectionCode": "06 16 23.10",
+      "sectionTitle": "Subfloor",
+      "itemCode": null,
+      "workElementDescription": "Subfloor adhesive, 3/8-inch bead",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.004,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.004
+        }
+      ],
+      "rawRow": [
+        "Subfloor adhesive, 3/8-inch bead",
+        "LF",
+        "0.0040"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "06-16-23.10-with-boards-1-inch-by-6-to-10-inches-laid-regular-or-diagonal-average-sf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart160.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sourceAdobePageIndex": 105,
+      "sourcePageNumberApprox": 106,
+      "division": "06",
+      "divisionName": "Wood, Plastics, and Composites",
+      "sectionCode": "06 16 23.10",
+      "sectionTitle": "Subfloor",
+      "itemCode": null,
+      "workElementDescription": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+      "unitOriginal": "SF",
+      "unit": "SF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.023,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.023
+        }
+      ],
+      "rawRow": [
+        "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+        "SF",
+        "0.0230"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "06-22-13.40-and-casing-crown-11-16-by-4-1-4-inches-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart162.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 106,
+      "sourcePageNumberApprox": 107,
+      "division": "06",
+      "divisionName": "Wood, Plastics, and Composites",
+      "sectionCode": "06 22 13.40",
+      "sectionTitle": "Moldings, Exterior",
+      "itemCode": null,
+      "workElementDescription": "and casing, crown, 11/16 by 4 1/4 inches",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.043,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.043
+        }
+      ],
+      "rawRow": [
+        "and casing, crown, 11/16 by 4 1/4 inches",
+        "LF",
+        "0.0430"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "07-71-19.10-various-types-e-g-aluminum-galvanized-steel-pvc-and-stainless-steel-at-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart190.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sourceAdobePageIndex": 116,
+      "sourcePageNumberApprox": 117,
+      "division": "07",
+      "divisionName": "Thermal and Moisture Protection",
+      "sectionCode": "07 71 19.10",
+      "sectionTitle": "Gravel Stop",
+      "itemCode": null,
+      "workElementDescription": "Various types, e.g., aluminum, galvanized steel, PVC, and stainless steel at",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.04,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.04
+        }
+      ],
+      "rawRow": [
+        "Various types, e.g., aluminum, galvanized steel, PVC, and stainless steel at",
+        "LF",
+        "0.0400"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "08-11-63.23-combination-storm-and-screen-various-materiels-6-feet-8-inches-by-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart194.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 119,
+      "sourcePageNumberApprox": 120,
+      "division": "08",
+      "divisionName": "Openings",
+      "sectionCode": "08 11 63.23",
+      "sectionTitle": "Aluminum Screen and Storm Doors and Frames",
+      "itemCode": null,
+      "workElementDescription": "Combination storm and screen, various materiels, 6 feet 8 inches by",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 1.419,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 1.419
+        }
+      ],
+      "rawRow": [
+        "Combination storm and screen, various materiels, 6 feet 8 inches by",
+        "Each",
+        "1.4190"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "08-95-16.10-12-by-18-inches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart206.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sourceAdobePageIndex": 123,
+      "sourcePageNumberApprox": 124,
+      "division": "08",
+      "divisionName": "Openings",
+      "sectionCode": "08 95 16.10",
+      "sectionTitle": "Louvers",
+      "itemCode": null,
+      "workElementDescription": "12 by 18 inches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.304,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.304
+        }
+      ],
+      "rawRow": [
+        "12 by 18 inches",
+        "Each",
+        "0.3040"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "08-95-16.10-18-by-24-inches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart206.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sourceAdobePageIndex": 123,
+      "sourcePageNumberApprox": 124,
+      "division": "08",
+      "divisionName": "Openings",
+      "sectionCode": "08 95 16.10",
+      "sectionTitle": "Louvers",
+      "itemCode": null,
+      "workElementDescription": "18 by 24 inches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.355,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.355
+        }
+      ],
+      "rawRow": [
+        "18 by 24 inches",
+        "Each",
+        "0.3550"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "08-95-16.10-redwood-2-foot-diameter-full-circle-and-other-shapes-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart206.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sourceAdobePageIndex": 123,
+      "sourcePageNumberApprox": 124,
+      "division": "08",
+      "divisionName": "Openings",
+      "sectionCode": "08 95 16.10",
+      "sectionTitle": "Louvers",
+      "itemCode": null,
+      "workElementDescription": "Redwood, 2-foot diameter, full circle and other shapes",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.665,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.665
+        }
+      ],
+      "rawRow": [
+        "Redwood, 2-foot diameter, full circle and other shapes",
+        "Each",
+        "0.6650"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "08-95-16.10-vinyl-gable-vent-8-by-8-inches-and-12-by-12-inches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart206.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sourceAdobePageIndex": 123,
+      "sourcePageNumberApprox": 124,
+      "division": "08",
+      "divisionName": "Openings",
+      "sectionCode": "08 95 16.10",
+      "sectionTitle": "Louvers",
+      "itemCode": null,
+      "workElementDescription": "Vinyl gable vent, 8 by 8 inches and 12 by 12 inches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.281,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.281
+        }
+      ],
+      "rawRow": [
+        "Vinyl gable vent, 8 by 8 inches and 12 by 12 inches",
+        "Each",
+        "0.2810"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "12-32-23.10-various-sizes-average-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart270.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sourceAdobePageIndex": 146,
+      "sourcePageNumberApprox": 147,
+      "division": "12",
+      "divisionName": "Furnishings",
+      "sectionCode": "12 32 23.10",
+      "sectionTitle": "(0030) Kitchen base cabinets, not including counter tops",
+      "itemCode": null,
+      "workElementDescription": "various sizes, average",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.954,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.954
+        }
+      ],
+      "rawRow": [
+        "various sizes, average",
+        "Each",
+        "0.9540"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "13-31-23.50-roll-up-door-minimum-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart276.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sourceAdobePageIndex": 149,
+      "sourcePageNumberApprox": 150,
+      "division": "13",
+      "divisionName": "Special Construction",
+      "sectionCode": "13 31 23.50",
+      "sectionTitle": "Minimum suggested crew size: Structure installation: one steelworker (crew leader), four laborers, two equipment operators.",
+      "itemCode": null,
+      "workElementDescription": "Roll-up door (minimum)",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 20,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 20
+        }
+      ],
+      "rawRow": [
+        "Roll-up door (minimum)",
+        "Each",
+        "20.0000"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "13-34-19.50-40-foot-width-sf-floor",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart284.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 17,
+      "sourceAdobePageIndex": 151,
+      "sourcePageNumberApprox": 152,
+      "division": "13",
+      "divisionName": "Special Construction",
+      "sectionCode": "13 34 19.50",
+      "sectionTitle": "(0070) 10-foot-eave height",
+      "itemCode": null,
+      "workElementDescription": "40-foot width",
+      "unitOriginal": "SF Floor",
+      "unit": "SF_FLOOR",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.124,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.124
+        }
+      ],
+      "rawRow": [
+        "40-foot width",
+        "SF Floor",
+        "0.1240"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "13-34-19.50-50-to-80-foot-width-sf-floor",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart284.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 20,
+      "sourceAdobePageIndex": 151,
+      "sourcePageNumberApprox": 152,
+      "division": "13",
+      "divisionName": "Special Construction",
+      "sectionCode": "13 34 19.50",
+      "sectionTitle": "(0090) 10-foot-eave height",
+      "itemCode": null,
+      "workElementDescription": "50- to 80-foot width",
+      "unitOriginal": "SF Floor",
+      "unit": "SF_FLOOR",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.097,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.097
+        }
+      ],
+      "rawRow": [
+        "50- to 80-foot width",
+        "SF Floor",
+        "0.0970"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "13-34-19.50-clear-span-tapered-beam-frame-26-gauge-roofing-and-siding-sf-floor",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart284.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 13,
+      "sourceAdobePageIndex": 151,
+      "sourcePageNumberApprox": 152,
+      "division": "13",
+      "divisionName": "Special Construction",
+      "sectionCode": "13 34 19.50",
+      "sectionTitle": "50- to 100-foot width",
+      "itemCode": null,
+      "workElementDescription": "Clear span tapered beam frame, 26-gauge roofing and siding",
+      "unitOriginal": "SF Floor",
+      "unit": "SF_FLOOR",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.14,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.14
+        }
+      ],
+      "rawRow": [
+        "Clear span tapered beam frame, 26-gauge roofing and siding",
+        "SF Floor",
+        "0.1400"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-black-steel-pipe-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Black steel pipe",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 10,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 10
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 20
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 30
+        }
+      ],
+      "rawRow": [
+        "Black steel pipe",
+        "LF",
+        "(0010) 0.5750",
+        "(0020) 0.8870",
+        "(0030) 1.1010"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-check-valve-with-ball-drip-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Check valve with ball drip",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 190,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 190
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 200
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 210
+        }
+      ],
+      "rawRow": [
+        "Check valve with ball drip",
+        "Each",
+        "(0190) 7.0930",
+        "(0200) 10.6400",
+        "(0210) 14.1870"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-hose-valve-2-1-2-inches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Hose valve, 2 1/2 inches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 130,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 130
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 140
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 150
+        }
+      ],
+      "rawRow": [
+        "Hose valve, 2 1/2 inches",
+        "Each",
+        "(0130) 1.5160",
+        "(0140) 1.5160",
+        "(0150) 1.5160"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-pipe-elbow-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Pipe elbow",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 70,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 70
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 80
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 90
+        }
+      ],
+      "rawRow": [
+        "Pipe elbow",
+        "Each",
+        "(0070) 3.5470",
+        "(0080) 4.5610",
+        "(0090) 5.3200"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-pipe-nipple-2-1-2-inches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Pipe nipple, 2 1/2 inches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 100,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 100
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 110
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 120
+        }
+      ],
+      "rawRow": [
+        "Pipe nipple, 2 1/2 inches",
+        "Each",
+        "(0100) 1.3300",
+        "(0110) 1.3300",
+        "(0120) 1.3300"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-pipe-tee-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Pipe tee",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 40,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 40
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 50
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 60
+        }
+      ],
+      "rawRow": [
+        "Pipe tee",
+        "Each",
+        "(0040) 5.3200",
+        "(0050) 7.9800",
+        "(0060) 10.6400"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-pressure-restricting-valve-2-1-2-inches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Pressure restricting valve, 2 1/2 inches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 160,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 160
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 170
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 180
+        }
+      ],
+      "rawRow": [
+        "Pressure restricting valve, 2 1/2 inches",
+        "Each",
+        "(0160) 1.5160",
+        "(0170) 1.5160",
+        "(0180) 1.5160"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-roof-manifold-with-valves-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 12,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Roof manifold with valves",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 250,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 250
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 260
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 270
+        }
+      ],
+      "rawRow": [
+        "Roof manifold with valves",
+        "Each",
+        "(0250) 4.4330",
+        "(0260) 4.6260",
+        "(0270) 4.6260"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-12-10.00-siamese-inlet-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart304.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 158,
+      "sourcePageNumberApprox": 159,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 12 10.00",
+      "sectionTitle": "Fire Suppression Standpipe System",
+      "itemCode": null,
+      "workElementDescription": "Siamese inlet",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 220,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 220
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 230
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 240
+        }
+      ],
+      "rawRow": [
+        "Siamese inlet",
+        "Each",
+        "(0220) 4.2560",
+        "(0230) 4.6260",
+        "(0240) 4.6260"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "21-22-16.50-standby-power-battery-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart308.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 18,
+      "sourceAdobePageIndex": 160,
+      "sourcePageNumberApprox": 161,
+      "division": "21",
+      "divisionName": "Fire Suppression",
+      "sectionCode": "21 22 16.50",
+      "sectionTitle": "FM200 system, filled, including mounting bracket",
+      "itemCode": null,
+      "workElementDescription": "Standby power, battery",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 3.737,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 3.737
+        }
+      ],
+      "rawRow": [
+        "0150) Standby power, battery",
+        "Each",
+        "3.7370"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-05-23.20-mixing-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart312.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 19,
+      "sourceAdobePageIndex": 163,
+      "sourcePageNumberApprox": 164,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 05 23.20",
+      "sectionTitle": "Globe",
+      "itemCode": null,
+      "workElementDescription": "Mixing",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 200,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 200
+        }
+      ],
+      "rawRow": [
+        "Mixing",
+        "Each",
+        "(0200)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-05-23.20-reducing-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart312.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 18,
+      "sourceAdobePageIndex": 163,
+      "sourcePageNumberApprox": 164,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 05 23.20",
+      "sectionTitle": "Globe",
+      "itemCode": null,
+      "workElementDescription": "Reducing",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.709,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.443
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.532
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.56
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.709
+        }
+      ],
+      "rawRow": [
+        "Reducing",
+        "Each",
+        "0.4430",
+        "0.5320",
+        "0.5600",
+        "0.7090",
+        "0.8180",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-05-23.20-relief-pressure-and-temperature-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart312.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 16,
+      "sourceAdobePageIndex": 163,
+      "sourcePageNumberApprox": 164,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 05 23.20",
+      "sectionTitle": "Globe",
+      "itemCode": null,
+      "workElementDescription": "Relief, pressure and temperature",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.532,
+      "rateComponents": [
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.38
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.443
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.532
+        }
+      ],
+      "rawRow": [
+        "Relief, pressure and temperature",
+        "Each",
+        "",
+        "0.3800",
+        "0.4430",
+        "0.5320",
+        "0.5900",
+        "0.6650",
+        "0.7090",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.23-type-drain-waste-and-vent-dwv-tubing-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart316.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sourceAdobePageIndex": 165,
+      "sourcePageNumberApprox": 166,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.23",
+      "sectionTitle": "Copper Pipe",
+      "itemCode": null,
+      "workElementDescription": "Type drain, waste, and vent (DWV) tubing",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 160,
+      "rateComponents": [
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 140
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 150
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 160
+        }
+      ],
+      "rawRow": [
+        "Type drain, waste, and vent (DWV) tubing",
+        "LF",
+        "",
+        "(0140) 0.1770",
+        "(0150) 0.1970",
+        "(0160) 0.2420",
+        "",
+        "(0170)",
+        "",
+        "(0180)",
+        "(0190)",
+        "(0200)",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.23-type-k-tubing-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart316.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sourceAdobePageIndex": 165,
+      "sourcePageNumberApprox": 166,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.23",
+      "sectionTitle": "Copper Pipe",
+      "itemCode": null,
+      "workElementDescription": "Type K tubing",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 10,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 10
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 20
+        }
+      ],
+      "rawRow": [
+        "Type K tubing",
+        "LF",
+        "(0010) 0.1610",
+        "(0020) 0.2660",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.23-type-l-tubing-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart316.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sourceAdobePageIndex": 165,
+      "sourcePageNumberApprox": 166,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.23",
+      "sectionTitle": "Copper Pipe",
+      "itemCode": null,
+      "workElementDescription": "Type L tubing",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 60,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 30
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 40
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 50
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 60
+        }
+      ],
+      "rawRow": [
+        "Type L tubing",
+        "LF",
+        "(0030) 0.1570",
+        "(0040) 0.1840",
+        "(0050)",
+        "(0060)",
+        "(0070)",
+        "(0080)",
+        "(0090)",
+        "(0100)",
+        "(0110)",
+        "(0120)",
+        "(0130)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-adapters-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Adapters",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 260,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 230
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 240
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 250
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 260
+        }
+      ],
+      "rawRow": [
+        "Adapters",
+        "Each",
+        "(0230) 0.13",
+        "(0240) 0.16",
+        "(0250) 0.40",
+        "(0260) 0.59",
+        "(0270) 0.61",
+        "(0280) 0.66",
+        "(0290) 0.77",
+        "(0300) 0.98",
+        "(0310) 1.16",
+        "(0320) 1.34",
+        "(0330) 1.48"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-crosses-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Crosses",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 370,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 340
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 350
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 360
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 370
+        }
+      ],
+      "rawRow": [
+        "Crosses",
+        "Each",
+        "(0340) 0.29",
+        "(0350) 0.39",
+        "(0360) 0.80",
+        "(0370) 1.10",
+        "(0380) 1.19",
+        "(0390) 1.59",
+        "(0400) 1.84",
+        "(0410) 2.06",
+        "(0420) 2.59",
+        "(0430) 3.01",
+        "(0440) 3.39"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-elbows-reducers-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Elbows, reducers",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 40,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 10
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 20
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 30
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 40
+        }
+      ],
+      "rawRow": [
+        "Elbows, reducers",
+        "Each",
+        "(0010) 0.16",
+        "(0020) 0.21",
+        "(0030) 0.42",
+        "(0040) 0.60",
+        "(0050) 0.62",
+        "(0060) 0.83",
+        "(0070) 0.96",
+        "(0080) 1.08",
+        "(0090) 1.37",
+        "(0100) 1.58",
+        "(0110) 1.79"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-flexible-couplings-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Flexible couplings",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 700,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 670
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 680
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 690
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 700
+        }
+      ],
+      "rawRow": [
+        "Flexible couplings",
+        "Each",
+        "(0670) 0.06",
+        "(0680) 0.07",
+        "(0690) 0.16",
+        "(0700) 0.23",
+        "(0710) 0.24",
+        "(0720) 0.31",
+        "(0730) 0.36",
+        "(0740) 0.40",
+        "(0750) 0.51",
+        "(0760) 0.59",
+        "(0770) 0.66"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-rigid-couplings-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Rigid couplings",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 590,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 560
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 570
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 580
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 590
+        }
+      ],
+      "rawRow": [
+        "Rigid couplings",
+        "Each",
+        "(0560) 0.08",
+        "(0570) 0.10",
+        "(0580) 0.21",
+        "(0590) 0.30",
+        "(0600) 0.31",
+        "(0610) 0.42",
+        "(0620) 0.48",
+        "(0630) 0.54",
+        "(0640) 0.68",
+        "(0650) 0.79",
+        "(0660) 0.89"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-tees-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Tees",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 150,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 120
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 130
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 140
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 150
+        }
+      ],
+      "rawRow": [
+        "Tees",
+        "Each",
+        "(0120) 0.23",
+        "(0130) 0.31",
+        "(0140) 0.62",
+        "(0150) 0.90",
+        "(0160) 0.94",
+        "(0170) 1.25",
+        "(0180) 1.44",
+        "(0190) 1.62",
+        "(0200) 2.03",
+        "(0210) 2.37",
+        "(0220) 2.68"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-valves-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Valves",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 480,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 450
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 460
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 470
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 480
+        }
+      ],
+      "rawRow": [
+        "Valves",
+        "Each",
+        "(0450) 0.16",
+        "(0460) 0.21",
+        "(0470) 0.42",
+        "(0480) 0.60",
+        "(0490) 0.63",
+        "(0500) 0.83",
+        "(0510) 0.96",
+        "(0520) 1.08",
+        "(0530) 1.29",
+        "(0540) 1.58",
+        "(0550) 1.79"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.48-wyes-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart322.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 12,
+      "sourceAdobePageIndex": 166,
+      "sourcePageNumberApprox": 167,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.48",
+      "sectionTitle": "Steel, Grooved-joint Pipe, Fittings and Valves",
+      "itemCode": null,
+      "workElementDescription": "Wyes",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 810,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 780
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 790
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 800
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 810
+        }
+      ],
+      "rawRow": [
+        "Wyes",
+        "Each",
+        "(0780) 0.24",
+        "(0790) 0.35",
+        "(0800) 0.60",
+        "(0810) 0.88",
+        "(0820) 0.90",
+        "(0830) 1.19",
+        "(0840) 1.38",
+        "(0850) 1.51",
+        "(0860) 1.91",
+        "(0870) 2.21",
+        "(0880) 2.52"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.74-abs-and-pvc-for-dwv-schedule-40-couplings-10-feet-on-center-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart324.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sourceAdobePageIndex": 167,
+      "sourcePageNumberApprox": 168,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.74",
+      "sectionTitle": "Plastic Pipe",
+      "itemCode": null,
+      "workElementDescription": "ABS and PVC, for DWV, schedule 40, couplings 10 feet on center.",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 420,
+      "rateComponents": [
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 410
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 420
+        }
+      ],
+      "rawRow": [
+        "ABS and PVC, for DWV, schedule 40, couplings 10 feet on center.",
+        "LF",
+        "",
+        "",
+        "(0410) 0.1265",
+        "(0420) 0.1475",
+        "(0430) 0.2016",
+        "",
+        "(0440) 0.2251",
+        "(0450) 0.2481",
+        "",
+        "(0460) 0.3052"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.74-acrylonitrile-butadiene-styrene-plastic-abs-and-pvc-for-dwv-schedule-40-couplings-10-feet--lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart324.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sourceAdobePageIndex": 167,
+      "sourcePageNumberApprox": 168,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.74",
+      "sectionTitle": "Plastic Pipe",
+      "itemCode": null,
+      "workElementDescription": "Acrylonitrile-butadiene-styrene (plastic) (ABS) and PVC, for DWV, schedule 40, couplings 10 feet on center, clevis hanger assemblies, 3 per 10 feet",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 120,
+      "rateComponents": [
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 110
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 120
+        }
+      ],
+      "rawRow": [
+        "Acrylonitrile-butadiene-styrene (plastic) (ABS) and PVC, for DWV, schedule 40, couplings 10 feet on center, clevis hanger assemblies, 3 per 10 feet",
+        "LF",
+        "",
+        "",
+        "(0110) 0.2530",
+        "(0120) 0.2950",
+        "(0130) 0.3600",
+        "",
+        "(0140) 0.4020",
+        "(0150) 0.4430",
+        "",
+        "(0160) 0.5450"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.74-cpvc-schedule-40-couplings-10-feet-on-center-clevis-hanger-assemblies-3-per-10-feet-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart324.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sourceAdobePageIndex": 167,
+      "sourcePageNumberApprox": 168,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.74",
+      "sectionTitle": "Plastic Pipe",
+      "itemCode": null,
+      "workElementDescription": "CPVC, schedule 40, couplings 10 feet on center, clevis hanger assemblies, 3 per 10 feet",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 200,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 170
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 180
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 190
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 200
+        }
+      ],
+      "rawRow": [
+        "CPVC, schedule 40, couplings 10 feet on center, clevis hanger assemblies, 3 per 10 feet",
+        "LF",
+        "(0170) 0.2090",
+        "(0180) 0.2310",
+        "(0190) 0.2530",
+        "(0200) 0.2950",
+        "(0210) 0.3600",
+        "(0220) 0.3800",
+        "(0230) 0.4020",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.74-cpvc-schedule-40-couplings-10-feet-on-center-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart324.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 167,
+      "sourcePageNumberApprox": 168,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.74",
+      "sectionTitle": "Plastic Pipe",
+      "itemCode": null,
+      "workElementDescription": "CPVC, schedule 40, couplings 10 feet on center.",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 500,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 470
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 480
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 490
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 500
+        }
+      ],
+      "rawRow": [
+        "CPVC, schedule 40, couplings 10 feet on center.",
+        "LF",
+        "(0470) 0.2090",
+        "(0480) 0.2310",
+        "(0490) 0.2530",
+        "(0500) 0.2950",
+        "(05210) 0.3600",
+        "(0520) 0.3800",
+        "(0530) 0.4020",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.74-pvc-schedule-40-couplings-10-feet-on-center-clevis-hanger-assemblies-3-per-10-feet-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart324.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sourceAdobePageIndex": 167,
+      "sourcePageNumberApprox": 168,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.74",
+      "sectionTitle": "Plastic Pipe",
+      "itemCode": null,
+      "workElementDescription": "PVC, schedule 40, couplings 10 feet on center, clevis hanger assemblies, 3 per 10 feet",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 40,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 10
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 20
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 30
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 40
+        }
+      ],
+      "rawRow": [
+        "PVC, schedule 40, couplings 10 feet on center, clevis hanger assemblies, 3 per 10 feet",
+        "LF",
+        "(0010) 0.2090",
+        "(0020) 0.2310",
+        "(0030) 0.2530",
+        "(0040) 0.2950",
+        "(0050) 0.3600",
+        "(0060) 0.3800",
+        "(0070) 0.4020",
+        "(0080) 0.4430",
+        "(0090) 0.4950",
+        "(0100) 0.5450"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-11-13.74-pvc-schedule-40-couplings-10-feet-on-center-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart324.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sourceAdobePageIndex": 167,
+      "sourcePageNumberApprox": 168,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 11 13.74",
+      "sectionTitle": "Plastic Pipe",
+      "itemCode": null,
+      "workElementDescription": "PVC, schedule 40, couplings 10 feet on center.",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 340,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 310
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 320
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 330
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 340
+        }
+      ],
+      "rawRow": [
+        "PVC, schedule 40, couplings 10 feet on center.",
+        "LF",
+        "(0310) 0.0752",
+        "(0320) 0.0832",
+        "(0330) 0.0911",
+        "(0340) 0.1564",
+        "(0350) 0.1908",
+        "(0360) 0.2014",
+        "(0370) 0.2131",
+        "(0380) 0.2348",
+        "(0390) 0.2624",
+        "(0400) 0.2889"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-1-1-4-to-1-1-2-to-2-tees-tapped-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 13,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "1 1/4 to 1 1/2 to 2 tees, tapped",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.95,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.42
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.49
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.63
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.95
+        }
+      ],
+      "rawRow": [
+        "1 1/4 to 1 1/2 to 2 tees, tapped",
+        "Each",
+        "0.4200 (0350)",
+        "0.4900 (0360)",
+        "0.6300 (0370)",
+        "0.9500 (0380)",
+        "1.0000 (0390)",
+        "1.7500 (0400)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-combination-wyes-tees-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "Combination wyes, tees",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 1.89,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.84
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.95
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 1.26
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 1.89
+        }
+      ],
+      "rawRow": [
+        "Combination wyes, tees",
+        "Each",
+        "0.8400 (0230)",
+        "0.9500 (0240)",
+        "1.2600 (0250)",
+        "1.8900 (0260)",
+        "2.3800 (0270)",
+        "2.4200 (0280)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-crosses-tapped-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 14,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "Crosses, tapped",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 1.89,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.84
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.95
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 1.26
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 1.89
+        }
+      ],
+      "rawRow": [
+        "Crosses, tapped",
+        "Each",
+        "0.8400 (0410)",
+        "0.9500 (0420)",
+        "1.2600 (0430)",
+        "1.8900 (0440)",
+        "2.4200 (0450)",
+        "4.6900 (0460)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-lead-for-caulking-pound",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "lead for caulking,",
+      "unitOriginal": "pound",
+      "unit": "POUND",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.133,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.133
+        }
+      ],
+      "rawRow": [
+        "lead for caulking,",
+        "pound",
+        "0.1330 (0080)",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-no-hub-couplings-10-feet-on-center-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "No hub, couplings 10 feet on center",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 140,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.318
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 120
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.367
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 140
+        }
+      ],
+      "rawRow": [
+        "No hub, couplings 10 feet on center",
+        "LF",
+        "0.3180 (0110)",
+        "(0120)",
+        "0.3670 (0130)",
+        "(0140)",
+        "(0150)",
+        "(0160)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-oakum-for-caulking-pound",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "oakum for caulking",
+      "unitOriginal": "pound",
+      "unit": "POUND",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.532,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.532
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 100
+        }
+      ],
+      "rawRow": [
+        "oakum for caulking",
+        "pound",
+        "0.5320 (0090)",
+        "",
+        "(0100)",
+        "",
+        "",
+        ""
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-pipe-single-hub-service-weight-lead-and-oakum-joints-10-feet-on-center-lf",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "Pipe, single hub, service weight, lead and oakum joints 10 feet on center",
+      "unitOriginal": "LF",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 40,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 10
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 20
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 30
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 40
+        }
+      ],
+      "rawRow": [
+        "Pipe, single hub, service weight, lead and oakum joints 10 feet on center",
+        "LF",
+        "(0010)",
+        "(0020)",
+        "(0030)",
+        "(0040)",
+        "(0050)",
+        "(0060)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-reducers-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 15,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "Reducers",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 1.68,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.77
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.84
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 1.16
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 1.68
+        }
+      ],
+      "rawRow": [
+        "Reducers",
+        "Each",
+        "0.77",
+        "0.84",
+        "1.16",
+        "1.68 (0500)",
+        "2.17 (0510)",
+        "4.59 (0520)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "22-13-16.20-reducing-wyes-tees-combination-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart328.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 12,
+      "sourceAdobePageIndex": 168,
+      "sourcePageNumberApprox": 169,
+      "division": "22",
+      "divisionName": "Plumbing",
+      "sectionCode": "22 13 16.20",
+      "sectionTitle": "Cast Iron Pipe",
+      "itemCode": null,
+      "workElementDescription": "Reducing wyes, tees/combination",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 1.75,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.77
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.84
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 1.16
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 1.75
+        }
+      ],
+      "rawRow": [
+        "Reducing wyes, tees/combination",
+        "Each",
+        "0.77 (0290)",
+        "0.84 (0300)",
+        "1.16 (0310)",
+        "1.75 (0320)",
+        "2.31 (0330)",
+        "2.73 (0340)"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "26-05-00-install-secondary-racks-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart352.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sourceAdobePageIndex": 180,
+      "sourcePageNumberApprox": 181,
+      "division": "26",
+      "divisionName": "Electrical",
+      "sectionCode": "26 05 00",
+      "sectionTitle": "Install Transformer on Poles",
+      "itemCode": null,
+      "workElementDescription": "Install secondary racks",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 2.4,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 2.4
+        }
+      ],
+      "rawRow": [
+        "Install secondary racks",
+        "Each",
+        "2.4"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "26-12-19.00-install-air-break-switches-and-components-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart362.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 22,
+      "sourceAdobePageIndex": 185,
+      "sourcePageNumberApprox": 186,
+      "division": "26",
+      "divisionName": "Electrical",
+      "sectionCode": "26 12 19.00",
+      "sectionTitle": "Medium Voltage Switchgear",
+      "itemCode": null,
+      "workElementDescription": "Install air-break switches and components",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 8.8,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 8.8
+        }
+      ],
+      "rawRow": [
+        "Install air-break switches and components",
+        "Each",
+        "8.8000"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "26-12-19.00-install-and-wire-complete-three-phase-dry-type-air-cooled-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart362.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sourceAdobePageIndex": 185,
+      "sourcePageNumberApprox": 186,
+      "division": "26",
+      "divisionName": "Electrical",
+      "sectionCode": "26 12 19.00",
+      "sectionTitle": "Install and wire complete oil-filled transformer",
+      "itemCode": null,
+      "workElementDescription": "Install and wire complete three-phase dry-type air cooled",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 24.8,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 24.8
+        }
+      ],
+      "rawRow": [
+        "Install and wire complete three-phase dry-type air cooled",
+        "Each",
+        "24.8000"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "26-12-19.00-install-oil-circuit-breakers-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart362.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 16,
+      "sourceAdobePageIndex": 185,
+      "sourcePageNumberApprox": 186,
+      "division": "26",
+      "divisionName": "Electrical",
+      "sectionCode": "26 12 19.00",
+      "sectionTitle": "Medium Voltage Switchgear",
+      "itemCode": null,
+      "workElementDescription": "Install oil circuit breakers",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 8.4,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 8.4
+        }
+      ],
+      "rawRow": [
+        "Install oil circuit breakers",
+        "Each",
+        "8.4000"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "26-12-19.00-install-open-or-enclosed-disconnect-switches-each",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart362.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 19,
+      "sourceAdobePageIndex": 185,
+      "sourcePageNumberApprox": 186,
+      "division": "26",
+      "divisionName": "Electrical",
+      "sectionCode": "26 12 19.00",
+      "sectionTitle": "Medium Voltage Switchgear",
+      "itemCode": null,
+      "workElementDescription": "Install open or enclosed disconnect switches",
+      "unitOriginal": "Each",
+      "unit": "EA",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 8.8,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 8.8
+        }
+      ],
+      "rawRow": [
+        "Install open or enclosed disconnect switches",
+        "Each",
+        "8.8000"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "31-14-13.23-loam-or-topsoil-remove-and-stockpile-onsite-6-inches-deep-200-foot-haul-cyd",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart398.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 35,
+      "sourceAdobePageIndex": 199,
+      "sourcePageNumberApprox": 200,
+      "division": "31",
+      "divisionName": "Earthwork",
+      "sectionCode": "31 14 13.23",
+      "sectionTitle": "Topsoil Stripping and Stockpiling",
+      "itemCode": null,
+      "workElementDescription": "Loam or topsoil, remove and stockpile onsite, 6 inches deep, 200-foot haul",
+      "unitOriginal": "CYD",
+      "unit": "CY",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.02,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.02
+        }
+      ],
+      "rawRow": [
+        "(0010 Loam or topsoil, remove and stockpile onsite, 6 inches deep, 200-foot haul",
+        "CYD",
+        "0.020"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    },
+    {
+      "id": "31-23-16.30-drill-holes-feet",
+      "sourceDocument": "WCRP 3-40D.12",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart406.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sourceAdobePageIndex": 202,
+      "sourcePageNumberApprox": 203,
+      "division": "31",
+      "divisionName": "Earthwork",
+      "sectionCode": "31 23 16.30",
+      "sectionTitle": "Drilling and Blasting Rock",
+      "itemCode": null,
+      "workElementDescription": "Drill Holes:",
+      "unitOriginal": "Feet",
+      "unit": "LF",
+      "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+      "manHoursPerUnit": 0.2,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.2
+        }
+      ],
+      "rawRow": [
+        "Drill Holes:",
+        "Feet",
+        "0.20"
+      ],
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ]
+    }
+  ]
+}

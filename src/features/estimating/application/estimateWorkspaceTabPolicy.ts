@@ -49,7 +49,9 @@ export function getVisibleWorkspaceTabs(
     case 'conceptual':
       return [
         { id: 'conceptual-budget', label: 'Conceptual Budget' },
-        { id: 'assumptions-allowances', label: 'Assumptions / Allowances' },
+        { id: 'assumptions-allowances', label: 'Assumptions & Exclusions' },
+        { id: 'scenarios', label: 'Scenarios' },
+        { id: 'risks-contingency', label: 'Risks & Contingency' },
         costs,
         ...schedule,
         settings,
@@ -164,8 +166,18 @@ export function getEstimateTypeEmptyState(
       };
     case 'assumptions-allowances':
       return {
-        title: 'No assumptions or allowances yet',
-        body: 'Document early assumptions, allowances, and budget drivers.',
+        title: 'No assumptions or exclusions yet',
+        body: 'Document early assumptions, exclusions, and allowance notes.',
+      };
+    case 'scenarios':
+      return {
+        title: 'No scenarios yet',
+        body: 'Create budget scenarios to compare subtotals, contingency, and totals.',
+      };
+    case 'risks-contingency':
+      return {
+        title: 'No risks documented yet',
+        body: 'Add risks and set contingency to drive budget rollups.',
       };
     case 'change-order-scope':
       return {

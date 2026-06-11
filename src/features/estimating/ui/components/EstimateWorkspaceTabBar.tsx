@@ -12,6 +12,8 @@ export type EstimateWorkspaceTabId =
   | 'quick-estimate'
   | 'conceptual-budget'
   | 'assumptions-allowances'
+  | 'scenarios'
+  | 'risks-contingency'
   | 'change-order-scope'
   | 'pricing'
   | 'unit-price-items'

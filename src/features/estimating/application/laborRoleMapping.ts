@@ -61,7 +61,20 @@ export const LABOR_ROLE_MAPPING_RULES: readonly LaborRoleMappingRule[] = [
     roleName: 'Electrician',
   },
   {
-    keywords: ['hvac', 'duct', 'mechanical'],
+    keywords: [
+      'weatherstrip',
+      'weatherstripping',
+      'door sweep',
+      'threshold',
+      'door hardware',
+      'garage door weatherstrip',
+      'mechanical seal',
+    ],
+    roleKey: 'carpenter',
+    roleName: 'Carpenter',
+  },
+  {
+    keywords: ['hvac', 'duct', 'ventilating', 'air conditioning'],
     roleKey: 'hvac_technician',
     roleName: 'HVAC Technician',
   },

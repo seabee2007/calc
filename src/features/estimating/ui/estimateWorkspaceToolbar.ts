@@ -18,6 +18,7 @@ export const ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS = {
   helpDefinitions: 'Help / Definitions',
   collapseAll: 'Collapse all',
   resetForm: 'Reset form',
+  convertToDetailed: 'Convert to Detailed Estimate',
 } as const;
 
 export const REMOVED_ESTIMATE_WORKSPACE_INLINE_TOOLBAR_BUTTONS = [
@@ -33,7 +34,8 @@ export type EstimateWorkspaceActionsMenuItemKey =
   | 'download-template'
   | 'help-definitions'
   | 'collapse-all'
-  | 'reset-form';
+  | 'reset-form'
+  | 'convert-to-detailed';
 
 export interface EstimateWorkspaceActionsMenuItem {
   key: EstimateWorkspaceActionsMenuItemKey;
@@ -48,6 +50,7 @@ export interface ResolveEstimateWorkspaceToolbarLayoutInput {
   showReset: boolean;
   showSaveBucket: boolean;
   showImportExport: boolean;
+  showConvertToDetailed?: boolean;
   includeMobileOverflow?: boolean;
 }
 
@@ -68,6 +71,7 @@ export interface EstimateWorkspaceMenuActionHandlers {
   onOpenHelp?: () => void;
   onCollapseAll?: () => void;
   onResetForm?: () => void;
+  onConvertToDetailed?: () => void;
 }
 
 export function runEstimateWorkspaceMenuAction(
@@ -92,6 +96,9 @@ export function runEstimateWorkspaceMenuAction(
       return;
     case 'reset-form':
       handlers.onResetForm?.();
+      return;
+    case 'convert-to-detailed':
+      handlers.onConvertToDetailed?.();
       return;
     default:
       return;
@@ -126,6 +133,13 @@ export function buildEstimateWorkspaceActionsMenuItems(
         label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.downloadTemplate,
       },
     );
+  }
+
+  if (input.showConvertToDetailed) {
+    items.push({
+      key: 'convert-to-detailed',
+      label: ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.convertToDetailed,
+    });
   }
 
   items.push({
@@ -272,4 +286,12 @@ export function shouldShowBidImportExportActions(
     hasEstimate &&
     activeEstimateType === 'bid'
   );
+}
+
+export function shouldShowConvertToDetailedAction(
+  activeTab: EstimateWorkspaceTabId,
+  hasEstimate: boolean,
+  isConceptualEstimate: boolean,
+): boolean {
+  return isConceptualEstimate && hasEstimate && activeTab === 'conceptual-budget';
 }

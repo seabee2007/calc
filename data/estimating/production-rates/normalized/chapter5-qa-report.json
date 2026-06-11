@@ -1,0 +1,2395 @@
+{
+  "totals": {
+    "candidates": 1954,
+    "rejectedRows": 243,
+    "duplicates": 1,
+    "skippedTables": 104,
+    "suspiciousRates": 2,
+    "suspiciousUnits": 1,
+    "missingSectionTitle": 53
+  },
+  "byDivision": [
+    {
+      "key": "06",
+      "count": 235
+    },
+    {
+      "key": "26",
+      "count": 220
+    },
+    {
+      "key": "09",
+      "count": 203
+    },
+    {
+      "key": "07",
+      "count": 139
+    },
+    {
+      "key": "13",
+      "count": 118
+    },
+    {
+      "key": "31",
+      "count": 102
+    },
+    {
+      "key": "08",
+      "count": 87
+    },
+    {
+      "key": "03",
+      "count": 86
+    },
+    {
+      "key": "04",
+      "count": 85
+    },
+    {
+      "key": "33",
+      "count": 80
+    },
+    {
+      "key": "22",
+      "count": 73
+    },
+    {
+      "key": "23",
+      "count": 73
+    },
+    {
+      "key": "05",
+      "count": 65
+    },
+    {
+      "key": "21",
+      "count": 61
+    },
+    {
+      "key": "32",
+      "count": 59
+    },
+    {
+      "key": "10",
+      "count": 57
+    },
+    {
+      "key": "02",
+      "count": 46
+    },
+    {
+      "key": "34",
+      "count": 39
+    },
+    {
+      "key": "01",
+      "count": 35
+    },
+    {
+      "key": "27",
+      "count": 33
+    },
+    {
+      "key": "35",
+      "count": 24
+    },
+    {
+      "key": "12",
+      "count": 8
+    },
+    {
+      "key": "28",
+      "count": 8
+    },
+    {
+      "key": "41",
+      "count": 8
+    },
+    {
+      "key": "46",
+      "count": 6
+    },
+    {
+      "key": "11",
+      "count": 4
+    }
+  ],
+  "topSections": [
+    {
+      "key": "13 34 23.05",
+      "count": 42
+    },
+    {
+      "key": "13 31 33.00",
+      "count": 40
+    },
+    {
+      "key": "26 24 16.00",
+      "count": 30
+    },
+    {
+      "key": "07 31 13.10",
+      "count": 29
+    },
+    {
+      "key": "21 13 16.50",
+      "count": 29
+    },
+    {
+      "key": "06 11 10.40",
+      "count": 28
+    },
+    {
+      "key": "26 32 13.13",
+      "count": 27
+    },
+    {
+      "key": "03 15 05.96",
+      "count": 24
+    },
+    {
+      "key": "26 05 19.00",
+      "count": 24
+    },
+    {
+      "key": "26 05 90.00",
+      "count": 24
+    },
+    {
+      "key": "06 11 10.24",
+      "count": 23
+    },
+    {
+      "key": "22 07 19.00",
+      "count": 23
+    },
+    {
+      "key": "26 12 19.00",
+      "count": 21
+    },
+    {
+      "key": "32 31 00.00",
+      "count": 21
+    },
+    {
+      "key": "05 05 22",
+      "count": 20
+    },
+    {
+      "key": "06 11 10.10",
+      "count": 20
+    },
+    {
+      "key": "04 22 10.19",
+      "count": 19
+    },
+    {
+      "key": "31 23 16.16",
+      "count": 19
+    },
+    {
+      "key": "13 34 23.13",
+      "count": 18
+    },
+    {
+      "key": "26 24 19.40",
+      "count": 17
+    },
+    {
+      "key": "27 51 00",
+      "count": 17
+    },
+    {
+      "key": "02 41 19.16",
+      "count": 16
+    },
+    {
+      "key": "04 05 16.30",
+      "count": 16
+    },
+    {
+      "key": "23 31 13.00",
+      "count": 16
+    },
+    {
+      "key": "06 11 10.18",
+      "count": 15
+    },
+    {
+      "key": "26 05 00",
+      "count": 15
+    },
+    {
+      "key": "31 41 16.10",
+      "count": 15
+    },
+    {
+      "key": "01 71 23",
+      "count": 14
+    },
+    {
+      "key": "06 11 10.30",
+      "count": 14
+    },
+    {
+      "key": "09 30 13.10",
+      "count": 14
+    },
+    {
+      "key": "21 22 16.50",
+      "count": 14
+    },
+    {
+      "key": "26 05 33.00",
+      "count": 14
+    },
+    {
+      "key": "31 23 16.14",
+      "count": 14
+    },
+    {
+      "key": "06 13 23.10",
+      "count": 13
+    },
+    {
+      "key": "06 16 36.10",
+      "count": 13
+    },
+    {
+      "key": "06 11 10.26",
+      "count": 12
+    },
+    {
+      "key": "13 34 19.50",
+      "count": 12
+    },
+    {
+      "key": "23 33 00.00",
+      "count": 12
+    },
+    {
+      "key": "23 52 13",
+      "count": 12
+    },
+    {
+      "key": "31 62 00",
+      "count": 12
+    }
+  ],
+  "topUnits": [
+    {
+      "key": "Each",
+      "count": 730
+    },
+    {
+      "key": "SF",
+      "count": 397
+    },
+    {
+      "key": "LF",
+      "count": 327
+    },
+    {
+      "key": "BF",
+      "count": 150
+    },
+    {
+      "key": "SY",
+      "count": 67
+    },
+    {
+      "key": "Square",
+      "count": 56
+    },
+    {
+      "key": "Ton",
+      "count": 38
+    },
+    {
+      "key": "Bank CYD",
+      "count": 27
+    },
+    {
+      "key": "Feet",
+      "count": 22
+    },
+    {
+      "key": "Acre",
+      "count": 21
+    },
+    {
+      "key": "CYD",
+      "count": 20
+    },
+    {
+      "key": "SF Floor",
+      "count": 15
+    },
+    {
+      "key": "Opening",
+      "count": 13
+    },
+    {
+      "key": "SF of contact surface",
+      "count": 11
+    },
+    {
+      "key": "Pair",
+      "count": 8
+    },
+    {
+      "key": "SF of shelf",
+      "count": 6
+    },
+    {
+      "key": "Each Each",
+      "count": 5
+    },
+    {
+      "key": "LB",
+      "count": 4
+    },
+    {
+      "key": "CF",
+      "count": 3
+    },
+    {
+      "key": "LF Each",
+      "count": 3
+    },
+    {
+      "key": "Riser",
+      "count": 3
+    },
+    {
+      "key": "SM",
+      "count": 3
+    },
+    {
+      "key": "Splice",
+      "count": 3
+    },
+    {
+      "key": "Flight",
+      "count": 2
+    },
+    {
+      "key": "LF of wall",
+      "count": 2
+    },
+    {
+      "key": "Meter",
+      "count": 2
+    },
+    {
+      "key": "pound",
+      "count": 2
+    },
+    {
+      "key": "SF of contact",
+      "count": 2
+    },
+    {
+      "key": "8.3120",
+      "count": 1
+    },
+    {
+      "key": "Bank",
+      "count": 1
+    },
+    {
+      "key": "CYD CYD",
+      "count": 1
+    },
+    {
+      "key": "Feet Feet",
+      "count": 1
+    },
+    {
+      "key": "HD",
+      "count": 1
+    },
+    {
+      "key": "Kit",
+      "count": 1
+    },
+    {
+      "key": "SE",
+      "count": 1
+    },
+    {
+      "key": "SF of bank surface",
+      "count": 1
+    },
+    {
+      "key": "square foot of wall surface",
+      "count": 1
+    },
+    {
+      "key": "surface",
+      "count": 1
+    },
+    {
+      "key": "SY SY",
+      "count": 1
+    },
+    {
+      "key": "Ton per mile",
+      "count": 1
+    }
+  ],
+  "topSourceTables": [
+    {
+      "key": "fileoutpart148.xlsx",
+      "count": 38
+    },
+    {
+      "key": "fileoutpart404.xlsx",
+      "count": 33
+    },
+    {
+      "key": "fileoutpart178.xlsx",
+      "count": 31
+    },
+    {
+      "key": "fileoutpart364.xlsx",
+      "count": 30
+    },
+    {
+      "key": "fileoutpart306.xlsx",
+      "count": 29
+    },
+    {
+      "key": "fileoutpart146.xlsx",
+      "count": 28
+    },
+    {
+      "key": "fileoutpart154.xlsx",
+      "count": 28
+    },
+    {
+      "key": "fileoutpart280.xlsx",
+      "count": 28
+    },
+    {
+      "key": "fileoutpart340.xlsx",
+      "count": 28
+    },
+    {
+      "key": "fileoutpart372.xlsx",
+      "count": 27
+    },
+    {
+      "key": "fileoutpart150.xlsx",
+      "count": 26
+    },
+    {
+      "key": "fileoutpart68.xlsx",
+      "count": 26
+    },
+    {
+      "key": "fileoutpart362.xlsx",
+      "count": 25
+    },
+    {
+      "key": "fileoutpart162.xlsx",
+      "count": 24
+    },
+    {
+      "key": "fileoutpart228.xlsx",
+      "count": 24
+    },
+    {
+      "key": "fileoutpart244.xlsx",
+      "count": 24
+    },
+    {
+      "key": "fileoutpart356.xlsx",
+      "count": 24
+    },
+    {
+      "key": "fileoutpart360.xlsx",
+      "count": 24
+    },
+    {
+      "key": "fileoutpart56.xlsx",
+      "count": 24
+    },
+    {
+      "key": "fileoutpart160.xlsx",
+      "count": 23
+    },
+    {
+      "key": "fileoutpart314.xlsx",
+      "count": 23
+    },
+    {
+      "key": "fileoutpart398.xlsx",
+      "count": 23
+    },
+    {
+      "key": "fileoutpart198.xlsx",
+      "count": 21
+    },
+    {
+      "key": "fileoutpart30.xlsx",
+      "count": 21
+    },
+    {
+      "key": "fileoutpart446.xlsx",
+      "count": 21
+    },
+    {
+      "key": "fileoutpart50.xlsx",
+      "count": 21
+    },
+    {
+      "key": "fileoutpart118.xlsx",
+      "count": 20
+    },
+    {
+      "key": "fileoutpart152.xlsx",
+      "count": 20
+    },
+    {
+      "key": "fileoutpart190.xlsx",
+      "count": 20
+    },
+    {
+      "key": "fileoutpart444.xlsx",
+      "count": 19
+    },
+    {
+      "key": "fileoutpart92.xlsx",
+      "count": 19
+    },
+    {
+      "key": "fileoutpart144.xlsx",
+      "count": 18
+    },
+    {
+      "key": "fileoutpart220.xlsx",
+      "count": 18
+    },
+    {
+      "key": "fileoutpart224.xlsx",
+      "count": 18
+    },
+    {
+      "key": "fileoutpart248.xlsx",
+      "count": 18
+    },
+    {
+      "key": "fileoutpart300.xlsx",
+      "count": 18
+    },
+    {
+      "key": "fileoutpart90.xlsx",
+      "count": 18
+    },
+    {
+      "key": "fileoutpart194.xlsx",
+      "count": 17
+    },
+    {
+      "key": "fileoutpart26.xlsx",
+      "count": 17
+    },
+    {
+      "key": "fileoutpart366.xlsx",
+      "count": 17
+    }
+  ],
+  "rejectedByReason": [
+    {
+      "key": "Missing unit or man-hours value",
+      "count": 160
+    },
+    {
+      "key": "Could not determine CSI/work element section code",
+      "count": 42
+    },
+    {
+      "key": "Missing item description after removing section/item codes",
+      "count": 37
+    },
+    {
+      "key": "Could not parse numeric man-hours per unit",
+      "count": 4
+    }
+  ],
+  "skippedByReason": [
+    {
+      "key": "No Work Element Description / Unit / Man-hours header found",
+      "count": 104
+    }
+  ],
+  "duplicateSamples": [
+    {
+      "id": "22-13-16.20-bends-each",
+      "count": 2,
+      "records": [
+        {
+          "sourceTableFile": "fileoutpart328.xlsx",
+          "sourceRowNumberApprox": 10,
+          "sectionCode": "22 13 16.20",
+          "itemCode": null,
+          "workElementDescription": "Bends",
+          "unit": "Each",
+          "manHoursPerUnit": 0.95
+        },
+        {
+          "sourceTableFile": "fileoutpart328.xlsx",
+          "sourceRowNumberApprox": 17,
+          "sectionCode": "22 13 16.20",
+          "itemCode": null,
+          "workElementDescription": "Bends",
+          "unit": "Each",
+          "manHoursPerUnit": 0.95
+        }
+      ]
+    }
+  ],
+  "suspiciousRateSamples": [
+    {
+      "id": "03-11-23.75-0010-stairs-forms-in-place-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart52.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "03 11 23.75",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Stairs, Forms in Place",
+      "unit": "SF",
+      "manHoursPerUnit": -0.55,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": -0.55
+        }
+      ],
+      "rawRow": [
+        "03 11 23.75 (0010) Stairs, Forms in Place",
+        "SF",
+        "------------------------0.55 Complete-------------------",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "33-52-00.00-0110-install-tactical-petroleum-terminal-tpt-fuel-unit-crew-size-one-equipment-operator-29-labo-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart470.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "33 52 00.00",
+      "sectionTitle": "Bulk Fuel Receiving and Dispensing",
+      "itemCode": "0110",
+      "workElementDescription": "Install tactical petroleum terminal (TPT) fuel unit Crew size: one equipment operator, 29 laborers",
+      "unit": "Each",
+      "manHoursPerUnit": 1080,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 1080
+        }
+      ],
+      "rawRow": [
+        "(0110) Install tactical petroleum terminal (TPT) fuel unit Crew size: one equipment operator, 29 laborers",
+        "Each",
+        "1080.0"
+      ]
+    }
+  ],
+  "suspiciousUnitSamples": [
+    {
+      "id": "01-54-23.70-0010-scaffolding-0010-erect-and-dismantle-tubular-scaffold-including-planks-and-leveling-square-foot-of-wall-surface",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "01 54 23.70",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+      "unit": "square foot of wall surface",
+      "manHoursPerUnit": 0.04,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.04
+        }
+      ],
+      "rawRow": [
+        "01 54 23.70 Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+        "square foot of wall surface",
+        "0.040"
+      ]
+    }
+  ],
+  "missingSectionTitleSamples": [
+    {
+      "id": "01-51-13.80-trailer-mounted-floodlight-set-4-light-telescoping-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "01 51 13.80",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Trailer Mounted Floodlight Set, 4 Light, Telescoping",
+      "unit": "Each",
+      "manHoursPerUnit": 5,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 5
+        }
+      ],
+      "rawRow": [
+        "01 51 13.80 0300 Trailer Mounted Floodlight Set, 4 Light, Telescoping",
+        "Each",
+        ".5"
+      ]
+    },
+    {
+      "id": "01-51-13.80-jobsite-portolet-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "01 51 13.80",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Jobsite Portolet",
+      "unit": "Each",
+      "manHoursPerUnit": 5,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 5
+        }
+      ],
+      "rawRow": [
+        "01 51 13.80 0400 Jobsite Portolet",
+        "Each",
+        ".5"
+      ]
+    },
+    {
+      "id": "01-54-23.70-0010-scaffolding-0010-erect-and-dismantle-tubular-scaffold-including-planks-and-leveling-square-foot-of-wall-surface",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "01 54 23.70",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+      "unit": "square foot of wall surface",
+      "manHoursPerUnit": 0.04,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.04
+        }
+      ],
+      "rawRow": [
+        "01 54 23.70 Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+        "square foot of wall surface",
+        "0.040"
+      ]
+    },
+    {
+      "id": "01-54-36.00-cese-mobilization-or-demobilization-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sectionCode": "01 54 36.00",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "CESE Mobilization or Demobilization",
+      "unit": "Each",
+      "manHoursPerUnit": 3,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 3
+        }
+      ],
+      "rawRow": [
+        "01 54 36.00 0010 CESE Mobilization or Demobilization",
+        "Each",
+        "3.0"
+      ]
+    },
+    {
+      "id": "01-54-39.00-tool-kit-inventory-kit",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sectionCode": "01 54 39.00",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Tool Kit Inventory",
+      "unit": "Kit",
+      "manHoursPerUnit": 2,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 2
+        }
+      ],
+      "rawRow": [
+        "01 54 39.00 0010 Tool Kit Inventory",
+        "Kit",
+        "2.0"
+      ]
+    },
+    {
+      "id": "01-58-13.00-project-sign-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sectionCode": "01 58 13.00",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Project Sign",
+      "unit": "Each",
+      "manHoursPerUnit": 16,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 16
+        }
+      ],
+      "rawRow": [
+        "01 58 13.00 0010 Project Sign",
+        "Each",
+        "16.0"
+      ]
+    },
+    {
+      "id": "02-58-13.10-0010-snow-fencing-system-0010-snow-fence-on-steel-posts-10-feet-on-center-4-feet-high-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart34.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "02 58 13.10",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Snow Fencing System (0010) Snow fence on steel posts 10 feet on center, 4 feet high",
+      "unit": "LF",
+      "manHoursPerUnit": 0.064,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.064
+        }
+      ],
+      "rawRow": [
+        "02 58 13.10 Snow Fencing System (0010) Snow fence on steel posts 10 feet on center, 4 feet high",
+        "LF",
+        "0.064"
+      ]
+    },
+    {
+      "id": "03-11-13.20-beams-and-girders-forms-in-place-sf-of-contact-surface",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart48.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "03 11 13.20",
+      "sectionTitle": "",
+      "itemCode": null,
+      "workElementDescription": "Beams and Girders, Forms in Place",
+      "unit": "SF of contact surface",
+      "manHoursPerUnit": 0.283,
+      "rateComponents": [
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.023
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.283
+        }
+      ],
+      "rawRow": [
+        "Beams and Girders, Forms in Place",
+        "SF of contact surface",
+        "",
+        "",
+        "0.023 0.020 0.019",
+        "0.283"
+      ]
+    },
+    {
+      "id": "03-11-23.75-0010-stairs-forms-in-place-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart52.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "03 11 23.75",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Stairs, Forms in Place",
+      "unit": "SF",
+      "manHoursPerUnit": -0.55,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": -0.55
+        }
+      ],
+      "rawRow": [
+        "03 11 23.75 (0010) Stairs, Forms in Place",
+        "SF",
+        "------------------------0.55 Complete-------------------",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "03-11-13.85-0010-walls-forms-in-place-0010-wall-job-built-plywood-to-8-feet-0020-wall-over-8-to-16-feet-hig-sf-of-contact-surface",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart52.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "03 11 13.85",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Walls, Forms in Place (0010) Wall, job-built plywood, to 8 feet (0020) Wall, over 8 to 16 feet high",
+      "unit": "SF of contact surface",
+      "manHoursPerUnit": 0.173,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.066
+        },
+        {
+          "name": "erectAndStrip",
+          "manHoursPerUnit": 0.087
+        },
+        {
+          "name": "cleanAndMove",
+          "manHoursPerUnit": 0.021
+        },
+        {
+          "name": "total",
+          "manHoursPerUnit": 0.173
+        }
+      ],
+      "rawRow": [
+        "03 11 13.85 Walls, Forms in Place (0010) Wall, job-built plywood, to 8 feet (0020) Wall, over 8 to 16 feet high",
+        "SF of contact surface",
+        "0.066 0.086",
+        "0.087 0.114",
+        "0.021 0.027",
+        "0.173 0.227"
+      ]
+    },
+    {
+      "id": "04-05-13.30-0010-mortar-0010-mixing-cf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart82.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "04 05 13.30",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Mortar (0010) Mixing",
+      "unit": "CF",
+      "manHoursPerUnit": 0.083,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.083
+        }
+      ],
+      "rawRow": [
+        "04 05 13.30 Mortar (0010) Mixing",
+        "CF",
+        "0.083"
+      ]
+    },
+    {
+      "id": "05-42-13.40-0010-cold-formed-metal-joist-framing-0010-installation-to-band-joists-beams-or-headers-18-ga-x--each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart126.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "05 42 13.40",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Cold Formed Metal Joist Framing (0010) Installation to band joists, beams, or headers, 18 GA x 6 inch x 2 inch flange",
+      "unit": "Each",
+      "manHoursPerUnit": 0.145,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.145
+        }
+      ],
+      "rawRow": [
+        "05 42 13.40 Cold Formed Metal Joist Framing (0010) Installation to band joists, beams, or headers, 18 GA x 6 inch x 2 inch flange",
+        "Each",
+        "0.145"
+      ]
+    },
+    {
+      "id": "05-42-23.05-0010-cold-formed-metal-roof-joist-framing-bracing-0010-framing-bracing-16-ga-x-1-1-2-inch-chann-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart126.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "05 42 23.05",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Cold Formed Metal Roof Joist Framing Bracing (0010) Framing, Bracing 16 GA x 1 1/2 inch channel thru trusses or rafters 16 inch OC",
+      "unit": "LF",
+      "manHoursPerUnit": 0.0178,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.0178
+        }
+      ],
+      "rawRow": [
+        "05 42 23.05 Cold Formed Metal Roof Joist Framing Bracing (0010) Framing, Bracing 16 GA x 1 1/2 inch channel thru trusses or rafters 16 inch OC",
+        "LF",
+        "0.0178"
+      ]
+    },
+    {
+      "id": "05-42-23.10-0100-cold-formed-metal-roof-joist-framing-bridging-0100-framing-bridging-solid-between-rafters--each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart126.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "05 42 23.10",
+      "sectionTitle": null,
+      "itemCode": "0100",
+      "workElementDescription": "Cold Formed Metal Roof Joist Framing Bridging (0100) Framing, Bridging, Solid between rafters, Rafters at 16 inch OC, 18 GA by 4 inch deep",
+      "unit": "Each",
+      "manHoursPerUnit": 0.1333,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.1333
+        }
+      ],
+      "rawRow": [
+        "05 42 23.10 Cold Formed Metal Roof Joist Framing Bridging (0100) Framing, Bridging, Solid between rafters, Rafters at 16 inch OC, 18 GA by 4 inch deep",
+        "Each",
+        "0.1333"
+      ]
+    },
+    {
+      "id": "05-42-23.60-0100-cold-formed-metal-roof-joist-framing-roof-rafters-0100-boxed-ridge-beam-18-ga-6-inches-dee-lf-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart126.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sectionCode": "05 42 23.60",
+      "sectionTitle": null,
+      "itemCode": "0100",
+      "workElementDescription": "Cold Formed Metal Roof Joist Framing Roof Rafters (0100) Boxed ridge beam, 18 GA, 6 inches deep (0200) Rafters, 2 inch flange, 18 GA, 6 inches deep",
+      "unit": "LF Each",
+      "manHoursPerUnit": 0.1,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.1
+        }
+      ],
+      "rawRow": [
+        "05 42 23.60 Cold Formed Metal Roof Joist Framing Roof Rafters (0100) Boxed ridge beam, 18 GA, 6 inches deep (0200) Rafters, 2 inch flange, 18 GA, 6 inches deep",
+        "LF Each",
+        "0.1000 0.4570"
+      ]
+    },
+    {
+      "id": "05-42-23.70-0010-cold-formed-metal-roof-joist-framing-soffits-and-canopies-0010-continuous-ledger-track-at--lf-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart126.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sectionCode": "05 42 23.70",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Cold Formed Metal Roof Joist Framing Soffits and Canopies (0010) Continuous ledger track at wall, studs 16 inch OC, 18 GA x 6 inch wide (0100) Horizontal soffit and canopy members, 18 GA 1 5/8 inch flange by 6 inch deep",
+      "unit": "LF Each",
+      "manHoursPerUnit": 0.32,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.32
+        }
+      ],
+      "rawRow": [
+        "05 42 23.70 Cold Formed Metal Roof Joist Framing Soffits and Canopies (0010) Continuous ledger track at wall, studs 16 inch OC, 18 GA x 6 inch wide (0100) Horizontal soffit and canopy members, 18 GA 1 5/8 inch flange by 6 inch deep",
+        "LF Each",
+        "0.3200 0.1450"
+      ]
+    },
+    {
+      "id": "07-26-10.10-0010-vapor-retarders-0010-various-materiels-e-g-aluminum-and-kraft-foil-one-side-or-two-sides-a-square",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart176.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "07 26 10.10",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Vapor Retarders (0010) Various materiels, e.g., aluminum and kraft, foil one side or two sides; asphalt felt sheathing paper; polyethylene vapor barrier, etc.",
+      "unit": "Square",
+      "manHoursPerUnit": 0.287,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.287
+        }
+      ],
+      "rawRow": [
+        "07 26 10.10 Vapor Retarders (0010) Various materiels, e.g., aluminum and kraft, foil one side or two sides; asphalt felt sheathing paper; polyethylene vapor barrier, etc.",
+        "Square",
+        "0.2870"
+      ]
+    },
+    {
+      "id": "08-71-20.95-0010-kick-plates-0010-various-types-and-sizes-average-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart202.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "08 71 20.95",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Kick Plates (0010) Various types and sizes, average",
+      "unit": "Each",
+      "manHoursPerUnit": 0.709,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.709
+        }
+      ],
+      "rawRow": [
+        "08 71 20.95 Kick Plates (0010) Various types and sizes, average",
+        "Each",
+        "0.7090"
+      ]
+    },
+    {
+      "id": "08-91-19.10-0010-aluminum-louvers-0010-aluminum-with-screen-residential-8-by-8-inches-minimum-0020-24-by-30-each-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart206.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "08 91 19.10",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Aluminum Louvers (0010) Aluminum with screen, residential, 8 by 8 inches, minimum (0020) 24 by 30 inches, maximum",
+      "unit": "Each Each",
+      "manHoursPerUnit": 0.281,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.281
+        }
+      ],
+      "rawRow": [
+        "08 91 19.10 Aluminum Louvers (0010) Aluminum with screen, residential, 8 by 8 inches, minimum (0020) 24 by 30 inches, maximum",
+        "Each Each",
+        "0.2810 0.7090"
+      ]
+    },
+    {
+      "id": "08-95-13.10-0010-wall-louvers-0010-soffit-vent-continuous-3-inches-wide-aluminum-0020-under-eaves-vent-alum-lf-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart206.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "08 95 13.10",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Wall Louvers (0010) Soffit vent, continuous, 3 inches wide, aluminum (0020) Under eaves vent, aluminum, 16 by 4 inches and 16 by 8 inches",
+      "unit": "LF Each",
+      "manHoursPerUnit": 0.053,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.053
+        }
+      ],
+      "rawRow": [
+        "08 95 13.10 Wall Louvers (0010) Soffit vent, continuous, 3 inches wide, aluminum (0020) Under eaves vent, aluminum, 16 by 4 inches and 16 by 8 inches",
+        "LF Each",
+        "0.0530 0.2220"
+      ]
+    }
+  ],
+  "candidateSamples": [
+    {
+      "id": "01-51-13.80-trailer-mounted-floodlight-set-4-light-telescoping-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 2,
+      "sectionCode": "01 51 13.80",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Trailer Mounted Floodlight Set, 4 Light, Telescoping",
+      "unit": "Each",
+      "manHoursPerUnit": 5,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 5
+        }
+      ],
+      "rawRow": [
+        "01 51 13.80 0300 Trailer Mounted Floodlight Set, 4 Light, Telescoping",
+        "Each",
+        ".5"
+      ]
+    },
+    {
+      "id": "01-51-13.80-jobsite-portolet-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 3,
+      "sectionCode": "01 51 13.80",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Jobsite Portolet",
+      "unit": "Each",
+      "manHoursPerUnit": 5,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 5
+        }
+      ],
+      "rawRow": [
+        "01 51 13.80 0400 Jobsite Portolet",
+        "Each",
+        ".5"
+      ]
+    },
+    {
+      "id": "01-54-23.70-0010-scaffolding-0010-erect-and-dismantle-tubular-scaffold-including-planks-and-leveling-square-foot-of-wall-surface",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "01 54 23.70",
+      "sectionTitle": null,
+      "itemCode": "0010",
+      "workElementDescription": "Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+      "unit": "square foot of wall surface",
+      "manHoursPerUnit": 0.04,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.04
+        }
+      ],
+      "rawRow": [
+        "01 54 23.70 Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+        "square foot of wall surface",
+        "0.040"
+      ]
+    },
+    {
+      "id": "01-54-36.00-cese-mobilization-or-demobilization-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sectionCode": "01 54 36.00",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "CESE Mobilization or Demobilization",
+      "unit": "Each",
+      "manHoursPerUnit": 3,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 3
+        }
+      ],
+      "rawRow": [
+        "01 54 36.00 0010 CESE Mobilization or Demobilization",
+        "Each",
+        "3.0"
+      ]
+    },
+    {
+      "id": "01-54-39.00-tool-kit-inventory-kit",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sectionCode": "01 54 39.00",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Tool Kit Inventory",
+      "unit": "Kit",
+      "manHoursPerUnit": 2,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 2
+        }
+      ],
+      "rawRow": [
+        "01 54 39.00 0010 Tool Kit Inventory",
+        "Kit",
+        "2.0"
+      ]
+    },
+    {
+      "id": "01-58-13.00-project-sign-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart20.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 9,
+      "sectionCode": "01 58 13.00",
+      "sectionTitle": null,
+      "itemCode": null,
+      "workElementDescription": "Project Sign",
+      "unit": "Each",
+      "manHoursPerUnit": 16,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 16
+        }
+      ],
+      "rawRow": [
+        "01 58 13.00 0010 Project Sign",
+        "Each",
+        "16.0"
+      ]
+    },
+    {
+      "id": "01-55-23.50-0010-roads-gravel-fill-no-surfacing-4-inch-gravel-depth-sy",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 4,
+      "sectionCode": "01 55 23.50",
+      "sectionTitle": "Roads and Sidewalks",
+      "itemCode": "0010",
+      "workElementDescription": "Roads, gravel fill, no surfacing, 4-inch gravel depth",
+      "unit": "SY",
+      "manHoursPerUnit": 0.09,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.09
+        }
+      ],
+      "rawRow": [
+        "(0010) Roads, gravel fill, no surfacing, 4-inch gravel depth",
+        "SY",
+        "0.090"
+      ]
+    },
+    {
+      "id": "01-55-23.50-0020-8-inch-gravel-depth-sy",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sectionCode": "01 55 23.50",
+      "sectionTitle": "Roads and Sidewalks",
+      "itemCode": "0020",
+      "workElementDescription": "8-inch gravel depth",
+      "unit": "SY",
+      "manHoursPerUnit": 0.104,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.104
+        }
+      ],
+      "rawRow": [
+        "(0020) 8-inch gravel depth",
+        "SY",
+        "0.104"
+      ]
+    },
+    {
+      "id": "01-55-23.50-0030-ramp-3-4-inch-plywood-on-2-by-6-inch-joists-16-inches-on-center-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sectionCode": "01 55 23.50",
+      "sectionTitle": "Roads and Sidewalks",
+      "itemCode": "0030",
+      "workElementDescription": "Ramp, 3/4-inch plywood on 2- by 6-inch joists, 16 inches on center",
+      "unit": "SF",
+      "manHoursPerUnit": 0.07,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.07
+        }
+      ],
+      "rawRow": [
+        "(0030) Ramp, 3/4-inch plywood on 2- by 6-inch joists, 16 inches on center",
+        "SF",
+        "0.070"
+      ]
+    },
+    {
+      "id": "01-55-23.50-0040-2-by-10-inch-joists-16-inches-on-center-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sectionCode": "01 55 23.50",
+      "sectionTitle": "Roads and Sidewalks",
+      "itemCode": "0040",
+      "workElementDescription": "2- by 10-inch joists, 16 inches on center",
+      "unit": "SF",
+      "manHoursPerUnit": 0.077,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.077
+        }
+      ],
+      "rawRow": [
+        "(0040) 2- by 10-inch joists, 16 inches on center",
+        "SF",
+        "0.077"
+      ]
+    },
+    {
+      "id": "01-56-23.10-0010-fill-and-place-sandbags-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sectionCode": "01 56 23.10",
+      "sectionTitle": "Barricades",
+      "itemCode": "0010",
+      "workElementDescription": "Fill and place sandbags",
+      "unit": "Each",
+      "manHoursPerUnit": 0.028,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.028
+        }
+      ],
+      "rawRow": [
+        "(0010) Fill and place sandbags",
+        "Each",
+        "0.0280"
+      ]
+    },
+    {
+      "id": "01-56-23.10-0020-5-feet-high-3-rail-at-2-by-8-inches-fixed-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sectionCode": "01 56 23.10",
+      "sectionTitle": "Barricades",
+      "itemCode": "0020",
+      "workElementDescription": "5 feet high, 3 rail at 2 by 8 inches, fixed",
+      "unit": "LF",
+      "manHoursPerUnit": 1.064,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 1.064
+        }
+      ],
+      "rawRow": [
+        "(0020) 5 feet high, 3 rail at 2 by 8 inches, fixed",
+        "LF",
+        "1.0640"
+      ]
+    },
+    {
+      "id": "01-56-23.10-0030-movable-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 12,
+      "sectionCode": "01 56 23.10",
+      "sectionTitle": "Barricades",
+      "itemCode": "0030",
+      "workElementDescription": "Movable",
+      "unit": "LF",
+      "manHoursPerUnit": 0.709,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.709
+        }
+      ],
+      "rawRow": [
+        "(0030) Movable",
+        "LF",
+        "0.7090"
+      ]
+    },
+    {
+      "id": "01-56-23.10-0040-guardrail-wooden-3-feet-1-by-6-inches-on-2-by-4-inch-posts-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 13,
+      "sectionCode": "01 56 23.10",
+      "sectionTitle": "Barricades",
+      "itemCode": "0040",
+      "workElementDescription": "Guardrail, wooden, 3 feet, 1 by 6 inches, on 2- by 4-inch posts",
+      "unit": "LF",
+      "manHoursPerUnit": 0.106,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.106
+        }
+      ],
+      "rawRow": [
+        "(0040) Guardrail, wooden, 3 feet, 1 by 6 inches, on 2- by 4-inch posts",
+        "LF",
+        "0.1060"
+      ]
+    },
+    {
+      "id": "01-56-26.50-0010-chain-link-11-gauge-5-feet-high-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 16,
+      "sectionCode": "01 56 26.50",
+      "sectionTitle": "Temporary Fencing",
+      "itemCode": "0010",
+      "workElementDescription": "Chain link, 11 gauge, 5 feet high",
+      "unit": "LF",
+      "manHoursPerUnit": 0.053,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.053
+        }
+      ],
+      "rawRow": [
+        "(0010) Chain link, 11 gauge, 5 feet high",
+        "LF",
+        "0.053"
+      ]
+    },
+    {
+      "id": "01-56-26.50-0020-6-feet-high-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 17,
+      "sectionCode": "01 56 26.50",
+      "sectionTitle": "Temporary Fencing",
+      "itemCode": "0020",
+      "workElementDescription": "6 feet high",
+      "unit": "LF",
+      "manHoursPerUnit": 0.07,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.07
+        }
+      ],
+      "rawRow": [
+        "(0020) 6 feet high",
+        "LF",
+        "0.070"
+      ]
+    },
+    {
+      "id": "01-56-26.50-0030-plywood-painted-2-by-4-inch-frame-4-feet-high-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 18,
+      "sectionCode": "01 56 26.50",
+      "sectionTitle": "Temporary Fencing",
+      "itemCode": "0030",
+      "workElementDescription": "Plywood, painted, 2- by 4-inch frame, 4 feet high",
+      "unit": "LF",
+      "manHoursPerUnit": 0.237,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.237
+        }
+      ],
+      "rawRow": [
+        "(0030) Plywood, painted, 2- by 4-inch frame, 4 feet high",
+        "LF",
+        "0.237"
+      ]
+    },
+    {
+      "id": "01-56-26.50-0040-wire-mesh-on-4-by-4-inch-posts-4-feet-high-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 19,
+      "sectionCode": "01 56 26.50",
+      "sectionTitle": "Temporary Fencing",
+      "itemCode": "0040",
+      "workElementDescription": "Wire mesh on 4- by 4-inch posts, 4 feet high",
+      "unit": "LF",
+      "manHoursPerUnit": 0.213,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.213
+        }
+      ],
+      "rawRow": [
+        "(0040) Wire mesh on 4- by 4-inch posts, 4 feet high",
+        "LF",
+        "0.213"
+      ]
+    },
+    {
+      "id": "01-56-29.50-0010-sidewalks-2-by-12-inch-planks-two-uses-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 22,
+      "sectionCode": "01 56 29.50",
+      "sectionTitle": "Temporary Protective Walkways",
+      "itemCode": "0010",
+      "workElementDescription": "Sidewalks, 2- by 12-inch planks, two uses",
+      "unit": "SF",
+      "manHoursPerUnit": 0.031,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.031
+        }
+      ],
+      "rawRow": [
+        "(0010) Sidewalks, 2- by 12-inch planks, two uses",
+        "SF",
+        "0.031"
+      ]
+    },
+    {
+      "id": "01-56-29.50-0020-exterior-plywood-two-uses-1-2-inch-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 23,
+      "sectionCode": "01 56 29.50",
+      "sectionTitle": "Temporary Protective Walkways",
+      "itemCode": "0020",
+      "workElementDescription": "exterior plywood, two uses, 1/2 inch",
+      "unit": "SF",
+      "manHoursPerUnit": 0.015,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.015
+        }
+      ],
+      "rawRow": [
+        "(0020) exterior plywood, two uses, 1/2 inch",
+        "SF",
+        "0.015"
+      ]
+    },
+    {
+      "id": "01-56-29.50-0030-exterior-plywood-two-uses-3-4-inch-sf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart22.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 24,
+      "sectionCode": "01 56 29.50",
+      "sectionTitle": "Temporary Protective Walkways",
+      "itemCode": "0030",
+      "workElementDescription": "exterior plywood, two uses, 3/4 inch",
+      "unit": "SF",
+      "manHoursPerUnit": 0.017,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.017
+        }
+      ],
+      "rawRow": [
+        "(0030) exterior plywood, two uses, 3/4 inch",
+        "SF",
+        "0.017"
+      ]
+    },
+    {
+      "id": "01-71-23-0010-level-area-sy",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 5,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Survey, conventional, topographical",
+      "itemCode": "0010",
+      "workElementDescription": "(level area)",
+      "unit": "SY",
+      "manHoursPerUnit": 0.003,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.003
+        }
+      ],
+      "rawRow": [
+        "(0010) (level area)",
+        "SY",
+        "0.003"
+      ]
+    },
+    {
+      "id": "01-71-23-0020-hilly-area-sy",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 6,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Survey, conventional, topographical",
+      "itemCode": "0020",
+      "workElementDescription": "(hilly area)",
+      "unit": "SY",
+      "manHoursPerUnit": 0.012,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.012
+        }
+      ],
+      "rawRow": [
+        "(0020) (hilly area)",
+        "SY",
+        "0.012"
+      ]
+    },
+    {
+      "id": "01-71-23-0030-minimum-acre",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 7,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Survey, conventional, topographical",
+      "itemCode": "0030",
+      "workElementDescription": "minimum",
+      "unit": "Acre",
+      "manHoursPerUnit": 10.9,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 10.9
+        }
+      ],
+      "rawRow": [
+        "(0030) minimum",
+        "Acre",
+        "10.90"
+      ]
+    },
+    {
+      "id": "01-71-23-0040-maximum-acre",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 8,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Survey, conventional, topographical",
+      "itemCode": "0040",
+      "workElementDescription": "maximum",
+      "unit": "Acre",
+      "manHoursPerUnit": 80,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 80
+        }
+      ],
+      "rawRow": [
+        "(0040) maximum",
+        "Acre",
+        "80.00"
+      ]
+    },
+    {
+      "id": "01-71-23-0050-minimum-acre",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 10,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Lot location and lines, for large quantities,",
+      "itemCode": "0050",
+      "workElementDescription": "minimum",
+      "unit": "Acre",
+      "manHoursPerUnit": 18,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 18
+        }
+      ],
+      "rawRow": [
+        "(0050) minimum",
+        "Acre",
+        "18.00"
+      ]
+    },
+    {
+      "id": "01-71-23-0060-average-acre",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 11,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Lot location and lines, for large quantities,",
+      "itemCode": "0060",
+      "workElementDescription": "average",
+      "unit": "Acre",
+      "manHoursPerUnit": 28.8,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 28.8
+        }
+      ],
+      "rawRow": [
+        "(0060) average",
+        "Acre",
+        "28.80"
+      ]
+    },
+    {
+      "id": "01-71-23-0070-maximum-for-small-quantities-acre",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 12,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Lot location and lines, for large quantities,",
+      "itemCode": "0070",
+      "workElementDescription": "maximum, for small quantities",
+      "unit": "Acre",
+      "manHoursPerUnit": 48,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 48
+        }
+      ],
+      "rawRow": [
+        "(0070) maximum, for small quantities",
+        "Acre",
+        "48.00"
+      ]
+    },
+    {
+      "id": "01-71-23-0080-maximum-for-small-quantities-each",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 13,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Lot location and lines, for large quantities,",
+      "itemCode": "0080",
+      "workElementDescription": "maximum, for small quantities",
+      "unit": "Each",
+      "manHoursPerUnit": 3.75,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 3.75
+        }
+      ],
+      "rawRow": [
+        "(0080) maximum, for small quantities",
+        "Each",
+        "3.750"
+      ]
+    },
+    {
+      "id": "01-71-23-0090-property-lines-perimeter-cleared-land-lf",
+      "sourceChapter": "chapter5",
+      "sourceTableFile": "fileoutpart24.xlsx",
+      "sourceSheetName": "Sheet1",
+      "sourceRowNumberApprox": 14,
+      "sectionCode": "01 71 23",
+      "sectionTitle": "Lot location and lines, for large quantities,",
+      "itemCode": "0090",
+      "workElementDescription": "Property lines, perimeter, cleared land",
+      "unit": "LF",
+      "manHoursPerUnit": 0.036,
+      "rateComponents": [
+        {
+          "name": "fabricate",
+          "manHoursPerUnit": 0.036
+        }
+      ],
+      "rawRow": [
+        "(0090) Property lines, perimeter, cleared land",
+        "LF",
+        "0.036"
+      ]
+    }
+  ],
+  "rejectedSamples": [
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart20.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 5,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "Minimum suggested crew size: Scaffolding erection—three or four laborers, increase crew size for multiple tiers.",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart20.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 6,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "Note: The first tier of scaffolding requires more time due to leveling and alignment procedures.",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing item description after removing section/item codes",
+      "file": "fileoutpart28.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 2,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "02 41 13.60",
+        "Foot",
+        "0.049"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart28.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 3,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "Fencing, Selective Demolish",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart28.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 4,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "(0010) Fencing, barbed wire, 3 strand",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Could not determine CSI/work element section code",
+      "file": "fileoutpart28.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 5,
+      "row": [
+        "(0020) Fencing, barbed wire, 5 strand",
+        "LF",
+        "0.076"
+      ]
+    },
+    {
+      "reason": "Could not determine CSI/work element section code",
+      "file": "fileoutpart28.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 6,
+      "row": [
+        "(0030) Chain link, posts and fabric, 8 to 10 feet high, remove only",
+        "LF",
+        "0.072"
+      ]
+    },
+    {
+      "reason": "Could not determine CSI/work element section code",
+      "file": "fileoutpart28.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 7,
+      "row": [
+        "(0040) Chain link, posts and fabric, 8 to 10 feet high, remove and reset",
+        "LF",
+        "0.456"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 2,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "",
+        "",
+        "Fabricate",
+        "Erect and Strip",
+        "Clean and Move",
+        "Total Hours (1 Use)"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 6,
+      "currentSectionCode": "03 11 13.20",
+      "currentSectionTitle": "Exterior spandrel, plywood, one use",
+      "row": [
+        "(0010) 12-inch width",
+        "",
+        "0.113",
+        "0.147",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 7,
+      "currentSectionCode": "03 11 13.20",
+      "currentSectionTitle": "Exterior spandrel, plywood, one use",
+      "row": [
+        "(0020) 18-inch width",
+        "",
+        "0.102",
+        "0.133",
+        "",
+        "0.255 0.241"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 8,
+      "currentSectionCode": "03 11 13.20",
+      "currentSectionTitle": "Exterior spandrel, plywood, one use",
+      "row": [
+        "(0030) 24-inch width",
+        "",
+        "0.096",
+        "0.126",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 9,
+      "currentSectionCode": "03 11 13.20",
+      "currentSectionTitle": "Exterior spandrel, plywood, one use",
+      "row": [
+        "Interior beam, plywood, one use",
+        "",
+        "",
+        "",
+        "0.017",
+        "0.213"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 10,
+      "currentSectionCode": "03 11 13.20",
+      "currentSectionTitle": "Exterior spandrel, plywood, one use",
+      "row": [
+        "(0040) 12-inch width",
+        "",
+        "0.085",
+        "0.111",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 11,
+      "currentSectionCode": "03 11 13.20",
+      "currentSectionTitle": "Exterior spandrel, plywood, one use",
+      "row": [
+        "(0050) 24-inch width",
+        "",
+        "0.080",
+        "0.104",
+        "0.016",
+        "0.200"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 23,
+      "currentSectionCode": "03 11 13.25",
+      "currentSectionTitle": "Plywood (job-built), one use",
+      "row": [
+        "(0080) 16 by 16 inches",
+        "",
+        "0.083",
+        "0.133",
+        "0.014",
+        "0.230"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart48.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 24,
+      "currentSectionCode": "03 11 13.25",
+      "currentSectionTitle": "Plywood (job-built), one use",
+      "row": [
+        "(0090) 24 by 24 inches",
+        "",
+        "0.080",
+        "0.130",
+        "0.013",
+        "0.223"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart50.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 2,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "",
+        "",
+        "Fabricate",
+        "Erect and Strip",
+        "Clean and Move",
+        "Total Hours (1 Use)"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart50.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 23,
+      "currentSectionCode": "03 11 13.45",
+      "currentSectionTitle": "Support for dowels, plinths, or templates",
+      "row": [
+        "03 11 13.50",
+        "",
+        "",
+        "",
+        "0.016",
+        "0.122"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart50.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 29,
+      "currentSectionCode": "03 11 13.65",
+      "currentSectionTitle": "Slab on grade, Forms in Place",
+      "row": [
+        "(0030) Edge forms, wood, on grade to 6 inches high",
+        "surface",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing item description after removing section/item codes",
+      "file": "fileoutpart50.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 33,
+      "currentSectionCode": "03 11 13.65",
+      "currentSectionTitle": "Slab on grade, Forms in Place",
+      "row": [
+        "",
+        "LF",
+        "0.073",
+        "0.146",
+        "0.024",
+        "0.243"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart52.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 2,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "",
+        "",
+        "Fabricate",
+        "Erect and Strip",
+        "Clean and Move",
+        "Total Hours (1 Use)"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart52.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 5,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "Minimum suggested crew size: Forming/stripping—five laborers. Forming/stripping (gang forms)—five laborers, two equipment operators.",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart52.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 6,
+      "currentSectionCode": null,
+      "currentSectionTitle": null,
+      "row": [
+        "Notes: 1. The following notes are to be used for estimating labor to fabricate and erect forms. Refer to TM 3-34.44/FM 5-428/MCRP 3-40D.4 for information on concrete form design and materiel estimating procedures. 2. Concrete forming estimates are based on using form accessories, form ties, and steel column clamps. 3. Suspended slabs, beams, and girders are figures using 4- by 4-inch shores and wooden wedges. For adjustable shores, use a 0.9 multiplier. 4. Forming walls over 10 feet high and other high work will increase erection time. To compensate, use a 1.1–1.5 multiplier depending on job complexity.",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart68.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 4,
+      "currentSectionCode": "03 35 29.30",
+      "currentSectionTitle": "Finishing Floors",
+      "row": [
+        "Manual screed finish",
+        "SF",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart84.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 22,
+      "currentSectionCode": "04 05 23.13",
+      "currentSectionTitle": "Control Joint",
+      "row": [
+        "04 05 23.19",
+        "",
+        "0.400"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart84.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 24,
+      "currentSectionCode": "04 05 23.13",
+      "currentSectionTitle": "Vent Box",
+      "row": [
+        "(0010) Extruded aluminum and stainless steel ventilators, various types, average",
+        "Each",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart84.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 25,
+      "currentSectionCode": "04 05 23.13",
+      "currentSectionTitle": "Vent Box",
+      "row": [
+        "04 05 23.95",
+        "",
+        "1.000"
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart84.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 27,
+      "currentSectionCode": "04 05 23.13",
+      "currentSectionTitle": "Wall Plugs (for nailing to brickwork)",
+      "row": [
+        "(0010) Galvanized, plain or wood-filled",
+        "HD",
+        ""
+      ]
+    },
+    {
+      "reason": "Missing unit or man-hours value",
+      "file": "fileoutpart86.xlsx",
+      "sheetName": "Sheet1",
+      "rowNumberApprox": 8,
+      "currentSectionCode": "04 21 13.13",
+      "currentSectionTitle": "Note: Plan for 3 percent brick and 25 percent mortar waste",
+      "row": [
+        "04 21 26.10",
+        "",
+        "0.250"
+      ]
+    }
+  ]
+}

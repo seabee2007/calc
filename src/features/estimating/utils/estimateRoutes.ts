@@ -11,6 +11,8 @@ export const ESTIMATE_WORKSPACE_TAB_IDS = [
   'quick-estimate',
   'conceptual-budget',
   'assumptions-allowances',
+  'scenarios',
+  'risks-contingency',
   'change-order-scope',
   'pricing',
   'unit-price-items',

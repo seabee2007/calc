@@ -144,7 +144,6 @@ export function isQuickFeasibilityEstimateType(type: StoredEstimateType): boolea
 export function shouldOpenBuildScopeModal(type: StoredEstimateType): boolean {
   const normalized = normalizeEstimateMethod(type);
   return (
-    normalized === 'conceptual' ||
     normalized === 'detailed' ||
     normalized === 'bid' ||
     normalized === 'self_perform_labor' ||

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "22-13-16.20-bends-each",
+    "count": 2,
+    "records": [
+      {
+        "sourceTableFile": "fileoutpart328.xlsx",
+        "sourceRowNumberApprox": 10,
+        "sectionCode": "22 13 16.20",
+        "itemCode": null,
+        "workElementDescription": "Bends",
+        "unit": "Each",
+        "manHoursPerUnit": 0.95
+      },
+      {
+        "sourceTableFile": "fileoutpart328.xlsx",
+        "sourceRowNumberApprox": 17,
+        "sectionCode": "22 13 16.20",
+        "itemCode": null,
+        "workElementDescription": "Bends",
+        "unit": "Each",
+        "manHoursPerUnit": 0.95
+      }
+    ]
+  }
+]

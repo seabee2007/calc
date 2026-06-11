@@ -1,0 +1,2141 @@
+[
+  {
+    "reviewFlags": [
+      "DUPLICATE_ID"
+    ],
+    "id": "22-13-16.20-bends-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart328.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 10,
+    "sourceAdobePageIndex": 168,
+    "sourcePageNumberApprox": 169,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 13 16.20",
+    "sectionTitle": "Cast Iron Pipe",
+    "itemCode": null,
+    "workElementDescription": "Bends",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.95,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.42
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 0.49
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 0.63
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 0.95
+      }
+    ],
+    "rawRow": [
+      "Bends",
+      "Each",
+      "0.4200 (0170)",
+      "0.4900 (0180)",
+      "0.6300 (0190)",
+      "0.9500 (0200)",
+      "1.1900 (0210)",
+      "1.7500 (0220)"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "DUPLICATE_ID"
+    ],
+    "id": "22-13-16.20-bends-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart328.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 17,
+    "sourceAdobePageIndex": 168,
+    "sourcePageNumberApprox": 169,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 13 16.20",
+    "sectionTitle": "Cast Iron Pipe",
+    "itemCode": null,
+    "workElementDescription": "Bends",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.95,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.42
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 0.49
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 0.63
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 0.95
+      }
+    ],
+    "rawRow": [
+      "Bends",
+      "Each",
+      "0.4200",
+      "0.4900",
+      "0.6300",
+      "0.9500",
+      "1.1900",
+      "1.7500"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "01-51-13.80-trailer-mounted-floodlight-set-4-light-telescoping-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart20.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 50,
+    "sourcePageNumberApprox": 51,
+    "division": "01",
+    "divisionName": "General Requirements",
+    "sectionCode": "01 51 13.80",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Trailer Mounted Floodlight Set, 4 Light, Telescoping",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 5,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 5
+      }
+    ],
+    "rawRow": [
+      "01 51 13.80 0300 Trailer Mounted Floodlight Set, 4 Light, Telescoping",
+      "Each",
+      ".5"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "01-51-13.80-jobsite-portolet-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart20.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 50,
+    "sourcePageNumberApprox": 51,
+    "division": "01",
+    "divisionName": "General Requirements",
+    "sectionCode": "01 51 13.80",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Jobsite Portolet",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 5,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 5
+      }
+    ],
+    "rawRow": [
+      "01 51 13.80 0400 Jobsite Portolet",
+      "Each",
+      ".5"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "01-54-36.00-cese-mobilization-or-demobilization-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart20.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 7,
+    "sourceAdobePageIndex": 50,
+    "sourcePageNumberApprox": 51,
+    "division": "01",
+    "divisionName": "General Requirements",
+    "sectionCode": "01 54 36.00",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "CESE Mobilization or Demobilization",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 3,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 3
+      }
+    ],
+    "rawRow": [
+      "01 54 36.00 0010 CESE Mobilization or Demobilization",
+      "Each",
+      "3.0"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "01-54-39.00-tool-kit-inventory-kit",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart20.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 8,
+    "sourceAdobePageIndex": 50,
+    "sourcePageNumberApprox": 51,
+    "division": "01",
+    "divisionName": "General Requirements",
+    "sectionCode": "01 54 39.00",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Tool Kit Inventory",
+    "unitOriginal": "Kit",
+    "unit": "KIT",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 2,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 2
+      }
+    ],
+    "rawRow": [
+      "01 54 39.00 0010 Tool Kit Inventory",
+      "Kit",
+      "2.0"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "01-58-13.00-project-sign-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart20.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 9,
+    "sourceAdobePageIndex": 50,
+    "sourcePageNumberApprox": 51,
+    "division": "01",
+    "divisionName": "General Requirements",
+    "sectionCode": "01 58 13.00",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Project Sign",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 16,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 16
+      }
+    ],
+    "rawRow": [
+      "01 58 13.00 0010 Project Sign",
+      "Each",
+      "16.0"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "02-58-13.10-0010-snow-fencing-system-0010-snow-fence-on-steel-posts-10-feet-on-center-4-feet-high-lf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart34.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 56,
+    "sourcePageNumberApprox": 57,
+    "division": "02",
+    "divisionName": "Existing Conditions",
+    "sectionCode": "02 58 13.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Snow Fencing System (0010) Snow fence on steel posts 10 feet on center, 4 feet high",
+    "unitOriginal": "LF",
+    "unit": "LF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.064,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.064
+      }
+    ],
+    "rawRow": [
+      "02 58 13.10 Snow Fencing System (0010) Snow fence on steel posts 10 feet on center, 4 feet high",
+      "LF",
+      "0.064"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "03-11-13.20-beams-and-girders-forms-in-place-sf-of-contact-surface",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart48.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 62,
+    "sourcePageNumberApprox": 63,
+    "division": "03",
+    "divisionName": "Concrete",
+    "sectionCode": "03 11 13.20",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Beams and Girders, Forms in Place",
+    "unitOriginal": "SF of contact surface",
+    "unit": "SF_CONTACT_SURFACE",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.283,
+    "rateComponents": [
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 0.023
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 0.283
+      }
+    ],
+    "rawRow": [
+      "Beams and Girders, Forms in Place",
+      "SF of contact surface",
+      "",
+      "",
+      "0.023 0.020 0.019",
+      "0.283"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "03-11-13.85-0010-walls-forms-in-place-0010-wall-job-built-plywood-to-8-feet-0020-wall-over-8-to-16-feet-hig-sf-of-contact-surface",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart52.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 64,
+    "sourcePageNumberApprox": 65,
+    "division": "03",
+    "divisionName": "Concrete",
+    "sectionCode": "03 11 13.85",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Walls, Forms in Place (0010) Wall, job-built plywood, to 8 feet (0020) Wall, over 8 to 16 feet high",
+    "unitOriginal": "SF of contact surface",
+    "unit": "SF_CONTACT_SURFACE",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.173,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.066
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 0.087
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 0.021
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 0.173
+      }
+    ],
+    "rawRow": [
+      "03 11 13.85 Walls, Forms in Place (0010) Wall, job-built plywood, to 8 feet (0020) Wall, over 8 to 16 feet high",
+      "SF of contact surface",
+      "0.066 0.086",
+      "0.087 0.114",
+      "0.021 0.027",
+      "0.173 0.227"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "04-05-13.30-0010-mortar-0010-mixing-cf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart82.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 77,
+    "sourcePageNumberApprox": 78,
+    "division": "04",
+    "divisionName": "Masonry",
+    "sectionCode": "04 05 13.30",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Mortar (0010) Mixing",
+    "unitOriginal": "CF",
+    "unit": "CF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.083,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.083
+      }
+    ],
+    "rawRow": [
+      "04 05 13.30 Mortar (0010) Mixing",
+      "CF",
+      "0.083"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "05-42-13.40-0010-cold-formed-metal-joist-framing-0010-installation-to-band-joists-beams-or-headers-18-ga-x--each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart126.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 92,
+    "sourcePageNumberApprox": 93,
+    "division": "05",
+    "divisionName": "Metals",
+    "sectionCode": "05 42 13.40",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Cold Formed Metal Joist Framing (0010) Installation to band joists, beams, or headers, 18 GA x 6 inch x 2 inch flange",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.145,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.145
+      }
+    ],
+    "rawRow": [
+      "05 42 13.40 Cold Formed Metal Joist Framing (0010) Installation to band joists, beams, or headers, 18 GA x 6 inch x 2 inch flange",
+      "Each",
+      "0.145"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "05-42-23.05-0010-cold-formed-metal-roof-joist-framing-bracing-0010-framing-bracing-16-ga-x-1-1-2-inch-chann-lf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart126.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 92,
+    "sourcePageNumberApprox": 93,
+    "division": "05",
+    "divisionName": "Metals",
+    "sectionCode": "05 42 23.05",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Cold Formed Metal Roof Joist Framing Bracing (0010) Framing, Bracing 16 GA x 1 1/2 inch channel thru trusses or rafters 16 inch OC",
+    "unitOriginal": "LF",
+    "unit": "LF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.0178,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.0178
+      }
+    ],
+    "rawRow": [
+      "05 42 23.05 Cold Formed Metal Roof Joist Framing Bracing (0010) Framing, Bracing 16 GA x 1 1/2 inch channel thru trusses or rafters 16 inch OC",
+      "LF",
+      "0.0178"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "05-42-23.10-0100-cold-formed-metal-roof-joist-framing-bridging-0100-framing-bridging-solid-between-rafters--each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart126.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 92,
+    "sourcePageNumberApprox": 93,
+    "division": "05",
+    "divisionName": "Metals",
+    "sectionCode": "05 42 23.10",
+    "sectionTitle": null,
+    "itemCode": "0100",
+    "workElementDescription": "Cold Formed Metal Roof Joist Framing Bridging (0100) Framing, Bridging, Solid between rafters, Rafters at 16 inch OC, 18 GA by 4 inch deep",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.1333,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.1333
+      }
+    ],
+    "rawRow": [
+      "05 42 23.10 Cold Formed Metal Roof Joist Framing Bridging (0100) Framing, Bridging, Solid between rafters, Rafters at 16 inch OC, 18 GA by 4 inch deep",
+      "Each",
+      "0.1333"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "07-26-10.10-0010-vapor-retarders-0010-various-materiels-e-g-aluminum-and-kraft-foil-one-side-or-two-sides-a-square",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart176.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 111,
+    "sourcePageNumberApprox": 112,
+    "division": "07",
+    "divisionName": "Thermal and Moisture Protection",
+    "sectionCode": "07 26 10.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Vapor Retarders (0010) Various materiels, e.g., aluminum and kraft, foil one side or two sides; asphalt felt sheathing paper; polyethylene vapor barrier, etc.",
+    "unitOriginal": "Square",
+    "unit": "SQUARE",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.287,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.287
+      }
+    ],
+    "rawRow": [
+      "07 26 10.10 Vapor Retarders (0010) Various materiels, e.g., aluminum and kraft, foil one side or two sides; asphalt felt sheathing paper; polyethylene vapor barrier, etc.",
+      "Square",
+      "0.2870"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "08-71-20.95-0010-kick-plates-0010-various-types-and-sizes-average-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart202.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 123,
+    "sourcePageNumberApprox": 124,
+    "division": "08",
+    "divisionName": "Openings",
+    "sectionCode": "08 71 20.95",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Kick Plates (0010) Various types and sizes, average",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.709,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.709
+      }
+    ],
+    "rawRow": [
+      "08 71 20.95 Kick Plates (0010) Various types and sizes, average",
+      "Each",
+      "0.7090"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "09-68-05.11-0010-flooring-transition-strip-0010-clamp-down-brass-divider-12-foot-strip-vinyl-to-carpet-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart236.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 134,
+    "sourcePageNumberApprox": 135,
+    "division": "09",
+    "divisionName": "Finishes",
+    "sectionCode": "09 68 05.11",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Flooring Transition Strip (0010) Clamp down brass divider, 12-foot strip, vinyl to carpet",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.34,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.34
+      }
+    ],
+    "rawRow": [
+      "09 68 05.11 Flooring Transition Strip (0010) Clamp down brass divider, 12-foot strip, vinyl to carpet",
+      "Each",
+      "0.3400"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "09-68-10.10-0010-commercial-grade-carpet-pad-0010-variety-of-types-e-g-sponge-rubber-felt-and-bonded-uretha-sy",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart236.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 134,
+    "sourcePageNumberApprox": 135,
+    "division": "09",
+    "divisionName": "Finishes",
+    "sectionCode": "09 68 10.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Commercial Grade Carpet Pad (0010)Variety of types (e.g., sponge rubber, felt, and bonded urethane)",
+    "unitOriginal": "SY",
+    "unit": "SY",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.071,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.071
+      }
+    ],
+    "rawRow": [
+      "09 68 10.10 Commercial Grade Carpet Pad (0010)Variety of types (e.g., sponge rubber, felt, and bonded urethane)",
+      "SY",
+      "0.0710"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "09-68-13.10-0010-carpet-tile-0010-tufted-nylon-18-by-18-inches-hard-back-or-cushion-back-20-ounce-or-26-oun-sy-sy",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart236.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 134,
+    "sourcePageNumberApprox": 135,
+    "division": "09",
+    "divisionName": "Finishes",
+    "sectionCode": "09 68 13.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Carpet Tile (0010) Tufted nylon, 18 by 18 inches, hard back or cushion back, 20 ounce or 26 ounce (0020) Tufted nylon, 24 by 24 inches, 24 ounce, 35 ounce, or 42 ounce",
+    "unitOriginal": "SY SY",
+    "unit": "SY_SY",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.071,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.071
+      }
+    ],
+    "rawRow": [
+      "09 68 13.10 Carpet Tile (0010) Tufted nylon, 18 by 18 inches, hard back or cushion back, 20 ounce or 26 ounce (0020) Tufted nylon, 24 by 24 inches, 24 ounce, 35 ounce, or 42 ounce",
+      "SY SY",
+      "0.0710 0.1330"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "09-68-20.10-0010-indoor-athletic-carpet-0010-nylon-level-loop-26-ounce-light-to-medium-traffic-sf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart236.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 9,
+    "sourceAdobePageIndex": 134,
+    "sourcePageNumberApprox": 135,
+    "division": "09",
+    "divisionName": "Finishes",
+    "sectionCode": "09 68 20.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Indoor Athletic Carpet (0010) Nylon, level loop, 26 ounce, light to medium traffic",
+    "unitOriginal": "SF",
+    "unit": "SF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.039,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.039
+      }
+    ],
+    "rawRow": [
+      "09 68 20.10 Indoor Athletic Carpet (0010) Nylon, level loop, 26 ounce, light to medium traffic",
+      "SF",
+      "0.0390"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "09-69-13.10-0010-access-floors-0010-access-floor-package-including-panel-pedestal-stringers-and-laminate-co-sf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart238.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 134,
+    "sourcePageNumberApprox": 135,
+    "division": "09",
+    "divisionName": "Finishes",
+    "sectionCode": "09 69 13.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Access Floors (0010) Access floor package including panel, pedestal, stringers, and laminate cover, (i.e., computer room)",
+    "unitOriginal": "SF",
+    "unit": "SF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 650,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 650
+      }
+    ],
+    "rawRow": [
+      "09 69 13.10 Access Floors (0010) Access floor package including panel, pedestal, stringers, and laminate cover, (i.e., computer room)",
+      "SF",
+      ".0650"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "12-54-16.00-0010-restaurant-furniture-0010-folding-chair-setup-0020-folding-table-setup-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart272.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 146,
+    "sourcePageNumberApprox": 147,
+    "division": "12",
+    "divisionName": "Furnishings",
+    "sectionCode": "12 54 16.00",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Restaurant Furniture (0010) Folding chair setup (0020) Folding table setup",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.0083,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.0083
+      }
+    ],
+    "rawRow": [
+      "12 54 16.00 Restaurant Furniture (0010) Folding chair setup (0020) Folding table setup",
+      "Each",
+      "0.0083"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "12-59-16.00-0010-office-furniture-0010-desk-assembly-and-setup-lf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart272.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 146,
+    "sourcePageNumberApprox": 147,
+    "division": "12",
+    "divisionName": "Furnishings",
+    "sectionCode": "12 59 16.00",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Office Furniture (0010) Desk assembly and setup",
+    "unitOriginal": "LF",
+    "unit": "LF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 1,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 1
+      }
+    ],
+    "rawRow": [
+      "12 59 16.00 Office Furniture (0010) Desk assembly and setup",
+      "LF",
+      "1.0000"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "13-00-00.00-0010-weapons-clearing-facility-0010-install-weapons-clearing-barrel-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart274.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 148,
+    "sourcePageNumberApprox": 149,
+    "division": "13",
+    "divisionName": "Special Construction",
+    "sectionCode": "13 00 00.00",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Weapons Clearing Facility (0010) Install weapons clearing barrel.",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 4.31,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 4.31
+      }
+    ],
+    "rawRow": [
+      "13 00 00.00 Weapons Clearing Facility (0010) Install weapons clearing barrel.",
+      "Each",
+      "4.3100"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "13-36-13.00-0010-steel-towers-0010-standard-heights-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart282.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 151,
+    "sourcePageNumberApprox": 152,
+    "division": "13",
+    "divisionName": "Special Construction",
+    "sectionCode": "13 36 13.00",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Steel Towers (0010) Standard heights",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 20,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "13 36 13.00 Steel Towers (0010) Standard heights",
+      "Each",
+      "20"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-05-23.10-gas-cocks-threaded-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart312.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 6,
+    "sourceAdobePageIndex": 163,
+    "sourcePageNumberApprox": 164,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 05 23.10",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Gas cocks, threaded",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.709,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.443
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 0.484
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 0.56
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 0.709
+      }
+    ],
+    "rawRow": [
+      "Gas cocks, threaded",
+      "Each",
+      "0.4430",
+      "0.4840",
+      "0.5600",
+      "0.7090",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-05-23.20-average-time-for-the-following-valves-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart312.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 9,
+    "sourceAdobePageIndex": 163,
+    "sourcePageNumberApprox": 164,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 05 23.20",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Average time for the following valves:",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.709,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.443
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 0.532
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 0.56
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 0.709
+      }
+    ],
+    "rawRow": [
+      "Average time for the following valves:",
+      "Each",
+      "0.4430",
+      "0.5320",
+      "0.5600",
+      "0.7090",
+      "0.8180",
+      "0.9670",
+      "1.4200",
+      "1.6370"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-11-13.44-steel-pipe-threaded-schedule-40-with-couplings-and-clevis-hanger-assemblies-sized-for-cove-lf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart318.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 165,
+    "sourcePageNumberApprox": 166,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 11 13.44",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Steel Pipe, Threaded Schedule 40, with couplings, and clevis hanger assemblies sized for covering 10 feet on center",
+    "unitOriginal": "LF",
+    "unit": "LF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 40,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 30
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 40
+      }
+    ],
+    "rawRow": [
+      "22 11 13.44 Steel Pipe, Threaded Schedule 40, with couplings, and clevis hanger assemblies sized for covering 10 feet on center",
+      "LF",
+      "(0010) 0.1740",
+      "(0020) 0.2010",
+      "(0030) 0.2390",
+      "(0040) 0.2660",
+      "(0050) 0.3320",
+      "(0060) 0.4260",
+      "(0070) 0.4950",
+      "(0080) 0.5320",
+      "(0090) 0.5900"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-11-19.64-0010-water-piping-specialties-0010-yard-hydrant-all-types-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart326.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 168,
+    "sourcePageNumberApprox": 169,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 11 19.64",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Water Piping Specialties (0010) Yard hydrant, all types",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 1.143,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 1.143
+      }
+    ],
+    "rawRow": [
+      "22 11 19.64 Water Piping Specialties (0010) Yard hydrant, all types",
+      "Each",
+      "1.1430"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-13-29.14-0160-sanitary-sewerage-pumps-0160-sewage-ejector-pump-75-gallon-12-gallons-per-minute-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart326.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 168,
+    "sourcePageNumberApprox": 169,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 13 29.14",
+    "sectionTitle": null,
+    "itemCode": "0160",
+    "workElementDescription": "Sanitary Sewerage Pumps (0160) Sewage ejector pump, 75 gallon, 12 gallons per minute",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 6.67,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 6.67
+      }
+    ],
+    "rawRow": [
+      "22 13 29.14 Sanitary Sewerage Pumps (0160) Sewage ejector pump, 75 gallon, 12 gallons per minute",
+      "Each",
+      "6.6700"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-14-29.00-0010-sump-pumps-0010-cellar-drainer-pedestal-1-3-horsepower-standard-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart326.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 168,
+    "sourcePageNumberApprox": 169,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 14 29.00",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Sump Pumps (0010) Cellar drainer, pedestal, 1/3 horsepower, standard",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 3.547,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 3.547
+      }
+    ],
+    "rawRow": [
+      "22 14 29.00 Sump Pumps (0010) Cellar drainer, pedestal, 1/3 horsepower, standard",
+      "Each",
+      "3.5470"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-13.40-tank-type-wall-hung-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart332.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 5,
+    "sourceAdobePageIndex": 169,
+    "sourcePageNumberApprox": 170,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 13.40",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Tank type, wall hung",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 7.795,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 7.795
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 4.015
+      }
+    ],
+    "rawRow": [
+      "Tank type, wall hung",
+      "Each",
+      "7.7950",
+      "4.0150"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-13.40-floor-mounted-one-piece-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart332.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 6,
+    "sourceAdobePageIndex": 169,
+    "sourcePageNumberApprox": 170,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 13.40",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Floor mounted, one piece",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 30,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 30
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 40
+      }
+    ],
+    "rawRow": [
+      "Floor mounted, one piece",
+      "Each",
+      "(0030)",
+      "(0040)"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-13.40-each-8-3120",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart332.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 9,
+    "sourceAdobePageIndex": 169,
+    "sourcePageNumberApprox": 170,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 13.40",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Each",
+    "unitOriginal": "8.3120",
+    "unit": "8.3120",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 3.67,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 3.67
+      }
+    ],
+    "rawRow": [
+      "Each",
+      "8.3120",
+      "3.6700",
+      ""
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-16.10-vanity-top-wall-hung-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart332.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 16,
+    "sourceAdobePageIndex": 169,
+    "sourcePageNumberApprox": 170,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 16.10",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Vanity top Wall hung",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 9.257,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 9.257
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 3.325
+      }
+    ],
+    "rawRow": [
+      "Vanity top Wall hung",
+      "Each",
+      "9.2570",
+      "3.3250"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-16.30-corrosion-resistant-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart332.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 21,
+    "sourceAdobePageIndex": 169,
+    "sourcePageNumberApprox": 170,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 16.30",
+    "sectionTitle": "",
+    "itemCode": null,
+    "workElementDescription": "Corrosion resistant",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10.534,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10.534
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 4.433
+      }
+    ],
+    "rawRow": [
+      "Corrosion resistant",
+      "Each",
+      "10.5340",
+      "4.4330"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-19.10-bath-tubs-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 19.10",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Bath Tubs",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 41 19.10 Bath Tubs",
+      "Each",
+      "(0010) 10.2810",
+      "(0020) 4.8360"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-23.20-showers-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 23.20",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Showers",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 41 23.20 Showers",
+      "Each",
+      "(0010) 10.3740",
+      "(0020) 3.8690"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-41-36.10-laundry-sinks-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 5,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 41 36.10",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Laundry Sinks",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 41 36.10 Laundry Sinks",
+      "Each",
+      "(0010) 9.9480",
+      "(0020) 3.5470"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-47-13.10-drinking-water-fountains-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 8,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 47 13.10",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Drinking Water Fountains",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 47 13.10 Drinking Water Fountains",
+      "Each",
+      "(0010) 5.8120",
+      "(0020) 3.3250"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-47-16.10-electric-water-coolers-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 9,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 47 16.10",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Electric Water Coolers",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 47 16.10 Electric Water Coolers",
+      "Each",
+      "(0010) 4.8150",
+      "(0020) 5.3200"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "23-05-23.30-2280-general-duty-valves-for-hvac-piping-2280-gate-valve-125-pound-nonrising-stem-flanged-4-inc-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart336.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 172,
+    "sourcePageNumberApprox": 173,
+    "division": "23",
+    "divisionName": "HVAC",
+    "sectionCode": "23 05 23.30",
+    "sectionTitle": null,
+    "itemCode": "2280",
+    "workElementDescription": "General duty valves for HVAC piping (2280) Gate Valve 125 pound, nonrising stem flanged, 4 inch",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 5.33,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 5.33
+      }
+    ],
+    "rawRow": [
+      "23 05 23.30 General duty valves for HVAC piping (2280) Gate Valve 125 pound, nonrising stem flanged, 4 inch",
+      "Each",
+      "5.3300"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "33-11-13.00-0010-water-supply-tactical-hoseline-0010-install-tactical-water-distribution-system-10-miles-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart452.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 216,
+    "sourcePageNumberApprox": 217,
+    "division": "33",
+    "divisionName": "Utilities",
+    "sectionCode": "33 11 13.00",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Water Supply Tactical Hoseline (0010) Install tactical water distribution system, 10 miles",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 180,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 180
+      }
+    ],
+    "rawRow": [
+      "33 11 13.00 Water Supply Tactical Hoseline (0010) Install tactical water distribution system, 10 miles",
+      "Each",
+      "180"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "33-11-13.05-0010-water-supply-miscellaneous-0010-flush-chlorinate-and-test-distribution-mains-lf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart452.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 216,
+    "sourcePageNumberApprox": 217,
+    "division": "33",
+    "divisionName": "Utilities",
+    "sectionCode": "33 11 13.05",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Water Supply Miscellaneous (0010) Flush, chlorinate and test distribution mains",
+    "unitOriginal": "LF",
+    "unit": "LF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.004,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.004
+      }
+    ],
+    "rawRow": [
+      "33 11 13.05 Water Supply Miscellaneous (0010) Flush, chlorinate and test distribution mains",
+      "LF",
+      "0.0040"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "33-11-13.06-0010-tactical-water-distribution-system-0010-install-expeditionary-water-distribution-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart452.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 216,
+    "sourcePageNumberApprox": 217,
+    "division": "33",
+    "divisionName": "Utilities",
+    "sectionCode": "33 11 13.06",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Tactical Water Distribution System (0010) Install expeditionary water distribution",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 1.5,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 1.5
+      }
+    ],
+    "rawRow": [
+      "33 11 13.06 Tactical Water Distribution System (0010) Install expeditionary water distribution",
+      "Each",
+      "1.50"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "33-11-13.25-0010-water-supply-pvc-pipe-0010-pressure-pipe-class-150-sdr-18-awwa-c900-4-inch-diameter-0020-p-lf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart452.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 5,
+    "sourceAdobePageIndex": 216,
+    "sourcePageNumberApprox": 217,
+    "division": "33",
+    "divisionName": "Utilities",
+    "sectionCode": "33 11 13.25",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Water Supply PVC Pipe (0010) Pressure pipe, Class 150, SDR 18, AWWA C900, 4 inch diameter (0020) Pressure pipe, Class 150, SDR 18, AWWA C900, 6 inch diameter",
+    "unitOriginal": "LF",
+    "unit": "LF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.084,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.084
+      }
+    ],
+    "rawRow": [
+      "33 11 13.25 Water Supply PVC Pipe (0010) Pressure pipe, Class 150, SDR 18, AWWA C900, 4 inch diameter (0020) Pressure pipe, Class 150, SDR 18, AWWA C900, 6 inch diameter",
+      "LF",
+      "0.0840"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_RATE"
+    ],
+    "id": "33-52-00.00-0110-install-tactical-petroleum-terminal-tpt-fuel-unit-crew-size-one-equipment-operator-29-labo-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart470.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 220,
+    "sourcePageNumberApprox": 221,
+    "division": "33",
+    "divisionName": "Utilities",
+    "sectionCode": "33 52 00.00",
+    "sectionTitle": "Bulk Fuel Receiving and Dispensing",
+    "itemCode": "0110",
+    "workElementDescription": "Install tactical petroleum terminal (TPT) fuel unit Crew size: one equipment operator, 29 laborers",
+    "unitOriginal": "Each",
+    "unit": "EA",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 1080,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 1080
+      }
+    ],
+    "rawRow": [
+      "(0110) Install tactical petroleum terminal (TPT) fuel unit Crew size: one equipment operator, 29 laborers",
+      "Each",
+      "1080.0"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_RATE",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "03-11-23.75-0010-stairs-forms-in-place-sf",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart52.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 64,
+    "sourcePageNumberApprox": 65,
+    "division": "03",
+    "divisionName": "Concrete",
+    "sectionCode": "03 11 23.75",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Stairs, Forms in Place",
+    "unitOriginal": "SF",
+    "unit": "SF",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": -0.55,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": -0.55
+      }
+    ],
+    "rawRow": [
+      "03 11 23.75 (0010) Stairs, Forms in Place",
+      "SF",
+      "------------------------0.55 Complete-------------------",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT"
+    ],
+    "id": "22-05-23.60-foot-valve-pvc-y-sediment-strainer-pvc-each-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart312.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 28,
+    "sourceAdobePageIndex": 163,
+    "sourcePageNumberApprox": 164,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 05 23.60",
+    "sectionTitle": "for PVC or CPVC, flanged, multiply by 1.15",
+    "itemCode": null,
+    "workElementDescription": "Foot valve, PVC Y sediment strainer, PVC",
+    "unitOriginal": "Each Each",
+    "unit": "EACH_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 130,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 100
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 110
+      },
+      {
+        "name": "cleanAndMove",
+        "manHoursPerUnit": 120
+      },
+      {
+        "name": "total",
+        "manHoursPerUnit": 130
+      }
+    ],
+    "rawRow": [
+      "Foot valve, PVC Y sediment strainer, PVC",
+      "Each Each",
+      "(0100) 0.3130 (0150)",
+      "(0110)",
+      "(0120)",
+      "(0130)",
+      "(0140)",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "01-54-23.70-0010-scaffolding-0010-erect-and-dismantle-tubular-scaffold-including-planks-and-leveling-square-foot-of-wall-surface",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart20.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 4,
+    "sourceAdobePageIndex": 50,
+    "sourcePageNumberApprox": 51,
+    "division": "01",
+    "divisionName": "General Requirements",
+    "sectionCode": "01 54 23.70",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+    "unitOriginal": "square foot of wall surface",
+    "unit": "SQUARE_FOOT_OF_WALL_SURFACE",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.04,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.04
+      }
+    ],
+    "rawRow": [
+      "01 54 23.70 Scaffolding (0010) Erect and dismantle tubular scaffold (including planks and leveling)",
+      "square foot of wall surface",
+      "0.040"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "05-42-23.60-0100-cold-formed-metal-roof-joist-framing-roof-rafters-0100-boxed-ridge-beam-18-ga-6-inches-dee-lf-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart126.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 5,
+    "sourceAdobePageIndex": 92,
+    "sourcePageNumberApprox": 93,
+    "division": "05",
+    "divisionName": "Metals",
+    "sectionCode": "05 42 23.60",
+    "sectionTitle": null,
+    "itemCode": "0100",
+    "workElementDescription": "Cold Formed Metal Roof Joist Framing Roof Rafters (0100) Boxed ridge beam, 18 GA, 6 inches deep (0200) Rafters, 2 inch flange, 18 GA, 6 inches deep",
+    "unitOriginal": "LF Each",
+    "unit": "LF_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.1,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.1
+      }
+    ],
+    "rawRow": [
+      "05 42 23.60 Cold Formed Metal Roof Joist Framing Roof Rafters (0100) Boxed ridge beam, 18 GA, 6 inches deep (0200) Rafters, 2 inch flange, 18 GA, 6 inches deep",
+      "LF Each",
+      "0.1000 0.4570"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "05-42-23.70-0010-cold-formed-metal-roof-joist-framing-soffits-and-canopies-0010-continuous-ledger-track-at--lf-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart126.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 6,
+    "sourceAdobePageIndex": 92,
+    "sourcePageNumberApprox": 93,
+    "division": "05",
+    "divisionName": "Metals",
+    "sectionCode": "05 42 23.70",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Cold Formed Metal Roof Joist Framing Soffits and Canopies (0010) Continuous ledger track at wall, studs 16 inch OC, 18 GA x 6 inch wide (0100) Horizontal soffit and canopy members, 18 GA 1 5/8 inch flange by 6 inch deep",
+    "unitOriginal": "LF Each",
+    "unit": "LF_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.32,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.32
+      }
+    ],
+    "rawRow": [
+      "05 42 23.70 Cold Formed Metal Roof Joist Framing Soffits and Canopies (0010) Continuous ledger track at wall, studs 16 inch OC, 18 GA x 6 inch wide (0100) Horizontal soffit and canopy members, 18 GA 1 5/8 inch flange by 6 inch deep",
+      "LF Each",
+      "0.3200 0.1450"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "08-91-19.10-0010-aluminum-louvers-0010-aluminum-with-screen-residential-8-by-8-inches-minimum-0020-24-by-30-each-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart206.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 2,
+    "sourceAdobePageIndex": 123,
+    "sourcePageNumberApprox": 124,
+    "division": "08",
+    "divisionName": "Openings",
+    "sectionCode": "08 91 19.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Aluminum Louvers (0010) Aluminum with screen, residential, 8 by 8 inches, minimum (0020) 24 by 30 inches, maximum",
+    "unitOriginal": "Each Each",
+    "unit": "EACH_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.281,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.281
+      }
+    ],
+    "rawRow": [
+      "08 91 19.10 Aluminum Louvers (0010) Aluminum with screen, residential, 8 by 8 inches, minimum (0020) 24 by 30 inches, maximum",
+      "Each Each",
+      "0.2810 0.7090"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "08-95-13.10-0010-wall-louvers-0010-soffit-vent-continuous-3-inches-wide-aluminum-0020-under-eaves-vent-alum-lf-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart206.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 123,
+    "sourcePageNumberApprox": 124,
+    "division": "08",
+    "divisionName": "Openings",
+    "sectionCode": "08 95 13.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Wall Louvers (0010) Soffit vent, continuous, 3 inches wide, aluminum (0020) Under eaves vent, aluminum, 16 by 4 inches and 16 by 8 inches",
+    "unitOriginal": "LF Each",
+    "unit": "LF_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 0.053,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 0.053
+      }
+    ],
+    "rawRow": [
+      "08 95 13.10 Wall Louvers (0010) Soffit vent, continuous, 3 inches wide, aluminum (0020) Under eaves vent, aluminum, 16 by 4 inches and 16 by 8 inches",
+      "LF Each",
+      "0.0530 0.2220"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-42-13.30-urinals-commercial-wall-hung-stall-type-each-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 6,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 42 13.30",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Urinals, Commercial Wall hung Stall type",
+    "unitOriginal": "Each Each",
+    "unit": "EACH_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 42 13.30 Urinals, Commercial Wall hung Stall type",
+      "Each Each",
+      "(0010) 7.5140 (0025) 10.6930",
+      "(0020) 7.0930 (0026) 8.5120"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "22-42-16.40-service-sinks-floor-type-wall-hung-each-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart334.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 7,
+    "sourceAdobePageIndex": 170,
+    "sourcePageNumberApprox": 171,
+    "division": "22",
+    "divisionName": "Plumbing",
+    "sectionCode": "22 42 16.40",
+    "sectionTitle": null,
+    "itemCode": null,
+    "workElementDescription": "Service Sinks Floor type Wall hung",
+    "unitOriginal": "Each Each",
+    "unit": "EACH_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 10,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 10
+      },
+      {
+        "name": "erectAndStrip",
+        "manHoursPerUnit": 20
+      }
+    ],
+    "rawRow": [
+      "22 42 16.40 Service Sinks Floor type Wall hung",
+      "Each Each",
+      "(0010) 12.981 (0030) 16.3720",
+      "(0020) 4.841 (0040) 5.3200"
+    ]
+  },
+  {
+    "reviewFlags": [
+      "SUSPICIOUS_UNIT",
+      "MISSING_SECTION_TITLE"
+    ],
+    "id": "33-81-13.10-0010-antenna-radio-tower-0010-guyed-50-feet-high-40-pound-section-wind-load-70-miles-per-hour-0-each-each",
+    "sourceDocument": "WCRP 3-40D.12",
+    "sourceChapter": "chapter5",
+    "sourceTableFile": "fileoutpart282.xlsx",
+    "sourceSheetName": "Sheet1",
+    "sourceRowNumberApprox": 3,
+    "sourceAdobePageIndex": 151,
+    "sourcePageNumberApprox": 152,
+    "division": "33",
+    "divisionName": "Utilities",
+    "sectionCode": "33 81 13.10",
+    "sectionTitle": null,
+    "itemCode": "0010",
+    "workElementDescription": "Antenna, Radio Tower (0010) Guyed, 50 feet high, 40 pound section, wind load 70 miles per hour (0020) Self-supporting, 60 feet high, wind load 70 miles per hour",
+    "unitOriginal": "Each Each",
+    "unit": "EACH_EACH",
+    "rateType": "LABOR_MAN_HOURS_PER_UNIT",
+    "manHoursPerUnit": 22,
+    "rateComponents": [
+      {
+        "name": "fabricate",
+        "manHoursPerUnit": 22
+      }
+    ],
+    "rawRow": [
+      "33 81 13.10 Antenna, Radio Tower (0010) Guyed, 50 feet high, 40 pound section, wind load 70 miles per hour (0020) Self-supporting, 60 feet high, wind load 70 miles per hour",
+      "Each Each",
+      "22.0 40.0"
+    ]
+  }
+]

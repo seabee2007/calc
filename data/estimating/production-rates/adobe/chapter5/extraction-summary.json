@@ -1,0 +1,10 @@
+{
+  "inputPdf": "C:\\dev\\calc\\data\\manuals\\MCRP 3-40D.12.pdf",
+  "outputDir": "C:\\dev\\calc\\data\\estimating\\production-rates\\adobe\\chapter5",
+  "outputZip": "C:\\dev\\calc\\data\\estimating\\production-rates\\adobe\\chapter5\\adobe-extract-output.zip",
+  "totalElements": 36041,
+  "totalPages": 282,
+  "tableElements": 34076,
+  "textElements": 17703,
+  "extractedAt": "2026-06-11T07:35:37.543Z"
+}

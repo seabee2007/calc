@@ -17,7 +17,7 @@ import {
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { useProjectStore } from '../../../store';
-import { DEFAULT_ESTIMATE_METHOD, isQuickEstimateType, normalizeEstimateMethod } from '../domain/estimateMethods';
+import { DEFAULT_ESTIMATE_METHOD, isConceptualEstimateType, isQuickEstimateType, normalizeEstimateMethod } from '../domain/estimateMethods';
 import type { EstimateSelectedDivision, EstimateType } from '../domain/estimateTypes';
 import {
   getDefaultWorkspaceTabForEstimateType,
@@ -37,8 +37,10 @@ import {
   saveCurrentEstimate,
   saveCurrentEstimateWithLineItems,
   saveCurrentQuickFeasibilityEstimate,
+  saveCurrentConceptualEstimate,
   type CurrentEstimate,
 } from '../application/currentEstimateService';
+import { shouldOpenBuildScopeModal } from '../application/estimateStartFlow';
 import { normalizeSelectedDivisions } from '../application/estimateWorkBreakdown';
 import {
   buildOptimisticEstimateWithDivisions,
@@ -91,6 +93,7 @@ import {
   shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
+  shouldShowConvertToDetailedAction,
   shouldShowQuickSaveAction,
   shouldShowResetFormAction,
   type EstimateBuilderToolbarHandlers,
@@ -101,6 +104,12 @@ import ChooseEstimateTypeModal from './components/ChooseEstimateTypeModal';
 import ChangeEstimateTypeConfirmModal from './components/ChangeEstimateTypeConfirmModal';
 import EstimateTypeHeaderControl from './components/EstimateTypeHeaderControl';
 import EstimateQuickFeasibilityPanel from './components/EstimateQuickFeasibilityPanel';
+import ConceptualBudgetPanel from './components/ConceptualBudgetPanel';
+import ConceptualAssumptionsExclusionsPanel from './components/ConceptualAssumptionsExclusionsPanel';
+import ConceptualScenariosPanel from './components/ConceptualScenariosPanel';
+import ConceptualRisksContingencyPanel from './components/ConceptualRisksContingencyPanel';
+import ConvertToDetailedEstimateModal from './components/ConvertToDetailedEstimateModal';
+import { useConceptualEstimate } from './hooks/useConceptualEstimate';
 import { quickFeasibilityInputsFromSnapshot } from '../application/estimateQuickFeasibility';
 import { applyImportedEstimate } from '../importExport/estimateImportApply';
 import type { ImportedEstimateData } from '../importExport/estimateImportParser';
@@ -162,8 +171,6 @@ const OVERVIEW_NO_ESTIMATE_MESSAGE =
 const TAB_NO_ESTIMATE_MESSAGE =
   'Start an estimate on the Estimate tab before using this section.';
 const WORKFLOW_PLACEHOLDER_TAB_IDS: EstimateWorkspaceTabId[] = [
-  'conceptual-budget',
-  'assumptions-allowances',
   'change-order-scope',
   'pricing',
   'unit-price-items',
@@ -286,6 +293,7 @@ export default function EstimateWorkspacePage() {
   );
   const [activeEstimateType, setActiveEstimateType] = useState<EstimateType | null>(null);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [convertToDetailedModalOpen, setConvertToDetailedModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importCollapseDivisionCodesKey, setImportCollapseDivisionCodesKey] = useState<
     string | null
@@ -339,6 +347,11 @@ export default function EstimateWorkspacePage() {
     schedulePlanControls.useLegacyEstimateSchedule === true;
 
   const estimateSettings = useEstimateSettings();
+  const isConceptualEstimate = isConceptualEstimateType(resolvedEstimateType);
+  const conceptualEstimate = useConceptualEstimate({
+    estimate: isConceptualEstimate ? currentEstimate : null,
+    estimateSettings: estimateSettings.settings,
+  });
   const lineItemDraft = useEstimateLineItemDraft(estimateAdapter, estimateSettings.settings);
   const rehydrateDraftFromVersion = lineItemDraft.rehydrateFromVersion;
   const scheduleSettingsHook = useScheduleSettings();
@@ -904,7 +917,9 @@ export default function EstimateWorkspacePage() {
       setCurrentEstimate(result.data);
       setActiveEstimateType(result.data.estimateType);
       estimateSetup.startSetup(estimateType);
-      setAutoOpenScopeModalKey(result.data.id);
+      if (shouldOpenBuildScopeModal(estimateType)) {
+        setAutoOpenScopeModalKey(result.data.id);
+      }
       lineItemDraft.rehydrateFromVersion(nextVersion);
       scheduleSettingsHook.rehydrateFromEstimate(
         result.data,
@@ -1055,12 +1070,14 @@ export default function EstimateWorkspacePage() {
   const canSave =
     estimate != null &&
     estimateAdapter != null &&
-    (lineItemDraft.dirty ||
-      estimateSettings.dirty ||
-      estimateSetup.session.selectedDivisions.length > 0 ||
-      (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
-      projectCrewSizeDraftDirty) &&
-    !saving;
+    !saving &&
+    (isConceptualEstimate
+      ? conceptualEstimate.dirty || estimateSettings.dirty
+      : (lineItemDraft.dirty ||
+          estimateSettings.dirty ||
+          estimateSetup.session.selectedDivisions.length > 0 ||
+          (currentEstimate?.selectedDivisions.length ?? 0) > 0 ||
+          projectCrewSizeDraftDirty));
 
   const handleSaveSelectedDivisions = useCallback(
     async (divisions: EstimateSelectedDivision[]) => {
@@ -1107,7 +1124,56 @@ export default function EstimateWorkspacePage() {
   );
 
   const handleSaveEstimate = useCallback(async () => {
-    if (!estimate || !estimateAdapter || !canSave || saving) return;
+    if (!estimate || !estimateAdapter || saving) return;
+
+    if (isConceptualEstimateType(resolvedEstimateType)) {
+      if (!conceptualEstimate.dirty && !estimateSettings.dirty) return;
+
+      setSaving(true);
+      setSaveError(null);
+      setSaveToastMessage(null);
+
+      const saveAssumptions = mergeScheduleAssumptions(
+        {
+          scheduleSettings: scheduleSettingsHook.scheduleSettings,
+          logicLinks: scheduleSettingsHook.logicLinks,
+          logicNetworkLayout: scheduleSettingsHook.logicNetworkLayout,
+          leveledActivityOffsets: scheduleSettingsHook.leveledOffsets,
+          logicReviewIgnored: scheduleSettingsHook.logicReviewIgnored,
+          logicNetworkInitialized: scheduleSettingsHook.logicNetworkInitialized,
+          logicNetworkViewMode: scheduleSettingsHook.logicNetworkViewMode,
+          precedenceDiagram: scheduleSettingsHook.precedenceDiagram,
+        },
+        (currentEstimateRef.current?.assumptions as Record<string, unknown>) ?? {},
+      );
+
+      const result = await saveCurrentConceptualEstimate({
+        estimateId: estimate.id,
+        projectId: estimate.projectId,
+        payload: conceptualEstimate.rawPayload,
+        estimateSettings: estimateSettings.settings,
+        existingAssumptions: saveAssumptions,
+        schedulingEnabled: currentEstimate?.schedulingEnabled,
+        estimateModeConfig: currentEstimate?.estimateModeConfig ?? null,
+        pricingMode: currentEstimate?.pricingMode ?? null,
+        createdBy: user?.id ?? null,
+      });
+
+      if (result.error || !result.data) {
+        setSaveError(result.error ?? 'Failed to save conceptual estimate.');
+        setSaving(false);
+        return;
+      }
+
+      setSaveToastMessage(createEstimateSaveSuccessToast().message);
+      setCurrentEstimate(result.data);
+      conceptualEstimate.markSaved(result.data);
+      estimateSettings.rehydrateFromEstimate(result.data);
+      setSaving(false);
+      return;
+    }
+
+    if (!canSave) return;
 
     setSaving(true);
     setSaveError(null);
@@ -1224,10 +1290,12 @@ export default function EstimateWorkspacePage() {
     setSaving(false);
   }, [
     constructionActivities.length,
+    conceptualEstimate,
     estimate,
     estimateAdapter,
     canSave,
     saving,
+    resolvedEstimateType,
     lineItemDraft,
     estimateSettings,
     estimateSetup,
@@ -1235,6 +1303,9 @@ export default function EstimateWorkspacePage() {
     scheduleSettingsHook,
     currentEstimate?.assumptions,
     currentEstimate?.selectedDivisions,
+    currentEstimate?.schedulingEnabled,
+    currentEstimate?.estimateModeConfig,
+    currentEstimate?.pricingMode,
     estimateSetup.session.selectedDivisions,
     user?.id,
     projectCrewSizeDraftDirty,
@@ -1944,6 +2015,11 @@ export default function EstimateWorkspacePage() {
     hasEstimate,
     resolvedEstimateType,
   );
+  const showConvertToDetailed = shouldShowConvertToDetailedAction(
+    activeTab,
+    hasEstimate,
+    isConceptualEstimate,
+  );
 
   // Stable callbacks for props passed to EstimateLineItemsBuilderPanel.
   // Inline arrow functions here would create new refs on every parent render,
@@ -1987,6 +2063,7 @@ export default function EstimateWorkspacePage() {
               showSaveBucket={showSaveBucket}
               showSaveQuick={showSaveQuick}
               showImportExport={showImportExport}
+              showConvertToDetailed={showConvertToDetailed}
               canEdit={canEditEstimate || activeEstimateType != null}
               canSave={canSave}
               canSaveQuick={builderToolbarHandlers?.canSaveQuick ?? false}
@@ -2004,6 +2081,7 @@ export default function EstimateWorkspacePage() {
               onExportEstimate={handleExportEstimate}
               onDownloadImportTemplate={handleDownloadImportTemplate}
               onOpenHelp={handleOpenHelp}
+              onConvertToDetailed={() => setConvertToDetailedModalOpen(true)}
             />
           }
         />
@@ -2372,6 +2450,45 @@ export default function EstimateWorkspacePage() {
 
         {!loadError &&
         !dataLoading &&
+        isConceptualEstimate &&
+        hasEstimate &&
+        activeTab === 'conceptual-budget' ? (
+          <ConceptualBudgetPanel
+            controller={conceptualEstimate}
+            disabled={saving}
+            lastUpdated={currentEstimate?.updatedAt ?? null}
+          />
+        ) : null}
+
+        {!loadError &&
+        !dataLoading &&
+        isConceptualEstimate &&
+        hasEstimate &&
+        activeTab === 'assumptions-allowances' ? (
+          <ConceptualAssumptionsExclusionsPanel
+            controller={conceptualEstimate}
+            disabled={saving}
+          />
+        ) : null}
+
+        {!loadError &&
+        !dataLoading &&
+        isConceptualEstimate &&
+        hasEstimate &&
+        activeTab === 'scenarios' ? (
+          <ConceptualScenariosPanel controller={conceptualEstimate} disabled={saving} />
+        ) : null}
+
+        {!loadError &&
+        !dataLoading &&
+        isConceptualEstimate &&
+        hasEstimate &&
+        activeTab === 'risks-contingency' ? (
+          <ConceptualRisksContingencyPanel controller={conceptualEstimate} disabled={saving} />
+        ) : null}
+
+        {!loadError &&
+        !dataLoading &&
         WORKFLOW_PLACEHOLDER_TAB_IDS.includes(activeTab) &&
         hasEstimate ? (
           (() => {
@@ -2413,6 +2530,10 @@ export default function EstimateWorkspacePage() {
         }}
         onConfirm={() => void handleConfirmEstimateTypeChange()}
         confirming={changingEstimateType}
+      />
+      <ConvertToDetailedEstimateModal
+        open={convertToDetailedModalOpen}
+        onClose={() => setConvertToDetailedModalOpen(false)}
       />
       <EstimateResetSetupConfirmModal
         isOpen={resetModalOpen}

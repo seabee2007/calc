@@ -24,6 +24,7 @@ describe('EstimateWorkspace lazy production-rate loading', () => {
       'src/features/estimating/data/productionRates/productionRateLibrary.ts',
     );
 
+    expect(loaderSource).toContain('./generated/generatedCanonicalProductionRateIndex');
     expect(loaderSource).toContain('./generated/generatedProductionRateIndex');
     expect(librarySource).not.toContain('./generated/generatedProductionRateIndex');
     expect(librarySource).not.toContain('./generated/generatedProductionRates');

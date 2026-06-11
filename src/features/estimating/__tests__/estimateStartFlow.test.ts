@@ -64,13 +64,13 @@ describe('estimateStartFlow', () => {
     expect(shouldShowSavedActivities(session)).toBe(false);
   });
 
-  it('hides selector and activates conceptual scope workflow after conceptual start', () => {
+  it('hides selector and activates conceptual budget workflow after conceptual start', () => {
     const session = createEstimateSetupStartState('conceptual');
     expect(shouldShowEstimateTypeSelector(session)).toBe(false);
     expect(shouldShowQuickFeasibilityPanel(session)).toBe(false);
     expect(shouldShowDivisionBucketPanel(session)).toBe(false);
     expect(session.activeStartMode).toBe('conceptual');
-    expect(shouldOpenBuildScopeModal('conceptual')).toBe(true);
+    expect(shouldOpenBuildScopeModal('conceptual')).toBe(false);
   });
 
   it('restores saved bid estimate workspace instead of showing type selection', () => {
@@ -154,8 +154,8 @@ describe('estimateStartFlow', () => {
     expect(shouldOpenBuildScopeModal('quick')).toBe(false);
   });
 
-  it('opens build scope modal for conceptual, detailed, and bid', () => {
-    expect(shouldOpenBuildScopeModal('conceptual')).toBe(true);
+  it('opens build scope modal for detailed and bid but not conceptual', () => {
+    expect(shouldOpenBuildScopeModal('conceptual')).toBe(false);
     expect(shouldOpenBuildScopeModal('detailed')).toBe(true);
     expect(shouldOpenBuildScopeModal('bid')).toBe(true);
   });

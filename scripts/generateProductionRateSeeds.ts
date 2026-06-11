@@ -3,34 +3,22 @@
  * Generate approved-only production rate seed bundles for the estimator.
  * Hard safety gate: fails if any non-approved record is present.
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadApprovedProductionRateRecords } from '../src/features/estimating/data/productionRates/loadApprovedProductionRateRecords';
 import { mapRecordToLibraryEntry, mapRecordToProductionRate } from '../src/features/estimating/data/productionRates/mapToLibraryEntry';
 import {
   ESTIMATOR_ALLOWED_QA_STATUS,
-  type NormalizedProductionRateFile,
   type NormalizedProductionRateRecord,
 } from '../src/features/estimating/data/productionRates/productionRateTypes';
-import { assertApprovedProductionRateFile } from '../src/features/estimating/data/productionRates/validateExtractedProductionRates';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const approvedDir = join(repoRoot, 'data/estimating/production-rates/approved');
 const generatedDir = join(repoRoot, 'src/features/estimating/data/productionRates/generated');
 
 function loadApprovedRecords(): NormalizedProductionRateRecord[] {
-  const files = readdirSync(approvedDir).filter((name) => name.endsWith('.approved.json'));
-  const records: NormalizedProductionRateRecord[] = [];
-
-  for (const name of files) {
-    const payload = JSON.parse(
-      readFileSync(join(approvedDir, name), 'utf8'),
-    ) as NormalizedProductionRateFile;
-    assertApprovedProductionRateFile(payload);
-    records.push(...payload.records);
-  }
-
-  return records;
+  return loadApprovedProductionRateRecords(approvedDir);
 }
 
 function enforceSafetyGate(records: NormalizedProductionRateRecord[]): void {

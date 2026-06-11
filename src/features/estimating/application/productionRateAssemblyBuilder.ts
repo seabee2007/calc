@@ -226,7 +226,7 @@ export function createDraftLineItemFromProductionRate(
   const calculatedManHours = calculateLineItemManHours(quantity, manHoursPerUnit, 1);
 
   return {
-    draftId: rate.id,
+    draftId: rate.canonicalId ?? rate.id,
     rate,
     selected: options.selected ?? false,
     quantity,
@@ -254,6 +254,22 @@ export function createDraftLineItemFromProductionRate(
       totalCost: 0,
       sortOrder: options.sortOrder ?? 0,
     },
+  };
+}
+
+/** Swap the underlying rate when the user picks a different canonical variant. */
+export function updateDraftLineItemVariant(
+  item: DraftProductionRateLineItem,
+  nextRate: ProductionRateLibraryEntry,
+): DraftProductionRateLineItem {
+  const next = createDraftLineItemFromProductionRate(nextRate, item.lineItem.projectId, {
+    selected: item.selected,
+    quantity: item.quantity,
+    sortOrder: item.lineItem.sortOrder,
+  });
+  return {
+    ...next,
+    draftId: item.draftId,
   };
 }
 

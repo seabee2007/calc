@@ -9,6 +9,11 @@ import { PRODUCTION_RATE_REFERENCE_NOTE } from '../../data/productionRates/mapTo
 import type { ProductionRateLibraryEntry } from '../../data/productionRates/productionRateTypes';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useProductionRateLibrary } from '../hooks/useProductionRateLibrary';
+import {
+  getProductionRateDisplayTitle,
+  ProductionRateSourceDetails,
+  ProductionRateVariantSelector,
+} from './ProductionRateCanonicalControls';
 
 interface Props {
   isOpen: boolean;
@@ -39,7 +44,9 @@ function ProductionRateCard({
   entry: ProductionRateLibraryEntry;
   onSelect: (entry: ProductionRateLibraryEntry) => void;
 }) {
-  const title = entry.description?.trim() || entry.activityName;
+  const [selectedEntry, setSelectedEntry] = useState(entry);
+  const title = getProductionRateDisplayTitle(selectedEntry);
+
   return (
     <li className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-cyan-400/30 hover:bg-cyan-400/5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -48,16 +55,30 @@ function ProductionRateCard({
             <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
               Approved
             </span>
+            {selectedEntry.allVariants && selectedEntry.allVariants.length > 1 ? (
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-200">
+                {selectedEntry.allVariants.length} variants
+              </span>
+            ) : null}
           </div>
           <p className="font-medium text-white">{title}</p>
-          {entry.activityName !== title ? (
-            <p className="text-sm text-slate-400">{entry.activityName}</p>
+          {selectedEntry.canonicalDescription &&
+          selectedEntry.canonicalDescription !== title ? (
+            <p className="text-sm text-slate-400">{selectedEntry.canonicalDescription}</p>
+          ) : selectedEntry.activityName !== title ? (
+            <p className="text-sm text-slate-400">{selectedEntry.activityName}</p>
           ) : null}
-          <p className="text-sm text-cyan-200/90">{formatRateSummary(entry)}</p>
+          <p className="text-sm text-cyan-200/90">{formatRateSummary(selectedEntry)}</p>
+          <ProductionRateVariantSelector
+            entry={selectedEntry}
+            onVariantChange={setSelectedEntry}
+            className="max-w-md"
+          />
+          <ProductionRateSourceDetails entry={selectedEntry} variant="dark" />
         </div>
         <button
           type="button"
-          onClick={() => onSelect(entry)}
+          onClick={() => onSelect(selectedEntry)}
           className="shrink-0 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:from-cyan-300 hover:to-sky-400"
         >
           Use rate
@@ -85,6 +106,9 @@ export default function ProductionRateLibraryModal({
     loading,
     error,
     reload,
+    showSourceRecords,
+    setShowSourceRecords,
+    isSourceIndex,
     filterRates,
     groupFilteredRates,
     divisionOptions,
@@ -143,11 +167,32 @@ export default function ProductionRateLibraryModal({
               <BookOpen className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Production Rate Library</h2>
-              <p className="text-sm text-slate-400">Browse approved reference rates by division and activity</p>
+              <h2 className="text-lg font-semibold text-white">
+                Production Rate Library
+                {isSourceIndex ? (
+                  <span className="ml-2 text-sm font-normal text-amber-300">
+                    Showing source records (debug)
+                  </span>
+                ) : null}
+              </h2>
+              <p className="text-sm text-slate-400">
+                Browse approved reference rates by division and activity
+              </p>
             </div>
           </div>
-          <button
+          <div className="flex items-center gap-3">
+            {import.meta.env.DEV ? (
+              <label className="flex items-center gap-2 text-xs text-slate-400">
+                <input
+                  type="checkbox"
+                  checked={showSourceRecords}
+                  onChange={(event) => setShowSourceRecords(event.target.checked)}
+                  className="rounded border-white/20 bg-slate-950 text-cyan-400 focus:ring-cyan-500/30"
+                />
+                Source records
+              </label>
+            ) : null}
+            <button
             type="button"
             onClick={onClose}
             className="rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white"
@@ -155,6 +200,7 @@ export default function ProductionRateLibraryModal({
           >
             <X className="h-5 w-5" />
           </button>
+          </div>
         </div>
 
         {loading ? (

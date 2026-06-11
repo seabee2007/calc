@@ -18,6 +18,7 @@ import {
   shouldShowBidImportExportActions,
   shouldShowBucketSaveAction,
   shouldShowCollapseAllAction,
+  shouldShowConvertToDetailedAction,
   shouldShowQuickSaveAction,
   shouldShowResetFormAction,
   shouldShowSaveEstimateAction,
@@ -118,6 +119,25 @@ describe('estimateWorkspaceToolbar', () => {
     expect(shouldShowBidImportExportActions('line-items', true, 'budget')).toBe(false);
     expect(shouldShowBidImportExportActions('overview', true, 'bid')).toBe(false);
     expect(shouldShowBidImportExportActions('line-items', false, 'bid')).toBe(false);
+  });
+
+  it('shows convert to detailed in Actions menu for conceptual budget tab', () => {
+    expect(shouldShowConvertToDetailedAction('conceptual-budget', true, true)).toBe(true);
+    expect(shouldShowConvertToDetailedAction('conceptual-budget', false, true)).toBe(false);
+    expect(shouldShowConvertToDetailedAction('assumptions-allowances', true, true)).toBe(false);
+    expect(shouldShowConvertToDetailedAction('conceptual-budget', true, false)).toBe(false);
+
+    const menuItems = buildEstimateWorkspaceActionsMenuItems({
+      showCollapseAll: false,
+      showReset: false,
+      showSaveBucket: true,
+      showImportExport: false,
+      showConvertToDetailed: true,
+    });
+
+    expect(menuItems.map((item) => item.label)).toContain(
+      ESTIMATE_WORKSPACE_ACTIONS_MENU_LABELS.convertToDetailed,
+    );
   });
 
   it('moves import/export/template/reset actions into the Actions dropdown menu', () => {

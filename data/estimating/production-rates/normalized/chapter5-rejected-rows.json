@@ -1,0 +1,3429 @@
+[
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart20.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: Scaffolding erection—three or four laborers, increase crew size for multiple tiers.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart20.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: The first tier of scaffolding requires more time due to leveling and alignment procedures.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart28.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "02 41 13.60",
+      "Foot",
+      "0.049"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart28.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Fencing, Selective Demolish",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart28.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0010) Fencing, barbed wire, 3 strand",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart28.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "row": [
+      "(0020) Fencing, barbed wire, 5 strand",
+      "LF",
+      "0.076"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart28.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "row": [
+      "(0030) Chain link, posts and fabric, 8 to 10 feet high, remove only",
+      "LF",
+      "0.072"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart28.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "row": [
+      "(0040) Chain link, posts and fabric, 8 to 10 feet high, remove and reset",
+      "LF",
+      "0.456"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "Fabricate",
+      "Erect and Strip",
+      "Clean and Move",
+      "Total Hours (1 Use)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": "03 11 13.20",
+    "currentSectionTitle": "Exterior spandrel, plywood, one use",
+    "row": [
+      "(0010) 12-inch width",
+      "",
+      "0.113",
+      "0.147",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": "03 11 13.20",
+    "currentSectionTitle": "Exterior spandrel, plywood, one use",
+    "row": [
+      "(0020) 18-inch width",
+      "",
+      "0.102",
+      "0.133",
+      "",
+      "0.255 0.241"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "03 11 13.20",
+    "currentSectionTitle": "Exterior spandrel, plywood, one use",
+    "row": [
+      "(0030) 24-inch width",
+      "",
+      "0.096",
+      "0.126",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "currentSectionCode": "03 11 13.20",
+    "currentSectionTitle": "Exterior spandrel, plywood, one use",
+    "row": [
+      "Interior beam, plywood, one use",
+      "",
+      "",
+      "",
+      "0.017",
+      "0.213"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "03 11 13.20",
+    "currentSectionTitle": "Exterior spandrel, plywood, one use",
+    "row": [
+      "(0040) 12-inch width",
+      "",
+      "0.085",
+      "0.111",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": "03 11 13.20",
+    "currentSectionTitle": "Exterior spandrel, plywood, one use",
+    "row": [
+      "(0050) 24-inch width",
+      "",
+      "0.080",
+      "0.104",
+      "0.016",
+      "0.200"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 23,
+    "currentSectionCode": "03 11 13.25",
+    "currentSectionTitle": "Plywood (job-built), one use",
+    "row": [
+      "(0080) 16 by 16 inches",
+      "",
+      "0.083",
+      "0.133",
+      "0.014",
+      "0.230"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart48.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 24,
+    "currentSectionCode": "03 11 13.25",
+    "currentSectionTitle": "Plywood (job-built), one use",
+    "row": [
+      "(0090) 24 by 24 inches",
+      "",
+      "0.080",
+      "0.130",
+      "0.013",
+      "0.223"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart50.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "Fabricate",
+      "Erect and Strip",
+      "Clean and Move",
+      "Total Hours (1 Use)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart50.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 23,
+    "currentSectionCode": "03 11 13.45",
+    "currentSectionTitle": "Support for dowels, plinths, or templates",
+    "row": [
+      "03 11 13.50",
+      "",
+      "",
+      "",
+      "0.016",
+      "0.122"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart50.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 29,
+    "currentSectionCode": "03 11 13.65",
+    "currentSectionTitle": "Slab on grade, Forms in Place",
+    "row": [
+      "(0030) Edge forms, wood, on grade to 6 inches high",
+      "surface",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart50.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 33,
+    "currentSectionCode": "03 11 13.65",
+    "currentSectionTitle": "Slab on grade, Forms in Place",
+    "row": [
+      "",
+      "LF",
+      "0.073",
+      "0.146",
+      "0.024",
+      "0.243"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart52.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "Fabricate",
+      "Erect and Strip",
+      "Clean and Move",
+      "Total Hours (1 Use)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart52.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: Forming/stripping—five laborers. Forming/stripping (gang forms)—five laborers, two equipment operators.",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart52.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. The following notes are to be used for estimating labor to fabricate and erect forms. Refer to TM 3-34.44/FM 5-428/MCRP 3-40D.4 for information on concrete form design and materiel estimating procedures. 2. Concrete forming estimates are based on using form accessories, form ties, and steel column clamps. 3. Suspended slabs, beams, and girders are figures using 4- by 4-inch shores and wooden wedges. For adjustable shores, use a 0.9 multiplier. 4. Forming walls over 10 feet high and other high work will increase erection time. To compensate, use a 1.1–1.5 multiplier depending on job complexity.",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart68.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "03 35 29.30",
+    "currentSectionTitle": "Finishing Floors",
+    "row": [
+      "Manual screed finish",
+      "SF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart84.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 22,
+    "currentSectionCode": "04 05 23.13",
+    "currentSectionTitle": "Control Joint",
+    "row": [
+      "04 05 23.19",
+      "",
+      "0.400"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart84.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 24,
+    "currentSectionCode": "04 05 23.13",
+    "currentSectionTitle": "Vent Box",
+    "row": [
+      "(0010) Extruded aluminum and stainless steel ventilators, various types, average",
+      "Each",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart84.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 25,
+    "currentSectionCode": "04 05 23.13",
+    "currentSectionTitle": "Vent Box",
+    "row": [
+      "04 05 23.95",
+      "",
+      "1.000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart84.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 27,
+    "currentSectionCode": "04 05 23.13",
+    "currentSectionTitle": "Wall Plugs (for nailing to brickwork)",
+    "row": [
+      "(0010) Galvanized, plain or wood-filled",
+      "HD",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart86.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "04 21 13.13",
+    "currentSectionTitle": "Note: Plan for 3 percent brick and 25 percent mortar waste",
+    "row": [
+      "04 21 26.10",
+      "",
+      "0.250"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart86.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "04 21 13.13",
+    "currentSectionTitle": "Glazed Structural Clay Masonry Tile",
+    "row": [
+      "(0010) Structural facing tile, (excluding scaffolding, grout, and reinforcing) various types, average",
+      "SF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart88.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "04 22 10.14",
+    "currentSectionTitle": "Concrete Block, Back-up",
+    "row": [
+      "Normal weight, 8- by 16-inch units, tooled one side, not reinforced",
+      "SF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart88.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "04 22 10.14",
+    "currentSectionTitle": "Concrete Block, Back-up",
+    "row": [
+      "(0010) 8 inches thick",
+      "",
+      "0.200"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart90.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "04 22 10.18",
+    "currentSectionTitle": "Concrete Block, Column or Pilaster",
+    "row": [
+      "Including vertical reinforcing (four #4 bars) and grout",
+      "vertical",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart90.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "04 22 10.24",
+    "currentSectionTitle": "Concrete Block, Exterior (0010) Normal weight, tooled two sides, reinforced, alternate courses 8- by 16-inch units, 8 inches thick",
+    "row": [
+      "",
+      "SF",
+      "0.222"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart144.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "06 10 53.00",
+    "currentSectionTitle": "Rough Carpentry (0010) Miscellaneous Rough Carpentry",
+    "row": [
+      "",
+      "LF",
+      "0.053"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart162.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "06 22 13.40",
+    "currentSectionTitle": "Moldings, Exterior",
+    "row": [
+      "(0070) Trim, back band, 11/16 by 2 1/16 inches,",
+      "LF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart162.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 26,
+    "currentSectionCode": "06 22 13.50",
+    "currentSectionTitle": "Window trim set, including casings, header, stops, stool and apron (0050) 2 1/2 inches wide, minimum",
+    "row": [
+      "",
+      "Opening",
+      "0.8180"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart170.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 12,
+    "currentSectionCode": "07 13 53.10",
+    "currentSectionTitle": "Elastomeric Sheet Waterproofing",
+    "row": [
+      "(0010) Various materiels, e.g., neoprene, polyethylene, or rubberized sheets average",
+      "SF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart170.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "currentSectionCode": "07 13 53.10",
+    "currentSectionTitle": "Elastomeric Sheet Waterproofing",
+    "row": [
+      "",
+      "",
+      "0.0390"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart172.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": "07 21 23.10",
+    "currentSectionTitle": "Poured Loose-Fill Insulation (0010) Various materiels, e.g., cellulose fiber, perlite, fiberglass wool, mineral wool, polystyrene, etc., average",
+    "row": [
+      "",
+      "SF",
+      "0.0530"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart172.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 22,
+    "currentSectionCode": "07 21 26.10",
+    "currentSectionTitle": "Wall installation, includes drilling and patching from outside, two 1-inch-diameter holes at 16 inches on center, top and middle point of wall, add to above for:",
+    "row": [
+      "07 21 29.10",
+      "SF",
+      "0.0160"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart176.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one skilled laborer and one unskilled laborer.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart176.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: A square = 100 SF of area.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart184.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "07 32 19.10",
+    "currentSectionTitle": "Metal Roof Tiles",
+    "row": [
+      "07 41 13.10",
+      "SF",
+      "0.0360"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart184.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "07 32 19.10",
+    "currentSectionTitle": "(0010) Corrugated or ribbed, various thicknesses",
+    "row": [
+      "07 41 13.20",
+      "SF",
+      "0.0390"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart184.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 18,
+    "currentSectionCode": "07 32 19.10",
+    "currentSectionTitle": "(0010) Minimum, i.e., 30 gauge",
+    "row": [
+      "07 41 33.10",
+      "SF",
+      "0.0430"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart190.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 20,
+    "currentSectionCode": "07 71 23.30",
+    "currentSectionTitle": "(0010) Aluminum, copper, galvanized and stainless steel of various thicknesses and widths, average",
+    "row": [
+      "",
+      "LF",
+      "0.0890"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart200.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "currentSectionCode": "08 71 20.35",
+    "currentSectionTitle": "Panic Devices (0010) Various types, minimum (0020) Maximum",
+    "row": [
+      "",
+      "Each",
+      "1.7730"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart200.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 14,
+    "currentSectionCode": "08 71 20.35",
+    "currentSectionTitle": "Panic Devices (0010) Various types, minimum (0020) Maximum",
+    "row": [
+      "",
+      "Each",
+      "2.1280"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart200.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "currentSectionCode": "08 71 20.41",
+    "currentSectionTitle": "Dead Locks (0010) Various types, maximum",
+    "row": [
+      "",
+      "Each",
+      "1.1820"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart200.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 25,
+    "currentSectionCode": "08 71 20.55",
+    "currentSectionTitle": "Push-Pull Plates",
+    "row": [
+      "08 71 20.65",
+      "LF",
+      "0.2220"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart202.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one builder and one laborer.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart202.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: Installation includes drilling for fasteners, expansion shields, installing plugs, toggle bolts, blocking, hinges, locks, and other hardware.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart204.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "08 71 25.10",
+    "currentSectionTitle": "Doors-Mechanical Seals, Weatherstripping (0010) Doors, wood frame, interlocking, for 3- by 7-foot door, zinc or bronze",
+    "row": [
+      "",
+      "Opening",
+      "3.5470"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart204.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "08 75 30.10",
+    "currentSectionTitle": "Windows-Mechanical Weather Seals (0010) Window, double hung, 3 by 5 feet, zinc or bronze (0020) heavy duty zinc or bronze",
+    "row": [
+      "",
+      "Opening",
+      "1.4780"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart204.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "currentSectionCode": "08 75 30.10",
+    "currentSectionTitle": "Windows-Mechanical Weather Seals (0010) Window, double hung, 3 by 5 feet, zinc or bronze (0020) heavy duty zinc or bronze",
+    "row": [
+      "",
+      "Opening",
+      "2.3130"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart230.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "09 51 23.30",
+    "currentSectionTitle": "Suspended Ceilings, Complete Including standard suspension system (not including carrier channels) Ceiling board, fiberglass or mineral fiber, on 15/16-inch suspension bar, various sizes (0010) minimum",
+    "row": [
+      "",
+      "SF",
+      "0.0210"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart234.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "09 65 10.10",
+    "currentSectionTitle": "Latex Underlayment (0010) 1/8 inch thick, cementitious for resilient flooring, liquid",
+    "row": [
+      "",
+      "SF",
+      "0.0670"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart236.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "09 68 16.10 Sheet Carpeting",
+      "",
+      "0.1420 0.1520"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart236.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0010) Nylon, level loop, 26 ounce, light to medium traffic",
+      "SY",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart236.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0020) Nylon, plush, 60 ounce, heavy traffic",
+      "SY",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart236.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "For small rooms, less than 12 feet wide, multiply by 1.25. For large open areas (no cuts), multiply by 0.75.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart236.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one builder and one laborer.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart236.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: The above options provide only a small sample of the myriad of possibilities. They provide a cross section of average labor times required for plaster and gypsum board assemblies.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart238.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: four builders.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart238.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: A multiplier of 1.5 was used to convert civilian production rates to military production rates in this figure.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart248.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 16,
+    "currentSectionCode": "09 91 23.35",
+    "currentSectionTitle": "Doors, flush, 3 by 7 feet, both sides, including frame and trim, (0010) roll and brush, each coat",
+    "row": [
+      "",
+      "Each",
+      "1.0640"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart248.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 19,
+    "currentSectionCode": "09 91 23.35",
+    "currentSectionTitle": "Doors, panel, or French, both sides, including frame and trim (0030) roll and brush, each coat",
+    "row": [
+      "",
+      "Each",
+      "1.7730"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart270.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "12 32 23.10",
+    "currentSectionTitle": "(0030) Kitchen base cabinets, not including counter tops",
+    "row": [
+      "Rule of thumb, kitchen cabinets not including appliances and counter top",
+      "LF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart270.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": "12 32 23.10",
+    "currentSectionTitle": "(0030) Kitchen base cabinets, not including counter tops",
+    "row": [
+      "(0060) minimum",
+      "",
+      "0.7090"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart270.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 14,
+    "currentSectionCode": "12 36 61.16",
+    "currentSectionTitle": "Solid Surface Countertops (0010) Various materiels and sizes, average",
+    "row": [
+      "",
+      "LF",
+      "1.1820"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart272.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "",
+      "Each",
+      "0.0333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart272.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: two laborers.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart282.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: two steelworkers, one equipment operator.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart286.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "row": [
+      "Shelter, aluminum frame (0200) 3 feet by 9 feet by 8 feet high (0210) 3 feet by 12 feet by 8 feet high",
+      "Each Each",
+      "18.7 29.2"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart286.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one builder and one steelworker.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart286.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. These estimates are for frame and shell only. Windows, doors, skylights, vents, gutters, and downspouts are not included. 2. Refer to manufacturers’ specifications and installation instructions.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart290.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "row": [
+      "(0090) 50 foot width, end wall",
+      "SF",
+      "0.0036"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart290.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "(0095) 100 foot width, end wall",
+      "SF",
+      "0.0025"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart290.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one steelworker (crew leader), four laborers, and two equipment operators.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart290.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. These estimates are for frame and shell only. Windows, doors, skylights, vents, gutters, and downspouts are not included. 2. Refer to manufacturers’ specifications and installation instructions. 3. Refer to other divisions for estimates on footings, utilities, and other components of work.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart294.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "row": [
+      "(0290) 50 foot width, end wall",
+      "SF",
+      "0.0014"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart294.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "(0295) 100 foot width, end wall",
+      "SF",
+      "0.0016"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart294.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one steelworker (crew leader), four laborers, and two equipment operators.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart294.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. These estimates are for frame and shell only. Windows, doors, skylights, vents, gutters, and downspouts are not included. 2. Refer to manufacturers’ specifications and installation instructions. 3. Refer to other divisions for estimates on footings, utilities, and other components of work.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart298.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "row": [
+      "(0490) 50 foot width, end wall",
+      "SF",
+      "0.0153"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart298.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "(0495) 100 foot width, end wall",
+      "SF",
+      "0.0143"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart298.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one steelworker (crew leader), four laborers, and two equipment operators.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart298.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. These estimates are for frame and shell only. Windows, doors, skylights, vents, gutters, and downspouts are not included. 2. Refer to manufacturers’ specifications and installation instructions. 3. Refer to other divisions for estimates on footings, utilities, and other components of work.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart302.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "row": [
+      "(0330) Expeditionary batch laundry system, ISO Type 5 Tricon",
+      "Each",
+      "1.5000"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart302.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "(0340) Expeditionary batch laundry system, ISO Tricon, USN",
+      "Each",
+      "1.7500"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart302.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "row": [
+      "(0400) Guard tower, modular protective system, assembly",
+      "Each",
+      "5.0000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart302.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: Crew sizes vary in accordance with the facility being installed. Ensure enough personnel for the safe handling and movement of containers. Recommend builders, electricians, equipment operators and up to five laborers as needed.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart304.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "4-inch Pipe",
+      "6-inch Pipe",
+      "8-inch Pipe"
+    ]
+  },
+  {
+    "reason": "Could not parse numeric man-hours per unit",
+    "file": "fileoutpart304.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "currentSectionCode": "21 12 10.00",
+    "currentSectionTitle": "Fire Suppression Standpipe System",
+    "row": [
+      "21 12 13.00 Fire Suppression Standpipe System (0010) Fire Hose",
+      "LF",
+      "",
+      "0.0070",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart308.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "21 22 16.50",
+    "currentSectionTitle": "FM200 Fire Extinguishing System (0010) Alarm, audio",
+    "row": [
+      "",
+      "Each",
+      "1.5880"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "1/8–1/2",
+      "3/4",
+      "1",
+      "1 1/4",
+      "1 1/2",
+      "2",
+      "2 1/2",
+      "3"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "22 05 23.10",
+    "currentSectionTitle": "",
+    "row": [
+      "Valves, Brass",
+      "",
+      "(0010)",
+      "(0020)",
+      "(0030)",
+      "(0040)",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "22 05 23.20",
+    "currentSectionTitle": "",
+    "row": [
+      "Valves, Bronze",
+      "",
+      "(0010)",
+      "(0020)",
+      "(0030)",
+      "(0040)",
+      "(0050)",
+      "(0060)",
+      "(0070)",
+      "(0080)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 15,
+    "currentSectionCode": "22 05 23.20",
+    "currentSectionTitle": "Globe",
+    "row": [
+      "",
+      "",
+      "",
+      "(0090)",
+      "(0100)",
+      "(0110)",
+      "(0120)",
+      "(0130)",
+      "(0140)",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "currentSectionCode": "22 05 23.20",
+    "currentSectionTitle": "Globe",
+    "row": [
+      "",
+      "",
+      "(0150)",
+      "(0160)",
+      "(0170)",
+      "(0180)",
+      "(0190)",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 20,
+    "currentSectionCode": "22 05 23.20",
+    "currentSectionTitle": "Globe",
+    "row": [
+      "",
+      "",
+      "1.3300",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 23,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "Valves, Plastic Average time for the following valves: Angle, PVC, Ball, PVC or chlorinated polyvinyl chloride (plastic) (CPVC),",
+    "row": [
+      "",
+      "Each Each",
+      "(0010) 0.4100 (0040) 0.4100",
+      "(0020) 0.4260 (0050) 0.4260",
+      "(0030)",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 24,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "Valves, Plastic Average time for the following valves: Angle, PVC, Ball, PVC or chlorinated polyvinyl chloride (plastic) (CPVC),",
+    "row": [
+      "",
+      "",
+      "",
+      "",
+      "0.4630",
+      "",
+      "(0080)",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 25,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "Valves, Plastic Average time for the following valves: Angle, PVC, Ball, PVC or chlorinated polyvinyl chloride (plastic) (CPVC),",
+    "row": [
+      "",
+      "",
+      "",
+      "",
+      "(0060)",
+      "(0070)",
+      "",
+      "(0090)",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 26,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "Valves, Plastic Average time for the following valves: Angle, PVC, Ball, PVC or chlorinated polyvinyl chloride (plastic) (CPVC),",
+    "row": [
+      "",
+      "",
+      "",
+      "",
+      "0.4630",
+      "0.5070",
+      "0.5320",
+      "0.6260",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 29,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "for PVC or CPVC, flanged, multiply by 1.15",
+    "row": [
+      "",
+      "",
+      "",
+      "0.3320",
+      "0.3800",
+      "0.3940",
+      "0.4100",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 30,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "for PVC or CPVC, flanged, multiply by 1.15",
+    "row": [
+      "",
+      "",
+      "",
+      "(0160)",
+      "(0170)",
+      "(0180)",
+      "(0190)",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart312.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 31,
+    "currentSectionCode": "22 05 23.60",
+    "currentSectionTitle": "for PVC or CPVC, flanged, multiply by 1.15",
+    "row": [
+      "",
+      "",
+      "0.4100",
+      "0.4430",
+      "0.4630",
+      "0.5070",
+      "0.5320",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart316.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "up to 1",
+      "1 1/4",
+      "1 1/2",
+      "2",
+      "2 1/2",
+      "3",
+      "3 1/2",
+      "4",
+      "5",
+      "6",
+      "8"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart316.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": "22 11 13.23",
+    "currentSectionTitle": "Copper Pipe",
+    "row": [
+      "",
+      "",
+      "",
+      "",
+      "0.2050",
+      "0.2530",
+      "0.3430",
+      "0.3800",
+      "0.4950",
+      "0.5450",
+      "0.6260",
+      "0.7980",
+      "0.8870"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart318.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "to 3/4",
+      "1",
+      "1 1/4",
+      "1 1/2",
+      "2",
+      "2 1/2",
+      "3",
+      "3 1/2",
+      "4"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart318.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one utilitiesman and one laborer.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart318.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. Used for facility water distribution piping. 2. The installation of galvanized-steel pipe vents and drains includes cutting and threading pipe, making joints and applying joint compound, plumbing and grading pipe, installing pipe hangers and straps, and installing fittings.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart320.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "8",
+      "10",
+      "12"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart320.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "22 11 13.44 Steel Pipe, Welded",
+      "",
+      "(0100)",
+      "(0110)",
+      "(0120)",
+      "(0130)",
+      "(0140)",
+      "(0150)",
+      "(0160)",
+      "(0170)",
+      "(0180)"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart320.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "row": [
+      "Schedule 40",
+      "LF",
+      "0.344",
+      "0.524",
+      "0.744",
+      "0.864",
+      "1.000",
+      "1.334",
+      "1.656",
+      "2.000",
+      "2.526"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart320.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one utilitiesman, one laborer, and one welder.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart320.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. Used for facility water distribution piping. 2. Estimate includes use of yoke and roll hanger assemblies, sized for covering 10 feet on center. 3. A multiplier of 2.0 was used to convert civilian production rates to military production rates in this figure. No further adjustment required for military production. 4. Use a 1.60 multiplier for schedule 80 pipe.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart322.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "1",
+      "2",
+      "4",
+      "5",
+      "6",
+      "8",
+      "10",
+      "12",
+      "14",
+      "16",
+      "18"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart324.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "1/2 & 3/4",
+      "1",
+      "1 1/4",
+      "1 1/2",
+      "2",
+      "2 1/2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart326.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one utilitiesman and one laborer.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart326.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: Installation of specialties includes unloading, storing at site, handling into place, and installing fastening devices, including drilling, plugging, anchoring, and leveling as needed.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart328.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "",
+      "",
+      "2",
+      "3",
+      "4",
+      "6",
+      "8",
+      "12"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart328.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": "22 13 16.20",
+    "currentSectionTitle": "Cast Iron Pipe",
+    "row": [
+      "",
+      "",
+      "0.3380 (0070)",
+      "0.3550",
+      "0.3870",
+      "0.4380",
+      "0.7210",
+      "0.8870"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart328.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 16,
+    "currentSectionCode": "22 13 16.20",
+    "currentSectionTitle": "Cast Iron Pipe",
+    "row": [
+      "Plugs, clean-out traps, closet",
+      "",
+      "(0470)",
+      "(0480)",
+      "(0490)",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "22 32 19.10",
+      "Each",
+      "10.6667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Water Filters (0510) Diatomite filter, 660 gallons per hour, 1 inch pipe",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "22 32 33.00",
+      "Each Each",
+      "4.2560 21.2800"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Water Heaters",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0010) Electric or gas, 30 gallons",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0020) 80 gallons",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one utilitiesman and one laborer.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart330.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Note: Installation of specialties includes unloading, storing at site, handling into place, and installing fastening devices, including drilling, plugging, anchoring, and leveling as needed.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "Water Closets",
+      "",
+      "(0010)",
+      "(0020)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "",
+      "6.9770",
+      "4.0150"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "Bowl only, wall hung",
+      "",
+      "(0050)",
+      "(0060)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "Bowl only, floor mount",
+      "",
+      "(0070)",
+      "(0080)"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "Each",
+      "7.4930",
+      "3.6700"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 12,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "Water conserving type",
+      "",
+      "(0090)",
+      "(0100)"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "currentSectionCode": "22 41 13.40",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "Each",
+      "10.9720",
+      "3.9410"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 15,
+    "currentSectionCode": "22 41 16.10",
+    "currentSectionTitle": "",
+    "row": [
+      "Lavatories",
+      "",
+      "(0010)",
+      "(0020)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "currentSectionCode": "22 41 16.10",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "",
+      "(0030)",
+      "(0040)"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 18,
+    "currentSectionCode": "22 41 16.10",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "Each",
+      "12.8210",
+      "2.6600"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 20,
+    "currentSectionCode": "22 41 16.30",
+    "currentSectionTitle": "",
+    "row": [
+      "Sinks",
+      "",
+      "(0010)",
+      "(0020)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 22,
+    "currentSectionCode": "22 41 16.30",
+    "currentSectionTitle": "",
+    "row": [
+      "Each",
+      "",
+      "(0030)",
+      "(0040)"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 23,
+    "currentSectionCode": "22 41 16.30",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "",
+      "9.9480 (0050)",
+      "4.4290"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 24,
+    "currentSectionCode": "22 41 16.30",
+    "currentSectionTitle": "",
+    "row": [
+      "Kitchen, raised deck",
+      "",
+      "",
+      "(0060)"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart332.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 25,
+    "currentSectionCode": "22 41 16.30",
+    "currentSectionTitle": "",
+    "row": [
+      "",
+      "Each",
+      "11.5040",
+      "8.1850"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart334.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one utilitiesman and one laborer.",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart334.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. Rough-in includes supply, waste, and vent piping. 2. Work includes setting and connecting all supply piping, plumbing fixtures, and trim.",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart336.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: two utilitiesmen.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Airfoil, motor and drive complete",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "(0110) 1,000 CFM",
+      "Each",
+      "12.0000"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "row": [
+      "(0120) 2,000 CFM",
+      "Each",
+      "15.0000"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "row": [
+      "(0130) 4,000 CFM",
+      "Each",
+      "16.6665"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "row": [
+      "(0140) 8,000 CFM",
+      "Each",
+      "21.4290"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "row": [
+      "(0150) 12,000 CFM",
+      "Each",
+      "30.0000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Roof exhaust, direct drive",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "row": [
+      "(0410) 320 CFM",
+      "Each",
+      "4.2855"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "row": [
+      "(0420) 600 CFM",
+      "Each",
+      "4.9995"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "row": [
+      "(0430) 815 CFM",
+      "Each",
+      "6.0000"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 12,
+    "row": [
+      "(0440) 1,450 CFM",
+      "Each",
+      "7.1430"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "row": [
+      "(0450) 2,050 CFM",
+      "Each",
+      "7.5000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart342.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 14,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Install Sheet Metal Duct (round) See section 23 31 13.00",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart354.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": "26 05 13.00",
+    "currentSectionTitle": "Excavate trench for duct or direct burial of cable",
+    "row": [
+      "Install 4-inch-diameter conduit in trench, rigid galvanized steel (0030) One conduit without concrete (includes terminations and fittings)",
+      "LF",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart354.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": "26 05 13.00",
+    "currentSectionTitle": "Excavate trench for duct or direct burial of cable",
+    "row": [
+      "",
+      "",
+      "0.240"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 2,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Pull Wire in Conduit",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "row": [
+      "(0250) AWG #12",
+      "LF",
+      "0.0030"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "row": [
+      "(0260) AWG #10",
+      "LF",
+      "0.0033"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "row": [
+      "(0270) AWG #8",
+      "LF",
+      "0.0400"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "row": [
+      "(0280) AWG #6",
+      "LF",
+      "0.0530"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "row": [
+      "(0290) AWG #4",
+      "LF",
+      "0.0700"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "row": [
+      "(0300) AWG #1",
+      "LF",
+      "0.1100"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "row": [
+      "(0310) AWG #1/0",
+      "LF",
+      "0.1300"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "row": [
+      "(0320) AWG #2/0",
+      "LF",
+      "0.1430"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "row": [
+      "(0330) AWG #3/0",
+      "LF",
+      "0.1630"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 12,
+    "row": [
+      "(0340) AWG #4/0",
+      "LF",
+      "0.1930"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "row": [
+      "(0350) 350 MCM",
+      "LF",
+      "0.2600"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 14,
+    "row": [
+      "(0360) 500 MCM",
+      "LF",
+      "0.3200"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 15,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew: two electricians",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 16,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Cable Connectors 26 05 19.25",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "row": [
+      "(0040) 600 volts, Non-metallic, AWG#10-3 wire to #14-4 and #12-4 wire",
+      "Each",
+      "0.0800"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 18,
+    "row": [
+      "(0320) 600 volts, PVC jacket, AWG#0-3 wire",
+      "Each",
+      "0.7270"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 19,
+    "row": [
+      "(0580) 15 kV armored, AWG#0 or #1",
+      "Each",
+      "2.0000"
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart358.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 20,
+    "row": [
+      "Cable Splicing 26 05 19.30 (0010) 15 kV, #1 stranded to 4/0 stranded",
+      "Each",
+      "2.5000"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart384.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": "28 31 43.50",
+    "currentSectionTitle": "Fire and Heat Detectors (0010) Detector, rate of rise",
+    "row": [
+      "",
+      "Each",
+      "1.0000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart398.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 30,
+    "currentSectionCode": "31 13 13.20",
+    "currentSectionTitle": "Remove selective trees, onsite using chain saws and chipper,",
+    "row": [
+      "Stump removal onsite by hydraulic backhoe, 1 1/2 CYD",
+      "Each",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart404.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 29,
+    "currentSectionCode": "31 23 16.16",
+    "currentSectionTitle": "Excavation for Minor Structures",
+    "row": [
+      "(0080) Hand compact with pneumatic",
+      "",
+      "0.8"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart404.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 30,
+    "currentSectionCode": "31 23 16.16",
+    "currentSectionTitle": "Excavation for Minor Structures",
+    "row": [
+      "(0090) Hand compact with vibratory",
+      "",
+      "0.200"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 1, 54 in by 42 in by 32 ft 9 in, 9 cell, straight section",
+      "",
+      "Each",
+      "(0010) 0.3333",
+      "(0020) 0.6667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 1, 54 in by 42 in by 32 ft 9 in, 9 cell, corner section",
+      "",
+      "Each",
+      "(0030) 0.4667",
+      "(0040) 0.9333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 1, 108 in by 42 in by 10 ft 6 in, 3 cell, straight section",
+      "",
+      "Each",
+      "",
+      "(0045) 0.2000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 2, 24 in by 24 in by 4 ft, 2 cell, straight section",
+      "",
+      "Each",
+      "(0050) 0.0333",
+      "(0060) 0.0667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 3, 39 in by 39 in by 32 ft, 10 cell, straight section",
+      "",
+      "Each",
+      "(0090) 0.01333",
+      "(0100) 0.2667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 3, 39 in by 39 in by 32 ft, 10 cell, corner section",
+      "",
+      "Each",
+      "(0110) 0.2667",
+      "(0120) 0.5333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 4, 39 in by 60 in by 32 ft, 10 cell, straight section",
+      "",
+      "Each",
+      "(0130) 0.2000",
+      "(0140) 0.4000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 4, 39 in by 60 in by 32 ft, 10 cell, corner section",
+      "",
+      "Each",
+      "(0150) 0.4000",
+      "(0160) 0.8000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 5, 24 in by 24 in by 10 ft, 5 cell, straight section",
+      "",
+      "Each",
+      "(0170) 0.0667",
+      "(0180) 0.1333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 12,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 5, 24 in by 24 in by 10 ft, 5 cell, corner section",
+      "",
+      "Each",
+      "(0190) 0.1333",
+      "(0200) 0.2667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 6, 66 in by 24 in by 10 ft, 5 cell, straight section",
+      "",
+      "Each",
+      "(0210) 0.2000",
+      "(0220) 0.4000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 14,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 7, 87 in by 84 in by 90 ft, 13 cell, straight section",
+      "",
+      "Each",
+      "(0230) 1.5000",
+      "(0240) 3.0000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 15,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 7, 87 in by 84 in by 90 ft, 13 cell, corner section",
+      "",
+      "Each",
+      "(0250) 2.0000",
+      "(0260) 4.0000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 16,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 8, 54 in by 48 in by 32 ft, 9 cell, straight section",
+      "",
+      "Each",
+      "(0270) 0.3333",
+      "(0280) 0.6667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 8, 54 in by 48 in by 32 ft, 9 cell, corner section",
+      "",
+      "Each",
+      "(0290) 0.4667",
+      "(0300) 0.9333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 18,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 9, 39 in by 30 in by 30 ft, 12 cell, straight section",
+      "",
+      "Each",
+      "(0310) 0.1333",
+      "(0320) 0.2667"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 19,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 9, 39 in by 30 in by 30 ft, 12 cell, corner section",
+      "",
+      "Each",
+      "(0330) 0.2667",
+      "(0340) 0.5333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 20,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 10, 87 in by 60 in by 95 ft, 20 cell, straight section",
+      "",
+      "Each",
+      "(0350) 1.500",
+      "(0360) 3.000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 21,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "MIL 10, 87 in by 60 in by 95 ft, 20 cell, corner section",
+      "",
+      "Each",
+      "(0370) 2.000",
+      "(0380) 4.000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 22,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "HESCO Concertainer Description (Install only, no fill)",
+    "row": [
+      "EPW 1, 84 in by 42 in by 108 ft, 30 cell, straight section",
+      "",
+      "Each",
+      "(0390) 1.000",
+      "(0400) 1.3333"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 25,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "Install fill in Consertainers",
+    "row": [
+      "Manual fill",
+      "",
+      "CYD",
+      "(0900) 0.9333",
+      "(0910) 1.3253"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 26,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "Install fill in Consertainers",
+    "row": [
+      "Machine fill",
+      "",
+      "CYD",
+      "(0920) 0.0489",
+      "(0930) 0.0575"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart428.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 28,
+    "currentSectionCode": "31 36 00.00",
+    "currentSectionTitle": "Suggested crew size one equipment operator, four laborers",
+    "row": [
+      "Legend: EPW = enhanced protective wall ft = feet",
+      "in = inches",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not determine CSI/work element section code",
+    "file": "fileoutpart452.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "row": [
+      "",
+      "LF",
+      "0.1010"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart452.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one utilitiesman, one laborer.",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart452.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Legend: AWWA = American Water Works Association SDR = standard dimension ratio",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart462.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "33 41 13.60",
+    "currentSectionTitle": "Concrete Pipe, Sewage/Drainage Collection",
+    "row": [
+      "Install concrete pipe",
+      "Laying lengths",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Could not parse numeric man-hours per unit",
+    "file": "fileoutpart462.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "33 41 13.60",
+    "currentSectionTitle": "Concrete Pipe, Sewage/Drainage Collection",
+    "row": [
+      "(0010) 15- to 18-inch inside diameter",
+      "3 feet",
+      "LF",
+      "0.48"
+    ]
+  },
+  {
+    "reason": "Could not parse numeric man-hours per unit",
+    "file": "fileoutpart462.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "33 41 13.60",
+    "currentSectionTitle": "Concrete Pipe, Sewage/Drainage Collection",
+    "row": [
+      "(0020) 18- to 24-inch inside diameter",
+      "4 feet",
+      "LF",
+      "0.64"
+    ]
+  },
+  {
+    "reason": "Could not parse numeric man-hours per unit",
+    "file": "fileoutpart462.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 6,
+    "currentSectionCode": "33 41 13.60",
+    "currentSectionTitle": "Concrete Pipe, Sewage/Drainage Collection",
+    "row": [
+      "(0030) 30- to 48-inch inside diameter",
+      "5 feet",
+      "LF",
+      "0.88"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart462.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": "33 41 13.60",
+    "currentSectionTitle": "Concrete Pipe, Sewage/Drainage Collection",
+    "row": [
+      "(0040) 48- to 72-inch inside diameter 5 feet",
+      "",
+      "LF",
+      "1.12"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart462.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": "33 41 13.60",
+    "currentSectionTitle": "Concrete Pipe, Sewage/Drainage Collection",
+    "row": [
+      "(0050) Waste water treatment system",
+      "",
+      "Each",
+      "21.70"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 7,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Pole Mounted Insulators",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 8,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0007) Single phase",
+      "",
+      "",
+      "Each",
+      "1.0"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 9,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0008) Three phase",
+      "",
+      "",
+      "Each",
+      "2.0"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 10,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Cross Assembly (standard 8-foot arm)",
+      "",
+      "",
+      "Each",
+      "4.0"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 11,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0010) Single arm",
+      "",
+      "",
+      "Each",
+      "4.0"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 12,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0020) Double arm",
+      "",
+      "",
+      "Each",
+      "5.6"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 13,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Install Guys (common grade seven strand)",
+      "",
+      "",
+      "Each Each",
+      "4.0 4.0"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 14,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0030) Down guys (0040) Head guys",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 15,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "(0300) Attach grounding plate to bottom of pole",
+      "",
+      "",
+      "Each",
+      "0.50"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 16,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Minimum suggested crew size: one electrician, one equipment operator and one laborer.",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart476.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "currentSectionCode": null,
+    "currentSectionTitle": null,
+    "row": [
+      "Notes: 1. Time for setting poles includes backfilling and tamping. 2. Man-hours are based on normal working conditions and average terrain. 3. Use 1.1 multiplier for framing.",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart480.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "33 71 19.17",
+    "currentSectionTitle": "Electrical and Telephone Underground",
+    "row": [
+      "Hand holes, precast concrete, with concrete cover",
+      "",
+      "11.080 19.000"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart480.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "33 71 19.17",
+    "currentSectionTitle": "Electrical and Telephone Underground",
+    "row": [
+      "(0010) 2 feet by 2 feet by 3 feet deep",
+      "Each",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart480.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "33 71 19.17",
+    "currentSectionTitle": "Electrical and Telephone Underground",
+    "row": [
+      "(0020) 4 feet by 4 feet by 4 feet deep",
+      "Each",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart482.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "33 81 13.10",
+    "currentSectionTitle": "Erect antenna tower (0010) Guyed, 50 feet high, 40 pound section, wind load 70 miles per hour (0020) Self-supporting, 60 feet high, wind load 70 miles per hour",
+    "row": [
+      "",
+      "Each",
+      "22"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart482.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "33 81 13.10",
+    "currentSectionTitle": "Erect antenna tower (0010) Guyed, 50 feet high, 40 pound section, wind load 70 miles per hour (0020) Self-supporting, 60 feet high, wind load 70 miles per hour",
+    "row": [
+      "",
+      "Each",
+      "40"
+    ]
+  },
+  {
+    "reason": "Missing unit or man-hours value",
+    "file": "fileoutpart490.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 17,
+    "currentSectionCode": "34 43 23.18",
+    "currentSectionTitle": "Runway and Taxiway Lighting Systems",
+    "row": [
+      "Minimum suggested crew size: two to six electricians, one equipment operator and",
+      "two laborers.",
+      ""
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart498.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 3,
+    "currentSectionCode": "35 59 13",
+    "currentSectionTitle": "Marine Fenders (0010) Place in leads and drive (0020) Lash with wire rope (0030) Install fenders",
+    "row": [
+      "",
+      "Each",
+      "0.800"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart498.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 4,
+    "currentSectionCode": "35 59 13",
+    "currentSectionTitle": "Marine Fenders (0010) Place in leads and drive (0020) Lash with wire rope (0030) Install fenders",
+    "row": [
+      "",
+      "Each",
+      "0.750"
+    ]
+  },
+  {
+    "reason": "Missing item description after removing section/item codes",
+    "file": "fileoutpart498.xlsx",
+    "sheetName": "Sheet1",
+    "rowNumberApprox": 5,
+    "currentSectionCode": "35 59 13",
+    "currentSectionTitle": "Marine Fenders (0010) Place in leads and drive (0020) Lash with wire rope (0030) Install fenders",
+    "row": [
+      "",
+      "Each",
+      "0.600"
+    ]
+  }
+]

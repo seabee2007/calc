@@ -8,6 +8,7 @@ import {
   HelpCircle,
   RotateCcw,
   Upload,
+  ArrowRightLeft,
 } from 'lucide-react';
 import Button from '../../../../components/ui/Button';
 import {
@@ -29,6 +30,7 @@ interface Props {
   onOpenHelp?: () => void;
   onCollapseAll?: () => void;
   onResetForm?: () => void;
+  onConvertToDetailed?: () => void;
 }
 
 function menuIcon(key: EstimateWorkspaceActionsMenuItemKey) {
@@ -45,6 +47,8 @@ function menuIcon(key: EstimateWorkspaceActionsMenuItemKey) {
       return <ChevronsDownUp className="h-4 w-4 shrink-0" aria-hidden />;
     case 'reset-form':
       return <RotateCcw className="h-4 w-4 shrink-0" aria-hidden />;
+    case 'convert-to-detailed':
+      return <ArrowRightLeft className="h-4 w-4 shrink-0" aria-hidden />;
     default:
       return null;
   }
@@ -60,6 +64,7 @@ export default function EstimateWorkspaceActionsMenu({
   onOpenHelp,
   onCollapseAll,
   onResetForm,
+  onConvertToDetailed,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -74,6 +79,7 @@ export default function EstimateWorkspaceActionsMenu({
     onOpenHelp,
     onCollapseAll,
     onResetForm,
+    onConvertToDetailed,
   };
 
   const updateMenuPosition = () => {

@@ -10,8 +10,10 @@ import {
   MANUAL_ACTIVITY_SOURCE_TEMPLATE_KEY,
   previewDraftProductionRateActivity,
   updateDraftLineItemQuantity,
+  updateDraftLineItemVariant,
   type ProductionRateAssemblyGroup,
 } from '../application/productionRateAssemblyBuilder';
+import { applyVariantFromEntry } from '../data/productionRates/mapCanonicalToLibraryEntry';
 import {
   mapProductionRateToLaborRoleKey,
   resolveLaborRoleForProductionRate,
@@ -127,6 +129,56 @@ describe('productionRateAssemblyBuilder', () => {
     const draft = createDraftLineItemFromProductionRate(sampleRate(), 'project-1');
     expect(draft.lineItem.sourceProductionRateKey).toBe('03-11-13.65-0040');
     expect(draft.lineItem.productionRateId).toBeNull();
+  });
+
+  it('variant selection updates sourceProductionRateKey and manHoursPerUnit', () => {
+    const canonicalRate = sampleRate({
+      id: '03-11-13.65-0100',
+      canonicalId: 'canonical-spandrel',
+      canonicalTitle: 'Beam And Spandrel Forms',
+      allVariants: [
+        {
+          label: '12-inch',
+          sourceProductionRateKey: '03-11-13.65-0100',
+          manHoursPerUnit: 0.12,
+          unitOfMeasure: 'SF',
+        },
+        {
+          label: '18-inch',
+          sourceProductionRateKey: '03-11-13.65-0110',
+          manHoursPerUnit: 0.15,
+          unitOfMeasure: 'SF',
+        },
+      ],
+      sourceReferences: [
+        {
+          sourceProductionRateKey: '03-11-13.65-0100',
+          figure: 'Figure 5-C-7',
+          sourcePage: '5-C-7',
+          originalDescription: 'Beam and spandrel forms, 12-inch',
+          originalManHoursPerUnit: 0.12,
+          originalUnitOfMeasure: 'SF',
+        },
+        {
+          sourceProductionRateKey: '03-11-13.65-0110',
+          figure: 'Figure 5-C-7',
+          sourcePage: '5-C-7',
+          originalDescription: 'Beam and spandrel forms, 18-inch',
+          originalManHoursPerUnit: 0.15,
+          originalUnitOfMeasure: 'SF',
+        },
+      ],
+    });
+
+    const draft = createDraftLineItemFromProductionRate(canonicalRate, 'project-1');
+    const variantRate = applyVariantFromEntry(canonicalRate, '03-11-13.65-0110');
+    expect(variantRate).not.toBeNull();
+
+    const updated = updateDraftLineItemVariant(draft, variantRate!);
+    expect(updated.draftId).toBe('canonical-spandrel');
+    expect(updated.rate.id).toBe('03-11-13.65-0110');
+    expect(updated.lineItem.sourceProductionRateKey).toBe('03-11-13.65-0110');
+    expect(updated.lineItem.manHoursPerUnit).toBe(0.15);
   });
 
   it('quantity × manHoursPerUnit = totalManHours on draft updates', () => {

@@ -1,0 +1,11 @@
+{
+  "totalCandidates": 1954,
+  "reviewClean": 1897,
+  "needsReview": 57,
+  "flagCounts": {
+    "DUPLICATE_ID": 2,
+    "MISSING_SECTION_TITLE": 53,
+    "SUSPICIOUS_RATE": 2,
+    "SUSPICIOUS_UNIT": 9
+  }
+}

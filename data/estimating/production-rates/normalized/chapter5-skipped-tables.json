@@ -1,0 +1,4140 @@
+[
+  {
+    "file": "fileoutpart0.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "RECORD OF CHANGES",
+        "",
+        ""
+      ],
+      [
+        "NUMBER",
+        "DATE",
+        "ENTERED BY"
+      ],
+      [
+        "Change 1",
+        "OCT 2022",
+        "NAVWARDEVCEN NORFOLK, VA"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart2.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Level of Planning",
+        "Cognizant Organization",
+        "Level of Estimate",
+        "Method Used"
+      ],
+      [
+        "Preliminary planning",
+        "USACE, NAVFAC",
+        "Order of magnitude",
+        "Adjusted historical data"
+      ],
+      [
+        "",
+        "",
+        "Budget/planning",
+        "Square foot, cubic foot; means, parametric"
+      ],
+      [
+        "",
+        "Engineer unit higher headquarters",
+        "Definitive",
+        "Estimating software"
+      ],
+      [
+        "Detailed planning",
+        "Engineer unit",
+        "Detailed",
+        "Manual materiel/quantity takeoff"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart4.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Master Activity",
+        "Description",
+        "Master Activity",
+        "Description"
+      ],
+      [
+        "00",
+        "Procurement and contracting",
+        "21",
+        "Fire suppression"
+      ],
+      [
+        "01",
+        "General requirements",
+        "22",
+        "Plumbing"
+      ],
+      [
+        "02",
+        "Existing conditions",
+        "23",
+        "Heating, ventilating, and air conditioning"
+      ],
+      [
+        "03",
+        "Concrete",
+        "25",
+        "Integrated automation"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart6.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Estimating Worksheet",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "Project Location",
+        "Project Title",
+        "",
+        "Project Number",
+        "",
+        "",
+        "BOMNumber"
+      ],
+      [
+        "o o",
+        "Project Section",
+        "Activity Number",
+        "I Drawing Number",
+        "Prepared by",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "Description",
+        "Calculations",
+        "",
+        "",
+        "Quantity",
+        "Unit of Issue",
+        "Waste(%)"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart8.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "o l l o I t 0n o er o � er er � o o er",
+        "Estimating Worksheet",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Page of �",
+        ""
+      ],
+      [
+        "",
+        "Project Location",
+        "Project Title",
+        "",
+        "Project Number",
+        "",
+        "",
+        "",
+        "I BOM Number",
+        "Date Prepared",
+        ""
+      ],
+      [
+        "",
+        "Project Section Concrete",
+        "Activity Number: MA 03",
+        "Drawing Number I",
+        "Prepared by",
+        "",
+        "",
+        "",
+        "",
+        "Checked by",
+        ""
+      ],
+      [
+        "",
+        "Description",
+        "Calculations",
+        "",
+        "",
+        "Quantity",
+        "Unit of Issue",
+        "Waste (%)",
+        "Total Quantity",
+        "Remarks (use. notes. local procedures, etc.)",
+        ""
+      ],
+      [
+        "",
+        "Concrete,",
+        "Admin footings scaled from sheets S-2.1 & S-2.5:",
+        "",
+        "",
+        "195.19",
+        "CYD",
+        "10",
+        "215",
+        "1. Civil note from",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart10.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Estimated by: BROWN",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Sheet 2__ of 2__ Date: 6/14/2008",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Checked by: GREENE",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Date: 6/23/2008",
+        "",
+        "",
+        ""
+      ],
+      [
+        "EQUIPMENT ESTIMATE",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Project Number: GM07-803",
+        "",
+        "",
+        "",
+        "",
+        "Project Title: CONSTRUCT BUILDING 101",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Unit: NMCB FOUR",
+        "",
+        "",
+        "",
+        "",
+        "Project Location: U.S. NAVAL MAGAZINE",
+        "",
+        "",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart12.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Labor Estimate",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Project Number: GM07-803 Project Title: CONSTRUCT BUILDING 101",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Unit: NMCB FOUR Project Location: U.S. NAVAL MAGAZINE",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Construction Activity Number and Description: 09 90 00 PAINTING AND COATINGS Construction Work Element Number and Description: 09 91 13 EXTERIOR PAINTING",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Construction Activity/Work Element (2) Number & Description (Chapter 5 Page # and Figure #)",
+        "Quantity of Work & Unit of Issue",
+        "(3)",
+        "Man-hours (4) Per Unit (Work Rate)",
+        "Convert (5) Man-hours to Man-days",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart14.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Fractional Man-hours",
+        "Minutes Equivalent",
+        "Fractional Man-hours",
+        "Minutes Equivalent"
+      ],
+      [
+        "0.017",
+        "1",
+        "0.517",
+        "31"
+      ],
+      [
+        "0.033",
+        "2",
+        "0.533",
+        "32"
+      ],
+      [
+        "0.050",
+        "3",
+        "0.550",
+        "33"
+      ],
+      [
+        "0.067",
+        "4",
+        "0.567",
+        "34"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart16.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Fractional Man-day",
+        "Man-hour Equivalent"
+      ],
+      [
+        "0.1",
+        "0 hours 48 minutes"
+      ],
+      [
+        "0.2",
+        "1 hour 36 minutes"
+      ],
+      [
+        "0.3",
+        "2 hours 24 minutes"
+      ],
+      [
+        "0.4",
+        "3 hours 12 minutes"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart18.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Master Activity",
+        "Description",
+        "Master Activity",
+        "Description"
+      ],
+      [
+        "00",
+        "Procurement and contracting",
+        "21",
+        "Fire suppression"
+      ],
+      [
+        "01",
+        "General requirements",
+        "22",
+        "Plumbing"
+      ],
+      [
+        "02",
+        "Existing conditions",
+        "23",
+        "Heating, ventilating, and air conditioning"
+      ],
+      [
+        "03",
+        "Concrete",
+        "25",
+        "Integrated automation"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart36.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Bar Number (Inches)",
+        "Nominal Weight",
+        "",
+        "Diameter",
+        "",
+        "Cross Sectional Area",
+        "",
+        "Perimeter",
+        ""
+      ],
+      [
+        "",
+        "Pounds per Foot",
+        "Kilograms per Meter",
+        "Inches",
+        "Millimeters",
+        "Square Inches",
+        "Square Centimeters",
+        "Inches",
+        "Millimeters"
+      ],
+      [
+        "#3 (3/8)",
+        "0.376",
+        "0.560",
+        "0.375",
+        "9.52",
+        "0.11",
+        "0.71",
+        "1.178",
+        "29.9"
+      ],
+      [
+        "#4 (1/2)",
+        "0.668",
+        "0.994",
+        "0.500",
+        "12.70",
+        "0.20",
+        "1.29",
+        "1.571",
+        "39.9"
+      ],
+      [
+        "#5 (5/8)",
+        "1.043",
+        "1.552",
+        "0.625",
+        "15.88",
+        "0.31",
+        "2.00",
+        "1.963",
+        "49.9"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart38.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "T y p e",
+        "New Designation",
+        "Steel Area per Foot",
+        "",
+        "",
+        "",
+        "Weight",
+        "",
+        ""
+      ],
+      [
+        "",
+        "Spacing—Cross Section Area",
+        "Longitudinal",
+        "",
+        "Transverse",
+        "",
+        "Per 100 Square Feet",
+        "",
+        "Kilograms per Square Meter"
+      ],
+      [
+        "",
+        "(Inches—Square Inch 100)",
+        "Inches",
+        "Centimeters",
+        "Inches",
+        "Centimeters",
+        "Pounds",
+        "Kilograms",
+        ""
+      ],
+      [
+        "R o l l s",
+        "6 × 6—W1.4 × W1.4",
+        "0.028",
+        "0.071",
+        "0.028",
+        "0.071",
+        "21",
+        "9.53",
+        "1.026"
+      ],
+      [
+        "",
+        "6 × 6—W2.0 × W2.0",
+        "0.040",
+        "0.102",
+        "0.040",
+        "0.102",
+        "29",
+        "13.15",
+        "1.466"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart40.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Specified Compressive Strength",
+        "Maximum Absolute Permissible Water-Cement Ratio by Weight",
+        ""
+      ],
+      [
+        "Pounds per Square Inch",
+        "Nonair-Entrained Concrete",
+        "Air-Entrained Concrete"
+      ],
+      [
+        "2,500",
+        "0.67",
+        "0.54"
+      ],
+      [
+        "3,000",
+        "0.58",
+        "0.46"
+      ],
+      [
+        "3,500",
+        "0.51",
+        "0.40"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart42.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Concrete (CYD)",
+        "Mix 1, 1:1:1-3/4",
+        "",
+        "",
+        "Mix 2, 1:2:2-1/4",
+        "",
+        "",
+        "Mix 3, 1:2-1/4:3",
+        "",
+        "",
+        "Mix 4, 1:3:4",
+        "",
+        ""
+      ],
+      [
+        "",
+        "Cement (94-LB Sack)",
+        "Sand (CYD)",
+        "Stone (CYD)",
+        "Cement (94-LB Sack)",
+        "Sand (CYD)",
+        "Stone (CYD)",
+        "Cement (94-LB Sack)",
+        "Sand (CYD)",
+        "Stone (CYD)",
+        "Cement (94-LB Sack)",
+        "Sand (CYD)",
+        "Stone (CYD)"
+      ],
+      [
+        "1",
+        "10",
+        "0.37",
+        "0.63",
+        "7.75",
+        "0.56",
+        "0.65",
+        "6.25",
+        "0.52",
+        "0.70",
+        "5",
+        "0.56",
+        "0.74"
+      ],
+      [
+        "2",
+        "20",
+        "0.74",
+        "1.26",
+        "15.50",
+        "1.12",
+        "1.30",
+        "12.50",
+        "1.04",
+        "1.40",
+        "10",
+        "1.12",
+        "1.48"
+      ],
+      [
+        "3",
+        "30",
+        "1.11",
+        "1.89",
+        "23.25",
+        "1.68",
+        "1.95",
+        "18.75",
+        "1.56",
+        "2.10",
+        "15",
+        "1.68",
+        "2.22"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart44.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Slab Thickness (Inches)",
+        "CF of Concrete Required per SF of Slab",
+        "Slab Area Coverage SF per CYD"
+      ],
+      [
+        "2",
+        "0.167",
+        "162"
+      ],
+      [
+        "3",
+        "0.250",
+        "108"
+      ],
+      [
+        "4",
+        "0.333",
+        "81"
+      ],
+      [
+        "5",
+        "0.417",
+        "65"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart46.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Concrete Required per 100 SF of Given Thickness",
+        "",
+        ""
+      ],
+      [
+        "Thickness (Inches)",
+        "CF",
+        "CYD"
+      ],
+      [
+        "4",
+        "33.3",
+        "1.24"
+      ],
+      [
+        "6",
+        "50.0",
+        "1.85"
+      ],
+      [
+        "8",
+        "66.7",
+        "2.47"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart54.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Application",
+        "Unit",
+        "Man-hours per Unit"
+      ],
+      [
+        "03 15 05.02",
+        "",
+        ""
+      ],
+      [
+        "Anchor Bolts",
+        "",
+        ""
+      ],
+      [
+        "J-type, plain, including nut and washer,",
+        "",
+        ""
+      ],
+      [
+        "(0010) 1/2-inch diameter 6 to 12 inches long, average",
+        "Each",
+        "0.125"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart58.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Bar Size (# = Number)",
+        "",
+        "",
+        "By Hand",
+        "By Machine"
+      ],
+      [
+        "",
+        "Hours/Bend",
+        "Hours/Hook",
+        "Hours/Bend",
+        "Hours/Hook"
+      ],
+      [
+        "03 21 10.10 Reinforcing Steel Fabrication",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "#4 or less",
+        "(0010) 0.04",
+        "(0020) 0.06",
+        "(0030) 0.015",
+        "(0040) 0.025"
+      ],
+      [
+        "#5 to #7",
+        "(0050) 0.05",
+        "(0060) 0.08",
+        "(0070) 0.020",
+        "(0080) 0.030"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart60.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Application",
+        "Unit",
+        "Man-hours per Unit"
+      ],
+      [
+        "03 22 05.50 Welded Wire Fabric",
+        "",
+        ""
+      ],
+      [
+        "Sheets (0010) 58 pounds per 100 SF (0020) 85 pounds per 100 SF Slab on grade, concrete paving, precast roof panels, etc.",
+        "SF SF",
+        "0.008 0.009"
+      ],
+      [
+        "Rolls (0030) Gunite reinforcement, beam and column wrap.",
+        "SF",
+        "0.033"
+      ],
+      [
+        "Minimum suggested crew size: two skilled laborers.",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart62.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Application Reinforcing Bar Size (# = Number)",
+        "Unit",
+        "Man-hours per Unit"
+      ],
+      [
+        "03 21 10.60 Reinforcing in Place",
+        "",
+        ""
+      ],
+      [
+        "Beams and girders",
+        "",
+        ""
+      ],
+      [
+        "(0010) #3 to #7",
+        "Ton",
+        "26.60"
+      ],
+      [
+        "(0020) #8 to #18",
+        "Ton",
+        "15.76"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart66.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Work Element Description",
+        "Unit",
+        "Direct from Chute",
+        "Wheeled",
+        "Pumped",
+        "Crane and Bucket",
+        ""
+      ],
+      [
+        "03 31 05.70 Placing Concrete",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Lintel or sill, 8 x 8, Cast in place, including forming",
+        "LF",
+        "*",
+        "(0005) 0.5",
+        "*",
+        "*",
+        ""
+      ],
+      [
+        "Beams, elevated",
+        "CYD",
+        "*",
+        "*",
+        "(0010) 1.60",
+        "(0020) 2.40",
+        ""
+      ],
+      [
+        "Columns, square or round",
+        "",
+        "*",
+        "*",
+        "(0030) 1.60",
+        "(0040) 2.70 (0060) 1.963",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart70.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Mortar Type",
+        "Portland Cement",
+        "Hydrated Lime",
+        "Sand",
+        "Use"
+      ],
+      [
+        "M",
+        "1",
+        "1/4",
+        "3 3/4",
+        "General use where high strength is required, especially good compressive strength; work that is below grade and in contact with earth."
+      ],
+      [
+        "S",
+        "1",
+        "1/2",
+        "4 1/2",
+        "Suitable for general use, but recommended where high resistance to lateral forces is required."
+      ],
+      [
+        "N",
+        "1",
+        "1",
+        "6",
+        "Suitable for general use in above grade, exposed masonry where high compressive and/or lateral strengths are not required."
+      ],
+      [
+        "O",
+        "1",
+        "2",
+        "9",
+        "Do not use when masonry is exposed to severe weathering; acceptable for non-load bearing walls of solid units and interior non-load bearing partitions of hollow units."
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart72.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Mortar Type",
+        "Strength",
+        "Average Compressive Strength at 28 Days"
+      ],
+      [
+        "M",
+        "High",
+        "2,500 pounds per square inch"
+      ],
+      [
+        "S",
+        "High",
+        "1,800 pounds per square inch"
+      ],
+      [
+        "N",
+        "Medium",
+        "750 pounds per square inch"
+      ],
+      [
+        "O",
+        "Low",
+        "350 pounds per square inch"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart74.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Number of Stretchers",
+        "Wall Length*",
+        "Number of Stretchers",
+        "Wall Length*"
+      ],
+      [
+        "1.0",
+        "1 feet 4 inches",
+        "8.5 9.0 9.5",
+        "11 feet 4 inches 12 feet 0 IN 12 feet 8 inches"
+      ],
+      [
+        "1.5",
+        "2 feet 0 IN",
+        "",
+        ""
+      ],
+      [
+        "2.0",
+        "2 feet 8 inches",
+        "",
+        ""
+      ],
+      [
+        "2.5",
+        "3 feet 4 inches",
+        "10.0 10.5 11.0",
+        "13 feet 4 inches 14 feet 0 IN 14 feet 8 inches"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart76.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Wall Height 3/8-inch Bed Joint",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "No. of Courses",
+        "8-Inch Block (Height)",
+        "4-Inch Block (Height)",
+        "No. of Courses",
+        "8-Inch Block (Height)",
+        "4-Inch Block (Height)"
+      ],
+      [
+        "1",
+        "8 inches",
+        "4 inches",
+        "10",
+        "6 feet 8 inches",
+        "3 feet 4 inches"
+      ],
+      [
+        "2",
+        "1 feet 4 inches",
+        "8 inches",
+        "15",
+        "10 feet 0 IN",
+        "5 feet 0 IN"
+      ],
+      [
+        "3",
+        "2 feet 0 IN",
+        "1 feet 0 IN",
+        "20",
+        "13 feet 4 inches",
+        "6 feet 8 inches"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart78.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Wall Thickness (Inches)",
+        "Spacing of Grouted Cores (Inches)",
+        "Grout, CYD for 100 SF Wall Area",
+        "Wall Area, SF for 1 CYD of Grout"
+      ],
+      [
+        "6",
+        "All cores grouted 16 24 32 40 48",
+        "0.79 0.40 0.28 0.22 0.19 0.17",
+        "126 250 357 450 526 588"
+      ],
+      [
+        "204",
+        "All cores grouted 16 24 32 40 48",
+        "1.26",
+        "79"
+      ],
+      [
+        "",
+        "",
+        "0.74",
+        "135"
+      ],
+      [
+        "",
+        "",
+        "0.58 0.49 0.44 0.39",
+        "173"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart94.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Thickness (Inches)",
+        "Weight (LB per SF)",
+        "Thickness (Inches)",
+        "Weight (LB per SF)"
+      ],
+      [
+        "3/16",
+        "7.6",
+        "3/4",
+        "30.6"
+      ],
+      [
+        "1/4",
+        "10.2",
+        "7/8",
+        "35.7"
+      ],
+      [
+        "5/16",
+        "12.7",
+        "1",
+        "40.8"
+      ],
+      [
+        "3/8",
+        "15.3",
+        "1 1/4",
+        "51.0"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart96.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Thickness (Inches)",
+        "Weight (LB per SF)",
+        "Thickness (Inches)",
+        "Weight (LB per SF)"
+      ],
+      [
+        "1/8",
+        "8.0",
+        "5/16",
+        "13.7"
+      ],
+      [
+        "3/16",
+        "8.7",
+        "3/8",
+        "16.2"
+      ],
+      [
+        "1/4",
+        "11.2",
+        "1/2",
+        "21.5"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart98.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Black",
+        "",
+        "",
+        "",
+        "",
+        "Galvanized",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Description",
+        "",
+        "Weight LB per SF",
+        "",
+        "",
+        "Description",
+        "Weight LB per SF",
+        "",
+        ""
+      ],
+      [
+        "United States (U.S.) Gage",
+        "Thickness",
+        "Flat",
+        "Corrugated",
+        "",
+        "Thickness",
+        "Flat",
+        "Corrugated",
+        ""
+      ],
+      [
+        "12",
+        "0.1046",
+        "4.3",
+        "4.7",
+        "5.0",
+        "0.1084",
+        "4.5",
+        "4.9",
+        "5.2"
+      ],
+      [
+        "14",
+        "0.0747",
+        "3.1",
+        "3.4",
+        "3.6",
+        "0.0785",
+        "3.2",
+        "3.5",
+        "3.7"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart100.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Width of Bars",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Thickness (Inches)",
+        "1 Inch",
+        "2 Inches",
+        "3 Inches",
+        "4 Inches",
+        "5 Inches",
+        "6 Inches"
+      ],
+      [
+        "3/16",
+        "0.64",
+        "1.28",
+        "1.91",
+        "2.55",
+        "3.19",
+        "3.83"
+      ],
+      [
+        "1/4",
+        "0.85",
+        "1.70",
+        "2.55",
+        "3.40",
+        "4.25",
+        "5.10"
+      ],
+      [
+        "5/16",
+        "1.06",
+        "2.12",
+        "3.19",
+        "4.25",
+        "5.31",
+        "6.38"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart102.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Thickness or Diameter in Inches",
+        "Weight of Square Bar",
+        "Weight of Round Bar",
+        "Thickness or Diameter in Inches",
+        "Weight of Square Bar",
+        "Weight of Round Bar"
+      ],
+      [
+        "1/4",
+        "0.21",
+        "0.16",
+        "1 11/16",
+        "—",
+        "7.60"
+      ],
+      [
+        "5/16",
+        "0.33",
+        "0.26",
+        "1 3/4",
+        "10.41",
+        "8.18"
+      ],
+      [
+        "3/8",
+        "0.47",
+        "0.37",
+        "1 13/16",
+        "—",
+        "8.77"
+      ],
+      [
+        "7/16",
+        "0.65",
+        "0.51",
+        "1 7/8",
+        "11.95",
+        "9.39"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart104.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Size In Inches",
+        "Weight per Foot (Pounds)",
+        "Size in Inches",
+        "Weight per Foot (Pounds)",
+        "Size in Inches",
+        "Weight per Foot (Pounds)"
+      ],
+      [
+        "3 × 2 × 1/4",
+        "4.1",
+        "4 × 3 × 5/8",
+        "13.6",
+        "6 × 3 1/2 × 5/16",
+        "9.8"
+      ],
+      [
+        "3 × 2 × 5/16",
+        "5.0",
+        "4 × 3 × 3/4",
+        "16.0",
+        "6 × 3 1/2 × 3/8",
+        "11.7"
+      ],
+      [
+        "3 × 2 × 3/8",
+        "5.9",
+        "",
+        "",
+        "6 × 3 1/2 × 7/16",
+        "13.5"
+      ],
+      [
+        "",
+        "",
+        "4 × 3 1/2 × 1/4",
+        "6.2",
+        "6 × 3 1/2 × 1/2",
+        "15.3"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart106.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Depth of Channels (Inches)",
+        "Weight per Foot (Pounds)",
+        "Thickness of Web (Inches)",
+        "Width of Flange (Inches)",
+        "Depth of Channels (Inches)",
+        "Weight per Foot (Pounds)",
+        "Thickness of Web (Inches)",
+        "Width of Flange (Inches)"
+      ],
+      [
+        "3",
+        "6.00",
+        "0.362",
+        "1.602",
+        "9",
+        "20.00",
+        "0.452",
+        "2.652"
+      ],
+      [
+        "",
+        "5.00",
+        "0.264",
+        "1.504",
+        "",
+        "15.00",
+        "0.288",
+        "2.488"
+      ],
+      [
+        "",
+        "4.10",
+        "0.170",
+        "1.410",
+        "",
+        "13.40",
+        "0.230",
+        "2.430"
+      ],
+      [
+        "4",
+        "7.25",
+        "0.325",
+        "1.725",
+        "10",
+        "30.00",
+        "0.676",
+        "3.036"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart108.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Size of Filet (Inches)",
+        "Pounds of Stick Electrode Required per Foot of Weld",
+        "Pounds of Wire Electrode Required per Foot of Weld"
+      ],
+      [
+        "1/8",
+        "0.04",
+        "0.02"
+      ],
+      [
+        "3/16",
+        "0.11",
+        "0.06"
+      ],
+      [
+        "1/4",
+        "0.18",
+        "0.10"
+      ],
+      [
+        "5/16",
+        "0.29",
+        "0.16"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart110.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Joint Dimensions (Inches)",
+        "",
+        "",
+        "Pounds of Stick Electrode Required per Foot of Weld",
+        "",
+        "Pounds of Wire Electrode Required per Foot of Weld",
+        ""
+      ],
+      [
+        "Tee",
+        "Butt",
+        "Groove",
+        "Without Reinforcement",
+        "With Reinforcement",
+        "Without Reinforcement",
+        "With Reinforcement"
+      ],
+      [
+        "1/4",
+        "0.207",
+        "1/16",
+        "0.1",
+        "0.2",
+        "0.80",
+        "0.14"
+      ],
+      [
+        "5/16",
+        "0.311",
+        "3/32",
+        "0.3",
+        "0.4",
+        "0.17",
+        "0.25"
+      ],
+      [
+        "3/8",
+        "0.414",
+        "1/8",
+        "0.5",
+        "0.7",
+        "0.28",
+        "0.39"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart112.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Joint Dimensions (Inches)",
+        "",
+        "",
+        "Pounds of Stick Electrode Required per Foot of Weld",
+        "",
+        "Pounds of Wire Electrode Required per Foot of Weld",
+        ""
+      ],
+      [
+        "Tee",
+        "Butt",
+        "Groove",
+        "Without Reinforcement",
+        "With Reinforcement",
+        "Without Reinforcement",
+        "With Reinforcement"
+      ],
+      [
+        "3/16",
+        "3/8",
+        "",
+        "—",
+        ".16",
+        "—",
+        ".08"
+      ],
+      [
+        "",
+        "",
+        "1/16",
+        ".04",
+        ".20",
+        ".02",
+        ".10"
+      ],
+      [
+        "1/4",
+        "7/16",
+        "1/16",
+        ".05",
+        ".23",
+        ".02",
+        ".12"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart130.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Partition, Floor Joist, and Ceiling Joist",
+        "",
+        ""
+      ],
+      [
+        "Distance on Center (Inches)",
+        "Multiply Length of Partition by",
+        "Add (Each)"
+      ],
+      [
+        "12",
+        "1.00",
+        "1"
+      ],
+      [
+        "16",
+        "0.75",
+        "1"
+      ],
+      [
+        "24",
+        "0.50",
+        "1"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart132.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Length in Feet",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Size (Inches)",
+        "8",
+        "10",
+        "12",
+        "14",
+        "16",
+        "18",
+        "20",
+        "22",
+        "24"
+      ],
+      [
+        "1×2",
+        "1 1/3",
+        "1 2/3",
+        "2",
+        "2 1/3",
+        "2 2/3",
+        "3",
+        "3 1/3",
+        "3 2/3",
+        "4"
+      ],
+      [
+        "1×4",
+        "2 2/3",
+        "3 1/3",
+        "4",
+        "4 2/3",
+        "5 1/3",
+        "6",
+        "6 2/3",
+        "7 1/3",
+        "8"
+      ],
+      [
+        "1×6",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart134.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Lengths of Common, Hip, and Valley Rafters per 12 Inches of Run",
+        "",
+        "",
+        ""
+      ],
+      [
+        "1 Rise and Run or Cut",
+        "2 Length in Inches Common Rafter per 12 Inches of Run",
+        "3 Length in Inches Hip or Valley Rafters",
+        "4 Conversion Factor"
+      ],
+      [
+        "2 and 12",
+        "12.165",
+        "17.088",
+        "1.014"
+      ],
+      [
+        "3 and 12",
+        "12.369",
+        "17.233",
+        "1.031"
+      ],
+      [
+        "4 and 12",
+        "12.649",
+        "17.433",
+        "1.054"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart136.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Pitch",
+        "Increase of Area Over Flat Roof (Percent)",
+        "Multiplication Factor"
+      ],
+      [
+        "1/4",
+        "12",
+        "1.12"
+      ],
+      [
+        "1/3",
+        "20",
+        "1.20"
+      ],
+      [
+        "3/8",
+        "25",
+        "1.25"
+      ],
+      [
+        "1/2",
+        "42",
+        "1.42"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart138.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Application",
+        "Nail Spacing",
+        "",
+        ""
+      ],
+      [
+        "Plywood Thickness (Inches)",
+        "Nail Size and Type",
+        "Panel Edge (Inches)",
+        "Intermediate (Inches)"
+      ],
+      [
+        "1/2",
+        "6d common",
+        "4",
+        "6"
+      ],
+      [
+        "5/8",
+        "8d common",
+        "4",
+        "6"
+      ],
+      [
+        "3/4",
+        "8d common",
+        "4",
+        "6"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart140.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Nail Spacing",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Application",
+        "Thickness of Plywood (Inches)",
+        "Max Spacing of Supports Center to Center",
+        "Nail Size and Type",
+        "Panel Edge (Inches)",
+        "Intermediate (Inches)"
+      ],
+      [
+        "Subflooring",
+        "1/2",
+        "16 inches",
+        "6d common",
+        "6",
+        "10"
+      ],
+      [
+        "",
+        "5/8",
+        "20 inches",
+        "8d common",
+        "6",
+        "10"
+      ],
+      [
+        "",
+        "3/4",
+        "24 inches",
+        "8d common",
+        "6",
+        "10"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart142.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Size",
+        "Length (Inches)",
+        "Common",
+        "Finish"
+      ],
+      [
+        "2d",
+        "1.00",
+        "874",
+        "*"
+      ],
+      [
+        "3d",
+        "1.25",
+        "574",
+        "*"
+      ],
+      [
+        "4d",
+        "1.50",
+        "320",
+        "574"
+      ],
+      [
+        "5d",
+        "1.75",
+        "254",
+        "*"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart166.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Density of Fill, LB per CF",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Thickness of Fill (Inches)",
+        "6 LB",
+        "7 LB",
+        "8 LB",
+        "9 LB",
+        "10 LB"
+      ],
+      [
+        "",
+        "",
+        "Area (SF)",
+        "Covered per CF of Fill",
+        "",
+        ""
+      ],
+      [
+        "1",
+        "21.2",
+        "18.0",
+        "15.9",
+        "14.1",
+        "13.0"
+      ],
+      [
+        "2",
+        "10.6",
+        "9.1",
+        "8.0",
+        "7.1",
+        "6.4"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart208.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Materiels Required per 100 SF of Wall",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Thickness (Inches)",
+        "Mortar (CF)",
+        "Mortar: Mixture Ratio 1:2 1/2",
+        "",
+        "Mortar: Mixture Ratio 1:3",
+        ""
+      ],
+      [
+        "",
+        "",
+        "Cement (Bags)",
+        "Sand (CF)",
+        "Cement (Bags)",
+        "Sand (CF)"
+      ],
+      [
+        "1/4",
+        "2.08",
+        "0.84",
+        "2.08",
+        "0.73",
+        "2.20"
+      ],
+      [
+        "3/8",
+        "3.13",
+        "1.26",
+        "3.14",
+        "1.10",
+        "3.30"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart210.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Area to be Tiled (SF)",
+        "Waste Allowance (Percent)"
+      ],
+      [
+        "1 to 50",
+        "14"
+      ],
+      [
+        "51 to 100",
+        "10"
+      ],
+      [
+        "101 to 200",
+        "8"
+      ],
+      [
+        "201 to 500",
+        "7"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart212.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Type of Wallboard",
+        "Size of Panels (Inches)",
+        "Fastening Method",
+        "Nails Required per 100 SF"
+      ],
+      [
+        "Gypsum",
+        "48×96",
+        "nailed to studs",
+        "1.00 LB"
+      ],
+      [
+        "Perforated hardboard",
+        "48×96",
+        "nailed to studs",
+        "4.00 LB"
+      ],
+      [
+        "Plant tongue and groove board",
+        "8×96",
+        "nailed to studs",
+        "2.00 LB"
+      ],
+      [
+        "Plant tongue and groove board",
+        "12×96",
+        "nailed to studs",
+        "2.00 LB"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart214.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Materiel",
+        "Tough (Minutes)",
+        "Recoat (Hours)",
+        "Rub (Hours)"
+      ],
+      [
+        "Lacquer",
+        "1 to 10 minutes",
+        "1.5 to 3 hours",
+        "16 to 24 hours"
+      ],
+      [
+        "Lacquer sealer",
+        "1 to 10 minutes",
+        "0.50 to 0.75 hour",
+        "1 hour (sand)"
+      ],
+      [
+        "Non-grain-raising stain",
+        "15 minutes",
+        "3 hours",
+        "N/A"
+      ],
+      [
+        "Oil stain",
+        "60 minutes",
+        "24 hours",
+        "N/A"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart216.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Items",
+        "Coat",
+        "One Gallon Covers (SF)",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "Brush",
+        "Roller",
+        "Spray"
+      ],
+      [
+        "Paint wood siding",
+        "Prime",
+        "250",
+        "225",
+        "290"
+      ],
+      [
+        "",
+        "Others",
+        "270",
+        "250",
+        "290"
+      ],
+      [
+        "Paint exterior trim",
+        "Prime",
+        "400",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart218.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Type Construction",
+        "Surface Area (SF) per Ton",
+        "Coat",
+        "One Gallon Covers (SF)",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        "Brush",
+        "Spray"
+      ],
+      [
+        "Light structural",
+        "300 to 500",
+        "First",
+        "500",
+        "455"
+      ],
+      [
+        "",
+        "",
+        "Second",
+        "450",
+        "410"
+      ],
+      [
+        "",
+        "",
+        "Third",
+        "450",
+        "410"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart266.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "11 11 26.00 Vehicle Washing Equipment (0010) Washrack equipment",
+        "Each",
+        "16.0000"
+      ],
+      [
+        "Minimum suggested crew size: one utilitiesman and one laborer.",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart350.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Spacing in Inches Between Centers of Conduits for Under Slab Stub-ups",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Conduit Size",
+        "1/2",
+        "3/4",
+        "1",
+        "1 1/4",
+        "1 1/2",
+        "2",
+        "2 1/2",
+        "3",
+        "3 1/2",
+        "4",
+        "4 1/2",
+        "5",
+        "6"
+      ],
+      [
+        "1/2",
+        "1 3/8",
+        "1 5/8",
+        "",
+        "",
+        "3",
+        "4",
+        "4 3/4",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "3/4",
+        "1 1/2",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "1",
+        "1 3/4",
+        "1 7/8",
+        "2",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart386.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Materiel Type",
+        "Converted From",
+        "Converted To",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "Bank",
+        "Loose",
+        "Compacted"
+      ],
+      [
+        "Sand or gravel (soil Type C)",
+        "Bank",
+        "",
+        "1.11",
+        "0.95"
+      ],
+      [
+        "",
+        "Loose",
+        "0.90",
+        "",
+        "0.86"
+      ],
+      [
+        "",
+        "Compacted",
+        "1.05",
+        "1.17",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart388.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Materiel",
+        "Loose (Pounds per CYD)",
+        "Bank (Pounds per CYD)",
+        "Swell (%)",
+        "Load Factor"
+      ],
+      [
+        "Cement, Portland",
+        "2,450",
+        "2,950",
+        "20",
+        "0.83"
+      ],
+      [
+        "Clay, dry",
+        "2,100",
+        "2,650",
+        "26",
+        "0.79"
+      ],
+      [
+        "Clay, wet",
+        "2,700",
+        "3,575",
+        "32",
+        "0.76"
+      ],
+      [
+        "Clay and gravel, dry",
+        "2,400",
+        "2,800",
+        "17",
+        "0.85"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart390.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Soil Type",
+        "Run/Rise Ratio",
+        "Slope Angle"
+      ],
+      [
+        "Stable rock",
+        "Vertical",
+        "90"
+      ],
+      [
+        "Type A",
+        "3/4:1",
+        "53"
+      ],
+      [
+        "Type B",
+        "1:1",
+        "45"
+      ],
+      [
+        "Type C",
+        "1 1/2:1",
+        "34"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart392.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Trench Depth (Inches)",
+        "Trench Width (Inches)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "12",
+        "18",
+        "24",
+        "30",
+        "36",
+        "42",
+        "48"
+      ],
+      [
+        "",
+        "Content of Trench, CYD, per Foot of Length",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "06",
+        "0.019",
+        "0.028",
+        "0.037",
+        "0.046",
+        "0.056",
+        "0.066",
+        "0.074"
+      ],
+      [
+        "12",
+        "0.037",
+        "0.560",
+        "0.074",
+        "0.093",
+        "0.111",
+        "0.130",
+        "0.148"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart394.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Square Tracts of Land",
+        "",
+        ""
+      ],
+      [
+        "Acres",
+        "Length of One Side of Square Track (feet)",
+        "Area (SF)"
+      ],
+      [
+        "1/10",
+        "66.0",
+        "4,356"
+      ],
+      [
+        "1/8",
+        "73.8",
+        "5,445"
+      ],
+      [
+        "1/6",
+        "85.2",
+        "7,260"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart396.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Depth in Inches or Feet",
+        "CYD to be Removed per SF of Area",
+        "Depth in Feet",
+        "CYD to be Removed per SF of Area"
+      ],
+      [
+        "2.0 inches",
+        "0.006",
+        "4.5",
+        "0.167"
+      ],
+      [
+        "4.0 inches",
+        "0.012",
+        "5.0",
+        "0.185"
+      ],
+      [
+        "6.0 inches",
+        "0.018",
+        "5.5",
+        "0.204"
+      ],
+      [
+        "8.0 inches",
+        "0.025",
+        "6.0",
+        "0.222"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart400.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Motor Grader Production, Hour per Bank CYD",
+        ""
+      ],
+      [
+        "31 22 16 Fine Grading",
+        ""
+      ],
+      [
+        "Type of Operation",
+        "Hour per Bank CYD"
+      ],
+      [
+        "(0010) Cut “V” ditch, easy (soil Type C) (0020) Cut “V” ditch, medium (soil Type B) (0030) Cut “V” ditch, hard (soil Type A) (0040) Trim and spread materiel",
+        "0.0060 0.0100 0.0175 0.0133"
+      ],
+      [
+        "Motor Grader Production, Hour per Square Foot",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart408.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Excavation from Pit to Truck/Pile Hours per Loose CYD",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Bucket Size",
+        "Haul Distance (Feet)",
+        "",
+        "",
+        ""
+      ],
+      [
+        "CYD",
+        "50",
+        "100",
+        "150",
+        "200"
+      ],
+      [
+        "31 23 16.42 Excavating, Bulk Bank Measure",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "1.25",
+        "(0010) 0.0256",
+        "(0020) 0.0357",
+        "(0030) 0.0476",
+        "(0040) 0.0588"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart410.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Clamshell Production—90-degree Swing Hour per Loose CYD (50-minute Hour)",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Work Element Description",
+        "0.75 CYD",
+        "1.50 CYD",
+        "2.50 CYD"
+      ],
+      [
+        "31 23 16.42 Excavating, Bulk Bank Measure",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Loose sand/gravel Pit excavation",
+        "(0210) 0.0250 (0220) 0.0294",
+        "(0230) 0.0143 (0240) 0.0167",
+        "(0250) 0.0095 (0260) 0.0111"
+      ],
+      [
+        "Notes: 1. Figures are based on loose CYD. Refer to Figure 5-R-2 to find the amount of bank CYD. 2. Boom swing is for 90 degrees.",
+        "",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart412.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Dragline Production—90-Degree Swing Hour per Bank CYD (50-Minute Hour)",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Bucket Size (CYD)",
+        "Optimum Digging Depth (feet)",
+        "Class of Materiel",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "Sand/Gravel",
+        "Common Earth",
+        "Dense Clay"
+      ],
+      [
+        "31 23 16.42 Excavating, Bulk Bank Measure",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "0.75",
+        "6.00",
+        "(0310) 0.0143",
+        "(0320) 0.0147",
+        "(0330) 0.0200"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart414.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Power Excavators Production Hour per Bank CYD (50-Minute Hour)",
+        "",
+        ""
+      ],
+      [
+        "Equipment Type",
+        "Bucket Size",
+        "Hour per Bank CYD"
+      ],
+      [
+        "31 23 16.42 Excavating, Bulk Bank Measure",
+        "",
+        ""
+      ],
+      [
+        "Tractor-mounted backhoes Excavator, hydraulic hoes",
+        "3/8 CYD 1/2 CYD 3/4 CYD 1 CYD 1 1/2 CYD",
+        "(0410) 0.1000 (0420) 0.0769 (0430) 0.0250 (0440) 0.0182 (0450) 0.0139"
+      ],
+      [
+        "Note: Figures are in bank CYD. Refer to Figure 5-R-2 to find the amount of loose CYD.",
+        "",
+        ""
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart416.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Loose CYD Age Production Hours per Loose CYD (50-Minute Hour)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Haul Distance (Feet)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Dozer Size",
+        "50",
+        "100",
+        "150",
+        "200",
+        "300",
+        "400"
+      ],
+      [
+        "31 23 16.46 Excavating, Bulk, Dozer",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Large (Example: D-8)",
+        "(0010) 0.0023",
+        "(0015) 0.0035",
+        "(0020) 0.0048",
+        "(0025) 0.0059",
+        "(0030) 0.008",
+        "(0035) 0.0105"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart418.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Wheel Tractor Scraper Production Hour per Loose CYD",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Scraper Size",
+        "One Way Haul Distance (feet)",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "1,000",
+        "2,000",
+        "3,000",
+        "4,000",
+        "5,000"
+      ],
+      [
+        "31 23 16.50 Excavation, Bulk, Scrapers",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "14–28 loose CYD",
+        "(0010) 0.0082",
+        "(0020) 0.0116",
+        "(0030) 0.0159",
+        "(0040) 0.0200",
+        "(0050) 0.0233"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart422.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Dump Truck Production Hour per Loose CYD",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Average Speed",
+        "Average Haul Distance One Way (Miles)",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "31 23 23.20 Hauling",
+        "5 Ton Dump Trucks",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "10 MPH",
+        "(0000) 0.0877",
+        "(0010) 0.1429",
+        "(0020) 0.2000",
+        "(0030) 0.2500",
+        "(0040) 0.3030"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart424.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Roller Production: Hour per Compacted CYD",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Type of Roller",
+        "Speed in MPH",
+        "Lift in Inches",
+        "Number of Passes",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      [
+        "31 23 23.24 Compaction, Structural",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Towed grid",
+        "5",
+        "6",
+        "(0010) 0.0018",
+        "(0020) 0.0025",
+        "(0030) 0.0031",
+        "(0040) 0.0037"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart434.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Work Element Description",
+        "Equipment",
+        "Unit",
+        "Equipment Hours per Unit"
+      ],
+      [
+        "32 01 11.00 Pavement Cleaning (Snow Removal)",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Roads and Airfields:",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Light snowfall (less than 2 inches) (salting and/or sanding)",
+        "(0010) Salt truck (0020) Dump truck and shovels",
+        "Mile (15 feet width) Mile (10 feet width)",
+        "0.20 1.05"
+      ],
+      [
+        "Medium snowfall (2 to 6 inches) (plowing)",
+        "(0030) Dump truck with plow (0040) Plow grader",
+        "Mile (6 feet width) Mile (10 feet width)",
+        "0.15 0.18"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart436.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Work Element Description",
+        "Equipment",
+        "Unit",
+        "Equipment- Hours per Unit"
+      ],
+      [
+        "32 01 11.00 Pavement Cleaning (Snow Removal)",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Sidewalks:",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Light snowfall (less than 2 inches)",
+        "(0110) Men (0120) Sidewalk tractor",
+        "1,000 LF",
+        "1.80 0.25"
+      ],
+      [
+        "Medium snowfall (2 inches)",
+        "(0130) Men (0140) Sidewalk tractor",
+        "1,000 LF",
+        "2.00 0.2500"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart438.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Work Element Description",
+        "Unit",
+        "Hours per Unit"
+      ],
+      [
+        "32 01 29 Rigid Pavement Repair",
+        "",
+        ""
+      ],
+      [
+        "(0500) Polymer grout patch, 4 inches thick 15 to 40 SF",
+        "Each",
+        "8.00"
+      ],
+      [
+        "(0510) Polymer grout patch, 4 inches thick 50 to 75 SF",
+        "Each",
+        "10.6670"
+      ],
+      [
+        "(0520) Polymer grout patch, 4 inches thick 80 to 100 SF",
+        "Each",
+        "12.8000"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart478.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Pole Holes Depth in Feet",
+        "Hand Digging Man-hours per Hole",
+        "Hand Digging Man-hours per Hole",
+        "Machine Digging Man-hours per Hole",
+        "Machine Digging Man-hours per Hole"
+      ],
+      [
+        "33 71 16.33 Wood Electrical Utility Poles",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "In Soil",
+        "In Rock",
+        "In Soil",
+        "In Rock"
+      ],
+      [
+        "4",
+        "(0100) 0.8",
+        "(0105) 4.0",
+        "(0110) 0.5",
+        "(0115) 1.0"
+      ],
+      [
+        "5",
+        "(0120) 0.8",
+        "(0125) 4.8",
+        "(0130) 0.5",
+        "(0135) 1.0"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart514.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Code",
+        "Description",
+        "Code",
+        "Description",
+        "Code",
+        "Description"
+      ],
+      [
+        "AM",
+        "Ampoule",
+        "CS",
+        "Case",
+        "PK",
+        "Pack"
+      ],
+      [
+        "AT",
+        "Assortment",
+        "CT",
+        "Carton",
+        "PR",
+        "Pair"
+      ],
+      [
+        "AY",
+        "Assembly",
+        "CY",
+        "Cylinder",
+        "PT",
+        "Pint"
+      ],
+      [
+        "BA",
+        "Ball",
+        "CZ",
+        "Cubic Meter",
+        "QT",
+        "Quart"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart516.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 01—General Requirements",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "01 00 00",
+        "General Requirements",
+        "",
+        "Project management and coordination"
+      ],
+      [
+        "",
+        "Work restrictions",
+        "",
+        "Pumping/drainage"
+      ],
+      [
+        "01 30 00",
+        "Administrative Requirements",
+        "",
+        "Repair/restore area"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart518.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 01—General Requirements",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "01 50 00",
+        "Temporary Facilities and Controls",
+        "",
+        "Vehicular access and parking"
+      ],
+      [
+        "",
+        "Temporary utilities",
+        "",
+        "Temporary barriers and enclosures"
+      ],
+      [
+        "",
+        "Electricity",
+        "",
+        "Barricades"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart520.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 02—Existing Conditions",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "02 40 00",
+        "Demolition",
+        "02 80 00",
+        "Facility Remediation"
+      ],
+      [
+        "",
+        "Demolition of structure",
+        "",
+        "Transportation and disposal of hazardous materiels"
+      ],
+      [
+        "",
+        "Rubbish disposal",
+        "",
+        "Asbestos removal/encapsulation"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart522.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 03—Concrete",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "03 00 00",
+        "Applications",
+        "",
+        "Retention walls"
+      ],
+      [
+        "",
+        "Aprons",
+        "",
+        "Sills"
+      ],
+      [
+        "",
+        "Architectural concrete",
+        "",
+        "Oil"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart524.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 03—Concrete",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "03 11 00",
+        "Formwork",
+        "",
+        "Forms, slab"
+      ],
+      [
+        "",
+        "Block-outs",
+        "",
+        "Forms, stair"
+      ],
+      [
+        "",
+        "Bracing",
+        "",
+        "Forms, wall"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart526.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 03—Concrete",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "03 35 00",
+        "Finish",
+        "03 40 00",
+        "Precast Concrete"
+      ],
+      [
+        "",
+        "Broom",
+        "",
+        "Architectural"
+      ],
+      [
+        "",
+        "Caulk",
+        "",
+        "Beams"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart528.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 04—Masonry",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "04 00 00",
+        "Applications",
+        "",
+        "Flemish"
+      ],
+      [
+        "",
+        "Exterior walls",
+        "",
+        "Stack"
+      ],
+      [
+        "",
+        "Load bearing",
+        "",
+        "Reinforcing"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart530.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 04—Masonry",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "04 40 00",
+        "Stone",
+        "",
+        "Weathered"
+      ],
+      [
+        "",
+        "Ashlar",
+        "",
+        "Stripped"
+      ],
+      [
+        "",
+        "Rubble",
+        "",
+        "Cleaning Masonry"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart532.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 05—Metals",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "05 12 00",
+        "Structural Steel Framing",
+        "",
+        "Fastening"
+      ],
+      [
+        "",
+        "Anchor bolts",
+        "",
+        "Welding"
+      ],
+      [
+        "",
+        "Angles",
+        "",
+        "Bolts"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart534.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 06—Wood, Plastics, and Composites",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "06 10 00",
+        "Structural (Rough Carpentry)",
+        "",
+        "Sheathing"
+      ],
+      [
+        "",
+        "Beams",
+        "",
+        "Hardboard"
+      ],
+      [
+        "",
+        "Box",
+        "",
+        "Particleboard"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart536.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 07—Thermal and Moisture Protection",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "07 10 00",
+        "Damp Proofing and Waterproofing",
+        "07 70 00",
+        "Roof Accessories"
+      ],
+      [
+        "07 20 00",
+        "Thermal Protection",
+        "",
+        "Downspouts"
+      ],
+      [
+        "",
+        "Exterior insulation and finish systems",
+        "",
+        "Gutters"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart538.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 08—Openings",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "08 10 00",
+        "Doors and Frames",
+        "08 50 00",
+        "Windows"
+      ],
+      [
+        "",
+        "Accordion",
+        "",
+        "Ballistic/hurricane"
+      ],
+      [
+        "",
+        "Acoustical",
+        "",
+        "Casement"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart540.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 09—Finishes",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "09 20 00",
+        "Plaster and Gypsum Board",
+        "09 70 00",
+        "Wall Finishes"
+      ],
+      [
+        "09 30 00",
+        "Tiling",
+        "",
+        "Ceramic tile"
+      ],
+      [
+        "",
+        "Chemical-resistant tiling",
+        "",
+        "Metal tile"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart542.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 10—Specialties",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "10 10 00",
+        "Information Specialties",
+        "10 30 00",
+        "Fireplaces and Stoves"
+      ],
+      [
+        "",
+        "Display cases",
+        "10 40 00",
+        "Safety Specialties"
+      ],
+      [
+        "",
+        "Signage",
+        "10 50 00",
+        "Storage Specialties"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart544.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 21—Fire Suppression",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "21 10 00",
+        "Water-Based Fire-Suppression Systems",
+        "21 20 00",
+        "Fire-Extinguishing Systems"
+      ],
+      [
+        "",
+        "Hydrants and fire department connections",
+        "",
+        "Carbon dioxide"
+      ],
+      [
+        "",
+        "Standpipes",
+        "",
+        "Clean agent"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart546.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 22—Plumbing",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "22 10 00",
+        "Plumbing Piping and Pumps",
+        "22 15 00",
+        "Compressed-Air Systems"
+      ],
+      [
+        "",
+        "Air chambers",
+        "22 30 00",
+        "Plumbing Equipment"
+      ],
+      [
+        "",
+        "Concrete encasement",
+        "",
+        "Water softeners"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart548.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 23—Heating, Ventilating and Air Conditioning",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "23 10 00",
+        "Facility Fuel System",
+        "23 60 00",
+        "Central Cooling Equipment"
+      ],
+      [
+        "",
+        "Fuel piping",
+        "",
+        "Cooling towers"
+      ],
+      [
+        "",
+        "Fuel pumps",
+        "",
+        "Packaged compressor and condenser units"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart550.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 26, 27, And 28—Electrical, Communications, and Security",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "26 10 00",
+        "Medium-Voltage Electrical Distribution",
+        "",
+        "Fixtures"
+      ],
+      [
+        "",
+        "Substations",
+        "",
+        "Area lighting"
+      ],
+      [
+        "",
+        "Transformers",
+        "",
+        "Exit lights"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart552.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 26, 27, And 28—Electrical, Communications, and Security",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "",
+        "Incoming Service",
+        "",
+        "Pull boxes"
+      ],
+      [
+        "",
+        "Connection to power company system",
+        "",
+        "Raceways"
+      ],
+      [
+        "",
+        "Overhead",
+        "",
+        "Supports"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart554.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 31—Earthwork",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "31 10 00",
+        "Site Clearing",
+        "",
+        "Concrete raising"
+      ],
+      [
+        "",
+        "Clearing and grubbing",
+        "",
+        "Pressure grouting"
+      ],
+      [
+        "",
+        "Selective clearing",
+        "",
+        "Compaction grouting"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart556.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 31—Earthwork",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "",
+        "Borrow Pit",
+        "",
+        "Compaction"
+      ],
+      [
+        "",
+        "Groundwater expected",
+        "",
+        "Hand"
+      ],
+      [
+        "",
+        "None",
+        "",
+        "Mechanical"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart558.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 32—Exterior Improvements",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "32 10 00",
+        "Bases, Ballasts, and Paving",
+        "32 30 00",
+        "Site Improvements"
+      ],
+      [
+        "32 11 00",
+        "Base Courses",
+        "",
+        "Fencing and gates"
+      ],
+      [
+        "32 12 00",
+        "Flexible Paving",
+        "",
+        "Retaining walls"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart560.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 33—Utilities",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "33 05 23",
+        "Trenchless Utility",
+        "33 60 00",
+        "Hydronic and Steam Energy Distribution"
+      ],
+      [
+        "",
+        "Microtunneling",
+        "",
+        "Hydronic distribution"
+      ],
+      [
+        "",
+        "Horizontal boring",
+        "",
+        "Steam distribution"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart562.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 34—Transportation",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "34 10 00",
+        "Rail Tracks",
+        "34 43 00",
+        "Airfields"
+      ],
+      [
+        "",
+        "Rails",
+        "",
+        "Runway signals and lights"
+      ],
+      [
+        "",
+        "Cross ties",
+        "",
+        "Landing equipment"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart564.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 35—Waterway and Marine Construction",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "35 10 00",
+        "Signaling and Control Equipment",
+        "35 50 00",
+        "Marine Construction and Equipment"
+      ],
+      [
+        "35 20 00",
+        "Construction and Control Equipment",
+        "",
+        "Floating construction"
+      ],
+      [
+        "",
+        "Hydraulic fabrications",
+        "",
+        "Offshore platform construction"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart566.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 41—Materiel Processing and Handling Equipment",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Number",
+        "Description",
+        "Number",
+        "Description"
+      ],
+      [
+        "41 10 00",
+        "Bulk Materiel Processing Equipment",
+        "",
+        "Lifting devices"
+      ],
+      [
+        "",
+        "Sizing equipment",
+        "",
+        "Specialty materiel handling equipment"
+      ],
+      [
+        "",
+        "Conveying equipment",
+        "41 30 00",
+        "Manufacturing Equipment"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart568.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Division 46—Water Treatment Equipment",
+        ""
+      ],
+      [
+        "Number",
+        "Description"
+      ],
+      [
+        "46 07 00",
+        "Water Treatment Equipment"
+      ],
+      [
+        "",
+        "Packaged water treatment"
+      ],
+      [
+        "",
+        "General water treatment equipment"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart570.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Multiply",
+        "By",
+        "To Obtain",
+        "Multiply",
+        "By",
+        "To Obtain"
+      ],
+      [
+        "Area",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Acres",
+        "43560",
+        "Square feet",
+        "Square kilometers",
+        "0.3861",
+        "Square miles"
+      ],
+      [
+        "Acres",
+        "0.004047",
+        "Square kilometers",
+        "Square meters",
+        "10.76",
+        "Square feet"
+      ],
+      [
+        "Acres",
+        "4046.9",
+        "Square meters",
+        "Square meters",
+        "1.196",
+        "Square yards"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart572.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Multiply",
+        "By",
+        "To Obtain",
+        "Multiply",
+        "By",
+        "To Obtain"
+      ],
+      [
+        "Volume",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Cubic feet",
+        "0.037037",
+        "CYDs",
+        "Gallons (U.S. liquid)",
+        "3.79",
+        "Liters"
+      ],
+      [
+        "Cubic feet",
+        "0.028317",
+        "Cubic meters",
+        "Gallons (U.S. liquid)",
+        "0.003785",
+        "Cubic meters"
+      ],
+      [
+        "Cubic feet",
+        "7.481",
+        "Gallon",
+        "Gallons (U.S. liquid)",
+        "0.1336806",
+        "Cubic feet"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart574.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "ABS",
+        "acrylonitrile-butadiene-styrene (plastic)"
+      ],
+      [
+        "AFCS",
+        "Army Facilities Components System"
+      ],
+      [
+        "AFJPAM",
+        "Air Force joint pamphlet"
+      ],
+      [
+        "AFPAM",
+        "Air Force pamphlet"
+      ],
+      [
+        "AWG",
+        "American wire gage"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart576.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "TPT",
+        "tactical petroleum terminal"
+      ],
+      [
+        "U.S.",
+        "United States"
+      ],
+      [
+        "UFC",
+        "Unified Facilities Criteria"
+      ],
+      [
+        "UROC",
+        "USACE Reachback Operations Center"
+      ],
+      [
+        "USA",
+        "United States Army"
+      ]
+    ]
+  },
+  {
+    "file": "fileoutpart578.xlsx",
+    "reason": "No Work Element Description / Unit / Man-hours header found",
+    "firstRows": [
+      [
+        "Effective Pages",
+        "Page Numbers"
+      ],
+      [
+        "CHANGE 1",
+        "1"
+      ],
+      [
+        "OCT 2021",
+        "2 thru 18"
+      ],
+      [
+        "OCT 2021",
+        "1-1 thru 1-8"
+      ],
+      [
+        "OCT 2021",
+        "2-1 thru 2-8"
+      ]
+    ]
+  }
+]

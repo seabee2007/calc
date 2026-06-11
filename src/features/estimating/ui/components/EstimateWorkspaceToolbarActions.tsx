@@ -15,6 +15,7 @@ interface Props {
   showSaveBucket: boolean;
   showSaveQuick: boolean;
   showImportExport: boolean;
+  showConvertToDetailed?: boolean;
   canEdit: boolean;
   canSave: boolean;
   canSaveQuick: boolean;
@@ -26,6 +27,7 @@ interface Props {
   onExportEstimate: () => void;
   onDownloadImportTemplate: () => void;
   onOpenHelp: () => void;
+  onConvertToDetailed?: () => void;
 }
 
 const COMPACT_ICON_BUTTON_CLASS = 'h-10 w-10 px-0';
@@ -37,6 +39,7 @@ export default function EstimateWorkspaceToolbarActions({
   showSaveBucket,
   showSaveQuick,
   showImportExport,
+  showConvertToDetailed = false,
   canEdit,
   canSave,
   canSaveQuick,
@@ -48,12 +51,14 @@ export default function EstimateWorkspaceToolbarActions({
   onExportEstimate,
   onDownloadImportTemplate,
   onOpenHelp,
+  onConvertToDetailed,
 }: Props) {
   const desktopMenuItems = buildEstimateWorkspaceActionsMenuItems({
     showCollapseAll,
     showReset,
     showSaveBucket,
     showImportExport,
+    showConvertToDetailed,
     includeMobileOverflow: false,
   });
   const mobileMenuItems = buildEstimateWorkspaceActionsMenuItems({
@@ -61,6 +66,7 @@ export default function EstimateWorkspaceToolbarActions({
     showReset,
     showSaveBucket,
     showImportExport,
+    showConvertToDetailed,
     includeMobileOverflow: true,
   });
   const showDesktopActionsDropdown = desktopMenuItems.length > 0;
@@ -144,6 +150,7 @@ export default function EstimateWorkspaceToolbarActions({
             onOpenHelp={onOpenHelp}
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
+            onConvertToDetailed={onConvertToDetailed}
           />
         </div>
       ) : null}
@@ -159,6 +166,7 @@ export default function EstimateWorkspaceToolbarActions({
             onOpenHelp={onOpenHelp}
             onCollapseAll={() => handlers?.collapseAll()}
             onResetForm={onReset}
+            onConvertToDetailed={onConvertToDetailed}
           />
         </div>
       ) : null}

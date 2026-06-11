@@ -64,6 +64,10 @@ describe('estimate workspace tab policy', () => {
   it('hides schedule tabs for conceptual estimates by default', () => {
     const tabs = getVisibleWorkspaceTabs('conceptual', false).map((tab) => tab.id);
     expect(tabs).toContain('conceptual-budget');
+    expect(tabs).toContain('assumptions-allowances');
+    expect(tabs).toContain('scenarios');
+    expect(tabs).toContain('risks-contingency');
+    expect(tabs).not.toContain('activities');
     expect(tabs).not.toContain('schedule-preview');
   });
 

@@ -16,6 +16,16 @@ import {
   type QuickFeasibilityInputs,
   type QuickFeasibilityResult,
 } from './estimateQuickFeasibility';
+import {
+  buildConceptualEstimateCostTotals,
+  buildConceptualEstimateRollup,
+  recalculateScenarioTotals,
+} from './conceptualEstimateCalculations';
+import {
+  conceptualEstimateFromAssumptions,
+  conceptualEstimateToAssumptions,
+} from './conceptualEstimatePersistence';
+import type { ConceptualEstimatePayload } from '../domain/conceptualEstimateTypes';
 import { DEFAULT_ESTIMATE_METHOD, getEstimateTypeLabel, normalizeEstimateMethod, resolveSchedulingEnabled } from '../domain/estimateMethods';
 import {
   estimateSettingsToAssumptions,
@@ -97,6 +107,18 @@ export interface SaveCurrentQuickFeasibilityParams {
   projectId: string;
   inputs: QuickFeasibilityInputs;
   result: QuickFeasibilityResult;
+  createdBy?: string | null;
+}
+
+export interface SaveCurrentConceptualEstimateParams {
+  estimateId?: string | null;
+  projectId: string;
+  payload: ConceptualEstimatePayload;
+  estimateSettings?: Partial<EstimateSettings> | null;
+  existingAssumptions?: Record<string, unknown>;
+  schedulingEnabled?: boolean;
+  estimateModeConfig?: EstimateModeConfig | null;
+  pricingMode?: string | null;
   createdBy?: string | null;
 }
 
@@ -195,6 +217,7 @@ export function currentEstimateToDomainVersion(estimate: CurrentEstimate): Estim
   const summary = parseRecord(estimate.summary);
   const assumptions = parseRecord(estimate.assumptions);
   const quickFeasibility = parseRecord(assumptions.quickFeasibility);
+  const conceptualEstimate = conceptualEstimateFromAssumptions(assumptions);
 
   return {
     id: estimate.id,
@@ -219,6 +242,7 @@ export function currentEstimateToDomainVersion(estimate: CurrentEstimate): Estim
       totals,
       warnings: [],
       ...(quickFeasibility ? { quickFeasibility } : {}),
+      ...(conceptualEstimate ? { conceptualEstimate } : {}),
       ...(assumptions.type ? { type: assumptions.type } : {}),
       ...(assumptions.totals ? { totals: assumptions.totals as EstimateSnapshot['totals'] } : {}),
       ...(assumptions.labor ? { labor: assumptions.labor } : {}),
@@ -534,6 +558,65 @@ export async function saveCurrentEstimateWithLineItems(
       lineItems: snapshot.lineItems,
       warnings: snapshot.warnings,
       savedAt: nowIso(),
+    },
+    assumptions,
+    created_by: params.createdBy ?? null,
+    updated_at: nowIso(),
+  });
+}
+
+export async function saveCurrentConceptualEstimate(
+  params: SaveCurrentConceptualEstimateParams,
+): Promise<RepositoryResult<CurrentEstimate>> {
+  const settings = normalizeEstimateSettings(params.estimateSettings);
+  const payload: ConceptualEstimatePayload = {
+    ...params.payload,
+    scenarios: recalculateScenarioTotals(params.payload, settings),
+  };
+  const rollup = buildConceptualEstimateRollup(payload, settings);
+  const costTotals = buildConceptualEstimateCostTotals(rollup);
+  const totals = {
+    ...costTotals,
+    conceptualEstimate: true,
+    subtotal: rollup.subtotal,
+    escalationTotal: rollup.escalationTotal,
+    contingencyPercent: rollup.contingencyPercent,
+    totalRiskExposure: rollup.totalRiskExposure,
+    recommendedContingencyPercent: rollup.recommendedContingencyPercent,
+    aggregateConfidence: rollup.aggregateConfidence,
+  };
+  const markupSnapshot = estimateSettingsToAssumptions(
+    settings,
+    params.existingAssumptions ?? {},
+  );
+  const conceptualAssumptions = conceptualEstimateToAssumptions(payload, {
+    estimateSettings: markupSnapshot.estimateSettings,
+  });
+  const assumptions = {
+    ...(params.existingAssumptions ?? {}),
+    ...conceptualAssumptions,
+    estimateSettings: markupSnapshot.estimateSettings,
+  };
+
+  return saveEstimateRow({
+    ...(params.estimateId ? { id: params.estimateId } : {}),
+    project_id: params.projectId,
+    name: 'Project Estimate',
+    status: 'draft',
+    ...buildEstimateTypePayloadFields({
+      estimateType: 'conceptual',
+      schedulingEnabled: params.schedulingEnabled,
+      estimateModeConfig: params.estimateModeConfig,
+      pricingMode: params.pricingMode,
+    }),
+    selected_divisions: [],
+    line_items: [],
+    totals,
+    summary: {
+      savedAt: nowIso(),
+      conceptualEstimate: true,
+      confidenceSummary: rollup.aggregateConfidence,
+      lastUpdated: nowIso(),
     },
     assumptions,
     created_by: params.createdBy ?? null,

@@ -7,6 +7,12 @@
  * Only `approved` records may power the estimator or generated seed bundles.
  */
 
+import type {
+  CanonicalConfidence,
+  CanonicalProductionRateVariant,
+  CanonicalSourceReference,
+} from './canonicalProductionRateTypes';
+
 export const SOURCE_DOCUMENT_CODE = 'MCRP 3-40D.12' as const;
 export const SOURCE_DOCUMENT_TITLE = 'Construction Estimating' as const;
 export const SOURCE_DOCUMENT_FULL =
@@ -76,6 +82,10 @@ export interface NormalizedProductionRateRecord {
   rowNotes?: string | null;
   qaStatus: ProductionRateQaStatus;
   extractionWarnings?: string[];
+  /** Present on Adobe PDF Extract imports. */
+  extractionSource?: 'adobe_pdf_extract' | string;
+  /** Human review stage for Adobe imports. */
+  reviewStatus?: 'final_reviewed' | string;
   createdAt: string;
   updatedAt: string;
 }
@@ -131,6 +141,14 @@ export interface ProductionRateLibraryEntry {
   sourceEdition: typeof SOURCE_EDITION;
   referenceNote: string;
   keywords: string[];
+  /** Present when loaded from canonical production-rate index. */
+  canonicalId?: string;
+  canonicalTitle?: string;
+  canonicalDescription?: string;
+  variantLabel?: string;
+  sourceReferences?: CanonicalSourceReference[];
+  allVariants?: CanonicalProductionRateVariant[];
+  confidence?: CanonicalConfidence;
 }
 
 export interface ProductionRateValidationError {

@@ -1,0 +1,252 @@
+[
+  {
+    "page": 0,
+    "path": "//Document/P",
+    "text": "U.S. NAVY U.S. ARMY "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[2]",
+    "text": "U.S. MARINE CORPS "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[3]",
+    "text": "NTRP 4-04.2.3 TM 3-34.41 MCRP 3-40D.12 "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Title",
+    "text": "CONSTRUCTION ESTIMATING "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[4]",
+    "text": "EDITION OCTOBER 2021 "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[5]",
+    "text": "DISTRIBUTION RESTRICTION: APPROVED FOR PUBLIC RELEASE; DISTRIBUTION IS UNLIMITED. "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[6]",
+    "text": "PRIMARY REVIEW AUTHORITY: NAVY EXPEDITIONARY WARFIGHTING DEVELOPMENT CENTER "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[7]",
+    "text": "DOCTRINE.NAVY(.SMIL).MIL "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR/TD/P",
+    "text": "RECORD OF CHANGES "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR[2]/TH/P",
+    "text": "NUMBER "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR[2]/TH[2]/P",
+    "text": " DATE "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR[2]/TH[3]/P",
+    "text": "ENTERED BY "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR[3]/TD/P",
+    "text": "Change 1 "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR[3]/TD[2]/P",
+    "text": "OCT 2022 "
+  },
+  {
+    "page": 0,
+    "path": "//Document/Table/TR[3]/TD[3]/P",
+    "text": "NAVWARDEVCEN NORFOLK, VA "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[8]",
+    "text": "DEPARTMENT OF THE NAVY OFFICE OF THE CHIEF OF NAVAL OPERATIONS HEADQUARTERS, DEPARTMENT OF THE ARMY, HEADQUARTERS, U.S. MARINE CORPS "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[9]",
+    "text": "NSN: 0411LP0019868 "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[10]",
+    "text": "PCN: 144 000200 00 "
+  },
+  {
+    "page": 0,
+    "path": "//Document/P[11]",
+    "text": "PIN: 103313 "
+  },
+  {
+    "page": 1,
+    "path": "//Document/P[12]",
+    "text": "October 2022 "
+  },
+  {
+    "page": 1,
+    "path": "//Document/H1",
+    "text": "CHANGE NOTIFICATION "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI/Lbl",
+    "text": "1. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI/LBody",
+    "text": "PURPOSE. Change 1 to NTRP 4-04.2.3 (OCT 2021), Construction Estimating, is developed in accordance with NTRP 1-01 (JUN 2021), The Navy Warfare Library User Manual. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI[2]/Lbl",
+    "text": "2. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI[2]/LBody",
+    "text": "SUPERSEDURE. Change 1 supersedes NTRP 4-04.2.3 (OCT 2021), Construction Estimating. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI[3]/Lbl",
+    "text": "3. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI[3]/LBody",
+    "text": "CONTENTS OF CHANGE. This change replaces the original distribution statement on the front cover to publically releasable. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI[4]/Lbl",
+    "text": "4. "
+  },
+  {
+    "page": 1,
+    "path": "//Document/L/LI[4]/LBody",
+    "text": "ENTRY OF CHANGE. This change is developed with the intent that the entire publication is to be reprinted and distributed in its entirety. Affected pages are identified in the List of Effective Pages. Changes throughout are identified by change bars and footers. "
+  },
+  {
+    "page": 2,
+    "path": "//Document/H1[2]",
+    "text": "INTENTIONALLY BLANK "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[13]",
+    "text": "NTRP 4-04.2.3/TM 3-34.41/MCRP 3-40D.12 "
+  },
+  {
+    "page": 3,
+    "path": "//Document/H1[3]",
+    "text": "FOREWORD "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[14]",
+    "text": "This publication has been prepared under our direction for use by our respective commands and other commands as appropriate. "
+  },
+  {
+    "page": 3,
+    "path": "//Document/Figure[2]",
+    "text": "A7 ŁŁŁŁ Ł 7 Ł ŁŁŁŁŁŁ Ł Ł "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[15]/Sub",
+    "text": "LTC, United States Army "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[15]/Sub[2]",
+    "text": "Director, DOTLD "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[15]/Sub[3]",
+    "text": "U.S. Army Engineer School "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[16]/Sub",
+    "text": "Colonel, United States Marine Corps "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[16]/Sub[2]",
+    "text": "Commanding Officer "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[16]/Sub[3]",
+    "text": "Marine Corps Engineer School "
+  },
+  {
+    "page": 3,
+    "path": "//Document/Figure[4]",
+    "text": "Ł---:ŁŁ==;;Ł:::::-0. L. AAMODT Captain, United States Navy "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[17]/Sub",
+    "text": "Commander "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[17]/Sub[2]",
+    "text": "Navy Warfare Development Command "
+  },
+  {
+    "page": 3,
+    "path": "//Document/P[18]",
+    "text": "This publication is available in the Navy Doctrine Library (https//doctrine.navy.mil/default/aspx); through the Army at Army Knowledge Online (AKO) (www.us.army.mil) and at the General Dennis J. Reimer Training and Doctrine Digital Library (www.train.army.mil) website; and through the Marine Corps Doctrine home page at (https://homeport.usmc.mil/sites/mcdoctrine/SitePages/Home.aspx). "
+  },
+  {
+    "page": 4,
+    "path": "//Document/H1[4]",
+    "text": "CONTENTS "
+  },
+  {
+    "page": 4,
+    "path": "//Document/P[19]/Sub",
+    "text": "Page "
+  },
+  {
+    "page": 4,
+    "path": "//Document/P[19]/Sub[2]",
+    "text": "No. "
+  },
+  {
+    "page": 4,
+    "path": "//Document/H1[5]",
+    "text": "CHAPTER 1—INTRODUCTION TO CONSTRUCTION ESTIMATING "
+  },
+  {
+    "page": 4,
+    "path": "//Document/TOC/TOCI/Span",
+    "text": "1.1 "
+  },
+  {
+    "page": 4,
+    "path": "//Document/TOC/TOCI/Span[2]",
+    "text": "INTRODUCTION........................................................................................................................ 1-1 "
+  }
+]
