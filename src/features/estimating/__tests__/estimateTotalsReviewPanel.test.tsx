@@ -153,9 +153,29 @@ describe('EstimateTotalsReviewPanel', () => {
     );
 
     expect(screen.getByText('Markup settings')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Estimate pricing, markup, contingency, tax, and final sell price/),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Indirect cost %')).toBeInTheDocument();
     expect(screen.getByText('Overhead %')).toBeInTheDocument();
     expect(screen.getByText('Profit %')).toBeInTheDocument();
     expect(screen.getByText('Contingency %')).toBeInTheDocument();
     expect(screen.getByText('Tax %')).toBeInTheDocument();
+    expect(screen.getByText('Apply overhead to')).toBeInTheDocument();
+    expect(screen.getByText('Apply profit to')).toBeInTheDocument();
+    expect(screen.getByText('Tax applies to')).toBeInTheDocument();
+  });
+
+  it('still calculates construction activity labor totals', () => {
+    render(
+      <EstimateTotalsReviewPanel
+        version={null}
+        estimateType="detailed"
+        constructionActivities={[makeActivity({ totalLaborCost: 4330.97 })]}
+        settingsState={buildSettingsState()}
+      />,
+    );
+
+    expect(screen.getAllByText('$4,330.97').length).toBeGreaterThan(0);
   });
 });

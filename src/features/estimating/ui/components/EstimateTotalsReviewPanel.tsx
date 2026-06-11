@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import Input from '../../../../components/ui/Input';
+import Select from '../../../../components/ui/Select';
 import type { ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
 import type { ConceptualEstimateRollup } from '../../domain/conceptualEstimateTypes';
 import {
@@ -32,6 +33,9 @@ export const EMPTY_CONSTRUCTION_ACTIVITY_COSTS_MESSAGE =
 export const LEGACY_EMPTY_TOTALS_MESSAGE =
   'No estimate totals yet. Add activities and save a version to build the totals summary.';
 
+export const COSTS_MARKUP_DESCRIPTION =
+  'Estimate pricing, markup, contingency, tax, and final sell price.';
+
 interface Props {
   version: EstimateDomainVersion | null;
   loading?: boolean;
@@ -62,10 +66,23 @@ function MarkupSettingsSection({
       <div>
         <h3 className={PLANNER_SECTION_TITLE}>Markup settings</h3>
         <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Adjust markup percentages to recalculate the estimate total immediately.
+          Adjust markup and pricing rules to recalculate the estimate total immediately.
         </p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Input
+          label="Indirect cost %"
+          type="number"
+          min={0}
+          max={100}
+          step="any"
+          value={settings.indirectCostPercent}
+          disabled={!canEdit}
+          onChange={(event) =>
+            patch({ indirectCostPercent: parseEstimateFormNumber(event.target.value) })
+          }
+          fullWidth
+        />
         <Input
           label="Contingency %"
           type="number"
@@ -114,6 +131,53 @@ function MarkupSettingsSection({
           value={settings.taxPercent}
           disabled={!canEdit}
           onChange={(event) => patch({ taxPercent: parseEstimateFormNumber(event.target.value) })}
+          fullWidth
+        />
+        <Select
+          label="Apply overhead to"
+          value={settings.overheadBase}
+          disabled={!canEdit}
+          options={[
+            { value: 'direct_cost', label: 'Direct cost' },
+            { value: 'labor_only', label: 'Labor only' },
+            { value: 'custom', label: 'Custom' },
+          ]}
+          onChange={(value) =>
+            patch({
+              overheadBase: value as EstimateSettings['overheadBase'],
+            })
+          }
+          fullWidth
+        />
+        <Select
+          label="Apply profit to"
+          value={settings.profitBase}
+          disabled={!canEdit}
+          options={[
+            { value: 'direct_plus_overhead', label: 'Direct + overhead' },
+            { value: 'direct_only', label: 'Direct only' },
+          ]}
+          onChange={(value) =>
+            patch({
+              profitBase: value as EstimateSettings['profitBase'],
+            })
+          }
+          fullWidth
+        />
+        <Select
+          label="Tax applies to"
+          value={settings.taxBase}
+          disabled={!canEdit}
+          options={[
+            { value: 'materials_only', label: 'Materials only' },
+            { value: 'total_estimate', label: 'Total estimate' },
+            { value: 'none', label: 'None' },
+          ]}
+          onChange={(value) =>
+            patch({
+              taxBase: value as EstimateSettings['taxBase'],
+            })
+          }
           fullWidth
         />
       </div>
@@ -179,18 +243,16 @@ export default function EstimateTotalsReviewPanel({
     );
   }
 
-  const showMarkupSettings =
-    shouldUseConstructionActivitiesTotalsReview(resolvedEstimateType, constructionActivities) &&
-    settingsState != null;
+  const showMarkupSettings = settingsState != null;
 
   const summarySubtitle = shouldUseConstructionActivitiesTotalsReview(
     resolvedEstimateType,
     constructionActivities,
   )
-    ? 'Totals roll up from construction activities and current markup settings.'
+    ? `${COSTS_MARKUP_DESCRIPTION} Activity costs roll up from construction activities.`
     : isConceptualEstimateType(resolvedEstimateType)
-      ? 'Totals reflect the current conceptual estimate budget.'
-      : 'Totals reflect the current saved estimate.';
+      ? `${COSTS_MARKUP_DESCRIPTION} Totals reflect the current conceptual estimate budget.`
+      : COSTS_MARKUP_DESCRIPTION;
 
   return (
     <div className="space-y-4" data-testid={ESTIMATE_OVERVIEW_FINANCIAL_SUMMARY_MARKER}>

@@ -33,6 +33,7 @@ import {
   LazyConcreteInspectionChecklistPage,
   LazyContractBuilderPage,
   LazyProjects,
+  LazyProjectProposalsPage,
   LazySettings,
   LazyPourPlanner,
   LazyMixDesignAdvisor,
@@ -329,6 +330,14 @@ function App() {
               element={
                 <AuthGuard>
                   <LazyRoute Page={LazyProjects} />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="projects/:projectId/proposals"
+              element={
+                <AuthGuard>
+                  <LazyRoute Page={LazyProjectProposalsPage} />
                 </AuthGuard>
               }
             />

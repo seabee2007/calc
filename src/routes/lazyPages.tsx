@@ -56,6 +56,9 @@ export const LazyContractBuilderPage = lazyPage(
 
 // Project management & proposals
 export const LazyProjects = lazyPage(() => import('../pages/Projects/Projects'));
+export const LazyProjectProposalsPage = lazyPage(
+  () => import('../pages/Projects/ProjectProposalsPage'),
+);
 export const LazySettings = lazyPage(() => import('../pages/Settings'));
 export const LazyPourPlanner = lazyPage(() => import('../pages/PourPlanner'));
 export const LazyMixDesignAdvisor = lazyPage(() => import('../pages/MixDesignAdvisor'));

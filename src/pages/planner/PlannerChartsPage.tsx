@@ -1,21 +1,42 @@
-import React from 'react';
-import { BarChart3 } from 'lucide-react';
 import { usePlannerProject } from '../../contexts/PlannerProjectContext';
-import { PLANNER_PAGE_BG, PLANNER_MUTED } from '../../components/planner/plannerTheme';
+import {
+  PLANNER_BOARD_BG,
+  PLANNER_MUTED,
+  PLANNER_SECTION_TITLE,
+} from '../../components/planner/plannerTheme';
+import ProjectChartsDashboard from '../../features/planner/projectCharts/ProjectChartsDashboard';
+import { useProjectChartsData } from '../../features/planner/projectCharts/useProjectChartsData';
 
 export default function PlannerChartsPage() {
-  const { project } = usePlannerProject();
+  const { projectId, project } = usePlannerProject();
+  const { snapshot, loading, error } = useProjectChartsData(projectId, project);
+
+  if (loading) {
+    return (
+      <div className={`flex flex-1 items-center justify-center py-16 ${PLANNER_BOARD_BG}`}>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-600 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
-    <div className={PLANNER_PAGE_BG}>
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="max-w-md rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <BarChart3 className="mx-auto h-12 w-12 text-cyan-600 dark:text-cyan-400" />
-          <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Charts</h2>
-          <p className={`mt-2 ${PLANNER_MUTED}`}>
-            Status and progress charts for {project?.name ?? 'this project'} are coming soon.
+    <div className={`flex-1 overflow-y-auto p-4 sm:p-6 ${PLANNER_BOARD_BG}`}>
+      <div className="mx-auto max-w-7xl space-y-4">
+        <div>
+          <h2 className={PLANNER_SECTION_TITLE}>Project Charts</h2>
+          <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
+            Decision-focused charts for {project?.name ?? 'this project'}. Values come from saved
+            estimate, schedule, QC, and change order data only.
           </p>
         </div>
+
+        {error ? (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+            {error}
+          </p>
+        ) : null}
+
+        <ProjectChartsDashboard projectId={projectId} snapshot={snapshot} />
       </div>
     </div>
   );

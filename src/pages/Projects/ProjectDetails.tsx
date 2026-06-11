@@ -51,6 +51,7 @@ import {
   plannerDocumentsHref,
   plannerRfiHref,
 } from '../../utils/plannerRoutes';
+import { projectProposalsHref } from '../../utils/projectProposals';
 import { projectHasSavedEstimates } from '../../utils/customEstimateUtils';
 import {
   customEstimateCategoryTotals,
@@ -87,14 +88,6 @@ export default function ProjectDetails() {
         proposal.title.toLowerCase().includes(name.toLowerCase()),
     );
   }, [proposals, project?.id, project?.name]);
-
-  const projectProposalHref = useMemo(() => {
-    if (!project?.id) return '/proposals';
-    if (matchedProposal?.id) {
-      return `/proposal-generator?edit=${encodeURIComponent(matchedProposal.id)}`;
-    }
-    return `/proposal-generator${workflowQuery(project.id)}`;
-  }, [project?.id, matchedProposal?.id]);
 
   const proposalStatusLabel = useMemo(() => {
     const s = matchedProposal?.status ?? null;
@@ -521,7 +514,7 @@ export default function ProjectDetails() {
               {
                 key: 'proposals',
                 label: 'Proposals',
-                to: projectProposalHref,
+                to: projectProposalsHref(project.id),
               },
               { key: 'photos', label: 'Photos', to: plannerBoardHref(project.id) },
             ] as const
