@@ -105,9 +105,9 @@ export default function PlannerHubPage() {
     <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-2 lg:justify-end">
       <PlannerRecordsQuickNav />
       <Button
-        variant="accent"
+        variant="outline"
         size="sm"
-        icon={<Plus size={16} aria-hidden />}
+        
         onClick={openNewProjectPlan}
         data-testid="planner-hub-new-project-plan"
       >
