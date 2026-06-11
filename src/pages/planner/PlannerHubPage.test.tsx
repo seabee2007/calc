@@ -78,6 +78,20 @@ describe('PlannerHubPage', () => {
     expect(await screen.findByText('No project plans yet')).toBeInTheDocument();
   });
 
+  it('uses standard page gutter on the header so it aligns with cards', () => {
+    mockProjectsQuery([]);
+    render(
+      <MemoryRouter>
+        <PlannerHubPage />
+      </MemoryRouter>,
+    );
+
+    const header = screen.getByRole('heading', { name: 'Planner Hub' }).closest('header');
+    expect(header?.className).toContain('px-4');
+    expect(header?.className).toContain('sm:px-6');
+    expect(header?.className).toContain('lg:px-8');
+  });
+
   it('renders loading skeleton cards', () => {
     mockProjectsQuery([]);
     supabaseFromMock.mockReturnValue({

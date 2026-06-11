@@ -106,7 +106,6 @@ export default function PlannerHubPage() {
             title="Planner Hub"
             subtitle="Open a project plan board to manage field tasks, assignments, and field updates."
             actions={<PlannerRecordsQuickNav />}
-            className="!px-0"
           />
         }
       >
