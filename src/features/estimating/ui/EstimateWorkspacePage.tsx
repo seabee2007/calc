@@ -2179,7 +2179,15 @@ export default function EstimateWorkspacePage() {
         ) : null}
 
         {!loadError && showOverviewFinancialSummary && hasEstimateAdapter ? (
-          <EstimateTotalsReviewPanel version={estimateAdapter} loading={dataLoading} />
+          <EstimateTotalsReviewPanel
+            version={estimateAdapter}
+            loading={dataLoading || constructionActivitiesLoading}
+            estimateType={resolvedEstimateType}
+            constructionActivities={constructionActivities}
+            settingsState={estimateSettings}
+            conceptualRollup={isConceptualEstimate ? conceptualEstimate.rollup : null}
+            canEdit={canEditEstimate}
+          />
         ) : null}
 
         {!loadError && showEstimateTypeSelection ? (

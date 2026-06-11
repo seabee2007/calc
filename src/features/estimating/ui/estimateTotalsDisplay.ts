@@ -1,4 +1,21 @@
-import type { EstimateCostTotals, EstimateLineCosts, EstimateLineMetrics } from '../domain/estimateTypes';
+import { calculateEstimateTotalsFromConstructionActivities } from '../application/constructionActivityEstimateTotals';
+import { buildConceptualEstimateCostTotals } from '../application/conceptualEstimateCalculations';
+import type { ConceptualEstimateRollup } from '../domain/conceptualEstimateTypes';
+import type {
+  ProjectActivityLineItem,
+  ProjectConstructionActivity,
+} from '../domain/constructionActivityTypes';
+import {
+  isConceptualEstimateType,
+  supportsConstructionActivitiesWorkflow,
+} from '../domain/estimateMethods';
+import type {
+  EstimateCostTotals,
+  EstimateLineCosts,
+  EstimateLineMetrics,
+  EstimateSettings,
+  EstimateType,
+} from '../domain/estimateTypes';
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
 
 const ZERO_TOTALS: EstimateCostTotals = {
@@ -263,4 +280,158 @@ export function buildEstimateTotalsReview(
     percentBreakdown: buildPercentBreakdown(rollups, totals, finalSellPrice),
     hasTotals: hasEstimateTotalsReview(version),
   };
+}
+
+export function buildEstimateTotalsReviewFromConstructionActivities(
+  activities: readonly ProjectConstructionActivity[],
+  markupSettings?: Partial<EstimateSettings> | null,
+  lineItemsByActivityId?: ReadonlyMap<string, readonly ProjectActivityLineItem[]>,
+): EstimateTotalsReviewData {
+  const totals = calculateEstimateTotalsFromConstructionActivities({
+    activities,
+    markupSettings,
+    lineItemsByActivityId,
+  });
+
+  const rollups: EstimateLineCostRollups = {
+    labor: totals.laborCost,
+    materials: totals.materialCost,
+    equipment: totals.equipmentCost,
+    subcontractors: totals.subcontractorCost,
+  };
+
+  const costTotals: EstimateCostTotals = {
+    directCost: totals.directCostSubtotal,
+    indirectCost: totals.indirectCost,
+    overhead: totals.overheadAmount,
+    profit: totals.profitAmount,
+    contingency: totals.contingencyAmount,
+    tax: totals.taxAmount,
+    finalSellPrice: totals.grandTotal,
+  };
+
+  const costGroups: EstimateCostGroupReview = {
+    labor: totals.laborCost,
+    materials: totals.materialCost,
+    equipment: totals.equipmentCost,
+    subcontractors: totals.subcontractorCost,
+    indirectCosts: totals.indirectCost,
+    directCost: totals.directCostSubtotal,
+    overhead: totals.overheadAmount,
+    profit: totals.profitAmount,
+    contingency: totals.contingencyAmount,
+    tax: totals.taxAmount,
+    finalSellPrice: totals.grandTotal,
+  };
+
+  return {
+    costGroups,
+    laborMetrics: {
+      laborHours: totals.totalManHours,
+      manDays: 0,
+      crewDays: 0,
+      durationDays: null,
+    },
+    percentBreakdown: buildPercentBreakdown(rollups, costTotals, totals.grandTotal),
+    hasTotals: activities.length > 0,
+  };
+}
+
+export function buildEstimateTotalsReviewFromConceptualRollup(
+  rollup: ConceptualEstimateRollup | null | undefined,
+): EstimateTotalsReviewData {
+  if (!rollup) {
+    return {
+      costGroups: {
+        labor: 0,
+        materials: 0,
+        equipment: 0,
+        subcontractors: 0,
+        indirectCosts: 0,
+        directCost: 0,
+        overhead: 0,
+        profit: 0,
+        contingency: 0,
+        tax: 0,
+        finalSellPrice: 0,
+      },
+      laborMetrics: { laborHours: 0, manDays: 0, crewDays: 0, durationDays: null },
+      percentBreakdown: buildPercentBreakdown(
+        { labor: 0, materials: 0, equipment: 0, subcontractors: 0 },
+        { ...ZERO_TOTALS },
+        0,
+      ),
+      hasTotals: false,
+    };
+  }
+
+  const costTotals = buildConceptualEstimateCostTotals(rollup);
+  const rollups: EstimateLineCostRollups = {
+    labor: 0,
+    materials: 0,
+    equipment: 0,
+    subcontractors: 0,
+  };
+  const finalSellPrice = resolveFinalSellPrice(costTotals);
+
+  return {
+    costGroups: {
+      labor: 0,
+      materials: 0,
+      equipment: 0,
+      subcontractors: 0,
+      indirectCosts: costTotals.indirectCost,
+      directCost: costTotals.directCost,
+      overhead: costTotals.overhead,
+      profit: costTotals.profit,
+      contingency: costTotals.contingency,
+      tax: costTotals.tax,
+      finalSellPrice,
+    },
+    laborMetrics: { laborHours: 0, manDays: 0, crewDays: 0, durationDays: null },
+    percentBreakdown: buildPercentBreakdown(rollups, costTotals, finalSellPrice),
+    hasTotals: finalSellPrice > 0 || costTotals.directCost > 0,
+  };
+}
+
+export interface ResolveEstimateTotalsReviewInput {
+  version: EstimateDomainVersion | null;
+  estimateType?: EstimateType | string | null;
+  constructionActivities?: readonly ProjectConstructionActivity[];
+  markupSettings?: Partial<EstimateSettings> | null;
+  conceptualRollup?: ConceptualEstimateRollup | null;
+  lineItemsByActivityId?: ReadonlyMap<string, readonly ProjectActivityLineItem[]>;
+}
+
+export function resolveEstimateTotalsReview(
+  input: ResolveEstimateTotalsReviewInput,
+): EstimateTotalsReviewData {
+  const estimateType = input.estimateType ?? input.version?.estimateType ?? null;
+
+  if (
+    supportsConstructionActivitiesWorkflow(estimateType) &&
+    (input.constructionActivities?.length ?? 0) > 0
+  ) {
+    return buildEstimateTotalsReviewFromConstructionActivities(
+      input.constructionActivities ?? [],
+      input.markupSettings,
+      input.lineItemsByActivityId,
+    );
+  }
+
+  if (isConceptualEstimateType(estimateType)) {
+    return buildEstimateTotalsReviewFromConceptualRollup(input.conceptualRollup);
+  }
+
+  return buildEstimateTotalsReview(input.version);
+}
+
+export function shouldUseConstructionActivitiesTotalsReview(
+  estimateType: EstimateType | string | null | undefined,
+  constructionActivities: readonly ProjectConstructionActivity[] | undefined,
+): boolean {
+  return (
+    supportsConstructionActivitiesWorkflow(estimateType) &&
+    (constructionActivities?.length ?? 0) > 0
+  );
 }

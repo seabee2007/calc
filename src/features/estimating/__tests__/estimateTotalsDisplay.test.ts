@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { buildEstimateSnapshot } from '../application/buildEstimateSnapshot';
+import { DEFAULT_ESTIMATE_SETTINGS } from '../application/estimateSettings';
 import { sampleEstimateVersion } from '../__fixtures__/sampleEstimateVersion';
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
 import {
   buildEstimateTotalsReview,
+  buildEstimateTotalsReviewFromConstructionActivities,
   buildPercentBreakdown,
   calculatePercentOfFinalPrice,
   extractLaborPlanningMetrics,
   extractTotalsFromJson,
   extractVersionTotals,
   hasEstimateTotalsReview,
+  resolveEstimateTotalsReview,
   resolveFinalSellPrice,
   rollupLineItemCosts,
   safeEstimateNumber,
+  shouldUseConstructionActivitiesTotalsReview,
 } from '../ui/estimateTotalsDisplay';
 
 function buildTaskFromSnapshotLine(
@@ -248,5 +252,63 @@ describe('buildEstimateTotalsReview', () => {
     const review = buildEstimateTotalsReview(null);
     expect(review.hasTotals).toBe(false);
     expect(hasEstimateTotalsReview(null)).toBe(false);
+  });
+});
+
+describe('resolveEstimateTotalsReview', () => {
+  it('prefers construction activities for detailed estimates', () => {
+    const review = resolveEstimateTotalsReview({
+      version: null,
+      estimateType: 'detailed',
+      constructionActivities: [
+        {
+          id: 'act-1',
+          projectId: 'project-1',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          activityCode: '03-01-01',
+          title: 'Slab',
+          scheduleEnabled: true,
+          crewSize: 4,
+          hoursPerDay: 8,
+          productionFactor: 1,
+          totalLaborCost: 1500,
+          calculatedManHours: 30,
+        },
+      ],
+      markupSettings: DEFAULT_ESTIMATE_SETTINGS,
+    });
+
+    expect(review.hasTotals).toBe(true);
+    expect(review.costGroups.labor).toBe(1500);
+    expect(review.laborMetrics.laborHours).toBe(30);
+    expect(shouldUseConstructionActivitiesTotalsReview('detailed', [{ id: 'act-1' } as never])).toBe(
+      true,
+    );
+  });
+
+  it('builds construction activity review with direct subtotal equal to labor when no other costs exist', () => {
+    const review = buildEstimateTotalsReviewFromConstructionActivities(
+      [
+        {
+          id: 'act-1',
+          projectId: 'project-1',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          activityCode: '03-01-01',
+          title: 'Slab',
+          scheduleEnabled: true,
+          crewSize: 4,
+          hoursPerDay: 8,
+          productionFactor: 1,
+          totalLaborCost: 4330.97,
+          calculatedManHours: 139.6,
+        },
+      ],
+      DEFAULT_ESTIMATE_SETTINGS,
+    );
+
+    expect(review.costGroups.labor).toBe(4330.97);
+    expect(review.costGroups.directCost).toBe(4330.97);
   });
 });

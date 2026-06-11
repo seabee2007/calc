@@ -1,8 +1,21 @@
 import { useMemo } from 'react';
+import Input from '../../../../components/ui/Input';
+import type { ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type { ConceptualEstimateRollup } from '../../domain/conceptualEstimateTypes';
+import {
+  isConceptualEstimateType,
+  supportsConstructionActivitiesWorkflow,
+} from '../../domain/estimateMethods';
+import type { EstimateSettings, EstimateType } from '../../domain/estimateTypes';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
-import { buildEstimateTotalsReview } from '../estimateTotalsDisplay';
+import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import { formatEstimateCurrency } from '../estimateFormatters';
-import { PLANNER_MUTED, PLANNER_SECTION_TITLE } from '../estimateWorkspaceTheme';
+import {
+  resolveEstimateTotalsReview,
+  shouldUseConstructionActivitiesTotalsReview,
+} from '../estimateTotalsDisplay';
+import type { UseEstimateSettingsResult } from '../hooks/useEstimateSettings';
+import { PLANNER_FORM_PANEL, PLANNER_MUTED, PLANNER_SECTION_TITLE } from '../estimateWorkspaceTheme';
 import EstimateWorkspaceEmptyState from './EstimateWorkspaceEmptyState';
 import EstimateSummaryCard from './EstimateSummaryCard';
 import EstimateCostBreakdownCard from './EstimateCostBreakdownCard';
@@ -11,33 +24,179 @@ import EstimateLaborSummaryCard from './EstimateLaborSummaryCard';
 export const ESTIMATE_OVERVIEW_FINANCIAL_SUMMARY_MARKER =
   'estimate-overview-financial-summary';
 
-const EMPTY_TOTALS_MESSAGE =
+export const EMPTY_CONSTRUCTION_ACTIVITY_COSTS_TITLE = 'No activity costs yet';
+
+export const EMPTY_CONSTRUCTION_ACTIVITY_COSTS_MESSAGE =
+  'No activity costs yet. Add construction activities to build your estimate totals.';
+
+export const LEGACY_EMPTY_TOTALS_MESSAGE =
   'No estimate totals yet. Add activities and save a version to build the totals summary.';
 
 interface Props {
   version: EstimateDomainVersion | null;
   loading?: boolean;
+  estimateType?: EstimateType | string | null;
+  constructionActivities?: readonly ProjectConstructionActivity[];
+  markupSettings?: EstimateSettings;
+  settingsState?: UseEstimateSettingsResult;
+  conceptualRollup?: ConceptualEstimateRollup | null;
+  canEdit?: boolean;
 }
 
-export default function EstimateTotalsReviewPanel({ version, loading = false }: Props) {
-  const review = useMemo(() => buildEstimateTotalsReview(version), [version]);
+function MarkupSettingsSection({
+  settings,
+  canEdit,
+  onChange,
+}: {
+  settings: EstimateSettings;
+  canEdit: boolean;
+  onChange: (patch: Partial<EstimateSettings>) => void;
+}) {
+  const patch = (next: Partial<EstimateSettings>) => {
+    if (!canEdit) return;
+    onChange(next);
+  };
 
-  if (!loading && !review.hasTotals) {
+  return (
+    <div className={`${PLANNER_FORM_PANEL} space-y-4`}>
+      <div>
+        <h3 className={PLANNER_SECTION_TITLE}>Markup settings</h3>
+        <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
+          Adjust markup percentages to recalculate the estimate total immediately.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Input
+          label="Contingency %"
+          type="number"
+          min={0}
+          max={100}
+          step="any"
+          value={settings.contingencyPercent}
+          disabled={!canEdit}
+          onChange={(event) =>
+            patch({ contingencyPercent: parseEstimateFormNumber(event.target.value) })
+          }
+          fullWidth
+        />
+        <Input
+          label="Overhead %"
+          type="number"
+          min={0}
+          max={100}
+          step="any"
+          value={settings.overheadPercent}
+          disabled={!canEdit}
+          onChange={(event) =>
+            patch({ overheadPercent: parseEstimateFormNumber(event.target.value) })
+          }
+          fullWidth
+        />
+        <Input
+          label="Profit %"
+          type="number"
+          min={0}
+          max={100}
+          step="any"
+          value={settings.profitPercent}
+          disabled={!canEdit}
+          onChange={(event) =>
+            patch({ profitPercent: parseEstimateFormNumber(event.target.value) })
+          }
+          fullWidth
+        />
+        <Input
+          label="Tax %"
+          type="number"
+          min={0}
+          max={100}
+          step="any"
+          value={settings.taxPercent}
+          disabled={!canEdit}
+          onChange={(event) => patch({ taxPercent: parseEstimateFormNumber(event.target.value) })}
+          fullWidth
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function EstimateTotalsReviewPanel({
+  version,
+  loading = false,
+  estimateType = null,
+  constructionActivities = [],
+  markupSettings,
+  settingsState,
+  conceptualRollup = null,
+  canEdit = false,
+}: Props) {
+  const resolvedEstimateType = estimateType ?? version?.estimateType ?? null;
+  const usesConstructionActivities = supportsConstructionActivitiesWorkflow(resolvedEstimateType);
+  const hasConstructionActivities = constructionActivities.length > 0;
+
+  const review = useMemo(
+    () =>
+      resolveEstimateTotalsReview({
+        version,
+        estimateType: resolvedEstimateType,
+        constructionActivities,
+        markupSettings: markupSettings ?? settingsState?.settings,
+        conceptualRollup,
+      }),
+    [
+      version,
+      resolvedEstimateType,
+      constructionActivities,
+      markupSettings,
+      settingsState?.settings,
+      conceptualRollup,
+    ],
+  );
+
+  const showConstructionActivityEmptyState =
+    !loading && usesConstructionActivities && !hasConstructionActivities;
+
+  if (showConstructionActivityEmptyState) {
     return (
       <EstimateWorkspaceEmptyState
-        title="No estimate totals yet"
-        body={EMPTY_TOTALS_MESSAGE}
+        title={EMPTY_CONSTRUCTION_ACTIVITY_COSTS_TITLE}
+        body={EMPTY_CONSTRUCTION_ACTIVITY_COSTS_MESSAGE}
       />
     );
   }
+
+  if (!loading && !review.hasTotals) {
+    const emptyTitle = isConceptualEstimateType(resolvedEstimateType)
+      ? 'No conceptual estimate totals yet'
+      : 'No estimate totals yet';
+    const emptyBody = isConceptualEstimateType(resolvedEstimateType)
+      ? 'Add conceptual budget line items to build your estimate totals.'
+      : LEGACY_EMPTY_TOTALS_MESSAGE;
+
+    return (
+      <EstimateWorkspaceEmptyState title={emptyTitle} body={emptyBody} />
+    );
+  }
+
+  const showMarkupSettings =
+    shouldUseConstructionActivitiesTotalsReview(resolvedEstimateType, constructionActivities) &&
+    settingsState != null;
+
+  const summarySubtitle = shouldUseConstructionActivitiesTotalsReview(
+    resolvedEstimateType,
+    constructionActivities,
+  )
+    ? 'Totals roll up from construction activities and current markup settings.'
+    : isConceptualEstimateType(resolvedEstimateType)
+      ? 'Totals reflect the current conceptual estimate budget.'
+      : 'Totals reflect the current saved estimate.';
 
   return (
     <div className="space-y-4" data-testid={ESTIMATE_OVERVIEW_FINANCIAL_SUMMARY_MARKER}>
       <div>
         <h2 className={PLANNER_SECTION_TITLE}>Financial summary</h2>
-        <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>
-          Totals reflect the current saved estimate.
-        </p>
+        <p className={`mt-1 text-sm ${PLANNER_MUTED}`}>{summarySubtitle}</p>
       </div>
 
       <EstimateSummaryCard
@@ -46,6 +205,14 @@ export default function EstimateTotalsReviewPanel({ version, loading = false }: 
         loading={loading}
         emphasis
       />
+
+      {showMarkupSettings ? (
+        <MarkupSettingsSection
+          settings={settingsState.settings}
+          canEdit={canEdit}
+          onChange={settingsState.updateSettings}
+        />
+      ) : null}
 
       <EstimateCostBreakdownCard
         costGroups={review.costGroups}

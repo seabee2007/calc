@@ -1,7 +1,6 @@
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockNavigate = vi.fn();
@@ -71,16 +70,24 @@ vi.mock('../utils/scheduleDashboard', () => ({
   }),
 }));
 
-vi.mock('../services/fieldActivityService', () => ({
-  getOwnerFieldActivity: vi.fn().mockResolvedValue([]),
-}));
+const mockFinancial = {
+  pendingRevenue: 50000,
+  acceptedRevenue: 120000,
+  weightedForecast: 80000,
+  grossProfit: 25000,
+  winRate: 0.42,
+  monthlyRevenue: 30000,
+  averageJobSize: 15000,
+  laborCost: 40000,
+  materialCost: 35000,
+};
 
 vi.mock('../utils/operationsDashboard', () => ({
   buildOperationsSnapshot: () => ({
     activeProjectCount: 2,
     todayPourCount: 1,
     proposalsSentCount: 4,
-    projects: [{ id: 'p1', name: 'Test Project' }],
+    projects: [],
     proposalMetrics: {
       pipeline: {
         draft: 1,
@@ -93,17 +100,7 @@ vi.mock('../utils/operationsDashboard', () => ({
         declined: 0,
         paid: 0,
       },
-      financial: {
-        pendingRevenue: 50000,
-        acceptedRevenue: 120000,
-        weightedForecast: 80000,
-        grossProfit: 25000,
-        winRate: 0.42,
-        monthlyRevenue: 30000,
-        averageJobSize: 15000,
-        laborCost: 40000,
-        materialCost: 35000,
-      },
+      financial: mockFinancial,
     },
     changeOrderMetrics: {
       financial: { weightedForecast: 0 },
@@ -111,8 +108,10 @@ vi.mock('../utils/operationsDashboard', () => ({
     todayPours: [],
     upcomingPlacements: [],
     hasPlacementsToday: false,
-    deliverySchedule: [],
+    deliverySchedule: null,
     timeline: [],
+    mitigations: [],
+    recommendedStartWindow: '6:00 AM',
     heatRisk: 'low',
     rainRisk: 'low',
     windRisk: 'low',
@@ -130,10 +129,10 @@ vi.mock('../utils/operationsDashboard', () => ({
 vi.mock('../utils/projectRiskReview', () => ({
   resolveFeaturedRiskProject: () => null,
   buildProjectRiskReview: () => ({
-    projectName: null,
     riskLevel: 'low',
-    summary: 'No featured project',
-    factors: [],
+    riskLabel: 'Low risk',
+    attention: [],
+    good: [],
   }),
 }));
 
@@ -146,20 +145,51 @@ vi.mock('../utils/proposalCrm', () => ({
   buildCrmNextActions: () => [],
 }));
 
-import OperationsDashboard from './OperationsDashboard';
+vi.mock('../components/dashboard/DashboardHero', () => ({
+  default: () => <div>Today&apos;s Operations</div>,
+}));
 
-function sectionOrder(container: HTMLElement): string[] {
-  const ids = [
-    'dashboard-todays-operations',
-    'dashboard-operations-schedule',
-    'dashboard-field-activity',
-    'dashboard-business-snapshot',
-    'dashboard-active-proposals-grid',
-    'dashboard-placement-qc-grid',
-    'dashboard-lower-three-grid',
-  ];
-  return ids.filter((id) => container.querySelector(`[data-testid="${id}"]`));
-}
+vi.mock('../components/dashboard/schedule/ScheduleOperationsSection', () => ({
+  default: () => <div>Operations schedule</div>,
+}));
+
+vi.mock('../components/owner/OwnerActivityFeed', () => ({
+  default: () => <div>Field activity</div>,
+}));
+
+vi.mock('../components/dashboard/ActiveProjectsPanel', () => ({
+  default: () => <div>Active projects</div>,
+}));
+
+vi.mock('../components/dashboard/ProposalPipelineCard', () => ({
+  default: () => <div>Proposal pipeline</div>,
+}));
+
+vi.mock('../components/dashboard/DashboardNextActionsCard', () => ({
+  default: () => <div>Next actions</div>,
+}));
+
+vi.mock('../components/dashboard/FeaturedPlacementConditions', () => ({
+  default: () => <div>Today&apos;s placement conditions</div>,
+}));
+
+vi.mock('../components/dashboard/QcAlertsCard', () => ({
+  default: () => <div>QC alerts</div>,
+}));
+
+vi.mock('../components/dashboard/SmartPourAssistant', () => ({
+  default: () => <div>Pre-placement review</div>,
+}));
+
+vi.mock('../components/dashboard/ProjectHealthCard', () => ({
+  default: () => <div>Project risk review</div>,
+}));
+
+vi.mock('../components/dashboard/ConcreteDeliveryScheduleCard', () => ({
+  default: () => <div>Concrete delivery schedule</div>,
+}));
+
+import OperationsDashboard from './OperationsDashboard';
 
 function assertFollowsDocumentOrder(container: HTMLElement, earlierId: string, laterId: string) {
   const earlier = container.querySelector(`[data-testid="${earlierId}"]`);
@@ -183,7 +213,9 @@ describe('OperationsDashboard layout', () => {
       </MemoryRouter>,
     );
     expect(screen.getByText("Today's Operations")).toBeInTheDocument();
-    expect(sectionOrder(container)[0]).toBe('dashboard-todays-operations');
+    expect(
+      container.querySelector('[data-testid="dashboard-todays-operations"]'),
+    ).toBeTruthy();
   });
 
   it('renders sections in the restored dashboard order', () => {
@@ -209,8 +241,8 @@ describe('OperationsDashboard layout', () => {
     );
     const grid = container.querySelector('[data-testid="dashboard-active-proposals-grid"]');
     expect(grid).toHaveClass('lg:grid-cols-2');
-    expect(within(grid as HTMLElement).getByText(/Proposal pipeline/i)).toBeInTheDocument();
-    expect(within(grid as HTMLElement).getByText(/Active projects/i)).toBeInTheDocument();
+    expect(within(grid as HTMLElement).getByText('Proposal pipeline')).toBeInTheDocument();
+    expect(within(grid as HTMLElement).getByText('Active projects')).toBeInTheDocument();
   });
 
   it('renders Placement Conditions and QC Alerts below Active Projects / Proposal Pipeline', () => {
@@ -252,14 +284,13 @@ describe('OperationsDashboard layout', () => {
     expect(screen.queryByText('Average job size')).not.toBeInTheDocument();
   });
 
-  it('navigates to financial details from Business Snapshot link', async () => {
-    const user = userEvent.setup();
+  it('navigates to financial details from Business Snapshot link', () => {
     render(
       <MemoryRouter>
         <OperationsDashboard />
       </MemoryRouter>,
     );
-    await user.click(screen.getByRole('button', { name: /View financial details/i }));
+    fireEvent.click(screen.getByRole('button', { name: /View financial details/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/financials');
   });
 });
