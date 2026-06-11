@@ -11,38 +11,16 @@ import {
   type NormalizedProductionRateFile,
   type NormalizedProductionRateRecord,
 } from './productionRateTypes';
+import type { AdobeFinalReviewedRow } from './adobeProductionRateRowTypes';
 import { validateProductionRateRecord } from './validateExtractedProductionRates';
+
+export type { AdobeFinalReviewedRow } from './adobeProductionRateRowTypes';
 
 export const ADOBE_FINAL_REVIEWED_RELATIVE_PATH =
   'data/estimating/production-rates/normalized/chapter5-production-rates.final-reviewed.json';
 
 export const ADOBE_APPROVED_OUTPUT = 'adobe-chapter5.approved.json';
 export const ADOBE_REJECTED_OUTPUT = 'adobe-chapter5.rejected.json';
-
-export interface AdobeFinalReviewedRow {
-  id?: string;
-  sourceDocument?: string;
-  sourceChapter?: string;
-  sourceTableFile?: string;
-  sourceSheetName?: string;
-  sourceRowNumberApprox?: number | null;
-  sourceAdobePageIndex?: number | null;
-  sourcePageNumberApprox?: number | null;
-  division?: string;
-  divisionName?: string;
-  sectionCode?: string;
-  sectionTitle?: string;
-  itemCode?: string;
-  workElementDescription?: string;
-  unitOriginal?: string;
-  unit?: string;
-  rateType?: string;
-  manHoursPerUnit?: number | null;
-  rateComponents?: Array<{ name: string; manHoursPerUnit?: number | null }>;
-  reviewStatus?: string;
-  reviewNotes?: string;
-  rawRow?: unknown;
-}
 
 export interface FigureMetadata {
   figure: string;

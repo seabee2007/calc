@@ -20,6 +20,8 @@
     "promote:production-rates": "python tools/data-extraction/promote_reviewed_rates.py",
     "bootstrap:production-rates": "node --import tsx scripts/bootstrapApprovedFromManualRates.ts",
     "import:adobe-production-rates": "node --import tsx scripts/importAdobeFinalReviewedProductionRates.ts",
+    "generate:adobe-rejected-recovery": "node --import tsx scripts/generateAdobeRejectedRecoveryReport.ts",
+    "recover:adobe-production-rates": "node --import tsx scripts/recoverAdobeRejectedProductionRates.ts",
     "generate:production-rates": "node --import tsx scripts/generateProductionRateSeeds.ts",
     "generate:canonical-production-rates": "node --import tsx scripts/generateCanonicalProductionRateLibrary.ts",
     "preview": "vite preview",

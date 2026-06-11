@@ -1,0 +1,617 @@
+{
+  "generatedAt": "2026-06-11T08:27:43.758Z",
+  "rejectedRowCount": 64,
+  "recoverableCount": 64,
+  "unrecoverableCount": 0,
+  "suggestedFixCount": 15,
+  "byReason": {
+    "workElementLineNumber missing": 62,
+    "unitOfMeasure cannot be \"surface\"": 1,
+    "manHoursPerUnit: manHoursPerUnit must equal fabricate + erect/strip + clean within 0.001": 1
+  },
+  "records": [
+    {
+      "id": "03-11-13.25-round-fiber-tube-recycled-paper-one-use-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "03-11-13.25-0070-12-by-12-inches-surface",
+      "rejectionReasons": [
+        "unitOfMeasure cannot be \"surface\""
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "unit": "SF_CONTACT_SURFACE",
+        "unitOriginal": "SF of contact surface"
+      },
+      "suggestionNotes": [
+        "Mapped invalid \"surface\" unit to SF of contact surface for concrete forms context."
+      ]
+    },
+    {
+      "id": "03-11-13.85-0010-wall-job-built-plywood-to-8-feet-sf-contact-surface",
+      "rejectionReasons": [
+        "manHoursPerUnit: manHoursPerUnit must equal fabricate + erect/strip + clean within 0.001"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "03-30-53.10-transit-mix-truck-8-cyd-capacity-cyd",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0040"
+      },
+      "suggestionNotes": [
+        "Suggested sequential item code after 0030."
+      ]
+    },
+    {
+      "id": "06-16-23.10-subfloor-adhesive-3-8-inch-bead-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0070"
+      },
+      "suggestionNotes": [
+        "Suggested sequential item code after 0060."
+      ]
+    },
+    {
+      "id": "06-16-23.10-with-boards-1-inch-by-6-to-10-inches-laid-regular-or-diagonal-average-sf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0070"
+      },
+      "suggestionNotes": [
+        "Suggested sequential item code after 0060."
+      ]
+    },
+    {
+      "id": "06-22-13.40-and-casing-crown-11-16-by-4-1-4-inches-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0070"
+      },
+      "suggestionNotes": [
+        "Suggested gap item code between 0060 and 0080."
+      ]
+    },
+    {
+      "id": "07-71-19.10-various-types-e-g-aluminum-galvanized-steel-pvc-and-stainless-steel-at-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "08-11-63.23-combination-storm-and-screen-various-materiels-6-feet-8-inches-by-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "08-95-16.10-12-by-18-inches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "08-95-16.10-18-by-24-inches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "08-95-16.10-redwood-2-foot-diameter-full-circle-and-other-shapes-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "08-95-16.10-vinyl-gable-vent-8-by-8-inches-and-12-by-12-inches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "12-32-23.10-various-sizes-average-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0030"
+      },
+      "suggestionNotes": [
+        "Suggested gap item code between 0020 and 0040."
+      ]
+    },
+    {
+      "id": "13-31-23.50-roll-up-door-minimum-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0040"
+      },
+      "suggestionNotes": [
+        "Suggested sequential item code after 0030."
+      ]
+    },
+    {
+      "id": "13-34-19.50-40-foot-width-sf-floor",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0090"
+      },
+      "suggestionNotes": [
+        "Suggested gap item code between 0080 and 0100."
+      ]
+    },
+    {
+      "id": "13-34-19.50-50-to-80-foot-width-sf-floor",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0110"
+      },
+      "suggestionNotes": [
+        "Suggested gap item code between 0100 and 0120."
+      ]
+    },
+    {
+      "id": "13-34-19.50-clear-span-tapered-beam-frame-26-gauge-roofing-and-siding-sf-floor",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0070"
+      },
+      "suggestionNotes": [
+        "Suggested gap item code between 0060 and 0080."
+      ]
+    },
+    {
+      "id": "21-12-10.00-black-steel-pipe-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-check-valve-with-ball-drip-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-hose-valve-2-1-2-inches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-pipe-elbow-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-pipe-nipple-2-1-2-inches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-pipe-tee-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-pressure-restricting-valve-2-1-2-inches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-roof-manifold-with-valves-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-12-10.00-siamese-inlet-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "21-22-16.50-standby-power-battery-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0150"
+      },
+      "suggestionNotes": [
+        "Suggested sequential item code after 0140."
+      ]
+    },
+    {
+      "id": "22-05-23.20-mixing-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0010"
+      },
+      "suggestionNotes": [
+        "Suggested first item code 0010 before later coded rows."
+      ]
+    },
+    {
+      "id": "22-05-23.20-reducing-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0010"
+      },
+      "suggestionNotes": [
+        "Suggested first item code 0010 before later coded rows."
+      ]
+    },
+    {
+      "id": "22-05-23.20-relief-pressure-and-temperature-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0010"
+      },
+      "suggestionNotes": [
+        "Suggested first item code 0010 before later coded rows."
+      ]
+    },
+    {
+      "id": "22-11-13.23-type-drain-waste-and-vent-dwv-tubing-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.23-type-k-tubing-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.23-type-l-tubing-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-adapters-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-crosses-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-elbows-reducers-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-flexible-couplings-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-rigid-couplings-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-tees-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-valves-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.48-wyes-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.74-abs-and-pvc-for-dwv-schedule-40-couplings-10-feet-on-center-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.74-acrylonitrile-butadiene-styrene-plastic-abs-and-pvc-for-dwv-schedule-40-couplings-10-feet--lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.74-cpvc-schedule-40-couplings-10-feet-on-center-clevis-hanger-assemblies-3-per-10-feet-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.74-cpvc-schedule-40-couplings-10-feet-on-center-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.74-pvc-schedule-40-couplings-10-feet-on-center-clevis-hanger-assemblies-3-per-10-feet-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-11-13.74-pvc-schedule-40-couplings-10-feet-on-center-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-1-1-4-to-1-1-2-to-2-tees-tapped-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-combination-wyes-tees-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-crosses-tapped-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-lead-for-caulking-pound",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-no-hub-couplings-10-feet-on-center-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-oakum-for-caulking-pound",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-pipe-single-hub-service-weight-lead-and-oakum-joints-10-feet-on-center-lf",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-reducers-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "22-13-16.20-reducing-wyes-tees-combination-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "26-05-00-install-secondary-racks-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": [],
+      "suggestedFix": {
+        "itemCode": "0070"
+      },
+      "suggestionNotes": [
+        "Suggested gap item code between 0060 and 0080."
+      ]
+    },
+    {
+      "id": "26-12-19.00-install-air-break-switches-and-components-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "26-12-19.00-install-and-wire-complete-three-phase-dry-type-air-cooled-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "26-12-19.00-install-oil-circuit-breakers-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "26-12-19.00-install-open-or-enclosed-disconnect-switches-each",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "31-14-13.23-loam-or-topsoil-remove-and-stockpile-onsite-6-inches-deep-200-foot-haul-cyd",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    },
+    {
+      "id": "31-23-16.30-drill-holes-feet",
+      "rejectionReasons": [
+        "workElementLineNumber missing"
+      ],
+      "recoverable": true,
+      "unrecoverableReasons": []
+    }
+  ]
+}

@@ -6213,6 +6213,78 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
   {
     "qaStatus": "approved",
     "confidence": "high",
+    "id": "03-03-11-13.25-0070",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "figure": "Figure 5-C-7",
+    "figureTitle": "Forms in Place for Concrete Production",
+    "sourcePage": "5-C-7",
+    "sourcePdfPage": 63,
+    "workElementNumber": "03 11 13.25",
+    "workElementLineNumber": "0070",
+    "category": "Plywood (job-built), one use",
+    "subcategory": "12 by 12 inches",
+    "activityName": "12 By 12 Inches",
+    "description": "12 by 12 inches",
+    "unitOfMeasure": "SF of contact surface",
+    "manHoursPerUnit": 0.237,
+    "fabricateHours": 0.085,
+    "erectStripHours": 0.137,
+    "cleanMoveHours": 0.015,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart48.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "concrete",
+      "figure",
+      "forms",
+      "place",
+      "for",
+      "production",
+      "plywood",
+      "job",
+      "built",
+      "one",
+      "use",
+      "inches",
+      "contact",
+      "surface"
+    ],
+    "canonicalId": "canonical-y3fetb",
+    "canonicalTitle": "12 By 12 Inches",
+    "canonicalDescription": "12 by 12 inches",
+    "variantLabel": "12 By 12 Inches (Figure 5-C-7)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "03-03-11-13.25-0070",
+        "figure": "Figure 5-C-7",
+        "sourcePage": "5-C-7",
+        "sourcePdfPage": 63,
+        "workElementNumber": "03 11 13.25",
+        "workElementLineNumber": "0070",
+        "originalDescription": "12 by 12 inches",
+        "originalManHoursPerUnit": 0.237,
+        "originalUnitOfMeasure": "SF of contact surface"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "12 By 12 Inches (Figure 5-C-7)",
+        "sourceProductionRateKey": "03-03-11-13.25-0070",
+        "manHoursPerUnit": 0.237,
+        "unitOfMeasure": "SF of contact surface"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
     "id": "03-03-11-13.30-0010",
     "divisionCode": "03",
     "divisionName": "Concrete",
@@ -7790,6 +7862,83 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
         "sourceProductionRateKey": "03-03-11-13.65-0060",
         "manHoursPerUnit": 0.142,
         "unitOfMeasure": "LF"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "03-03-11-13.85-0010",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "figure": "Figure 5-C-8",
+    "figureTitle": "Placing Concrete Forming Accessories Production",
+    "sourcePage": "5-C-8",
+    "sourcePdfPage": 65,
+    "workElementNumber": "03 11 13.85",
+    "workElementLineNumber": "0010",
+    "category": "Walls, Forms in Place",
+    "subcategory": "Wall, job-built plywood, to 8 feet",
+    "activityName": "Wall, Job-built Plywood, To 8 Feet",
+    "description": "Wall, job-built plywood, to 8 feet",
+    "unitOfMeasure": "SF of contact surface",
+    "manHoursPerUnit": 0.173,
+    "fabricateHours": 0.066,
+    "erectStripHours": 0.087,
+    "cleanMoveHours": 0.02,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart52.xlsx"
+    ],
+    "rowNotes": "Synced clean/move component to 0.02 so breakdown matches manHoursPerUnit 0.173. · reviewStatus=FIXED_FROM_SOURCE_PDF",
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "concrete",
+      "figure",
+      "placing",
+      "forming",
+      "accessories",
+      "production",
+      "walls",
+      "forms",
+      "place",
+      "wall",
+      "job",
+      "built",
+      "plywood",
+      "feet",
+      "contact",
+      "surface"
+    ],
+    "canonicalId": "canonical-x12wod",
+    "canonicalTitle": "Wall, Job-built Plywood, To 8 Feet",
+    "canonicalDescription": "Wall, job-built plywood, to 8 feet",
+    "variantLabel": "To 8 Feet",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "03-03-11-13.85-0010",
+        "figure": "Figure 5-C-8",
+        "sourcePage": "5-C-8",
+        "sourcePdfPage": 65,
+        "workElementNumber": "03 11 13.85",
+        "workElementLineNumber": "0010",
+        "originalDescription": "Wall, job-built plywood, to 8 feet",
+        "originalManHoursPerUnit": 0.173,
+        "originalUnitOfMeasure": "SF of contact surface"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "To 8 Feet",
+        "sourceProductionRateKey": "03-03-11-13.85-0010",
+        "manHoursPerUnit": 0.173,
+        "unitOfMeasure": "SF of contact surface",
+        "notes": [
+          "Synced clean/move component to 0.02 so breakdown matches manHoursPerUnit 0.173. · reviewStatus=FIXED_FROM_SOURCE_PDF"
+        ]
       }
     ]
   },
@@ -9522,6 +9671,76 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
         "sourceProductionRateKey": "03-03-15-05.96-0240",
         "manHoursPerUnit": 1,
         "unitOfMeasure": "SF"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "03-03-30-53.10-0040",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "figure": "Figure 5-C-15",
+    "figureTitle": "Finishing and Curing Concrete Production",
+    "sourcePage": "5-C-15",
+    "sourcePdfPage": 69,
+    "workElementNumber": "03 30 53.10",
+    "workElementLineNumber": "0040",
+    "category": "Tailor to 1 CF of capacity",
+    "subcategory": "Transit mix truck (8 CYD capacity)",
+    "activityName": "Transit Mix Truck (8 Cyd Capacity)",
+    "description": "Transit mix truck (8 CYD capacity)",
+    "unitOfMeasure": "CYD",
+    "manHoursPerUnit": 0.56,
+    "fabricateHours": 0.56,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart64.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "concrete",
+      "figure",
+      "finishing",
+      "and",
+      "curing",
+      "production",
+      "tailor",
+      "capacity",
+      "transit",
+      "mix",
+      "truck",
+      "cyd"
+    ],
+    "canonicalId": "canonical-g16b0e",
+    "canonicalTitle": "Transit Mix Truck (8 Cyd Capacity)",
+    "canonicalDescription": "Transit mix truck (8 CYD capacity)",
+    "variantLabel": "Transit Mix Truck (8 Cyd Capacity) (Figure 5-C-15)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "03-03-30-53.10-0040",
+        "figure": "Figure 5-C-15",
+        "sourcePage": "5-C-15",
+        "sourcePdfPage": 69,
+        "workElementNumber": "03 30 53.10",
+        "workElementLineNumber": "0040",
+        "originalDescription": "Transit mix truck (8 CYD capacity)",
+        "originalManHoursPerUnit": 0.56,
+        "originalUnitOfMeasure": "CYD"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Transit Mix Truck (8 Cyd Capacity) (Figure 5-C-15)",
+        "sourceProductionRateKey": "03-03-30-53.10-0040",
+        "manHoursPerUnit": 0.56,
+        "unitOfMeasure": "CYD"
       }
     ]
   },
@@ -27616,6 +27835,153 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
   {
     "qaStatus": "approved",
     "confidence": "high",
+    "id": "06-06-16-23.10-0070",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "figure": "Figure 5-F-9",
+    "figureTitle": "Heavy Timber Construction Production",
+    "sourcePage": "5-F-9",
+    "sourcePdfPage": 106,
+    "workElementNumber": "06 16 23.10",
+    "workElementLineNumber": "0070",
+    "category": "Subfloor",
+    "subcategory": "Subfloor adhesive, 3/8-inch bead",
+    "activityName": "Subfloor Adhesive, 3/8-inch Bead",
+    "description": "Subfloor adhesive, 3/8-inch bead",
+    "unitOfMeasure": "LF",
+    "manHoursPerUnit": 0.004,
+    "fabricateHours": 0.004,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart160.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "heavy",
+      "timber",
+      "construction",
+      "production",
+      "subfloor",
+      "adhesive",
+      "inch",
+      "bead"
+    ],
+    "canonicalId": "canonical-tsub1m",
+    "canonicalTitle": "Subfloor Adhesive, 3/8-inch Bead",
+    "canonicalDescription": "Subfloor adhesive, 3/8-inch bead",
+    "variantLabel": "3/8-inch Bead",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "06-06-16-23.10-0070",
+        "figure": "Figure 5-F-9",
+        "sourcePage": "5-F-9",
+        "sourcePdfPage": 106,
+        "workElementNumber": "06 16 23.10",
+        "workElementLineNumber": "0070",
+        "originalDescription": "Subfloor adhesive, 3/8-inch bead",
+        "originalManHoursPerUnit": 0.004,
+        "originalUnitOfMeasure": "LF"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "3/8-inch Bead",
+        "sourceProductionRateKey": "06-06-16-23.10-0070",
+        "manHoursPerUnit": 0.004,
+        "unitOfMeasure": "LF"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "06-06-16-23.10-0070-fileoutpart160",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "figure": "Figure 5-F-9",
+    "figureTitle": "Heavy Timber Construction Production",
+    "sourcePage": "5-F-9",
+    "sourcePdfPage": 106,
+    "workElementNumber": "06 16 23.10",
+    "workElementLineNumber": "0070",
+    "category": "Subfloor",
+    "subcategory": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+    "activityName": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average",
+    "description": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+    "unitOfMeasure": "SF",
+    "manHoursPerUnit": 0.023,
+    "fabricateHours": 0.023,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart160.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "heavy",
+      "timber",
+      "construction",
+      "production",
+      "subfloor",
+      "with",
+      "boards",
+      "inch",
+      "inches",
+      "laid",
+      "regular",
+      "diagonal",
+      "average"
+    ],
+    "canonicalId": "canonical-5szv0b",
+    "canonicalTitle": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average",
+    "canonicalDescription": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+    "variantLabel": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average (Figure 5-F-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "06-06-16-23.10-0070-fileoutpart160",
+        "figure": "Figure 5-F-9",
+        "sourcePage": "5-F-9",
+        "sourcePdfPage": 106,
+        "workElementNumber": "06 16 23.10",
+        "workElementLineNumber": "0070",
+        "originalDescription": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+        "originalManHoursPerUnit": 0.023,
+        "originalUnitOfMeasure": "SF"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average (Figure 5-F-9)",
+        "sourceProductionRateKey": "06-06-16-23.10-0070-fileoutpart160",
+        "manHoursPerUnit": 0.023,
+        "unitOfMeasure": "SF"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
     "id": "06-06-16-23.10-0010",
     "divisionCode": "06",
     "divisionName": "Wood, Plastics, and Composites",
@@ -28807,6 +29173,77 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
         "sourceProductionRateKey": "06-06-16-36.10-0130",
         "manHoursPerUnit": 0.017,
         "unitOfMeasure": "SF"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "06-06-22-13.40-0070",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "figure": "Figure 5-F-11",
+    "figureTitle": "Millwork and Stairs Production",
+    "sourcePage": "5-F-11",
+    "sourcePdfPage": 107,
+    "workElementNumber": "06 22 13.40",
+    "workElementLineNumber": "0070",
+    "category": "Moldings, Exterior",
+    "subcategory": "and casing, crown, 11/16 by 4 1/4 inches",
+    "activityName": "And Casing, Crown, 11/16 By 4 1/4 Inches",
+    "description": "and casing, crown, 11/16 by 4 1/4 inches",
+    "unitOfMeasure": "LF",
+    "manHoursPerUnit": 0.043,
+    "fabricateHours": 0.043,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart162.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "millwork",
+      "stairs",
+      "production",
+      "moldings",
+      "exterior",
+      "casing",
+      "crown",
+      "inches"
+    ],
+    "canonicalId": "canonical-8aqmbs",
+    "canonicalTitle": "And Casing, Crown, 11/16 By 4 1/4 Inches",
+    "canonicalDescription": "and casing, crown, 11/16 by 4 1/4 inches",
+    "variantLabel": "11/16 By 4 1/4 Inches",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "06-06-22-13.40-0070",
+        "figure": "Figure 5-F-11",
+        "sourcePage": "5-F-11",
+        "sourcePdfPage": 107,
+        "workElementNumber": "06 22 13.40",
+        "workElementLineNumber": "0070",
+        "originalDescription": "and casing, crown, 11/16 by 4 1/4 inches",
+        "originalManHoursPerUnit": 0.043,
+        "originalUnitOfMeasure": "LF"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "11/16 By 4 1/4 Inches",
+        "sourceProductionRateKey": "06-06-22-13.40-0070",
+        "manHoursPerUnit": 0.043,
+        "unitOfMeasure": "LF"
       }
     ]
   },
@@ -63479,6 +63916,80 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
   {
     "qaStatus": "approved",
     "confidence": "high",
+    "id": "12-12-32-23.10-0030",
+    "divisionCode": "12",
+    "divisionName": "Furnishings",
+    "figure": "Figure 5-K-11",
+    "figureTitle": "Furniture Production",
+    "sourcePage": "5-K-11",
+    "sourcePdfPage": 147,
+    "workElementNumber": "12 32 23.10",
+    "workElementLineNumber": "0030",
+    "category": "(0030) Kitchen base cabinets, not including counter tops",
+    "subcategory": "various sizes, average",
+    "activityName": "Various Sizes, Average",
+    "description": "various sizes, average",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 0.954,
+    "fabricateHours": 0.954,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart270.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "furnishings",
+      "figure",
+      "furniture",
+      "production",
+      "0030",
+      "kitchen",
+      "base",
+      "cabinets",
+      "not",
+      "including",
+      "counter",
+      "tops",
+      "various",
+      "sizes",
+      "average",
+      "each"
+    ],
+    "canonicalId": "canonical-jls61l",
+    "canonicalTitle": "Various Sizes, Average",
+    "canonicalDescription": "various sizes, average",
+    "variantLabel": "Various Sizes, Average (Figure 5-K-11)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "12-12-32-23.10-0030",
+        "figure": "Figure 5-K-11",
+        "sourcePage": "5-K-11",
+        "sourcePdfPage": 147,
+        "workElementNumber": "12 32 23.10",
+        "workElementLineNumber": "0030",
+        "originalDescription": "various sizes, average",
+        "originalManHoursPerUnit": 0.954,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Various Sizes, Average (Figure 5-K-11)",
+        "sourceProductionRateKey": "12-12-32-23.10-0030",
+        "manHoursPerUnit": 0.954,
+        "unitOfMeasure": "Each"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
     "id": "12-12-32-23.10-0010",
     "divisionCode": "12",
     "divisionName": "Furnishings",
@@ -64121,6 +64632,89 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
         "notes": [
           "reviewStatus=FIXED_FROM_SOURCE_PDF"
         ]
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "13-13-31-23.50-0040",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "figure": "Figure 5-L-9",
+    "figureTitle": "Portable and Mobile Building Production",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 150,
+    "workElementNumber": "13 31 23.50",
+    "workElementLineNumber": "0040",
+    "category": "Minimum suggested crew size: Structure installation: one steelworker (crew leader), four laborers, two equipment operators.",
+    "subcategory": "Roll-up door (minimum)",
+    "activityName": "Roll-up Door (minimum)",
+    "description": "Roll-up door (minimum)",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 20,
+    "fabricateHours": 20,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart276.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "minimum",
+      "suggested",
+      "crew",
+      "size",
+      "structure",
+      "installation",
+      "one",
+      "steelworker",
+      "leader",
+      "four",
+      "laborers",
+      "two",
+      "equipment",
+      "operators",
+      "roll",
+      "door",
+      "each"
+    ],
+    "canonicalId": "canonical-vlevlg",
+    "canonicalTitle": "Roll-up Door (minimum)",
+    "canonicalDescription": "Roll-up door (minimum)",
+    "variantLabel": "Roll-up Door (minimum) (Figure 5-L-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-31-23.50-0040",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 150,
+        "workElementNumber": "13 31 23.50",
+        "workElementLineNumber": "0040",
+        "originalDescription": "Roll-up door (minimum)",
+        "originalManHoursPerUnit": 20,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Roll-up Door (minimum) (Figure 5-L-9)",
+        "sourceProductionRateKey": "13-13-31-23.50-0040",
+        "manHoursPerUnit": 20,
+        "unitOfMeasure": "Each"
       }
     ]
   },
@@ -67154,6 +67748,228 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
         "sourceProductionRateKey": "13-13-31-33.00-0730",
         "manHoursPerUnit": 4.5,
         "unitOfMeasure": "Each"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "13-13-34-19.50-0090",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "figure": "Figure 5-L-9",
+    "figureTitle": "Portable and Mobile Building Production",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 152,
+    "workElementNumber": "13 34 19.50",
+    "workElementLineNumber": "0090",
+    "category": "(0070) 10-foot-eave height",
+    "subcategory": "40-foot width",
+    "activityName": "40-foot Width",
+    "description": "40-foot width",
+    "unitOfMeasure": "SF of floor",
+    "manHoursPerUnit": 0.124,
+    "fabricateHours": 0.124,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart284.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "0070",
+      "foot",
+      "eave",
+      "height",
+      "width",
+      "floor"
+    ],
+    "canonicalId": "canonical-kojgw4",
+    "canonicalTitle": "40-foot Width",
+    "canonicalDescription": "40-foot width",
+    "variantLabel": "40-foot Width (Figure 5-L-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-34-19.50-0090",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 152,
+        "workElementNumber": "13 34 19.50",
+        "workElementLineNumber": "0090",
+        "originalDescription": "40-foot width",
+        "originalManHoursPerUnit": 0.124,
+        "originalUnitOfMeasure": "SF of floor"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "40-foot Width (Figure 5-L-9)",
+        "sourceProductionRateKey": "13-13-34-19.50-0090",
+        "manHoursPerUnit": 0.124,
+        "unitOfMeasure": "SF of floor"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "13-13-34-19.50-0110",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "figure": "Figure 5-L-9",
+    "figureTitle": "Portable and Mobile Building Production",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 152,
+    "workElementNumber": "13 34 19.50",
+    "workElementLineNumber": "0110",
+    "category": "(0090) 10-foot-eave height",
+    "subcategory": "50- to 80-foot width",
+    "activityName": "50- To 80-foot Width",
+    "description": "50- to 80-foot width",
+    "unitOfMeasure": "SF of floor",
+    "manHoursPerUnit": 0.097,
+    "fabricateHours": 0.097,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart284.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "0090",
+      "foot",
+      "eave",
+      "height",
+      "width",
+      "floor"
+    ],
+    "canonicalId": "canonical-tw6oka",
+    "canonicalTitle": "50- To 80-foot Width",
+    "canonicalDescription": "50- to 80-foot width",
+    "variantLabel": "50- To 80-foot Width (Figure 5-L-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-34-19.50-0110",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 152,
+        "workElementNumber": "13 34 19.50",
+        "workElementLineNumber": "0110",
+        "originalDescription": "50- to 80-foot width",
+        "originalManHoursPerUnit": 0.097,
+        "originalUnitOfMeasure": "SF of floor"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "50- To 80-foot Width (Figure 5-L-9)",
+        "sourceProductionRateKey": "13-13-34-19.50-0110",
+        "manHoursPerUnit": 0.097,
+        "unitOfMeasure": "SF of floor"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "13-13-34-19.50-0070",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "figure": "Figure 5-L-9",
+    "figureTitle": "Portable and Mobile Building Production",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 152,
+    "workElementNumber": "13 34 19.50",
+    "workElementLineNumber": "0070",
+    "category": "50- to 100-foot width",
+    "subcategory": "Clear span tapered beam frame, 26-gauge roofing and siding",
+    "activityName": "Clear Span Tapered Beam Frame, 26-gauge Roofing And Siding",
+    "description": "Clear span tapered beam frame, 26-gauge roofing and siding",
+    "unitOfMeasure": "SF of floor",
+    "manHoursPerUnit": 0.14,
+    "fabricateHours": 0.14,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart284.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "100",
+      "foot",
+      "width",
+      "clear",
+      "span",
+      "tapered",
+      "beam",
+      "frame",
+      "gauge",
+      "roofing",
+      "siding",
+      "floor"
+    ],
+    "canonicalId": "canonical-n0ov7l",
+    "canonicalTitle": "Clear Span Tapered Beam Frame, 26-gauge Roofing And Siding",
+    "canonicalDescription": "Clear span tapered beam frame, 26-gauge roofing and siding",
+    "variantLabel": "26-gauge Roofing And Siding",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-34-19.50-0070",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 152,
+        "workElementNumber": "13 34 19.50",
+        "workElementLineNumber": "0070",
+        "originalDescription": "Clear span tapered beam frame, 26-gauge roofing and siding",
+        "originalManHoursPerUnit": 0.14,
+        "originalUnitOfMeasure": "SF of floor"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "26-gauge Roofing And Siding",
+        "sourceProductionRateKey": "13-13-34-19.50-0070",
+        "manHoursPerUnit": 0.14,
+        "unitOfMeasure": "SF of floor"
       }
     ]
   },
@@ -72123,6 +72939,80 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
   {
     "qaStatus": "approved",
     "confidence": "high",
+    "id": "21-21-22-16.50-0150",
+    "divisionCode": "21",
+    "divisionName": "Fire Suppression",
+    "figure": "Figure 5-M-4",
+    "figureTitle": "Centrifugal Fire Pumps Production",
+    "sourcePage": "5-M-4",
+    "sourcePdfPage": 161,
+    "workElementNumber": "21 22 16.50",
+    "workElementLineNumber": "0150",
+    "category": "FM200 system, filled, including mounting bracket",
+    "subcategory": "Standby power, battery",
+    "activityName": "Standby Power, Battery",
+    "description": "Standby power, battery",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 3.737,
+    "fabricateHours": 3.737,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart308.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "fire",
+      "suppression",
+      "figure",
+      "centrifugal",
+      "pumps",
+      "production",
+      "fm200",
+      "system",
+      "filled",
+      "including",
+      "mounting",
+      "bracket",
+      "standby",
+      "power",
+      "battery",
+      "each"
+    ],
+    "canonicalId": "canonical-a8wlbk",
+    "canonicalTitle": "Standby Power, Battery",
+    "canonicalDescription": "Standby power, battery",
+    "variantLabel": "Standby Power, Battery (Figure 5-M-4)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "21-21-22-16.50-0150",
+        "figure": "Figure 5-M-4",
+        "sourcePage": "5-M-4",
+        "sourcePdfPage": 161,
+        "workElementNumber": "21 22 16.50",
+        "workElementLineNumber": "0150",
+        "originalDescription": "Standby power, battery",
+        "originalManHoursPerUnit": 3.737,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Standby Power, Battery (Figure 5-M-4)",
+        "sourceProductionRateKey": "21-21-22-16.50-0150",
+        "manHoursPerUnit": 3.737,
+        "unitOfMeasure": "Each"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
     "id": "21-21-22-16.50-0020",
     "divisionCode": "21",
     "divisionName": "Fire Suppression",
@@ -73976,6 +74866,156 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
     "sourcePdfPage": 164,
     "workElementNumber": "22 05 23.20",
     "workElementLineNumber": "0010",
+    "category": "Globe",
+    "subcategory": "Mixing",
+    "activityName": "Mixing",
+    "description": "Mixing",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 200,
+    "fabricateHours": 200,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart312.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "plumbing",
+      "figure",
+      "cast",
+      "iron",
+      "pipe",
+      "and",
+      "fittings",
+      "globe",
+      "mixing",
+      "each"
+    ],
+    "canonicalId": "canonical-68law0",
+    "canonicalTitle": "Mixing",
+    "canonicalDescription": "Mixing",
+    "variantLabel": "Mixing (Figure 5-N-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "figure": "Figure 5-N-9",
+        "sourcePage": "5-N-9",
+        "sourcePdfPage": 164,
+        "workElementNumber": "22 05 23.20",
+        "workElementLineNumber": "0010",
+        "originalDescription": "Mixing",
+        "originalManHoursPerUnit": 200,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Mixing (Figure 5-N-9)",
+        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "manHoursPerUnit": 200,
+        "unitOfMeasure": "Each"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "22-22-05-23.20-0010-fileoutpart312",
+    "divisionCode": "22",
+    "divisionName": "Plumbing",
+    "figure": "Figure 5-N-9",
+    "figureTitle": "Cast Iron Pipe and Fittings",
+    "sourcePage": "5-N-9",
+    "sourcePdfPage": 164,
+    "workElementNumber": "22 05 23.20",
+    "workElementLineNumber": "0010",
+    "category": "Valves, Bronze",
+    "subcategory": "Average time for bronze angle, ball, swing-check, gate, globe valves, 1/8-1/2 inch pipe diameter",
+    "activityName": "Relief, Pressure And Temperature",
+    "description": "Relief, pressure and temperature",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 0.532,
+    "fabricateHours": null,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart312.xlsx"
+    ],
+    "rowNotes": "reviewStatus=FIXED_FROM_SOURCE_PDF",
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "plumbing",
+      "figure",
+      "cast",
+      "iron",
+      "pipe",
+      "and",
+      "fittings",
+      "globe",
+      "relief",
+      "pressure",
+      "temperature",
+      "each",
+      "valves",
+      "bronze",
+      "average",
+      "time",
+      "for",
+      "angle",
+      "ball",
+      "swing",
+      "check",
+      "gate",
+      "inch",
+      "diameter"
+    ],
+    "canonicalId": "canonical-oq65vv",
+    "canonicalTitle": "Relief, Pressure And Temperature",
+    "canonicalDescription": "Relief, pressure and temperature",
+    "variantLabel": "Relief, Pressure And Temperature (Figure 5-N-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
+        "figure": "Figure 5-N-9",
+        "sourcePage": "5-N-9",
+        "sourcePdfPage": 164,
+        "workElementNumber": "22 05 23.20",
+        "workElementLineNumber": "0010",
+        "originalDescription": "Relief, pressure and temperature",
+        "originalManHoursPerUnit": 0.532,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Relief, Pressure And Temperature (Figure 5-N-9)",
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
+        "manHoursPerUnit": 0.532,
+        "unitOfMeasure": "Each"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "22-22-05-23.20-0010-fileoutpart312",
+    "divisionCode": "22",
+    "divisionName": "Plumbing",
+    "figure": "Figure 5-N-9",
+    "figureTitle": "Cast Iron Pipe and Fittings",
+    "sourcePage": "5-N-9",
+    "sourcePdfPage": 164,
+    "workElementNumber": "22 05 23.20",
+    "workElementLineNumber": "0010",
     "category": "Valves, Bronze",
     "subcategory": "Average time for bronze angle, ball, swing-check, gate, globe valves, 1/8-1/2 inch pipe diameter",
     "activityName": "Average Time For Bronze Angle, Ball, Swing-check, Gate, Globe Valves, 1/8-1/2 Inch Pipe Diameter",
@@ -74023,7 +75063,7 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
     "variantLabel": "1/8-1/2 Inch Pipe Diameter",
     "sourceReferences": [
       {
-        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
         "figure": "Figure 5-N-9",
         "sourcePage": "5-N-9",
         "sourcePdfPage": 164,
@@ -74037,7 +75077,7 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
     "allVariants": [
       {
         "label": "1/8-1/2 Inch Pipe Diameter",
-        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
         "manHoursPerUnit": 0.443,
         "unitOfMeasure": "Each",
         "notes": [
@@ -84461,6 +85501,78 @@ export const GENERATED_CANONICAL_PRODUCTION_RATE_INDEX: readonly (ProductionRate
         "sourceProductionRateKey": "23-23-74-00.00-0100",
         "manHoursPerUnit": 0.002,
         "unitOfMeasure": "CF"
+      }
+    ]
+  },
+  {
+    "qaStatus": "approved",
+    "confidence": "high",
+    "id": "26-26-05-00.00-0070",
+    "divisionCode": "26",
+    "divisionName": "Electrical",
+    "figure": "Figure 5-Q-9",
+    "figureTitle": "Bus Duct/Busway and Fittings Production",
+    "sourcePage": "5-Q-9",
+    "sourcePdfPage": 181,
+    "workElementNumber": "26 05 00.00",
+    "workElementLineNumber": "0070",
+    "category": "Install Transformer on Poles",
+    "subcategory": "Install secondary racks",
+    "activityName": "Secondary Racks",
+    "description": "Install secondary racks",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 2.4,
+    "fabricateHours": 2.4,
+    "erectStripHours": null,
+    "cleanMoveHours": null,
+    "crewSize": null,
+    "figureCrewNotes": null,
+    "figureNotes": [
+      "Adobe table fileoutpart352.xlsx"
+    ],
+    "rowNotes": null,
+    "sourceDocumentFull": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "referenceNote": "Reference rate from NTRP/MCRP Construction Estimating. Adjust for site conditions, crew skill, weather, and project constraints.",
+    "keywords": [
+      "electrical",
+      "figure",
+      "bus",
+      "duct",
+      "busway",
+      "and",
+      "fittings",
+      "production",
+      "install",
+      "transformer",
+      "poles",
+      "secondary",
+      "racks",
+      "each"
+    ],
+    "canonicalId": "canonical-hodmbo",
+    "canonicalTitle": "Secondary Racks",
+    "canonicalDescription": "Install secondary racks",
+    "variantLabel": "Secondary Racks (Figure 5-Q-9)",
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "26-26-05-00.00-0070",
+        "figure": "Figure 5-Q-9",
+        "sourcePage": "5-Q-9",
+        "sourcePdfPage": 181,
+        "workElementNumber": "26 05 00.00",
+        "workElementLineNumber": "0070",
+        "originalDescription": "Install secondary racks",
+        "originalManHoursPerUnit": 2.4,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "allVariants": [
+      {
+        "label": "Secondary Racks (Figure 5-Q-9)",
+        "sourceProductionRateKey": "26-26-05-00.00-0070",
+        "manHoursPerUnit": 2.4,
+        "unitOfMeasure": "Each"
       }
     ]
   },

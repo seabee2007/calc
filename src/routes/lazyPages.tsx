@@ -164,3 +164,6 @@ export const LazyActivityEstimatePreview = lazyPage(
 export const LazyProductionRateReviewPage = lazyPage(
   () => import('../features/estimating/ui/dev/ProductionRateReviewPage'),
 );
+export const LazyAdobeRejectedRecoveryPage = lazyPage(
+  () => import('../features/estimating/ui/dev/AdobeRejectedRecoveryPage'),
+);

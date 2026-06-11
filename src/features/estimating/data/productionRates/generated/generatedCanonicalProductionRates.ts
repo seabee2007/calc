@@ -4717,6 +4717,60 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     ]
   },
   {
+    "id": "canonical-y3fetb",
+    "canonicalKey": "03|plywood job-built one use|03 11 13.25|sf_contact|12 by 12 inches|0.237",
+    "qaStatus": "approved",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "category": "Plywood (job-built), one use",
+    "canonicalTitle": "12 By 12 Inches",
+    "canonicalDescription": "12 by 12 inches",
+    "unitOfMeasure": "SF of contact surface",
+    "manHoursPerUnit": 0.237,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "03-03-11-13.25-0070"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "03-03-11-13.25-0070",
+        "figure": "Figure 5-C-7",
+        "sourcePage": "5-C-7",
+        "sourcePdfPage": 63,
+        "workElementNumber": "03 11 13.25",
+        "workElementLineNumber": "0070",
+        "originalDescription": "12 by 12 inches",
+        "originalManHoursPerUnit": 0.237,
+        "originalUnitOfMeasure": "SF of contact surface"
+      }
+    ],
+    "variants": [
+      {
+        "label": "12 By 12 Inches (Figure 5-C-7)",
+        "sourceProductionRateKey": "03-03-11-13.25-0070",
+        "manHoursPerUnit": 0.237,
+        "unitOfMeasure": "SF of contact surface"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "concrete",
+      "figure",
+      "forms",
+      "place",
+      "for",
+      "production",
+      "plywood",
+      "job",
+      "built",
+      "one",
+      "use",
+      "inches",
+      "contact",
+      "surface"
+    ]
+  },
+  {
     "id": "canonical-ok3ftu",
     "canonicalKey": "03|plywood job-built one use|03 11 13.30|sf_contact|culvert forms in place 0010 5 to 8 foot square or rectangular|0.25",
     "qaStatus": "approved",
@@ -5901,6 +5955,65 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
       "from",
       "inches",
       "high"
+    ]
+  },
+  {
+    "id": "canonical-x12wod",
+    "canonicalKey": "03|walls forms in place|03 11 13.85|sf_contact|wall job-built plywood to 8 feet|0.173",
+    "qaStatus": "approved",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "category": "Walls, Forms in Place",
+    "canonicalTitle": "Wall, Job-built Plywood, To 8 Feet",
+    "canonicalDescription": "Wall, job-built plywood, to 8 feet",
+    "unitOfMeasure": "SF of contact surface",
+    "manHoursPerUnit": 0.173,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "03-03-11-13.85-0010"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "03-03-11-13.85-0010",
+        "figure": "Figure 5-C-8",
+        "sourcePage": "5-C-8",
+        "sourcePdfPage": 65,
+        "workElementNumber": "03 11 13.85",
+        "workElementLineNumber": "0010",
+        "originalDescription": "Wall, job-built plywood, to 8 feet",
+        "originalManHoursPerUnit": 0.173,
+        "originalUnitOfMeasure": "SF of contact surface"
+      }
+    ],
+    "variants": [
+      {
+        "label": "To 8 Feet",
+        "sourceProductionRateKey": "03-03-11-13.85-0010",
+        "manHoursPerUnit": 0.173,
+        "unitOfMeasure": "SF of contact surface",
+        "notes": [
+          "Synced clean/move component to 0.02 so breakdown matches manHoursPerUnit 0.173. · reviewStatus=FIXED_FROM_SOURCE_PDF"
+        ]
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "concrete",
+      "figure",
+      "placing",
+      "forming",
+      "accessories",
+      "production",
+      "walls",
+      "forms",
+      "place",
+      "wall",
+      "job",
+      "built",
+      "plywood",
+      "feet",
+      "contact",
+      "surface"
     ]
   },
   {
@@ -7209,6 +7322,58 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
       "slab",
       "deep",
       "compacted"
+    ]
+  },
+  {
+    "id": "canonical-g16b0e",
+    "canonicalKey": "03|tailor to 1 cf of capacity|03 30 53.10|cyd|transit mix truck 8 cyd capacity|0.56",
+    "qaStatus": "approved",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "category": "Tailor to 1 CF of capacity",
+    "canonicalTitle": "Transit Mix Truck (8 Cyd Capacity)",
+    "canonicalDescription": "Transit mix truck (8 CYD capacity)",
+    "unitOfMeasure": "CYD",
+    "manHoursPerUnit": 0.56,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "03-03-30-53.10-0040"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "03-03-30-53.10-0040",
+        "figure": "Figure 5-C-15",
+        "sourcePage": "5-C-15",
+        "sourcePdfPage": 69,
+        "workElementNumber": "03 30 53.10",
+        "workElementLineNumber": "0040",
+        "originalDescription": "Transit mix truck (8 CYD capacity)",
+        "originalManHoursPerUnit": 0.56,
+        "originalUnitOfMeasure": "CYD"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Transit Mix Truck (8 Cyd Capacity) (Figure 5-C-15)",
+        "sourceProductionRateKey": "03-03-30-53.10-0040",
+        "manHoursPerUnit": 0.56,
+        "unitOfMeasure": "CYD"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "concrete",
+      "figure",
+      "finishing",
+      "and",
+      "curing",
+      "production",
+      "tailor",
+      "capacity",
+      "transit",
+      "mix",
+      "truck",
+      "cyd"
     ]
   },
   {
@@ -21696,6 +21861,117 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     ]
   },
   {
+    "id": "canonical-tsub1m",
+    "canonicalKey": "06|subfloor|06 16 23.10|lf|subfloor adhesive 3 8-inch bead|0.004",
+    "qaStatus": "approved",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "category": "Subfloor",
+    "canonicalTitle": "Subfloor Adhesive, 3/8-inch Bead",
+    "canonicalDescription": "Subfloor adhesive, 3/8-inch bead",
+    "unitOfMeasure": "LF",
+    "manHoursPerUnit": 0.004,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "06-06-16-23.10-0070"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "06-06-16-23.10-0070",
+        "figure": "Figure 5-F-9",
+        "sourcePage": "5-F-9",
+        "sourcePdfPage": 106,
+        "workElementNumber": "06 16 23.10",
+        "workElementLineNumber": "0070",
+        "originalDescription": "Subfloor adhesive, 3/8-inch bead",
+        "originalManHoursPerUnit": 0.004,
+        "originalUnitOfMeasure": "LF"
+      }
+    ],
+    "variants": [
+      {
+        "label": "3/8-inch Bead",
+        "sourceProductionRateKey": "06-06-16-23.10-0070",
+        "manHoursPerUnit": 0.004,
+        "unitOfMeasure": "LF"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "heavy",
+      "timber",
+      "construction",
+      "production",
+      "subfloor",
+      "adhesive",
+      "inch",
+      "bead"
+    ]
+  },
+  {
+    "id": "canonical-5szv0b",
+    "canonicalKey": "06|subfloor|06 16 23.10|sf|with boards 1 inch by 6 to 10 inches laid regular or diagonal average|0.023",
+    "qaStatus": "approved",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "category": "Subfloor",
+    "canonicalTitle": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average",
+    "canonicalDescription": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+    "unitOfMeasure": "SF",
+    "manHoursPerUnit": 0.023,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "06-06-16-23.10-0070-fileoutpart160"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "06-06-16-23.10-0070-fileoutpart160",
+        "figure": "Figure 5-F-9",
+        "sourcePage": "5-F-9",
+        "sourcePdfPage": 106,
+        "workElementNumber": "06 16 23.10",
+        "workElementLineNumber": "0070",
+        "originalDescription": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+        "originalManHoursPerUnit": 0.023,
+        "originalUnitOfMeasure": "SF"
+      }
+    ],
+    "variants": [
+      {
+        "label": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average (Figure 5-F-9)",
+        "sourceProductionRateKey": "06-06-16-23.10-0070-fileoutpart160",
+        "manHoursPerUnit": 0.023,
+        "unitOfMeasure": "SF"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "heavy",
+      "timber",
+      "construction",
+      "production",
+      "subfloor",
+      "with",
+      "boards",
+      "inch",
+      "inches",
+      "laid",
+      "regular",
+      "diagonal",
+      "average"
+    ]
+  },
+  {
     "id": "canonical-aumr8y",
     "canonicalKey": "06|subfloor|06 16 23.10|sf|plywood 1 2 inch thick|0.015",
     "qaStatus": "approved",
@@ -22618,6 +22894,59 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
       "other",
       "miscellaneous",
       "materiel"
+    ]
+  },
+  {
+    "id": "canonical-8aqmbs",
+    "canonicalKey": "06|moldings exterior|06 22 13.40|lf|and casing crown 11 16 by 4 1 4 inches|0.043",
+    "qaStatus": "approved",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "category": "Moldings, Exterior",
+    "canonicalTitle": "And Casing, Crown, 11/16 By 4 1/4 Inches",
+    "canonicalDescription": "and casing, crown, 11/16 by 4 1/4 inches",
+    "unitOfMeasure": "LF",
+    "manHoursPerUnit": 0.043,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "06-06-22-13.40-0070"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "06-06-22-13.40-0070",
+        "figure": "Figure 5-F-11",
+        "sourcePage": "5-F-11",
+        "sourcePdfPage": 107,
+        "workElementNumber": "06 22 13.40",
+        "workElementLineNumber": "0070",
+        "originalDescription": "and casing, crown, 11/16 by 4 1/4 inches",
+        "originalManHoursPerUnit": 0.043,
+        "originalUnitOfMeasure": "LF"
+      }
+    ],
+    "variants": [
+      {
+        "label": "11/16 By 4 1/4 Inches",
+        "sourceProductionRateKey": "06-06-22-13.40-0070",
+        "manHoursPerUnit": 0.043,
+        "unitOfMeasure": "LF"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "millwork",
+      "stairs",
+      "production",
+      "moldings",
+      "exterior",
+      "casing",
+      "crown",
+      "inches"
     ]
   },
   {
@@ -49217,6 +49546,62 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     ]
   },
   {
+    "id": "canonical-jls61l",
+    "canonicalKey": "12|0030 kitchen base cabinets not including counter tops|12 32 23.10|each|various sizes average|0.954",
+    "qaStatus": "approved",
+    "divisionCode": "12",
+    "divisionName": "Furnishings",
+    "category": "(0030) Kitchen base cabinets, not including counter tops",
+    "canonicalTitle": "Various Sizes, Average",
+    "canonicalDescription": "various sizes, average",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 0.954,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "12-12-32-23.10-0030"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "12-12-32-23.10-0030",
+        "figure": "Figure 5-K-11",
+        "sourcePage": "5-K-11",
+        "sourcePdfPage": 147,
+        "workElementNumber": "12 32 23.10",
+        "workElementLineNumber": "0030",
+        "originalDescription": "various sizes, average",
+        "originalManHoursPerUnit": 0.954,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Various Sizes, Average (Figure 5-K-11)",
+        "sourceProductionRateKey": "12-12-32-23.10-0030",
+        "manHoursPerUnit": 0.954,
+        "unitOfMeasure": "Each"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "furnishings",
+      "figure",
+      "furniture",
+      "production",
+      "0030",
+      "kitchen",
+      "base",
+      "cabinets",
+      "not",
+      "including",
+      "counter",
+      "tops",
+      "various",
+      "sizes",
+      "average",
+      "each"
+    ]
+  },
+  {
     "id": "canonical-zicmav",
     "canonicalKey": "12|manufactured wood casework stock units|12 32 23.10|lf|built-in drawer units 18 inches deep 32 inches high minimum|0.402",
     "qaStatus": "approved",
@@ -49699,6 +50084,71 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
       "facility",
       "install",
       "barrel",
+      "each"
+    ]
+  },
+  {
+    "id": "canonical-vlevlg",
+    "canonicalKey": "13|minimum suggested crew size structure installation one steelworker crew leader four laborers two equipment operators.|13 31 23.50|each|roll-up door minimum|20",
+    "qaStatus": "approved",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "category": "Minimum suggested crew size: Structure installation: one steelworker (crew leader), four laborers, two equipment operators.",
+    "canonicalTitle": "Roll-up Door (minimum)",
+    "canonicalDescription": "Roll-up door (minimum)",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 20,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "13-13-31-23.50-0040"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-31-23.50-0040",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 150,
+        "workElementNumber": "13 31 23.50",
+        "workElementLineNumber": "0040",
+        "originalDescription": "Roll-up door (minimum)",
+        "originalManHoursPerUnit": 20,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Roll-up Door (minimum) (Figure 5-L-9)",
+        "sourceProductionRateKey": "13-13-31-23.50-0040",
+        "manHoursPerUnit": 20,
+        "unitOfMeasure": "Each"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "minimum",
+      "suggested",
+      "crew",
+      "size",
+      "structure",
+      "installation",
+      "one",
+      "steelworker",
+      "leader",
+      "four",
+      "laborers",
+      "two",
+      "equipment",
+      "operators",
+      "roll",
+      "door",
       "each"
     ]
   },
@@ -52025,6 +52475,174 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
       "and",
       "strike",
       "each"
+    ]
+  },
+  {
+    "id": "canonical-kojgw4",
+    "canonicalKey": "13|0070 10-foot-eave height|13 34 19.50|sf_floor|40-foot width|0.124",
+    "qaStatus": "approved",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "category": "(0070) 10-foot-eave height",
+    "canonicalTitle": "40-foot Width",
+    "canonicalDescription": "40-foot width",
+    "unitOfMeasure": "SF of floor",
+    "manHoursPerUnit": 0.124,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "13-13-34-19.50-0090"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-34-19.50-0090",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 152,
+        "workElementNumber": "13 34 19.50",
+        "workElementLineNumber": "0090",
+        "originalDescription": "40-foot width",
+        "originalManHoursPerUnit": 0.124,
+        "originalUnitOfMeasure": "SF of floor"
+      }
+    ],
+    "variants": [
+      {
+        "label": "40-foot Width (Figure 5-L-9)",
+        "sourceProductionRateKey": "13-13-34-19.50-0090",
+        "manHoursPerUnit": 0.124,
+        "unitOfMeasure": "SF of floor"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "0070",
+      "foot",
+      "eave",
+      "height",
+      "width",
+      "floor"
+    ]
+  },
+  {
+    "id": "canonical-tw6oka",
+    "canonicalKey": "13|0090 10-foot-eave height|13 34 19.50|sf_floor|50- to 80-foot width|0.097",
+    "qaStatus": "approved",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "category": "(0090) 10-foot-eave height",
+    "canonicalTitle": "50- To 80-foot Width",
+    "canonicalDescription": "50- to 80-foot width",
+    "unitOfMeasure": "SF of floor",
+    "manHoursPerUnit": 0.097,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "13-13-34-19.50-0110"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-34-19.50-0110",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 152,
+        "workElementNumber": "13 34 19.50",
+        "workElementLineNumber": "0110",
+        "originalDescription": "50- to 80-foot width",
+        "originalManHoursPerUnit": 0.097,
+        "originalUnitOfMeasure": "SF of floor"
+      }
+    ],
+    "variants": [
+      {
+        "label": "50- To 80-foot Width (Figure 5-L-9)",
+        "sourceProductionRateKey": "13-13-34-19.50-0110",
+        "manHoursPerUnit": 0.097,
+        "unitOfMeasure": "SF of floor"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "0090",
+      "foot",
+      "eave",
+      "height",
+      "width",
+      "floor"
+    ]
+  },
+  {
+    "id": "canonical-n0ov7l",
+    "canonicalKey": "13|50- to 100-foot width|13 34 19.50|sf_floor|clear span tapered beam frame 26-gauge roofing and siding|0.14",
+    "qaStatus": "approved",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "category": "50- to 100-foot width",
+    "canonicalTitle": "Clear Span Tapered Beam Frame, 26-gauge Roofing And Siding",
+    "canonicalDescription": "Clear span tapered beam frame, 26-gauge roofing and siding",
+    "unitOfMeasure": "SF of floor",
+    "manHoursPerUnit": 0.14,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "13-13-34-19.50-0070"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "13-13-34-19.50-0070",
+        "figure": "Figure 5-L-9",
+        "sourcePage": "5-L-9",
+        "sourcePdfPage": 152,
+        "workElementNumber": "13 34 19.50",
+        "workElementLineNumber": "0070",
+        "originalDescription": "Clear span tapered beam frame, 26-gauge roofing and siding",
+        "originalManHoursPerUnit": 0.14,
+        "originalUnitOfMeasure": "SF of floor"
+      }
+    ],
+    "variants": [
+      {
+        "label": "26-gauge Roofing And Siding",
+        "sourceProductionRateKey": "13-13-34-19.50-0070",
+        "manHoursPerUnit": 0.14,
+        "unitOfMeasure": "SF of floor"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production",
+      "100",
+      "foot",
+      "width",
+      "clear",
+      "span",
+      "tapered",
+      "beam",
+      "frame",
+      "gauge",
+      "roofing",
+      "siding",
+      "floor"
     ]
   },
   {
@@ -56103,6 +56721,62 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     ]
   },
   {
+    "id": "canonical-a8wlbk",
+    "canonicalKey": "21|fm200 system filled including mounting bracket|21 22 16.50|each|standby power battery|3.737",
+    "qaStatus": "approved",
+    "divisionCode": "21",
+    "divisionName": "Fire Suppression",
+    "category": "FM200 system, filled, including mounting bracket",
+    "canonicalTitle": "Standby Power, Battery",
+    "canonicalDescription": "Standby power, battery",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 3.737,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "21-21-22-16.50-0150"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "21-21-22-16.50-0150",
+        "figure": "Figure 5-M-4",
+        "sourcePage": "5-M-4",
+        "sourcePdfPage": 161,
+        "workElementNumber": "21 22 16.50",
+        "workElementLineNumber": "0150",
+        "originalDescription": "Standby power, battery",
+        "originalManHoursPerUnit": 3.737,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Standby Power, Battery (Figure 5-M-4)",
+        "sourceProductionRateKey": "21-21-22-16.50-0150",
+        "manHoursPerUnit": 3.737,
+        "unitOfMeasure": "Each"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "fire",
+      "suppression",
+      "figure",
+      "centrifugal",
+      "pumps",
+      "production",
+      "fm200",
+      "system",
+      "filled",
+      "including",
+      "mounting",
+      "bracket",
+      "standby",
+      "power",
+      "battery",
+      "each"
+    ]
+  },
+  {
     "id": "canonical-9hcw21",
     "canonicalKey": "21|fm200 fire extinguishing system 0010 alarm audio|21 22 16.50|each|control panel single zone|10.64",
     "qaStatus": "approved",
@@ -57523,6 +58197,108 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     ]
   },
   {
+    "id": "canonical-68law0",
+    "canonicalKey": "22|globe|22 05 23.20|each|mixing|200",
+    "qaStatus": "approved",
+    "divisionCode": "22",
+    "divisionName": "Plumbing",
+    "category": "Globe",
+    "canonicalTitle": "Mixing",
+    "canonicalDescription": "Mixing",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 200,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "22-22-05-23.20-0010"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "figure": "Figure 5-N-9",
+        "sourcePage": "5-N-9",
+        "sourcePdfPage": 164,
+        "workElementNumber": "22 05 23.20",
+        "workElementLineNumber": "0010",
+        "originalDescription": "Mixing",
+        "originalManHoursPerUnit": 200,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Mixing (Figure 5-N-9)",
+        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "manHoursPerUnit": 200,
+        "unitOfMeasure": "Each"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "plumbing",
+      "figure",
+      "cast",
+      "iron",
+      "pipe",
+      "and",
+      "fittings",
+      "globe",
+      "mixing",
+      "each"
+    ]
+  },
+  {
+    "id": "canonical-oq65vv",
+    "canonicalKey": "22|globe|22 05 23.20|each|relief pressure and temperature|0.532",
+    "qaStatus": "approved",
+    "divisionCode": "22",
+    "divisionName": "Plumbing",
+    "category": "Globe",
+    "canonicalTitle": "Relief, Pressure And Temperature",
+    "canonicalDescription": "Relief, pressure and temperature",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 0.532,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "22-22-05-23.20-0010-fileoutpart312"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
+        "figure": "Figure 5-N-9",
+        "sourcePage": "5-N-9",
+        "sourcePdfPage": 164,
+        "workElementNumber": "22 05 23.20",
+        "workElementLineNumber": "0010",
+        "originalDescription": "Relief, pressure and temperature",
+        "originalManHoursPerUnit": 0.532,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Relief, Pressure And Temperature (Figure 5-N-9)",
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
+        "manHoursPerUnit": 0.532,
+        "unitOfMeasure": "Each"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "plumbing",
+      "figure",
+      "cast",
+      "iron",
+      "pipe",
+      "and",
+      "fittings",
+      "globe",
+      "relief",
+      "pressure",
+      "temperature",
+      "each"
+    ]
+  },
+  {
     "id": "canonical-dqmqai",
     "canonicalKey": "22|valves bronze|22 05 23.20|each|average time for bronze angle ball swing-check gate globe valves 1 8-1 2 inch pipe diameter|0.443",
     "qaStatus": "approved",
@@ -57535,11 +58311,11 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     "manHoursPerUnit": 0.443,
     "crewSize": null,
     "sourceRecordIds": [
-      "22-22-05-23.20-0010"
+      "22-22-05-23.20-0010-fileoutpart312"
     ],
     "sourceReferences": [
       {
-        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
         "figure": "Figure 5-N-9",
         "sourcePage": "5-N-9",
         "sourcePdfPage": 164,
@@ -57553,7 +58329,7 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
     "variants": [
       {
         "label": "1/8-1/2 Inch Pipe Diameter",
-        "sourceProductionRateKey": "22-22-05-23.20-0010",
+        "sourceProductionRateKey": "22-22-05-23.20-0010-fileoutpart312",
         "manHoursPerUnit": 0.443,
         "unitOfMeasure": "Each",
         "notes": [
@@ -65682,6 +66458,60 @@ export const GENERATED_CANONICAL_PRODUCTION_RATES: readonly CanonicalProductionR
       "connect",
       "per",
       "space"
+    ]
+  },
+  {
+    "id": "canonical-hodmbo",
+    "canonicalKey": "26|install transformer on poles|26 05 00.00|each|secondary racks|2.4",
+    "qaStatus": "approved",
+    "divisionCode": "26",
+    "divisionName": "Electrical",
+    "category": "Install Transformer on Poles",
+    "canonicalTitle": "Secondary Racks",
+    "canonicalDescription": "Install secondary racks",
+    "unitOfMeasure": "Each",
+    "manHoursPerUnit": 2.4,
+    "crewSize": null,
+    "sourceRecordIds": [
+      "26-26-05-00.00-0070"
+    ],
+    "sourceReferences": [
+      {
+        "sourceProductionRateKey": "26-26-05-00.00-0070",
+        "figure": "Figure 5-Q-9",
+        "sourcePage": "5-Q-9",
+        "sourcePdfPage": 181,
+        "workElementNumber": "26 05 00.00",
+        "workElementLineNumber": "0070",
+        "originalDescription": "Install secondary racks",
+        "originalManHoursPerUnit": 2.4,
+        "originalUnitOfMeasure": "Each"
+      }
+    ],
+    "variants": [
+      {
+        "label": "Secondary Racks (Figure 5-Q-9)",
+        "sourceProductionRateKey": "26-26-05-00.00-0070",
+        "manHoursPerUnit": 2.4,
+        "unitOfMeasure": "Each"
+      }
+    ],
+    "confidence": "high",
+    "keywords": [
+      "electrical",
+      "figure",
+      "bus",
+      "duct",
+      "busway",
+      "and",
+      "fittings",
+      "production",
+      "install",
+      "transformer",
+      "poles",
+      "secondary",
+      "racks",
+      "each"
     ]
   },
   {

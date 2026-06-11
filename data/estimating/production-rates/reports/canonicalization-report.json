@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-06-11T08:18:40.559Z",
-  "sourceRecordCount": 1950,
-  "canonicalRecordCount": 1602,
+  "generatedAt": "2026-06-11T08:28:54.507Z",
+  "sourceRecordCount": 1965,
+  "canonicalRecordCount": 1617,
   "autoMergedHighConfidence": [
     {
       "canonicalId": "canonical-zfekay",
@@ -1108,6 +1108,15 @@
       "confidence": "high"
     },
     {
+      "canonicalId": "canonical-y3fetb",
+      "canonicalKey": "03|plywood job-built one use|03 11 13.25|sf_contact|12 by 12 inches|0.237",
+      "canonicalTitle": "12 By 12 Inches",
+      "sourceRecordIds": [
+        "03-03-11-13.25-0070"
+      ],
+      "confidence": "high"
+    },
+    {
       "canonicalId": "canonical-ok3ftu",
       "canonicalKey": "03|plywood job-built one use|03 11 13.30|sf_contact|culvert forms in place 0010 5 to 8 foot square or rectangular|0.25",
       "canonicalTitle": "Culvert, Forms In Place (0010) 5 To 8 Foot Square Or Rectangular",
@@ -1306,6 +1315,15 @@
       "confidence": "high"
     },
     {
+      "canonicalId": "canonical-x12wod",
+      "canonicalKey": "03|walls forms in place|03 11 13.85|sf_contact|wall job-built plywood to 8 feet|0.173",
+      "canonicalTitle": "Wall, Job-built Plywood, To 8 Feet",
+      "sourceRecordIds": [
+        "03-03-11-13.85-0010"
+      ],
+      "confidence": "high"
+    },
+    {
       "canonicalId": "canonical-7vfngm",
       "canonicalKey": "03|walls forms in place|03 11 13.85|sf_contact|wall over 8 to 16 feet high|0.227",
       "canonicalTitle": "Wall, Over 8 To 16 Feet High",
@@ -1500,6 +1518,15 @@
       "canonicalTitle": "Gravel Under Floor Slab 6\" Deep Compacted",
       "sourceRecordIds": [
         "03-03-15-05.96-0240"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-g16b0e",
+      "canonicalKey": "03|tailor to 1 cf of capacity|03 30 53.10|cyd|transit mix truck 8 cyd capacity|0.56",
+      "canonicalTitle": "Transit Mix Truck (8 Cyd Capacity)",
+      "sourceRecordIds": [
+        "03-03-30-53.10-0040"
       ],
       "confidence": "high"
     },
@@ -3043,6 +3070,24 @@
       "confidence": "high"
     },
     {
+      "canonicalId": "canonical-tsub1m",
+      "canonicalKey": "06|subfloor|06 16 23.10|lf|subfloor adhesive 3 8-inch bead|0.004",
+      "canonicalTitle": "Subfloor Adhesive, 3/8-inch Bead",
+      "sourceRecordIds": [
+        "06-06-16-23.10-0070"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-5szv0b",
+      "canonicalKey": "06|subfloor|06 16 23.10|sf|with boards 1 inch by 6 to 10 inches laid regular or diagonal average|0.023",
+      "canonicalTitle": "With Boards, 1 Inch By 6 To 10 Inches Laid Regular Or Diagonal, Average",
+      "sourceRecordIds": [
+        "06-06-16-23.10-0070-fileoutpart160"
+      ],
+      "confidence": "high"
+    },
+    {
       "canonicalId": "canonical-cid89d",
       "canonicalKey": "06|underlayment|06 16 26.10|sf|plywood and particle board underlayment average from 3 8 to 3 4 inch thick|0.015",
       "canonicalTitle": "Plywood And Particle Board Underlayment, Average From 3/8 To 3/4 Inch Thick",
@@ -3156,6 +3201,15 @@
       "canonicalTitle": "Other Miscellaneous Materiel",
       "sourceRecordIds": [
         "06-06-16-36.10-0130"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-8aqmbs",
+      "canonicalKey": "06|moldings exterior|06 22 13.40|lf|and casing crown 11 16 by 4 1 4 inches|0.043",
+      "canonicalTitle": "And Casing, Crown, 11/16 By 4 1/4 Inches",
+      "sourceRecordIds": [
+        "06-06-22-13.40-0070"
       ],
       "confidence": "high"
     },
@@ -6976,6 +7030,15 @@
       "confidence": "high"
     },
     {
+      "canonicalId": "canonical-jls61l",
+      "canonicalKey": "12|0030 kitchen base cabinets not including counter tops|12 32 23.10|each|various sizes average|0.954",
+      "canonicalTitle": "Various Sizes, Average",
+      "sourceRecordIds": [
+        "12-12-32-23.10-0030"
+      ],
+      "confidence": "high"
+    },
+    {
       "canonicalId": "canonical-zicmav",
       "canonicalKey": "12|manufactured wood casework stock units|12 32 23.10|lf|built-in drawer units 18 inches deep 32 inches high minimum|0.402",
       "canonicalTitle": "Built-in Drawer Units, 18 Inches Deep, 32 Inches High, Minimum",
@@ -7053,6 +7116,15 @@
       "canonicalTitle": "Weapons Clearing Barrel",
       "sourceRecordIds": [
         "13-13-00-00.00-0010"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-vlevlg",
+      "canonicalKey": "13|minimum suggested crew size structure installation one steelworker crew leader four laborers two equipment operators.|13 31 23.50|each|roll-up door minimum|20",
+      "canonicalTitle": "Roll-up Door (minimum)",
+      "sourceRecordIds": [
+        "13-13-31-23.50-0040"
       ],
       "confidence": "high"
     },
@@ -7386,6 +7458,33 @@
       "canonicalTitle": "Camouflage Net System, Radar Scattering, Four Systems, Complete, Erect And Strike",
       "sourceRecordIds": [
         "13-13-31-33.00-0730"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-kojgw4",
+      "canonicalKey": "13|0070 10-foot-eave height|13 34 19.50|sf_floor|40-foot width|0.124",
+      "canonicalTitle": "40-foot Width",
+      "sourceRecordIds": [
+        "13-13-34-19.50-0090"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-tw6oka",
+      "canonicalKey": "13|0090 10-foot-eave height|13 34 19.50|sf_floor|50- to 80-foot width|0.097",
+      "canonicalTitle": "50- To 80-foot Width",
+      "sourceRecordIds": [
+        "13-13-34-19.50-0110"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-n0ov7l",
+      "canonicalKey": "13|50- to 100-foot width|13 34 19.50|sf_floor|clear span tapered beam frame 26-gauge roofing and siding|0.14",
+      "canonicalTitle": "Clear Span Tapered Beam Frame, 26-gauge Roofing And Siding",
+      "sourceRecordIds": [
+        "13-13-34-19.50-0070"
       ],
       "confidence": "high"
     },
@@ -7741,6 +7840,15 @@
       "confidence": "high"
     },
     {
+      "canonicalId": "canonical-a8wlbk",
+      "canonicalKey": "21|fm200 system filled including mounting bracket|21 22 16.50|each|standby power battery|3.737",
+      "canonicalTitle": "Standby Power, Battery",
+      "sourceRecordIds": [
+        "21-21-22-16.50-0150"
+      ],
+      "confidence": "high"
+    },
+    {
       "canonicalId": "canonical-9hcw21",
       "canonicalKey": "21|fm200 fire extinguishing system 0010 alarm audio|21 22 16.50|each|control panel single zone|10.64",
       "canonicalTitle": "Control Panel, Single Zone",
@@ -7939,11 +8047,29 @@
       "confidence": "high"
     },
     {
+      "canonicalId": "canonical-68law0",
+      "canonicalKey": "22|globe|22 05 23.20|each|mixing|200",
+      "canonicalTitle": "Mixing",
+      "sourceRecordIds": [
+        "22-22-05-23.20-0010"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-oq65vv",
+      "canonicalKey": "22|globe|22 05 23.20|each|relief pressure and temperature|0.532",
+      "canonicalTitle": "Relief, Pressure And Temperature",
+      "sourceRecordIds": [
+        "22-22-05-23.20-0010-fileoutpart312"
+      ],
+      "confidence": "high"
+    },
+    {
       "canonicalId": "canonical-dqmqai",
       "canonicalKey": "22|valves bronze|22 05 23.20|each|average time for bronze angle ball swing-check gate globe valves 1 8-1 2 inch pipe diameter|0.443",
       "canonicalTitle": "Average Time For Bronze Angle, Ball, Swing-check, Gate, Globe Valves, 1/8-1/2 Inch Pipe Diameter",
       "sourceRecordIds": [
-        "22-22-05-23.20-0010"
+        "22-22-05-23.20-0010-fileoutpart312"
       ],
       "confidence": "high"
     },
@@ -9042,6 +9168,15 @@
       "canonicalTitle": "Set And Connect Dehumidifiers (per Cf Of Space)",
       "sourceRecordIds": [
         "23-23-74-00.00-0100"
+      ],
+      "confidence": "high"
+    },
+    {
+      "canonicalId": "canonical-hodmbo",
+      "canonicalKey": "26|install transformer on poles|26 05 00.00|each|secondary racks|2.4",
+      "canonicalTitle": "Secondary Racks",
+      "sourceRecordIds": [
+        "26-26-05-00.00-0070"
       ],
       "confidence": "high"
     },

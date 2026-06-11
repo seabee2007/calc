@@ -3382,6 +3382,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "isActive": true
   },
   {
+    "id": "03-03-11-13.25-0070",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "masterFormatCode": "03 11 13.25",
+    "workElementLineNumber": "0070",
+    "description": "12 by 12 inches",
+    "unit": "SF of contact surface",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.237,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "03",
+    "sourceFigure": "Figure 5-C-7",
+    "sourcePage": "5-C-7",
+    "sourcePdfPage": 63,
+    "sourceNotes": [
+      "Adobe table fileoutpart48.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "concrete",
+      "figure",
+      "forms",
+      "place",
+      "for",
+      "production",
+      "plywood",
+      "job"
+    ],
+    "applicableActivityTypes": [
+      "Plywood (job-built), one use"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
     "id": "03-03-11-13.30-0010",
     "divisionCode": "03",
     "divisionName": "Concrete",
@@ -4191,6 +4228,44 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     ],
     "applicableActivityTypes": [
       "Slab on grade, Forms in Place"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "03-03-11-13.85-0010",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "masterFormatCode": "03 11 13.85",
+    "workElementLineNumber": "0010",
+    "description": "Wall, job-built plywood, to 8 feet",
+    "unit": "SF of contact surface",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.173,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "03",
+    "sourceFigure": "Figure 5-C-8",
+    "sourcePage": "5-C-8",
+    "sourcePdfPage": 65,
+    "sourceNotes": [
+      "Synced clean/move component to 0.02 so breakdown matches manHoursPerUnit 0.173. · reviewStatus=FIXED_FROM_SOURCE_PDF",
+      "Adobe table fileoutpart52.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "concrete",
+      "figure",
+      "placing",
+      "forming",
+      "accessories",
+      "production",
+      "walls",
+      "forms"
+    ],
+    "applicableActivityTypes": [
+      "Walls, Forms in Place"
     ],
     "importBatchId": "approved-library-2026-06-11",
     "isActive": true
@@ -5155,6 +5230,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     ],
     "applicableActivityTypes": [
       "Concrete core drilling"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "03-03-30-53.10-0040",
+    "divisionCode": "03",
+    "divisionName": "Concrete",
+    "masterFormatCode": "03 30 53.10",
+    "workElementLineNumber": "0040",
+    "description": "Transit mix truck (8 CYD capacity)",
+    "unit": "CYD",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.56,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "03",
+    "sourceFigure": "Figure 5-C-15",
+    "sourcePage": "5-C-15",
+    "sourcePdfPage": 69,
+    "sourceNotes": [
+      "Adobe table fileoutpart64.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "concrete",
+      "figure",
+      "finishing",
+      "and",
+      "curing",
+      "production",
+      "tailor",
+      "capacity"
+    ],
+    "applicableActivityTypes": [
+      "Tailor to 1 CF of capacity"
     ],
     "importBatchId": "approved-library-2026-06-11",
     "isActive": true
@@ -18414,6 +18526,80 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "isActive": true
   },
   {
+    "id": "06-06-16-23.10-0070",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "masterFormatCode": "06 16 23.10",
+    "workElementLineNumber": "0070",
+    "description": "Subfloor adhesive, 3/8-inch bead",
+    "unit": "LF",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.004,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "06",
+    "sourceFigure": "Figure 5-F-9",
+    "sourcePage": "5-F-9",
+    "sourcePdfPage": 106,
+    "sourceNotes": [
+      "Adobe table fileoutpart160.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "heavy",
+      "timber",
+      "construction"
+    ],
+    "applicableActivityTypes": [
+      "Subfloor"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "06-06-16-23.10-0070-fileoutpart160",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "masterFormatCode": "06 16 23.10",
+    "workElementLineNumber": "0070",
+    "description": "With boards, 1 inch by 6 to 10 inches laid regular or diagonal, average",
+    "unit": "SF",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.023,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "06",
+    "sourceFigure": "Figure 5-F-9",
+    "sourcePage": "5-F-9",
+    "sourcePdfPage": 106,
+    "sourceNotes": [
+      "Adobe table fileoutpart160.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "heavy",
+      "timber",
+      "construction"
+    ],
+    "applicableActivityTypes": [
+      "Subfloor"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
     "id": "06-06-16-23.10-0010",
     "divisionCode": "06",
     "divisionName": "Wood, Plastics, and Composites",
@@ -19186,6 +19372,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     ],
     "applicableActivityTypes": [
       "Walls,"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "06-06-22-13.40-0070",
+    "divisionCode": "06",
+    "divisionName": "Wood, Plastics, and Composites",
+    "masterFormatCode": "06 22 13.40",
+    "workElementLineNumber": "0070",
+    "description": "and casing, crown, 11/16 by 4 1/4 inches",
+    "unit": "LF",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.043,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "06",
+    "sourceFigure": "Figure 5-F-11",
+    "sourcePage": "5-F-11",
+    "sourcePdfPage": 107,
+    "sourceNotes": [
+      "Adobe table fileoutpart162.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "wood",
+      "plastics",
+      "and",
+      "composites",
+      "figure",
+      "millwork",
+      "stairs",
+      "production"
+    ],
+    "applicableActivityTypes": [
+      "Moldings, Exterior"
     ],
     "importBatchId": "approved-library-2026-06-11",
     "isActive": true
@@ -38480,6 +38703,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "isActive": true
   },
   {
+    "id": "12-12-32-23.10-0030",
+    "divisionCode": "12",
+    "divisionName": "Furnishings",
+    "masterFormatCode": "12 32 23.10",
+    "workElementLineNumber": "0030",
+    "description": "various sizes, average",
+    "unit": "Each",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.954,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "12",
+    "sourceFigure": "Figure 5-K-11",
+    "sourcePage": "5-K-11",
+    "sourcePdfPage": 147,
+    "sourceNotes": [
+      "Adobe table fileoutpart270.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "furnishings",
+      "figure",
+      "furniture",
+      "production",
+      "0030",
+      "kitchen",
+      "base",
+      "cabinets"
+    ],
+    "applicableActivityTypes": [
+      "(0030) Kitchen base cabinets, not including counter tops"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
     "id": "12-12-32-23.10-0010",
     "divisionCode": "12",
     "divisionName": "Furnishings",
@@ -38812,6 +39072,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     ],
     "applicableActivityTypes": [
       "Weapons Clearing Facility"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "13-13-31-23.50-0040",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "masterFormatCode": "13 31 23.50",
+    "workElementLineNumber": "0040",
+    "description": "Roll-up door (minimum)",
+    "unit": "Each",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 20,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "13",
+    "sourceFigure": "Figure 5-L-9",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 150,
+    "sourceNotes": [
+      "Adobe table fileoutpart276.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production"
+    ],
+    "applicableActivityTypes": [
+      "Minimum suggested crew size: Structure installation: one steelworker (crew leader), four laborers, two equipment operators."
     ],
     "importBatchId": "approved-library-2026-06-11",
     "isActive": true
@@ -40403,6 +40700,117 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     ],
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "13-13-34-19.50-0090",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "masterFormatCode": "13 34 19.50",
+    "workElementLineNumber": "0090",
+    "description": "40-foot width",
+    "unit": "SF of floor",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.124,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "13",
+    "sourceFigure": "Figure 5-L-9",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 152,
+    "sourceNotes": [
+      "Adobe table fileoutpart284.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production"
+    ],
+    "applicableActivityTypes": [
+      "(0070) 10-foot-eave height"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "13-13-34-19.50-0110",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "masterFormatCode": "13 34 19.50",
+    "workElementLineNumber": "0110",
+    "description": "50- to 80-foot width",
+    "unit": "SF of floor",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.097,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "13",
+    "sourceFigure": "Figure 5-L-9",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 152,
+    "sourceNotes": [
+      "Adobe table fileoutpart284.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production"
+    ],
+    "applicableActivityTypes": [
+      "(0090) 10-foot-eave height"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "13-13-34-19.50-0070",
+    "divisionCode": "13",
+    "divisionName": "Special Construction",
+    "masterFormatCode": "13 34 19.50",
+    "workElementLineNumber": "0070",
+    "description": "Clear span tapered beam frame, 26-gauge roofing and siding",
+    "unit": "SF of floor",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.14,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "13",
+    "sourceFigure": "Figure 5-L-9",
+    "sourcePage": "5-L-9",
+    "sourcePdfPage": 152,
+    "sourceNotes": [
+      "Adobe table fileoutpart284.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "special",
+      "construction",
+      "figure",
+      "portable",
+      "and",
+      "mobile",
+      "building",
+      "production"
+    ],
+    "applicableActivityTypes": [
+      "50- to 100-foot width"
     ],
     "importBatchId": "approved-library-2026-06-11",
     "isActive": true
@@ -44072,6 +44480,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "isActive": true
   },
   {
+    "id": "21-21-22-16.50-0150",
+    "divisionCode": "21",
+    "divisionName": "Fire Suppression",
+    "masterFormatCode": "21 22 16.50",
+    "workElementLineNumber": "0150",
+    "description": "Standby power, battery",
+    "unit": "Each",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 3.737,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "21",
+    "sourceFigure": "Figure 5-M-4",
+    "sourcePage": "5-M-4",
+    "sourcePdfPage": 161,
+    "sourceNotes": [
+      "Adobe table fileoutpart308.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "fire",
+      "suppression",
+      "figure",
+      "centrifugal",
+      "pumps",
+      "production",
+      "fm200",
+      "system"
+    ],
+    "applicableActivityTypes": [
+      "FM200 system, filled, including mounting bracket"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
     "id": "21-21-22-16.50-0020",
     "divisionCode": "21",
     "divisionName": "Fire Suppression",
@@ -45039,6 +45484,80 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
   },
   {
     "id": "22-22-05-23.20-0010",
+    "divisionCode": "22",
+    "divisionName": "Plumbing",
+    "masterFormatCode": "22 05 23.20",
+    "workElementLineNumber": "0010",
+    "description": "Mixing",
+    "unit": "Each",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 200,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "22",
+    "sourceFigure": "Figure 5-N-9",
+    "sourcePage": "5-N-9",
+    "sourcePdfPage": 164,
+    "sourceNotes": [
+      "Adobe table fileoutpart312.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "plumbing",
+      "figure",
+      "cast",
+      "iron",
+      "pipe",
+      "and",
+      "fittings",
+      "globe"
+    ],
+    "applicableActivityTypes": [
+      "Globe"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "22-22-05-23.20-0010-fileoutpart312",
+    "divisionCode": "22",
+    "divisionName": "Plumbing",
+    "masterFormatCode": "22 05 23.20",
+    "workElementLineNumber": "0010",
+    "description": "Relief, pressure and temperature",
+    "unit": "Each",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 0.532,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "22",
+    "sourceFigure": "Figure 5-N-9",
+    "sourcePage": "5-N-9",
+    "sourcePdfPage": 164,
+    "sourceNotes": [
+      "Adobe table fileoutpart312.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "plumbing",
+      "figure",
+      "cast",
+      "iron",
+      "pipe",
+      "and",
+      "fittings",
+      "globe"
+    ],
+    "applicableActivityTypes": [
+      "Globe"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "22-22-05-23.20-0010-fileoutpart312",
     "divisionCode": "22",
     "divisionName": "Plumbing",
     "masterFormatCode": "22 05 23.20",
@@ -51018,6 +51537,43 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     ],
     "applicableActivityTypes": [
       "Install Split System Air Conditioning Units"
+    ],
+    "importBatchId": "approved-library-2026-06-11",
+    "isActive": true
+  },
+  {
+    "id": "26-26-05-00.00-0070",
+    "divisionCode": "26",
+    "divisionName": "Electrical",
+    "masterFormatCode": "26 05 00.00",
+    "workElementLineNumber": "0070",
+    "description": "Install secondary racks",
+    "unit": "Each",
+    "rateType": "labor_production",
+    "manHoursPerUnit": 2.4,
+    "sourceManual": "NTRP 4-04.2.3 / TM 3-34.41 / MCRP 3-40D.12",
+    "sourceEdition": "October 2021, Change 1 October 2022",
+    "sourceDivision": "26",
+    "sourceFigure": "Figure 5-Q-9",
+    "sourcePage": "5-Q-9",
+    "sourcePdfPage": 181,
+    "sourceNotes": [
+      "Adobe table fileoutpart352.xlsx"
+    ],
+    "directLaborOnly": true,
+    "militaryAdjusted": false,
+    "tags": [
+      "electrical",
+      "figure",
+      "bus",
+      "duct",
+      "busway",
+      "and",
+      "fittings",
+      "production"
+    ],
+    "applicableActivityTypes": [
+      "Install Transformer on Poles"
     ],
     "importBatchId": "approved-library-2026-06-11",
     "isActive": true

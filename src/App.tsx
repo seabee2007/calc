@@ -81,6 +81,7 @@ import {
   LazyConcreteChat,
   LazyActivityEstimatePreview,
   LazyProductionRateReviewPage,
+  LazyAdobeRejectedRecoveryPage,
 } from './routes/lazyPages';
 
 // Error boundary component
@@ -534,6 +535,7 @@ function App() {
             <>
               <Route path="/dev/activity-preview" element={<LazyRoute Page={LazyActivityEstimatePreview} />} />
               <Route path="/dev/production-rate-review" element={<LazyRoute Page={LazyProductionRateReviewPage} />} />
+              <Route path="/dev/adobe-rejected-recovery" element={<LazyRoute Page={LazyAdobeRejectedRecoveryPage} />} />
             </>
           )}
 
