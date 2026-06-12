@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Save, X, Calendar, MapPin, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -35,6 +35,7 @@ import { verifyJobsiteAddress } from '../../services/geocodeService';
 import { EMPTY_PROJECT_CLIENT } from '../../types/projectClient';
 import type { ClientPortalAccessInput } from '../../types/clientPortal';
 import { formatUSPhoneInput, formatUSPhoneNumber } from '../../utils/phoneFormat';
+import { isValidEmailAddress } from '../../../supabase/functions/_shared/emailValidation.ts';
 import {
   fetchClientPortalByProjectId,
   getClientPortalUrl,
@@ -93,6 +94,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     message: string;
     variant: EstimateWorkspaceToastVariant;
   } | null>(null);
+  const [showInviteEmailOverride, setShowInviteEmailOverride] = useState(
+    Boolean(initialData?.clientPortalAccess?.overrideInviteEmail?.trim()),
+  );
+  const clientEmailInputRef = useRef<HTMLInputElement | null>(null);
   const { user } = useAuth();
   const storeProjects = useProjectStore((s) => s.projects);
 
@@ -118,6 +123,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       clientName: initialData?.clientInfo?.clientName ?? '',
       clientEmail: initialData?.clientInfo?.clientEmail ?? '',
       clientPhone: formatUSPhoneNumber(initialData?.clientInfo?.clientPhone),
+      overrideInviteEmail: initialData?.clientPortalAccess?.overrideInviteEmail ?? '',
       ...initialData?.clientPortalAccess,
     },
     projectCrewSize: initialData?.projectCrewSize ?? 7,
@@ -131,6 +137,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     reset,
     watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ProjectFormData>({
     defaultValues: buildDefaults(),
@@ -141,7 +149,22 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   const clientInfoName = watch('clientInfo.clientName');
   const clientInfoEmail = watch('clientInfo.clientEmail');
   const clientInfoPhone = watch('clientInfo.clientPhone');
+  const overrideInviteEmail = watch('clientPortalAccess.overrideInviteEmail');
   const projectNameValue = watch('name');
+
+  const {
+    ref: clientEmailRhfRef,
+    ...clientEmailField
+  } = register('clientInfo.clientEmail', {
+    onChange: () => {
+      if (getValues('clientPortalAccess.enabled')) {
+        clearErrors('clientPortalAccess.overrideInviteEmail');
+      }
+    },
+  });
+
+  const effectiveInviteEmail =
+    overrideInviteEmail?.trim() || clientInfoEmail?.trim() || '';
 
   const syncPortalAccessFromClientInfo = () => {
     const values = getValues();
@@ -341,26 +364,43 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
     if (hidePourDate) delete payload.pourDate;
 
     if (payload.clientPortalAccess?.enabled) {
-      const portalName =
-        payload.clientPortalAccess.clientName.trim() || payload.clientInfo.clientName.trim();
-      const portalEmail =
-        payload.clientPortalAccess.clientEmail.trim() ||
-        payload.clientInfo.clientEmail?.trim() ||
-        '';
-      if (!portalName || !portalEmail) {
+      const portalName = payload.clientInfo.clientName.trim();
+      const mainClientEmail = payload.clientInfo.clientEmail?.trim() || '';
+      const inviteOverride = payload.clientPortalAccess.overrideInviteEmail?.trim() || '';
+      const portalEmail = inviteOverride || mainClientEmail;
+
+      if (!portalName) {
+        setError('clientInfo.clientName', {
+          type: 'manual',
+          message: 'Client name is required for portal invite',
+        });
         return;
       }
+      if (!portalEmail) {
+        setError('clientPortalAccess.overrideInviteEmail', {
+          type: 'manual',
+          message: 'Client email is required to send a portal invite.',
+        });
+        return;
+      }
+      if (!isValidEmailAddress(portalEmail)) {
+        setError('clientPortalAccess.overrideInviteEmail', {
+          type: 'manual',
+          message: 'Enter a valid invite email address.',
+        });
+        return;
+      }
+
       payload.clientPortalAccess = {
         enabled: true,
         clientName: portalName,
         clientEmail: portalEmail,
-        clientPhone:
-          formatUSPhoneNumber(payload.clientPortalAccess.clientPhone?.trim()) ||
-          formatUSPhoneNumber(payload.clientInfo.clientPhone?.trim()) ||
-          undefined,
+        clientPhone: formatUSPhoneNumber(payload.clientInfo.clientPhone?.trim()) || undefined,
+        overrideInviteEmail: inviteOverride || undefined,
       };
     } else if (payload.clientPortalAccess) {
       payload.clientPortalAccess.enabled = false;
+      payload.clientPortalAccess.overrideInviteEmail = undefined;
     }
 
     await onSubmit(payload);
@@ -463,7 +503,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             label="Client email"
             type="email"
             fullWidth
-            {...register('clientInfo.clientEmail')}
+            data-testid="client-info-email-input"
+            {...clientEmailField}
+            ref={(element) => {
+              clientEmailRhfRef(element);
+              clientEmailInputRef.current = element;
+            }}
           />
         </div>
         <Controller
@@ -503,7 +548,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
             Client access
           </h4>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Invite your client to a read-only project dashboard — no account required.
+            {inviteClientPortal
+              ? 'Client portal access uses the client information above. You can override the invite email if needed.'
+              : 'Invite your client to a read-only project dashboard — no account required.'}
           </p>
         </div>
 
@@ -540,6 +587,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
                       field.onChange(checked);
                       if (checked) {
                         syncPortalAccessFromClientInfo();
+                      } else {
+                        setShowInviteEmailOverride(false);
+                        setValue('clientPortalAccess.overrideInviteEmail', '');
+                        clearErrors('clientPortalAccess.overrideInviteEmail');
                       }
                     }}
                   />
@@ -548,46 +599,76 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
               )}
             />
             {inviteClientPortal && (
-              <>
-                <p className="text-xs text-cyan-700 dark:text-cyan-300">
-                  Pulled from client information above — updates as you edit those fields.
+              <div
+                className="rounded-md bg-white/70 dark:bg-slate-900/50 p-3 text-sm space-y-3"
+                data-testid="client-portal-invite-preview"
+              >
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Invite will be sent to
                 </p>
-                <Input
-                  label="Client name"
-                  fullWidth
-                  readOnly
-                  className="bg-slate-50 dark:bg-slate-800/50"
-                  error={errors.clientPortalAccess?.clientName?.message?.toString()}
-                  {...register('clientPortalAccess.clientName', {
-                    required: inviteClientPortal
-                      ? 'Client name is required for portal invite'
-                      : false,
-                  })}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="Client email"
-                    type="email"
-                    fullWidth
-                    readOnly
-                    className="bg-slate-50 dark:bg-slate-800/50"
-                    error={errors.clientPortalAccess?.clientEmail?.message?.toString()}
-                    {...register('clientPortalAccess.clientEmail', {
-                      required: inviteClientPortal
-                        ? 'Client email is required for portal invite'
-                        : false,
-                    })}
-                  />
-                  <Input
-                    label="Client phone (optional)"
-                    type="tel"
-                    fullWidth
-                    readOnly
-                    className="bg-slate-50 dark:bg-slate-800/50"
-                    {...register('clientPortalAccess.clientPhone')}
-                  />
+                <div className="space-y-1">
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {clientInfoName?.trim() || '—'}
+                  </p>
+                  {effectiveInviteEmail ? (
+                    <p className="text-gray-700 dark:text-gray-300 break-all">{effectiveInviteEmail}</p>
+                  ) : (
+                    <p className="text-amber-700 dark:text-amber-300" role="alert">
+                      Client email is required to send a portal invite.
+                    </p>
+                  )}
+                  {clientInfoPhone?.trim() && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Phone: {clientInfoPhone.trim()}
+                    </p>
+                  )}
                 </div>
-              </>
+
+                {!clientInfoEmail?.trim() && !overrideInviteEmail?.trim() && (
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
+                    onClick={() => clientEmailInputRef.current?.focus()}
+                  >
+                    Add client email
+                  </button>
+                )}
+
+                {!showInviteEmailOverride ? (
+                  <button
+                    type="button"
+                    className="text-sm text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
+                    onClick={() => setShowInviteEmailOverride(true)}
+                  >
+                    Use different invite email
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <Input
+                      label="Invite email"
+                      type="email"
+                      fullWidth
+                      placeholder="portal-invite@example.com"
+                      data-testid="invite-email-override-input"
+                      error={errors.clientPortalAccess?.overrideInviteEmail?.message?.toString()}
+                      {...register('clientPortalAccess.overrideInviteEmail', {
+                        onChange: () => clearErrors('clientPortalAccess.overrideInviteEmail'),
+                      })}
+                    />
+                    <button
+                      type="button"
+                      className="text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                      onClick={() => {
+                        setShowInviteEmailOverride(false);
+                        setValue('clientPortalAccess.overrideInviteEmail', '');
+                        clearErrors('clientPortalAccess.overrideInviteEmail');
+                      }}
+                    >
+                      Use client email instead
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}

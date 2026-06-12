@@ -2,6 +2,9 @@ export const EMAIL_TEMPLATE_KEYS = [
   "welcome",
   "teamInvite",
   "proposalSent",
+  "proposalFollowUp",
+  "depositRequest",
+  "clientCheckIn",
   "proposalAccepted",
   "paymentRequest",
   "trialStarted",
@@ -37,6 +40,34 @@ export function rejectRawEmailBody(body: Record<string, unknown>): string | null
     }
   }
   return null;
+}
+
+export function normalizeEmailList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const unique: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== "string") continue;
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    const lower = trimmed.toLowerCase();
+    if (!unique.some((email) => email.toLowerCase() === lower)) {
+      unique.push(trimmed);
+    }
+  }
+  return unique;
+}
+
+export function validateOptionalEmailList(
+  value: unknown,
+  fieldLabel: string,
+): { ok: true; emails: string[] } | { ok: false; message: string } {
+  const emails = normalizeEmailList(value);
+  for (const email of emails) {
+    if (!isValidEmailAddress(email)) {
+      return { ok: false, message: `Enter valid ${fieldLabel} email addresses.` };
+    }
+  }
+  return { ok: true, emails };
 }
 
 export function mapResendWebhookStatus(eventType: string): string | null {

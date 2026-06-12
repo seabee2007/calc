@@ -69,4 +69,5 @@ export interface TrackedProposalRow {
   gross_profit: number;
   gross_margin_percent: number;
   public_token: string;
+  last_sent_to?: string | null;
 }

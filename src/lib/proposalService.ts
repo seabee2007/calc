@@ -19,6 +19,7 @@ export function normalizeProposal(row: Record<string, unknown>): SavedProposal {
     gross_profit: Number(row.gross_profit ?? 0),
     gross_margin_percent: Number(row.gross_margin_percent ?? 0),
     public_token: String(row.public_token ?? ''),
+    last_sent_to: (row.last_sent_to as string | null) ?? null,
     sent_at: (row.sent_at as string | null) ?? null,
     viewed_at: (row.viewed_at as string | null) ?? null,
     opened_at: (row.opened_at as string | null) ?? null,

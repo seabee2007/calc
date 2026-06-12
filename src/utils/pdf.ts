@@ -7,6 +7,7 @@ import { calculateMixMaterials } from './calculations';
 import { calculateConcreteCost, formatPrice } from './readyMixCost';
 import { computeProposalBreakdown } from './proposalPricing';
 import { formatChangeOrderMoney } from './changeOrderFinancials';
+import { normalizeDisplayText } from './normalizeDisplayText';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
@@ -318,6 +319,7 @@ export async function generateProposalPDF(
 ): Promise<void> {
   try {
   const doc = new jsPDF();
+  const safeTitle = normalizeDisplayText(title);
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
     const margin = 20;
@@ -335,9 +337,10 @@ export async function generateProposalPDF(
     const addText = (text: string, fontSize: number = 12, isBold: boolean = false, leftMargin: number = margin, align: 'left' | 'center' | 'right' = 'left') => {
       doc.setFontSize(fontSize);
       doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-      
+
+      const cleanText = normalizeDisplayText(text);
       const maxWidth = pageWidth - leftMargin - margin;
-      const lines = doc.splitTextToSize(text, maxWidth);
+      const lines = doc.splitTextToSize(cleanText, maxWidth);
       const lineHeight = fontSize * 0.5;
       
       checkPageBreak(lines.length * lineHeight);
@@ -361,7 +364,7 @@ export async function generateProposalPDF(
     
     // Extract data from HTML
     const extractedData = proposalData || {
-      businessName: tempDiv.querySelector('[class*="business"]')?.textContent?.trim() || title,
+      businessName: tempDiv.querySelector('[class*="business"]')?.textContent?.trim() || safeTitle,
       clientName: tempDiv.querySelector('[class*="client"]')?.textContent?.trim() || 'Client',
       projectTitle: tempDiv.querySelector('[class*="project"]')?.textContent?.trim() || 'Project',
       date: format(new Date(), 'MMMM d, yyyy'),
@@ -1068,7 +1071,7 @@ export async function generateProposalPDF(
   
   // Save the PDF
     const pdfFilename = filename || `proposal-${templateType}-${Date.now()}.pdf`;
-    await savePDFWithPlatformSupport(doc, pdfFilename, title);
+    await savePDFWithPlatformSupport(doc, pdfFilename, safeTitle);
   } catch (error) {
     console.error('Error generating proposal PDF:', error);
     throw error;

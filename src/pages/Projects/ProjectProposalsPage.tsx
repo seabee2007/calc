@@ -10,7 +10,9 @@ import Card from '../../components/ui/Card';
 import ModalShell from '../../components/ui/ModalShell';
 import ProposalPipelineCard from '../../components/proposals/ProposalPipelineCard';
 import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkModal';
-import ProposalSendEmailModal from '../../components/proposals/ProposalSendEmailModal';
+import ProposalSendEmailModal, {
+  type ProposalSendEmailMode,
+} from '../../components/proposals/ProposalSendEmailModal';
 import { useProjectStore } from '../../store';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { ProposalService, type SavedProposal } from '../../lib/proposalService';
@@ -19,6 +21,8 @@ import {
   markProposalSent,
 } from '../../lib/proposalTracking';
 import { sendProposalEmail } from '../../services/emailService';
+import { resolveProposalSendDefaults } from '../../utils/resolveProposalSendDefaults';
+import type { ProposalEmailSendPayload } from '../../utils/proposalEmailRecipient';
 import {
   getLinkableProposals,
   getProjectProposals,
@@ -60,6 +64,7 @@ export default function ProjectProposalsPage() {
     proposalId: string;
     proposalTitle: string;
     defaultRecipientEmail?: string;
+    mode?: ProposalSendEmailMode;
   } | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -95,29 +100,37 @@ export default function ProjectProposalsPage() {
     setSentLinkModal({ url, title });
   };
 
-  const handleSend = (proposalId: string) => {
+  const handleSend = async (proposalId: string) => {
     const proposal = projectProposals.find((entry) => entry.id === proposalId);
     if (!proposal) {
       setLocalError('Proposal not found.');
       return;
     }
     setLocalError(null);
+    const defaultRecipientEmail = await resolveProposalSendDefaults(
+      proposal,
+      project?.clientInfo?.clientEmail,
+    );
     setSendEmailModal({
       proposalId: proposal.id,
       proposalTitle:
         proposal.data?.projectTitle?.trim() || proposal.title?.trim() || 'Proposal',
-      defaultRecipientEmail: project?.clientInfo?.clientEmail?.trim() ?? '',
+      defaultRecipientEmail,
+      mode: proposal.status === 'draft' ? 'send' : 'followUp',
     });
   };
 
-  const handleSendEmail = async (recipientEmail: string) => {
+  const handleSendEmail = async ({ to, cc, messageNote }: ProposalEmailSendPayload) => {
     if (!sendEmailModal) return;
     setSendingEmail(true);
     setLocalError(null);
     try {
       await sendProposalEmail({
         proposalId: sendEmailModal.proposalId,
-        recipientEmail,
+        recipientEmail: to,
+        ccEmails: cc,
+        messageNote,
+        followUp: sendEmailModal.mode === 'followUp',
       });
       await loadProposals();
       const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
@@ -433,6 +446,7 @@ export default function ProjectProposalsPage() {
           if (!sendingEmail) setSendEmailModal(null);
         }}
         proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
+        mode={sendEmailModal?.mode}
         defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
         sending={sendingEmail}
         error={localError}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
 import { OPS_ACTION_ITEM, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
+import type { ProposalNextAction } from '../../types/proposalNextAction';
 import { buildCrmNextActions } from '../../utils/proposalCrm';
 
 export interface DashboardExtraAction {
@@ -17,12 +18,14 @@ interface DashboardNextActionsCardProps {
   proposals: TrackedProposalRow[];
   extraActions?: DashboardExtraAction[];
   maxItems?: number;
+  onProposalAction?: (action: ProposalNextAction) => void;
 }
 
 const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
   proposals,
   extraActions = [],
   maxItems = 5,
+  onProposalAction,
 }) => {
   const navigate = useNavigate();
   const proposalActions = useMemo(() => buildCrmNextActions(proposals), [proposals]);
@@ -30,15 +33,20 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
   const items = useMemo(() => {
     const proposalSlots = Math.max(0, maxItems - extraActions.length);
     const fromProposals = proposalActions.slice(0, proposalSlots).map((item) => ({
-      id: `proposal-${item.proposalId}`,
-      title: item.actionTitle,
-      detail: `${item.clientName} · ${item.projectTitle}`,
-      onClick: () =>
-        navigate('/proposals', { state: { focusProposalId: item.proposalId } }),
+      id: item.id,
+      title: item.label,
+      detail: `${item.clientName} · ${item.proposalTitle ?? item.projectName}`,
+      onClick: () => {
+        if (onProposalAction) {
+          onProposalAction(item);
+          return;
+        }
+        navigate('/proposals', { state: { openNextAction: item } });
+      },
     }));
     const extras = extraActions.slice(0, maxItems - fromProposals.length);
     return [...extras, ...fromProposals].slice(0, maxItems);
-  }, [extraActions, maxItems, navigate, proposalActions]);
+  }, [extraActions, maxItems, navigate, onProposalAction, proposalActions]);
 
   if (items.length === 0) return null;
 

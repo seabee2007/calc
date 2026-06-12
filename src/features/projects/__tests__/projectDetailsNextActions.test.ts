@@ -23,6 +23,11 @@ const estimatingCalculatorsModalSource = readFileSync(
   'utf8',
 );
 
+const projectProposalNextActionSource = readFileSync(
+  resolve(dirname(fileURLToPath(import.meta.url)), '../../../utils/projectProposalNextAction.ts'),
+  'utf8',
+);
+
 const projectWorkflowSource = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), '../../../utils/projectWorkflow.ts'),
   'utf8',
@@ -100,5 +105,23 @@ describe('Project Details next actions estimating paths', () => {
     expect(calculatorHubSource).toContain('Continue to proposal');
     expect(estimatingCalculatorsModalSource).toContain('workflowQuery(projectId)');
     expect(estimatingCalculatorsModalSource).toContain('workflowNavigateState(projectId)');
+  });
+});
+
+describe('Project Details proposal next actions', () => {
+  it('opens proposal send/follow-up modal instead of generic proposal pipeline', () => {
+    expect(projectDetailsSource).toContain('ProposalSendEmailModal');
+    expect(projectDetailsSource).toContain('handlePrimaryNextAction');
+    expect(projectDetailsSource).toContain('resolveProjectProposalNextAction');
+    expect(projectDetailsSource).toContain('openProposalEmailModal');
+    expect(projectDetailsSource).not.toMatch(
+      /Follow Up Proposal[\s\S]{0,200}navigate\(\{ pathname: '\/proposals'/,
+    );
+  });
+
+  it('routes missing proposal context to project proposals list', () => {
+    expect(projectProposalNextActionSource).toContain("label: 'Create proposal'");
+    expect(projectDetailsSource).toContain('resolveProjectProposalNextAction');
+    expect(projectDetailsSource).toContain('projectProposalsHref');
   });
 });

@@ -11,6 +11,7 @@ export interface AppPageProps {
   className?: string;
   /** When false, content is not wrapped in max-width container. */
   constrained?: boolean;
+  'data-testid'?: string;
 }
 
 const AppPage: React.FC<AppPageProps> = ({
@@ -18,12 +19,15 @@ const AppPage: React.FC<AppPageProps> = ({
   header,
   className = '',
   constrained = true,
+  'data-testid': dataTestId,
 }) => {
   const shell = constrained ? PAGE_MAX_WIDTH : '';
   return (
-    <div className={`${shell} ${SECTION_SPACING} pb-24 md:pb-8 ${className}`}>
-      {header}
-      <div className={PAGE_GUTTER}>{children}</div>
+    <div className={`${shell} pb-24 md:pb-8 ${className}`} data-testid={dataTestId}>
+      <div className={`${PAGE_GUTTER} ${SECTION_SPACING}`}>
+        {header}
+        {children}
+      </div>
     </div>
   );
 };

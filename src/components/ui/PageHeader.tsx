@@ -1,6 +1,6 @@
 import React from 'react';
 import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../../theme/pageTypography';
-import { PAGE_GUTTER, TEXT_MUTED } from '../../theme/appTheme';
+import { TEXT_MUTED } from '../../theme/appTheme';
 
 export interface PageHeaderProps {
   title: string;
@@ -29,7 +29,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     : CC_PAGE_SUBTITLE;
 
   return (
-    <header className={`${PAGE_GUTTER} ${className}`}>
+    <header className={className}>
       {breadcrumb ? (
         <nav className={`mb-2 text-sm ${TEXT_MUTED}`} aria-label="Breadcrumb">
           {breadcrumb}

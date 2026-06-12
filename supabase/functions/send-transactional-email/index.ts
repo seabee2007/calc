@@ -11,6 +11,7 @@ import {
   isAllowedTemplateKey,
   isValidEmailAddress,
   rejectRawEmailBody,
+  validateOptionalEmailList,
 } from "../_shared/emailValidation.ts";
 import { renderEmailTemplate } from "../_shared/emailTemplates.ts";
 import {
@@ -26,8 +27,49 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 interface RequestBody {
   templateKey?: string;
   to?: string;
+  cc?: string[];
+  bcc?: string[];
   data?: Record<string, unknown>;
 }
+
+function buildProposalTemplateData(
+  proposal: { publicToken: string; title: string; data: Record<string, unknown> },
+  data: Record<string, unknown>,
+  siteUrl: string,
+  options?: { includeDepositAmount?: boolean; depositAmount?: number | null },
+): Record<string, unknown> {
+  const projectTitle =
+    typeof proposal.data.projectTitle === "string" && proposal.data.projectTitle.trim()
+      ? proposal.data.projectTitle.trim()
+      : proposal.title;
+
+  const depositAmount =
+    options?.includeDepositAmount && options.depositAmount != null && options.depositAmount > 0
+      ? `$${options.depositAmount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+      : "";
+
+  return {
+    ...data,
+    proposalTitle: projectTitle,
+    projectName: projectTitle,
+    senderName:
+      typeof data.senderName === "string"
+        ? data.senderName
+        : typeof proposal.data.businessName === "string"
+          ? proposal.data.businessName
+          : "Your contractor",
+    proposalUrl: getPublicProposalUrl(siteUrl, proposal.publicToken),
+    messageNote: typeof data.messageNote === "string" ? data.messageNote.trim() : "",
+    depositAmount,
+  };
+}
+
+const PROPOSAL_CLIENT_EMAIL_TEMPLATES = new Set([
+  "proposalSent",
+  "proposalFollowUp",
+  "depositRequest",
+  "clientCheckIn",
+]);
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -40,10 +82,10 @@ async function ensureProposalPublicToken(
   admin: ReturnType<typeof createClient>,
   proposalId: string,
   userId: string,
-): Promise<{ publicToken: string; projectId: string | null; title: string; data: Record<string, unknown> } | null> {
+): Promise<{ publicToken: string; projectId: string | null; title: string; data: Record<string, unknown>; depositAmount: number | null } | null> {
   const { data, error } = await admin
     .from("proposals")
-    .select("id, public_token, project_id, title, data, user_id")
+    .select("id, public_token, project_id, title, data, user_id, deposit_amount")
     .eq("id", proposalId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -68,6 +110,7 @@ async function ensureProposalPublicToken(
     projectId: (data.project_id as string | null) ?? null,
     title: String(data.title ?? "Proposal"),
     data: (data.data as Record<string, unknown>) ?? {},
+    depositAmount: typeof data.deposit_amount === "number" ? data.deposit_amount : Number(data.deposit_amount) || null,
   };
 }
 
@@ -118,6 +161,18 @@ serve(async (req) => {
       return jsonResponse({ error: "Enter a valid recipient email address." }, 400);
     }
 
+    const ccValidation = validateOptionalEmailList(body.cc, "CC");
+    if (!ccValidation.ok) {
+      return jsonResponse({ error: ccValidation.message }, 400);
+    }
+    const ccEmails = ccValidation.emails;
+
+    const bccValidation = validateOptionalEmailList(body.bcc, "BCC");
+    if (!bccValidation.ok) {
+      return jsonResponse({ error: bccValidation.message }, 400);
+    }
+    const bccEmails = bccValidation.emails;
+
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const config = readEmailEnvConfig(Deno.env.toObject());
     const templateKey = body.templateKey;
@@ -133,11 +188,23 @@ serve(async (req) => {
       );
     }
 
+    for (const ccEmail of ccEmails) {
+      const suppressedCc = await findLatestSuppressedRecipient(admin, ccEmail);
+      if (suppressedCc) {
+        return jsonResponse(
+          {
+            error: `CC recipient previously ${suppressedCc.status}. Update the CC address before sending again.`,
+          },
+          400,
+        );
+      }
+    }
+
     let proposalId: string | null = null;
     let projectId: string | null = typeof data.projectId === "string" ? data.projectId : null;
     let templateData = { ...data };
 
-    if (templateKey === "proposalSent") {
+    if (PROPOSAL_CLIENT_EMAIL_TEMPLATES.has(templateKey)) {
       proposalId = typeof data.proposalId === "string" ? data.proposalId : null;
       if (!proposalId) {
         return jsonResponse({ error: "proposalId is required." }, 400);
@@ -149,23 +216,10 @@ serve(async (req) => {
       }
 
       projectId = proposal.projectId;
-      const projectTitle =
-        typeof proposal.data.projectTitle === "string" && proposal.data.projectTitle.trim()
-          ? proposal.data.projectTitle.trim()
-          : proposal.title;
-
-      templateData = {
-        ...templateData,
-        proposalTitle: projectTitle,
-        projectName: projectTitle,
-        senderName:
-          typeof data.senderName === "string"
-            ? data.senderName
-            : typeof proposal.data.businessName === "string"
-              ? proposal.data.businessName
-              : "Your contractor",
-        proposalUrl: getPublicProposalUrl(config.siteUrl, proposal.publicToken),
-      };
+      templateData = buildProposalTemplateData(proposal, data, config.siteUrl, {
+        includeDepositAmount: templateKey === "depositRequest",
+        depositAmount: proposal.depositAmount,
+      });
     }
 
     if (templateKey === "teamInvite") {
@@ -212,6 +266,17 @@ serve(async (req) => {
         ? "queued"
         : "failed";
 
+    const eventMetadata: Record<string, unknown> = {
+      ...prepared.metadata,
+      intendedTo: recipient,
+      ...(ccEmails.length ? { cc: ccEmails } : {}),
+      ...(bccEmails.length ? { bcc: bccEmails } : {}),
+      ...(typeof templateData.messageNote === "string" && templateData.messageNote
+        ? { messageNote: templateData.messageNote }
+        : {}),
+      ...(typeof data.actionType === "string" ? { actionType: data.actionType } : {}),
+    };
+
     const event = await insertEmailEvent(admin, {
       userId: user.id,
       projectId,
@@ -222,7 +287,7 @@ serve(async (req) => {
       subject: rendered.subject,
       status: initialStatus,
       errorMessage: prepared.ok ? null : prepared.error ?? null,
-      metadata: prepared.metadata,
+      metadata: eventMetadata,
     });
 
     if (!config.sendingEnabled) {
@@ -242,6 +307,8 @@ serve(async (req) => {
     const sendResult = await sendTransactionalEmail({
       templateKey,
       to: recipient,
+      cc: ccEmails,
+      bcc: bccEmails,
       data: templateData,
     });
 
@@ -263,22 +330,41 @@ serve(async (req) => {
         status: "sent",
         resend_email_id: sendResult.messageId ?? null,
         sent_at: new Date().toISOString(),
-        metadata: { ...prepared.metadata, ...(sendResult.metadata ?? {}) },
+        metadata: { ...eventMetadata, ...(sendResult.metadata ?? {}) },
       });
     }
 
-    if (templateKey === "proposalSent" && proposalId) {
+    if (proposalId && PROPOSAL_CLIENT_EMAIL_TEMPLATES.has(templateKey)) {
       const now = new Date().toISOString();
+      const proposalUpdate: Record<string, string> = { last_sent_to: recipient };
+
+      if (templateKey === "proposalSent") {
+        proposalUpdate.status = "sent";
+        proposalUpdate.sent_at = now;
+      }
+      if (templateKey === "proposalFollowUp") {
+        proposalUpdate.last_followed_up_at = now;
+      }
+      if (templateKey === "depositRequest") {
+        proposalUpdate.last_deposit_request_sent_at = now;
+      }
+      if (templateKey === "clientCheckIn") {
+        proposalUpdate.last_contacted_at = now;
+      }
+
       const { error: proposalUpdateError } = await admin
         .from("proposals")
-        .update({ status: "sent", sent_at: now })
+        .update(proposalUpdate)
         .eq("id", proposalId)
         .eq("user_id", user.id);
 
       if (proposalUpdateError) {
         return jsonResponse(
           {
-            error: "Email sent, but proposal status could not be updated. Contact support.",
+            error:
+              templateKey === "proposalSent"
+                ? "Email sent, but proposal status could not be updated. Contact support."
+                : "Email sent, but proposal tracking could not be updated. Contact support.",
             emailEventId: event?.id ?? null,
             resendEmailId: sendResult.messageId ?? null,
           },

@@ -16,6 +16,8 @@ export interface ClientPortalAccessInput {
   clientName: string;
   clientEmail: string;
   clientPhone?: string;
+  /** Invite-only recipient when different from project client email. */
+  overrideInviteEmail?: string;
 }
 
 export type ClientTimelineStepKey =

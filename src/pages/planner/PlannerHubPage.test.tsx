@@ -86,10 +86,11 @@ describe('PlannerHubPage', () => {
       </MemoryRouter>,
     );
 
-    const header = screen.getByRole('heading', { name: 'Planner Hub' }).closest('header');
-    expect(header?.className).toContain('px-4');
-    expect(header?.className).toContain('sm:px-6');
-    expect(header?.className).toContain('lg:px-8');
+    const heading = screen.getByRole('heading', { name: 'Planner Hub' });
+    const gutter = heading.closest('header')?.parentElement;
+    expect(gutter?.className).toContain('px-4');
+    expect(gutter?.className).toContain('sm:px-6');
+    expect(gutter?.className).toContain('lg:px-8');
   });
 
   it('renders loading skeleton cards under Project Plans', () => {

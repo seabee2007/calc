@@ -84,7 +84,6 @@ const FinancialDetailsPage: React.FC = () => {
             }
             title="Financial details"
             subtitle="Full revenue, cost, and margin breakdown across proposals and active projects."
-            className="!px-0"
           />
         }
       >

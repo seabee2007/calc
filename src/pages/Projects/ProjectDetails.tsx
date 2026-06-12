@@ -67,14 +67,36 @@ import ProjectFieldActivityStrip from '../../components/owner/ProjectFieldActivi
 import { useAuth } from '../../hooks/useAuth';
 import { estimateWorkspaceHref } from '../../features/estimating/utils/estimateRoutes';
 import { ClipboardList } from 'lucide-react';
+import ProposalSendEmailModal, {
+  type ProposalSendEmailMode,
+} from '../../components/proposals/ProposalSendEmailModal';
+import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkModal';
+import { ProposalService } from '../../lib/proposalService';
+import { getPublicProposalUrl } from '../../lib/proposalTracking';
+import { sendProposalEmail } from '../../services/emailService';
+import { resolveProposalSendDefaults } from '../../utils/resolveProposalSendDefaults';
+import type { ProposalEmailSendPayload } from '../../utils/proposalEmailRecipient';
+import {
+  resolveProjectProposalNextAction,
+  shouldUseProjectProposalNextAction,
+} from '../../utils/projectProposalNextAction';
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
   const [showEstimatingCalculatorsModal, setShowEstimatingCalculatorsModal] = useState(false);
   const { isOwner } = useAuth();
   const { currentProject, ui, handlers } = useProjects();
-  const { proposals } = useTrackedProposals();
+  const { proposals, refresh: refreshProposals } = useTrackedProposals();
   const project = (currentProject as any) ?? null;
+  const [sendEmailModal, setSendEmailModal] = useState<{
+    proposalId: string;
+    proposalTitle: string;
+    defaultRecipientEmail?: string;
+    mode: ProposalSendEmailMode;
+  } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendEmailError, setSendEmailError] = useState<string | null>(null);
+  const [sentLinkModal, setSentLinkModal] = useState<{ url: string; title: string } | null>(null);
 
   const matchedProposal: TrackedProposalRow | undefined = useMemo(() => {
     if (!project) return undefined;
@@ -151,6 +173,96 @@ export default function ProjectDetails() {
           : 0;
     return { value, estLabor, estMaterial, profit, margin };
   }, [matchedProposal?.data, project]);
+
+  const proposalNextAction = useMemo(
+    () => resolveProjectProposalNextAction(project?.id ?? '', matchedProposal),
+    [project?.id, matchedProposal],
+  );
+
+  const useProposalEmailAction = useMemo(
+    () => shouldUseProjectProposalNextAction(workflow.stage, matchedProposal),
+    [workflow.stage, matchedProposal],
+  );
+
+  const primaryNextActionLabel = useProposalEmailAction
+    ? proposalNextAction.label
+    : workflow.nextAction.label;
+
+  const openProposalEmailModal = async (
+    mode: ProposalSendEmailMode,
+    proposal: TrackedProposalRow,
+  ) => {
+    setSendEmailError(null);
+    const defaultRecipientEmail = await resolveProposalSendDefaults(
+      proposal,
+      project?.clientInfo?.clientEmail,
+    );
+    setSendEmailModal({
+      proposalId: proposal.id,
+      proposalTitle:
+        proposal.data?.projectTitle?.trim() || proposal.title?.trim() || 'Proposal',
+      defaultRecipientEmail,
+      mode,
+    });
+  };
+
+  const handleProposalEmailSend = async ({ to, cc, messageNote }: ProposalEmailSendPayload) => {
+    if (!sendEmailModal) return;
+    setSendingEmail(true);
+    setSendEmailError(null);
+    try {
+      await sendProposalEmail({
+        proposalId: sendEmailModal.proposalId,
+        recipientEmail: to,
+        ccEmails: cc,
+        messageNote,
+        followUp: sendEmailModal.mode === 'followUp',
+      });
+      await refreshProposals();
+      const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
+      setSendEmailModal(null);
+      setSentLinkModal({
+        url: getPublicProposalUrl(refreshed.public_token),
+        title:
+          sendEmailModal.mode === 'followUp'
+            ? 'Proposal follow-up sent'
+            : 'Proposal sent by email',
+      });
+    } catch (err) {
+      setSendEmailError(err instanceof Error ? err.message : 'Failed to send proposal email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handlePrimaryNextAction = () => {
+    if (useProposalEmailAction) {
+      if (proposalNextAction.type === 'email') {
+        void openProposalEmailModal(proposalNextAction.mode, proposalNextAction.proposal);
+        return;
+      }
+      if (proposalNextAction.type === 'navigate') {
+        navigate(proposalNextAction.path);
+        return;
+      }
+    }
+
+    const action = workflow.nextAction;
+    if (action.kind === 'close_project') {
+      void handlers.closeOutProject(project.id);
+      return;
+    }
+    if (action.kind === 'back_to_list') {
+      handlers.backToProjectList();
+      return;
+    }
+    if (action.kind === 'scroll_to_qc') {
+      navigate(documentsQcHref);
+      return;
+    }
+    const search = action.search?.replace(/^\?/, '') ?? '';
+    navigate({ pathname: action.path, search });
+  };
 
   const nextActions = useMemo(() => {
     const issues: { msg: string; action: 'proposal' | 'placement' | 'project' | 'qc' }[] = [];
@@ -441,26 +553,10 @@ export default function ProjectDetails() {
               variant="accent"
               size="sm"
               className="whitespace-nowrap"
-              onClick={() => {
-                const action = workflow.nextAction;
-                if (action.kind === 'close_project') {
-                  void handlers.closeOutProject(project.id);
-                  return;
-                }
-                if (action.kind === 'back_to_list') {
-                  handlers.backToProjectList();
-                  return;
-                }
-                if (action.kind === 'scroll_to_qc') {
-                  navigate(documentsQcHref);
-                  return;
-                }
-                const search = action.search?.replace(/^\?/, '') ?? '';
-                navigate({ pathname: action.path, search });
-              }}
+              onClick={handlePrimaryNextAction}
               icon={<ArrowRight size={16} />}
             >
-              {workflow.nextAction.label}
+              {primaryNextActionLabel}
             </Button>
           )}
           {shouldShowConfigurePlacement(workflow.stage) && (
@@ -582,6 +678,26 @@ export default function ProjectDetails() {
         isOpen={showEstimatingCalculatorsModal}
         onClose={() => setShowEstimatingCalculatorsModal(false)}
         projectId={project.id}
+      />
+
+      <ProposalSentLinkModal
+        isOpen={Boolean(sentLinkModal)}
+        onClose={() => setSentLinkModal(null)}
+        proposalUrl={sentLinkModal?.url ?? ''}
+        title={sentLinkModal?.title}
+      />
+
+      <ProposalSendEmailModal
+        isOpen={Boolean(sendEmailModal)}
+        onClose={() => {
+          if (!sendingEmail) setSendEmailModal(null);
+        }}
+        proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
+        mode={sendEmailModal?.mode}
+        defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
+        sending={sendingEmail}
+        error={sendEmailError}
+        onSend={handleProposalEmailSend}
       />
     </div>
   );

@@ -64,12 +64,68 @@ export function renderEmailTemplate(
       });
     case "proposalSent": {
       const projectName = str(data, "projectName", str(data, "proposalTitle", "your project"));
+      const messageNote = str(data, "messageNote").trim();
+      const noteHtml = messageNote
+        ? `<p style="margin:12px 0 0;padding:12px;background:#f8fafc;border-radius:8px;">${escapeHtml(messageNote)}</p>`
+        : "";
+      const noteText = messageNote ? `\n\nNote: ${messageNote}` : "";
       return layout({
         title: `Proposal for ${projectName}`,
-        bodyHtml: `<p style="margin:0 0 12px;">${escapeHtml(str(data, "senderName", "Your contractor"))} sent you a proposal for <strong>${escapeHtml(projectName)}</strong>.</p><p style="margin:0;">Review the proposal details and respond online.</p>`,
-        bodyText: `${str(data, "senderName", "Your contractor")} sent you a proposal for ${projectName}. Review the proposal details and respond online.`,
+        bodyHtml: `<p style="margin:0 0 12px;">${escapeHtml(str(data, "senderName", "Your contractor"))} sent you a proposal for <strong>${escapeHtml(projectName)}</strong>.</p><p style="margin:0;">Review the proposal details and respond online.</p>${noteHtml}`,
+        bodyText: `${str(data, "senderName", "Your contractor")} sent you a proposal for ${projectName}. Review the proposal details and respond online.${noteText}`,
         ctaLabel: "View proposal",
         ctaUrl: str(data, "proposalUrl"),
+      });
+    }
+    case "proposalFollowUp": {
+      const proposalTitle = str(data, "proposalTitle", str(data, "projectName", "your project"));
+      const messageNote = str(data, "messageNote").trim();
+      const noteHtml = messageNote
+        ? `<p style="margin:12px 0 0;padding:12px;background:#f8fafc;border-radius:8px;">${escapeHtml(messageNote)}</p>`
+        : "";
+      const noteText = messageNote ? `\n\nNote: ${messageNote}` : "";
+      return layout({
+        title: `Follow up: ${proposalTitle}`,
+        bodyHtml: `<p style="margin:0 0 12px;">This is a follow-up regarding your proposal for <strong>${escapeHtml(proposalTitle)}</strong>.</p><p style="margin:0;">When you have a moment, please review the proposal using the link below.</p>${noteHtml}`,
+        bodyText: `This is a follow-up regarding your proposal for ${proposalTitle}. When you have a moment, please review the proposal using the link below.${noteText}`,
+        ctaLabel: "View proposal",
+        ctaUrl: str(data, "proposalUrl"),
+      });
+    }
+    case "depositRequest": {
+      const projectName = str(data, "projectName", str(data, "proposalTitle", "your project"));
+      const depositAmount = str(data, "depositAmount").trim();
+      const messageNote = str(data, "messageNote").trim();
+      const amountLine = depositAmount
+        ? `<p style="margin:0 0 12px;">The requested deposit amount is <strong>${escapeHtml(depositAmount)}</strong>.</p>`
+        : `<p style="margin:0 0 12px;">Please contact us to arrange the deposit for this project.</p>`;
+      const noteHtml = messageNote
+        ? `<p style="margin:12px 0 0;padding:12px;background:#f8fafc;border-radius:8px;">${escapeHtml(messageNote)}</p>`
+        : "";
+      const noteText = messageNote ? `\n\nNote: ${messageNote}` : "";
+      const proposalUrl = str(data, "proposalUrl");
+      return layout({
+        title: `Deposit request: ${projectName}`,
+        bodyHtml: `<p style="margin:0 0 12px;">Thank you for accepting the proposal for <strong>${escapeHtml(projectName)}</strong>.</p>${amountLine}${noteHtml}`,
+        bodyText: `Thank you for accepting the proposal for ${projectName}. ${depositAmount ? `The requested deposit amount is ${depositAmount}.` : 'Please contact us to arrange the deposit for this project.'}${noteText}`,
+        ctaLabel: proposalUrl ? "View proposal" : undefined,
+        ctaUrl: proposalUrl || undefined,
+      });
+    }
+    case "clientCheckIn": {
+      const projectName = str(data, "projectName", str(data, "proposalTitle", "your project"));
+      const messageNote = str(data, "messageNote").trim();
+      const noteHtml = messageNote
+        ? `<p style="margin:12px 0 0;padding:12px;background:#f8fafc;border-radius:8px;">${escapeHtml(messageNote)}</p>`
+        : "";
+      const noteText = messageNote ? `\n\nNote: ${messageNote}` : "";
+      const proposalUrl = str(data, "proposalUrl");
+      return layout({
+        title: `Checking in: ${projectName}`,
+        bodyHtml: `<p style="margin:0 0 12px;">Checking in regarding <strong>${escapeHtml(projectName)}</strong>.</p><p style="margin:0;">Reply if you have questions or need anything from our team.</p>${noteHtml}`,
+        bodyText: `Checking in regarding ${projectName}. Reply if you have questions or need anything from our team.${noteText}`,
+        ctaLabel: proposalUrl ? "View proposal" : undefined,
+        ctaUrl: proposalUrl || undefined,
       });
     }
     case "proposalAccepted":

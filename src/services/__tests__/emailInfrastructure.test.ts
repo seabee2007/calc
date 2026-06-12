@@ -12,6 +12,7 @@ import {
   isValidEmailAddress,
   mapResendWebhookStatus,
   rejectRawEmailBody,
+  validateOptionalEmailList,
 } from '../../../supabase/functions/_shared/emailValidation.ts';
 import { renderEmailTemplate } from '../../../supabase/functions/_shared/emailTemplates.ts';
 import { getPublicProposalUrl, prepareTransactionalEmail } from '../../../supabase/functions/_shared/resend.ts';
@@ -84,6 +85,39 @@ describe('email templates', () => {
       'https://app.example.com/proposal/abc-123',
     );
   });
+
+  it('renders subject, html, and text for proposalFollowUp', () => {
+    const rendered = renderEmailTemplate('proposalFollowUp', {
+      proposalTitle: 'Riverfront Slab',
+      proposalUrl: 'https://app.example.com/proposal/abc-123',
+      messageNote: 'Checking in on the proposal.',
+    });
+
+    expect(rendered.subject).toBe('Follow up: Riverfront Slab');
+    expect(rendered.html).toContain('View proposal');
+    expect(rendered.text).toContain('Checking in on the proposal.');
+  });
+
+  it('renders depositRequest without pretending payment collection is enabled', () => {
+    const rendered = renderEmailTemplate('depositRequest', {
+      projectName: 'Riverfront Slab',
+      depositAmount: '$2,500',
+    });
+
+    expect(rendered.subject).toBe('Deposit request: Riverfront Slab');
+    expect(rendered.text).toContain('$2,500');
+    expect(rendered.html).not.toContain('View payment details');
+  });
+
+  it('renders clientCheckIn subject and body', () => {
+    const rendered = renderEmailTemplate('clientCheckIn', {
+      projectName: 'Riverfront Slab',
+      messageNote: 'Just checking in.',
+    });
+
+    expect(rendered.subject).toBe('Checking in: Riverfront Slab');
+    expect(rendered.text).toContain('Just checking in.');
+  });
 });
 
 describe('email validation', () => {
@@ -105,6 +139,23 @@ describe('email validation', () => {
         html: '<script>alert(1)</script>',
       }),
     ).toContain('html');
+  });
+
+  it('validates CC arrays for send-transactional-email', () => {
+    expect(validateOptionalEmailList(['owner@example.com'], 'CC')).toEqual({
+      ok: true,
+      emails: ['owner@example.com'],
+    });
+    expect(validateOptionalEmailList(['not-an-email'], 'CC')).toEqual({
+      ok: false,
+      message: 'Enter valid CC email addresses.',
+    });
+  });
+
+  it('allows proposalFollowUp template key', () => {
+    expect(isAllowedTemplateKey('proposalFollowUp')).toBe(true);
+    expect(isAllowedTemplateKey('depositRequest')).toBe(true);
+    expect(isAllowedTemplateKey('clientCheckIn')).toBe(true);
   });
 
   it('maps Resend webhook events to email event statuses', () => {
@@ -129,16 +180,18 @@ describe('frontend security', () => {
 });
 
 describe('proposal pages defer sent status to successful email send', () => {
-  it('uses sendProposalEmail without immediately calling markProposalSent in Proposals page', () => {
-    const source = readSource('src/pages/Proposals.tsx');
-    expect(source).toContain('sendProposalEmail');
-    expect(source).not.toMatch(/handleSendEmail[\s\S]*markProposalSent/);
+  it('uses workflow email hook without immediately calling markProposalSent in Proposals page', () => {
+    const proposalsSource = readSource('src/pages/Proposals.tsx');
+    const hookSource = readSource('src/hooks/useProposalNextActionEmail.ts');
+    expect(proposalsSource).toContain('useProposalNextActionEmail');
+    expect(hookSource).toContain('sendProposalNextActionEmail');
+    expect(hookSource).not.toContain('markProposalSent');
   });
 
   it('marks proposal sent only after Resend succeeds in send-transactional-email', () => {
     const source = readSource('supabase/functions/send-transactional-email/index.ts');
     const sendIndex = source.indexOf('sendTransactionalEmail');
-    const markSentIndex = source.indexOf("status: \"sent\", sent_at: now");
+    const markSentIndex = source.indexOf('proposalUpdate.status = "sent"');
     expect(sendIndex).toBeGreaterThan(-1);
     expect(markSentIndex).toBeGreaterThan(sendIndex);
   });
@@ -146,7 +199,7 @@ describe('proposal pages defer sent status to successful email send', () => {
   it('does not mark proposal sent when email sending is disabled', () => {
     const source = readSource('supabase/functions/send-transactional-email/index.ts');
     const disabledReturn = source.indexOf('Email sending is disabled.');
-    const markSentIndex = source.indexOf("status: \"sent\", sent_at: now");
+    const markSentIndex = source.indexOf('proposalUpdate.status = "sent"');
     expect(disabledReturn).toBeGreaterThan(-1);
     expect(markSentIndex).toBeGreaterThan(disabledReturn);
   });
@@ -157,5 +210,25 @@ describe('proposal pages defer sent status to successful email send', () => {
       source.match(/if \(!sendResult\.ok\) \{[\s\S]*?^\    \}/m)?.[0] ?? '';
     expect(failureBlock).toContain('status: "failed"');
     expect(failureBlock).not.toContain('.from("proposals")');
+  });
+
+  it('logs intended recipient and CC in email event metadata', () => {
+    const source = readSource('supabase/functions/send-transactional-email/index.ts');
+    expect(source).toContain('intendedTo: recipient');
+    expect(source).toContain('cc: ccEmails');
+    expect(source).toContain('actionType: data.actionType');
+  });
+
+  it('does not mark deposit paid on depositRequest success', () => {
+    const source = readSource('supabase/functions/send-transactional-email/index.ts');
+    expect(source).toContain('last_deposit_request_sent_at');
+    expect(source).not.toMatch(/depositRequest[\s\S]*deposit_paid_at/);
+    expect(source).not.toMatch(/depositRequest[\s\S]*status: "deposit_paid"/);
+  });
+
+  it('does not mark proposal sent on proposalFollowUp success', () => {
+    const source = readSource('supabase/functions/send-transactional-email/index.ts');
+    expect(source).toContain('templateKey === "proposalFollowUp"');
+    expect(source).toMatch(/if \(templateKey === "proposalSent"\)/);
   });
 });

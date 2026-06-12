@@ -54,7 +54,13 @@ export function resolveFromEmail(
   templateKey: string,
   config: Pick<EmailEnvConfig, "fromEmail" | "proposalsFromEmail" | "notificationsFromEmail">,
 ): string {
-  if (templateKey === "proposalSent" || templateKey === "proposalAccepted") {
+  if (
+    templateKey === "proposalSent" ||
+    templateKey === "proposalFollowUp" ||
+    templateKey === "depositRequest" ||
+    templateKey === "clientCheckIn" ||
+    templateKey === "proposalAccepted"
+  ) {
     return config.proposalsFromEmail || config.fromEmail;
   }
   if (

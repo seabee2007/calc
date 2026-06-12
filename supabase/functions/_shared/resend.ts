@@ -11,6 +11,8 @@ import type { EmailTemplateKey } from "./emailValidation.ts";
 export interface SendTransactionalEmailInput {
   templateKey: EmailTemplateKey;
   to: string;
+  cc?: string[];
+  bcc?: string[];
   data?: Record<string, unknown>;
   env?: Record<string, string | undefined>;
 }
@@ -85,20 +87,27 @@ export async function sendTransactionalEmail(
   const rendered = renderEmailTemplate(input.templateKey, input.data ?? {});
 
   try {
+    const payload: Record<string, unknown> = {
+      from: prepared.from,
+      to: [prepared.to],
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+      reply_to: config.replyTo || undefined,
+    };
+
+    if (!config.testMode) {
+      if (input.cc?.length) payload.cc = input.cc;
+      if (input.bcc?.length) payload.bcc = input.bcc;
+    }
+
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${config.resendApiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from: prepared.from,
-        to: [prepared.to],
-        subject: rendered.subject,
-        html: rendered.html,
-        text: rendered.text,
-        reply_to: config.replyTo || undefined,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const body = await response.json().catch(() => ({}));

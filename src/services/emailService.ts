@@ -32,6 +32,8 @@ export interface EmailEventRow {
 async function invokeSendTransactionalEmail(body: {
   templateKey: string;
   to: string;
+  cc?: string[];
+  bcc?: string[];
   data?: Record<string, unknown>;
 }): Promise<SendTransactionalEmailResponse> {
   const { data: session } = await supabase.auth.getSession();
@@ -58,14 +60,51 @@ async function invokeSendTransactionalEmail(body: {
 export async function sendProposalEmail(input: {
   proposalId: string;
   recipientEmail: string;
+  ccEmails?: string[];
+  messageNote?: string;
+  followUp?: boolean;
   senderName?: string;
 }): Promise<SendTransactionalEmailResponse> {
+  return sendProposalNextActionEmail({
+    actionType: input.followUp ? 'follow_up_proposal' : 'send_proposal',
+    proposalId: input.proposalId,
+    recipientEmail: input.recipientEmail,
+    ccEmails: input.ccEmails,
+    messageNote: input.messageNote,
+    senderName: input.senderName,
+  });
+}
+
+export async function sendProposalNextActionEmail(input: {
+  actionType:
+    | 'send_proposal'
+    | 'follow_up_proposal'
+    | 'request_deposit'
+    | 'check_in_client';
+  proposalId: string;
+  recipientEmail: string;
+  ccEmails?: string[];
+  messageNote?: string;
+  senderName?: string;
+}): Promise<SendTransactionalEmailResponse> {
+  const templateKey =
+    input.actionType === 'send_proposal'
+      ? 'proposalSent'
+      : input.actionType === 'follow_up_proposal'
+        ? 'proposalFollowUp'
+        : input.actionType === 'request_deposit'
+          ? 'depositRequest'
+          : 'clientCheckIn';
+
   return invokeSendTransactionalEmail({
-    templateKey: 'proposalSent',
+    templateKey,
     to: input.recipientEmail.trim(),
+    cc: input.ccEmails,
     data: {
       proposalId: input.proposalId,
       senderName: input.senderName,
+      messageNote: input.messageNote,
+      actionType: input.actionType,
     },
   });
 }

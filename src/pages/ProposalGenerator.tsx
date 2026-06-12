@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Save, Edit, ArrowLeft, Download, Mail, FileText, Plus, Upload, Beaker, CloudSun, SkipForward, Send, Link2 } from 'lucide-react';
+import { Save, ArrowLeft, FileText, Plus, Upload, Beaker, CloudSun, SkipForward, Send } from 'lucide-react';
 import { useWorkflowProgressStore } from '../store/workflowProgressStore';
 import { useWorkflowDraftStore } from '../store/workflowDraftStore';
 import WorkflowStepHeader from '../components/workflow/WorkflowStepHeader';
@@ -19,27 +19,40 @@ import { ProposalData } from '../types/proposal';
 import { ProposalService, SavedProposal } from '../lib/proposalService';
 import {
   getPublicProposalUrl,
-  markProposalSent,
 } from '../lib/proposalTracking';
 import ProposalTemplateClassic from '../components/proposals/ProposalTemplateClassic';
 import ProposalTemplateModern from '../components/proposals/ProposalTemplateModern';
 import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMinimal';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
-import ProposalSendEmailModal from '../components/proposals/ProposalSendEmailModal';
+import ProposalSendEmailModal, {
+  type ProposalSendEmailMode,
+} from '../components/proposals/ProposalSendEmailModal';
 import { sendProposalEmail } from '../services/emailService';
+import { resolveProposalSendDefaults } from '../utils/resolveProposalSendDefaults';
+import type { ProposalEmailSendPayload } from '../utils/proposalEmailRecipient';
 import Button from '../components/ui/Button';
 import { generateProposalPDF } from '../utils/pdf';
 import { useSettingsStore } from '../store';
 import { useProjectStore } from '../store';
 import {
+  buildDefaultProposalTitle,
+  importProjectIntoProposal,
+  projectClientInfoFromProposalData,
+} from '../utils/proposalProjectImport';
+import { countProposalLineItemsFromProject } from '../utils/proposalPricingImport';
+import {
   buildProposalLineItemsFromProject,
-  countProposalLineItemsFromProject,
   getProjectEstimateSourceLabels,
   projectHasImportablePricing,
 } from '../utils/proposalPricingImport';
 import ProposalPricingEditor, {
   proposalIndirectFromData,
 } from '../components/proposals/ProposalPricingEditor';
+import ProposalProjectSourcePanel from '../components/proposals/ProposalProjectSourcePanel';
+import ProposalClientRecipientSection from '../components/proposals/ProposalClientRecipientSection';
+import ProposalBusinessInfoCollapsible from '../components/proposals/ProposalBusinessInfoCollapsible';
+import ProposalPreviewActionBar from '../components/proposals/ProposalPreviewActionBar';
+import AppPage from '../components/ui/AppPage';
 import {
   emptyProposalPricingState,
   hydrateProposalPricing,
@@ -48,7 +61,6 @@ import Modal from '../components/ui/Modal';
 import Toast, { type ToastType } from '../components/ui/Toast';
 import { soundService } from '../services/soundService';
 import { useConfirm } from '../contexts/ConfirmContext';
-import USAddressFields from '../components/address/USAddressFields';
 import {
   EMPTY_US_ADDRESS,
   parseLegacyUSAddress,
@@ -64,6 +76,10 @@ import {
 } from '../utils/proposalAddress';
 import { APP_SECTION_CARD, FORM_TEXTAREA } from '../theme/appTheme';
 import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
+import {
+  formatProposalPreviewSubtitle,
+  normalizeDisplayText,
+} from '../utils/normalizeDisplayText';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
@@ -82,7 +98,7 @@ const ProposalGenerator: React.FC = () => {
   const isEditing = !!editId;
   const isPreviewMode = !!previewId;
   const { companySettings } = useSettingsStore();
-  const { projects, loadProjects } = useProjectStore();
+  const { projects, loadProjects, updateProject } = useProjectStore();
   const location = useLocation();
   const workflowState = location.state as WorkflowLocationState | null;
   const inWorkflow = isWorkflowActive(location.search, workflowState);
@@ -98,6 +114,7 @@ const ProposalGenerator: React.FC = () => {
     proposalId: string;
     proposalTitle: string;
     defaultRecipientEmail?: string;
+    mode?: ProposalSendEmailMode;
   } | null>(null);
   const [sendEmailError, setSendEmailError] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -115,6 +132,11 @@ const ProposalGenerator: React.FC = () => {
     message?: string;
     type: ToastType;
   } | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectAutoSelected, setProjectAutoSelected] = useState(false);
+  const [businessInfoExpanded, setBusinessInfoExpanded] = useState(false);
+  const [updatingProjectClient, setUpdatingProjectClient] = useState(false);
+  const projectImportInitializedRef = useRef(false);
 
   const [proposalData, setProposalData] = useState<ProposalData>(() =>
     hydrateProposalAddresses({
@@ -128,6 +150,8 @@ const ProposalGenerator: React.FC = () => {
     businessSlogan: companySettings.motto || '',
     clientName: '',
     clientCompany: '',
+    clientEmail: '',
+    clientPhone: '',
     clientAddress: '',
     clientAddressParts: { ...EMPTY_US_ADDRESS },
     projectTitle: '',
@@ -162,6 +186,9 @@ const ProposalGenerator: React.FC = () => {
         );
         setSelectedTemplate(proposal.template_type);
         setProposalTitle(proposal.title);
+        if (proposal.project_id) {
+          setSelectedProjectId(proposal.project_id);
+        }
         
         if (previewId) {
           setShowPreview(true);
@@ -176,6 +203,124 @@ const ProposalGenerator: React.FC = () => {
 
     loadProposal();
   }, [editId, previewId, navigate]);
+
+  useEffect(() => {
+    void loadProjects().catch((err) => {
+      console.error('Failed to load projects for proposal generator:', err);
+    });
+  }, [loadProjects]);
+
+  const companyTaxSettings = {
+    taxSystem: companySettings.taxSystem,
+    taxRatePercent: companySettings.taxRatePercent,
+    taxApplication: companySettings.taxApplication,
+  };
+
+  const showImportFeedback = (
+    title: string,
+    type: ToastType,
+    message?: string,
+    options?: { silent?: boolean },
+  ) => {
+    if (options?.silent) return;
+    setImportToast({ title, message, type });
+  };
+
+  const applyProjectImport = (
+    projectId: string,
+    options?: { overwrite?: boolean; importPricing?: boolean; setTitle?: boolean; silent?: boolean },
+  ) => {
+    const project = projects.find((entry) => entry.id === projectId);
+    if (!project) {
+      showImportFeedback('Import failed', 'error', 'Project not found.', {
+        silent: options?.silent,
+      });
+      return;
+    }
+
+    setSelectedProjectId(projectId);
+    setProposalData((prev) =>
+      importProjectIntoProposal(prev, project, {
+        overwriteEmptyOnly: options?.overwrite !== true,
+        importPricing: options?.importPricing ?? true,
+        companySettings: companyTaxSettings,
+      }),
+    );
+
+    if (options?.setTitle !== false) {
+      setProposalTitle((prev) => prev.trim() || buildDefaultProposalTitle(project.name));
+    }
+
+    if (options?.importPricing !== false && projectHasImportablePricing(project)) {
+      importedPricingRef.current = projectId;
+      const lineCount = countProposalLineItemsFromProject(project);
+      if (lineCount > 0 && !options?.silent) {
+        const sources = getProjectEstimateSourceLabels(project);
+        showImportFeedback(
+          'Project imported',
+          'success',
+          `Loaded details from "${project.name}"${sources.length ? ` (${sources.join(', ')})` : ''}.`,
+        );
+      }
+    } else if (!options?.silent) {
+      showImportFeedback(
+        'Project imported',
+        'success',
+        `Loaded client and project details from "${project.name}".`,
+      );
+    }
+  };
+
+  // Auto-select project from workflow / project context and import details.
+  useEffect(() => {
+    if (isEditing || isPreviewMode || projectImportInitializedRef.current) return;
+
+    const contextProjectId =
+      workflowProjectId ?? workflowState?.projectId ?? null;
+    if (!contextProjectId) {
+      projectImportInitializedRef.current = true;
+      return;
+    }
+
+    if (projects.length === 0) return;
+
+    const project = projects.find((entry) => entry.id === contextProjectId);
+    if (!project) {
+      projectImportInitializedRef.current = true;
+      return;
+    }
+
+    const draft = getProposalDraft(contextProjectId);
+    if (draft && !proposalDraftRestoredRef.current) {
+      setProposalData(
+        hydrateProposalPricing(
+          mergeProjectIntoProposalFields(draft.proposalData, project),
+        ),
+      );
+      setProposalTitle(draft.proposalTitle);
+      setSelectedTemplate(draft.selectedTemplate);
+      setShowPreview(draft.showPreview);
+      setSelectedProjectId(contextProjectId);
+      setProjectAutoSelected(true);
+      proposalDraftRestoredRef.current = true;
+      importedPricingRef.current = contextProjectId;
+      projectImportInitializedRef.current = true;
+      return;
+    }
+
+    proposalDraftRestoredRef.current = true;
+    setSelectedProjectId(contextProjectId);
+    setProjectAutoSelected(true);
+    applyProjectImport(contextProjectId, { overwrite: true, silent: true });
+    projectImportInitializedRef.current = true;
+  }, [
+    isEditing,
+    isPreviewMode,
+    workflowProjectId,
+    workflowState?.projectId,
+    projects,
+    getProposalDraft,
+  ]);
 
   useEffect(() => {
     if (!inWorkflow || !workflowProjectId || isEditing || isPreviewMode) return;
@@ -197,74 +342,10 @@ const ProposalGenerator: React.FC = () => {
     saveProposalDraft,
   ]);
 
-  // Handle project data from navigation state (guided workflow)
-  useEffect(() => {
-    const state = workflowState;
-    if (isEditing || isPreviewMode) return;
-
-    const projectId = state?.projectId ?? workflowProjectId;
-    const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
-    const draft = projectId ? getProposalDraft(projectId) : undefined;
-    if (draft && !proposalDraftRestoredRef.current) {
-      setProposalData(
-        hydrateProposalPricing(
-          mergeProjectIntoProposalFields(draft.proposalData, project),
-        ),
-      );
-      setProposalTitle(draft.proposalTitle);
-      setSelectedTemplate(draft.selectedTemplate);
-      setShowPreview(draft.showPreview);
-      proposalDraftRestoredRef.current = true;
-      if (projectId) importedPricingRef.current = projectId;
-      return;
-    }
-    proposalDraftRestoredRef.current = true;
-
-    const projectName = state?.projectName ?? project?.name;
-    const projectDescription = state?.projectDescription ?? project?.description;
-
-    if (projectName) {
-      setProposalTitle((prev) => prev || `${projectName} - Concrete Proposal`);
-      setProposalData((prev) =>
-        mergeProjectIntoProposalFields(
-          {
-            ...prev,
-            projectTitle: projectName,
-            introduction: projectDescription
-              ? `We are pleased to submit this proposal for your ${projectName} project. ${projectDescription}`
-              : `We are pleased to submit this proposal for your ${projectName || 'concrete'} project.`,
-            scope: `This proposal covers all concrete work required for the ${projectName || 'concrete'} project, including materials, labor, and related services.`,
-          },
-          project,
-        ),
-      );
-    } else if (project) {
-      setProposalData((prev) => mergeProjectIntoProposalFields(prev, project));
-    }
-
-    const hasImportablePricing = project ? projectHasImportablePricing(project) : false;
-
-    if (
-      projectId &&
-      importedPricingRef.current !== projectId &&
-      hasImportablePricing
-    ) {
-      importedPricingRef.current = projectId;
-      importPricingFromProject(projectId, { silent: true });
-    }
-  }, [
-    workflowState,
-    workflowProjectId,
-    isEditing,
-    isPreviewMode,
-    projects,
-    getProposalDraft,
-  ]);
-
-  // Jobsite may load after projects fetch â€” fill client address when it arrives.
+  // Jobsite may load after projects fetch — fill client address when it arrives.
   useEffect(() => {
     if (isEditing || isPreviewMode) return;
-    const projectId = workflowState?.projectId ?? workflowProjectId;
+    const projectId = selectedProjectId ?? workflowState?.projectId ?? workflowProjectId;
     if (!projectId) return;
     const project = projects.find((p) => p.id === projectId);
     if (!project?.jobsiteAddress) return;
@@ -272,22 +353,13 @@ const ProposalGenerator: React.FC = () => {
       mergeProjectJobsiteIntoClientAddress(prev, project.jobsiteAddress),
     );
   }, [
+    selectedProjectId,
     workflowProjectId,
     workflowState?.projectId,
     projects,
     isEditing,
     isPreviewMode,
   ]);
-
-  const showImportFeedback = (
-    title: string,
-    type: ToastType,
-    message?: string,
-    options?: { silent?: boolean },
-  ) => {
-    if (options?.silent) return;
-    setImportToast({ title, message, type });
-  };
 
   const importPricingFromProject = (
     projectId: string,
@@ -368,11 +440,71 @@ const ProposalGenerator: React.FC = () => {
     });
   };
 
+  const handleSelectProject = (projectId: string) => {
+    setProjectAutoSelected(false);
+    applyProjectImport(projectId, { overwrite: true });
+  };
+
+  const handleClearSelectedProject = () => {
+    setSelectedProjectId(null);
+    setProjectAutoSelected(false);
+  };
+
+  const handleUpdateProjectClientInfo = async () => {
+    if (!selectedProjectId || !proposalData.clientName.trim()) {
+      showImportFeedback(
+        'Client name required',
+        'warning',
+        'Enter a client name before updating the project record.',
+      );
+      return;
+    }
+
+    try {
+      setUpdatingProjectClient(true);
+      await updateProject(selectedProjectId, {
+        clientInfo: projectClientInfoFromProposalData(proposalData),
+      });
+      showImportFeedback(
+        'Project updated',
+        'success',
+        'Project client information was updated from this proposal.',
+      );
+    } catch (error) {
+      console.error('Failed to update project client info:', error);
+      showImportFeedback(
+        'Update failed',
+        'error',
+        'Could not update project client information.',
+      );
+    } finally {
+      setUpdatingProjectClient(false);
+    }
+  };
+
+  const selectedProject = selectedProjectId
+    ? projects.find((entry) => entry.id === selectedProjectId)
+    : undefined;
+
+  const hasPricingLines =
+    (proposalData.laborItems?.length ?? 0) +
+      (proposalData.materialItems?.length ?? 0) +
+      (proposalData.equipmentItems?.length ?? 0) +
+      (proposalData.subcontractorItems?.length ?? 0) >
+    0;
+
+  const showPricingWarning =
+    Boolean(selectedProjectId) &&
+    !hasPricingLines &&
+    selectedProject &&
+    !projectHasImportablePricing(selectedProject);
+
   const workflowProject = workflowProjectId
     ? projects.find((p) => p.id === workflowProjectId)
     : undefined;
 
   const resolveLinkedProjectId = (data: ProposalData): string | null | undefined => {
+    if (selectedProjectId) return selectedProjectId;
     if (workflowProjectId) return workflowProjectId;
     if (currentProposal?.project_id) return currentProposal.project_id;
     const title = data.projectTitle?.trim() || proposalTitle.trim();
@@ -600,19 +732,29 @@ const ProposalGenerator: React.FC = () => {
 
   const handleDownloadPDF = async () => {
     if (!printRef.current) {
-      alert('Preview not ready for download. Please try again in a moment.');
+      showImportFeedback(
+        'Download failed',
+        'error',
+        'Preview not ready for download. Please try again.',
+      );
       return;
     }
 
     try {
-      const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
+      const title = normalizeDisplayText(
+        `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`,
+      );
       const htmlContent = printRef.current.innerHTML;
-      
+
       await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, proposalData);
-      console.log('Proposal PDF generated successfully');
+      showImportFeedback('Proposal PDF downloaded.', 'success');
     } catch (error) {
       console.error('Error generating proposal PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      showImportFeedback(
+        'Download failed',
+        'error',
+        'Could not download proposal PDF. Please try again.',
+      );
     }
   };
 
@@ -655,80 +797,93 @@ const ProposalGenerator: React.FC = () => {
         ? projects.find((entry) => entry.id === saved.project_id)
         : null;
       setSendEmailError(null);
+      const defaultRecipientEmail = await resolveProposalSendDefaults(
+        saved,
+        linkedProject?.clientInfo?.clientEmail,
+      );
       setSendEmailModal({
         proposalId: saved.id,
-        proposalTitle:
+        proposalTitle: normalizeDisplayText(
           saved.data?.projectTitle?.trim() || saved.title?.trim() || 'Proposal',
-        defaultRecipientEmail: linkedProject?.clientInfo?.clientEmail?.trim() ?? '',
+        ),
+        defaultRecipientEmail,
+        mode: 'send',
       });
     } catch (error) {
       console.error('Send proposal failed:', error);
-      alert(
-        error instanceof Error ? error.message : 'Failed to send proposal.',
+      showImportFeedback(
+        'Could not send proposal. Please try again.',
+        'error',
+        error instanceof Error ? error.message : undefined,
       );
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSendProposalEmail = async (recipientEmail: string) => {
+  const handleSendProposalEmail = async ({ to, cc, messageNote }: ProposalEmailSendPayload) => {
     if (!sendEmailModal) return;
     setSendingEmail(true);
     setSendEmailError(null);
     try {
       await sendProposalEmail({
         proposalId: sendEmailModal.proposalId,
-        recipientEmail,
+        recipientEmail: to,
+        ccEmails: cc,
+        messageNote,
+        followUp: sendEmailModal.mode === 'followUp',
         senderName: proposalData.businessName || proposalData.preparedBy || undefined,
       });
       const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
+      setCurrentProposal(refreshed);
       setSendEmailModal(null);
       setSentProposalUrl(getPublicProposalUrl(refreshed.public_token));
+      showImportFeedback('Proposal sent to client.', 'success');
     } catch (error) {
-      setSendEmailError(
-        error instanceof Error ? error.message : 'Failed to send proposal email.',
-      );
+      console.error('Send proposal email failed:', error);
+      setSendEmailError('Could not send proposal. Please try again.');
+      showImportFeedback('Could not send proposal. Please try again.', 'error');
     } finally {
       setSendingEmail(false);
     }
   };
 
-  const handleEmailProposal = async () => {
-    if (!printRef.current) {
-      alert('Preview not ready for email. Please try again in a moment.');
-      return;
-    }
+  const proposalFeedbackModals = (
+    <>
+      {importToast && (
+        <Toast
+          id="proposal-import-toast"
+          title={importToast.title}
+          message={importToast.message}
+          type={importToast.type}
+          onClose={() => setImportToast(null)}
+        />
+      )}
 
-    try {
-      setSaving(true);
-      const saved = await persistProposal();
-      const sent = await markProposalSent(saved.id);
-      const proposalUrl = getPublicProposalUrl(sent.public_token);
+      <ProposalSentLinkModal
+        isOpen={Boolean(sentProposalUrl)}
+        onClose={() => setSentProposalUrl(null)}
+        proposalUrl={sentProposalUrl ?? ''}
+        title="Proposal sent by email"
+      />
 
-      const title = `${proposalData.projectTitle || 'Proposal'} - ${proposalData.businessName || 'Concrete Proposal'}`;
-      const htmlContent = printRef.current.innerHTML;
-
-      await generateProposalPDF(htmlContent, title, undefined, selectedTemplate, proposalData);
-
-      if (!('Capacitor' in window)) {
-        const subject = encodeURIComponent(
-          `Concrete Proposal - ${proposalData.projectTitle || 'Project'}`,
-        );
-        const body = encodeURIComponent(
-          `Please review our proposal online:\n${proposalUrl}\n\nProject: ${proposalData.projectTitle || 'Project'}\nClient: ${proposalData.clientName || 'Client'}\n\n${proposalData.introduction || ''}\n\nBest regards,\n${proposalData.preparedBy || ''}\n${proposalData.preparedByTitle || ''}`,
-        );
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      }
-    } catch (error) {
-      console.error('Error preparing proposal for email:', error);
-      alert('Failed to prepare proposal for email. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
+      <ProposalSendEmailModal
+        isOpen={Boolean(sendEmailModal)}
+        onClose={() => {
+          if (!sendingEmail) setSendEmailModal(null);
+        }}
+        proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
+        mode={sendEmailModal?.mode}
+        defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
+        sending={sendingEmail}
+        error={sendEmailError}
+        onSend={handleSendProposalEmail}
+      />
+    </>
+  );
 
   const getDisplayValue = (value: string | undefined, placeholder: string): string => {
-    return value || placeholder;
+    return normalizeDisplayText(value || placeholder);
   };
 
   const renderTemplate = () => {
@@ -793,99 +948,54 @@ const ProposalGenerator: React.FC = () => {
     }
   };
 
-  const proposalPreviewShellClass =
-    'w-full max-w-5xl mx-auto min-w-0 [&>div]:mx-0 [&>div]:w-full [&>div]:max-w-none';
-
   if (showPreview) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"
-      >
-        <div className="mb-8">
-          <h1 className={PAGE_TITLE}>Proposal Preview</h1>
-          <p className={PAGE_SUBTITLE}>
-            Proposal â€”{' '}
-            {new Date().toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {templatePreviews[selectedTemplate].name} template
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-              {isPreviewMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/proposals')}
-                  icon={<ArrowLeft size={18} />}
-                >
-                  <span className="hidden md:inline">Back to Proposals</span>
-                </Button>
-              )}
-              {isPreviewMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/proposal-generator?edit=${previewId}`)}
-                  icon={<Edit size={18} />}
-                >
-                  <span className="hidden md:inline">Edit</span>
-                </Button>
-              )}
-              {!isPreviewMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPreview(false)}
-                  icon={<ArrowLeft size={18} />}
-                >
-                  <span className="hidden md:inline">Back to Editor</span>
-                </Button>
-              )}
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleSendProposal}
-                disabled={saving}
-                isLoading={saving}
-                icon={<Send size={18} />}
-              >
-                <span className="hidden md:inline">Send to Client</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEmailProposal}
-                disabled={saving}
-                icon={<Mail size={18} />}
-              >
-                <span className="hidden md:inline">Email</span>
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleDownloadPDF}
-                icon={<Download size={18} />}
-              >
-                <span className="hidden md:inline">Download PDF</span>
-              </Button>
-            </div>
-        </div>
+      <>
+      <AppPage data-testid="proposal-preview-page" className="pt-0">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-8"
+        >
+          <div>
+            <h1 className={PAGE_TITLE}>Proposal Preview</h1>
+            <p className={PAGE_SUBTITLE}>
+              {formatProposalPreviewSubtitle(new Date())}
+            </p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {templatePreviews[selectedTemplate].name} template
+            </p>
+            <ProposalPreviewActionBar
+              isPreviewMode={isPreviewMode}
+              saving={saving}
+              onBack={() => {
+                if (isPreviewMode) {
+                  navigate('/proposals');
+                  return;
+                }
+                setShowPreview(false);
+              }}
+              onEdit={
+                isPreviewMode && previewId
+                  ? () => navigate(`/proposal-generator?edit=${previewId}`)
+                  : undefined
+              }
+              onSend={handleSendProposal}
+              onDownload={handleDownloadPDF}
+            />
+          </div>
 
-        <div className="flex w-full justify-center">
           <div
             ref={printRef}
-            className={`${SECTION_CARD} ${proposalPreviewShellClass} overflow-hidden print:shadow-none print:rounded-none print:border-0 print:bg-white`}
+            data-testid="proposal-preview-shell"
+            className={`${SECTION_CARD} w-full min-w-0 overflow-x-auto print:shadow-none print:rounded-none print:border-0 print:bg-white`}
           >
             {renderTemplate()}
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </AppPage>
+      {proposalFeedbackModals}
+      </>
     );
   }
 
@@ -909,7 +1019,7 @@ const ProposalGenerator: React.FC = () => {
         {inWorkflow && !workflowStepReady && (
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
             <p className="text-sm text-slate-300">
-              Skip this step if you do not need a formal proposal â€” you can return to the project
+              Skip this step if you do not need a formal proposal {'\u2014'} you can return to the project
               and use concrete tools from Tools when needed.
             </p>
             <Button
@@ -971,9 +1081,11 @@ const ProposalGenerator: React.FC = () => {
             {isEditing ? 'Edit Proposal' : 'Proposal Generator'}
           </h1>
           <p className={PAGE_SUBTITLE}>
-            {isEditing
-              ? `Editing: ${currentProposal?.title || 'Untitled Proposal'}`
-              : 'Create professional concrete project proposals with customizable templates'}
+            {normalizeDisplayText(
+              isEditing
+                ? `Editing: ${currentProposal?.title || 'Untitled Proposal'}`
+                : 'Create professional concrete project proposals with customizable templates',
+            )}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             {isEditing ? (
@@ -1024,6 +1136,21 @@ const ProposalGenerator: React.FC = () => {
         </div>
 
         <div className="mx-auto w-full max-w-6xl space-y-6">
+            {!isEditing && (
+              <ProposalProjectSourcePanel
+                projects={projects}
+                selectedProjectId={selectedProjectId}
+                onSelectProject={handleSelectProject}
+                onImportProject={() => {
+                  if (selectedProjectId) {
+                    applyProjectImport(selectedProjectId, { overwrite: true });
+                  }
+                }}
+                onClearProject={handleClearSelectedProject}
+                autoSelected={projectAutoSelected}
+              />
+            )}
+
             {/* Proposal Title & Save */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -1076,10 +1203,10 @@ const ProposalGenerator: React.FC = () => {
                     size="sm"
                     onClick={handleSendProposal}
                     disabled={saving || !proposalTitle.trim()}
-                    icon={<Link2 size={18} />}
+                    icon={<Send size={18} />}
                     className="whitespace-nowrap"
                   >
-                    Send
+                    Send to Client
                   </Button>
                 </div>
               </div>
@@ -1111,148 +1238,16 @@ const ProposalGenerator: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Business Information */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className={SECTION_CARD}
-            >
-              <h2 className={SECTION_TITLE}>Business Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Name</label>
-                  <input
-                    type="text"
-                    placeholder="Your Business Name"
-                    value={proposalData.businessName}
-                    onChange={(e) => handleInputChange('businessName', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo URL (optional)</label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/logo.png"
-                    value={proposalData.businessLogoUrl || ''}
-                    onChange={(e) => handleInputChange('businessLogoUrl', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Business address
-                  </label>
-                  <USAddressFields
-                    value={proposalData.businessAddressParts ?? { ...EMPTY_US_ADDRESS }}
-                    onChange={handleBusinessAddressPartsChange}
-                    showStreet2
-                    idPrefix="proposal-business"
-                  />
-                  {displayBusinessAddress(proposalData) && (
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Formatted: {displayBusinessAddress(proposalData)}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="(555) 123-4567"
-                    value={proposalData.businessPhone || ''}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
-                    className={FORM_TEXTAREA}
-                    inputMode="numeric"
-                    pattern="[0-9\s\(\)\-]*"
-                    maxLength={14}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="contact@company.com"
-                    value={proposalData.businessEmail || ''}
-                    onChange={(e) => handleInputChange('businessEmail', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">License Number</label>
-                  <input
-                    type="text"
-                    placeholder="License #12345"
-                    value={proposalData.businessLicenseNumber || ''}
-                    onChange={(e) => handleInputChange('businessLicenseNumber', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Slogan</label>
-                  <input
-                    type="text"
-                    placeholder="Building Excellence, One Project at a Time"
-                    value={proposalData.businessSlogan || ''}
-                    onChange={(e) => handleInputChange('businessSlogan', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Client Information */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className={SECTION_CARD}
-            >
-              <h2 className={SECTION_TITLE}>Client Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Name</label>
-                  <input
-                    type="text"
-                    placeholder="Client Name"
-                    value={proposalData.clientName}
-                    onChange={(e) => handleInputChange('clientName', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Company (optional)</label>
-                  <input
-                    type="text"
-                    placeholder="Client Company"
-                    value={proposalData.clientCompany || ''}
-                    onChange={(e) => handleInputChange('clientCompany', e.target.value)}
-                    className={FORM_TEXTAREA}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Client address <span className="font-normal text-gray-500">(optional)</span>
-                  </label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    Leave blank if not needed on the proposal. When entered, use street, city, and
-                    state/territory (ZIP optional).
-                  </p>
-                  <USAddressFields
-                    value={proposalData.clientAddressParts ?? { ...EMPTY_US_ADDRESS }}
-                    onChange={handleClientAddressPartsChange}
-                    showStreet2
-                    idPrefix="proposal-client"
-                  />
-                  {displayClientAddress(proposalData) && (
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Formatted: {displayClientAddress(proposalData)}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
+            <ProposalClientRecipientSection
+              data={proposalData}
+              selectedProjectId={selectedProjectId}
+              onFieldChange={handleInputChange}
+              onAddressChange={handleClientAddressPartsChange}
+              onUpdateProjectClientInfo={
+                selectedProjectId ? handleUpdateProjectClientInfo : undefined
+              }
+              updatingProjectClient={updatingProjectClient}
+            />
 
             {/* Project Details */}
             <motion.div
@@ -1380,7 +1375,7 @@ const ProposalGenerator: React.FC = () => {
               className={SECTION_CARD}
             >
               <div className="flex justify-between items-center mb-4">
-                <h2 className={SECTION_TITLE}>Pricing</h2>
+                <h2 className={SECTION_TITLE}>Estimate / Pricing Summary</h2>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -1394,6 +1389,16 @@ const ProposalGenerator: React.FC = () => {
                   </Button>
                 </div>
               </div>
+
+              {showPricingWarning && (
+                <p
+                  className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200"
+                  data-testid="proposal-pricing-warning"
+                >
+                  No estimate totals were found on the selected project. Add estimates in the
+                  estimate workspace or enter pricing manually below.
+                </p>
+              )}
 
               <ProposalPricingEditor
                 laborItems={proposalData.laborItems ?? []}
@@ -1471,6 +1476,15 @@ const ProposalGenerator: React.FC = () => {
                 </div>
               </div>
             </motion.div>
+
+            <ProposalBusinessInfoCollapsible
+              data={proposalData}
+              expanded={businessInfoExpanded}
+              onToggleExpanded={() => setBusinessInfoExpanded((prev) => !prev)}
+              onFieldChange={handleInputChange}
+              onAddressChange={handleBusinessAddressPartsChange}
+              onPhoneChange={handlePhoneChange}
+            />
         </div>
 
       <Modal
@@ -1534,7 +1548,7 @@ const ProposalGenerator: React.FC = () => {
                           </>
                         ) : (
                           <span className="text-amber-700 dark:text-amber-400">
-                            No saved estimates â€” complete step 2 first
+                            No saved estimates {'\u2014'} complete step 2 first
                           </span>
                         )}
                         <span>
@@ -1568,34 +1582,7 @@ const ProposalGenerator: React.FC = () => {
         </div>
       </Modal>
 
-      {importToast && (
-        <Toast
-          id="proposal-import-toast"
-          title={importToast.title}
-          message={importToast.message}
-          type={importToast.type}
-          onClose={() => setImportToast(null)}
-        />
-      )}
-
-      <ProposalSentLinkModal
-        isOpen={Boolean(sentProposalUrl)}
-        onClose={() => setSentProposalUrl(null)}
-        proposalUrl={sentProposalUrl ?? ''}
-        title="Proposal sent by email"
-      />
-
-      <ProposalSendEmailModal
-        isOpen={Boolean(sendEmailModal)}
-        onClose={() => {
-          if (!sendingEmail) setSendEmailModal(null);
-        }}
-        proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
-        defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
-        sending={sendingEmail}
-        error={sendEmailError}
-        onSend={handleSendProposalEmail}
-      />
+      {proposalFeedbackModals}
     </motion.div>
   );
 };

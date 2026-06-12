@@ -19,7 +19,11 @@ export default function ProposalPipelineBoard({
   onSelect,
 }: ProposalPipelineBoardProps) {
   return (
-    <div className="mt-5 flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
+    <div
+      className="flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1"
+      role="group"
+      aria-label="Proposal pipeline stage"
+    >
       {CRM_PIPELINE_COLUMNS.map((col) => {
         const { count, value } = sumPipelineColumn(proposals, col.id);
         const isActive = selected === col.id;
@@ -27,6 +31,8 @@ export default function ProposalPipelineBoard({
           <button
             key={col.id}
             type="button"
+            aria-pressed={isActive}
+            data-testid={`proposal-pipeline-stage-${col.id}`}
             onClick={() => onSelect(col.id)}
             className={[
               'shrink-0 min-w-[7.5rem] rounded-md border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-400 dark:focus-visible:ring-offset-gray-800',

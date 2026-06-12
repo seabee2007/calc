@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Upload,
   Plus,
@@ -12,7 +12,6 @@ import {
   markPaid,
   markScheduled,
 } from '../lib/proposalTracking';
-import { sendProposalEmail } from '../services/emailService';
 import {
   buildProposalDashboardMetrics,
   formatProposalMoney,
@@ -23,7 +22,6 @@ import ModalShell from '../components/ui/ModalShell';
 import Card from '../components/ui/Card';
 import PageHeader from '../components/ui/PageHeader';
 import KpiStrip from '../components/ui/KpiStrip';
-import FilterBar from '../components/ui/FilterBar';
 import EmptyState from '../components/ui/EmptyState';
 import InlineNotice from '../components/ui/InlineNotice';
 import AppPage from '../components/ui/AppPage';
@@ -36,14 +34,16 @@ import ProposalPipelineCard from '../components/proposals/ProposalPipelineCard';
 import {
   buildCrmNextActions,
   buildCrmRevenueMetrics,
-  CRM_PIPELINE_COLUMNS,
   proposalMatchesPipelineFilter,
   type CrmPipelineFilter,
 } from '../utils/proposalCrm';
 import { useTrackedProposals } from '../hooks/useTrackedProposals';
+import { useProposalNextActionEmail } from '../hooks/useProposalNextActionEmail';
+import type { ProposalNextAction } from '../types/proposalNextAction';
 
 const Proposals: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { proposals, loading, error, refresh: loadProposals } = useTrackedProposals();
   const [localError, setLocalError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -53,18 +53,30 @@ const Proposals: React.FC = () => {
     url: string;
     title: string;
   } | null>(null);
-  const [sendEmailModal, setSendEmailModal] = useState<{
-    proposalId: string;
-    proposalTitle: string;
-    defaultRecipientEmail?: string;
-  } | null>(null);
-  const [sendingEmail, setSendingEmail] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
+  const {
+    emailModal,
+    sendingEmail,
+    emailError,
+    handleNextAction,
+    handleSendEmail,
+    openSendModal,
+    closeEmailModal,
+  } = useProposalNextActionEmail({
+    proposals,
+    onRefresh: loadProposals,
+    onSent: ({ url, title }) => {
+      if (url?.includes('/proposal/')) {
+        setLinkModal({ url, title });
+      }
+    },
+  });
+
   const setError = (msg: string | null) => setLocalError(msg);
-  const displayError = localError ?? error;
+  const displayError = localError ?? error ?? emailError;
 
   const handleDelete = async (id: string) => {
     try {
@@ -170,38 +182,9 @@ const Proposals: React.FC = () => {
     return getPublicProposalUrl(token);
   };
 
-  const openSendEmailModal = (proposal: SavedProposal) => {
+  const openSendEmailModal = async (proposal: SavedProposal) => {
     setError(null);
-    setSendEmailModal({
-      proposalId: proposal.id,
-      proposalTitle:
-        proposal.data?.projectTitle?.trim() || proposal.title?.trim() || 'Proposal',
-      defaultRecipientEmail: '',
-    });
-  };
-
-  const handleSendEmail = async (recipientEmail: string) => {
-    if (!sendEmailModal) return;
-    setSendingEmail(true);
-    setError(null);
-    try {
-      await sendProposalEmail({
-        proposalId: sendEmailModal.proposalId,
-        recipientEmail,
-        senderName: undefined,
-      });
-      await loadProposals();
-      const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
-      setSendEmailModal(null);
-      openProposalLinkModal(
-        getPublicProposalUrl(refreshed.public_token),
-        'Proposal sent by email',
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send proposal email');
-    } finally {
-      setSendingEmail(false);
-    }
+    await openSendModal(proposal, 'send');
   };
 
   const handleShareClientLink = async (proposal: SavedProposal) => {
@@ -224,7 +207,7 @@ const Proposals: React.FC = () => {
       setError('Proposal not found.');
       return;
     }
-    openSendEmailModal(proposal);
+    await openSendEmailModal(proposal);
   };
 
   const handleMarkDeposit = async (id: string) => {
@@ -273,14 +256,13 @@ const Proposals: React.FC = () => {
 
   const nextActions = useMemo(() => buildCrmNextActions(proposals), [proposals]);
 
-  const scrollToProposal = (proposalId: string) => {
-    setExpandedProposalId(proposalId);
-    requestAnimationFrame(() => {
-      document
-        .getElementById(`proposal-card-${proposalId}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  };
+  useEffect(() => {
+    const state = location.state as { openNextAction?: ProposalNextAction } | null;
+    const action = state?.openNextAction;
+    if (!action) return;
+    void handleNextAction(action);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [handleNextAction, location.pathname, location.state, navigate]);
 
   const buildOverflowItems = (proposal: SavedProposal) => [
     ...(proposal.status === 'accepted'
@@ -326,11 +308,6 @@ const Proposals: React.FC = () => {
     },
   ];
 
-  const pipelineFilterOptions = useMemo(
-    () => CRM_PIPELINE_COLUMNS.map((col) => ({ id: col.id, label: col.label })),
-    [],
-  );
-
   if (loading) {
     return (
       <div className="flex items-center justify-center">
@@ -346,6 +323,7 @@ const Proposals: React.FC = () => {
   return (
     <AppPage
       className="pt-6"
+      data-testid="proposal-pipeline-page"
       header={
         <PageHeader
           title="Proposal Pipeline"
@@ -369,6 +347,7 @@ const Proposals: React.FC = () => {
                 disabled={importing}
                 isLoading={importing}
                 onClick={() => importInputRef.current?.click()}
+                data-testid="proposal-pipeline-import-button"
               >
                 Import
               </Button>
@@ -377,12 +356,12 @@ const Proposals: React.FC = () => {
                 size="sm"
                 onClick={() => navigate('/proposal-generator')}
                 icon={<Plus size={18} />}
+                data-testid="proposal-pipeline-new-button"
               >
                 New Proposal
               </Button>
             </>
           }
-          className="!px-0"
         />
       }
     >
@@ -411,15 +390,10 @@ const Proposals: React.FC = () => {
         ]}
       />
 
-      <Card className="border border-slate-200/80 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/90 sm:p-6">
-          <FilterBar
-            options={pipelineFilterOptions}
-            value={pipelineFilter}
-            onChange={(id) => setPipelineFilter(id as CrmPipelineFilter)}
-            aria-label="Proposal pipeline stage"
-            className="mb-5"
-          />
-
+      <Card
+        className="border border-slate-200/80 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/90 sm:p-6"
+        data-testid="proposal-pipeline-board-card"
+      >
           <ProposalPipelineBoard
             proposals={proposals}
             selected={pipelineFilter}
@@ -428,7 +402,7 @@ const Proposals: React.FC = () => {
 
           <ProposalNextActionsPanel
             items={nextActions}
-            onSelectProposal={scrollToProposal}
+            onAction={(action) => void handleNextAction(action)}
           />
 
           {importMessage && (
@@ -530,14 +504,13 @@ const Proposals: React.FC = () => {
         />
 
         <ProposalSendEmailModal
-          isOpen={Boolean(sendEmailModal)}
-          onClose={() => {
-            if (!sendingEmail) setSendEmailModal(null);
-          }}
-          proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
-          defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
+          isOpen={Boolean(emailModal)}
+          onClose={closeEmailModal}
+          proposalTitle={emailModal?.proposalTitle ?? 'Proposal'}
+          mode={emailModal?.mode}
+          defaultRecipientEmail={emailModal?.defaultRecipientEmail}
           sending={sendingEmail}
-          error={localError}
+          error={emailError}
           onSend={handleSendEmail}
         />
     </AppPage>

@@ -1,5 +1,13 @@
 import type { TrackedProposalRow, ProposalStatus } from '../types/proposalTracking';
 import { PROPOSAL_STATUS_LABELS } from '../types/proposalTracking';
+import type {
+  ProposalNextAction,
+  ProposalNextActionPriority,
+  ProposalNextActionType,
+} from '../types/proposalNextAction';
+
+/** @deprecated Use ProposalNextAction */
+export type CrmNextActionItem = ProposalNextAction;
 
 export type CrmPipelineFilter =
   | 'all'
@@ -54,15 +62,6 @@ export interface ProposalActivityEvent {
   date: string;
   label: string;
   sortKey: number;
-}
-
-export interface CrmNextActionItem {
-  proposalId: string;
-  projectTitle: string;
-  clientName: string;
-  actionTitle: string;
-  actionDetail: string;
-  priority: number;
 }
 
 export interface CrmRevenueMetrics {
@@ -239,7 +238,14 @@ export function buildProposalActivityTimeline(
   return events.sort((a, b) => a.sortKey - b.sortKey);
 }
 
+function priorityFromScore(score: number): ProposalNextActionPriority {
+  if (score <= 10) return 'high';
+  if (score <= 15) return 'normal';
+  return 'low';
+}
+
 function crmActionForProposal(proposal: TrackedProposalRow): {
+  type: ProposalNextActionType;
   title: string;
   detail: string;
   priority: number;
@@ -248,38 +254,55 @@ function crmActionForProposal(proposal: TrackedProposalRow): {
   const aging = getProposalAging(proposal);
 
   if (status === 'draft') {
-    return { title: 'Send proposal', detail: 'Ready to send to client', priority: 30 };
+    return { type: 'send_proposal', title: 'Send proposal', detail: 'Ready to send to client', priority: 30 };
   }
   if (status === 'accepted') {
-    return { title: 'Request deposit', detail: 'Client accepted — collect deposit', priority: 10 };
+    return {
+      type: 'request_deposit',
+      title: 'Request deposit',
+      detail: 'Client accepted — send deposit request',
+      priority: 10,
+    };
   }
   if (status === 'deposit_paid') {
-    return { title: 'Schedule placement', detail: 'Deposit received', priority: 15 };
+    return {
+      type: 'schedule_placement',
+      title: 'Schedule placement',
+      detail: 'Deposit received',
+      priority: 15,
+    };
   }
   if (aging.tier === 'stale' && ['sent', 'viewed', 'opened'].includes(status)) {
     return {
-      title: 'Follow up — stale',
+      type: 'follow_up_proposal',
+      title: 'Follow up',
       detail: aging.activityLine,
       priority: 5,
     };
   }
   if (aging.tier === 'follow_up' && ['sent', 'viewed', 'opened'].includes(status)) {
     return {
+      type: 'follow_up_proposal',
       title: 'Follow up',
       detail: aging.activityLine,
       priority: 12,
     };
   }
   if (status === 'sent' || status === 'viewed' || status === 'opened') {
-    return { title: 'Check in with client', detail: aging.activityLine, priority: 20 };
+    return {
+      type: 'check_in_client',
+      title: 'Check in with client',
+      detail: aging.activityLine,
+      priority: 20,
+    };
   }
   return null;
 }
 
 export function buildCrmNextActions(
   proposals: TrackedProposalRow[],
-): CrmNextActionItem[] {
-  const items: CrmNextActionItem[] = [];
+): ProposalNextAction[] {
+  const items: ProposalNextAction[] = [];
 
   for (const p of proposals) {
     const action = crmActionForProposal(p);
@@ -288,16 +311,31 @@ export function buildCrmNextActions(
       p.data?.projectTitle?.trim() || p.title || 'Untitled project';
     const clientName = p.data?.clientName?.trim() || 'Client';
     items.push({
+      id: `${p.id}-${action.type}`,
+      type: action.type,
       proposalId: p.id,
-      projectTitle,
+      projectId: p.project_id,
       clientName,
+      proposalTitle: projectTitle,
+      projectName: projectTitle,
+      status: p.status,
+      label: action.title,
+      description: action.detail,
+      priority: priorityFromScore(action.priority),
       actionTitle: action.title,
       actionDetail: action.detail,
-      priority: action.priority,
     });
   }
 
-  return items.sort((a, b) => a.priority - b.priority).slice(0, 8);
+  const priorityOrder: Record<ProposalNextActionPriority, number> = {
+    high: 0,
+    normal: 1,
+    low: 2,
+  };
+
+  return items
+    .sort((a, b) => priorityOrder[a.priority ?? 'normal'] - priorityOrder[b.priority ?? 'normal'])
+    .slice(0, 8);
 }
 
 export function buildCrmRevenueMetrics(

@@ -18,6 +18,8 @@ export interface ProposalData {
   clientCompany?: string;
   clientAddress?: string;
   clientAddressParts?: USAddress;
+  clientEmail?: string;
+  clientPhone?: string;
   projectTitle: string;
   date: string;
   introduction: string;

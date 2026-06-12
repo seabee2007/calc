@@ -84,7 +84,7 @@ export function mergeProjectIntoProposalFields(
   const ci = project.clientInfo;
 
   if (project.name?.trim() && !next.projectTitle?.trim()) {
-    next.projectTitle = `${project.name.trim()} Concrete Work`;
+    next.projectTitle = project.name.trim();
   }
 
   if (ci?.clientName?.trim() && !next.clientName?.trim()) {
@@ -92,6 +92,12 @@ export function mergeProjectIntoProposalFields(
   }
   if (ci?.clientCompany?.trim() && !next.clientCompany?.trim()) {
     next.clientCompany = ci.clientCompany.trim();
+  }
+  if (ci?.clientEmail?.trim() && !next.clientEmail?.trim()) {
+    next.clientEmail = ci.clientEmail.trim();
+  }
+  if (ci?.clientPhone?.trim() && !next.clientPhone?.trim()) {
+    next.clientPhone = ci.clientPhone.trim();
   }
 
   const clientAddr = resolveClientAddressForProposal(ci, project.jobsiteAddress);
