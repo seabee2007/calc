@@ -3,10 +3,7 @@ import { useState, useEffect } from 'react';
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
   // Get from local storage then parse stored json or return initialValue
   const readValue = (): T => {
-    // Check if we're in a WebView environment
-    const isWebView = 'Capacitor' in window;
-    
-    if (typeof window === 'undefined' || isWebView) {
+    if (typeof window === 'undefined') {
       return initialValue;
     }
 
@@ -31,8 +28,7 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
       // Save state
       setStoredValue(valueToStore);
       
-      // Only attempt localStorage in non-WebView environment
-      if (typeof window !== 'undefined' && !('Capacitor' in window)) {
+      if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
@@ -41,8 +37,7 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
   };
 
   useEffect(() => {
-    // Only add storage event listener in non-WebView environment
-    if (typeof window !== 'undefined' && !('Capacitor' in window)) {
+    if (typeof window !== 'undefined') {
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === key && e.newValue) {
           try {

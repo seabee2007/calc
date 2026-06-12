@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { replaceLogo, deleteLogo } from '../services/storageService';
 import { useAuth } from '../hooks/useAuth';
 import { soundService } from '../services/soundService';
@@ -20,7 +21,9 @@ import {
   Shield,
   Trash2,
   Camera,
-  Volume
+  Volume,
+  BookOpen,
+  ChevronRight,
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE, CC_PAGE_META } from '../theme/pageTypography';
@@ -42,6 +45,7 @@ import {
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useThemeStore();
   const {
     companySettings,
@@ -840,6 +844,29 @@ const Settings: React.FC = () => {
       </Card>
 
 
+
+      {/* Accounting & Tax link card */}
+      <Card className="p-6">
+        <button
+          type="button"
+          onClick={() => navigate('/accounting-tax')}
+          className="flex w-full items-center justify-between text-left"
+          data-testid="settings-accounting-tax-link"
+        >
+          <div className="flex items-center gap-4">
+            <BookOpen className="h-6 w-6 shrink-0 text-cyan-600 dark:text-cyan-400" />
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Accounting &amp; Tax
+              </h2>
+              <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
+                Generate year-end export packages for CPAs, QuickBooks, and tax preparation.
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500" aria-hidden />
+        </button>
+      </Card>
 
       {/* Save Button - now shows unsaved changes indicator */}
       <div className="flex justify-between items-center">

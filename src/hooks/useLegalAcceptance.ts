@@ -12,6 +12,7 @@ import {
 export function useLegalAcceptance() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
   const [latestAcceptance, setLatestAcceptance] = useState<UserLegalAcceptance | null>(null);
   const [hasAcceptedCurrentLegal, setHasAcceptedCurrentLegal] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,17 +63,35 @@ export function useLegalAcceptance() {
 
   const acceptLegalDocuments = useCallback(async () => {
     if (!user?.id) {
-      throw new Error('Not authenticated');
+      throw new Error('User is required');
     }
 
-    const acceptance = await acceptCurrentLegalDocuments(user.id);
-    setLatestAcceptance(acceptance);
-    setHasAcceptedCurrentLegal(true);
+    setIsAccepting(true);
     setError(null);
+
+    try {
+      const acceptance = await acceptCurrentLegalDocuments(user.id);
+
+      if (acceptance) {
+        setLatestAcceptance(acceptance);
+      } else {
+        const refreshed = await getCurrentLegalAcceptance(user.id);
+        setLatestAcceptance(refreshed);
+      }
+
+      setHasAcceptedCurrentLegal(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save acceptance';
+      setError(message);
+      throw err;
+    } finally {
+      setIsAccepting(false);
+    }
   }, [user?.id]);
 
   return {
     isLoading: !!user && isLoading,
+    isAccepting: !!user && isAccepting,
     hasAcceptedCurrentLegal: !!user && hasAcceptedCurrentLegal,
     latestAcceptance,
     acceptLegalDocuments,

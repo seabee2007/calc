@@ -3,7 +3,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
 import App from './App';
 import { AuthProvider } from './hooks/useAuth';
 import { ConfirmProvider } from './contexts/ConfirmContext';
@@ -22,11 +21,6 @@ const initializeApp = () => {
     console.error('Global error:', event.error);
   });
 
-  const isNativePlatform = Capacitor.isNativePlatform();
-  console.log('[Capacitor] isNativePlatform', isNativePlatform);
-  if (isNativePlatform) {
-    console.log('Running in Capacitor native environment');
-  }
 };
 
 // Initialize the app

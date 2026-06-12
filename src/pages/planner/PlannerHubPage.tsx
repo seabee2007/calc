@@ -139,16 +139,7 @@ export default function PlannerHubPage() {
         ) : null}
         {!loading && !error && projects.length > 0 ? (
           <section aria-labelledby="planner-hub-project-plans-heading">
-            <PlannerHubMetricsStrip
-              className="mb-4"
-              metrics={[
-                {
-                  id: 'active-plans',
-                  label: 'Active Plans',
-                  value: projects.length,
-                },
-              ]}
-            />
+           
             <h2 id="planner-hub-project-plans-heading" className={`mb-4 ${PLANNER_SECTION_TITLE}`}>
               Project Plans
             </h2>

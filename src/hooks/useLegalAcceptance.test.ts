@@ -105,5 +105,39 @@ describe('useLegalAcceptance', () => {
 
     expect(result.current.hasAcceptedCurrentLegal).toBe(true);
     expect(result.current.latestAcceptance).toEqual(accepted);
+    expect(result.current.isAccepting).toBe(false);
+  });
+
+  it('acceptLegalDocuments refetches when insert returns no row', async () => {
+    const refetched = {
+      id: 'acc-refetch',
+      userId: authUser.id,
+      termsVersion: '2026-06-12',
+      privacyVersion: '2026-06-12',
+      termsAcceptedAt: '2026-06-12T11:00:00.000Z',
+      privacyAcceptedAt: '2026-06-12T11:00:00.000Z',
+      acceptedIp: null,
+      acceptedUserAgent: 'vitest',
+      createdAt: '2026-06-12T11:00:00.000Z',
+    };
+
+    serviceMock.getCurrentLegalAcceptance
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(refetched);
+    serviceMock.getLatestLegalAcceptance.mockResolvedValue(null);
+    serviceMock.acceptCurrentLegalDocuments.mockResolvedValue(null as never);
+
+    const { result } = renderHook(() => useLegalAcceptance());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.acceptLegalDocuments();
+    });
+
+    expect(result.current.hasAcceptedCurrentLegal).toBe(true);
+    expect(result.current.latestAcceptance?.id).toBe('acc-refetch');
   });
 });

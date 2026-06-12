@@ -8,9 +8,6 @@ import { calculateConcreteCost, formatPrice } from './readyMixCost';
 import { computeProposalBreakdown } from './proposalPricing';
 import { formatChangeOrderMoney } from './changeOrderFinancials';
 import { normalizeDisplayText } from './normalizeDisplayText';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 
 // Type augmentation for jsPDF to include autoTable
 declare module 'jspdf' {
@@ -31,6 +28,17 @@ const formatDateSafely = (dateString: string | undefined | null): string => {
   }
 };
 
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 // Helper function to save PDF with platform detection
 export async function savePDFWithPlatformSupport(
   doc: jsPDF, 
@@ -44,109 +52,29 @@ export async function savePDFWithPlatformSupport(
       throw new Error('PDF appears to be empty or invalid');
     }
     
-    if (Capacitor.isNativePlatform()) {
-      // iOS/Android: Use Capacitor plugins for native sharing
-      const base64Data = pdfData.split(',')[1];
-      
-      if (!base64Data) {
-        throw new Error('Failed to extract PDF data');
-      }
-      
+    const isSharing = filename.toLowerCase().includes('share') || title.toLowerCase().includes('share');
+    const blob = new Blob([doc.output('blob')], { type: 'application/pdf' });
+
+    if (isSharing && 'share' in navigator && 'canShare' in navigator) {
       try {
-        // Write file to cache directory
-        await Filesystem.writeFile({
-          path: filename,
-          data: base64Data,
-          directory: Directory.Cache
-        });
-        
-        // Get the file URI for sharing
-        const fileUri = await Filesystem.getUri({
-          directory: Directory.Cache,
-          path: filename
-        });
-        
-        // Share the file using native share sheet
-        await Share.share({
-          title: title,
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        const shareData = {
+          title,
           text: 'Please find attached the PDF document.',
-          url: fileUri.uri,
-          dialogTitle: `Share ${title}`,
-          files: [fileUri.uri] // Add files array for better compatibility
-        });
-        
-        return true;
-      } catch (shareError: any) {
-        // Handle share cancellation gracefully
-        if (shareError.message === 'Share canceled' || shareError.errorMessage === 'Share canceled') {
-          return true; // Still consider this a success
-        }
-        
-        // For other share errors, try direct download fallback
-        console.warn('Share failed, attempting direct download:', shareError);
-        
-        try {
-          const blob = new Blob([doc.output('blob')], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          
+          files: [file],
+        };
+
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
           return true;
-        } catch (fallbackError) {
-          console.error('Both share and download failed:', fallbackError);
-          throw shareError; // Throw the original share error
         }
+      } catch (shareError) {
+        console.warn('Web Share API failed:', shareError);
       }
-    } else {
-      // Web: Use standard download unless explicitly sharing
-      const isSharing = filename.toLowerCase().includes('share') || title.toLowerCase().includes('share');
-      
-      if (isSharing) {
-        // Create a blob URL for the PDF
-        const blob = new Blob([doc.output('blob')], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        
-        // Try to use the Web Share API if available
-        if ('share' in navigator && 'canShare' in navigator) {
-          try {
-            const file = new File([blob], filename, { type: 'application/pdf' });
-            const shareData = { 
-              title: title,
-              text: 'Please find attached the PDF document.',
-              files: [file]
-            };
-            
-            if (navigator.canShare(shareData)) {
-              await navigator.share(shareData);
-              URL.revokeObjectURL(url);
-              return true;
-            }
-          } catch (shareError) {
-            console.warn('Web Share API failed:', shareError);
-            // Fall through to download if sharing fails
-          }
-        }
-        
-        // Fallback to download
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        // Regular download
-        doc.save(filename);
-      }
-      
-      return true;
     }
+
+    downloadBlob(blob, filename);
+    return true;
   } catch (error) {
     console.error('Error saving PDF:', error);
     throw error;
@@ -261,45 +189,9 @@ This specification is generated for reference purposes only.
 Consult with a qualified engineer for final mix design approval.
       `;
       
-      if (Capacitor.isNativePlatform()) {
-        // Try to share as text file on native platforms
-        const base64Data = btoa(textContent);
-        const fallbackFilename = `mix-specification-${psi}psi-${Date.now()}.txt`;
-        
-        await Filesystem.writeFile({
-          path: fallbackFilename,
-          data: base64Data,
-          directory: Directory.Cache
-        });
-        
-        const fileUri = await Filesystem.getUri({
-          directory: Directory.Cache,
-          path: fallbackFilename
-        });
-        
-        await Share.share({
-          title: `Mix Specification - ${psi} PSI (Text)`,
-          url: fileUri.uri
-        });
-      } else {
-        // Web fallback
       const blob = new Blob([textContent], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `mix-specification-${psi}psi-${Date.now()}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      }
-      
-      if (Capacitor.isNativePlatform()) {
-        // Show native alert on mobile
-        alert('PDF generation failed, shared as text file instead.');
-      } else {
+      downloadBlob(blob, `mix-specification-${psi}psi-${Date.now()}.txt`);
       alert('PDF generation failed, downloaded as text file instead.');
-      }
       return false;
     } catch (fallbackError) {
       console.error('Both PDF and text fallback failed:', fallbackError);

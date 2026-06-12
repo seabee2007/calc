@@ -1,5 +1,4 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { Capacitor } from '@capacitor/core';
 import Button from './components/ui/Button';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './store/themeStore';
@@ -45,6 +44,7 @@ import {
   LazyProposalGenerator,
   LazyProposals,
   LazyFinancialDetailsPage,
+  LazyAccountingTaxPage,
   LazyPublicProposal,
   LazyPublicChangeOrder,
   LazyPublicContract,
@@ -134,6 +134,7 @@ function App() {
   const {
     isLoading: legalLoading,
     hasAcceptedCurrentLegal,
+    acceptLegalDocuments,
   } = useLegalAcceptance();
   const { loadProjects } = useProjectStore();
   const { loadCompanySettings, migrateSettings } = useSettingsStore();
@@ -146,11 +147,6 @@ function App() {
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const isNativePlatform = Capacitor.isNativePlatform();
-  if (import.meta.env.DEV) {
-    console.log('[Capacitor] isNativePlatform', isNativePlatform);
-  }
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -169,14 +165,12 @@ function App() {
               .catch((e) => console.error('Error prefetching proposals:', e)),
           ]);
 
-          if (!isNativePlatform) {
-            await Promise.all([
-              migrateSettings().catch((e) => console.error('Error migrating settings:', e)),
-              migratePreferences().catch((e) =>
-                console.error('Error migrating preferences:', e),
-              ),
-            ]);
-          }
+          await Promise.all([
+            migrateSettings().catch((e) => console.error('Error migrating settings:', e)),
+            migratePreferences().catch((e) =>
+              console.error('Error migrating preferences:', e),
+            ),
+          ]);
         }
       } catch (error) {
         console.error('Error initializing app:', error);
@@ -187,7 +181,7 @@ function App() {
     };
 
     initializeApp();
-  }, [user, authLoading, isNativePlatform, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
+  }, [user, authLoading, loadProjects, loadCompanySettings, loadPreferences, migrateSettings, migratePreferences]);
 
   useEffect(() => {
     const checkOnboarding = () => {
@@ -197,15 +191,11 @@ function App() {
 
           let onboardingCompleted = false;
 
-          if (isNativePlatform) {
-            onboardingCompleted = !isTestOnboarding;
-          } else {
-            try {
-              onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
-            } catch (e) {
-              console.warn('Error reading onboarding status:', e);
-              onboardingCompleted = true;
-            }
+          try {
+            onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
+          } catch (e) {
+            console.warn('Error reading onboarding status:', e);
+            onboardingCompleted = true;
           }
 
           setShowOnboarding(!onboardingCompleted || isTestOnboarding);
@@ -221,7 +211,7 @@ function App() {
     };
 
     checkOnboarding();
-  }, [user, authLoading, location.pathname, isNativePlatform]);
+  }, [user, authLoading, location.pathname]);
 
   const isLoggedOutLanding = location.pathname === '/' && !user && !authLoading;
   const isOnboardingActive =
@@ -242,9 +232,7 @@ function App() {
   const handleOnboardingComplete = () => {
     try {
       setShowOnboarding(false);
-      if (!isNativePlatform) {
-        localStorage.setItem('onboarding_completed', 'true');
-      }
+      localStorage.setItem('onboarding_completed', 'true');
     } catch (error) {
       console.error('Error saving onboarding completion:', error);
       setShowOnboarding(false);
@@ -285,7 +273,12 @@ function App() {
   }
 
   if (requiresLegalAcceptance) {
-    return <LegalAcceptanceGate />;
+    return (
+      <LegalAcceptanceGate
+        isLoading={legalLoading}
+        onAccept={acceptLegalDocuments}
+      />
+    );
   }
 
   return (
@@ -425,6 +418,14 @@ function App() {
               element={
                 <AuthGuard>
                   <LazyRoute Page={LazyFinancialDetailsPage} />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="accounting-tax"
+              element={
+                <AuthGuard>
+                  <LazyRoute Page={LazyAccountingTaxPage} />
                 </AuthGuard>
               }
             />

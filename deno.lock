@@ -16,14 +16,6 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@capacitor/browser@^7.0.1",
-        "npm:@capacitor/cli@^7.2.0",
-        "npm:@capacitor/core@^7.2.0",
-        "npm:@capacitor/filesystem@^7.1.1",
-        "npm:@capacitor/geolocation@^7.1.2",
-        "npm:@capacitor/haptics@^7.0.1",
-        "npm:@capacitor/ios@^7.2.0",
-        "npm:@capacitor/share@^7.0.1",
         "npm:@eslint/js@^9.9.1",
         "npm:@hookform/resolvers@^3.3.4",
         "npm:@squoosh/lib@~0.3.1",

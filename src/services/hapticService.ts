@@ -1,104 +1,82 @@
-import { Capacitor } from '@capacitor/core';
-import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-import { usePreferencesStore } from '../store';
-
-/** Native apps use Capacitor Haptics; web only when Vibrate API exists (e.g. not Firefox). */
-function detectPlatformHapticSupport(): boolean {
-  if (Capacitor.isNativePlatform()) {
-    return true;
-  }
-  return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
-}
-
-const platformHapticSupport = detectPlatformHapticSupport();
-
-let unsupportedDevLogged = false;
-
-function logUnsupportedOnceDev(): void {
-  if (unsupportedDevLogged || !import.meta.env.DEV || platformHapticSupport) {
-    return;
-  }
-  unsupportedDevLogged = true;
-  console.debug(
-    '[haptics] Vibrate API unavailable in this browser; haptic feedback skipped on web.',
-  );
-}
-
 class HapticService {
-  private canUseHaptics(): boolean {
-    if (!platformHapticSupport) {
-      logUnsupportedOnceDev();
-      return false;
-    }
+  private hapticsEnabled(): boolean {
+    try {
+      const saved = localStorage.getItem('concretePreferences');
+      if (!saved) return true;
 
-    const hapticsEnabled = usePreferencesStore.getState().preferences.hapticsEnabled ?? true;
-    return hapticsEnabled;
+      const preferences = JSON.parse(saved) as { hapticsEnabled?: boolean };
+      return preferences.hapticsEnabled ?? true;
+    } catch {
+      return true;
+    }
   }
 
-  private async trigger(action: () => Promise<void>): Promise<void> {
+  private canUseHaptics(): boolean {
+    return (
+      this.hapticsEnabled() &&
+      typeof navigator !== 'undefined' &&
+      typeof navigator.vibrate === 'function'
+    );
+  }
+
+  private trigger(pattern: VibratePattern): void {
     if (!this.canUseHaptics()) {
       return;
     }
 
     try {
-      await action();
+      navigator.vibrate(pattern);
     } catch {
-      // Unsupported web paths are gated above; native failures stay quiet in production.
+      // Desktop browsers often do not support vibration; keep haptics as a silent no-op.
     }
   }
 
-  public async light(): Promise<void> {
-    await this.trigger(() => Haptics.impact({ style: ImpactStyle.Light }));
+  public light(): void {
+    this.trigger(10);
   }
 
-  public async medium(): Promise<void> {
-    await this.trigger(() => Haptics.impact({ style: ImpactStyle.Medium }));
+  public medium(): void {
+    this.trigger(20);
   }
 
-  public async heavy(): Promise<void> {
-    await this.trigger(() => Haptics.impact({ style: ImpactStyle.Heavy }));
+  public heavy(): void {
+    this.trigger(30);
   }
 
-  public async success(): Promise<void> {
-    await this.trigger(() =>
-      Haptics.notification({ type: NotificationType.Success }),
-    );
+  public success(): void {
+    this.trigger([10, 40, 10]);
   }
 
-  public async warning(): Promise<void> {
-    await this.trigger(() =>
-      Haptics.notification({ type: NotificationType.Warning }),
-    );
+  public warning(): void {
+    this.trigger([20, 40, 20]);
   }
 
-  public async error(): Promise<void> {
-    await this.trigger(() =>
-      Haptics.notification({ type: NotificationType.Error }),
-    );
+  public error(): void {
+    this.trigger([30, 40, 30]);
   }
 
-  public async selection(): Promise<void> {
-    await this.trigger(() => Haptics.selectionStart());
+  public selection(): void {
+    this.light();
   }
 
-  public async button(): Promise<void> {
-    await this.light();
+  public button(): void {
+    this.light();
   }
 
-  public async toggle(): Promise<void> {
-    await this.medium();
+  public toggle(): void {
+    this.medium();
   }
 
-  public async delete(): Promise<void> {
-    await this.heavy();
+  public delete(): void {
+    this.heavy();
   }
 
-  public async modal(): Promise<void> {
-    await this.light();
+  public modal(): void {
+    this.light();
   }
 
-  public async save(): Promise<void> {
-    await this.success();
+  public save(): void {
+    this.success();
   }
 
   public async testHaptics(): Promise<void> {

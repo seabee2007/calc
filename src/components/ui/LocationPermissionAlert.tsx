@@ -3,7 +3,6 @@ import { AlertTriangle, MapPin, Settings, RefreshCw, CheckCircle } from 'lucide-
 import Button from './Button';
 import { useLocation } from '../../hooks/useLocation';
 import { isIOSDevice, openIOSLocationSettings, getLocationInstructions } from '../../utils/location';
-import { Capacitor } from '@capacitor/core';
 interface LocationPermissionAlertProps {
   onLocationReceived?: (latitude: number, longitude: number) => void;
   onError?: (error: string) => void;
@@ -29,9 +28,8 @@ const LocationPermissionAlert: React.FC<LocationPermissionAlertProps> = ({
   onLocationReceivedRef.current = onLocationReceived;
   onErrorRef.current = onError;
 
-  // Detect device and app context (always iOS native app)
+  // Detect device context for browser/PWA permission instructions.
   const isIOS = isIOSDevice();
-  const isNativeApp = Capacitor.isNativePlatform(); 
 
   // Handle successful location — only notify once per coordinate pair
   useEffect(() => {
@@ -62,25 +60,20 @@ const LocationPermissionAlert: React.FC<LocationPermissionAlertProps> = ({
   };
 
   const handleOpenSettings = async () => {
-    if (isIOS && isNativeApp) {
+    if (isIOS) {
       try {
-        // For native iOS apps, open Settings directly using Browser plugin
         const success = await openIOSLocationSettings();
         if (success) {
-          // Settings opened successfully, show instructions and Try Again button
           setShowInstructions(true);
           setHasOpenedSettings(true);
         } else {
-          // Fallback to instructions only
           setShowInstructions(true);
         }
       } catch (error) {
         console.warn('Failed to open settings:', error);
-        // Show instructions as fallback
         setShowInstructions(true);
       }
     } else {
-      // Fallback for other platforms
       setShowInstructions(true);
     }
   };
