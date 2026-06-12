@@ -13,6 +13,7 @@ const serviceMock = vi.hoisted(() => ({
   acceptCurrentLegalDocuments: vi.fn(),
   readLegalAcceptanceSessionCache: vi.fn(),
   clearLegalAcceptanceSessionCache: vi.fn(),
+  isJwtIssuedAtFutureError: vi.fn(),
 }));
 
 vi.mock('./useAuth', () => ({
@@ -25,6 +26,7 @@ vi.mock('../services/legalAcceptanceService', () => ({
   acceptCurrentLegalDocuments: (...args: unknown[]) => serviceMock.acceptCurrentLegalDocuments(...args),
   readLegalAcceptanceSessionCache: (...args: unknown[]) => serviceMock.readLegalAcceptanceSessionCache(...args),
   clearLegalAcceptanceSessionCache: (...args: unknown[]) => serviceMock.clearLegalAcceptanceSessionCache(...args),
+  isJwtIssuedAtFutureError: (...args: unknown[]) => serviceMock.isJwtIssuedAtFutureError(...args),
 }));
 
 describe('useLegalAcceptance', () => {
@@ -34,6 +36,9 @@ describe('useLegalAcceptance', () => {
     serviceMock.acceptCurrentLegalDocuments.mockReset();
     serviceMock.readLegalAcceptanceSessionCache.mockReturnValue(false);
     serviceMock.clearLegalAcceptanceSessionCache.mockReset();
+    serviceMock.isJwtIssuedAtFutureError.mockImplementation((error: unknown) =>
+      error instanceof Error && error.message.includes('JWT issued at future'),
+    );
   });
 
   it('reports not accepted when user has no current acceptance row', async () => {
@@ -106,26 +111,26 @@ describe('useLegalAcceptance', () => {
     expect(result.current.hasAcceptedCurrentLegal).toBe(true);
     expect(result.current.latestAcceptance).toEqual(accepted);
     expect(result.current.isAccepting).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  it('acceptLegalDocuments refetches when insert returns no row', async () => {
-    const refetched = {
-      id: 'acc-refetch',
+  it('accept after duplicate conflict sets hasAcceptedCurrentLegal true', async () => {
+    serviceMock.getCurrentLegalAcceptance.mockResolvedValue(null);
+    serviceMock.getLatestLegalAcceptance.mockResolvedValue(null);
+
+    const existing = {
+      id: 'acc-dup',
       userId: authUser.id,
       termsVersion: '2026-06-12',
       privacyVersion: '2026-06-12',
-      termsAcceptedAt: '2026-06-12T11:00:00.000Z',
-      privacyAcceptedAt: '2026-06-12T11:00:00.000Z',
+      termsAcceptedAt: '2026-06-12T10:00:00.000Z',
+      privacyAcceptedAt: '2026-06-12T10:00:00.000Z',
       acceptedIp: null,
       acceptedUserAgent: 'vitest',
-      createdAt: '2026-06-12T11:00:00.000Z',
+      createdAt: '2026-06-12T10:00:00.000Z',
     };
 
-    serviceMock.getCurrentLegalAcceptance
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(refetched);
-    serviceMock.getLatestLegalAcceptance.mockResolvedValue(null);
-    serviceMock.acceptCurrentLegalDocuments.mockResolvedValue(null as never);
+    serviceMock.acceptCurrentLegalDocuments.mockResolvedValue(existing);
 
     const { result } = renderHook(() => useLegalAcceptance());
 
@@ -138,6 +143,21 @@ describe('useLegalAcceptance', () => {
     });
 
     expect(result.current.hasAcceptedCurrentLegal).toBe(true);
-    expect(result.current.latestAcceptance?.id).toBe('acc-refetch');
+    expect(result.current.latestAcceptance).toEqual(existing);
+  });
+
+  it('repeated JWT issued at future exposes session error state', async () => {
+    serviceMock.getCurrentLegalAcceptance.mockRejectedValue(new Error('JWT issued at future'));
+    serviceMock.getLatestLegalAcceptance.mockResolvedValue(null);
+
+    const { result } = renderHook(() => useLegalAcceptance());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isSessionError).toBe(true);
+    expect(result.current.error).toContain('JWT issued at future');
+    expect(result.current.hasAcceptedCurrentLegal).toBe(false);
   });
 });

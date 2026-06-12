@@ -34,13 +34,22 @@ vi.mock('../services/legalAcceptanceService', () => ({
   acceptCurrentLegalDocuments: (...args: unknown[]) => serviceMock.acceptCurrentLegalDocuments(...args),
   readLegalAcceptanceSessionCache: (...args: unknown[]) => serviceMock.readLegalAcceptanceSessionCache(...args),
   clearLegalAcceptanceSessionCache: (...args: unknown[]) => serviceMock.clearLegalAcceptanceSessionCache(...args),
+  isJwtIssuedAtFutureError: (error: unknown) =>
+    error instanceof Error && error.message.includes('JWT issued at future'),
 }));
 
 import { useLegalAcceptance } from '../hooks/useLegalAcceptance';
 
 /** Simulates App.tsx Pattern A: single hook instance controls gate + routes. */
 function AppLegalFlowSimulator() {
-  const { isLoading, hasAcceptedCurrentLegal, acceptLegalDocuments } = useLegalAcceptance();
+  const {
+    isLoading,
+    hasAcceptedCurrentLegal,
+    acceptLegalDocuments,
+    error,
+    isSessionError,
+    refresh,
+  } = useLegalAcceptance();
 
   if (isLoading) {
     return <div data-testid="app-loading">Loading…</div>;
@@ -51,6 +60,9 @@ function AppLegalFlowSimulator() {
       <LegalAcceptanceGate
         isLoading={false}
         onAccept={acceptLegalDocuments}
+        error={error}
+        isSessionError={isSessionError}
+        onRetry={() => void refresh()}
       />
     );
   }
@@ -125,6 +137,19 @@ describe('legal acceptance flow (App Pattern A)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('dashboard-content')).toBeInTheDocument();
     });
+  });
+
+  it('shows session error UI instead of blank screen after repeated JWT failure', async () => {
+    serviceMock.getCurrentLegalAcceptance.mockRejectedValue(new Error('JWT issued at future'));
+    serviceMock.getLatestLegalAcceptance.mockResolvedValue(null);
+
+    render(<AppLegalFlowSimulator />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('legal-acceptance-session-error')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId('dashboard-content')).not.toBeInTheDocument();
   });
 });
 

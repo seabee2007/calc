@@ -11,9 +11,15 @@ import Button from '../ui/Button';
 
 interface LegalAcceptanceModalProps {
   onAccept: () => Promise<void>;
+  isAccepting?: boolean;
+  loadError?: string | null;
 }
 
-const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({ onAccept }) => {
+const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
+  onAccept,
+  isAccepting = false,
+  loadError = null,
+}) => {
   const { signOut } = useAuth();
   const [checked, setChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,6 +130,12 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({ onAccept })
           </span>
         </label>
 
+        {loadError ? (
+          <p className="mb-4 text-sm text-amber-700 dark:text-amber-300" role="status">
+            {loadError}
+          </p>
+        ) : null}
+
         {submitError ? (
           <p className="mb-4 text-sm text-red-600 dark:text-red-400" role="alert">
             {submitError}
@@ -135,7 +147,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({ onAccept })
             type="button"
             variant="secondary"
             onClick={() => void handleLogout()}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isAccepting}
             data-testid="legal-acceptance-logout"
           >
             Log Out
@@ -144,10 +156,10 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({ onAccept })
             type="button"
             variant="primary"
             onClick={() => void handleAccept()}
-            disabled={!checked || isSubmitting}
+            disabled={!checked || isSubmitting || isAccepting}
             data-testid="legal-acceptance-submit"
           >
-            {isSubmitting ? 'Saving…' : 'Accept and Continue'}
+            {isSubmitting || isAccepting ? 'Saving…' : 'Accept and Continue'}
           </Button>
         </div>
       </div>

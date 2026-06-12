@@ -5,6 +5,9 @@ import {
 } from '../constants/legalVersions';
 import type { UserLegalAcceptance } from '../types/legalAcceptance';
 
+const JWT_RETRY_DELAY_MS = 1000;
+const JWT_MAX_RETRIES = 2;
+
 function mapRow(row: Record<string, unknown>): UserLegalAcceptance {
   return {
     id: row.id as string,
@@ -21,6 +24,62 @@ function mapRow(row: Record<string, unknown>): UserLegalAcceptance {
 
 function sessionCacheKey(userId: string): string {
   return `legal_accepted_${userId}_${CURRENT_TERMS_VERSION}_${CURRENT_PRIVACY_VERSION}`;
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: string }).message ?? '');
+  }
+  return String(error ?? '');
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function isJwtIssuedAtFutureError(error: unknown): boolean {
+  return errorMessage(error).toLowerCase().includes('jwt issued at future');
+}
+
+export function isDuplicateLegalAcceptanceError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const err = error as { code?: string; status?: number; message?: string };
+  const msg = (err.message ?? '').toLowerCase();
+
+  return (
+    err.code === '23505' ||
+    err.status === 409 ||
+    msg.includes('duplicate key') ||
+    msg.includes('user_legal_acceptances_user_versions_unique') ||
+    msg.includes('user_legal_acceptances_user_id_terms_version_privacy_version_key') ||
+    msg.includes('unique constraint')
+  );
+}
+
+async function refreshAuthSession(): Promise<void> {
+  await supabase.auth.getSession();
+}
+
+async function withJwtRetry<T>(operation: () => Promise<T>): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= JWT_MAX_RETRIES; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isJwtIssuedAtFutureError(error) || attempt >= JWT_MAX_RETRIES) {
+        throw error;
+      }
+
+      await delay(JWT_RETRY_DELAY_MS);
+      await refreshAuthSession();
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Failed after JWT retry');
 }
 
 export function readLegalAcceptanceSessionCache(userId: string): boolean {
@@ -50,24 +109,26 @@ export function clearLegalAcceptanceSessionCache(userId: string): void {
 export async function getCurrentLegalAcceptance(
   userId: string,
 ): Promise<UserLegalAcceptance | null> {
-  const { data, error } = await supabase
-    .from('user_legal_acceptances')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('terms_version', CURRENT_TERMS_VERSION)
-    .eq('privacy_version', CURRENT_PRIVACY_VERSION)
-    .maybeSingle();
+  return withJwtRetry(async () => {
+    const { data, error } = await supabase
+      .from('user_legal_acceptances')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('terms_version', CURRENT_TERMS_VERSION)
+      .eq('privacy_version', CURRENT_PRIVACY_VERSION)
+      .maybeSingle();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+    if (error) {
+      throw new Error(error.message);
+    }
 
-  if (!data) {
-    return null;
-  }
+    if (!data) {
+      return null;
+    }
 
-  writeLegalAcceptanceSessionCache(userId);
-  return mapRow(data as Record<string, unknown>);
+    writeLegalAcceptanceSessionCache(userId);
+    return mapRow(data as Record<string, unknown>);
+  });
 }
 
 export async function getLatestLegalAcceptance(
@@ -92,39 +153,41 @@ export async function getLatestLegalAcceptance(
   return mapRow(data as Record<string, unknown>);
 }
 
-function isUniqueViolation(error: { code?: string; message?: string }): boolean {
-  return error.code === '23505' || (error.message ?? '').includes('duplicate key');
-}
-
 export async function acceptCurrentLegalDocuments(userId: string): Promise<UserLegalAcceptance> {
   const now = new Date().toISOString();
   const acceptedUserAgent =
     typeof navigator !== 'undefined' ? navigator.userAgent : null;
 
-  const { data, error } = await supabase
-    .from('user_legal_acceptances')
-    .insert({
-      user_id: userId,
-      terms_version: CURRENT_TERMS_VERSION,
-      privacy_version: CURRENT_PRIVACY_VERSION,
-      terms_accepted_at: now,
-      privacy_accepted_at: now,
-      accepted_ip: null,
-      accepted_user_agent: acceptedUserAgent,
-    })
-    .select('*')
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('user_legal_acceptances')
+      .insert({
+        user_id: userId,
+        terms_version: CURRENT_TERMS_VERSION,
+        privacy_version: CURRENT_PRIVACY_VERSION,
+        terms_accepted_at: now,
+        privacy_accepted_at: now,
+        accepted_ip: null,
+        accepted_user_agent: acceptedUserAgent,
+      })
+      .select('*')
+      .single();
 
-  if (error) {
-    if (isUniqueViolation(error)) {
+    if (error) {
+      throw error;
+    }
+
+    writeLegalAcceptanceSessionCache(userId);
+    return mapRow(data as Record<string, unknown>);
+  } catch (error) {
+    if (isDuplicateLegalAcceptanceError(error)) {
       const existing = await getCurrentLegalAcceptance(userId);
       if (existing) {
+        writeLegalAcceptanceSessionCache(userId);
         return existing;
       }
     }
-    throw new Error(error.message);
-  }
 
-  writeLegalAcceptanceSessionCache(userId);
-  return mapRow(data as Record<string, unknown>);
+    throw new Error(errorMessage(error) || 'Failed to save legal acceptance');
+  }
 }

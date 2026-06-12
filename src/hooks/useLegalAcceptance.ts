@@ -6,6 +6,7 @@ import {
   clearLegalAcceptanceSessionCache,
   getCurrentLegalAcceptance,
   getLatestLegalAcceptance,
+  isJwtIssuedAtFutureError,
   readLegalAcceptanceSessionCache,
 } from '../services/legalAcceptanceService';
 
@@ -16,6 +17,7 @@ export function useLegalAcceptance() {
   const [latestAcceptance, setLatestAcceptance] = useState<UserLegalAcceptance | null>(null);
   const [hasAcceptedCurrentLegal, setHasAcceptedCurrentLegal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSessionError, setIsSessionError] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!user?.id) {
@@ -23,11 +25,13 @@ export function useLegalAcceptance() {
       setHasAcceptedCurrentLegal(false);
       setIsLoading(false);
       setError(null);
+      setIsSessionError(false);
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setIsSessionError(false);
 
     try {
       if (readLegalAcceptanceSessionCache(user.id)) {
@@ -49,7 +53,9 @@ export function useLegalAcceptance() {
       setHasAcceptedCurrentLegal(!!current);
     } catch (err) {
       console.error('Error loading legal acceptance:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load legal acceptance');
+      const message = err instanceof Error ? err.message : 'Failed to load legal acceptance';
+      setError(message);
+      setIsSessionError(isJwtIssuedAtFutureError(err));
       setLatestAcceptance(null);
       setHasAcceptedCurrentLegal(false);
     } finally {
@@ -63,26 +69,21 @@ export function useLegalAcceptance() {
 
   const acceptLegalDocuments = useCallback(async () => {
     if (!user?.id) {
-      throw new Error('User is required');
+      throw new Error('Not authenticated');
     }
 
     setIsAccepting(true);
     setError(null);
+    setIsSessionError(false);
 
     try {
       const acceptance = await acceptCurrentLegalDocuments(user.id);
-
-      if (acceptance) {
-        setLatestAcceptance(acceptance);
-      } else {
-        const refreshed = await getCurrentLegalAcceptance(user.id);
-        setLatestAcceptance(refreshed);
-      }
-
+      setLatestAcceptance(acceptance);
       setHasAcceptedCurrentLegal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save acceptance';
       setError(message);
+      setIsSessionError(isJwtIssuedAtFutureError(err));
       throw err;
     } finally {
       setIsAccepting(false);
@@ -97,5 +98,6 @@ export function useLegalAcceptance() {
     acceptLegalDocuments,
     refresh,
     error,
+    isSessionError,
   };
 }

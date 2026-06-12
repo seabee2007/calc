@@ -133,8 +133,12 @@ function App() {
   const { user, loading: authLoading } = useAuth();
   const {
     isLoading: legalLoading,
+    isAccepting: legalAccepting,
     hasAcceptedCurrentLegal,
     acceptLegalDocuments,
+    refresh: refreshLegalAcceptance,
+    error: legalError,
+    isSessionError: legalSessionError,
   } = useLegalAcceptance();
   const { loadProjects } = useProjectStore();
   const { loadCompanySettings, migrateSettings } = useSettingsStore();
@@ -277,6 +281,10 @@ function App() {
       <LegalAcceptanceGate
         isLoading={legalLoading}
         onAccept={acceptLegalDocuments}
+        error={legalError}
+        isSessionError={legalSessionError}
+        onRetry={() => void refreshLegalAcceptance()}
+        isAccepting={legalAccepting}
       />
     );
   }
