@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { corsHeaders } from "../_shared/cors.ts";
+import { readEmailEnvConfig } from "../_shared/emailConfig.ts";
+import { insertEmailEvent } from "../_shared/emailEvents.ts";
+import { renderEmailTemplate } from "../_shared/emailTemplates.ts";
+import { prepareTransactionalEmail, sendTransactionalEmail } from "../_shared/resend.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SITE_URL = (Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL") ?? "").replace(
   /\/$/,
   "",
@@ -92,10 +97,86 @@ serve(async (req) => {
     const email = invite.email as string;
     const inviteLink = siteUrl
       ? `${siteUrl}/signup?invite=${encodeURIComponent(token)}`
-      : undefined;
+      : `/signup?invite=${encodeURIComponent(token)}`;
     const loginLink = siteUrl
       ? `${siteUrl}/login?invite=${encodeURIComponent(token)}`
-      : undefined;
+      : `/login?invite=${encodeURIComponent(token)}`;
+
+    const config = readEmailEnvConfig(Deno.env.toObject());
+    const templateData = {
+      inviteUrl: inviteLink,
+      companyName: String(body.companyName ?? "your team"),
+      inviterName: String(body.inviterName ?? user.email ?? "Team owner"),
+    };
+    const rendered = renderEmailTemplate("teamInvite", templateData);
+    const prepared = prepareTransactionalEmail({
+      templateKey: "teamInvite",
+      to: email,
+      data: templateData,
+    });
+
+    if (!config.sendingEnabled) {
+      await insertEmailEvent(admin, {
+        userId: user.id,
+        templateKey: "teamInvite",
+        toEmail: email,
+        fromEmail: prepared.from,
+        subject: rendered.subject,
+        status: "disabled",
+        metadata: prepared.metadata,
+      });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          inviteLink: loginLink ?? inviteLink,
+          emailSent: false,
+          disabled: true,
+          message: "Email sending is disabled. Share the invite link manually.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const sendResult = await sendTransactionalEmail({
+      templateKey: "teamInvite",
+      to: email,
+      data: templateData,
+    });
+
+    if (sendResult.ok) {
+      const event = await insertEmailEvent(admin, {
+        userId: user.id,
+        templateKey: "teamInvite",
+        toEmail: sendResult.to,
+        fromEmail: sendResult.from,
+        subject: sendResult.subject,
+        status: "sent",
+        resendEmailId: sendResult.messageId ?? null,
+        sentAt: new Date().toISOString(),
+        metadata: sendResult.metadata,
+      });
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          inviteLink: inviteLink ?? loginLink,
+          emailSent: true,
+          emailEventId: event?.id ?? null,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    await insertEmailEvent(admin, {
+      userId: user.id,
+      templateKey: "teamInvite",
+      toEmail: email,
+      fromEmail: prepared.from,
+      subject: rendered.subject,
+      status: "failed",
+      errorMessage: sendResult.error ?? "Unable to send invite email.",
+      metadata: prepared.metadata,
+    });
 
     const { data: inviteData, error: sendError } = await admin.auth.admin.inviteUserByEmail(
       email,
@@ -123,19 +204,31 @@ serve(async (req) => {
         );
       }
 
+      const event = await insertEmailEvent(admin, {
+        userId: user.id,
+        templateKey: "teamInvite",
+        toEmail: email,
+        fromEmail: prepared.from,
+        subject: rendered.subject,
+        status: "failed",
+        errorMessage: sendResult.error ?? sendError.message,
+        metadata: { ...prepared.metadata, fallback: "supabase_auth_invite" },
+      });
+      void event;
+
       if (inviteLink) {
         return new Response(
           JSON.stringify({
             ok: true,
             inviteLink,
             emailSent: false,
-            warning: sendError.message,
+            warning: sendResult.error ?? sendError.message,
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
-      return new Response(JSON.stringify({ error: sendError.message }), {
+      return new Response(JSON.stringify({ error: sendResult.error ?? sendError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -147,6 +240,7 @@ serve(async (req) => {
         inviteLink: inviteLink ?? loginLink,
         emailSent: true,
         user: inviteData.user?.id ?? null,
+        fallback: "supabase_auth_invite",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

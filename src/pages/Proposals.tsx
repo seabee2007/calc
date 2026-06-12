@@ -12,6 +12,7 @@ import {
   markPaid,
   markScheduled,
 } from '../lib/proposalTracking';
+import { sendProposalEmail } from '../services/emailService';
 import {
   buildProposalDashboardMetrics,
   formatProposalMoney,
@@ -28,6 +29,7 @@ import InlineNotice from '../components/ui/InlineNotice';
 import AppPage from '../components/ui/AppPage';
 import { soundService } from '../services/soundService';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
+import ProposalSendEmailModal from '../components/proposals/ProposalSendEmailModal';
 import ProposalPipelineBoard from '../components/proposals/ProposalPipelineBoard';
 import ProposalNextActionsPanel from '../components/proposals/ProposalNextActionsPanel';
 import ProposalPipelineCard from '../components/proposals/ProposalPipelineCard';
@@ -51,6 +53,12 @@ const Proposals: React.FC = () => {
     url: string;
     title: string;
   } | null>(null);
+  const [sendEmailModal, setSendEmailModal] = useState<{
+    proposalId: string;
+    proposalTitle: string;
+    defaultRecipientEmail?: string;
+  } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -162,6 +170,40 @@ const Proposals: React.FC = () => {
     return getPublicProposalUrl(token);
   };
 
+  const openSendEmailModal = (proposal: SavedProposal) => {
+    setError(null);
+    setSendEmailModal({
+      proposalId: proposal.id,
+      proposalTitle:
+        proposal.data?.projectTitle?.trim() || proposal.title?.trim() || 'Proposal',
+      defaultRecipientEmail: '',
+    });
+  };
+
+  const handleSendEmail = async (recipientEmail: string) => {
+    if (!sendEmailModal) return;
+    setSendingEmail(true);
+    setError(null);
+    try {
+      await sendProposalEmail({
+        proposalId: sendEmailModal.proposalId,
+        recipientEmail,
+        senderName: undefined,
+      });
+      await loadProposals();
+      const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
+      setSendEmailModal(null);
+      openProposalLinkModal(
+        getPublicProposalUrl(refreshed.public_token),
+        'Proposal sent by email',
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send proposal email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleShareClientLink = async (proposal: SavedProposal) => {
     try {
       setError(null);
@@ -177,16 +219,12 @@ const Proposals: React.FC = () => {
   };
 
   const handleSend = async (proposalId: string) => {
-    try {
-      const sent = await markProposalSent(proposalId);
-      await loadProposals();
-      openProposalLinkModal(
-        getPublicProposalUrl(sent.public_token),
-        'Proposal Sent',
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send proposal');
+    const proposal = proposals.find((entry) => entry.id === proposalId);
+    if (!proposal) {
+      setError('Proposal not found.');
+      return;
     }
+    openSendEmailModal(proposal);
   };
 
   const handleMarkDeposit = async (id: string) => {
@@ -489,6 +527,18 @@ const Proposals: React.FC = () => {
           onClose={() => setLinkModal(null)}
           proposalUrl={linkModal?.url ?? ''}
           title={linkModal?.title}
+        />
+
+        <ProposalSendEmailModal
+          isOpen={Boolean(sendEmailModal)}
+          onClose={() => {
+            if (!sendingEmail) setSendEmailModal(null);
+          }}
+          proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
+          defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
+          sending={sendingEmail}
+          error={localError}
+          onSend={handleSendEmail}
         />
     </AppPage>
   );

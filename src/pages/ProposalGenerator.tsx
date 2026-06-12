@@ -25,6 +25,8 @@ import ProposalTemplateClassic from '../components/proposals/ProposalTemplateCla
 import ProposalTemplateModern from '../components/proposals/ProposalTemplateModern';
 import ProposalTemplateMinimal from '../components/proposals/ProposalTemplateMinimal';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
+import ProposalSendEmailModal from '../components/proposals/ProposalSendEmailModal';
+import { sendProposalEmail } from '../services/emailService';
 import Button from '../components/ui/Button';
 import { generateProposalPDF } from '../utils/pdf';
 import { useSettingsStore } from '../store';
@@ -92,6 +94,13 @@ const ProposalGenerator: React.FC = () => {
   const saveProposalDraft = useWorkflowDraftStore((s) => s.saveProposalDraft);
   const [workflowStepReady, setWorkflowStepReady] = useState(false);
   const [sentProposalUrl, setSentProposalUrl] = useState<string | null>(null);
+  const [sendEmailModal, setSendEmailModal] = useState<{
+    proposalId: string;
+    proposalTitle: string;
+    defaultRecipientEmail?: string;
+  } | null>(null);
+  const [sendEmailError, setSendEmailError] = useState<string | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
   const [showPreview, setShowPreview] = useState(isPreviewMode);
@@ -642,9 +651,16 @@ const ProposalGenerator: React.FC = () => {
     try {
       setSaving(true);
       const saved = await persistProposal();
-      const sent = await markProposalSent(saved.id);
-      const url = getPublicProposalUrl(sent.public_token);
-      setSentProposalUrl(url);
+      const linkedProject = saved.project_id
+        ? projects.find((entry) => entry.id === saved.project_id)
+        : null;
+      setSendEmailError(null);
+      setSendEmailModal({
+        proposalId: saved.id,
+        proposalTitle:
+          saved.data?.projectTitle?.trim() || saved.title?.trim() || 'Proposal',
+        defaultRecipientEmail: linkedProject?.clientInfo?.clientEmail?.trim() ?? '',
+      });
     } catch (error) {
       console.error('Send proposal failed:', error);
       alert(
@@ -652,6 +668,28 @@ const ProposalGenerator: React.FC = () => {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendProposalEmail = async (recipientEmail: string) => {
+    if (!sendEmailModal) return;
+    setSendingEmail(true);
+    setSendEmailError(null);
+    try {
+      await sendProposalEmail({
+        proposalId: sendEmailModal.proposalId,
+        recipientEmail,
+        senderName: proposalData.businessName || proposalData.preparedBy || undefined,
+      });
+      const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
+      setSendEmailModal(null);
+      setSentProposalUrl(getPublicProposalUrl(refreshed.public_token));
+    } catch (error) {
+      setSendEmailError(
+        error instanceof Error ? error.message : 'Failed to send proposal email.',
+      );
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -1544,6 +1582,19 @@ const ProposalGenerator: React.FC = () => {
         isOpen={Boolean(sentProposalUrl)}
         onClose={() => setSentProposalUrl(null)}
         proposalUrl={sentProposalUrl ?? ''}
+        title="Proposal sent by email"
+      />
+
+      <ProposalSendEmailModal
+        isOpen={Boolean(sendEmailModal)}
+        onClose={() => {
+          if (!sendingEmail) setSendEmailModal(null);
+        }}
+        proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
+        defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
+        sending={sendingEmail}
+        error={sendEmailError}
+        onSend={handleSendProposalEmail}
       />
     </motion.div>
   );

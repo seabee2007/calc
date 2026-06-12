@@ -10,6 +10,7 @@ import Card from '../../components/ui/Card';
 import ModalShell from '../../components/ui/ModalShell';
 import ProposalPipelineCard from '../../components/proposals/ProposalPipelineCard';
 import ProposalSentLinkModal from '../../components/proposals/ProposalSentLinkModal';
+import ProposalSendEmailModal from '../../components/proposals/ProposalSendEmailModal';
 import { useProjectStore } from '../../store';
 import { useTrackedProposals } from '../../hooks/useTrackedProposals';
 import { ProposalService, type SavedProposal } from '../../lib/proposalService';
@@ -17,6 +18,7 @@ import {
   getPublicProposalUrl,
   markProposalSent,
 } from '../../lib/proposalTracking';
+import { sendProposalEmail } from '../../services/emailService';
 import {
   getLinkableProposals,
   getProjectProposals,
@@ -54,6 +56,12 @@ export default function ProjectProposalsPage() {
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [linkingId, setLinkingId] = useState<string | null>(null);
   const [sentLinkModal, setSentLinkModal] = useState<{ url: string; title: string } | null>(null);
+  const [sendEmailModal, setSendEmailModal] = useState<{
+    proposalId: string;
+    proposalTitle: string;
+    defaultRecipientEmail?: string;
+  } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -87,13 +95,41 @@ export default function ProjectProposalsPage() {
     setSentLinkModal({ url, title });
   };
 
-  const handleSend = async (proposalId: string) => {
+  const handleSend = (proposalId: string) => {
+    const proposal = projectProposals.find((entry) => entry.id === proposalId);
+    if (!proposal) {
+      setLocalError('Proposal not found.');
+      return;
+    }
+    setLocalError(null);
+    setSendEmailModal({
+      proposalId: proposal.id,
+      proposalTitle:
+        proposal.data?.projectTitle?.trim() || proposal.title?.trim() || 'Proposal',
+      defaultRecipientEmail: project?.clientInfo?.clientEmail?.trim() ?? '',
+    });
+  };
+
+  const handleSendEmail = async (recipientEmail: string) => {
+    if (!sendEmailModal) return;
+    setSendingEmail(true);
+    setLocalError(null);
     try {
-      const sent = await markProposalSent(proposalId);
+      await sendProposalEmail({
+        proposalId: sendEmailModal.proposalId,
+        recipientEmail,
+      });
       await loadProposals();
-      openProposalLinkModal(getPublicProposalUrl(sent.public_token), 'Proposal Sent');
+      const refreshed = await ProposalService.getById(sendEmailModal.proposalId);
+      setSendEmailModal(null);
+      openProposalLinkModal(
+        getPublicProposalUrl(refreshed.public_token),
+        'Proposal sent by email',
+      );
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Failed to send proposal');
+      setLocalError(err instanceof Error ? err.message : 'Failed to send proposal email');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -389,6 +425,18 @@ export default function ProjectProposalsPage() {
         title={sentLinkModal?.title ?? 'Proposal link'}
         shareUrl={sentLinkModal?.url}
         proposalUrl={sentLinkModal?.url}
+      />
+
+      <ProposalSendEmailModal
+        isOpen={Boolean(sendEmailModal)}
+        onClose={() => {
+          if (!sendingEmail) setSendEmailModal(null);
+        }}
+        proposalTitle={sendEmailModal?.proposalTitle ?? 'Proposal'}
+        defaultRecipientEmail={sendEmailModal?.defaultRecipientEmail}
+        sending={sendingEmail}
+        error={localError}
+        onSend={handleSendEmail}
       />
     </AppPage>
   );
