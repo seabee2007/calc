@@ -12,6 +12,7 @@ import crackImage from '../assets/images/crack.jpg';
 import admixImage from '../assets/images/admix.jpg';
 import libraryImage from '../assets/images/library.webp';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
+import { PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../theme/appTheme';
 
 interface ResourcesProps {
   chatStore: {
@@ -95,7 +96,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className={PREMIUM_PAGE_MAX_WIDTH}>
         <div className="mb-8">
           <h1 className={CC_PAGE_HERO_TITLE}>Concrete Resources</h1>
           <p className={CC_PAGE_HERO_SUBTITLE}>
@@ -148,7 +149,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
           </div>
           
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+            <div className={`${PREMIUM_PANEL} p-6`}>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Latest Updates</h2>
               <ul className="space-y-4">
                 {resources.map((resource, index) => (

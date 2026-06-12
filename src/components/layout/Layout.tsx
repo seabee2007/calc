@@ -10,6 +10,7 @@ import { isPlannerWorkspacePath } from '../../utils/plannerRoutes';
 import SiteBackground from './SiteBackground';
 import PageErrorBoundary from './PageErrorBoundary';
 import { COLOR_CANVAS_DARK, COLOR_CANVAS_LIGHT } from '../../theme/appTheme';
+import { usesPremiumCanvas } from '../../utils/premiumCanvasRoutes';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -33,7 +34,7 @@ const Layout: React.FC = () => {
     isPublicClientPortal;
 
   const isLoggedOutLanding = location.pathname === '/' && !user;
-  const isProposalPipeline = location.pathname === '/proposals';
+  const premiumCanvas = usesPremiumCanvas(location.pathname);
 
   const showBottomNav =
     Boolean(user) &&
@@ -118,7 +119,7 @@ const Layout: React.FC = () => {
       }
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <SiteBackground forceDark={isLoggedOutLanding} solidCanvas={isProposalPipeline} />
+      <SiteBackground forceDark={isLoggedOutLanding} solidCanvas={premiumCanvas} />
 
       {/* App content */}
       <div className="relative z-10 flex min-h-screen flex-col">
@@ -126,7 +127,7 @@ const Layout: React.FC = () => {
 
         <main
           className={`relative mx-auto w-full flex-grow px-4 py-8 sm:px-6 lg:px-8 ${
-            isProposalPipeline ? 'max-w-[88rem]' : 'max-w-7xl'
+            premiumCanvas ? 'max-w-[88rem]' : 'max-w-7xl'
           }${isLoggedOutLanding ? ' text-white' : ''}`}
           style={{
             paddingLeft: 'max(env(safe-area-inset-left), 1rem)',

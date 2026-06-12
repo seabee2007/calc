@@ -57,6 +57,7 @@ import {
 import { projectJobsiteLine } from '../utils/projectLocation';
 import { getMapboxTravelTime } from '../services/mapboxTravelService';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
+import { PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../theme/appTheme';
 
 const MIX_DISCLAIMER =
   'Planning-level recommendation only. Final mix design must comply with project specifications, approved submittals, local code, and supplier trial batch data. This is not an engineered stamped mix design.';
@@ -657,12 +658,12 @@ const MixDesignAdvisor: React.FC = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="max-w-4xl mx-auto px-4 pb-8">
+      <div className={`${PREMIUM_PAGE_MAX_WIDTH} px-4 pb-8`}>
         <WorkflowStepHeader />
 
         {workflowProjectId && placementCalcs.length > 0 && (
-          <div className="mb-4 rounded-xl border border-slate-700/80 bg-slate-900/95 p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-400/90 mb-2 font-medium">
+          <div className={`mb-4 p-3 sm:p-4 ${PREMIUM_PANEL}`}>
+            <p className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-700 dark:text-cyan-400/90 mb-2 font-medium">
               Placements on this project
             </p>
             <div className="flex flex-col gap-2">
@@ -676,8 +677,8 @@ const MixDesignAdvisor: React.FC = () => {
                     onClick={() => switchPlacement(calc.id)}
                     className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                       active
-                        ? 'bg-cyan-600/25 text-cyan-100 ring-1 ring-cyan-500/50'
-                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-cyan-600/15 text-cyan-800 ring-1 ring-cyan-500/50 dark:bg-cyan-600/25 dark:text-cyan-100'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-800'
                     }`}
                   >
                     <span className="truncate">
@@ -725,7 +726,7 @@ const MixDesignAdvisor: React.FC = () => {
           </p>
         </div>
 
-        <div className="mb-4 flex gap-1 overflow-x-auto pb-1 scrollbar-hide rounded-lg bg-white/90 dark:bg-gray-800 backdrop-blur-sm p-2 shadow-lg border border-slate-200/80 dark:border-gray-700">
+        <div className={`mb-4 flex gap-1 overflow-x-auto pb-1 scrollbar-hide rounded-lg p-2 ${PREMIUM_PANEL}`}>
           {MIX_ADVISOR_STEPS.map((s, i) => (
             <button
               key={s.id}
@@ -742,13 +743,7 @@ const MixDesignAdvisor: React.FC = () => {
           ))}
         </div>
 
-        <Card
-          className={`p-4 sm:p-6 ${
-            inWorkflow
-              ? 'bg-white/90 dark:bg-gray-800 backdrop-blur-sm shadow-lg border border-slate-200/80 dark:border-gray-700'
-              : ''
-          }`}
-        >
+        <Card className={`p-4 sm:p-6 ${PREMIUM_PANEL}`}>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
             {step.title}
           </h2>

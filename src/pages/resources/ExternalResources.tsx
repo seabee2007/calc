@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 import Card from '../../components/ui/Card';
 import { BookOpen, AlignCenterVertical as Certificate, ShieldCheck, ClipboardList } from 'lucide-react';
 
@@ -22,14 +24,14 @@ const ExternalResources: React.FC = () => {
             variant="ghost"
             onClick={() => navigate('/resources')}
             icon={<ArrowLeft size={20} />}
-            className="text-white hover:text-blue-200 mb-4"
+            className="mb-4 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           >
             Back to Resources
           </Button>
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className={CC_PAGE_HERO_TITLE}>
             External Resources
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+          <p className={CC_PAGE_HERO_SUBTITLE}>
             Industry standards, certifications, and educational resources
           </p>
         </div>
@@ -37,7 +39,7 @@ const ExternalResources: React.FC = () => {
         <div className="space-y-8">
           {/* Standards & Regulations */}
           <section>
-            <h2 className="text-2xl font-semibold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-4">
+            <h2 className="mb-4 text-2xl font-semibold text-slate-900 dark:text-white">
               Standards &amp; Regulations
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
@@ -177,7 +179,7 @@ const ExternalResources: React.FC = () => {
 
           {/* Education & Certification */}
           <section>
-            <h2 className="text-2xl font-semibold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mb-4">
+            <h2 className="mb-4 text-2xl font-semibold text-slate-900 dark:text-white">
               Education &amp; Certification
             </h2>
             <div className="grid gap-6 md:grid-cols-2">

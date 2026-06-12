@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 
 const WeatherEffects: React.FC = () => {
   const navigate = useNavigate();
@@ -20,27 +22,27 @@ const WeatherEffects: React.FC = () => {
             variant="ghost"
             onClick={() => navigate('/resources')}
             icon={<ArrowLeft size={20} />}
-            className="text-white hover:text-blue-200 mb-4"
+            className="mb-4 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           >
             Back to Resources
           </Button>
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className={CC_PAGE_HERO_TITLE}>
             Weather Effects on Concrete Curing
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+          <p className={CC_PAGE_HERO_SUBTITLE}>
             Understanding and managing weather impacts on concrete placement and curing
           </p>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Introduction</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               Concrete gains strength through hydration—a chemical reaction between cement and water. If conditions are too hot, cold, windy, or dry, that reaction can be disrupted, leading to surface cracking, delayed strength gain, or even frost damage. Proactive planning and protective measures help ensure concrete cures uniformly and reaches its intended performance.
             </p>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Hot Weather Concreting</h2>
             
             <div className="space-y-6">
@@ -92,7 +94,7 @@ const WeatherEffects: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Cold Weather Concreting</h2>
             
             <div className="space-y-6">
@@ -143,7 +145,7 @@ const WeatherEffects: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Critical Weather Factors</h2>
             
             <div className="overflow-x-auto mb-6">

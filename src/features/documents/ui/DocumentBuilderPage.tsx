@@ -1199,7 +1199,7 @@ export default function DocumentBuilderPage() {
             : 'Create, review, and manage construction contracts linked to your projects.'
         }
         icon={FileSignature}
-        maxWidthClassName="max-w-7xl"
+        maxWidthClassName="max-w-[88rem] mx-auto"
         onProjectPrefill={handleProjectPrefill}
         actions={null}
       >

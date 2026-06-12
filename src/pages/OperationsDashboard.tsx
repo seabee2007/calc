@@ -34,12 +34,12 @@ import { addDays, toIsoDate } from '../utils/scheduleEventUtils';
 import ScheduleOperationsSection from '../components/dashboard/schedule/ScheduleOperationsSection';
 import type { ChangeOrder } from '../types/changeOrder';
 import ProjectHealthCard from '../components/dashboard/ProjectHealthCard';
-import QcAlertsCard from '../components/dashboard/QcAlertsCard';
+import ProjectControlsCard from '../components/dashboard/ProjectControlsCard';
 import OwnerActivityFeed from '../components/owner/OwnerActivityFeed';
 import EmptyState from '../components/ui/EmptyState';
 import { useAuth } from '../hooks/useAuth';
 import { OPS_SHELL } from '../components/dashboard/opsTheme';
-import { PAGE_GUTTER, PAGE_MAX_WIDTH } from '../theme/appTheme';
+import { PREMIUM_PAGE_MAX_WIDTH, PAGE_GUTTER } from '../theme/appTheme';
 import { formatPlacementPourDateTime } from '../utils/placementPourDate';
 
 const OperationsDashboard: React.FC = () => {
@@ -250,13 +250,18 @@ const OperationsDashboard: React.FC = () => {
 
   const totalQcRecords = qcStats.totalRecords;
 
+  const fieldNotesProject = useMemo(() => {
+    const match = snapshot.projects.find((p) => p.nextAction.kind === 'scroll_to_qc');
+    return match ? { id: match.id, name: match.name } : null;
+  }, [snapshot.projects]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className={`${OPS_SHELL} ${PAGE_MAX_WIDTH} ${PAGE_GUTTER} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
+      className={`${OPS_SHELL} ${PREMIUM_PAGE_MAX_WIDTH} ${PAGE_GUTTER} space-y-4 sm:space-y-5 pb-24 md:pb-8`}
     >
       <div data-testid="dashboard-todays-operations">
         <DashboardHero
@@ -286,9 +291,11 @@ const OperationsDashboard: React.FC = () => {
 
       <section
         data-testid="dashboard-active-proposals-grid"
-        className="grid grid-cols-1 gap-5 lg:grid-cols-2"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch"
       >
-        <ActiveProjectsPanel projects={snapshot.projects} />
+        <div className="min-h-0 h-full">
+          <ActiveProjectsPanel projects={snapshot.projects} />
+        </div>
         <div className="space-y-5">
           <ProposalPipelineCard
             pipeline={pipeline}
@@ -316,10 +323,16 @@ const OperationsDashboard: React.FC = () => {
           snapshot={snapshot}
           hasPlacementsToday={snapshot.hasPlacementsToday}
         />
-        <QcAlertsCard
+        <ProjectControlsCard
           testsDue={qcStats.qcTestsDue}
           testsOverdue={qcStats.qcTestsOverdue}
           totalRecords={totalQcRecords}
+          deadlineCount={
+            isOwner ? scheduleSnapshot?.upcomingDeadlines.length : undefined
+          }
+          projects={projects}
+          proposals={proposals}
+          fieldNotesProject={fieldNotesProject}
         />
       </section>
 

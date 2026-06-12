@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 
 const CommonProblems: React.FC = () => {
   const navigate = useNavigate();
@@ -20,20 +22,20 @@ const CommonProblems: React.FC = () => {
             variant="ghost"
             onClick={() => navigate('/resources')}
             icon={<ArrowLeft size={20} />}
-            className="text-white hover:text-blue-200 mb-4"
+            className="mb-4 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           >
             Back to Resources
           </Button>
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className={CC_PAGE_HERO_TITLE}>
             Common Concrete Problems
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+          <p className={CC_PAGE_HERO_SUBTITLE}>
             Identifying and preventing common concrete issues
           </p>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Introduction</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               Even well-planned concrete projects can face issues like cracking, scaling, or discoloration. Understanding common problems, their root causes, and proven prevention strategies helps contractors deliver durable, aesthetically pleasing results while avoiding costly repairs.
@@ -43,7 +45,7 @@ const CommonProblems: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Cracking Issues</h2>
             
             <div className="space-y-6">
@@ -121,7 +123,7 @@ const CommonProblems: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Surface Problems</h2>
             
             <div className="space-y-6">
@@ -184,7 +186,7 @@ const CommonProblems: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Remediation Strategies</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

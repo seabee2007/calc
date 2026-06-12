@@ -109,7 +109,7 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={overlayTransition}
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-slate-900/25 backdrop-blur-[2px] dark:bg-black/60"
             onClick={handleClose}
           />
 
@@ -138,14 +138,19 @@ const Modal: React.FC<ModalProps> = ({
 
               <div
                 className={`${MODAL_BODY}
-                  [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-white
-                  [&_h2]:font-semibold [&_h2]:text-slate-900 [&_h2]:dark:text-white
-                  [&_h3]:font-semibold [&_h3]:text-slate-900 [&_h3]:dark:text-white
-                  [&_p]:leading-relaxed
-                  [&_li]:leading-relaxed
-                  [&_strong]:text-slate-900 [&_strong]:dark:text-white
-                  [&_a]:text-blue-600 [&_a]:underline [&_a]:dark:text-blue-400
-                  [&_hr]:border-slate-200 [&_hr]:dark:border-slate-700
+                  [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-slate-50
+                  [&_h2]:font-semibold [&_h2]:text-slate-900 [&_h2]:dark:text-slate-50
+                  [&_h3]:font-semibold [&_h3]:text-slate-900 [&_h3]:dark:text-slate-50
+                  [&_h4]:font-medium [&_h4]:text-slate-800 [&_h4]:dark:text-slate-100
+                  [&_p]:leading-relaxed [&_p]:text-slate-700 [&_p]:dark:text-slate-300
+                  [&_li]:leading-relaxed [&_li]:text-slate-700 [&_li]:dark:text-slate-300
+                  [&_strong]:font-semibold [&_strong]:text-slate-900 [&_strong]:dark:text-slate-50
+                  [&_a]:text-cyan-700 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition-colors
+                  [&_a]:hover:text-cyan-600 [&_a]:focus-visible:outline-none [&_a]:focus-visible:ring-2
+                  [&_a]:focus-visible:ring-cyan-500/60 [&_a]:rounded-sm
+                  [&_a]:dark:text-cyan-400 [&_a]:dark:hover:text-cyan-300
+                  [&_address]:not-italic [&_address]:text-slate-700 [&_address]:dark:text-slate-300
+                  [&_hr]:border-slate-200 [&_hr]:dark:border-slate-700/70
                   [&_td]:text-slate-800 [&_td]:dark:text-slate-200
                   [&_th]:text-slate-900 [&_th]:dark:text-slate-100`}
               >

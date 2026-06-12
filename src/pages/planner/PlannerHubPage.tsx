@@ -120,7 +120,7 @@ export default function PlannerHubPage() {
   return (
     <div className={`overflow-y-auto ${PLANNER_PAGE_BG}`}>
       <AppPage
-        className="pt-6"
+        className="w-full !max-w-none pt-6"
         header={
           <PageHeader
             title="Planner Hub"

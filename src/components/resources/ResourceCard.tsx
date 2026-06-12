@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 
 interface ResourceCardProps {
   title: string;
@@ -32,7 +33,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
       whileTap={{ scale: 0.98 }}
     >
       <Card 
-        className="h-full overflow-hidden bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all" 
+        className={`h-full overflow-hidden ${PREMIUM_PANEL} hover:shadow-xl transition-all`}
         shadow="md"
         hoverable
         clickable

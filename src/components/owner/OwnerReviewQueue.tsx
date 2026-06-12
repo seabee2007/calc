@@ -34,7 +34,8 @@ import {
 } from '../../utils/plannerRoutes';
 import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
 import {
-  APP_SECTION_CARD,
+  PREMIUM_INNER_PANEL,
+  PREMIUM_PANEL,
   TEXT_ACCENT,
   TEXT_FOREGROUND,
   TEXT_MUTED,
@@ -69,13 +70,13 @@ const sectionVariants = {
   }),
 };
 
-const QUEUE_SECTION_CARD = `${APP_SECTION_CARD} !p-4`;
+const QUEUE_SECTION_CARD = `${PREMIUM_PANEL} p-4 sm:p-5`;
 
 const QUEUE_LIST_ROW =
-  'flex flex-col gap-2 rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 transition-colors hover:bg-slate-100/80 dark:border-slate-700/70 dark:bg-slate-950/40 dark:hover:bg-slate-800/60 sm:flex-row sm:items-start sm:justify-between';
+  `${PREMIUM_INNER_PANEL} flex flex-col gap-2 p-3 shadow-sm transition-colors hover:border-slate-300 hover:bg-white dark:hover:border-slate-600 dark:hover:bg-slate-800/80 sm:flex-row sm:items-start sm:justify-between`;
 
 const FAR_CO_ROW =
-  'flex flex-col gap-2 rounded-lg border border-amber-200/70 bg-amber-50/80 p-3 transition-colors hover:bg-amber-100/80 dark:border-amber-900/50 dark:bg-amber-950/20 dark:hover:bg-amber-950/30 sm:flex-row sm:items-start sm:justify-between';
+  'flex flex-col gap-2 rounded-lg border border-amber-200/70 bg-amber-50/80 p-3 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-100/80 dark:border-amber-900/50 dark:bg-amber-950/20 dark:hover:bg-amber-950/30 sm:flex-row sm:items-start sm:justify-between';
 
 export default function OwnerReviewQueue() {
   const { user } = useAuth();

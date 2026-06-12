@@ -69,8 +69,8 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
   };
 
   return (
-    <OpsCard>
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <OpsCard className="flex h-full min-h-0 flex-col">
+      <header className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h3 className={`font-semibold ${OPS_TITLE}`}>Active projects</h3>
         </div>
@@ -96,7 +96,7 @@ const ActiveProjectsPanel: React.FC<ActiveProjectsPanelProps> = ({
           </Button>
         </div>
       ) : (
-        <ul className="space-y-3 max-h-[28rem] overflow-y-auto pr-1">
+        <ul className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
           {list.map((p) => (
             <li key={p.id}>
               <div className={`rounded-lg p-3 ${OPS_LIST_ROW}`}>

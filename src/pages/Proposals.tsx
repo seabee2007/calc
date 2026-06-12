@@ -25,6 +25,7 @@ import KpiStrip from '../components/ui/KpiStrip';
 import EmptyState from '../components/ui/EmptyState';
 import InlineNotice from '../components/ui/InlineNotice';
 import AppPage from '../components/ui/AppPage';
+import { PREMIUM_PANEL } from '../theme/appTheme';
 import { soundService } from '../services/soundService';
 import ProposalSentLinkModal from '../components/proposals/ProposalSentLinkModal';
 import ProposalSendEmailModal from '../components/proposals/ProposalSendEmailModal';
@@ -366,9 +367,7 @@ const Proposals: React.FC = () => {
         />
       }
     >
-      <KpiStrip
-        className="mb-6 [&>div]:rounded-xl [&>div]:border [&>div]:border-slate-200/80 [&>div]:bg-white/90 [&>div]:p-4 [&>div]:shadow-lg [&>div]:shadow-slate-200/50 dark:[&>div]:border-slate-700/70 dark:[&>div]:bg-slate-900/90 dark:[&>div]:shadow-black/25 [&>div_p:first-child]:text-sm [&>div_p:first-child]:font-medium [&>div_p:first-child]:text-slate-600 dark:[&>div_p:first-child]:text-slate-300 [&>div_p:nth-child(2)]:text-slate-900 dark:[&>div_p:nth-child(2)]:text-slate-50 [&>div_p:last-child]:text-xs [&>div_p:last-child]:text-slate-500 dark:[&>div_p:last-child]:text-slate-400"
-        metrics={[
+      <KpiStrip className="mb-6" premium metrics={[
           {
             label: 'Pipeline value',
             value: formatProposalMoney(crmRevenue.pipelineValue),
@@ -394,7 +393,7 @@ const Proposals: React.FC = () => {
       />
 
       <Card
-        className="rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-xl shadow-slate-200/60 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/85 dark:shadow-black/30 sm:p-6"
+        className={`${PREMIUM_PANEL} p-5 sm:p-6`}
         data-testid="proposal-pipeline-board-card"
       >
           <ProposalPipelineBoard

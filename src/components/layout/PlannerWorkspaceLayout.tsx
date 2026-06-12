@@ -89,7 +89,7 @@ const PlannerWorkspaceLayout: React.FC = () => {
       className="relative flex min-h-screen min-h-[100dvh] flex-col bg-slate-50 text-gray-900 dark:bg-slate-950 dark:text-slate-100"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <SiteBackground />
+      <SiteBackground solidCanvas />
       <div className="relative z-10 flex min-h-0 min-h-[100dvh] flex-1 flex-col">
         <PlannerWorkspaceMain />
         {user && isOwner && !isEmployee && <ToolsModal />}

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE, CC_PAGE_META } from '../theme/pageTypography';
+import { PREMIUM_INNER_PANEL, PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../theme/appTheme';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
@@ -400,7 +401,7 @@ const Settings: React.FC = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="max-w-4xl mx-auto space-y-6"
+      className={`${PREMIUM_PAGE_MAX_WIDTH} space-y-6`}
     >
       <div className="mb-6">
         <h1 className={CC_PAGE_HERO_TITLE}>Settings</h1>
@@ -449,7 +450,7 @@ const Settings: React.FC = () => {
       )}
 
       {/* Company Information */}
-      <Card className="p-6">
+      <Card className={`p-6 ${PREMIUM_PANEL}`}>
         <div className="flex items-center gap-3 mb-6">
           <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -576,7 +577,7 @@ const Settings: React.FC = () => {
       </Card>
 
       {/* Company tax defaults for proposals & change orders */}
-      <Card className="p-6">
+      <Card className={`p-6 ${PREMIUM_PANEL}`}>
         <div className="flex items-center gap-3 mb-6">
           <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -617,12 +618,12 @@ const Settings: React.FC = () => {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className={`p-6 ${PREMIUM_PANEL}`}>
         <LaborRateLibrarySection />
       </Card>
 
       {/* User Preferences */}
-      <Card className="p-6">
+      <Card className={`p-6 ${PREMIUM_PANEL}`}>
         <div className="flex items-center gap-3 mb-6">
           <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -632,7 +633,7 @@ const Settings: React.FC = () => {
 
         <div className="space-y-6">
           {/* Theme Toggle */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className={`flex items-center justify-between p-4 ${PREMIUM_INNER_PANEL}`}>
             <div className="flex items-center gap-3">
               {isDark ? <Moon className="h-5 w-5 text-blue-600 dark:text-blue-400" /> : <Sun className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
               <div>
@@ -700,7 +701,7 @@ const Settings: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className={`flex items-center justify-between p-4 ${PREMIUM_INNER_PANEL}`}>
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
@@ -734,7 +735,7 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+          <div className="flex items-center justify-between p-4 rounded-lg border border-purple-200/70 bg-purple-50/80 dark:border-purple-900/50 dark:bg-purple-950/25">
             <div className="flex items-center gap-3">
               <Volume className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div>
@@ -769,7 +770,7 @@ const Settings: React.FC = () => {
           </div>
 
           {/* Auto-save Toggle */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className={`flex items-center justify-between p-4 ${PREMIUM_INNER_PANEL}`}>
             <div className="flex items-center gap-3">
               <Save className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
@@ -795,7 +796,7 @@ const Settings: React.FC = () => {
       </Card>
 
       {/* Notifications */}
-      <Card className="p-6">
+      <Card className={`p-6 ${PREMIUM_PANEL}`}>
         <div className="flex items-center gap-3 mb-6">
           <Bell className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -809,7 +810,7 @@ const Settings: React.FC = () => {
     ['emailUpdates', 'projectReminders', 'weatherAlerts'].includes(key)
   )
   .map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div key={key} className={`flex items-center justify-between p-4 ${PREMIUM_INNER_PANEL}`}>
               <div>
                 <h3 className="font-medium text-gray-900 dark:text-white">
                   {key === 'emailUpdates' && 'Email Updates'}

@@ -51,10 +51,8 @@ import {
 import { syncPlacementPourToSchedule } from '../services/placementScheduleSyncService';
 import type { ScheduleWeatherRisk } from '../types/scheduleEvent';
 import type { PourRating } from '../utils/pourScoring';
-import {
-  buildPlacementPourDateIso,
-  resolvePlacementDateYmd,
-} from '../utils/placementPourDate';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../theme/pageTypography';
+import { PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../theme/appTheme';
 
 function pourRatingToScheduleWeatherRisk(
   rating?: PourRating,
@@ -504,26 +502,22 @@ const PourPlanner: React.FC = () => {
   };
 
   return (
-    <div className={`mx-auto space-y-6 pb-12 ${inWorkflow ? 'max-w-6xl' : 'max-w-5xl'}`}>
+    <div className={`mx-auto space-y-6 pb-12 ${inWorkflow ? PREMIUM_PAGE_MAX_WIDTH : 'max-w-5xl'}`}>
       <WorkflowStepHeader />
 
       {inWorkflow && (
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className={CC_PAGE_HERO_TITLE}>
             Placement Planner
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+          <p className={CC_PAGE_HERO_SUBTITLE}>
             Plan delivery, weather, crew production, and field-ready placement details for this project.
           </p>
         </div>
       )}
 
       <Card
-        className={`p-6 ${
-          inWorkflow
-            ? 'bg-white/90 dark:bg-gray-800 backdrop-blur-sm shadow-lg'
-            : 'bg-white/95 dark:bg-gray-900/95'
-        }`}
+        className={`p-6 ${PREMIUM_PANEL}`}
       >
         <h2
           ref={stepTopRef}

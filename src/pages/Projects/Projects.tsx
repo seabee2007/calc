@@ -174,7 +174,7 @@ const ProjectsContent: React.FC = () => {
         {ui.showDetails && !ui.editing && (
           <motion.div key="details" {...viewMotion}>
             {!currentProject ? (
-              <p className="text-white/90 text-sm py-8">Loading project…</p>
+              <p className="py-8 text-sm text-slate-600 dark:text-slate-400">Loading project…</p>
             ) : (
               <ProjectDetails />
             )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FolderKanban } from 'lucide-react';
-import { FOCUS_RING, TEXT_FOREGROUND, TEXT_MUTED, TEXT_SUBTLE } from '../../theme/appTheme';
+import { FOCUS_RING, PREMIUM_PANEL, TEXT_FOREGROUND, TEXT_MUTED, TEXT_SUBTLE } from '../../theme/appTheme';
 import { plannerBoardHref } from '../../utils/plannerRoutes';
 
 export interface PlannerHubProjectCardData {
@@ -28,9 +28,8 @@ export default function PlannerHubProjectCard({
       data-testid={`planner-hub-project-${project.id}`}
       aria-label={`Open plan for ${project.name}`}
       className={[
-        'group flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-sm backdrop-blur-sm transition-all duration-200',
-        'hover:-translate-y-0.5 hover:border-cyan-500/45 hover:shadow-lg hover:shadow-cyan-500/10',
-        'dark:border-slate-700/70 dark:bg-slate-900/90 dark:hover:border-cyan-500/40',
+        `group flex h-full flex-col p-5 ${PREMIUM_PANEL}`,
+        'hover:-translate-y-0.5 hover:border-cyan-500/45 hover:shadow-lg hover:shadow-cyan-500/10 dark:hover:border-cyan-500/40',
         FOCUS_RING,
       ].join(' ')}
     >

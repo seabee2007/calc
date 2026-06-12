@@ -16,6 +16,11 @@ import { LegacyTaskDetailRedirect } from './components/routing/LegacyPlannerRedi
 import PlannerIndexRedirect from './components/routing/PlannerIndexRedirect';
 import { useProjectStore, useSettingsStore, usePreferencesStore } from './store';
 import { useAuth } from './hooks/useAuth';
+import { useLegalAcceptance } from './hooks/useLegalAcceptance';
+import LegalAcceptanceGate from './components/legal/LegalAcceptanceGate';
+import { isLegalGateBypassRoute } from './utils/legalGateRoutes';
+import TermsPage from './pages/legal/TermsPage';
+import PrivacyPage from './pages/legal/PrivacyPage';
 import { ProposalService } from './lib/proposalService';
 import { seedTrackedProposalsCache } from './hooks/useTrackedProposals';
 import { soundService } from './services/soundService';
@@ -126,6 +131,10 @@ export const useChatStore = () => {
 
 function App() {
   const { user, loading: authLoading } = useAuth();
+  const {
+    isLoading: legalLoading,
+    hasAcceptedCurrentLegal,
+  } = useLegalAcceptance();
   const { loadProjects } = useProjectStore();
   const { loadCompanySettings, migrateSettings } = useSettingsStore();
   const { loadPreferences, migratePreferences } = usePreferencesStore();
@@ -255,7 +264,11 @@ function App() {
     );
   }
 
-  if (!onboardingChecked || authLoading || isLoading) {
+  const legalGateBypass = isLegalGateBypassRoute(location.pathname);
+  const requiresLegalAcceptance =
+    !!user && !hasAcceptedCurrentLegal && !legalGateBypass;
+
+  if (!onboardingChecked || authLoading || isLoading || (user && legalLoading && !legalGateBypass)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
@@ -269,6 +282,10 @@ function App() {
         <LazyOnboardingFlow onComplete={handleOnboardingComplete} />
       </Suspense>
     );
+  }
+
+  if (requiresLegalAcceptance) {
+    return <LegalAcceptanceGate />;
   }
 
   return (
@@ -531,6 +548,8 @@ function App() {
             <Route path="/employee/messages" element={<LazyRoute Page={LazyEmployeeMessagesPage} />} />
             <Route path="/employee/uploads" element={<LazyRoute Page={LazyEmployeeUploadsPage} />} />
           </Route>
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/proposal/:token" element={<LazyRoute Page={LazyPublicProposal} />} />
           <Route path="/change-order/:token" element={<LazyRoute Page={LazyPublicChangeOrder} />} />
           <Route path="/contract/:token" element={<LazyRoute Page={LazyPublicContract} />} />

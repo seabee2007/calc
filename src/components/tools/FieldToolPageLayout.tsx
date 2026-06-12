@@ -7,10 +7,12 @@ import { useProjectStore } from '../../store';
 import { formatUSAddress, hasProjectJobsite } from '../../types/address';
 import Select from '../ui/Select';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 import {
   FIELD_TOOL_ICON,
   FIELD_TOOL_ICON_WRAP,
   FIELD_TOOL_MUTED,
+  FIELD_TOOL_PAGE_WIDTH,
   FIELD_TOOL_PRINT_ROOT,
 } from './fieldToolTheme';
 
@@ -31,7 +33,7 @@ export default function FieldToolPageLayout({
   children,
   actions,
   onProjectPrefill,
-  maxWidthClassName = 'max-w-5xl',
+  maxWidthClassName = FIELD_TOOL_PAGE_WIDTH,
 }: FieldToolPageLayoutProps) {
   const [searchParams] = useSearchParams();
   const { projects, currentProject, setCurrentProject } = useProjectStore();
@@ -77,7 +79,7 @@ export default function FieldToolPageLayout({
         </div>
       </header>
 
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white/90 p-4 shadow-lg dark:border-slate-600 dark:bg-gray-800/90 print:hidden">
+      <div className={`mb-6 p-4 ${PREMIUM_PANEL} print:hidden`}>
         <Select
           label="Project (saved to Planner → Documents)"
           options={[

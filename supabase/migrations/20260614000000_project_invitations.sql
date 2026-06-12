@@ -43,10 +43,14 @@ CREATE INDEX IF NOT EXISTS project_members_user_id_idx ON project_members(user_i
 ALTER TABLE project_invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE project_members ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Project owners manage invitations" ON public.project_invitations;
+
 CREATE POLICY "Project owners manage invitations"
   ON project_invitations FOR ALL TO authenticated
   USING (public.is_project_owner(project_id))
   WITH CHECK (public.is_project_owner(project_id));
+
+DROP POLICY IF EXISTS "Invited users can view matching invitations" ON public.project_invitations;
 
 CREATE POLICY "Invited users can view matching invitations"
   ON project_invitations FOR SELECT TO authenticated
@@ -55,14 +59,20 @@ CREATE POLICY "Invited users can view matching invitations"
     AND lower(trim(invitee_email)) = lower(trim((SELECT email FROM auth.users WHERE id = auth.uid())))
   );
 
+DROP POLICY IF EXISTS "Project owners manage members" ON public.project_members;
+
 CREATE POLICY "Project owners manage members"
   ON project_members FOR ALL TO authenticated
   USING (public.is_project_owner(project_id))
   WITH CHECK (public.is_project_owner(project_id));
 
+DROP POLICY IF EXISTS "Users can view own membership" ON public.project_members;
+
 CREATE POLICY "Users can view own membership"
   ON project_members FOR SELECT TO authenticated
   USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Client members can view projects" ON public.projects;
 
 CREATE POLICY "Client members can view projects"
   ON projects FOR SELECT TO authenticated

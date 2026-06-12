@@ -13,6 +13,7 @@ import Select from '../ui/Select';
 import ProjectForm, { type ProjectFormData } from '../projects/ProjectForm';
 import { formatUSAddress, hasProjectJobsite } from '../../types/address';
 import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../../theme/appTheme';
 
 interface ProjectCalculatorShellProps {
   title: string;
@@ -58,14 +59,14 @@ const ProjectCalculatorShell: React.FC<ProjectCalculatorShellProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className={`${PREMIUM_PAGE_MAX_WIDTH} pb-8`}>
       <WorkflowStepHeader />
       <div className="mb-6">
         <h1 className={CC_PAGE_HERO_TITLE}>{title}</h1>
         <p className={CC_PAGE_HERO_SUBTITLE}>{description}</p>
       </div>
 
-      <div className="mb-6 bg-white/90 dark:bg-gray-800 backdrop-blur-sm p-4 rounded-lg shadow-lg">
+      <div className={`mb-6 p-4 ${PREMIUM_PANEL}`}>
         <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="flex-1">
             <Select

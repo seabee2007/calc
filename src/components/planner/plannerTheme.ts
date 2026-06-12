@@ -15,7 +15,8 @@ import {
   PLANNER_TABLE_ROW,
   PLANNER_TABLE_ROW_HIGHLIGHT,
   PLANNER_TABLE_WRAPPER,
-  SURFACE_GLASS,
+  PREMIUM_INNER_PANEL,
+  PREMIUM_PANEL,
   SURFACE_GLASS_PANEL,
   TEXT_BODY,
   TEXT_FOREGROUND,
@@ -68,7 +69,7 @@ export const PLANNER_ADD_TASK_BAR =
   'mb-2 flex h-9 w-full items-center justify-center rounded border border-slate-200 bg-white text-slate-400 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:hover:bg-slate-700/80';
 
 export const PLANNER_TASK_CARD =
-  `group relative w-full overflow-hidden rounded-md border border-slate-200 bg-white p-2.5 text-left shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800`;
+  `group relative w-full overflow-hidden rounded-lg border border-slate-200/80 bg-white/90 p-2.5 text-left shadow-md shadow-slate-200/40 transition hover:shadow-lg dark:border-slate-700/70 dark:bg-slate-800/90 dark:shadow-black/20 dark:hover:shadow-black/30`;
 
 export const PLANNER_TASK_CARD_COMPLETED =
   'opacity-60 grayscale';
@@ -121,10 +122,9 @@ export const PLANNER_INPUT = FORM_INPUT_PLANNER;
 export const PLANNER_FORM_LABEL = FORM_LABEL;
 
 export const PLANNER_FORM_PANEL =
-  `space-y-4 rounded-xl border border-slate-200 p-4 shadow-sm ${SURFACE_GLASS_PANEL} dark:border-slate-700`;
+  `space-y-4 rounded-xl border border-slate-200/80 p-4 shadow-lg shadow-slate-200/40 ${SURFACE_GLASS_PANEL} dark:border-slate-700/70 dark:shadow-black/20`;
 
-export const PLANNER_COMMENT_BOX =
-  'rounded-lg border border-slate-200 bg-slate-50/90 px-3 py-2 shadow-sm dark:border-slate-700/80 dark:bg-slate-800/60';
+export const PLANNER_COMMENT_BOX = PREMIUM_INNER_PANEL + ' px-3 py-2';
 
 export const PLANNER_COMMENT_TEXT = `text-sm ${TEXT_BODY}`;
 
@@ -154,7 +154,7 @@ export const PLANNER_CHECKLIST_ACTIVE = TEXT_BODY;
 export const PLANNER_CHECKLIST_ICON = 'text-cyan-600 dark:text-cyan-400';
 
 export const PLANNER_ACTIVITY_STRIP =
-  `rounded-xl border border-slate-200/80 p-4 shadow-sm backdrop-blur-sm dark:border-slate-600/80 dark:shadow-md ${SURFACE_GLASS}`;
+  `${PREMIUM_PANEL} p-4`;
 
 export const PLANNER_ACTIVITY_TITLE =
   `text-sm font-semibold ${TEXT_FOREGROUND}`;

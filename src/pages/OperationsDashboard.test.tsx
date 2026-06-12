@@ -173,8 +173,8 @@ vi.mock('../components/dashboard/FeaturedPlacementConditions', () => ({
   default: () => <div>Today&apos;s placement conditions</div>,
 }));
 
-vi.mock('../components/dashboard/QcAlertsCard', () => ({
-  default: () => <div>QC alerts</div>,
+vi.mock('../components/dashboard/ProjectControlsCard', () => ({
+  default: () => <div>Project Controls</div>,
 }));
 
 vi.mock('../components/dashboard/SmartPourAssistant', () => ({
@@ -245,7 +245,7 @@ describe('OperationsDashboard layout', () => {
     expect(within(grid as HTMLElement).getByText('Active projects')).toBeInTheDocument();
   });
 
-  it('renders Placement Conditions and QC Alerts below Active Projects / Proposal Pipeline', () => {
+  it('renders Placement Conditions and Project Controls below Active Projects / Proposal Pipeline', () => {
     const { container } = render(
       <MemoryRouter>
         <OperationsDashboard />
@@ -253,7 +253,7 @@ describe('OperationsDashboard layout', () => {
     );
     assertFollowsDocumentOrder(container, 'dashboard-active-proposals-grid', 'dashboard-placement-qc-grid');
     expect(screen.getByText(/Today's placement conditions/i)).toBeInTheDocument();
-    expect(screen.getByText(/QC alerts/i)).toBeInTheDocument();
+    expect(screen.getByText(/Project Controls/i)).toBeInTheDocument();
   });
 
   it('renders lower three-card row with pre-placement, risk, and delivery cards', () => {

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { ArrowRight, ListTodo } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import OpsCard from './OpsCard';
-import { OPS_ACTION_ITEM, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
+import { OPS_ACTION_ITEM, OPS_CTA_PILL, OPS_SUBTLE, OPS_TITLE } from './opsTheme';
 import type { TrackedProposalRow } from '../../types/proposalTracking';
 import type { ProposalNextAction } from '../../types/proposalNextAction';
 import { buildCrmNextActions } from '../../utils/proposalCrm';
@@ -54,32 +54,35 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
     <OpsCard>
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <ListTodo className="h-5 w-5 text-cyan-400" />
+          <ListTodo className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
           <h3 className={`font-semibold ${OPS_TITLE}`}>Next actions</h3>
         </div>
         <button
           type="button"
           onClick={() => navigate('/proposals')}
-          className="text-xs text-cyan-700 hover:underline dark:text-cyan-400"
+          className="text-xs font-medium text-cyan-700 hover:underline dark:text-cyan-400"
         >
           View all →
         </button>
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id}>
             <button
               type="button"
               onClick={item.onClick}
-              className={`flex w-full items-start justify-between gap-3 text-left ${OPS_ACTION_ITEM}`}
+              className={`group flex w-full items-center gap-3 px-3 py-2.5 text-left ${OPS_ACTION_ITEM}`}
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+                <span className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {item.title}
                 </span>
                 <span className={`mt-0.5 block truncate text-xs ${OPS_SUBTLE}`}>{item.detail}</span>
               </span>
-              <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
+              <span className={OPS_CTA_PILL}>
+                Open
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </span>
             </button>
           </li>
         ))}

@@ -210,7 +210,7 @@ const ToolsModal: React.FC = () => {
                       ? onNavigate()
                       : handleNavigate(path, pathsWithProject.has(path))
                   }
-                  className="flex w-full items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left transition-colors hover:border-cyan-500/50 hover:bg-cyan-50/50 dark:border-slate-600 dark:bg-slate-800/80 dark:hover:border-cyan-500/40 dark:hover:bg-slate-700/80"
+                  className="flex w-full items-start gap-4 rounded-xl border border-slate-200/80 bg-white/90 p-4 text-left shadow-md shadow-slate-200/40 transition-all hover:border-cyan-500/50 hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 dark:border-slate-700/70 dark:bg-slate-800/90 dark:shadow-black/20 dark:hover:border-cyan-500/40 dark:hover:bg-slate-800/95"
                 >
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-cyan-600/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400">
                     <Icon className="h-6 w-6" aria-hidden />

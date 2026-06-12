@@ -33,6 +33,7 @@ import Card from '../components/ui/Card';
 import { projectHasImportablePricing } from '../utils/proposalPricingImport';
 import type { Project } from '../types';
 import { CC_PAGE_META, CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
+import { PREMIUM_PAGE_MAX_WIDTH, PREMIUM_PANEL } from '../theme/appTheme';
 
 const CALCULATORS = [
   {
@@ -113,7 +114,7 @@ const CalculatorHub: React.FC = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="max-w-4xl mx-auto">
+      <div className={PREMIUM_PAGE_MAX_WIDTH}>
         <WorkflowStepHeader />
         <div className="mb-8">
           <h1 className={CC_PAGE_TITLE}>Estimates</h1>
@@ -141,7 +142,7 @@ const CalculatorHub: React.FC = () => {
                 onClick={() => go(path)}
                 className="text-left"
               >
-                <Card className="p-5 h-full hover:border-cyan-500/50 transition-colors cursor-pointer">
+                <Card className={`h-full p-5 ${PREMIUM_PANEL} transition-colors hover:border-cyan-500/50 cursor-pointer`}>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-cyan-600/15 text-cyan-600 dark:text-cyan-400">
                       <Icon className="h-6 w-6" />

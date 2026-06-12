@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import { CC_PAGE_HERO_SUBTITLE, CC_PAGE_HERO_TITLE } from '../../theme/pageTypography';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 
 const Admixtures: React.FC = () => {
   const navigate = useNavigate();
@@ -20,20 +22,20 @@ const Admixtures: React.FC = () => {
             variant="ghost"
             onClick={() => navigate('/resources')}
             icon={<ArrowLeft size={20} />}
-            className="text-white hover:text-blue-200 mb-4"
+            className="mb-4 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
           >
             Back to Resources
           </Button>
-          <h1 className="text-3xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          <h1 className={CC_PAGE_HERO_TITLE}>
             Admixtures and Their Uses
           </h1>
-          <p className="text-white text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] mt-2">
+          <p className={CC_PAGE_HERO_SUBTITLE}>
             A comprehensive guide to concrete admixtures and their applications
           </p>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Introduction</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
               Admixtures are specialized ingredients added to concrete mixes to tailor performance beyond what cement, water, and aggregates alone can achieve. By introducing chemical or mineral admixtures at the batching plant, contractors and engineers can enhance workability, control setting time, boost durability, and even reduce overall cost.
@@ -43,7 +45,7 @@ const Admixtures: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Chemical Admixtures</h2>
             
             <div className="space-y-6">
@@ -124,7 +126,7 @@ const Admixtures: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Mineral Admixtures</h2>
             
             <div className="space-y-6">
@@ -171,7 +173,7 @@ const Admixtures: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <div className={`${PREMIUM_PANEL} p-6`}>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Selection Factors</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

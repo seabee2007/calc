@@ -22,6 +22,9 @@ export const FOCUS_RING =
 
 export const PAGE_MAX_WIDTH = 'max-w-7xl mx-auto';
 
+/** Wider centered shell for premium canvas pages (dashboard, projects, tools, etc.). */
+export const PREMIUM_PAGE_MAX_WIDTH = 'max-w-[88rem] mx-auto';
+
 export const PAGE_GUTTER = 'px-4 sm:px-6 lg:px-8';
 
 export const SECTION_SPACING = 'space-y-6';
@@ -98,22 +101,47 @@ export const STATUS_DELAYED = BG_DANGER;
 export const APP_SECTION_CARD =
   'rounded-xl border border-slate-200/80 bg-white/90 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-800/95';
 
+/** Main elevated section card on premium canvas pages. */
+export const PREMIUM_PANEL =
+  'rounded-2xl border border-slate-200/80 bg-white/90 shadow-xl shadow-slate-200/60 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/85 dark:shadow-black/30';
+
+/** KPI / metric chip on premium canvas pages. */
+export const PREMIUM_KPI_CARD =
+  'rounded-xl border border-slate-200/80 bg-white/90 p-4 shadow-lg shadow-slate-200/50 dark:border-slate-700/70 dark:bg-slate-900/90 dark:shadow-black/25';
+
+/** Nested stat or detail box inside a premium panel. */
+export const PREMIUM_INNER_PANEL =
+  'rounded-lg border border-slate-200/70 bg-slate-50/80 dark:border-slate-700/60 dark:bg-slate-900/50';
+
+/** Actionable list row with hover/focus states. */
+export const PREMIUM_ACTION_ROW =
+  'rounded-xl border border-slate-200/80 bg-white/90 transition-all hover:border-blue-300 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-slate-700/70 dark:bg-slate-800/70 dark:hover:border-cyan-700/60 dark:hover:bg-slate-800 dark:hover:shadow-black/20 dark:focus-visible:ring-offset-slate-900';
+
+/** CTA pill inside an action row. */
+export const PREMIUM_CTA_PILL =
+  'inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-cyan-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors group-hover:bg-cyan-500 group-active:bg-cyan-700';
+
+/** Next-actions section wrapper. */
+export const PREMIUM_ACTIONS_SECTION =
+  'rounded-xl border border-blue-200/60 bg-gradient-to-br from-blue-50/90 to-slate-50/90 shadow-inner shadow-slate-200/30 dark:border-cyan-900/50 dark:from-slate-900/95 dark:via-slate-900/90 dark:to-blue-950/40 dark:shadow-black/20';
+
 export const SHADOW_CARD = 'shadow-md dark:shadow-lg';
 
 // --- Modal / drawer shells ---
 
 export const MODAL_PANEL =
-  `rounded-lg ${SURFACE_ELEVATED} shadow-xl ${BORDER_DEFAULT}`;
+  'rounded-2xl border border-slate-200/80 bg-white/95 shadow-xl shadow-slate-300/40 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/95 dark:shadow-2xl dark:shadow-black/40';
 
 export const MODAL_HEADER =
-  `flex shrink-0 items-center justify-between border-b p-4 ${BORDER_DEFAULT}`;
+  'flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700/70';
 
-export const MODAL_TITLE = `text-xl font-semibold ${TEXT_FOREGROUND}`;
+export const MODAL_TITLE = `text-xl font-semibold tracking-tight ${TEXT_FOREGROUND}`;
 
-export const MODAL_BODY = `min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 ${TEXT_BODY}`;
+export const MODAL_BODY =
+  'min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6 sm:py-6 text-slate-700 dark:text-slate-300 [scrollbar-width:thin] [scrollbar-color:rgb(148_163_184)_transparent] dark:[scrollbar-color:rgb(71_85_105)_transparent]';
 
 export const MODAL_CLOSE_BTN =
-  'rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200';
+  `${FOCUS_RING} rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100`;
 
 export const DRAWER_PANEL =
   `flex h-full w-full flex-col border-l shadow-2xl ${BORDER_DEFAULT} ${SURFACE_ELEVATED}`;

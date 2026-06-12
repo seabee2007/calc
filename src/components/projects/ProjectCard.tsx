@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
 import { Folder, Clock, Trash2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 import Card from '../ui/Card';
+import { PREMIUM_PANEL } from '../../theme/appTheme';
 import Button from '../ui/Button';
 import type { Project } from '../../types';
 import { soundService } from '../../services/soundService';
@@ -166,7 +167,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       whileTap={{ scale: 0.98 }}
     >
       <Card 
-        className={`cursor-pointer h-full ${ringClass}`}
+        className={`cursor-pointer h-full ${PREMIUM_PANEL} ${ringClass}`}
         shadow="md"
       >
         <div className="p-5">

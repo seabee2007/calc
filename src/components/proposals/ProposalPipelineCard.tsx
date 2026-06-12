@@ -9,6 +9,7 @@ import {
   getProposalAging,
   getProposalMargin,
 } from '../../utils/proposalCrm';
+import { PREMIUM_INNER_PANEL } from '../../theme/appTheme';
 import ClientAvatar from './ClientAvatar';
 import ProposalStatusBadge from './ProposalStatusBadge';
 import ProposalActionButtons from './ProposalActionButtons';
@@ -120,7 +121,7 @@ export default function ProposalPipelineCard({
           >
             <div className="border-t border-slate-200/70 px-4 pb-4 pt-3 dark:border-slate-700/70">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/50">
+                <div className={`p-3 ${PREMIUM_INNER_PANEL}`}>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Projected profit
                   </p>
@@ -128,7 +129,7 @@ export default function ProposalPipelineCard({
                     {formatProposalMoney(profit)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/50">
+                <div className={`p-3 ${PREMIUM_INNER_PANEL}`}>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Sent
                   </p>
@@ -136,7 +137,7 @@ export default function ProposalPipelineCard({
                     {proposal.sent_at ? formatDateOnly(proposal.sent_at) : '—'}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 col-span-2 dark:border-slate-700/60 dark:bg-slate-900/50 sm:col-span-1">
+                <div className={`p-3 col-span-2 sm:col-span-1 ${PREMIUM_INNER_PANEL}`}>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Last viewed
                   </p>
@@ -157,7 +158,7 @@ export default function ProposalPipelineCard({
                 overflowItems={handlers.overflowItems}
               />
 
-              <div className="mt-4 rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/50">
+              <div className={`mt-4 p-3 ${PREMIUM_INNER_PANEL}`}>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Activity timeline
                 </p>
