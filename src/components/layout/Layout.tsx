@@ -33,6 +33,7 @@ const Layout: React.FC = () => {
     isPublicClientPortal;
 
   const isLoggedOutLanding = location.pathname === '/' && !user;
+  const isProposalPipeline = location.pathname === '/proposals';
 
   const showBottomNav =
     Boolean(user) &&
@@ -117,16 +118,16 @@ const Layout: React.FC = () => {
       }
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <SiteBackground forceDark={isLoggedOutLanding} />
+      <SiteBackground forceDark={isLoggedOutLanding} solidCanvas={isProposalPipeline} />
 
       {/* App content */}
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar showThemeToggle={!isLoggedOutLanding} />
 
         <main
-          className={`relative mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8${
-            isLoggedOutLanding ? ' text-white' : ''
-          }`}
+          className={`relative mx-auto w-full flex-grow px-4 py-8 sm:px-6 lg:px-8 ${
+            isProposalPipeline ? 'max-w-[88rem]' : 'max-w-7xl'
+          }${isLoggedOutLanding ? ' text-white' : ''}`}
           style={{
             paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
             paddingRight: 'max(env(safe-area-inset-right), 1rem)',

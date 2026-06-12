@@ -61,10 +61,10 @@ export default function ProposalPipelineCard({
     <motion.article
       layout
       className={[
-        'rounded-2xl border bg-white/70 shadow-sm backdrop-blur-sm transition-colors dark:bg-gray-900/60',
+        'rounded-xl border bg-white/80 shadow-md shadow-slate-200/50 transition-all dark:bg-slate-800/70 dark:shadow-black/20',
         expanded
-          ? 'border-blue-300 dark:border-blue-700/70'
-          : 'border-slate-200/70 dark:border-gray-800',
+          ? 'border-blue-300 shadow-lg shadow-slate-200/60 dark:border-cyan-600/50 dark:shadow-black/25'
+          : 'border-slate-200/70 hover:border-slate-300 hover:bg-white dark:border-slate-700/70 dark:hover:border-slate-600/80 dark:hover:bg-slate-800/85',
       ].join(' ')}
     >
       <button
@@ -76,10 +76,10 @@ export default function ProposalPipelineCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="truncate text-base font-bold text-slate-900 dark:text-white">
+              <h3 className="truncate text-base font-bold text-slate-900 dark:text-slate-50">
                 {projectName}
               </h3>
-              <p className="truncate text-sm text-slate-600 dark:text-gray-300">
+              <p className="truncate text-sm text-slate-600 dark:text-slate-300">
                 {displayClient}
               </p>
             </div>
@@ -90,16 +90,16 @@ export default function ProposalPipelineCard({
 
           <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
                 {formatProposalMoney(total)}
               </p>
               {margin > 0 && (
-                <p className="text-sm font-semibold text-slate-600 dark:text-gray-300">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
                   {formatWinRate(margin)} margin
                 </p>
               )}
             </div>
-            <p className="text-xs text-slate-500 dark:text-gray-400">{aging.activityLine}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{aging.activityLine}</p>
           </div>
         </div>
         <ChevronDown
@@ -118,29 +118,29 @@ export default function ProposalPipelineCard({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-slate-200/70 px-4 pb-4 pt-3 dark:border-gray-800">
+            <div className="border-t border-slate-200/70 px-4 pb-4 pt-3 dark:border-slate-700/70">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-gray-400">
+                <div className="rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/50">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Projected profit
                   </p>
-                  <p className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+                  <p className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">
                     {formatProposalMoney(profit)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-gray-400">
+                <div className="rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/50">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Sent
                   </p>
-                  <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
                     {proposal.sent_at ? formatDateOnly(proposal.sent_at) : '—'}
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30 col-span-2 sm:col-span-1">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-gray-400">
+                <div className="rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 col-span-2 dark:border-slate-700/60 dark:bg-slate-900/50 sm:col-span-1">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     Last viewed
                   </p>
-                  <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
                     {proposal.viewed_at || proposal.opened_at
                       ? formatDateTime(proposal.viewed_at ?? proposal.opened_at!)
                       : '—'}
@@ -157,8 +157,8 @@ export default function ProposalPipelineCard({
                 overflowItems={handlers.overflowItems}
               />
 
-              <div className="mt-4 rounded-xl border border-slate-200/70 bg-white/40 p-3 dark:border-gray-800 dark:bg-gray-950/30">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-gray-400">
+              <div className="mt-4 rounded-lg border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/50">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Activity timeline
                 </p>
                 <ul className="mt-2 space-y-2">
@@ -167,10 +167,10 @@ export default function ProposalPipelineCard({
                       key={`${ev.sortKey}-${ev.label}`}
                       className="flex gap-3 text-sm"
                     >
-                      <span className="w-24 shrink-0 text-slate-500 dark:text-gray-400">
+                      <span className="w-24 shrink-0 text-slate-500 dark:text-slate-400">
                         {formatDateOnly(ev.date)}
                       </span>
-                      <span className="font-medium text-slate-800 dark:text-gray-200">
+                      <span className="font-medium text-slate-800 dark:text-slate-200">
                         {ev.label}
                       </span>
                     </li>

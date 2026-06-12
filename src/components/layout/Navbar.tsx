@@ -135,7 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-0.5">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
         {user && isOwner && (
           <>
             <Link

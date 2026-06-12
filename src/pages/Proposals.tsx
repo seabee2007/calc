@@ -322,12 +322,13 @@ const Proposals: React.FC = () => {
 
   return (
     <AppPage
-      className="pt-6"
+      className="w-full !max-w-none pt-6"
       data-testid="proposal-pipeline-page"
       header={
         <PageHeader
           title="Proposal Pipeline"
           subtitle="CRM-style pipeline — see what's stuck, what's won, and what to do next."
+          className="[&_h1]:text-slate-900 dark:[&_h1]:text-slate-50 [&_p]:text-slate-600 dark:[&_p]:text-slate-300"
           actions={
             <>
               <input
@@ -366,32 +367,34 @@ const Proposals: React.FC = () => {
       }
     >
       <KpiStrip
-        className="mb-6"
+        className="mb-6 [&>div]:rounded-xl [&>div]:border [&>div]:border-slate-200/80 [&>div]:bg-white/90 [&>div]:p-4 [&>div]:shadow-lg [&>div]:shadow-slate-200/50 dark:[&>div]:border-slate-700/70 dark:[&>div]:bg-slate-900/90 dark:[&>div]:shadow-black/25 [&>div_p:first-child]:text-sm [&>div_p:first-child]:font-medium [&>div_p:first-child]:text-slate-600 dark:[&>div_p:first-child]:text-slate-300 [&>div_p:nth-child(2)]:text-slate-900 dark:[&>div_p:nth-child(2)]:text-slate-50 [&>div_p:last-child]:text-xs [&>div_p:last-child]:text-slate-500 dark:[&>div_p:last-child]:text-slate-400"
         metrics={[
           {
             label: 'Pipeline value',
             value: formatProposalMoney(crmRevenue.pipelineValue),
-            change: 'All active proposals',
+            change: 'Excludes declined proposals',
           },
           {
             label: 'Weighted forecast',
             value: formatProposalMoney(crmRevenue.weightedForecast),
+            change: 'Probability-weighted active pipeline',
           },
           {
             label: 'Won this month',
             value: formatProposalMoney(crmRevenue.wonThisMonth),
+            change: 'Accepted & paid this month',
             highlight: true,
           },
           {
             label: 'Average margin',
             value: formatWinRate(crmRevenue.averageMargin),
-            change: `Win rate ${formatWinRate(crmRevenue.winRate)}`,
+            change: `Win rate ${formatWinRate(crmRevenue.winRate)} · active proposals`,
           },
         ]}
       />
 
       <Card
-        className="border border-slate-200/80 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/90 sm:p-6"
+        className="rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-xl shadow-slate-200/60 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/85 dark:shadow-black/30 sm:p-6"
         data-testid="proposal-pipeline-board-card"
       >
           <ProposalPipelineBoard

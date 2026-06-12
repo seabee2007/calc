@@ -4,7 +4,7 @@ export const APP_NAV_HEADER =
 
 export function appNavIconButtonClass(active = false): string {
   return [
-    'h-10 w-10 rounded p-2 transition-colors',
+    'h-9 w-9 rounded-md p-1.5 transition-colors',
     active ? 'bg-white/15 text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white',
   ].join(' ');
 }
