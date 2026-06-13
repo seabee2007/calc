@@ -559,9 +559,5 @@ export function loadAdobeFinalReviewedRows(repoRoot: string): AdobeFinalReviewed
 }
 
 export function resolveApprovedProductionRateFiles(approvedDir: string): string[] {
-  const adobePath = join(approvedDir, ADOBE_APPROVED_OUTPUT);
-  if (existsSync(adobePath)) {
-    return [ADOBE_APPROVED_OUTPUT];
-  }
   return readdirSync(approvedDir).filter((name) => name.endsWith('.approved.json'));
 }

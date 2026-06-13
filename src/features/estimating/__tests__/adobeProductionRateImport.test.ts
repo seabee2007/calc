@@ -50,12 +50,14 @@ describe('adobeProductionRateImport', () => {
 });
 
 describe('Adobe approved library generation', () => {
-  it('prefers adobe-chapter5.approved.json when present', () => {
+  it('loads all approved production-rate files when adobe-chapter5 is present', () => {
     const approvedDir = join(repoRoot, 'data/estimating/production-rates/approved');
     expect(isAdobeApprovedLibraryActive(approvedDir)).toBe(true);
     const records = loadApprovedProductionRateRecords(approvedDir);
-    expect(records.length).toBeGreaterThan(1900);
-    expect(records.length).toBeLessThanOrEqual(2014);
+    expect(records.length).toBeGreaterThan(3000);
+    expect(
+      records.some((record) => record.id === '03-31-05.70-0310'),
+    ).toBe(true);
   });
 });
 

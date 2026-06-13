@@ -28,8 +28,5 @@ export function isAdobeApprovedLibraryActive(approvedDir: string): boolean {
 
 /** @internal test helper */
 export function listApprovedFilesForGeneration(approvedDir: string): string[] {
-  if (isAdobeApprovedLibraryActive(approvedDir)) {
-    return [ADOBE_APPROVED_OUTPUT];
-  }
-  return readdirSync(approvedDir).filter((name) => name.endsWith('.approved.json'));
+  return resolveApprovedProductionRateFiles(approvedDir);
 }
