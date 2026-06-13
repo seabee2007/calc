@@ -35,7 +35,7 @@ describe('Home routing', () => {
     );
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Arden Project OS Project Management Suite' }),
+      screen.getByRole('heading', { level: 1, name: 'Arden Project OS Construction Management Suite' }),
     ).toBeInTheDocument();
   });
 

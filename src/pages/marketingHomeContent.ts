@@ -8,12 +8,14 @@ import {
   Network,
 } from 'lucide-react';
 
-export const MARKETING_HERO_TITLE = 'Arden Project OS Project Management Suite';
+export const MARKETING_HERO_BRAND_LINE = 'Arden Project OS';
+export const MARKETING_HERO_TAGLINE = 'Construction Management Suite';
+export const MARKETING_HERO_TITLE = `${MARKETING_HERO_BRAND_LINE} ${MARKETING_HERO_TAGLINE}`;
 
 export const MARKETING_HERO_SUBTITLE =
-  'Estimate work, build schedules, manage RFIs, track field activity, and control project execution from one professional workspace.';
+  'Estimate, build schedules, manage RFIs, track field activity, and project execution from one professional workspace.';
 
-export const MARKETING_WORKFLOW = 'Estimate → Plan → Schedule → Track → Control';
+export const MARKETING_WORKFLOW = 'Estimate → Plan → Schedule → Track → Deliver';
 
 export const MARKETING_SUITE_SECTION_TITLE = 'Everything you need to run the job';
 

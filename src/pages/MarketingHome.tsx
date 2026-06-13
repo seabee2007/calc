@@ -7,7 +7,9 @@ import { useAuth } from '../hooks/useAuth';
 import { AUTH_ACCENT } from '../components/auth/authBrandTheme';
 import {
   MARKETING_FEATURE_CARDS,
+  MARKETING_HERO_BRAND_LINE,
   MARKETING_HERO_SUBTITLE,
+  MARKETING_HERO_TAGLINE,
   MARKETING_HERO_TITLE,
   MARKETING_SUITE_SECTION_TITLE,
   MARKETING_WORKFLOW,
@@ -38,8 +40,14 @@ export default function MarketingHome() {
           <p className={`mb-4 text-xs font-semibold uppercase tracking-[0.24em] sm:text-sm ${AUTH_ACCENT.brandLabel}`}>
             {MARKETING_WORKFLOW}
           </p>
-          <h1 className="mx-auto max-w-4xl text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
-            {MARKETING_HERO_TITLE}
+          <h1
+            aria-label={MARKETING_HERO_TITLE}
+            className="mx-auto max-w-4xl text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl"
+          >
+            <span className="block">{MARKETING_HERO_BRAND_LINE}</span>
+            <span className="mt-1 block text-[0.92em] sm:mt-2 sm:text-[inherit]">
+              {MARKETING_HERO_TAGLINE}
+            </span>
           </h1>
           <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-slate-200 sm:text-lg">
             {MARKETING_HERO_SUBTITLE}

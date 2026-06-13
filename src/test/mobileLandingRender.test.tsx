@@ -63,7 +63,7 @@ describe('mobile signed-out landing render', () => {
     expect(screen.getByRole('button', { name: 'Sign up' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Toggle theme' })).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Arden Project OS Project Management Suite' }),
+      screen.getByRole('heading', { level: 1, name: 'Arden Project OS Construction Management Suite' }),
     ).toBeInTheDocument();
   });
 
