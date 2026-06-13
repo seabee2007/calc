@@ -8,6 +8,252 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-accelerator-calcium-chloride-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Accelerator, calcium chloride, 50 lb bag",
+    "description": "Calcium chloride set accelerator for cold-weather concrete placement and early strength gain.",
+    "unit": "BAG",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-air-entrainer-1-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Air entrainer, 1 gal",
+    "description": "Air-entraining admixture for freeze-thaw durable exterior concrete in cold climate applications.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.5,
+    "type": "material",
+    "id": "material-concrete-masonry-anchor-bolt-f1554-3-4-x-12-in-galvanized",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Anchor bolt, F1554, 3/4 x 12 in, galvanized",
+    "description": "Galvanized anchor bolt for structural steel column and equipment base anchoring to concrete.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.25,
+    "type": "material",
+    "id": "material-concrete-masonry-anchor-bolt-j-type-1-2-x-10-in-galvanized",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Anchor bolt, J-type, 1/2 x 10 in, galvanized",
+    "description": "J-type anchor bolt for embedment in concrete foundations and equipment pad anchoring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 120,
+    "type": "material",
+    "id": "material-concrete-masonry-burlap-curing-fabric-36-in-x-300-ft-roll",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Burlap curing fabric, 36 in x 300 ft roll",
+    "description": "Wet burlap curing fabric roll for moist-curing concrete slabs, walls, and structural elements.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-concrete-masonry-concrete-sealer-penetrating-5-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete sealer, penetrating, 5 gal",
+    "description": "Penetrating concrete sealer for protecting exterior concrete from moisture and salt intrusion.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-concrete-masonry-control-joint-profile-pvc-1-2-x-1-1-2-in-x-10-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Control joint profile, PVC, 1/2 x 1-1/2 in x 10 ft",
+    "description": "PVC control joint profile for tooled control joints in concrete flatwork and sidewalks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-concrete-masonry-cure-and-seal-compound-solvent-based-5-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Cure-and-seal compound, solvent-based, 5 gal",
+    "description": "Solvent-based cure-and-seal compound for decorative and standard concrete flatwork cure and surface protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-curing-blanket-insulated-6-ft-x-25-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Curing blanket, insulated, 6 ft x 25 ft",
+    "description": "Insulated concrete curing blanket for cold-weather slab and flatwork protection during initial cure period.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "type": "material",
+    "id": "material-concrete-masonry-curing-compound-water-based-5-gal-pail",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Curing compound, water-based, 5 gal pail",
+    "description": "Water-based curing compound for slabs, walls, and columns to retain moisture during the initial curing period.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-concrete-accessories-curing-compound-water-based-concrete-flatwork",
@@ -55,6 +301,105 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.75,
+    "type": "material",
+    "id": "material-concrete-masonry-drop-in-anchor-zinc-1-2-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Drop-in anchor, zinc, 1/2 in",
+    "description": "Drop-in expansion anchor for flush-mount anchoring in concrete for threaded rod and fixture connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-concrete-masonry-epoxy-anchor-system-10-oz-cartridge-high-strength",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Epoxy anchor system, 10 oz cartridge, high-strength",
+    "description": "Two-component epoxy anchor adhesive cartridge for post-installed rebar and threaded rod in concrete.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-concrete-masonry-evaporation-retarder-spray-applied-5-gal-pail",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Evaporation retarder, spray-applied, 5 gal pail",
+    "description": "Spray-applied evaporation retarder for flatwork and slab surfaces to reduce moisture loss during finishing.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-expansion-joint-filler-1-2-in-x-4-in-x-10-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Expansion joint filler, 1/2 in x 4 in x 10 ft",
+    "description": "Preformed expansion joint filler for isolation and control joints in concrete slabs and flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-concrete-accessories-expansion-joint-filler-asphalt-fiber-1-2-in-x-4-in",
@@ -97,6 +442,129 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "concrete",
       "accessories",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-fiber-mesh-micro-synthetic-1-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Fiber mesh, micro-synthetic, 1 lb bag",
+    "description": "Micro-synthetic fiber bag additive for shrinkage crack control in residential concrete flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-fiber-reinforcement-synthetic-macro-1-5-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Fiber reinforcement, synthetic macro, 1.5 lb bag",
+    "description": "Synthetic macro fiber bag additive for shrinkage and temperature crack control in concrete flatwork.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.65,
+    "type": "material",
+    "id": "material-concrete-masonry-mechanical-anchor-screw-type-1-4-in-x-2-1-4-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Mechanical anchor, screw-type, 1/4 in x 2-1/4 in",
+    "description": "Screw-type concrete anchor for light-gauge steel, furring, and fixture attachment to concrete and masonry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-retarder-1-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Retarder, 1 gal",
+    "description": "Set retarding admixture for hot-weather concrete placement to extend working time.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.85,
+    "type": "material",
+    "id": "material-concrete-masonry-sleeve-anchor-zinc-1-4-in-x-2-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Sleeve anchor, zinc, 1/4 in x 2 in",
+    "description": "Zinc sleeve anchor for light-duty fastening to concrete, block, and brick masonry substrates.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
     ]
   },
   {
@@ -191,6 +659,131 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "concrete",
       "accessories",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-concrete-masonry-vapor-barrier-polyethylene-10-mil-10-ft-x-100-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Vapor barrier, polyethylene, 10 mil, 10 ft x 100 ft",
+    "description": "10 mil polyethylene vapor barrier roll for under-slab moisture protection in slab-on-grade construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-water-reducer-mid-range-1-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Water reducer, mid-range, 1 gal",
+    "description": "Mid-range water reducing admixture for improved workability and strength in ready-mix concrete.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-concrete-masonry-waterstop-pvc-6-in-center-bulb",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Waterstop, PVC, 6 in center bulb",
+    "description": "PVC waterstop profile for construction joints in below-grade concrete walls and water-retaining structures.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.25,
+    "type": "material",
+    "id": "material-concrete-masonry-wedge-anchor-stainless-steel-3-8-in-x-3-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Wedge anchor, stainless steel, 3/8 in x 3 in",
+    "description": "Stainless steel wedge anchor for exterior and corrosive-environment concrete anchoring applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.5,
+    "type": "material",
+    "id": "material-concrete-masonry-wedge-anchor-zinc-plated-1-2-in-x-4-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Wedge anchor, zinc-plated, 1/2 in x 4 in",
+    "description": "Zinc-plated wedge anchor for fastening equipment, steel, and fixtures to hardened concrete slabs and walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
     ]
   },
   {
@@ -397,6 +990,78 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-form-clamp-flat-bar-8-in-wall",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form clamp, flat bar, 8 in wall",
+    "description": "Flat bar form clamp for securing plywood and waler formwork on concrete wall forms.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-concrete-masonry-form-lumber-spf-2-2x6-x-12-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form lumber, SPF #2, 2x6 x 12 ft",
+    "description": "SPF #2 dimensional lumber 2x6 by 12 foot for concrete wall and column formwork construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-form-lumber-spf-2-2x8-x-12-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form lumber, SPF #2, 2x8 x 12 ft",
+    "description": "SPF #2 dimensional lumber 2x8 by 12 foot for heavy concrete wall and footing formwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 4,
     "id": "material-formwork-form-oil-sprayer",
     "type": "material",
@@ -473,6 +1138,54 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-concrete-masonry-form-panel-steel-ply-2x4-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form panel, steel-ply, 2x4 ft",
+    "description": "Steel-ply form panel for repetitive concrete wall and column forming on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-form-panel-steel-ply-2x8-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form panel, steel-ply, 2x8 ft",
+    "description": "Large steel-ply form panel for high-production concrete wall forming systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 4,
     "id": "material-formwork-form-release-agent-5-gal",
     "type": "material",
@@ -524,6 +1237,30 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "type": "material",
+    "id": "material-concrete-masonry-form-release-agent-biodegradable-5-gal",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form release agent, biodegradable, 5 gal",
+    "description": "Biodegradable form release agent for wood and steel concrete forms, 5 gallon pail.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 4,
     "id": "material-formwork-form-release-agent-water-based-5-gal",
     "type": "material",
@@ -568,6 +1305,30 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "formwork",
       "concrete",
       "form"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-concrete-masonry-form-tie-fiberglass-8-in-wall",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form tie, fiberglass, 8 in wall",
+    "description": "Fiberglass form tie for 8 inch concrete wall forms, break-back type for easy removal after pour.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
     ]
   },
   {
@@ -674,6 +1435,150 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-tie-rod-form-3-4-in-x-5-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Tie rod, form, 3/4 in x 5 ft",
+    "description": "Form tie rod for through-wall concrete formwork alignment and pressure resistance.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-concrete-masonry-grout-cellular-grout-lightweight-cy",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Cellular grout, lightweight, CY",
+    "description": "Lightweight cellular grout for fill over soft soils, pipe encasement, and annular space fill. Used in structural and non-structural grouting applications.",
+    "unit": "CY",
+    "commonUnits": [
+      "BAG",
+      "CY"
+    ],
+    "tags": [
+      "grout",
+      "concrete",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-concrete-masonry-concrete-resurfacer-self-leveling-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Concrete resurfacer, self-leveling, 50 lb bag",
+    "description": "Self-leveling concrete resurfacer for restoring worn, scaled, or uneven interior and exterior slabs.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-concrete-masonry-epoxy-injection-resin-low-viscosity-1-gal-kit",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Epoxy injection resin, low viscosity, 1 gal kit",
+    "description": "Low-viscosity epoxy injection resin for structural crack repair in concrete walls, slabs, and columns.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-grout-flowable-fill-controlled-low-strength-cy",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Flowable fill, controlled low-strength, CY",
+    "description": "Controlled low-strength flowable fill for utility trench backfill and void fill around structures. Used in structural and non-structural grouting applications.",
+    "unit": "CY",
+    "commonUnits": [
+      "BAG",
+      "CY"
+    ],
+    "tags": [
+      "grout",
+      "concrete",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-concrete-masonry-hydraulic-cement-fast-setting-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Hydraulic cement, fast-setting, 50 lb bag",
+    "description": "Fast-setting hydraulic cement for stopping active water leaks in concrete and masonry walls and floors.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-concrete-grout-and-repair-non-shrink-grout-cementitious-50-lb-bag",
@@ -716,6 +1621,54 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "concrete",
       "grout and repair",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-concrete-masonry-grout-non-shrink-grout-high-strength-50-lb",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Non-shrink grout, high-strength, 50 lb bag",
+    "description": "High-strength non-shrink grout for equipment bases, column bases, and anchor bolt grouting. Used in structural and non-structural grouting applications.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "CY"
+    ],
+    "tags": [
+      "grout",
+      "concrete",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-concrete-masonry-polymer-modified-patching-mortar-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Polymer-modified patching mortar, 50 lb bag",
+    "description": "Polymer-modified cementitious patching mortar for repairing spalled and damaged concrete surfaces.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
     ]
   },
   {
@@ -909,6 +1862,28 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 152,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-3200-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3200 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 3200 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-3500-psi-normal-weight",
@@ -998,6 +1973,28 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "concrete",
       "ready-mix concrete",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 158,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-3800-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3800 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 3800 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
     ]
   },
   {
@@ -1097,6 +2094,28 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 162,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-4200-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4200 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 4200 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-4500-psi-normal-weight",
@@ -1186,6 +2205,28 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "concrete",
       "ready-mix concrete",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 168,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-4800-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4800 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 4800 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
     ]
   },
   {
@@ -1374,6 +2415,152 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "ready-mix",
       "6000-psi",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-dowels-smooth-4-18-in-length-with-cap",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Dowels, smooth, #4, 18 in length with cap",
+    "description": "Smooth dowel bars with end caps for contraction joints in concrete slabs-on-grade and pavement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-mechanical-rebar-splice-coupler-5",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Mechanical rebar splice, coupler, #5",
+    "description": "Mechanical rebar coupler for #5 bar splicing in columns, walls, and heavy structural reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-caps-mushroom-3-8-bag-of-50",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar caps, mushroom, #3-#8, bag of 50",
+    "description": "Mushroom-style rebar safety caps for protecting exposed vertical rebar on jobsites.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-chairs-plastic-2-in-height-bag-of-100",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar chairs, plastic, 2 in height, bag of 100",
+    "description": "Plastic rebar support chairs for maintaining rebar elevation in slab-on-grade and flatwork.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-splice-mechanical-6",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar splice, mechanical, #6",
+    "description": "Mechanical rebar splice coupler for #6 bar in columns and heavy structural reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-tie-wire-16-gauge-3-5-lb-coil",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar tie wire, 16-gauge, 3.5 lb coil",
+    "description": "Black annealed rebar tie wire coil for securing reinforcing steel intersections in concrete forms.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
     ]
   },
   {
@@ -1856,6 +3043,32 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-welded-wire-mesh-6x6-w1-4-w1-4-5-ft-x-150-ft-roll",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Welded wire mesh, 6x6 W1.4/W1.4, 5 ft x 150 ft roll",
+    "description": "Welded wire reinforcement mesh roll for slab-on-grade, driveways, and light structural flatwork reinforcement.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-concrete-formwork-form-lumber-form-lumber-spf-2inx4inx10ft",
@@ -2091,6 +3304,75 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-door-fiberglass-3-0-x-6-8-insulated",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Exterior door, fiberglass, 3-0 x 6-8, insulated",
+    "description": "Insulated fiberglass exterior entry door for residential front entry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-door-steel-3-0-x-6-8-insulated",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Exterior door, steel, 3-0 x 6-8, insulated",
+    "description": "Insulated steel exterior entry door for residential front and rear entry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 685,
+    "type": "material",
+    "id": "material-roofing-exterior-garage-door-steel-16x7-ft-insulated",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Garage door, steel, 16x7 ft, insulated",
+    "description": "Insulated steel sectional garage door for residential two-car garage openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-doors-windows-openings-doors-interior-door-hollow-core-prehung-30-in-x-80-in",
@@ -2131,6 +3413,29 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "doors / windows / openings",
       "doors",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "type": "material",
+    "id": "material-roofing-exterior-sliding-patio-door-vinyl-6-ft",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Sliding patio door, vinyl, 6 ft",
+    "description": "Vinyl sliding patio door for rear exit to deck and patio areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
     ]
   },
   {
@@ -2181,6 +3486,573 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "type": "material",
+    "id": "material-roofing-exterior-window-fixed-picture-4x3-ft-vinyl",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Window, fixed picture, 4x3 ft, vinyl",
+    "description": "Fixed picture vinyl window for non-operable daylight and view applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 195,
+    "type": "material",
+    "id": "material-roofing-exterior-window-vinyl-casement-2x3-ft",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Window, vinyl, casement, 2x3 ft",
+    "description": "Vinyl casement window for kitchen, bath, and utility room applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-roofing-exterior-window-vinyl-double-hung-3x5-ft",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Window, vinyl, double-hung, 3x5 ft",
+    "description": "Vinyl double-hung window for residential exterior wall window openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-drywall-finishes-acoustic-ceiling-tile-2x2-ft-white-box-of-12",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Acoustic ceiling tile, 2x2 ft, white, box of 12",
+    "description": "Mineral fiber acoustic ceiling tile for suspended ceiling grid systems in commercial spaces.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "type": "material",
+    "id": "material-drywall-finishes-acoustic-ceiling-tile-2x4-ft-white-box-of-8",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Acoustic ceiling tile, 2x4 ft, white, box of 8",
+    "description": "Mineral fiber acoustic ceiling tile for 2x4 suspended ceiling grid applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-grid-cross-tee-4-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling grid, cross tee, 4 ft",
+    "description": "Suspended ceiling cross tee grid member for 2x4 and 2x2 tile layouts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-grid-main-tee-12-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling grid, main tee, 12 ft",
+    "description": "Suspended ceiling main tee grid member for acoustic tile ceiling systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-grid-wall-angle-12-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling grid, wall angle, 12 ft",
+    "description": "Suspended ceiling wall angle for perimeter support of acoustic tile ceiling systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-hanger-wire-12-ga-100-ft-roll",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling hanger wire, 12 ga, 100 ft roll",
+    "description": "Galvanized hanger wire for suspending acoustic ceiling grid from structure above.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-access-panel-gypsum-12x12-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Access panel, gypsum, 12x12 in",
+    "description": "Access panel, gypsum, 12x12 in for interior finish and drywall assembly applications including gypsum access panel for providing access to valves, cleanouts, and junction boxes..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-drywall-finishes-acoustic-sealant-latex-28-oz-tube",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Acoustic sealant, latex, 28 oz tube",
+    "description": "Acoustic sealant, latex, 28 oz tube for interior finish and drywall assembly applications including acoustic sealant for sealing gypsum board perimeters in sound-rated partitions..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-drywall-finishes-arch-bead-vinyl-flexible-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Arch bead, vinyl, flexible, 8 ft",
+    "description": "Flexible vinyl arch bead for curved gypsum board corner and arch finishing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-casing-bead-vinyl-1-2-in-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Casing bead, vinyl, 1/2 in, 8 ft",
+    "description": "Vinyl casing bead for gypsum board termination at dissimilar material joints.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-drywall-finishes-control-joint-zinc-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Control joint, zinc, 8 ft",
+    "description": "Control joint, zinc, 8 ft for interior finish and drywall assembly applications including zinc control joint for gypsum board expansion and movement joint treatment..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-drywall-finishes-corner-bead-vinyl-bullnose-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Corner bead, vinyl, bullnose, 8 ft",
+    "description": "Corner bead, vinyl, bullnose, 8 ft for interior finish and drywall assembly applications including vinyl bullnose corner bead for rounded outside corner gypsum board finishing..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-corner-guard-vinyl-2x48-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Corner guard, vinyl, 2x48 in",
+    "description": "Corner guard, vinyl, 2x48 in for interior finish and drywall assembly applications including vinyl corner guard for protecting gypsum board corners in high-traffic corridors..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-drywall-finishes-drywall-adhesive-latex-28-oz-tube",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall adhesive, latex, 28 oz tube",
+    "description": "Drywall adhesive, latex, 28 oz tube for interior finish and drywall assembly applications including latex drywall adhesive for bonding gypsum board to concrete and masonry substrates..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-1-1-4-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 1-1/4 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 1-1/4 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.5,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-1-5-8-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 1-5/8 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 1-5/8 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-2-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 2 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 2 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10.5,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-2-1-2-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 2-1/2 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 2-1/2 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-3-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 3 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 3 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-j-bead-vinyl-1-2-in-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "J-bead, vinyl, 1/2 in, 8 ft",
+    "description": "Vinyl J-bead trim for gypsum board edge termination at openings and soffits.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-drywall-finishes-finishing-joint-compound-all-purpose-4-5-gal-pail",
@@ -2223,6 +4095,130 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "drywall / finishes",
       "finishing",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-l-bead-vinyl-1-2-in-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "L-bead, vinyl, 1/2 in, 8 ft",
+    "description": "Vinyl L-bead trim for gypsum board edge finishing at ceiling and wall transitions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-drywall-finishes-resilient-channel-25-ga-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Resilient channel, 25 ga, 8 ft",
+    "description": "Resilient channel, 25 ga, 8 ft for interior finish and drywall assembly applications including resilient furring channel for decoupling gypsum board from framing in sound-rated walls..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-sound-clip-rubber-for-resilient-channel",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Sound clip, rubber, for resilient channel",
+    "description": "Sound clip, rubber, for resilient channel for interior finish and drywall assembly applications including rubber sound isolation clip for resilient channel attachment in acoustic assemblies..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-tape-fiberglass-mesh-2-in-x-300-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Tape, fiberglass mesh, 2 in x 300 ft",
+    "description": "Tape, fiberglass mesh, 2 in x 300 ft for interior finish and drywall assembly applications including fiberglass mesh tape for gypsum board joint reinforcement and crack prevention..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-tape-paper-2-1-16-in-x-500-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Tape, paper, 2-1/16 in x 500 ft",
+    "description": "Tape, paper, 2-1/16 in x 500 ft for interior finish and drywall assembly applications including paper joint tape roll for gypsum board joint finishing and embedding..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
     ]
   },
   {
@@ -2582,6 +4578,81 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-cement-board-screw-1-1-4-in-100-ct-box",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Cement board screw, 1-1/4 in, 100 ct box",
+    "description": "Corrosion-resistant cement board screws for attaching backer board to framing.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "SF"
+    ],
+    "tags": [
+      "cement board",
+      "tile",
+      "backer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-cement-board-1-2-in-3x5-ft",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Cement board, 1/2 in, 3x5 ft",
+    "description": "Cement backer board for tile underlayment in wet areas, showers, and tub surrounds.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "SF"
+    ],
+    "tags": [
+      "cement board",
+      "tile",
+      "backer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-cement-board-5-8-in-4x8-ft",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Cement board, 5/8 in, 4x8 ft",
+    "description": "Heavy cement backer board for floor tile underlayment and exterior tile applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "SF"
+    ],
+    "tags": [
+      "cement board",
+      "tile",
+      "backer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 5,
     "id": "material-drywall-corner-bead-metal-8-ft",
     "type": "material",
@@ -2629,6 +4700,98 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "board",
       "finishing",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-1-4-in-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 1/4 in, 4x8",
+    "description": "1/4 in gypsum wallboard, 4 foot by 8 foot, for flexible gypsum board for curved walls and archway construction applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-3-8-in-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 3/8 in, 4x8",
+    "description": "3/8 in gypsum wallboard, 4 foot by 8 foot, for lightweight gypsum board for overlay and mobile home renovation applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-5-8-in-abuse-resistant-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 5/8 in abuse-resistant, 4x8",
+    "description": "5/8 in abuse-resistant gypsum wallboard, 4 foot by 8 foot, for abuse-resistant gypsum board for corridors, classrooms, and high-traffic areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-5-8-in-shaft-liner-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 5/8 in shaft liner, 4x8",
+    "description": "5/8 in shaft liner gypsum wallboard, 4 foot by 8 foot, for shaft liner gypsum board for mechanical and elevator shaft wall assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
     ]
   },
   {
@@ -2969,6 +5132,456 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-mep-afci-breaker-15a-single-pole",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "AFCI breaker, 15A, single pole",
+    "description": "Arc-fault circuit interrupter breaker for bedroom and living area branch circuit protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-conduit-pvc-schedule-40-1-in-10-ft",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Conduit, PVC, Schedule 40, 1 in, 10 ft",
+    "description": "PVC electrical conduit for underground and encased electrical branch circuit routing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-mep-disconnect-switch-60a-non-fused-nema-3r",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Disconnect switch, 60A, non-fused, NEMA 3R",
+    "description": "Non-fused safety disconnect switch for HVAC equipment and motor load isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.5,
+    "type": "material",
+    "id": "material-mep-electrical-emt-90-elbow-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT 90° elbow, 1/2 in",
+    "description": "EMT 90° elbow, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-mep-electrical-emt-90-elbow-3-4-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT 90° elbow, 3/4 in",
+    "description": "EMT 90° elbow, 3/4 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.85,
+    "type": "material",
+    "id": "material-mep-electrical-emt-connector-compression-3-4-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT connector, compression, 3/4 in",
+    "description": "EMT connector, compression, 3/4 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.45,
+    "type": "material",
+    "id": "material-mep-electrical-emt-connector-set-screw-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT connector, set-screw, 1/2 in",
+    "description": "EMT connector, set-screw, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-mep-electrical-emt-coupling-compression-1-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT coupling, compression, 1 in",
+    "description": "EMT coupling, compression, 1 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.35,
+    "type": "material",
+    "id": "material-mep-electrical-emt-coupling-set-screw-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT coupling, set-screw, 1/2 in",
+    "description": "EMT coupling, set-screw, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-electrical-emt-lb-conduit-body-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT LB conduit body, 1/2 in",
+    "description": "EMT LB conduit body, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-mep-electrical-emt-ll-conduit-body-3-4-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT LL conduit body, 3/4 in",
+    "description": "EMT LL conduit body, 3/4 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-mep-electrical-emt-lr-conduit-body-1-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT LR conduit body, 1 in",
+    "description": "EMT LR conduit body, 1 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "type": "material",
+    "id": "material-mep-gfci-receptacle-20a-tamper-resistant-white",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "GFCI receptacle, 20A, tamper resistant, white",
+    "description": "Ground-fault circuit interrupter receptacle for wet location and code-required GFCI protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-mep-junction-box-4x4x2-1-8-weatherproof",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Junction box, 4x4x2-1/8, weatherproof",
+    "description": "Weatherproof junction box for exterior electrical splice and device mounting.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-mep-mc-cable-connector-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "MC cable connector, 1/2 in",
+    "description": "Metal-clad cable connector for armored cable termination in boxes and panels.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-mep-panel-sub-100a-20-space",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Panel, sub, 100A, 20-space",
+    "description": "100 amp sub-panel for garage, shop, and addition electrical distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-mep-surge-protector-whole-house-200a-panel",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Surge protector, whole-house, 200A panel",
+    "description": "Whole-house surge protection device for main electrical panel lightning and surge protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-belly-band-trim-pvc-5-1-2-in-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Belly band trim, PVC, 5-1/2 in, 12 ft",
+    "description": "PVC belly band trim for horizontal siding transitions and architectural detail.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-corner-board-pvc-3-1-2-in-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Corner board, PVC, 3-1/2 in, 12 ft",
+    "description": "PVC exterior corner board trim for siding corner detail and water management.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 3,
     "id": "material-siding-corner-post-vinyl-outside-10-ft",
     "type": "material",
@@ -3016,6 +5629,52 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "cladding",
       "trim",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-roofing-exterior-downspout-aluminum-3x4-in-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Downspout, aluminum, 3x4 in, 10 ft",
+    "description": "Aluminum downspout for conveying roof runoff from gutter to grade or drain.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-paint-acrylic-latex-5-gal",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Exterior paint, acrylic latex, 5 gal",
+    "description": "Acrylic latex exterior paint for siding, trim, and exterior wood and fiber cement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
     ]
   },
   {
@@ -3075,6 +5734,29 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-fascia-vent-aluminum-8-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Fascia vent, aluminum, 8 ft",
+    "description": "Aluminum fascia vent strip for concealed eave intake ventilation at the roof edge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 3,
     "id": "material-siding-fiber-cement-lap-siding-5-16-in-12-ft",
     "type": "material",
@@ -3122,6 +5804,53 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "cladding",
       "trim",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-frieze-board-pvc-1x6-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Frieze board, PVC, 1x6, 12 ft",
+    "description": "PVC frieze board trim at the wall-to-soffit transition on exterior walls.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-gutter-aluminum-5-in-k-style-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Gutter, aluminum, 5 in K-style, 10 ft",
+    "description": "Aluminum K-style gutter section for roof edge water collection and drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
     ]
   },
   {
@@ -3234,6 +5963,99 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-rake-board-pvc-1x8-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Rake board, PVC, 1x8, 12 ft",
+    "description": "PVC rake board trim for roof gable edge detail and fascia transition.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-siding-board-and-batten-fiber-cement-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Siding, board and batten, fiber cement, 12 ft",
+    "description": "Fiber cement board and batten siding for vertical exterior cladding detail.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-roofing-exterior-siding-fiber-cement-4x8-panel",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Siding, fiber cement, 4x8 panel",
+    "description": "Fiber cement panel siding for contemporary exterior wall cladding applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-roofing-exterior-soffit-panel-vinyl-vented-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Soffit panel, vinyl, vented, 12 ft",
+    "description": "Vented vinyl soffit panel for eave ventilation and finished soffit appearance.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 3,
     "id": "material-siding-vinyl-siding-double-4-inch-12-ft",
     "type": "material",
@@ -3281,6 +6103,321 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "cladding",
       "trim",
       "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-cap-precast-concrete-24-in",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Stone cap, precast concrete, 24 in",
+    "description": "Precast concrete wall cap for masonry and stone wall top course protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-stone-lintel-precast-concrete-4-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Stone lintel, precast concrete, 4 ft",
+    "description": "Precast concrete stone-look lintel for masonry and stone veneer opening support.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-stone-veneer-mortar-polymer-modified-50-lb",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Stone veneer mortar, polymer-modified, 50 lb",
+    "description": "Polymer-modified mortar for setting thin stone veneer on exterior wall assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-thin-stone-veneer-natural-corner-per-lf",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Thin stone veneer, natural, corner, per LF",
+    "description": "Natural thin stone veneer corner pieces for exterior stone veneer corner detail.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-thin-stone-veneer-natural-flat-per-sf",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Thin stone veneer, natural, flat, per SF",
+    "description": "Natural thin stone veneer flats for adhered exterior stone veneer wall cladding.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-eifs-base-coat-5-gal-pail",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "EIFS base coat, 5 gal pail",
+    "description": "Exterior insulation and finish system base coat for EIFS wall cladding applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-roofing-exterior-eifs-finish-coat-5-gal-pail",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "EIFS finish coat, 5 gal pail",
+    "description": "EIFS finish coat for color and texture on exterior insulation and finish systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-base-coat-cement-80-lb-bag",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco base coat, cement, 80 lb bag",
+    "description": "Portland cement stucco scratch and brown base coat for three-coat stucco wall systems.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-control-joint-pvc-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco control joint, PVC, 10 ft",
+    "description": "PVC stucco control joint for crack control in stucco wall panel assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-finish-coat-acrylic-5-gal-pail",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco finish coat, acrylic, 5 gal pail",
+    "description": "Acrylic stucco finish coat for color and texture on exterior cement stucco assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-lath-galvanized-2-5-lb-27-in-x-96-in",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco lath, galvanized, 2.5 lb, 27 in x 96 in",
+    "description": "Galvanized stucco lath sheet for scratch coat keying in three-coat stucco systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-mesh-fiberglass-38-in-x-150-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco mesh, fiberglass, 38 in x 150 ft",
+    "description": "Fiberglass stucco reinforcing mesh for EIFS and cement stucco wall systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-weep-screed-galvanized-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Weep screed, galvanized, 10 ft",
+    "description": "Galvanized weep screed for stucco and stone veneer base termination and drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
     ]
   },
   {
@@ -3465,6 +6602,277 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "fasteners / connectors",
       "screws",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-anti-slip-floor-additive-1-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Anti-slip floor additive, 1 lb bag",
+    "description": "Anti-slip additive for floor coatings and paint to improve traction on walking surfaces.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-ceiling-paint-flat-white-5-gal-pail",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Ceiling paint, flat white, 5 gal pail",
+    "description": "Flat white ceiling paint for interior gypsum board and acoustic ceiling surfaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-drywall-primer-pva-5-gal-pail",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Drywall primer, PVA, 5 gal pail",
+    "description": "PVA drywall primer for new gypsum board before topcoat paint application.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-epoxy-floor-coating-2-part-3-gal-kit",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Epoxy floor coating, 2-part, 3 gal kit",
+    "description": "Two-part epoxy floor coating for garage, warehouse, and industrial floor protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-exterior-latex-flat-5-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Paint, exterior latex, flat, 5 gal",
+    "description": "Paint, exterior latex, flat, 5 gal for interior finish and drywall assembly applications including exterior flat latex paint for soffits, ceilings, and protected exterior surfaces..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-interior-latex-semi-gloss-5-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Paint, interior latex, semi-gloss, 5 gal",
+    "description": "Paint, interior latex, semi-gloss, 5 gal for interior finish and drywall assembly applications including interior semi-gloss latex paint for trim, doors, and wet-area wall surfaces..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-drywall-finishes-polyurethane-water-based-satin-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Polyurethane, water-based, satin, 1 gal",
+    "description": "Polyurethane, water-based, satin, 1 gal for interior finish and drywall assembly applications including water-based satin polyurethane for protecting interior wood floors and trim..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-drywall-finishes-primer-stain-blocking-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Primer, stain-blocking, 1 gal",
+    "description": "Primer, stain-blocking, 1 gal for interior finish and drywall assembly applications including stain-blocking primer for covering water stains and tannin bleed before painting..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-drywall-finishes-wallcovering-vinyl-type-ii-per-sf",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Wallcovering, vinyl, Type II, per SF",
+    "description": "Wallcovering, vinyl, Type II, per SF for interior finish and drywall assembly applications including commercial vinyl wallcovering type ii for durable interior wall finish surfaces..",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-drywall-finishes-wallpaper-adhesive-clay-based-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Wallpaper adhesive, clay-based, 1 gal",
+    "description": "Wallpaper adhesive, clay-based, 1 gal for interior finish and drywall assembly applications including clay-based wallpaper adhesive for installing vinyl and paper wallcoverings..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-drywall-finishes-wood-stain-interior-oil-based-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Wood stain, interior, oil-based, 1 gal",
+    "description": "Wood stain, interior, oil-based, 1 gal for interior finish and drywall assembly applications including oil-based interior wood stain for finishing trim, doors, and exposed wood..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
     ]
   },
   {
@@ -3800,6 +7208,356 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-ceramic-wall-tile-3x6-subway-white-box",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Ceramic wall tile, 3x6 subway, white, box",
+    "description": "Ceramic subway wall tile for bathroom and kitchen backsplash and wall tile applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-grout-sealer-penetrating-1-qt",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Grout sealer, penetrating, 1 qt",
+    "description": "Grout sealer, penetrating, 1 qt for interior finish and drywall assembly applications including penetrating grout sealer for protecting tile grout from staining and moisture..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-drywall-finishes-grout-unsanded-25-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Grout, unsanded, 25 lb bag",
+    "description": "Grout, unsanded, 25 lb bag for interior finish and drywall assembly applications including unsanded tile grout for wall tile joints 1/8 inch and narrower..",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.25,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-porcelain-floor-tile-12x24-gray-box",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Porcelain floor tile, 12x24, gray, box",
+    "description": "Large-format porcelain floor tile for bathroom, kitchen, and entryway floor finishes.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-tile-grout-sanded-25-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile grout, sanded, 25 lb bag",
+    "description": "Sanded tile grout for floor and wall tile joints 1/8 inch and wider.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-tile-thinset-modified-50-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile thinset, modified, 50 lb bag",
+    "description": "Polymer-modified thinset mortar for setting ceramic and porcelain floor and wall tile.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-tile-trim-bullnose-3x12-box",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile trim, bullnose, 3x12, box",
+    "description": "Ceramic bullnose trim tile for exposed tile edge finishing at wainscot and openings.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-mosaic-glass-12x12-sheet",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile, mosaic, glass, 12x12 sheet",
+    "description": "Tile, mosaic, glass, 12x12 sheet for interior finish and drywall assembly applications including glass mosaic tile sheet for decorative backsplash and accent wall tile applications..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-porcelain-large-format-24x48",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile, porcelain, large format, 24x48",
+    "description": "Tile, porcelain, large format, 24x48 for interior finish and drywall assembly applications including large-format porcelain tile for modern floor and wall tile installations..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.25,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-engineered-hardwood-oak-3-8-in-per-sf",
+    "category": "Flooring",
+    "subcategory": "Hardwood",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Engineered hardwood, oak, 3/8 in, per SF",
+    "description": "Engineered oak hardwood flooring for glue-down or float installation over concrete.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.5,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-hardwood-flooring-oak-3-4-in-x-2-1-4-in-per-sf",
+    "category": "Flooring",
+    "subcategory": "Hardwood",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Hardwood flooring, oak, 3/4 in x 2-1/4 in, per SF",
+    "description": "Solid oak hardwood flooring for nail-down installation in living areas and bedrooms.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.65,
+    "type": "material",
+    "id": "material-drywall-finishes-carpet-pad-rebond-7-16-in-per-sf",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Carpet pad, rebond, 7/16 in, per SF",
+    "description": "Carpet pad, rebond, 7/16 in, per SF for interior finish and drywall assembly applications including rebond carpet cushion pad for residential and commercial carpet installations..",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-carpet-broadloom-nylon-per-sy",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Carpet, broadloom, nylon, per SY",
+    "description": "Carpet, broadloom, nylon, per SY for interior finish and drywall assembly applications including nylon broadloom carpet for office, bedroom, and living area floor finishes..",
+    "unit": "SY",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-drywall-finishes-leveling-compound-self-leveling-50-lb-bag",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Leveling compound, self-leveling, 50 lb bag",
+    "description": "Leveling compound, self-leveling, 50 lb bag for interior finish and drywall assembly applications including self-leveling underlayment for correcting uneven subfloors before finish flooring..",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-flooring-resilient-flooring-luxury-vinyl-plank-flooring-floating-20-mil-wear-layer",
@@ -3847,6 +7605,156 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.25,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-lvp-flooring-5-mil-wear-layer-22-sf-box",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "LVP flooring, 5 mil wear layer, 22 SF box",
+    "description": "Luxury vinyl plank flooring with 5 mil wear layer for residential floor finishes.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-drywall-finishes-reducer-strip-vinyl-6-ft",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Reducer strip, vinyl, 6 ft",
+    "description": "Reducer strip, vinyl, 6 ft for interior finish and drywall assembly applications including vinyl floor reducer strip for transitioning between different floor finish heights..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.5,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-sheet-vinyl-12-ft-wide-per-sf",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Sheet vinyl, 12 ft wide, per SF",
+    "description": "Sheet vinyl flooring for bathroom, kitchen, and utility room floor finishes.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-transition-strip-metal-carpet-to-tile",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Transition strip, metal, carpet to tile",
+    "description": "Transition strip, metal, carpet to tile for interior finish and drywall assembly applications including metal transition strip for carpet to tile floor height and material change..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-drywall-finishes-underlayment-cork-1-4-in-4x8",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Underlayment, cork, 1/4 in, 4x8",
+    "description": "Underlayment, cork, 1/4 in, 4x8 for interior finish and drywall assembly applications including cork underlayment board for sound reduction under hard surface flooring..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.35,
+    "type": "material",
+    "id": "material-drywall-finishes-underlayment-foam-1-4-in-roll",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Underlayment, foam, 1/4 in, roll",
+    "description": "Underlayment, foam, 1/4 in, roll for interior finish and drywall assembly applications including foam floor underlayment roll for laminate and floating floor installations..",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-flooring-tile-ceramic-floor-tile-12-in-x-24-in",
@@ -3889,6 +7797,56 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "flooring",
       "tile",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-wall-base-rubber-4-in-per-lf",
+    "category": "Flooring",
+    "subcategory": "Wall Base",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Wall base, rubber, 4 in, per LF",
+    "description": "Rubber cove wall base for commercial and residential floor-to-wall transition.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-wall-base-vinyl-4-in-per-lf",
+    "category": "Flooring",
+    "subcategory": "Wall Base",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Wall base, vinyl, 4 in, per LF",
+    "description": "Vinyl wall base for residential and light commercial floor perimeter finish.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
     ]
   },
   {
@@ -4088,6 +8046,346 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "hvac",
       "duct",
       "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-mep-condensate-pump-120v-with-safety-switch",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Condensate pump, 120V, with safety switch",
+    "description": "Condensate removal pump for HVAC air handler and furnace condensate drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-mep-hvac-duct-elbow-rectangular-12x8-in-90",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Duct elbow, rectangular, 12x8 in, 90°",
+    "description": "Rectangular duct elbow for changing direction in rectangular ductwork systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-mep-insulation-duct-insulation-fiberglass-wrap-r-6-48-in-wide",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Duct insulation, fiberglass wrap, R-6, 48 in wide",
+    "description": "Fiberglass duct wrap insulation for exterior ductwork thermal and condensation control.",
+    "unit": "SF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.5,
+    "type": "material",
+    "id": "material-mep-insulation-duct-liner-fiberglass-1-in-58-in-wide",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Duct liner, fiberglass, 1 in, 58 in wide",
+    "description": "Fiberglass duct liner for internal acoustic and thermal treatment of sheet metal duct.",
+    "unit": "SF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-mep-duct-sealant-mastic-1-gal",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Duct sealant, mastic, 1 gal",
+    "description": "HVAC duct mastic sealant for sealing duct joints and connections in air distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-mep-exhaust-fan-bath-80-cfm-with-light",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Exhaust fan, bath, 80 CFM, with light",
+    "description": "Bathroom exhaust fan with integrated light for moisture and odor ventilation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-insulation-pipe-insulation-fiberglass-3-4-in-id-1-in-wall",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Pipe insulation, fiberglass, 3/4 in ID, 1 in wall",
+    "description": "Fiberglass pipe insulation for hot and cold water piping thermal and condensation control.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-mep-insulation-pipe-insulation-rubber-1-in-id-3-4-in-wall",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Pipe insulation, rubber, 1 in ID, 3/4 in wall",
+    "description": "Closed-cell rubber pipe insulation for refrigeration and chilled water piping systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-mep-hvac-rectangular-duct-galvanized-24-ga-12x8-in-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Rectangular duct, galvanized, 24 ga, 12x8 in, per LF",
+    "description": "Galvanized rectangular ductwork for supply and return air distribution in HVAC systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-mep-hvac-rectangular-duct-galvanized-24-ga-16x10-in-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Rectangular duct, galvanized, 24 ga, 16x10 in, per LF",
+    "description": "Galvanized rectangular trunk duct for main supply air distribution runs.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-mep-hvac-spiral-round-duct-galvanized-12-in-diameter-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Spiral round duct, galvanized, 12 in diameter, per LF",
+    "description": "Spiral round galvanized duct for main trunk and large branch duct runs.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-hvac-spiral-round-duct-galvanized-8-in-diameter-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Spiral round duct, galvanized, 8 in diameter, per LF",
+    "description": "Spiral round galvanized duct for branch duct connections and exposed ductwork.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "type": "material",
+    "id": "material-mep-thermostat-smart-wifi-programmable",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Thermostat, smart, WiFi, programmable",
+    "description": "WiFi-enabled smart thermostat for HVAC zone control and energy management.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-mep-hvac-volume-damper-manual-12x8-in",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Volume damper, manual, 12x8 in",
+    "description": "Manual volume damper for balancing airflow in rectangular duct branch runs.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
       "air"
     ]
   },
@@ -4401,6 +8699,106 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-insulation-rigid-polyiso-1-in-4x8",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Insulation, rigid, polyiso, 1 in, 4x8",
+    "description": "Insulation, rigid, polyiso, 1 in, 4x8 for interior finish and drywall assembly applications including polyisocyanurate rigid insulation for interior and exterior continuous insulation..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-drywall-finishes-insulation-rock-wool-4-in-16-in-wide",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Insulation, rock wool, 4 in, 16 in wide",
+    "description": "Insulation, rock wool, 4 in, 16 in wide for interior finish and drywall assembly applications including mineral wool insulation batt for fire-rated and acoustic partition assemblies..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-drywall-finishes-insulation-spray-foam-kit-open-cell-200-bd-ft",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Insulation, spray foam kit, open cell, 200 bd ft",
+    "description": "Insulation, spray foam kit, open cell, 200 bd ft for interior finish and drywall assembly applications including open-cell spray foam kit for air sealing and insulating small cavity areas..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-drywall-finishes-moisture-barrier-6-mil-poly-10-ft-x-100-ft",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Moisture barrier, 6 mil poly, 10 ft x 100 ft",
+    "description": "Moisture barrier, 6 mil poly, 10 ft x 100 ft for interior finish and drywall assembly applications including 6 mil polyethylene moisture barrier for under-slab and crawl space moisture control..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0.30000000000000004,
     "id": "material-insulation-rigid-foam-board-xps-2-in-4x8",
     "type": "material",
@@ -4454,6 +8852,78 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-rigid-insulation-eps-1-in-4x8",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Rigid insulation, EPS, 1 in, 4x8",
+    "description": "Expanded polystyrene rigid insulation board for exterior wall and foundation insulation.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-rigid-insulation-eps-2-in-4x8",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Rigid insulation, EPS, 2 in, 4x8",
+    "description": "Expanded polystyrene rigid insulation board for enhanced exterior continuous insulation.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-sound-batt-mineral-wool-3-1-2-in-15-in-wide",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Sound batt, mineral wool, 3-1/2 in, 15 in wide",
+    "description": "Mineral wool sound insulation batt for interior partition acoustic performance.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0.30000000000000004,
     "id": "material-insulation-spray-foam-kit-closed-cell-600-bd-ft",
     "type": "material",
@@ -4501,6 +8971,30 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "thermal",
       "r-value",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-spray-foam-open-cell-12-in-depth-per-sf",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Spray foam, open cell, 12 in depth, per SF",
+    "description": "Open-cell spray polyurethane foam insulation for attic and wall cavity air sealing and insulation.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
     ]
   },
   {
@@ -4561,6 +9055,81 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-sitework-erosion-stone-2-4-in-per-ton",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Erosion stone, 2-4 in, per ton",
+    "description": "Clean erosion control stone for drainage layer and slope stabilization applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-landscape-fertilizer-starter-50-lb-bag",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Fertilizer, starter, 50 lb bag",
+    "description": "Starter fertilizer for new lawn seeding and sod installation root establishment.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-landscape-grass-seed-tall-fescue-blend-50-lb-bag",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Grass seed, tall fescue blend, 50 lb bag",
+    "description": "Tall fescue grass seed blend for lawn establishment and site restoration seeding.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-landscape-landscape-fabric-woven-6-ft-x-300-ft",
     "type": "material",
@@ -4588,6 +9157,31 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-landscape-lawn-edging-aluminum-4-in-x-16-ft",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Lawn edging, aluminum, 4 in x 16 ft",
+    "description": "Aluminum lawn edging for separating lawn from beds, walks, and paved areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-landscape-mulch-hardwood-cy",
     "type": "material",
@@ -4609,6 +9203,106 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "sod",
       "mulch",
       "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-sitework-retaining-wall-block-concrete-6-in-h-x-18-in-l",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Retaining wall block, concrete, 6 in H x 18 in L",
+    "description": "Interlocking concrete retaining wall block for segmental retaining wall systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.25,
+    "type": "material",
+    "id": "material-sitework-retaining-wall-block-concrete-8-in-h-x-18-in-l",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Retaining wall block, concrete, 8 in H x 18 in L",
+    "description": "Interlocking concrete retaining wall block for taller segmental retaining wall courses.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-retaining-wall-geogrid-4-ft-x-50-ft-roll",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Retaining wall geogrid, 4 ft x 50 ft roll",
+    "description": "Geogrid reinforcement for segmental retaining wall soil reinforcement and stability.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-rip-rap-stone-6-12-in-per-ton",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Rip-rap stone, 6-12 in, per ton",
+    "description": "Rip-rap erosion control stone for slope protection, outlet protection, and channel lining.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
     ]
   },
   {
@@ -4663,6 +9357,80 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "sod",
       "mulch",
       "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-sitework-landscape-tree-spade-root-ball-wrap-burlap-48-in",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Tree spade, root ball wrap, burlap, 48 in",
+    "description": "Burlap root ball wrap for tree transplanting and nursery stock handling.",
+    "unit": "EA",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-landscape-wildflower-seed-mix-native-5-lb-bag",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Wildflower seed mix, native, 5 lb bag",
+    "description": "Native wildflower seed mix for landscape beds and ecological restoration areas.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-lumber-framing-blocking-spf-2-2x4-x-14-1-2-in",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Blocking, SPF #2, 2x4 x 14-1/2 in",
+    "description": "Short SPF #2 blocking for fire blocking and structural bridging between studs.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
     ]
   },
   {
@@ -5993,6 +10761,198 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x10-14ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x10 x 14'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x10 by 14 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x12-16ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x12 x 16'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x12 by 16 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x4-8ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x4 x 8'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x4 by 8 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x6-10ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x6 x 10'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x6 by 10 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x8-12ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x8 x 12'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x8 by 12 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-lumber-framing-furring-strip-spf-1x3-x-8-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Furring strip, SPF, 1x3 x 8 ft",
+    "description": "SPF furring strip 1x3 by 8 foot for wall furring, ceiling furring, and backing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-lumber-framing-hip-rafter-spf-2-2x8-x-14-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Hip rafter, SPF #2, 2x8 x 14 ft",
+    "description": "SPF #2 hip rafter 2x8 by 14 foot for conventional hip roof framing at the hip line.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-lumber-framing-let-in-bracing-spf-1x4-x-8-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Let-in bracing, SPF, 1x4 x 8 ft",
+    "description": "SPF let-in diagonal bracing 1x4 by 8 foot for wall lateral bracing in conventional framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx10inx16ft",
@@ -6189,6 +11149,342 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-lumber-framing-nailer-spf-2-2x6-x-8-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Nailer, SPF #2, 2x6 x 8 ft",
+    "description": "SPF #2 nailer 2x6 by 8 foot for roof edge nailers, curtain wall attachment, and blocking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-ridge-board-spf-2-1x12-x-16-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Ridge board, SPF #2, 1x12 x 16 ft",
+    "description": "SPF #2 ridge board 1x12 by 16 foot for conventional roof framing at the ridge line.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-lumber-framing-ridge-board-spf-2-2x12-x-16-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Ridge board, SPF #2, 2x12 x 16 ft",
+    "description": "SPF #2 ridge board 2x12 by 16 foot for heavy roof framing and open ceiling applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-rim-board-lvl-1-1-8-x-11-7-8-x-16-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Rim board, LVL, 1-1/8 x 11-7/8 x 16 ft",
+    "description": "LVL rim board for I-joist floor system perimeter closure and load transfer.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "type": "material",
+    "id": "material-lumber-framing-valley-rafter-spf-2-2x10-x-12-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Valley rafter, SPF #2, 2x10 x 12 ft",
+    "description": "SPF #2 valley rafter 2x10 by 12 foot for intersecting roof valley framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-lumber-framing-beam-lvl-1-75-x-11-7-8-in-20-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Beam, LVL, 1.75 x 11-7/8 in, 20 ft",
+    "description": "LVL beam 20 foot length for window and door header framing in load-bearing walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-3-1-8-x-9-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 3-1/8 x 9 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 3-1/8 x 9 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-5-1-8-x-12-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 5-1/8 x 12 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 5-1/8 x 12 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-5-1-8-x-16-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 5-1/8 x 16 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 5-1/8 x 16 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-6-3-4-x-15-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 6-3/4 x 15 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 6-3/4 x 15 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.4,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-11-7-8in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 11-7/8 inch depth, per LF",
+    "description": "11-7/8 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-14in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 14 inch depth, per LF",
+    "description": "14 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.6,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-16in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 16 inch depth, per LF",
+    "description": "16 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.8,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-9-1-2in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 9-1/2 inch depth, per LF",
+    "description": "9-1/2 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-lumber-framing-engineered-lumber-lvl-beam-1-3-4inx11-7-8in-structural",
@@ -6231,6 +11527,408 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "lumber / framing",
       "engineered lumber",
       "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.7,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-11-7-8in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 11-7/8 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 11-7/8 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.9,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-14in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 14 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 14 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.1,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-16in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 16 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 16 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.3,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-18in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 18 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 18 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.5,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-24in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 24 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 24 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-9-1-2in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 9-1/2 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 9-1/2 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-20-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 20 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 20 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 120,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-24-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 24 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 24 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 155,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-28-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 28 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 28 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 190,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-32-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 32 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 32 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-36-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 36 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 36 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 260,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-40-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 40 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 40 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-deck-screws-3-in-stainless-1-lb",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Deck screws, 3 in, stainless, 1 lb",
+    "description": "Construction fastener, Deck screws, 3 in, stainless, 1 lb, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-finish-nails-15-gauge-2-in-1000-ct",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Finish nails, 15-gauge, 2 in, 1000 ct",
+    "description": "Construction fastener, Finish nails, 15-gauge, 2 in, 1000 ct, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-joist-hanger-nails-1-1-2-in-1-lb-box",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Joist hanger nails, 1-1/2 in, 1 lb box",
+    "description": "Construction fastener, Joist hanger nails, 1-1/2 in, 1 lb box, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-staples-1-2-in-crown-16-gauge-box",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Staples, 1/2 in crown, 16-gauge, box",
+    "description": "Construction fastener, Staples, 1/2 in crown, 16-gauge, box, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-structural-screws-4-in-50-ct-box",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Structural screws, 4 in, 50 ct box",
+    "description": "Construction fastener, Structural screws, 4 in, 50 ct box, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
     ]
   },
   {
@@ -6551,6 +12249,174 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-lumber-framing-connector-skewed-joist-hanger-lssu",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Connector, skewed joist hanger, LSSU",
+    "description": "Skewed joist hanger for angled joist connections at hip and valley framing conditions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-lumber-framing-connector-corner-brace-18-gauge-4x4-inch",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Corner brace, 18-gauge, 4x4 inch",
+    "description": "Structural framing connector, Corner brace, 18-gauge, 4x4 inch, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-connector-hold-down-hdu5-heavy",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Hold-down, HDU5, heavy",
+    "description": "Structural framing connector, Hold-down, HDU5, heavy, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-lumber-framing-connector-hurricane-tie-h1-single-wrap",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Hurricane tie, H1, single wrap",
+    "description": "Structural framing connector, Hurricane tie, H1, single wrap, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-lumber-framing-connector-joist-hanger-lus28-2x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Joist hanger, LUS28, 2x8",
+    "description": "Structural framing connector, Joist hanger, LUS28, 2x8, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-lumber-framing-connector-post-cap-ccq-4x4-to-4x4",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Post cap, CCQ, 4x4 to 4x4",
+    "description": "Structural framing connector, Post cap, CCQ, 4x4 to 4x4, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-lumber-framing-connector-strap-tie-mst60-60-inch",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Strap tie, MST60, 60 inch",
+    "description": "Structural framing connector, Strap tie, MST60, 60 inch, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-connector-hold-down-hdu2",
     "type": "material",
@@ -6741,6 +12607,154 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "simpson",
       "framing",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-osb-radiant-barrier-7-16-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "OSB, radiant barrier, 7/16 in, 4x8",
+    "description": "OSB panel with radiant barrier foil for roof decking energy efficiency.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "type": "material",
+    "id": "material-lumber-framing-panel-osb-19-32-in-4x8-t-g",
+    "category": "Lumber / Framing",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, OSB, 19/32 in, 4x8 T&G",
+    "description": "Structural osb panel, OSB, 19/32 in, 4x8 T&G, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-panel-osb-7-16-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, OSB, 7/16 in, 4x8",
+    "description": "Structural osb panel, OSB, 7/16 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-lumber-framing-plywood-marine-grade-3-4-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Plywood, marine grade, 3/4 in, 4x8",
+    "description": "Marine-grade plywood panel for moisture-exposed sheathing and specialty applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-panel-cdx-plywood-1-2-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, CDX plywood, 1/2 in, 4x8",
+    "description": "Structural plywood panel, CDX plywood, 1/2 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-lumber-framing-panel-cdx-plywood-5-8-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, CDX plywood, 5/8 in, 4x8",
+    "description": "Structural plywood panel, CDX plywood, 5/8 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "plywood",
+      "panel"
     ]
   },
   {
@@ -7011,6 +13025,31 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-lumber-framing-panel-zip-system-7-16-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, Zip System, 7/16 in, 4x8",
+    "description": "Structural sheathing panel, Zip System, 7/16 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "sheathing",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-lumber-framing-studs-stud-spf-2-2inx4inx104-5-8in",
@@ -7158,6 +13197,175 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-lumber-framing-panel-advantech-3-4-in-4x8-t-g",
+    "category": "Lumber / Framing",
+    "subcategory": "Subfloor",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, Advantech, 3/4 in, 4x8 T&G",
+    "description": "Structural subfloor panel, Advantech, 3/4 in, 4x8 T&G, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "subfloor",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-lumber-framing-treated-2x4-x-8-ft-sill-plate",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 2x4 x 8 ft, Sill plate",
+    "description": "Pressure-treated southern pine lumber, 2x4 x 8 ft, for sill plate applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "sill plate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-lumber-framing-treated-2x6-x-8-ft-sill-plate",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 2x6 x 8 ft, Sill plate",
+    "description": "Pressure-treated southern pine lumber, 2x6 x 8 ft, for sill plate applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "sill plate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-treated-2x8-x-12-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 2x8 x 12 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 2x8 x 12 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-lumber-framing-treated-4x4-x-8-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 4x4 x 8 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 4x4 x 8 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-treated-4x6-x-12-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 4x6 x 12 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 4x6 x 12 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-lumber-framing-treated-6x6-x-12-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 6x6 x 12 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 6x6 x 12 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-lumber-framing-treated-lumber-pressure-treated-lumber-ground-contact-2inx4inx8ft",
@@ -7254,6 +13462,270 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.85,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-glazed-modular-white",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Brick, glazed, modular, white",
+    "description": "Glazed modular brick for interior feature walls and sanitary masonry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.45,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-solid-modular-sandblast-finish",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Brick, solid, modular, sandblast finish",
+    "description": "Sandblast finish solid modular brick for exposed masonry veneer and accent band courses.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.35,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-economy",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, economy size, standard red",
+    "description": "Economy size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "economy"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.05,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-king",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, king size, standard red",
+    "description": "King size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "king"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.75,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-modular",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, modular size, standard red",
+    "description": "Modular size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "modular"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.9,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-queen",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, queen size, standard red",
+    "description": "Queen size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "queen"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.2,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-utility",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, utility size, standard red",
+    "description": "Utility size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.85,
+    "type": "material",
+    "id": "material-concrete-masonry-common-brick-modular-red-clay",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Common brick, modular, red clay",
+    "description": "Standard modular clay brick for backup masonry, veneer backup, and general masonry wall construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-concrete-masonry-facing-brick-modular-smooth-finish",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Facing brick, modular, smooth finish",
+    "description": "Modular facing brick with smooth finish for exposed exterior masonry veneer and accent walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-fire-brick-high-alumina-9x4-5x2-5",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Fire brick, high-alumina, 9x4.5x2.5",
+    "description": "High-alumina fire brick for fireplace linings, chimneys, and high-temperature masonry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.1,
+    "type": "material",
+    "id": "material-concrete-masonry-thin-brick-veneer-1-2-in-thick-modular",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 43 00",
+    "name": "Thin brick veneer, 1/2 in thick, modular",
+    "description": "Thin brick veneer units for adhered exterior veneer systems over sheathing and backup walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-masonry-concrete-masonry-concrete-masonry-unit-6inx8inx16in-standard-gray",
@@ -7339,6 +13811,156 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "masonry",
       "concrete masonry",
       "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-glazed",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, glazed, 8 inch x 8 inch x 16 inch",
+    "description": "Glazed concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "glazed"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.75,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-lightweight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, lightweight, 8 inch x 8 inch x 16 inch",
+    "description": "Lightweight concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "lightweight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-12x8x16-normal-weight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, normal weight, 12 inch x 8 inch x 16 inch",
+    "description": "Normal weight concrete masonry unit, 12x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "normal weight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-4x8x16-normal-weight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, normal weight, 4 inch x 8 inch x 16 inch",
+    "description": "Normal weight concrete masonry unit, 4x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "normal weight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-normal-weight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, normal weight, 8 inch x 8 inch x 16 inch",
+    "description": "Normal weight concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "normal weight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.25,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-split-face",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, split face, 8 inch x 8 inch x 16 inch",
+    "description": "Split face concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "split face"
     ]
   },
   {
@@ -7498,6 +14120,105 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-lintel-steel-angle-3x3-x-1-4-x-6-ft",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Brick lintel, steel angle, 3x3 x 1/4 x 6 ft",
+    "description": "Steel angle brick lintel for supporting masonry over window and door openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-lintel-steel-angle-4x3-1-2-x-1-4-in-x-10-ft",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Lintel, steel angle, 4x3-1/2 x 1/4 in x 10 ft",
+    "description": "Steel angle lintel for masonry openings, supporting brick and block over window and door openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "masonry",
+      "flashing",
+      "lintel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-concrete-masonry-through-wall-flashing-copper-12-in-x-50-ft-roll",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Through-wall flashing, copper, 12 in x 50 ft roll",
+    "description": "Copper through-wall flashing roll for masonry cavity wall moisture management at shelf angles and lintels.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "masonry",
+      "flashing",
+      "lintel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-weep-vent-mortar-net-10-ft-section",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Weep vent, mortar net, 10 ft section",
+    "description": "Mortar collection net weep vent for masonry cavity walls to drain moisture at the wall base.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "masonry",
+      "flashing",
+      "lintel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 9.5,
     "id": "material-mortar-type-m-80lb-bag",
     "type": "material",
@@ -7644,6 +14365,102 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11.5,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-buff-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, buff, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, buff color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "buff"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-gray-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, gray, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, gray color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "gray"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14.5,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-tan-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, tan, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, tan color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "tan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-white-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, white, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, white color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "white"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-masonry-mortar-and-grout-mortar-mix-type-n-80-lb-bag",
@@ -7738,6 +14555,56 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-concrete-masonry-horizontal-joint-reinforcement-2-wire-9-gauge-10-ft",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Horizontal joint reinforcement, 2-wire, 9-gauge, 10 ft",
+    "description": "Two-wire horizontal joint reinforcement for masonry veneer and structural backup wall joint reinforcement.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-ladder-wire-9-gauge-galvanized-10-ft-section",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Ladder wire, 9-gauge, galvanized, 10 ft section",
+    "description": "Galvanized ladder wire reinforcement for horizontal joint reinforcement in single-wythe and cavity masonry walls.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-masonry-reinforcement-masonry-ladder-wire-reinforcement-8-in-wall",
@@ -7780,6 +14647,56 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "masonry",
       "reinforcement",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-concrete-masonry-truss-wire-9-gauge-galvanized-400-lf-roll",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Truss wire, 9-gauge, galvanized, 400 LF roll",
+    "description": "Galvanized truss wire roll for horizontal joint reinforcement in masonry walls and veneer backup.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-concrete-masonry-vertical-joint-reinforcement-9-gauge-10-ft",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Vertical joint reinforcement, 9-gauge, 10 ft",
+    "description": "Vertical joint reinforcement for masonry walls requiring enhanced vertical load transfer and crack control.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
     ]
   },
   {
@@ -8702,6 +15619,1553 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-mep-backflow-preventer-1-in-reduced-pressure",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Backflow preventer, 1 in, reduced pressure",
+    "description": "Reduced pressure backflow preventer for irrigation and fire line cross-connection protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-mep-black-steel-pipe-schedule-40-3-4-in-10-ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Black steel pipe, Schedule 40, 3/4 in, 10 ft",
+    "description": "Black steel gas pipe for natural gas and propane distribution in commercial and residential buildings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 1 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-cap-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 1 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-cap-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-cap-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-cap-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-coupling-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 1 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-coupling-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-coupling-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-coupling-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-tee-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 1 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-tee-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-tee-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-tee-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-mep-csst-gas-tubing-1-2-in-25-ft-coil",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CSST gas tubing, 1/2 in, 25 ft coil",
+    "description": "Corrugated stainless steel gas tubing for flexible gas appliance connections and distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-mep-gas-flex-connector-3-4-in-x-24-in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Gas flex connector, 3/4 in x 24 in",
+    "description": "Flexible gas appliance connector for ranges, dryers, and gas-fired equipment connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-mep-gas-shutoff-valve-ball-3-4-in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Gas shutoff valve, ball, 3/4 in",
+    "description": "Full-port gas ball shutoff valve for appliance and branch line isolation in gas piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 21,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1-1-2in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1-1/2 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1-1/2 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 17,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1-1-4in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1-1/4 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1-1/4 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1-2in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1/2 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1/2 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-2in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 2 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 2 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-3-4in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 3/4 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 3/4 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-mep-water-meter-3-4-in-residential",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Water meter, 3/4 in, residential",
+    "description": "Residential water meter for potable water service entry and utility billing connection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-rebar-reinforcement-accessories-rebar-chair-slab-bolster-plastic-or-steel",
@@ -9095,6 +17559,126 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-charcoal",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, charcoal, per square",
+    "description": "Architectural asphalt shingle, charcoal color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "charcoal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 110,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-desert-tan",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, desert tan, per square",
+    "description": "Architectural asphalt shingle, desert tan color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "desert tan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 115,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-forest-green",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, forest green, per square",
+    "description": "Architectural asphalt shingle, forest green color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "forest green"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 105,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-slate-gray",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, slate gray, per square",
+    "description": "Architectural asphalt shingle, slate gray color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "slate gray"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 100,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-weathered-wood",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, weathered wood, per square",
+    "description": "Architectural asphalt shingle, weathered wood color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "weathered wood"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 3,
     "id": "material-roofing-drip-edge-aluminum-10-ft",
     "type": "material",
@@ -9416,6 +18000,369 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-roofing-exterior-flashing-step-aluminum-5x7-in",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Flashing, step, aluminum, 5x7 in",
+    "description": "Aluminum step flashing for sidewall to shingle roof intersection waterproofing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-roofing-exterior-flashing-valley-w-type-24-in-x-10-ft",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Flashing, valley, W-type, 24 in x 10 ft",
+    "description": "W-type valley flashing for open valley shingle roof water management.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-pipe-boot-epdm-1-1-2-in",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Pipe boot, EPDM, 1-1/2 in",
+    "description": "EPDM pipe boot flashing for plumbing vent penetration through shingle roof surfaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-roofing-exterior-pipe-boot-epdm-3-in",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Pipe boot, EPDM, 3 in",
+    "description": "EPDM pipe boot flashing for larger vent and pipe penetrations through roofing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-roof-vent-turtle-type-aluminum",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Roof vent, turtle type, aluminum",
+    "description": "Aluminum turtle-type roof vent for attic exhaust ventilation on shingle roof systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-roofing-exterior-skylight-fixed-2x4-ft-curb-mount",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Skylight, fixed, 2x4 ft, curb mount",
+    "description": "Fixed curb-mount skylight for natural daylight in sloped roof applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.65,
+    "type": "material",
+    "id": "material-roofing-exterior-epdm-membrane-60-mil-black-per-sf",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "EPDM membrane, 60 mil, black, per SF",
+    "description": "Ethylene propylene diene monomer single-ply roof membrane for low-slope roofing.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-roofing-exterior-roof-insulation-polyiso-2-in-4x8",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "Roof insulation, polyiso, 2 in, 4x8",
+    "description": "Polyisocyanurate rigid roof insulation board for tapered and flat low-slope roof assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "type": "material",
+    "id": "material-roofing-exterior-roof-insulation-polyiso-3-in-4x8",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "Roof insulation, polyiso, 3 in, 4x8",
+    "description": "Polyisocyanurate rigid roof insulation board for enhanced R-value in low-slope roofs.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-roofing-exterior-tpo-membrane-60-mil-white-per-sf",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "TPO membrane, 60 mil, white, per SF",
+    "description": "Thermoplastic polyolefin single-ply roof membrane for low-slope commercial roofing systems.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-tpo-seam-tape-6-in-x-100-ft-roll",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "TPO seam tape, 6 in x 100 ft roll",
+    "description": "TPO membrane seam tape for heat-welded lap seam reinforcement in TPO roofing.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-roofing-exterior-corrugated-metal-panel-29-ga-2-1-2-in-profile-per-sf",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Corrugated metal panel, 29 ga, 2-1/2 in profile, per SF",
+    "description": "Corrugated metal roof and wall panel for agricultural, utility, and light commercial applications.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-metal-roof-eave-trim-10-ft",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Metal roof eave trim, 10 ft",
+    "description": "Metal eave drip trim for roof edge water management on metal roofing systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-metal-roof-ridge-cap-standing-seam-10-ft",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Metal roof ridge cap, standing-seam, 10 ft",
+    "description": "Standing-seam metal ridge cap for weathertight closure at the roof ridge line.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-roofing-exterior-standing-seam-metal-panel-24-ga-16-in-coverage-per-sf",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Standing-seam metal panel, 24 ga, 16 in coverage, per SF",
+    "description": "Standing-seam metal roof panel for commercial and residential steep-slope metal roofing systems.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "material-roofing-shingles-asphalt-shingles-architectural-laminated-per-square",
@@ -9652,6 +18599,84 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-bank-run-gravel-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Bank run gravel, per ton",
+    "description": "Bank run gravel for subbase, fill, and general site grading applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-concrete-sand-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Concrete sand, per ton",
+    "description": "Concrete sand for pipe bedding, paver base, and fine grading under hardscape.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-sitework-aggregate-crushed-stone-2-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Crushed stone, #2, per ton",
+    "description": "Large crushed stone aggregate for subbase, drainage, and heavy-duty base course applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 6,
     "id": "material-sitework-crushed-stone-57-cy",
     "type": "material",
@@ -9672,6 +18697,31 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "aggregate",
       "grading",
       "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-erosion-erosion-control-blanket-straw-8-ft-x-112-5-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Erosion control blanket, straw, 8 ft x 112.5 ft",
+    "description": "Straw erosion control blanket for slope protection during seeding and site stabilization.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
     ]
   },
   {
@@ -9704,6 +18754,87 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-filter-fabric-nonwoven-15-ft-x-300-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Filter fabric, nonwoven, 15 ft x 300 ft",
+    "description": "Nonwoven geotextile filter fabric for subsurface drainage and separation applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-sitework-geocell-hdpe-8-in-depth-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Geocell, HDPE, 8 in depth, per SF",
+    "description": "HDPE geocell confinement system for slope stabilization and load support over soft soils.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-sitework-geogrid-biaxial-4-ft-x-50-ft-roll",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Geogrid, biaxial, 4 ft x 50 ft roll",
+    "description": "Biaxial geogrid for subgrade stabilization under roads, parking, and paved areas.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 6,
     "id": "material-sitework-geotextile-fabric-woven-12-5-ft-x-360-ft",
     "type": "material",
@@ -9724,6 +18855,185 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "aggregate",
       "grading",
       "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.15,
+    "type": "material",
+    "id": "material-sitework-erosion-hydroseeding-mulch-wood-fiber-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Hydroseeding mulch, wood fiber, per SF",
+    "description": "Wood fiber hydroseeding mulch for slope stabilization and lawn establishment.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-erosion-inlet-protection-silt-sack-standard",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Inlet protection, silt sack, standard",
+    "description": "Silt sack inlet protection for storm drain inlet sediment control during construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-sitework-lime-hydrated-50-lb-bag",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Lime, hydrated, 50 lb bag",
+    "description": "Hydrated lime for soil stabilization and masonry mortar mixing applications.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-sitework-aggregate-pea-gravel-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Pea gravel, per ton",
+    "description": "Pea gravel for drainage fill, pipe bedding, and decorative landscape applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-portland-cement-type-i-94-lb-bag",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Portland cement, Type I, 94 lb bag",
+    "description": "Type I portland cement bag for small concrete batches, grout, and mortar mixing.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-aggregate-recycled-concrete-aggregate-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Recycled concrete aggregate, per ton",
+    "description": "Recycled concrete aggregate for subbase, fill, and road base applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-sitework-riprap-fabric-heavy-duty-15-ft-x-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Riprap fabric, heavy-duty, 15 ft x 100 ft",
+    "description": "Heavy-duty geotextile for underlayment beneath rip-rap and erosion control stone.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
     ]
   },
   {
@@ -9756,6 +19066,55 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-aggregate-sand-mason-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Sand, mason, per ton",
+    "description": "Mason sand for mortar mixing, paver bedding, and fine grading applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-sitework-erosion-silt-fence-stakes-hardwood-24-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Silt fence stakes, hardwood, 24 in",
+    "description": "Hardwood silt fence stakes for installing perimeter sediment control fencing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 6,
     "id": "material-sitework-silt-fence-3-ft-x-100-ft",
     "type": "material",
@@ -9782,6 +19141,33 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-sitework-structural-fill-compacted-per-cy",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Structural fill, compacted, per CY",
+    "description": "Compacted structural fill for building pad preparation and site grading.",
+    "unit": "CY",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 6,
     "id": "material-sitework-topsoil-screened-cy",
     "type": "material",
@@ -9802,6 +19188,33 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "aggregate",
       "grading",
       "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-catch-basin-adapter-4-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Catch basin adapter, 4 in",
+    "description": "Catch basin adapter fitting for connecting lateral drain pipe to catch basin inlet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
     ]
   },
   {
@@ -9912,6 +19325,183 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-sitework-french-drain-prefabricated-12-in-x-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "French drain, prefabricated, 12 in x 100 ft",
+    "description": "Prefabricated French drain system for foundation and yard subsurface drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "material",
+    "id": "material-sitework-grease-interceptor-50-gpm-concrete",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Grease interceptor, 50 GPM, concrete",
+    "description": "Concrete grease interceptor for commercial kitchen wastewater pretreatment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-leach-field-chamber-plastic-34-in-x-52-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Leach field chamber, plastic, 34 in x 52 in",
+    "description": "Plastic leach field chamber for septic system effluent dispersal in drain fields.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "material",
+    "id": "material-sitework-manhole-barrel-precast-4-ft-x-4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Manhole barrel, precast, 4 ft x 4 ft",
+    "description": "Precast concrete manhole barrel section for sanitary sewer and storm drain manholes.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "manhole",
+      "drainage",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "type": "material",
+    "id": "material-sitework-manhole-cone-precast-4-ft-rise",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Manhole cone, precast, 4 ft rise",
+    "description": "Precast concrete manhole cone section for grade adjustment at manhole access points.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "manhole",
+      "drainage",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-sitework-manhole-frame-and-cover-cast-iron-24-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Manhole frame and cover, cast iron, 24 in",
+    "description": "Cast iron manhole frame and cover for sanitary sewer and storm drain access points.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "manhole",
+      "drainage",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2500,
+    "type": "material",
+    "id": "material-sitework-oil-water-separator-100-gpm",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Oil-water separator, 100 GPM",
+    "description": "Oil-water separator for vehicle maintenance and parking area runoff pretreatment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 6,
     "id": "material-drainage-pop-up-emitter-3-in",
     "type": "material",
@@ -9938,6 +19528,153 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 280,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-10in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 10 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 10 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 345,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-12in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 12 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 12 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-4in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 4 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 4 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 150,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-6in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 6 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 6 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 215,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-8in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 8 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 8 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1250,
+    "type": "material",
+    "id": "material-sitework-septic-tank-precast-concrete-1-000-gal",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Septic tank, precast concrete, 1,000 gal",
+    "description": "Precast concrete septic tank for on-site wastewater treatment in non-sewered areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 6,
     "id": "material-drainage-trench-drain-system-polymer-4-in-x-10-ft",
     "type": "material",
@@ -9958,6 +19695,1093 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "storm",
       "pipe",
       "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-underdrain-pipe-perforated-4-in-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Underdrain pipe, perforated, 4 in, 100 ft",
+    "description": "Perforated underdrain pipe for subsurface drainage behind retaining walls and subgrades.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-paving-asphalt-base-course-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Asphalt, base course, per ton",
+    "description": "Hot-mix asphalt base course for road, parking, and driveway sub-base paving.",
+    "unit": "TON",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-paving-asphalt-surface-course-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Asphalt, surface course, per ton",
+    "description": "Hot-mix asphalt surface course for final wearing surface on roads and parking areas.",
+    "unit": "TON",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-bollard-steel-pipe-6-in-x-36-in-filled",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Bollard, steel pipe, 6 in x 36 in, filled",
+    "description": "Steel pipe bollard filled with concrete for vehicle impact protection at building entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-sitework-paving-concrete-paving-4-in-unreinforced-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Concrete paving, 4 in unreinforced, per SF",
+    "description": "Unreinforced concrete paving for sidewalks, drives, and light-duty flatwork.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.25,
+    "type": "material",
+    "id": "material-sitework-paving-concrete-paving-6-in-unreinforced-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Concrete paving, 6 in unreinforced, per SF",
+    "description": "Unreinforced concrete paving for heavy-duty sidewalks, drives, and parking areas.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-paving-curb-and-gutter-cast-in-place-per-lf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Curb and gutter, cast-in-place, per LF",
+    "description": "Cast-in-place concrete curb and gutter for street, parking, and site paving edge restraint.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-sitework-curing-compound-wax-based-5-gal",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Curing compound, wax-based, 5 gal",
+    "description": "Wax-based curing compound for horizontal concrete curing on paving and flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-sitework-detectable-warning-plate-cast-iron-2x4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Detectable warning plate, cast iron, 2x4 ft",
+    "description": "Cast iron detectable warning surface plate for ADA-compliant truncated dome at crossings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-sitework-doweling-basket-1-1-4-in-dowel-12-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Doweling basket, 1-1/4 in dowel, 12 ft",
+    "description": "Doweling basket assembly for load transfer at transverse joints in concrete paving.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-sitework-joint-sealant-hot-pour-30-lb-block",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Joint sealant, hot-pour, 30 lb block",
+    "description": "Hot-pour joint sealant for sealing expansion joints in concrete paving and sidewalks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-pavement-marking-tape-white-4-in-x-36-yd",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Pavement marking tape, white, 4 in x 36 yd",
+    "description": "Preformed pavement marking tape for durable parking lot and road lane markings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-precast-curb-6-in-x-18-in-4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Precast curb, 6 in x 18 in, 4 ft",
+    "description": "Precast concrete curb section for parking lot and street curb installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-precast-gutter-12-in-4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Precast gutter, 12 in, 4 ft",
+    "description": "Precast concrete gutter section for drainage alongside curbs and paved areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-speed-bump-asphalt-6-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Speed bump, asphalt, 6 ft",
+    "description": "Asphalt speed bump for traffic calming in parking lots and private drives.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-traffic-paint-waterborne-white-5-gal",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Traffic paint, waterborne, white, 5 gal",
+    "description": "Waterborne traffic paint for parking lot striping, arrows, and pavement markings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-wheel-stop-precast-concrete-6-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Wheel stop, precast concrete, 6 ft",
+    "description": "Precast concrete wheel stop for parking stall vehicle positioning in parking lots.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-sitework-bio-retention-soil-mix-per-cy",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Bio-retention soil mix, per CY",
+    "description": "Engineered bio-retention soil mix for rain garden and stormwater BMP installations.",
+    "unit": "CY",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-decorative-rock-river-rock-2-4-in-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Decorative rock, river rock, 2-4 in, per ton",
+    "description": "River rock decorative stone for dry creek beds, landscape beds, and ground cover.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-drip-irrigation-1-2-in-tubing-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Drip irrigation, 1/2 in tubing, 100 ft",
+    "description": "Half-inch drip irrigation tubing for efficient landscape bed and shrub watering.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-sitework-irrigation-controller-12-station-outdoor",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Irrigation controller, 12-station, outdoor",
+    "description": "Outdoor irrigation controller for automated landscape watering schedule management.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-irrigation-sprinkler-rotor-15-50-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Irrigation sprinkler, rotor, 15-50 ft",
+    "description": "Gear-driven rotor sprinkler for landscape irrigation coverage of large turf areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-landscape-boulder-granite-18-24-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Landscape boulder, granite, 18-24 in",
+    "description": "Granite landscape boulder for decorative accent in planting beds and entry features.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-sitework-permeable-paver-concrete-4x8-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Permeable paver, concrete, 4x8, per SF",
+    "description": "Permeable interlocking concrete paver for stormwater infiltration parking and walks.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-sitework-tree-grate-cast-iron-4x4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Tree grate, cast iron, 4x4 ft",
+    "description": "Cast iron tree grate for protecting tree root zones in hardscape and sidewalk areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-sitework-tree-well-precast-concrete-4x4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Tree well, precast concrete, 4x4 ft",
+    "description": "Precast concrete tree well for urban street tree planting in sidewalk hardscape.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-fitting-ductile-iron-coupling-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "Ductile iron coupling, 6 in",
+    "description": "Ductile iron coupling, 6 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "type": "material",
+    "id": "material-sitework-pipe-ductile-iron-pipe-6-in-18-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "Ductile iron pipe, 6 in, 18 ft",
+    "description": "Ductile iron pipe for buried water main and force main applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1850,
+    "type": "material",
+    "id": "material-sitework-fire-hydrant-ductile-iron-5-1-4-in-barrel",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Fire hydrant, ductile iron, 5-1/4 in barrel",
+    "description": "Ductile iron fire hydrant for municipal and private fire protection water supply systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "material",
+    "id": "material-sitework-gate-valve-resilient-wedge-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Gate valve, resilient wedge, 6 in",
+    "description": "Resilient wedge gate valve for water main branch isolation and system control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-pipe-hdpe-force-main-dr11-4-in-40-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "HDPE force main, DR11, 4 in, 40 ft",
+    "description": "HDPE force main pipe for sewer pump discharge and pressure piping applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-fitting-hdpe-fusion-coupling-4-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "HDPE fusion coupling, 4 in",
+    "description": "HDPE fusion coupling, 4 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-sitework-meter-pit-precast-concrete-30-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Meter pit, precast concrete, 30 in",
+    "description": "Precast concrete meter pit for housing water meter and service valve at property line.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-cleanout-sdr-35-4-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC cleanout, SDR-35, 4 in",
+    "description": "PVC cleanout, SDR-35, 4 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-elbow-45-c900-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC elbow, 45°, C900, 6 in",
+    "description": "PVC elbow, 45°, C900, 6 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-reducer-8x6-in-c900",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC reducer, 8x6 in, C900",
+    "description": "PVC reducer, 8x6 in, C900 for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-pipe-pvc-sewer-main-sdr-35-8-in-14-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC sewer main, SDR-35, 8 in, 14 ft",
+    "description": "PVC SDR-35 sewer main pipe for gravity sanitary sewer collection systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-tee-c900-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC tee, C900, 6 in",
+    "description": "PVC tee, C900, 6 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-pipe-pvc-water-main-c900-6-in-20-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC water main, C900, 6 in, 20 ft",
+    "description": "PVC C900 water main pipe for municipal and private potable water distribution systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-sitework-pipe-pvc-water-main-c900-8-in-20-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC water main, C900, 8 in, 20 ft",
+    "description": "PVC C900 water main pipe for larger capacity potable water distribution mains.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-water-service-line-copper-type-k-1-in-per-lf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Water service line, copper, Type K, 1 in, per LF",
+    "description": "Type K copper water service line for building water service entry from main to meter.",
+    "unit": "LF",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-roofing-exterior-backer-rod-closed-cell-1-in-100-ft-roll",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Backer rod, closed cell, 1 in, 100 ft roll",
+    "description": "Closed-cell backer rod for larger joint backing in exterior sealant applications.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
     ]
   },
   {
@@ -10011,6 +20835,30 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "flashing",
       "membrane",
       "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-backer-rod-closed-cell-3-4-in-100-ft-roll",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Backer rod, closed cell, 3/4 in, 100 ft roll",
+    "description": "Closed-cell backer rod for joint backing before exterior sealant application.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
     ]
   },
   {
@@ -10123,6 +20971,54 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-sealant-polyurethane-gray-10-oz-tube",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Exterior sealant, polyurethane, gray, 10 oz tube",
+    "description": "Polyurethane exterior sealant for masonry, concrete, and metal joint sealing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-sealant-silicone-clear-10-oz-tube",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Exterior sealant, silicone, clear, 10 oz tube",
+    "description": "Silicone exterior sealant for window, door, and siding perimeter joint sealing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 10,
     "id": "material-waterproofing-foundation-waterproofing-membrane-40-mil",
     "type": "material",
@@ -10170,6 +21066,29 @@ export const STARTER_MATERIAL_ITEMS: StarterCostLibraryItem[] = [
       "flashing",
       "membrane",
       "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-roofing-exterior-window-flashing-tape-4-in-x-75-ft",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Window flashing tape, 4 in x 75 ft",
+    "description": "Flexible window flashing tape for pan and jamb flashing at rough window openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
     ]
   },
   {

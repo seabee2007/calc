@@ -532,5 +532,499 @@
       "daily",
       "rental-rate"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-portable-toilet-standard-monthly-rental",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Portable toilet, standard, monthly rental",
+    "description": "Standard portable toilet unit for construction site worker sanitation requirements.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-portable-toilet-ada-compliant-monthly-rental",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Portable toilet, ADA compliant, monthly rental",
+    "description": "ADA-compliant portable toilet for accessible worker sanitation on construction sites.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 350,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dumpster-10-cy-weekly-haul",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dumpster, 10 CY, weekly haul",
+    "description": "10 cubic yard roll-off dumpster for construction debris and waste disposal.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dumpster-20-cy-weekly-haul",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dumpster, 20 CY, weekly haul",
+    "description": "20 cubic yard roll-off dumpster for medium-size construction waste disposal.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 525,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dumpster-30-cy-weekly-haul",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dumpster, 30 CY, weekly haul",
+    "description": "30 cubic yard roll-off dumpster for large construction and demolition waste disposal.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-temporary-fence-chain-link-6-ft-x-10-ft-panel",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence, chain link, 6 ft x 10 ft panel",
+    "description": "Chain link temporary fence panel for site perimeter security and OSHA compliance.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-temporary-fence-barricade-water-filled-6-ft",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence, barricade, water-filled, 6 ft",
+    "description": "Water-filled plastic barricade for traffic control and site perimeter delineation.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-water-trailer-500-gal-towable",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Water trailer, 500 gal, towable",
+    "description": "Towable water trailer for dust control, compaction, and temporary site water supply.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-water-trailer-1-000-gal-towable",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Water trailer, 1,000 gal, towable",
+    "description": "Large towable water trailer for extended dust control and site water needs.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dust-control-water-truck-2-500-gal",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust control water truck, 2,500 gal",
+    "description": "Water truck dedicated to dust suppression on active construction and grading sites.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-security-camera-wireless-solar-powered",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Security camera, wireless, solar-powered",
+    "description": "Solar-powered wireless security camera for construction site monitoring and theft deterrence.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-tool-trailer-enclosed-16-ft",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Tool trailer, enclosed, 16 ft",
+    "description": "Enclosed tool trailer for secure storage and transport of jobsite tools and equipment.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-site-office-trailer-8x20-ft-furnished",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Site office trailer, 8x20 ft, furnished",
+    "description": "Furnished site office trailer for project management, meetings, and plan storage.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-storage-container-20-ft-wind-and-watertight",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Storage container, 20 ft, wind and watertight",
+    "description": "20-foot shipping container for secure on-site material and equipment storage.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-storage-container-40-ft-wind-and-watertight",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Storage container, 40 ft, wind and watertight",
+    "description": "40-foot shipping container for large-capacity on-site material storage.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-temporary-power-pole-metered-200a",
+    "category": "Temporary / Site",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary power pole, metered, 200A",
+    "description": "Temporary metered power pole for construction site electrical service during building.",
+    "tags": [
+      "temporary",
+      "power and lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-extension-cord-heavy-duty-100-ft-12-3",
+    "category": "Temporary / Site",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Extension cord, heavy-duty, 100 ft, 12/3",
+    "description": "Heavy-duty 100-foot extension cord for temporary power distribution on jobsites.",
+    "tags": [
+      "temporary",
+      "power and lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-job-box-gang-box-48-in-lockable",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Job box, gang box, 48 in, lockable",
+    "description": "Lockable gang box for secure storage of small tools and consumables on jobsites.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-first-aid-station-ansi-class-a-cabinet",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "First aid station, ANSI Class A, cabinet",
+    "description": "ANSI Class A first aid cabinet for OSHA-compliant construction site medical supplies.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
   }
 ]

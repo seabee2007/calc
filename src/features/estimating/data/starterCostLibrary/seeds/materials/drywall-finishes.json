@@ -1340,5 +1340,1811 @@
       "finish",
       "contractor"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-cement-board-1-2-in-3x5-ft",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Cement board, 1/2 in, 3x5 ft",
+    "description": "Cement backer board for tile underlayment in wet areas, showers, and tub surrounds.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "SF"
+    ],
+    "tags": [
+      "cement board",
+      "tile",
+      "backer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-cement-board-5-8-in-4x8-ft",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Cement board, 5/8 in, 4x8 ft",
+    "description": "Heavy cement backer board for floor tile underlayment and exterior tile applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "SF"
+    ],
+    "tags": [
+      "cement board",
+      "tile",
+      "backer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-cement-board-screw-1-1-4-in-100-ct-box",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Cement board screw, 1-1/4 in, 100 ct box",
+    "description": "Corrosion-resistant cement board screws for attaching backer board to framing.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "SF"
+    ],
+    "tags": [
+      "cement board",
+      "tile",
+      "backer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-casing-bead-vinyl-1-2-in-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Casing bead, vinyl, 1/2 in, 8 ft",
+    "description": "Vinyl casing bead for gypsum board termination at dissimilar material joints.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-j-bead-vinyl-1-2-in-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "J-bead, vinyl, 1/2 in, 8 ft",
+    "description": "Vinyl J-bead trim for gypsum board edge termination at openings and soffits.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-l-bead-vinyl-1-2-in-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "L-bead, vinyl, 1/2 in, 8 ft",
+    "description": "Vinyl L-bead trim for gypsum board edge finishing at ceiling and wall transitions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-drywall-finishes-arch-bead-vinyl-flexible-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Arch bead, vinyl, flexible, 8 ft",
+    "description": "Flexible vinyl arch bead for curved gypsum board corner and arch finishing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "bead",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-1-1-4-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 1-1/4 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 1-1/4 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.5,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-1-5-8-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 1-5/8 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 1-5/8 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-2-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 2 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 2 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10.5,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-2-1-2-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 2-1/2 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 2-1/2 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-screw-3-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall screw, fine thread, 3 in, 1 lb box",
+    "description": "Fine-thread drywall screw, 3 in, for attaching gypsum board to wood and metal framing members.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "drywall",
+      "screw",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-drywall-finishes-acoustic-ceiling-tile-2x2-ft-white-box-of-12",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Acoustic ceiling tile, 2x2 ft, white, box of 12",
+    "description": "Mineral fiber acoustic ceiling tile for suspended ceiling grid systems in commercial spaces.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "type": "material",
+    "id": "material-drywall-finishes-acoustic-ceiling-tile-2x4-ft-white-box-of-8",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Acoustic ceiling tile, 2x4 ft, white, box of 8",
+    "description": "Mineral fiber acoustic ceiling tile for 2x4 suspended ceiling grid applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-grid-main-tee-12-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling grid, main tee, 12 ft",
+    "description": "Suspended ceiling main tee grid member for acoustic tile ceiling systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-grid-cross-tee-4-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling grid, cross tee, 4 ft",
+    "description": "Suspended ceiling cross tee grid member for 2x4 and 2x2 tile layouts.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-grid-wall-angle-12-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling grid, wall angle, 12 ft",
+    "description": "Suspended ceiling wall angle for perimeter support of acoustic tile ceiling systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-ceiling-hanger-wire-12-ga-100-ft-roll",
+    "category": "Drywall / Finishes",
+    "subcategory": "Acoustic Ceiling",
+    "csiDivision": "09",
+    "csiSection": "09 51 00",
+    "name": "Ceiling hanger wire, 12 ga, 100 ft roll",
+    "description": "Galvanized hanger wire for suspending acoustic ceiling grid from structure above.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF",
+      "ROLL"
+    ],
+    "tags": [
+      "ceiling",
+      "acoustic",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.5,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-hardwood-flooring-oak-3-4-in-x-2-1-4-in-per-sf",
+    "category": "Flooring",
+    "subcategory": "Hardwood",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Hardwood flooring, oak, 3/4 in x 2-1/4 in, per SF",
+    "description": "Solid oak hardwood flooring for nail-down installation in living areas and bedrooms.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.25,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-engineered-hardwood-oak-3-8-in-per-sf",
+    "category": "Flooring",
+    "subcategory": "Hardwood",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Engineered hardwood, oak, 3/8 in, per SF",
+    "description": "Engineered oak hardwood flooring for glue-down or float installation over concrete.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.5,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-sheet-vinyl-12-ft-wide-per-sf",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Sheet vinyl, 12 ft wide, per SF",
+    "description": "Sheet vinyl flooring for bathroom, kitchen, and utility room floor finishes.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.25,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-lvp-flooring-5-mil-wear-layer-22-sf-box",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "LVP flooring, 5 mil wear layer, 22 SF box",
+    "description": "Luxury vinyl plank flooring with 5 mil wear layer for residential floor finishes.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-wall-base-rubber-4-in-per-lf",
+    "category": "Flooring",
+    "subcategory": "Wall Base",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Wall base, rubber, 4 in, per LF",
+    "description": "Rubber cove wall base for commercial and residential floor-to-wall transition.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-drywall-finishes-floor-wall-base-vinyl-4-in-per-lf",
+    "category": "Flooring",
+    "subcategory": "Wall Base",
+    "csiDivision": "09",
+    "csiSection": "09 64 00",
+    "name": "Wall base, vinyl, 4 in, per LF",
+    "description": "Vinyl wall base for residential and light commercial floor perimeter finish.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BOX"
+    ],
+    "tags": [
+      "flooring",
+      "finish",
+      "floor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-epoxy-floor-coating-2-part-3-gal-kit",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Epoxy floor coating, 2-part, 3 gal kit",
+    "description": "Two-part epoxy floor coating for garage, warehouse, and industrial floor protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-anti-slip-floor-additive-1-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Anti-slip floor additive, 1 lb bag",
+    "description": "Anti-slip additive for floor coatings and paint to improve traction on walking surfaces.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-drywall-primer-pva-5-gal-pail",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Drywall primer, PVA, 5 gal pail",
+    "description": "PVA drywall primer for new gypsum board before topcoat paint application.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-ceiling-paint-flat-white-5-gal-pail",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Ceiling paint, flat white, 5 gal pail",
+    "description": "Flat white ceiling paint for interior gypsum board and acoustic ceiling surfaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "coating",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-ceramic-wall-tile-3x6-subway-white-box",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Ceramic wall tile, 3x6 subway, white, box",
+    "description": "Ceramic subway wall tile for bathroom and kitchen backsplash and wall tile applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.25,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-porcelain-floor-tile-12x24-gray-box",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Porcelain floor tile, 12x24, gray, box",
+    "description": "Large-format porcelain floor tile for bathroom, kitchen, and entryway floor finishes.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-tile-grout-sanded-25-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile grout, sanded, 25 lb bag",
+    "description": "Sanded tile grout for floor and wall tile joints 1/8 inch and wider.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-tile-thinset-modified-50-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile thinset, modified, 50 lb bag",
+    "description": "Polymer-modified thinset mortar for setting ceramic and porcelain floor and wall tile.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-tile-trim-bullnose-3x12-box",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile trim, bullnose, 3x12, box",
+    "description": "Ceramic bullnose trim tile for exposed tile edge finishing at wainscot and openings.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "BAG",
+      "SF"
+    ],
+    "tags": [
+      "tile",
+      "grout",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-spray-foam-open-cell-12-in-depth-per-sf",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Spray foam, open cell, 12 in depth, per SF",
+    "description": "Open-cell spray polyurethane foam insulation for attic and wall cavity air sealing and insulation.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-rigid-insulation-eps-1-in-4x8",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Rigid insulation, EPS, 1 in, 4x8",
+    "description": "Expanded polystyrene rigid insulation board for exterior wall and foundation insulation.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-rigid-insulation-eps-2-in-4x8",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Rigid insulation, EPS, 2 in, 4x8",
+    "description": "Expanded polystyrene rigid insulation board for enhanced exterior continuous insulation.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-drywall-finishes-insul-sound-batt-mineral-wool-3-1-2-in-15-in-wide",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Sound batt, mineral wool, 3-1/2 in, 15 in wide",
+    "description": "Mineral wool sound insulation batt for interior partition acoustic performance.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "insulation",
+      "thermal",
+      "acoustic"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-1-4-in-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 1/4 in, 4x8",
+    "description": "1/4 in gypsum wallboard, 4 foot by 8 foot, for flexible gypsum board for curved walls and archway construction applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-3-8-in-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 3/8 in, 4x8",
+    "description": "3/8 in gypsum wallboard, 4 foot by 8 foot, for lightweight gypsum board for overlay and mobile home renovation applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-5-8-in-abuse-resistant-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 5/8 in abuse-resistant, 4x8",
+    "description": "5/8 in abuse-resistant gypsum wallboard, 4 foot by 8 foot, for abuse-resistant gypsum board for corridors, classrooms, and high-traffic areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-drywall-finishes-gypsum-5-8-in-shaft-liner-4x8",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum board, 5/8 in shaft liner, 4x8",
+    "description": "5/8 in shaft liner gypsum wallboard, 4 foot by 8 foot, for shaft liner gypsum board for mechanical and elevator shaft wall assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-drywall-finishes-corner-bead-vinyl-bullnose-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Corner bead, vinyl, bullnose, 8 ft",
+    "description": "Corner bead, vinyl, bullnose, 8 ft for interior finish and drywall assembly applications including vinyl bullnose corner bead for rounded outside corner gypsum board finishing..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-drywall-finishes-control-joint-zinc-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Control joint, zinc, 8 ft",
+    "description": "Control joint, zinc, 8 ft for interior finish and drywall assembly applications including zinc control joint for gypsum board expansion and movement joint treatment..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-tape-paper-2-1-16-in-x-500-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Tape, paper, 2-1/16 in x 500 ft",
+    "description": "Tape, paper, 2-1/16 in x 500 ft for interior finish and drywall assembly applications including paper joint tape roll for gypsum board joint finishing and embedding..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-tape-fiberglass-mesh-2-in-x-300-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Tape, fiberglass mesh, 2 in x 300 ft",
+    "description": "Tape, fiberglass mesh, 2 in x 300 ft for interior finish and drywall assembly applications including fiberglass mesh tape for gypsum board joint reinforcement and crack prevention..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-drywall-finishes-primer-stain-blocking-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Primer, stain-blocking, 1 gal",
+    "description": "Primer, stain-blocking, 1 gal for interior finish and drywall assembly applications including stain-blocking primer for covering water stains and tannin bleed before painting..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-exterior-latex-flat-5-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Paint, exterior latex, flat, 5 gal",
+    "description": "Paint, exterior latex, flat, 5 gal for interior finish and drywall assembly applications including exterior flat latex paint for soffits, ceilings, and protected exterior surfaces..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-drywall-finishes-paint-interior-latex-semi-gloss-5-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Paint, interior latex, semi-gloss, 5 gal",
+    "description": "Paint, interior latex, semi-gloss, 5 gal for interior finish and drywall assembly applications including interior semi-gloss latex paint for trim, doors, and wet-area wall surfaces..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-drywall-finishes-wood-stain-interior-oil-based-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Wood stain, interior, oil-based, 1 gal",
+    "description": "Wood stain, interior, oil-based, 1 gal for interior finish and drywall assembly applications including oil-based interior wood stain for finishing trim, doors, and exposed wood..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-drywall-finishes-polyurethane-water-based-satin-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Polyurethane, water-based, satin, 1 gal",
+    "description": "Polyurethane, water-based, satin, 1 gal for interior finish and drywall assembly applications including water-based satin polyurethane for protecting interior wood floors and trim..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-carpet-broadloom-nylon-per-sy",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Carpet, broadloom, nylon, per SY",
+    "description": "Carpet, broadloom, nylon, per SY for interior finish and drywall assembly applications including nylon broadloom carpet for office, bedroom, and living area floor finishes..",
+    "unit": "SY",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.65,
+    "type": "material",
+    "id": "material-drywall-finishes-carpet-pad-rebond-7-16-in-per-sf",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Carpet pad, rebond, 7/16 in, per SF",
+    "description": "Carpet pad, rebond, 7/16 in, per SF for interior finish and drywall assembly applications including rebond carpet cushion pad for residential and commercial carpet installations..",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-transition-strip-metal-carpet-to-tile",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Transition strip, metal, carpet to tile",
+    "description": "Transition strip, metal, carpet to tile for interior finish and drywall assembly applications including metal transition strip for carpet to tile floor height and material change..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-drywall-finishes-reducer-strip-vinyl-6-ft",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Reducer strip, vinyl, 6 ft",
+    "description": "Reducer strip, vinyl, 6 ft for interior finish and drywall assembly applications including vinyl floor reducer strip for transitioning between different floor finish heights..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-mosaic-glass-12x12-sheet",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile, mosaic, glass, 12x12 sheet",
+    "description": "Tile, mosaic, glass, 12x12 sheet for interior finish and drywall assembly applications including glass mosaic tile sheet for decorative backsplash and accent wall tile applications..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-tile-porcelain-large-format-24x48",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Tile, porcelain, large format, 24x48",
+    "description": "Tile, porcelain, large format, 24x48 for interior finish and drywall assembly applications including large-format porcelain tile for modern floor and wall tile installations..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-drywall-finishes-grout-unsanded-25-lb-bag",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Grout, unsanded, 25 lb bag",
+    "description": "Grout, unsanded, 25 lb bag for interior finish and drywall assembly applications including unsanded tile grout for wall tile joints 1/8 inch and narrower..",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-grout-sealer-penetrating-1-qt",
+    "category": "Finishes",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Grout sealer, penetrating, 1 qt",
+    "description": "Grout sealer, penetrating, 1 qt for interior finish and drywall assembly applications including penetrating grout sealer for protecting tile grout from staining and moisture..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-drywall-finishes-underlayment-cork-1-4-in-4x8",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Underlayment, cork, 1/4 in, 4x8",
+    "description": "Underlayment, cork, 1/4 in, 4x8 for interior finish and drywall assembly applications including cork underlayment board for sound reduction under hard surface flooring..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.35,
+    "type": "material",
+    "id": "material-drywall-finishes-underlayment-foam-1-4-in-roll",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Underlayment, foam, 1/4 in, roll",
+    "description": "Underlayment, foam, 1/4 in, roll for interior finish and drywall assembly applications including foam floor underlayment roll for laminate and floating floor installations..",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-drywall-finishes-insulation-spray-foam-kit-open-cell-200-bd-ft",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Insulation, spray foam kit, open cell, 200 bd ft",
+    "description": "Insulation, spray foam kit, open cell, 200 bd ft for interior finish and drywall assembly applications including open-cell spray foam kit for air sealing and insulating small cavity areas..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-drywall-finishes-insulation-rock-wool-4-in-16-in-wide",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Insulation, rock wool, 4 in, 16 in wide",
+    "description": "Insulation, rock wool, 4 in, 16 in wide for interior finish and drywall assembly applications including mineral wool insulation batt for fire-rated and acoustic partition assemblies..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-insulation-rigid-polyiso-1-in-4x8",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Insulation, rigid, polyiso, 1 in, 4x8",
+    "description": "Insulation, rigid, polyiso, 1 in, 4x8 for interior finish and drywall assembly applications including polyisocyanurate rigid insulation for interior and exterior continuous insulation..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-drywall-finishes-acoustic-sealant-latex-28-oz-tube",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Acoustic sealant, latex, 28 oz tube",
+    "description": "Acoustic sealant, latex, 28 oz tube for interior finish and drywall assembly applications including acoustic sealant for sealing gypsum board perimeters in sound-rated partitions..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-drywall-finishes-resilient-channel-25-ga-8-ft",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Resilient channel, 25 ga, 8 ft",
+    "description": "Resilient channel, 25 ga, 8 ft for interior finish and drywall assembly applications including resilient furring channel for decoupling gypsum board from framing in sound-rated walls..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-drywall-finishes-sound-clip-rubber-for-resilient-channel",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Sound clip, rubber, for resilient channel",
+    "description": "Sound clip, rubber, for resilient channel for interior finish and drywall assembly applications including rubber sound isolation clip for resilient channel attachment in acoustic assemblies..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-drywall-finishes-access-panel-gypsum-12x12-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Access panel, gypsum, 12x12 in",
+    "description": "Access panel, gypsum, 12x12 in for interior finish and drywall assembly applications including gypsum access panel for providing access to valves, cleanouts, and junction boxes..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-drywall-finishes-corner-guard-vinyl-2x48-in",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Corner guard, vinyl, 2x48 in",
+    "description": "Corner guard, vinyl, 2x48 in for interior finish and drywall assembly applications including vinyl corner guard for protecting gypsum board corners in high-traffic corridors..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-drywall-finishes-wallcovering-vinyl-type-ii-per-sf",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Wallcovering, vinyl, Type II, per SF",
+    "description": "Wallcovering, vinyl, Type II, per SF for interior finish and drywall assembly applications including commercial vinyl wallcovering type ii for durable interior wall finish surfaces..",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-drywall-finishes-wallpaper-adhesive-clay-based-1-gal",
+    "category": "Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Wallpaper adhesive, clay-based, 1 gal",
+    "description": "Wallpaper adhesive, clay-based, 1 gal for interior finish and drywall assembly applications including clay-based wallpaper adhesive for installing vinyl and paper wallcoverings..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-drywall-finishes-drywall-adhesive-latex-28-oz-tube",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall adhesive, latex, 28 oz tube",
+    "description": "Drywall adhesive, latex, 28 oz tube for interior finish and drywall assembly applications including latex drywall adhesive for bonding gypsum board to concrete and masonry substrates..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-drywall-finishes-leveling-compound-self-leveling-50-lb-bag",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Leveling compound, self-leveling, 50 lb bag",
+    "description": "Leveling compound, self-leveling, 50 lb bag for interior finish and drywall assembly applications including self-leveling underlayment for correcting uneven subfloors before finish flooring..",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-drywall-finishes-moisture-barrier-6-mil-poly-10-ft-x-100-ft",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Moisture barrier, 6 mil poly, 10 ft x 100 ft",
+    "description": "Moisture barrier, 6 mil poly, 10 ft x 100 ft for interior finish and drywall assembly applications including 6 mil polyethylene moisture barrier for under-slab and crawl space moisture control..",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "BAG"
+    ],
+    "tags": [
+      "drywall",
+      "finish"
+    ]
   }
 ]

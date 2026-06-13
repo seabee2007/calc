@@ -869,5 +869,551 @@
       "weekly",
       "rental-rate"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-excavator-tracked-30-ton-class",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Excavator, tracked, 30-ton class",
+    "description": "Large hydraulic tracked excavator for mass excavation, site grading, and heavy utility trenching.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1200,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-excavator-tracked-50-ton-class",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Excavator, tracked, 50-ton class",
+    "description": "Extra-large hydraulic excavator for deep excavation, mass grading, and major site development.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 650,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-bulldozer-d4-class-crawler",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Bulldozer, D4 class, crawler",
+    "description": "Crawler bulldozer for rough grading, backfilling, and site clearing on medium-size projects.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 950,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-bulldozer-d6-class-crawler",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Bulldozer, D6 class, crawler",
+    "description": "Large crawler bulldozer for mass grading, push-loading, and heavy site development work.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 750,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-motor-grader-14-ft-blade",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Motor grader, 14 ft blade",
+    "description": "Motor grader for fine grading, road subgrade preparation, and surface leveling.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-smooth-drum-compactor-vibratory-84-in",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Smooth-drum compactor, vibratory, 84 in",
+    "description": "Vibratory smooth-drum roller for soil and aggregate base compaction on large areas.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-trench-box-8-ft-x-24-ft-steel",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Trench box, 8 ft x 24 ft, steel",
+    "description": "Steel trench shield box for OSHA-compliant trench excavation protection during utility work.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-trench-box-6-ft-x-16-ft-aluminum",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Trench box, 6 ft x 16 ft, aluminum",
+    "description": "Aluminum trench box for lighter utility trenching with easier handling and setup.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-dewatering-pump-2-in-electric-submersible",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Dewatering pump, 2 in, electric submersible",
+    "description": "Electric submersible dewatering pump for trench, footing, and excavation water removal.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-dewatering-pump-4-in-diesel-trash-pump",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Dewatering pump, 4 in, diesel trash pump",
+    "description": "Diesel trash pump for high-volume dewatering of excavations and flooded site areas.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 350,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-rock-breaker-attachment-20-ton-class",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Rock breaker attachment, 20-ton class",
+    "description": "Hydraulic rock breaker attachment for excavator demolition and rock excavation.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-auger-attachment-18-in-diameter",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Auger attachment, 18 in diameter",
+    "description": "Hydraulic auger attachment for excavator post hole and pier drilling in soil conditions.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 650,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-scraper-14-cu-yd-motorized",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Scraper, 14 cu yd, motorized",
+    "description": "Motorized earth scraper for cut-and-fill grading on large site development projects.",
+    "tags": [
+      "earthwork",
+      "hauling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-water-truck-2-000-gal-for-dust-control",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Water truck, 2,000 gal, for dust control",
+    "description": "Water truck for dust suppression on active construction sites and compaction moisture.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 385,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-sheepsfoot-compactor-padfoot-drum",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Sheepsfoot compactor, padfoot drum",
+    "description": "Padfoot sheepsfoot roller for cohesive soil compaction in fill and subgrade areas.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-plate-compactor-reversible-34-in",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Plate compactor, reversible, 34 in",
+    "description": "Reversible plate compactor for trench backfill and confined area soil compaction.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-skid-steer-tracked-high-flow",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Skid steer, tracked, high-flow",
+    "description": "High-flow compact track loader for grading, loading, and attachment-driven earthwork.",
+    "tags": [
+      "earthwork",
+      "loading",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 550,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-wheel-loader-3-5-cu-yd-bucket",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Wheel loader, 3.5 cu yd bucket",
+    "description": "Front-end wheel loader for loading trucks, stockpiling, and material handling on site.",
+    "tags": [
+      "earthwork",
+      "loading",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 750,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-articulated-dump-truck-25-ton",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Articulated dump truck, 25 ton",
+    "description": "Articulated off-road dump truck for hauling excavated material on rough site terrain.",
+    "tags": [
+      "earthwork",
+      "hauling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 950,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-off-road-haul-truck-35-ton",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Off-road haul truck, 35 ton",
+    "description": "Rigid-frame off-road haul truck for long-distance material hauling on large sites.",
+    "tags": [
+      "earthwork",
+      "hauling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-soil-stabilizer-reclaimer-8-ft-cut",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Soil stabilizer, reclaimer, 8 ft cut",
+    "description": "Soil stabilizer/reclaimer for in-place mixing of lime, cement, or asphalt into subgrade.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
   }
 ]

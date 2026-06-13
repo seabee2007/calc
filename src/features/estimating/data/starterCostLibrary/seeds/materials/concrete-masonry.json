@@ -2949,5 +2949,1927 @@
       "concrete",
       "form"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.85,
+    "type": "material",
+    "id": "material-concrete-masonry-common-brick-modular-red-clay",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Common brick, modular, red clay",
+    "description": "Standard modular clay brick for backup masonry, veneer backup, and general masonry wall construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-concrete-masonry-facing-brick-modular-smooth-finish",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Facing brick, modular, smooth finish",
+    "description": "Modular facing brick with smooth finish for exposed exterior masonry veneer and accent walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.1,
+    "type": "material",
+    "id": "material-concrete-masonry-thin-brick-veneer-1-2-in-thick-modular",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 43 00",
+    "name": "Thin brick veneer, 1/2 in thick, modular",
+    "description": "Thin brick veneer units for adhered exterior veneer systems over sheathing and backup walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-fire-brick-high-alumina-9x4-5x2-5",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Fire brick, high-alumina, 9x4.5x2.5",
+    "description": "High-alumina fire brick for fireplace linings, chimneys, and high-temperature masonry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "masonry",
+      "brick",
+      "brick"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.75,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-modular",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, modular size, standard red",
+    "description": "Modular size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "modular"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.9,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-queen",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, queen size, standard red",
+    "description": "Queen size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "queen"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.05,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-king",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, king size, standard red",
+    "description": "King size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "king"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.2,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-utility",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, utility size, standard red",
+    "description": "Utility size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.35,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-clay-economy",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Clay brick, economy size, standard red",
+    "description": "Economy size clay brick for load-bearing and veneer masonry walls, chimneys, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "brick",
+      "masonry",
+      "economy"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-concrete-masonry-truss-wire-9-gauge-galvanized-400-lf-roll",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Truss wire, 9-gauge, galvanized, 400 LF roll",
+    "description": "Galvanized truss wire roll for horizontal joint reinforcement in masonry walls and veneer backup.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-ladder-wire-9-gauge-galvanized-10-ft-section",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Ladder wire, 9-gauge, galvanized, 10 ft section",
+    "description": "Galvanized ladder wire reinforcement for horizontal joint reinforcement in single-wythe and cavity masonry walls.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-concrete-masonry-horizontal-joint-reinforcement-2-wire-9-gauge-10-ft",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Horizontal joint reinforcement, 2-wire, 9-gauge, 10 ft",
+    "description": "Two-wire horizontal joint reinforcement for masonry veneer and structural backup wall joint reinforcement.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-concrete-masonry-vertical-joint-reinforcement-9-gauge-10-ft",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Vertical joint reinforcement, 9-gauge, 10 ft",
+    "description": "Vertical joint reinforcement for masonry walls requiring enhanced vertical load transfer and crack control.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "wire"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-curing-blanket-insulated-6-ft-x-25-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Curing blanket, insulated, 6 ft x 25 ft",
+    "description": "Insulated concrete curing blanket for cold-weather slab and flatwork protection during initial cure period.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-concrete-masonry-evaporation-retarder-spray-applied-5-gal-pail",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Evaporation retarder, spray-applied, 5 gal pail",
+    "description": "Spray-applied evaporation retarder for flatwork and slab surfaces to reduce moisture loss during finishing.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-concrete-masonry-cure-and-seal-compound-solvent-based-5-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Cure-and-seal compound, solvent-based, 5 gal",
+    "description": "Solvent-based cure-and-seal compound for decorative and standard concrete flatwork cure and surface protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "type": "material",
+    "id": "material-concrete-masonry-curing-compound-water-based-5-gal-pail",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Curing compound, water-based, 5 gal pail",
+    "description": "Water-based curing compound for slabs, walls, and columns to retain moisture during the initial curing period.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 120,
+    "type": "material",
+    "id": "material-concrete-masonry-burlap-curing-fabric-36-in-x-300-ft-roll",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Burlap curing fabric, 36 in x 300 ft roll",
+    "description": "Wet burlap curing fabric roll for moist-curing concrete slabs, walls, and structural elements.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "GAL"
+    ],
+    "tags": [
+      "concrete",
+      "curing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.5,
+    "type": "material",
+    "id": "material-concrete-masonry-wedge-anchor-zinc-plated-1-2-in-x-4-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Wedge anchor, zinc-plated, 1/2 in x 4 in",
+    "description": "Zinc-plated wedge anchor for fastening equipment, steel, and fixtures to hardened concrete slabs and walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.25,
+    "type": "material",
+    "id": "material-concrete-masonry-wedge-anchor-stainless-steel-3-8-in-x-3-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Wedge anchor, stainless steel, 3/8 in x 3 in",
+    "description": "Stainless steel wedge anchor for exterior and corrosive-environment concrete anchoring applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.85,
+    "type": "material",
+    "id": "material-concrete-masonry-sleeve-anchor-zinc-1-4-in-x-2-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Sleeve anchor, zinc, 1/4 in x 2 in",
+    "description": "Zinc sleeve anchor for light-duty fastening to concrete, block, and brick masonry substrates.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.75,
+    "type": "material",
+    "id": "material-concrete-masonry-drop-in-anchor-zinc-1-2-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Drop-in anchor, zinc, 1/2 in",
+    "description": "Drop-in expansion anchor for flush-mount anchoring in concrete for threaded rod and fixture connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-concrete-masonry-epoxy-anchor-system-10-oz-cartridge-high-strength",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Epoxy anchor system, 10 oz cartridge, high-strength",
+    "description": "Two-component epoxy anchor adhesive cartridge for post-installed rebar and threaded rod in concrete.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.65,
+    "type": "material",
+    "id": "material-concrete-masonry-mechanical-anchor-screw-type-1-4-in-x-2-1-4-in",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Mechanical anchor, screw-type, 1/4 in x 2-1/4 in",
+    "description": "Screw-type concrete anchor for light-gauge steel, furring, and fixture attachment to concrete and masonry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "concrete",
+      "anchor",
+      "fastener"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-concrete-masonry-hydraulic-cement-fast-setting-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Hydraulic cement, fast-setting, 50 lb bag",
+    "description": "Fast-setting hydraulic cement for stopping active water leaks in concrete and masonry walls and floors.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-concrete-masonry-polymer-modified-patching-mortar-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Polymer-modified patching mortar, 50 lb bag",
+    "description": "Polymer-modified cementitious patching mortar for repairing spalled and damaged concrete surfaces.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-concrete-masonry-concrete-resurfacer-self-leveling-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Concrete resurfacer, self-leveling, 50 lb bag",
+    "description": "Self-leveling concrete resurfacer for restoring worn, scaled, or uneven interior and exterior slabs.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-concrete-masonry-epoxy-injection-resin-low-viscosity-1-gal-kit",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Epoxy injection resin, low viscosity, 1 gal kit",
+    "description": "Low-viscosity epoxy injection resin for structural crack repair in concrete walls, slabs, and columns.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "repair",
+      "patch"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-concrete-masonry-vapor-barrier-polyethylene-10-mil-10-ft-x-100-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Vapor barrier, polyethylene, 10 mil, 10 ft x 100 ft",
+    "description": "10 mil polyethylene vapor barrier roll for under-slab moisture protection in slab-on-grade construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-welded-wire-mesh-6x6-w1-4-w1-4-5-ft-x-150-ft-roll",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Welded wire mesh, 6x6 W1.4/W1.4, 5 ft x 150 ft roll",
+    "description": "Welded wire reinforcement mesh roll for slab-on-grade, driveways, and light structural flatwork reinforcement.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-fiber-reinforcement-synthetic-macro-1-5-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Fiber reinforcement, synthetic macro, 1.5 lb bag",
+    "description": "Synthetic macro fiber bag additive for shrinkage and temperature crack control in concrete flatwork.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-expansion-joint-filler-1-2-in-x-4-in-x-10-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Expansion joint filler, 1/2 in x 4 in x 10 ft",
+    "description": "Preformed expansion joint filler for isolation and control joints in concrete slabs and flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-concrete-masonry-waterstop-pvc-6-in-center-bulb",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Waterstop, PVC, 6 in center bulb",
+    "description": "PVC waterstop profile for construction joints in below-grade concrete walls and water-retaining structures.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-dowels-smooth-4-18-in-length-with-cap",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Dowels, smooth, #4, 18 in length with cap",
+    "description": "Smooth dowel bars with end caps for contraction joints in concrete slabs-on-grade and pavement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "concrete",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-normal-weight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, normal weight, 8 inch x 8 inch x 16 inch",
+    "description": "Normal weight concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "normal weight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.75,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-lightweight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, lightweight, 8 inch x 8 inch x 16 inch",
+    "description": "Lightweight concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "lightweight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-12x8x16-normal-weight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, normal weight, 12 inch x 8 inch x 16 inch",
+    "description": "Normal weight concrete masonry unit, 12x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "normal weight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.25,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-split-face",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, split face, 8 inch x 8 inch x 16 inch",
+    "description": "Split face concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "split face"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-8x8x16-glazed",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, glazed, 8 inch x 8 inch x 16 inch",
+    "description": "Glazed concrete masonry unit, 8x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "glazed"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-concrete-masonry-cmu-4x8x16-normal-weight",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, normal weight, 4 inch x 8 inch x 16 inch",
+    "description": "Normal weight concrete masonry unit, 4x8x16, for load-bearing walls, partitions, and backup masonry construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "normal weight"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-gray-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, gray, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, gray color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "gray"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11.5,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-buff-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, buff, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, buff color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "buff"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-white-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, white, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, white color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "white"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14.5,
+    "type": "material",
+    "id": "material-concrete-masonry-mortar-type-s-tan-80lb",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, tan, 80 lb bag",
+    "description": "Type S structural masonry mortar mix, tan color, 80 lb bag for below-grade and structural masonry wall construction.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "tan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-chairs-plastic-2-in-height-bag-of-100",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar chairs, plastic, 2 in height, bag of 100",
+    "description": "Plastic rebar support chairs for maintaining rebar elevation in slab-on-grade and flatwork.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-tie-wire-16-gauge-3-5-lb-coil",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar tie wire, 16-gauge, 3.5 lb coil",
+    "description": "Black annealed rebar tie wire coil for securing reinforcing steel intersections in concrete forms.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-caps-mushroom-3-8-bag-of-50",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar caps, mushroom, #3-#8, bag of 50",
+    "description": "Mushroom-style rebar safety caps for protecting exposed vertical rebar on jobsites.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-mechanical-rebar-splice-coupler-5",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Mechanical rebar splice, coupler, #5",
+    "description": "Mechanical rebar coupler for #5 bar splicing in columns, walls, and heavy structural reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-concrete-masonry-form-lumber-spf-2-2x6-x-12-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form lumber, SPF #2, 2x6 x 12 ft",
+    "description": "SPF #2 dimensional lumber 2x6 by 12 foot for concrete wall and column formwork construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-form-lumber-spf-2-2x8-x-12-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form lumber, SPF #2, 2x8 x 12 ft",
+    "description": "SPF #2 dimensional lumber 2x8 by 12 foot for heavy concrete wall and footing formwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-concrete-masonry-form-tie-fiberglass-8-in-wall",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form tie, fiberglass, 8 in wall",
+    "description": "Fiberglass form tie for 8 inch concrete wall forms, break-back type for easy removal after pour.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-concrete-masonry-form-clamp-flat-bar-8-in-wall",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form clamp, flat bar, 8 in wall",
+    "description": "Flat bar form clamp for securing plywood and waler formwork on concrete wall forms.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "type": "material",
+    "id": "material-concrete-masonry-form-release-agent-biodegradable-5-gal",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form release agent, biodegradable, 5 gal",
+    "description": "Biodegradable form release agent for wood and steel concrete forms, 5 gallon pail.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-concrete-masonry-grout-non-shrink-grout-high-strength-50-lb",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Non-shrink grout, high-strength, 50 lb bag",
+    "description": "High-strength non-shrink grout for equipment bases, column bases, and anchor bolt grouting. Used in structural and non-structural grouting applications.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "CY"
+    ],
+    "tags": [
+      "grout",
+      "concrete",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-grout-flowable-fill-controlled-low-strength-cy",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Flowable fill, controlled low-strength, CY",
+    "description": "Controlled low-strength flowable fill for utility trench backfill and void fill around structures. Used in structural and non-structural grouting applications.",
+    "unit": "CY",
+    "commonUnits": [
+      "BAG",
+      "CY"
+    ],
+    "tags": [
+      "grout",
+      "concrete",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-concrete-masonry-grout-cellular-grout-lightweight-cy",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Cellular grout, lightweight, CY",
+    "description": "Lightweight cellular grout for fill over soft soils, pipe encasement, and annular space fill. Used in structural and non-structural grouting applications.",
+    "unit": "CY",
+    "commonUnits": [
+      "BAG",
+      "CY"
+    ],
+    "tags": [
+      "grout",
+      "concrete",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-water-reducer-mid-range-1-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Water reducer, mid-range, 1 gal",
+    "description": "Mid-range water reducing admixture for improved workability and strength in ready-mix concrete.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-air-entrainer-1-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Air entrainer, 1 gal",
+    "description": "Air-entraining admixture for freeze-thaw durable exterior concrete in cold climate applications.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-accelerator-calcium-chloride-50-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Accelerator, calcium chloride, 50 lb bag",
+    "description": "Calcium chloride set accelerator for cold-weather concrete placement and early strength gain.",
+    "unit": "BAG",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "type": "material",
+    "id": "material-concrete-masonry-admix-retarder-1-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Retarder, 1 gal",
+    "description": "Set retarding admixture for hot-weather concrete placement to extend working time.",
+    "unit": "GAL",
+    "commonUnits": [
+      "GAL",
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "admixture",
+      "additive"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-concrete-masonry-through-wall-flashing-copper-12-in-x-50-ft-roll",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Through-wall flashing, copper, 12 in x 50 ft roll",
+    "description": "Copper through-wall flashing roll for masonry cavity wall moisture management at shelf angles and lintels.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "masonry",
+      "flashing",
+      "lintel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-weep-vent-mortar-net-10-ft-section",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Weep vent, mortar net, 10 ft section",
+    "description": "Mortar collection net weep vent for masonry cavity walls to drain moisture at the wall base.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "masonry",
+      "flashing",
+      "lintel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-lintel-steel-angle-4x3-1-2-x-1-4-in-x-10-ft",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Lintel, steel angle, 4x3-1/2 x 1/4 in x 10 ft",
+    "description": "Steel angle lintel for masonry openings, supporting brick and block over window and door openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "masonry",
+      "flashing",
+      "lintel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 152,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-3200-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3200 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 3200 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 158,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-3800-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3800 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 3800 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 162,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-4200-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4200 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 4200 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 168,
+    "type": "material",
+    "id": "material-concrete-masonry-rmc-4800-psi-6in-slump",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4800 PSI, 6-inch slump",
+    "description": "Plant-batched ready-mix concrete at 4800 PSI with 6-inch slump for formed walls, columns, and pumpable placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.45,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-solid-modular-sandblast-finish",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Brick, solid, modular, sandblast finish",
+    "description": "Sandblast finish solid modular brick for exposed masonry veneer and accent band courses.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.85,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-glazed-modular-white",
+    "category": "Masonry",
+    "subcategory": "Brick",
+    "csiDivision": "04",
+    "csiSection": "04 21 00",
+    "name": "Brick, glazed, modular, white",
+    "description": "Glazed modular brick for interior feature walls and sanitary masonry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.5,
+    "type": "material",
+    "id": "material-concrete-masonry-anchor-bolt-f1554-3-4-x-12-in-galvanized",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Anchor bolt, F1554, 3/4 x 12 in, galvanized",
+    "description": "Galvanized anchor bolt for structural steel column and equipment base anchoring to concrete.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.25,
+    "type": "material",
+    "id": "material-concrete-masonry-anchor-bolt-j-type-1-2-x-10-in-galvanized",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Anchor bolt, J-type, 1/2 x 10 in, galvanized",
+    "description": "J-type anchor bolt for embedment in concrete foundations and equipment pad anchoring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-concrete-masonry-concrete-sealer-penetrating-5-gal",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete sealer, penetrating, 5 gal",
+    "description": "Penetrating concrete sealer for protecting exterior concrete from moisture and salt intrusion.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-concrete-masonry-form-panel-steel-ply-2x4-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form panel, steel-ply, 2x4 ft",
+    "description": "Steel-ply form panel for repetitive concrete wall and column forming on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-concrete-masonry-form-panel-steel-ply-2x8-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form panel, steel-ply, 2x8 ft",
+    "description": "Large steel-ply form panel for high-production concrete wall forming systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-concrete-masonry-tie-rod-form-3-4-in-x-5-ft",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Tie rod, form, 3/4 in x 5 ft",
+    "description": "Form tie rod for through-wall concrete formwork alignment and pressure resistance.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-concrete-masonry-brick-lintel-steel-angle-3x3-x-1-4-x-6-ft",
+    "category": "Masonry",
+    "subcategory": "Flashing",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Brick lintel, steel angle, 3x3 x 1/4 x 6 ft",
+    "description": "Steel angle brick lintel for supporting masonry over window and door openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-concrete-masonry-control-joint-profile-pvc-1-2-x-1-1-2-in-x-10-ft",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Control joint profile, PVC, 1/2 x 1-1/2 in x 10 ft",
+    "description": "PVC control joint profile for tooled control joints in concrete flatwork and sidewalks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-concrete-masonry-rebar-splice-mechanical-6",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar splice, mechanical, #6",
+    "description": "Mechanical rebar splice coupler for #6 bar in columns and heavy structural reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-concrete-masonry-fiber-mesh-micro-synthetic-1-lb-bag",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Fiber mesh, micro-synthetic, 1 lb bag",
+    "description": "Micro-synthetic fiber bag additive for shrinkage crack control in residential concrete flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "concrete",
+      "masonry"
+    ]
   }
 ]

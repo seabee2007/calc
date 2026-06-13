@@ -143,5 +143,369 @@
       "daily",
       "rental-rate"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-framing-nailer-pneumatic-21-full-round-head",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Framing nailer, pneumatic, 21° full round head",
+    "description": "Pneumatic framing nailer for high-speed wood framing, sheathing, and deck fastening.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-roofing-nailer-pneumatic-coil",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Roofing nailer, pneumatic, coil",
+    "description": "Pneumatic coil roofing nailer for asphalt shingle and roofing membrane fastening.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-finish-nailer-pneumatic-15-gauge-angled",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Finish nailer, pneumatic, 15-gauge angled",
+    "description": "15-gauge angled finish nailer for trim, casing, and finish carpentry applications.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-circular-saw-worm-drive-7-1-4-in",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Circular saw, worm drive, 7-1/4 in",
+    "description": "Worm-drive circular saw for heavy-duty framing and cutting of lumber and sheathing.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-miter-saw-compound-12-in-sliding",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Miter saw, compound, 12 in sliding",
+    "description": "12-inch sliding compound miter saw for precision crosscuts and miter cuts in trim and framing.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 75,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-table-saw-job-site-10-in-portable",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Table saw, job-site, 10 in portable",
+    "description": "Portable 10-inch job-site table saw for ripping lumber, plywood, and trim on site.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-reciprocating-saw-cordless-18v",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Reciprocating saw, cordless, 18V",
+    "description": "Cordless reciprocating saw for demolition, rough cutting, and utility work on jobsites.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-planer-portable-3-1-4-in",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Planer, portable, 3-1/4 in",
+    "description": "Portable power planer for edge-planing and dimensioning lumber in finish carpentry.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-router-plunge-2-1-4-hp",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Router, plunge, 2-1/4 HP",
+    "description": "Plunge router for dado cuts, edge profiles, and finish carpentry detail work.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-air-compressor-portable-6-gal-electric",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Air compressor, portable, 6 gal, electric",
+    "description": "Portable electric air compressor for powering pneumatic nailers and tools on jobsites.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-laser-level-rotary-self-leveling",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Laser level, rotary, self-leveling",
+    "description": "Self-leveling rotary laser level for layout, grading reference, and framing alignment.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-impact-driver-cordless-18v",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Impact driver, cordless, 18V",
+    "description": "Cordless impact driver for structural screw and lag bolt installation in framing.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 30,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-oscillating-multi-tool-cordless",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Oscillating multi-tool, cordless",
+    "description": "Cordless oscillating multi-tool for flush cutting, scraping, and detail work in remodeling.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-belt-sander-3x21-in",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Belt sander, 3x21 in",
+    "description": "3x21 inch belt sander for rapid material removal and surface preparation in finish work.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
   }
 ]

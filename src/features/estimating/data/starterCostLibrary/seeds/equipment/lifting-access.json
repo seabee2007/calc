@@ -401,5 +401,369 @@
       "hourly",
       "rental-rate"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-truck-crane-hydraulic-35-ton-capacity",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Truck crane, hydraulic, 35-ton capacity",
+    "description": "Hydraulic truck-mounted crane for steel, HVAC, and material placement on commercial projects.",
+    "tags": [
+      "lifting",
+      "aerial and material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 650,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-personnel-hoist-rack-and-pinion-2-000-lb",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Personnel hoist, rack-and-pinion, 2,000 lb",
+    "description": "Rack-and-pinion personnel/material hoist for multi-story building construction access.",
+    "tags": [
+      "lifting",
+      "aerial and material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-swing-stage-scaffold-40-ft-platform",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Swing-stage scaffold, 40 ft platform",
+    "description": "Powered swing-stage scaffold system for exterior facade work on multi-story buildings.",
+    "tags": [
+      "lifting",
+      "scaffolding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 750,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-mast-climbing-work-platform-dual-mast",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Mast climbing work platform, dual mast",
+    "description": "Dual-mast climbing work platform for exterior masonry, EIFS, and facade installation.",
+    "tags": [
+      "lifting",
+      "scaffolding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-spider-scaffold-modular-frame-set",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Spider scaffold, modular frame set",
+    "description": "Modular spider scaffold frame set for irregular and curved facade access.",
+    "tags": [
+      "lifting",
+      "scaffolding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-material-hoist-1-000-lb-50-ft-lift",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Material hoist, 1,000 lb, 50 ft lift",
+    "description": "Electric material hoist for lifting brick, block, and materials to elevated floors.",
+    "tags": [
+      "lifting",
+      "aerial and material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 75,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-personnel-lift-push-around-20-ft",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Personnel lift, push-around, 20 ft",
+    "description": "Push-around single-personnel lift for interior maintenance and light elevated work.",
+    "tags": [
+      "lifting",
+      "aerial lift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 550,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-boom-lift-articulating-80-ft-platform-height",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Boom lift, articulating, 80 ft platform height",
+    "description": "Large articulating boom lift for high-reach exterior facade and steel erection work.",
+    "tags": [
+      "lifting",
+      "aerial lift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-scissor-lift-rough-terrain-32-ft",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scissor lift, rough-terrain, 32 ft",
+    "description": "Rough-terrain scissor lift for outdoor elevated work on uneven ground conditions.",
+    "tags": [
+      "lifting",
+      "aerial lift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-forklift-warehouse-5-000-lb-cushion-tire",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Forklift, warehouse, 5,000 lb cushion tire",
+    "description": "Cushion-tire warehouse forklift for indoor material handling on slab surfaces.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-crane-mat-timber-8-ft-x-8-ft-x-8-in",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Crane mat, timber, 8 ft x 8 ft x 8 in",
+    "description": "Timber crane mat for distributing outrigger loads on soft ground during crane setup.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-rigging-sling-nylon-6-ft-6-000-lb",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Rigging sling, nylon, 6 ft, 6,000 lb",
+    "description": "Nylon web sling for rigging and lifting materials with crane and hoist equipment.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-chain-hoist-manual-2-ton",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Chain hoist, manual, 2-ton",
+    "description": "Manual chain hoist for precise lifting and positioning of equipment and materials.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-outrigger-pad-composite-24-in-x-24-in",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Outrigger pad, composite, 24 in x 24 in",
+    "description": "Composite outrigger pad for crane and aerial lift setup on paved and soft surfaces.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
   }
 ]

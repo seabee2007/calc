@@ -1142,5 +1142,1340 @@
       "membrane",
       "contractor"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-roofing-exterior-standing-seam-metal-panel-24-ga-16-in-coverage-per-sf",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Standing-seam metal panel, 24 ga, 16 in coverage, per SF",
+    "description": "Standing-seam metal roof panel for commercial and residential steep-slope metal roofing systems.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-roofing-exterior-corrugated-metal-panel-29-ga-2-1-2-in-profile-per-sf",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Corrugated metal panel, 29 ga, 2-1/2 in profile, per SF",
+    "description": "Corrugated metal roof and wall panel for agricultural, utility, and light commercial applications.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-metal-roof-ridge-cap-standing-seam-10-ft",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Metal roof ridge cap, standing-seam, 10 ft",
+    "description": "Standing-seam metal ridge cap for weathertight closure at the roof ridge line.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-metal-roof-eave-trim-10-ft",
+    "category": "Roofing",
+    "subcategory": "Metal Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 41 00",
+    "name": "Metal roof eave trim, 10 ft",
+    "description": "Metal eave drip trim for roof edge water management on metal roofing systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "roofing",
+      "metal",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.85,
+    "type": "material",
+    "id": "material-roofing-exterior-tpo-membrane-60-mil-white-per-sf",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "TPO membrane, 60 mil, white, per SF",
+    "description": "Thermoplastic polyolefin single-ply roof membrane for low-slope commercial roofing systems.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.65,
+    "type": "material",
+    "id": "material-roofing-exterior-epdm-membrane-60-mil-black-per-sf",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "EPDM membrane, 60 mil, black, per SF",
+    "description": "Ethylene propylene diene monomer single-ply roof membrane for low-slope roofing.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-tpo-seam-tape-6-in-x-100-ft-roll",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "TPO seam tape, 6 in x 100 ft roll",
+    "description": "TPO membrane seam tape for heat-welded lap seam reinforcement in TPO roofing.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-roofing-exterior-roof-insulation-polyiso-2-in-4x8",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "Roof insulation, polyiso, 2 in, 4x8",
+    "description": "Polyisocyanurate rigid roof insulation board for tapered and flat low-slope roof assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 38,
+    "type": "material",
+    "id": "material-roofing-exterior-roof-insulation-polyiso-3-in-4x8",
+    "category": "Roofing",
+    "subcategory": "Membrane Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 52 00",
+    "name": "Roof insulation, polyiso, 3 in, 4x8",
+    "description": "Polyisocyanurate rigid roof insulation board for enhanced R-value in low-slope roofs.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "roofing",
+      "membrane",
+      "insulation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-base-coat-cement-80-lb-bag",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco base coat, cement, 80 lb bag",
+    "description": "Portland cement stucco scratch and brown base coat for three-coat stucco wall systems.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-finish-coat-acrylic-5-gal-pail",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco finish coat, acrylic, 5 gal pail",
+    "description": "Acrylic stucco finish coat for color and texture on exterior cement stucco assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-lath-galvanized-2-5-lb-27-in-x-96-in",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco lath, galvanized, 2.5 lb, 27 in x 96 in",
+    "description": "Galvanized stucco lath sheet for scratch coat keying in three-coat stucco systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-control-joint-pvc-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco control joint, PVC, 10 ft",
+    "description": "PVC stucco control joint for crack control in stucco wall panel assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BAG",
+      "LF"
+    ],
+    "tags": [
+      "stucco",
+      "exterior",
+      "cladding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-corner-board-pvc-3-1-2-in-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Corner board, PVC, 3-1/2 in, 12 ft",
+    "description": "PVC exterior corner board trim for siding corner detail and water management.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-belly-band-trim-pvc-5-1-2-in-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Belly band trim, PVC, 5-1/2 in, 12 ft",
+    "description": "PVC belly band trim for horizontal siding transitions and architectural detail.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-rake-board-pvc-1x8-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Rake board, PVC, 1x8, 12 ft",
+    "description": "PVC rake board trim for roof gable edge detail and fascia transition.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-roofing-exterior-trim-frieze-board-pvc-1x6-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Frieze board, PVC, 1x6, 12 ft",
+    "description": "PVC frieze board trim at the wall-to-soffit transition on exterior walls.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "exterior",
+      "trim",
+      "siding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-thin-stone-veneer-natural-flat-per-sf",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Thin stone veneer, natural, flat, per SF",
+    "description": "Natural thin stone veneer flats for adhered exterior stone veneer wall cladding.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-thin-stone-veneer-natural-corner-per-lf",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Thin stone veneer, natural, corner, per LF",
+    "description": "Natural thin stone veneer corner pieces for exterior stone veneer corner detail.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-stone-veneer-mortar-polymer-modified-50-lb",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Stone veneer mortar, polymer-modified, 50 lb",
+    "description": "Polymer-modified mortar for setting thin stone veneer on exterior wall assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-stone-lintel-precast-concrete-4-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Stone lintel, precast concrete, 4 ft",
+    "description": "Precast concrete stone-look lintel for masonry and stone veneer opening support.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "LF",
+      "BAG"
+    ],
+    "tags": [
+      "stone",
+      "veneer",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-sealant-silicone-clear-10-oz-tube",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Exterior sealant, silicone, clear, 10 oz tube",
+    "description": "Silicone exterior sealant for window, door, and siding perimeter joint sealing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-sealant-polyurethane-gray-10-oz-tube",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Exterior sealant, polyurethane, gray, 10 oz tube",
+    "description": "Polyurethane exterior sealant for masonry, concrete, and metal joint sealing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-backer-rod-closed-cell-3-4-in-100-ft-roll",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Backer rod, closed cell, 3/4 in, 100 ft roll",
+    "description": "Closed-cell backer rod for joint backing before exterior sealant application.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-roofing-exterior-backer-rod-closed-cell-1-in-100-ft-roll",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 92 00",
+    "name": "Backer rod, closed cell, 1 in, 100 ft roll",
+    "description": "Closed-cell backer rod for larger joint backing in exterior sealant applications.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "sealant",
+      "caulk",
+      "exterior"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-roofing-exterior-window-vinyl-double-hung-3x5-ft",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Window, vinyl, double-hung, 3x5 ft",
+    "description": "Vinyl double-hung window for residential exterior wall window openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 195,
+    "type": "material",
+    "id": "material-roofing-exterior-window-vinyl-casement-2x3-ft",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Window, vinyl, casement, 2x3 ft",
+    "description": "Vinyl casement window for kitchen, bath, and utility room applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-door-steel-3-0-x-6-8-insulated",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Exterior door, steel, 3-0 x 6-8, insulated",
+    "description": "Insulated steel exterior entry door for residential front and rear entry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 485,
+    "type": "material",
+    "id": "material-roofing-exterior-sliding-patio-door-vinyl-6-ft",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Sliding patio door, vinyl, 6 ft",
+    "description": "Vinyl sliding patio door for rear exit to deck and patio areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "window",
+      "door",
+      "opening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-charcoal",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, charcoal, per square",
+    "description": "Architectural asphalt shingle, charcoal color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "charcoal"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 100,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-weathered-wood",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, weathered wood, per square",
+    "description": "Architectural asphalt shingle, weathered wood color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "weathered wood"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 105,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-slate-gray",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, slate gray, per square",
+    "description": "Architectural asphalt shingle, slate gray color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "slate gray"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 110,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-desert-tan",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, desert tan, per square",
+    "description": "Architectural asphalt shingle, desert tan color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "desert tan"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 115,
+    "type": "material",
+    "id": "material-roofing-exterior-shingle-arch-forest-green",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, forest green, per square",
+    "description": "Architectural asphalt shingle, forest green color, per square coverage for steep-slope residential and commercial roofing.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "forest green"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-roof-vent-turtle-type-aluminum",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Roof vent, turtle type, aluminum",
+    "description": "Aluminum turtle-type roof vent for attic exhaust ventilation on shingle roof systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-pipe-boot-epdm-1-1-2-in",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Pipe boot, EPDM, 1-1/2 in",
+    "description": "EPDM pipe boot flashing for plumbing vent penetration through shingle roof surfaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-roofing-exterior-pipe-boot-epdm-3-in",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Pipe boot, EPDM, 3 in",
+    "description": "EPDM pipe boot flashing for larger vent and pipe penetrations through roofing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-roofing-exterior-skylight-fixed-2x4-ft-curb-mount",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Skylight, fixed, 2x4 ft, curb mount",
+    "description": "Fixed curb-mount skylight for natural daylight in sloped roof applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-roofing-exterior-gutter-aluminum-5-in-k-style-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Gutter, aluminum, 5 in K-style, 10 ft",
+    "description": "Aluminum K-style gutter section for roof edge water collection and drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-roofing-exterior-downspout-aluminum-3x4-in-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Downspout, aluminum, 3x4 in, 10 ft",
+    "description": "Aluminum downspout for conveying roof runoff from gutter to grade or drain.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-roofing-exterior-soffit-panel-vinyl-vented-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Soffit panel, vinyl, vented, 12 ft",
+    "description": "Vented vinyl soffit panel for eave ventilation and finished soffit appearance.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-fascia-vent-aluminum-8-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Fascia vent, aluminum, 8 ft",
+    "description": "Aluminum fascia vent strip for concealed eave intake ventilation at the roof edge.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-roofing-exterior-window-flashing-tape-4-in-x-75-ft",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Window flashing tape, 4 in x 75 ft",
+    "description": "Flexible window flashing tape for pan and jamb flashing at rough window openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-roofing-exterior-flashing-step-aluminum-5x7-in",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Flashing, step, aluminum, 5x7 in",
+    "description": "Aluminum step flashing for sidewall to shingle roof intersection waterproofing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-roofing-exterior-flashing-valley-w-type-24-in-x-10-ft",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Flashing, valley, W-type, 24 in x 10 ft",
+    "description": "W-type valley flashing for open valley shingle roof water management.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-roofing-exterior-siding-fiber-cement-4x8-panel",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Siding, fiber cement, 4x8 panel",
+    "description": "Fiber cement panel siding for contemporary exterior wall cladding applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-roofing-exterior-siding-board-and-batten-fiber-cement-12-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Siding, board and batten, fiber cement, 12 ft",
+    "description": "Fiber cement board and batten siding for vertical exterior cladding detail.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-paint-acrylic-latex-5-gal",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Exterior paint, acrylic latex, 5 gal",
+    "description": "Acrylic latex exterior paint for siding, trim, and exterior wood and fiber cement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-roofing-exterior-stucco-mesh-fiberglass-38-in-x-150-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Stucco mesh, fiberglass, 38 in x 150 ft",
+    "description": "Fiberglass stucco reinforcing mesh for EIFS and cement stucco wall systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-roofing-exterior-eifs-base-coat-5-gal-pail",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "EIFS base coat, 5 gal pail",
+    "description": "Exterior insulation and finish system base coat for EIFS wall cladding applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-roofing-exterior-eifs-finish-coat-5-gal-pail",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "EIFS finish coat, 5 gal pail",
+    "description": "EIFS finish coat for color and texture on exterior insulation and finish systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-roofing-exterior-stone-cap-precast-concrete-24-in",
+    "category": "Exterior Cladding",
+    "subcategory": "Stone Veneer",
+    "csiDivision": "07",
+    "csiSection": "07 44 00",
+    "name": "Stone cap, precast concrete, 24 in",
+    "description": "Precast concrete wall cap for masonry and stone wall top course protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-roofing-exterior-weep-screed-galvanized-10-ft",
+    "category": "Exterior Cladding",
+    "subcategory": "Stucco",
+    "csiDivision": "07",
+    "csiSection": "07 24 00",
+    "name": "Weep screed, galvanized, 10 ft",
+    "description": "Galvanized weep screed for stucco and stone veneer base termination and drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "type": "material",
+    "id": "material-roofing-exterior-window-fixed-picture-4x3-ft-vinyl",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Window, fixed picture, 4x3 ft, vinyl",
+    "description": "Fixed picture vinyl window for non-operable daylight and view applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 685,
+    "type": "material",
+    "id": "material-roofing-exterior-garage-door-steel-16x7-ft-insulated",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Garage door, steel, 16x7 ft, insulated",
+    "description": "Insulated steel sectional garage door for residential two-car garage openings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "material",
+    "id": "material-roofing-exterior-exterior-door-fiberglass-3-0-x-6-8-insulated",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 50 00",
+    "name": "Exterior door, fiberglass, 3-0 x 6-8, insulated",
+    "description": "Insulated fiberglass exterior entry door for residential front entry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "exterior",
+      "roofing"
+    ]
   }
 ]

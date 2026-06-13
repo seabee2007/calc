@@ -419,5 +419,473 @@
       "daily",
       "rental-rate"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 450,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-mixer-truck-transit-mix-10-cy",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete mixer truck, transit mix, 10 CY",
+    "description": "Transit-mix concrete delivery truck for ready-mix concrete placement on large pours.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 550,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-laser-screed-ride-on-12-ft-head",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Laser screed, ride-on, 12 ft head",
+    "description": "Ride-on laser screed for large slab flatness and elevation control during concrete placement.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-grinder-walk-behind-32-in",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete grinder, walk-behind, 32 in",
+    "description": "Walk-behind concrete grinder for slab surface preparation, coating removal, and polishing.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-scarifier-walk-behind-8-in-cut",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete scarifier, walk-behind, 8 in cut",
+    "description": "Walk-behind concrete scarifier for aggressive surface removal and profile preparation.",
+    "tags": [
+      "concrete",
+      "cutting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-floor-saw-diesel-24-in-blade",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Floor saw, diesel, 24 in blade",
+    "description": "Diesel floor saw for cutting control joints and openings in cured concrete slabs.",
+    "tags": [
+      "concrete",
+      "cutting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 350,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-wall-saw-hydraulic-track-mounted",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Wall saw, hydraulic, track-mounted",
+    "description": "Track-mounted hydraulic wall saw for cutting openings in concrete and masonry walls.",
+    "tags": [
+      "concrete",
+      "cutting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-coring-machine-rig-mounted-wet",
+    "category": "Concrete Equipment",
+    "subcategory": "Drilling",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete coring machine, rig-mounted, wet",
+    "description": "Rig-mounted wet core drill for round penetrations in concrete walls and slabs.",
+    "tags": [
+      "concrete",
+      "drilling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-shotcrete-pump-dry-mix-trailer",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Shotcrete pump, dry-mix, trailer",
+    "description": "Trailer-mounted dry-mix shotcrete pump for slope stabilization and tunnel lining.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-shotcrete-nozzleman-equipment-set",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Shotcrete nozzleman equipment set",
+    "description": "Shotcrete application equipment set including nozzle, hose, and air compressor interface.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-curing-blanket-heater-propane-100k-btu",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Curing blanket heater, propane, 100K BTU",
+    "description": "Propane-fired curing blanket heater for cold-weather concrete curing protection.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-power-trowel-walk-behind-48-in",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Power trowel, walk-behind, 48 in",
+    "description": "Walk-behind power trowel for finishing medium-size concrete slabs after bull floating.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-bull-float-magnesium-48-in",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Bull float, magnesium, 48 in",
+    "description": "Magnesium bull float for initial floating of freshly placed concrete slab surfaces.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-bucket-crane-suspended-1-cy",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete bucket, crane-suspended, 1 CY",
+    "description": "Crane-suspended concrete bucket for placing concrete in elevated forms and hard-to-reach areas.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-rebar-tier-cordless-battery-powered",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Rebar tier, cordless, battery-powered",
+    "description": "Cordless battery-powered rebar tying tool for field reinforcement assembly efficiency.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-pump-hose-4-in-x-20-ft-section",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete pump hose, 4 in x 20 ft section",
+    "description": "Heavy-duty concrete pump delivery hose section for line pump and boom pump setups.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-rubbing-stone-carborundum-hand",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Rubbing stone, carborundum, hand",
+    "description": "Hand rubbing stone for smoothing and finishing formed concrete surfaces and patch areas.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-edge-trowel-hand-radius",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Edge trowel, hand, radius",
+    "description": "Radius edge trowel for forming rounded edges on concrete sidewalks and curbs.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-knee-boards-aluminum-pair",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Knee boards, aluminum, pair",
+    "description": "Aluminum knee boards for kneeling on freshly placed concrete during hand finishing.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
   }
 ]

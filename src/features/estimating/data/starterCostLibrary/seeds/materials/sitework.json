@@ -472,5 +472,2108 @@
       "mulch",
       "paver"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-pipe-pvc-water-main-c900-6-in-20-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC water main, C900, 6 in, 20 ft",
+    "description": "PVC C900 water main pipe for municipal and private potable water distribution systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-sitework-pipe-pvc-water-main-c900-8-in-20-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC water main, C900, 8 in, 20 ft",
+    "description": "PVC C900 water main pipe for larger capacity potable water distribution mains.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "type": "material",
+    "id": "material-sitework-pipe-ductile-iron-pipe-6-in-18-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "Ductile iron pipe, 6 in, 18 ft",
+    "description": "Ductile iron pipe for buried water main and force main applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-pipe-hdpe-force-main-dr11-4-in-40-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "HDPE force main, DR11, 4 in, 40 ft",
+    "description": "HDPE force main pipe for sewer pump discharge and pressure piping applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-pipe-pvc-sewer-main-sdr-35-8-in-14-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC sewer main, SDR-35, 8 in, 14 ft",
+    "description": "PVC SDR-35 sewer main pipe for gravity sanitary sewer collection systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "utility",
+      "pipe",
+      "water",
+      "sewer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-elbow-45-c900-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC elbow, 45°, C900, 6 in",
+    "description": "PVC elbow, 45°, C900, 6 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 48,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-tee-c900-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC tee, C900, 6 in",
+    "description": "PVC tee, C900, 6 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-reducer-8x6-in-c900",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC reducer, 8x6 in, C900",
+    "description": "PVC reducer, 8x6 in, C900 for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-fitting-ductile-iron-coupling-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "Ductile iron coupling, 6 in",
+    "description": "Ductile iron coupling, 6 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-fitting-hdpe-fusion-coupling-4-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "HDPE fusion coupling, 4 in",
+    "description": "HDPE fusion coupling, 4 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-fitting-pvc-cleanout-sdr-35-4-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 30 00",
+    "name": "PVC cleanout, SDR-35, 4 in",
+    "description": "PVC cleanout, SDR-35, 4 in for buried utility piping systems including water, sewer, and force main connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "utility",
+      "fitting",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-sitework-manhole-frame-and-cover-cast-iron-24-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Manhole frame and cover, cast iron, 24 in",
+    "description": "Cast iron manhole frame and cover for sanitary sewer and storm drain access points.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "manhole",
+      "drainage",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "type": "material",
+    "id": "material-sitework-manhole-cone-precast-4-ft-rise",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Manhole cone, precast, 4 ft rise",
+    "description": "Precast concrete manhole cone section for grade adjustment at manhole access points.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "manhole",
+      "drainage",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "material",
+    "id": "material-sitework-manhole-barrel-precast-4-ft-x-4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Manhole barrel, precast, 4 ft x 4 ft",
+    "description": "Precast concrete manhole barrel section for sanitary sewer and storm drain manholes.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "manhole",
+      "drainage",
+      "utility"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-paving-asphalt-base-course-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Asphalt, base course, per ton",
+    "description": "Hot-mix asphalt base course for road, parking, and driveway sub-base paving.",
+    "unit": "TON",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-paving-asphalt-surface-course-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Asphalt, surface course, per ton",
+    "description": "Hot-mix asphalt surface course for final wearing surface on roads and parking areas.",
+    "unit": "TON",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-sitework-paving-concrete-paving-4-in-unreinforced-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Concrete paving, 4 in unreinforced, per SF",
+    "description": "Unreinforced concrete paving for sidewalks, drives, and light-duty flatwork.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.25,
+    "type": "material",
+    "id": "material-sitework-paving-concrete-paving-6-in-unreinforced-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Concrete paving, 6 in unreinforced, per SF",
+    "description": "Unreinforced concrete paving for heavy-duty sidewalks, drives, and parking areas.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-paving-curb-and-gutter-cast-in-place-per-lf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Curb and gutter, cast-in-place, per LF",
+    "description": "Cast-in-place concrete curb and gutter for street, parking, and site paving edge restraint.",
+    "unit": "LF",
+    "commonUnits": [
+      "SF",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "paving",
+      "asphalt",
+      "concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-erosion-erosion-control-blanket-straw-8-ft-x-112-5-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Erosion control blanket, straw, 8 ft x 112.5 ft",
+    "description": "Straw erosion control blanket for slope protection during seeding and site stabilization.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.15,
+    "type": "material",
+    "id": "material-sitework-erosion-hydroseeding-mulch-wood-fiber-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Hydroseeding mulch, wood fiber, per SF",
+    "description": "Wood fiber hydroseeding mulch for slope stabilization and lawn establishment.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-sitework-erosion-silt-fence-stakes-hardwood-24-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Silt fence stakes, hardwood, 24 in",
+    "description": "Hardwood silt fence stakes for installing perimeter sediment control fencing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-erosion-inlet-protection-silt-sack-standard",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 25 00",
+    "name": "Inlet protection, silt sack, standard",
+    "description": "Silt sack inlet protection for storm drain inlet sediment control during construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "erosion",
+      "sediment",
+      "sitework"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-sitework-retaining-wall-block-concrete-6-in-h-x-18-in-l",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Retaining wall block, concrete, 6 in H x 18 in L",
+    "description": "Interlocking concrete retaining wall block for segmental retaining wall systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.25,
+    "type": "material",
+    "id": "material-sitework-retaining-wall-block-concrete-8-in-h-x-18-in-l",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Retaining wall block, concrete, 8 in H x 18 in L",
+    "description": "Interlocking concrete retaining wall block for taller segmental retaining wall courses.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-retaining-wall-geogrid-4-ft-x-50-ft-roll",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Retaining wall geogrid, 4 ft x 50 ft roll",
+    "description": "Geogrid reinforcement for segmental retaining wall soil reinforcement and stability.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-rip-rap-stone-6-12-in-per-ton",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Rip-rap stone, 6-12 in, per ton",
+    "description": "Rip-rap erosion control stone for slope protection, outlet protection, and channel lining.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-sitework-erosion-stone-2-4-in-per-ton",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 32 00",
+    "name": "Erosion stone, 2-4 in, per ton",
+    "description": "Clean erosion control stone for drainage layer and slope stabilization applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "retaining",
+      "stone",
+      "landscape"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-landscape-grass-seed-tall-fescue-blend-50-lb-bag",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Grass seed, tall fescue blend, 50 lb bag",
+    "description": "Tall fescue grass seed blend for lawn establishment and site restoration seeding.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-landscape-wildflower-seed-mix-native-5-lb-bag",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Wildflower seed mix, native, 5 lb bag",
+    "description": "Native wildflower seed mix for landscape beds and ecological restoration areas.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-landscape-fertilizer-starter-50-lb-bag",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Fertilizer, starter, 50 lb bag",
+    "description": "Starter fertilizer for new lawn seeding and sod installation root establishment.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-landscape-lawn-edging-aluminum-4-in-x-16-ft",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Lawn edging, aluminum, 4 in x 16 ft",
+    "description": "Aluminum lawn edging for separating lawn from beds, walks, and paved areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-sitework-landscape-tree-spade-root-ball-wrap-burlap-48-in",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Tree spade, root ball wrap, burlap, 48 in",
+    "description": "Burlap root ball wrap for tree transplanting and nursery stock handling.",
+    "unit": "EA",
+    "commonUnits": [
+      "BAG",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "landscape",
+      "seed",
+      "sod"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-sitework-aggregate-crushed-stone-2-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Crushed stone, #2, per ton",
+    "description": "Large crushed stone aggregate for subbase, drainage, and heavy-duty base course applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-sitework-aggregate-pea-gravel-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Pea gravel, per ton",
+    "description": "Pea gravel for drainage fill, pipe bedding, and decorative landscape applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-aggregate-recycled-concrete-aggregate-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Recycled concrete aggregate, per ton",
+    "description": "Recycled concrete aggregate for subbase, fill, and road base applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-aggregate-sand-mason-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Sand, mason, per ton",
+    "description": "Mason sand for mortar mixing, paver bedding, and fine grading applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "TON",
+      "CY"
+    ],
+    "tags": [
+      "aggregate",
+      "earthwork",
+      "fill"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-4in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 4 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 4 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 150,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-6in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 6 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 6 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 215,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-8in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 8 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 8 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 280,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-10in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 10 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 10 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 345,
+    "type": "material",
+    "id": "material-sitework-storm-pipe-rcp-12in-8ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Reinforced concrete pipe, 12 inch, Class III, 8 ft",
+    "description": "Reinforced concrete pipe, 12 inch diameter, Class III, 8 foot length for storm sewer and culvert applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "storm",
+      "pipe",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1850,
+    "type": "material",
+    "id": "material-sitework-fire-hydrant-ductile-iron-5-1-4-in-barrel",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Fire hydrant, ductile iron, 5-1/4 in barrel",
+    "description": "Ductile iron fire hydrant for municipal and private fire protection water supply systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "material",
+    "id": "material-sitework-gate-valve-resilient-wedge-6-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Gate valve, resilient wedge, 6 in",
+    "description": "Resilient wedge gate valve for water main branch isolation and system control.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-water-service-line-copper-type-k-1-in-per-lf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Water service line, copper, Type K, 1 in, per LF",
+    "description": "Type K copper water service line for building water service entry from main to meter.",
+    "unit": "LF",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-sitework-meter-pit-precast-concrete-30-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Utility Pipe",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Meter pit, precast concrete, 30 in",
+    "description": "Precast concrete meter pit for housing water meter and service valve at property line.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1250,
+    "type": "material",
+    "id": "material-sitework-septic-tank-precast-concrete-1-000-gal",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Septic tank, precast concrete, 1,000 gal",
+    "description": "Precast concrete septic tank for on-site wastewater treatment in non-sewered areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-leach-field-chamber-plastic-34-in-x-52-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Leach field chamber, plastic, 34 in x 52 in",
+    "description": "Plastic leach field chamber for septic system effluent dispersal in drain fields.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "material",
+    "id": "material-sitework-grease-interceptor-50-gpm-concrete",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Grease interceptor, 50 GPM, concrete",
+    "description": "Concrete grease interceptor for commercial kitchen wastewater pretreatment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2500,
+    "type": "material",
+    "id": "material-sitework-oil-water-separator-100-gpm",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Oil-water separator, 100 GPM",
+    "description": "Oil-water separator for vehicle maintenance and parking area runoff pretreatment.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-sitework-bio-retention-soil-mix-per-cy",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Bio-retention soil mix, per CY",
+    "description": "Engineered bio-retention soil mix for rain garden and stormwater BMP installations.",
+    "unit": "CY",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-sitework-permeable-paver-concrete-4x8-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Permeable paver, concrete, 4x8, per SF",
+    "description": "Permeable interlocking concrete paver for stormwater infiltration parking and walks.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "material",
+    "id": "material-sitework-geogrid-biaxial-4-ft-x-50-ft-roll",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Geogrid, biaxial, 4 ft x 50 ft roll",
+    "description": "Biaxial geogrid for subgrade stabilization under roads, parking, and paved areas.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-sitework-geocell-hdpe-8-in-depth-per-sf",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Geocell, HDPE, 8 in depth, per SF",
+    "description": "HDPE geocell confinement system for slope stabilization and load support over soft soils.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-filter-fabric-nonwoven-15-ft-x-300-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Filter fabric, nonwoven, 15 ft x 300 ft",
+    "description": "Nonwoven geotextile filter fabric for subsurface drainage and separation applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-sitework-riprap-fabric-heavy-duty-15-ft-x-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Riprap fabric, heavy-duty, 15 ft x 100 ft",
+    "description": "Heavy-duty geotextile for underlayment beneath rip-rap and erosion control stone.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-precast-curb-6-in-x-18-in-4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Precast curb, 6 in x 18 in, 4 ft",
+    "description": "Precast concrete curb section for parking lot and street curb installation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-precast-gutter-12-in-4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Precast gutter, 12 in, 4 ft",
+    "description": "Precast concrete gutter section for drainage alongside curbs and paved areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-sitework-detectable-warning-plate-cast-iron-2x4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Detectable warning plate, cast iron, 2x4 ft",
+    "description": "Cast iron detectable warning surface plate for ADA-compliant truncated dome at crossings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-sitework-traffic-paint-waterborne-white-5-gal",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Traffic paint, waterborne, white, 5 gal",
+    "description": "Waterborne traffic paint for parking lot striping, arrows, and pavement markings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-pavement-marking-tape-white-4-in-x-36-yd",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Pavement marking tape, white, 4 in x 36 yd",
+    "description": "Preformed pavement marking tape for durable parking lot and road lane markings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-speed-bump-asphalt-6-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Speed bump, asphalt, 6 ft",
+    "description": "Asphalt speed bump for traffic calming in parking lots and private drives.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-wheel-stop-precast-concrete-6-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Wheel stop, precast concrete, 6 ft",
+    "description": "Precast concrete wheel stop for parking stall vehicle positioning in parking lots.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-bollard-steel-pipe-6-in-x-36-in-filled",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Bollard, steel pipe, 6 in x 36 in, filled",
+    "description": "Steel pipe bollard filled with concrete for vehicle impact protection at building entries.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-sitework-tree-grate-cast-iron-4x4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Tree grate, cast iron, 4x4 ft",
+    "description": "Cast iron tree grate for protecting tree root zones in hardscape and sidewalk areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-sitework-tree-well-precast-concrete-4x4-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Tree well, precast concrete, 4x4 ft",
+    "description": "Precast concrete tree well for urban street tree planting in sidewalk hardscape.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-irrigation-sprinkler-rotor-15-50-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Irrigation sprinkler, rotor, 15-50 ft",
+    "description": "Gear-driven rotor sprinkler for landscape irrigation coverage of large turf areas.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-sitework-irrigation-controller-12-station-outdoor",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Irrigation controller, 12-station, outdoor",
+    "description": "Outdoor irrigation controller for automated landscape watering schedule management.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-drip-irrigation-1-2-in-tubing-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Drip irrigation, 1/2 in tubing, 100 ft",
+    "description": "Half-inch drip irrigation tubing for efficient landscape bed and shrub watering.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-sitework-landscape-boulder-granite-18-24-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Landscape boulder, granite, 18-24 in",
+    "description": "Granite landscape boulder for decorative accent in planting beds and entry features.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-sitework-decorative-rock-river-rock-2-4-in-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Decorative rock, river rock, 2-4 in, per ton",
+    "description": "River rock decorative stone for dry creek beds, landscape beds, and ground cover.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-sitework-concrete-sand-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Concrete sand, per ton",
+    "description": "Concrete sand for pipe bedding, paver base, and fine grading under hardscape.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-sitework-bank-run-gravel-per-ton",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Bank run gravel, per ton",
+    "description": "Bank run gravel for subbase, fill, and general site grading applications.",
+    "unit": "TON",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-sitework-structural-fill-compacted-per-cy",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Structural fill, compacted, per CY",
+    "description": "Compacted structural fill for building pad preparation and site grading.",
+    "unit": "CY",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-sitework-lime-hydrated-50-lb-bag",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Lime, hydrated, 50 lb bag",
+    "description": "Hydrated lime for soil stabilization and masonry mortar mixing applications.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-portland-cement-type-i-94-lb-bag",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Portland cement, Type I, 94 lb bag",
+    "description": "Type I portland cement bag for small concrete batches, grout, and mortar mixing.",
+    "unit": "BAG",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-sitework-curing-compound-wax-based-5-gal",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Curing compound, wax-based, 5 gal",
+    "description": "Wax-based curing compound for horizontal concrete curing on paving and flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-sitework-joint-sealant-hot-pour-30-lb-block",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Joint sealant, hot-pour, 30 lb block",
+    "description": "Hot-pour joint sealant for sealing expansion joints in concrete paving and sidewalks.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-sitework-doweling-basket-1-1-4-in-dowel-12-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Paving",
+    "csiDivision": "32",
+    "csiSection": "32 12 00",
+    "name": "Doweling basket, 1-1/4 in dowel, 12 ft",
+    "description": "Doweling basket assembly for load transfer at transverse joints in concrete paving.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-sitework-underdrain-pipe-perforated-4-in-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Underdrain pipe, perforated, 4 in, 100 ft",
+    "description": "Perforated underdrain pipe for subsurface drainage behind retaining walls and subgrades.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-sitework-french-drain-prefabricated-12-in-x-100-ft",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "French drain, prefabricated, 12 in x 100 ft",
+    "description": "Prefabricated French drain system for foundation and yard subsurface drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-sitework-catch-basin-adapter-4-in",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Catch basin adapter, 4 in",
+    "description": "Catch basin adapter fitting for connecting lateral drain pipe to catch basin inlet.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "CY",
+      "LF",
+      "SF"
+    ],
+    "tags": [
+      "sitework",
+      "utility",
+      "drainage"
+    ]
   }
 ]

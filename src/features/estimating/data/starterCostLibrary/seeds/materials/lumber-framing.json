@@ -2909,5 +2909,1469 @@
       "framing",
       "premium"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-9-1-2in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 9-1/2 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 9-1/2 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.7,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-11-7-8in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 11-7/8 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 11-7/8 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.9,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-14in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 14 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 14 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.1,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-16in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 16 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 16 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.3,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-18in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 18 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 18 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.5,
+    "type": "material",
+    "id": "material-lumber-framing-lvl-beam-24in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 24 inch depth, 1.75 in width, per LF",
+    "description": "Laminated veneer lumber beam, 24 inch depth, for headers, beams, rim boards, and structural framing members.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lvl",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-3-1-8-x-9-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 3-1/8 x 9 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 3-1/8 x 9 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-5-1-8-x-12-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 5-1/8 x 12 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 5-1/8 x 12 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-5-1-8-x-16-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 5-1/8 x 16 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 5-1/8 x 16 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-glulam-6-3-4-x-15-24f-v4",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Glulam beam, 6-3/4 x 15 inch, 24F-V4, per LF",
+    "description": "Glued-laminated timber beam, 6-3/4 x 15 inch, 24F-V4 grade, for exposed and concealed structural beam applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "glulam",
+      "engineered lumber",
+      "beam"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-20-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 20 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 20 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 120,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-24-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 24 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 24 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 155,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-28-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 28 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 28 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 190,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-32-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 32 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 32 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-36-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 36 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 36 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 260,
+    "type": "material",
+    "id": "material-lumber-framing-roof-truss-40-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "Roof truss, common, 40 ft span, 4/12 pitch",
+    "description": "Prefabricated common roof truss, 40 ft span, 4/12 pitch, for residential and light commercial roof framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "truss",
+      "roof",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.8,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-9-1-2in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 9-1/2 inch depth, per LF",
+    "description": "9-1/2 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.4,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-11-7-8in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 11-7/8 inch depth, per LF",
+    "description": "11-7/8 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-14in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 14 inch depth, per LF",
+    "description": "14 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.6,
+    "type": "material",
+    "id": "material-lumber-framing-i-joist-16in",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "I-joist, 16 inch depth, per LF",
+    "description": "16 inch depth I-joist for floor and roof framing systems with OSB web and solid or laminated flanges.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "i-joist",
+      "engineered lumber",
+      "floor framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-ridge-board-spf-2-1x12-x-16-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Ridge board, SPF #2, 1x12 x 16 ft",
+    "description": "SPF #2 ridge board 1x12 by 16 foot for conventional roof framing at the ridge line.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-lumber-framing-ridge-board-spf-2-2x12-x-16-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Ridge board, SPF #2, 2x12 x 16 ft",
+    "description": "SPF #2 ridge board 2x12 by 16 foot for heavy roof framing and open ceiling applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-lumber-framing-hip-rafter-spf-2-2x8-x-14-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Hip rafter, SPF #2, 2x8 x 14 ft",
+    "description": "SPF #2 hip rafter 2x8 by 14 foot for conventional hip roof framing at the hip line.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "type": "material",
+    "id": "material-lumber-framing-valley-rafter-spf-2-2x10-x-12-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Valley rafter, SPF #2, 2x10 x 12 ft",
+    "description": "SPF #2 valley rafter 2x10 by 12 foot for intersecting roof valley framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "rafter"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-lumber-framing-treated-2x4-x-8-ft-sill-plate",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 2x4 x 8 ft, Sill plate",
+    "description": "Pressure-treated southern pine lumber, 2x4 x 8 ft, for sill plate applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "sill plate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-lumber-framing-treated-2x6-x-8-ft-sill-plate",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 2x6 x 8 ft, Sill plate",
+    "description": "Pressure-treated southern pine lumber, 2x6 x 8 ft, for sill plate applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "sill plate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-treated-2x8-x-12-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 2x8 x 12 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 2x8 x 12 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-lumber-framing-treated-4x4-x-8-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 4x4 x 8 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 4x4 x 8 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-treated-4x6-x-12-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 4x6 x 12 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 4x6 x 12 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-lumber-framing-treated-6x6-x-12-ft-post",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Pressure-treated lumber, 6x6 x 12 ft, Post",
+    "description": "Pressure-treated southern pine lumber, 6x6 x 12 ft, for post applications in contact with concrete or exposed to weather.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "treated lumber",
+      "framing",
+      "post"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-lumber-framing-blocking-spf-2-2x4-x-14-1-2-in",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Blocking, SPF #2, 2x4 x 14-1/2 in",
+    "description": "Short SPF #2 blocking for fire blocking and structural bridging between studs.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-lumber-framing-furring-strip-spf-1x3-x-8-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Furring strip, SPF, 1x3 x 8 ft",
+    "description": "SPF furring strip 1x3 by 8 foot for wall furring, ceiling furring, and backing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-lumber-framing-nailer-spf-2-2x6-x-8-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Nailer, SPF #2, 2x6 x 8 ft",
+    "description": "SPF #2 nailer 2x6 by 8 foot for roof edge nailers, curtain wall attachment, and blocking.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-lumber-framing-let-in-bracing-spf-1x4-x-8-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Let-in bracing, SPF, 1x4 x 8 ft",
+    "description": "SPF let-in diagonal bracing 1x4 by 8 foot for wall lateral bracing in conventional framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-rim-board-lvl-1-1-8-x-11-7-8-x-16-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Rim board, LVL, 1-1/8 x 11-7/8 x 16 ft",
+    "description": "LVL rim board for I-joist floor system perimeter closure and load transfer.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "blocking"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-panel-cdx-plywood-1-2-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, CDX plywood, 1/2 in, 4x8",
+    "description": "Structural plywood panel, CDX plywood, 1/2 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 32,
+    "type": "material",
+    "id": "material-lumber-framing-panel-cdx-plywood-5-8-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, CDX plywood, 5/8 in, 4x8",
+    "description": "Structural plywood panel, CDX plywood, 5/8 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-panel-osb-7-16-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, OSB, 7/16 in, 4x8",
+    "description": "Structural osb panel, OSB, 7/16 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 24,
+    "type": "material",
+    "id": "material-lumber-framing-panel-osb-19-32-in-4x8-t-g",
+    "category": "Lumber / Framing",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, OSB, 19/32 in, 4x8 T&G",
+    "description": "Structural osb panel, OSB, 19/32 in, 4x8 T&G, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-lumber-framing-panel-advantech-3-4-in-4x8-t-g",
+    "category": "Lumber / Framing",
+    "subcategory": "Subfloor",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, Advantech, 3/4 in, 4x8 T&G",
+    "description": "Structural subfloor panel, Advantech, 3/4 in, 4x8 T&G, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "subfloor",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-lumber-framing-panel-zip-system-7-16-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Structural panel, Zip System, 7/16 in, 4x8",
+    "description": "Structural sheathing panel, Zip System, 7/16 in, 4x8, for wall sheathing, roof decking, and floor subfloor applications.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "sheathing",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-lumber-framing-connector-hurricane-tie-h1-single-wrap",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Hurricane tie, H1, single wrap",
+    "description": "Structural framing connector, Hurricane tie, H1, single wrap, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-lumber-framing-connector-post-cap-ccq-4x4-to-4x4",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Post cap, CCQ, 4x4 to 4x4",
+    "description": "Structural framing connector, Post cap, CCQ, 4x4 to 4x4, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-connector-hold-down-hdu5-heavy",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Hold-down, HDU5, heavy",
+    "description": "Structural framing connector, Hold-down, HDU5, heavy, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-lumber-framing-connector-joist-hanger-lus28-2x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Joist hanger, LUS28, 2x8",
+    "description": "Structural framing connector, Joist hanger, LUS28, 2x8, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.5,
+    "type": "material",
+    "id": "material-lumber-framing-connector-strap-tie-mst60-60-inch",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Strap tie, MST60, 60 inch",
+    "description": "Structural framing connector, Strap tie, MST60, 60 inch, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-lumber-framing-connector-corner-brace-18-gauge-4x4-inch",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing connector, Corner brace, 18-gauge, 4x4 inch",
+    "description": "Structural framing connector, Corner brace, 18-gauge, 4x4 inch, for wood-to-wood and wood-to-concrete connections in residential and commercial framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-joist-hanger-nails-1-1-2-in-1-lb-box",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Joist hanger nails, 1-1/2 in, 1 lb box",
+    "description": "Construction fastener, Joist hanger nails, 1-1/2 in, 1 lb box, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-structural-screws-4-in-50-ct-box",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Structural screws, 4 in, 50 ct box",
+    "description": "Construction fastener, Structural screws, 4 in, 50 ct box, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-deck-screws-3-in-stainless-1-lb",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Deck screws, 3 in, stainless, 1 lb",
+    "description": "Construction fastener, Deck screws, 3 in, stainless, 1 lb, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-finish-nails-15-gauge-2-in-1000-ct",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Finish nails, 15-gauge, 2 in, 1000 ct",
+    "description": "Construction fastener, Finish nails, 15-gauge, 2 in, 1000 ct, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-lumber-framing-fastener-staples-1-2-in-crown-16-gauge-box",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Fastener, Staples, 1/2 in crown, 16-gauge, box",
+    "description": "Construction fastener, Staples, 1/2 in crown, 16-gauge, box, for framing, sheathing, and finish carpentry applications.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x4-8ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x4 x 8'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x4 by 8 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x6-10ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x6 x 10'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x6 by 10 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x8-12ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x8 x 12'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x8 by 12 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x10-14ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x10 x 14'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x10 by 14 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13,
+    "type": "material",
+    "id": "material-lumber-framing-spf-select-2x12-16ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF Select, 2x12 x 16'",
+    "description": "Kiln-dried SPF Select dimensional lumber, 2x12 by 16 foot, for exposed framing and premium carpentry applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "material",
+    "id": "material-lumber-framing-plywood-marine-grade-3-4-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Plywood, marine grade, 3/4 in, 4x8",
+    "description": "Marine-grade plywood panel for moisture-exposed sheathing and specialty applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-lumber-framing-osb-radiant-barrier-7-16-in-4x8",
+    "category": "Lumber / Framing",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "OSB, radiant barrier, 7/16 in, 4x8",
+    "description": "OSB panel with radiant barrier foil for roof decking energy efficiency.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-lumber-framing-beam-lvl-1-75-x-11-7-8-in-20-ft",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Beam, LVL, 1.75 x 11-7/8 in, 20 ft",
+    "description": "LVL beam 20 foot length for window and door header framing in load-bearing walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-lumber-framing-connector-skewed-joist-hanger-lssu",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Connector, skewed joist hanger, LSSU",
+    "description": "Skewed joist hanger for angled joist connections at hip and valley framing conditions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "SQ"
+    ],
+    "tags": [
+      "lumber",
+      "framing"
+    ]
   }
 ]

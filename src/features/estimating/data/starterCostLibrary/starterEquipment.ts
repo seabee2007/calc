@@ -8,6 +8,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-air-compressor-portable-6-gal-electric",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Air compressor, portable, 6 gal, electric",
+    "description": "Portable electric air compressor for powering pneumatic nailers and tools on jobsites.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-carpentry-tools-fastening-air-compressor-portable-twin-stack",
@@ -51,6 +77,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "fastening",
       "hourly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-finish-nailer-pneumatic-15-gauge-angled",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Finish nailer, pneumatic, 15-gauge angled",
+    "description": "15-gauge angled finish nailer for trim, casing, and finish carpentry applications.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
     ]
   },
   {
@@ -105,6 +157,188 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-framing-nailer-pneumatic-21-full-round-head",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Framing nailer, pneumatic, 21° full round head",
+    "description": "Pneumatic framing nailer for high-speed wood framing, sheathing, and deck fastening.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-impact-driver-cordless-18v",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Impact driver, cordless, 18V",
+    "description": "Cordless impact driver for structural screw and lag bolt installation in framing.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-roofing-nailer-pneumatic-coil",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Roofing nailer, pneumatic, coil",
+    "description": "Pneumatic coil roofing nailer for asphalt shingle and roofing membrane fastening.",
+    "tags": [
+      "carpentry",
+      "fastening",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-belt-sander-3x21-in",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Belt sander, 3x21 in",
+    "description": "3x21 inch belt sander for rapid material removal and surface preparation in finish work.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-circular-saw-worm-drive-7-1-4-in",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Circular saw, worm drive, 7-1/4 in",
+    "description": "Worm-drive circular saw for heavy-duty framing and cutting of lumber and sheathing.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-laser-level-rotary-self-leveling",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Laser level, rotary, self-leveling",
+    "description": "Self-leveling rotary laser level for layout, grading reference, and framing alignment.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-miter-saw-compound-12-in-sliding",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Miter saw, compound, 12 in sliding",
+    "description": "12-inch sliding compound miter saw for precision crosscuts and miter cuts in trim and framing.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-carpentry-tools-sawing-miter-saw-sliding-compound-12-in",
@@ -148,6 +382,136 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "sawing",
       "weekly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 30,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-oscillating-multi-tool-cordless",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Oscillating multi-tool, cordless",
+    "description": "Cordless oscillating multi-tool for flush cutting, scraping, and detail work in remodeling.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-planer-portable-3-1-4-in",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Planer, portable, 3-1/4 in",
+    "description": "Portable power planer for edge-planing and dimensioning lumber in finish carpentry.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-reciprocating-saw-cordless-18v",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Reciprocating saw, cordless, 18V",
+    "description": "Cordless reciprocating saw for demolition, rough cutting, and utility work on jobsites.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-router-plunge-2-1-4-hp",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Router, plunge, 2-1/4 HP",
+    "description": "Plunge router for dado cuts, edge profiles, and finish carpentry detail work.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 75,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-carpentry-framing-table-saw-job-site-10-in-portable",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Table saw, job-site, 10 in portable",
+    "description": "Portable 10-inch job-site table saw for ripping lumber, plywood, and trim on site.",
+    "tags": [
+      "carpentry",
+      "sawing",
+      "rental"
     ]
   },
   {
@@ -250,6 +614,110 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-scarifier-walk-behind-8-in-cut",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete scarifier, walk-behind, 8 in cut",
+    "description": "Walk-behind concrete scarifier for aggressive surface removal and profile preparation.",
+    "tags": [
+      "concrete",
+      "cutting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-floor-saw-diesel-24-in-blade",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Floor saw, diesel, 24 in blade",
+    "description": "Diesel floor saw for cutting control joints and openings in cured concrete slabs.",
+    "tags": [
+      "concrete",
+      "cutting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 350,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-wall-saw-hydraulic-track-mounted",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Wall saw, hydraulic, track-mounted",
+    "description": "Track-mounted hydraulic wall saw for cutting openings in concrete and masonry walls.",
+    "tags": [
+      "concrete",
+      "cutting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-coring-machine-rig-mounted-wet",
+    "category": "Concrete Equipment",
+    "subcategory": "Drilling",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete coring machine, rig-mounted, wet",
+    "description": "Rig-mounted wet core drill for round penetrations in concrete walls and slabs.",
+    "tags": [
+      "concrete",
+      "drilling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-concrete-equipment-drilling-core-drill-rig-electric-wet-drilling",
@@ -299,6 +767,162 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-bull-float-magnesium-48-in",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Bull float, magnesium, 48 in",
+    "description": "Magnesium bull float for initial floating of freshly placed concrete slab surfaces.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 225,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-grinder-walk-behind-32-in",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete grinder, walk-behind, 32 in",
+    "description": "Walk-behind concrete grinder for slab surface preparation, coating removal, and polishing.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-curing-blanket-heater-propane-100k-btu",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Curing blanket heater, propane, 100K BTU",
+    "description": "Propane-fired curing blanket heater for cold-weather concrete curing protection.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-edge-trowel-hand-radius",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Edge trowel, hand, radius",
+    "description": "Radius edge trowel for forming rounded edges on concrete sidewalks and curbs.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-knee-boards-aluminum-pair",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Knee boards, aluminum, pair",
+    "description": "Aluminum knee boards for kneeling on freshly placed concrete during hand finishing.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 550,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-laser-screed-ride-on-12-ft-head",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Laser screed, ride-on, 12 ft head",
+    "description": "Ride-on laser screed for large slab flatness and elevation control during concrete placement.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-concrete-equipment-finishing-power-trowel-walk-behind-36-in",
@@ -342,6 +966,84 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "finishing",
       "weekly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-power-trowel-walk-behind-48-in",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Power trowel, walk-behind, 48 in",
+    "description": "Walk-behind power trowel for finishing medium-size concrete slabs after bull floating.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-rubbing-stone-carborundum-hand",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Rubbing stone, carborundum, hand",
+    "description": "Hand rubbing stone for smoothing and finishing formed concrete surfaces and patch areas.",
+    "tags": [
+      "concrete",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-bucket-crane-suspended-1-cy",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete bucket, crane-suspended, 1 CY",
+    "description": "Crane-suspended concrete bucket for placing concrete in elevated forms and hard-to-reach areas.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
     ]
   },
   {
@@ -396,6 +1098,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 450,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-mixer-truck-transit-mix-10-cy",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete mixer truck, transit mix, 10 CY",
+    "description": "Transit-mix concrete delivery truck for ready-mix concrete placement on large pours.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-concrete-pump-hose-4-in-x-20-ft-section",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete pump hose, 4 in x 20 ft section",
+    "description": "Heavy-duty concrete pump delivery hose section for line pump and boom pump setups.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-concrete-equipment-placement-concrete-pump-trailer-mounted-line-pump",
@@ -439,6 +1193,84 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "placement",
       "weekly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-rebar-tier-cordless-battery-powered",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Rebar tier, cordless, battery-powered",
+    "description": "Cordless battery-powered rebar tying tool for field reinforcement assembly efficiency.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-shotcrete-nozzleman-equipment-set",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Shotcrete nozzleman equipment set",
+    "description": "Shotcrete application equipment set including nozzle, hose, and air compressor interface.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-concrete-shotcrete-pump-dry-mix-trailer",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Shotcrete pump, dry-mix, trailer",
+    "description": "Trailer-mounted dry-mix shotcrete pump for slope stabilization and tunnel lining.",
+    "tags": [
+      "concrete",
+      "placement",
+      "rental"
     ]
   },
   {
@@ -574,6 +1406,162 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-airless-paint-sprayer-595-tip-electric",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Airless paint sprayer, 595 tip, electric",
+    "description": "Electric airless paint sprayer for high-volume interior and exterior paint application.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-drywall-sander-pole-vacuum-assist",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Drywall sander, pole, vacuum-assist",
+    "description": "Vacuum-assist pole drywall sander for dust-free finishing of gypsum board joints.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-floor-buffer-17-in-dual-speed",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Floor buffer, 17 in, dual-speed",
+    "description": "Dual-speed floor buffer for cleaning, buffing, and maintaining finished floor surfaces.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-heat-gun-1500w-variable-temperature",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Heat gun, 1500W, variable temperature",
+    "description": "Variable-temperature heat gun for shrink wrap, paint stripping, and membrane welding.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-paint-sprayer-hvlp-cup-gun",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Paint sprayer, HVLP, cup gun",
+    "description": "HVLP cup gun paint sprayer for fine-finish trim, cabinet, and detail painting.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-texture-sprayer-hopper-gun-pneumatic",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Texture sprayer, hopper gun, pneumatic",
+    "description": "Pneumatic hopper gun texture sprayer for orange peel and knockdown ceiling textures.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-drywall-finish-equipment-finishing-texture-sprayer-hopper-compressor-setup",
@@ -622,6 +1610,136 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-tile-cutter-manual-24-in-rail",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Tile cutter, manual, 24 in rail",
+    "description": "Manual rail tile cutter for straight cuts in ceramic wall and floor tile.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-tile-saw-wet-10-in-sliding-table",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Tile saw, wet, 10 in sliding table",
+    "description": "10-inch wet tile saw with sliding table for cutting ceramic and porcelain floor and wall tile.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-wallpaper-steamer-electric-1-gal",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Wallpaper steamer, electric, 1 gal",
+    "description": "Electric wallpaper steamer for removing wallpaper and wall coverings during renovation.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-floor-polisher-propane-27-in",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Grinding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Floor polisher, propane, 27 in",
+    "description": "Propane-powered floor polisher for large-area concrete and terrazzo floor finishing.",
+    "tags": [
+      "drywall",
+      "grinding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-carpet-stretcher-power-12-ft",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Carpet stretcher, power, 12 ft",
+    "description": "Power carpet stretcher for installing wall-to-wall carpet with proper tension.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-drywall-finish-equipment-handling-drywall-lift-panel-hoist",
@@ -665,6 +1783,84 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "handling",
       "weekly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-drywall-lift-panel-11-ft-telescoping",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Drywall lift, panel, 11 ft telescoping",
+    "description": "Telescoping drywall panel lift for installing ceiling and high wall gypsum board.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-knee-kicker-carpet-installation",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Knee kicker, carpet installation",
+    "description": "Carpet knee kicker for stretching and positioning carpet during installation.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-wall-trimmer-carpet-electric",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Wall trimmer, carpet, electric",
+    "description": "Electric carpet wall trimmer for tucking carpet edge at baseboards and transitions.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
     ]
   },
   {
@@ -818,6 +2014,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-plate-compactor-reversible-34-in",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Plate compactor, reversible, 34 in",
+    "description": "Reversible plate compactor for trench backfill and confined area soil compaction.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-earthwork-equipment-compaction-roller-vibratory-smooth-drum-ride-on",
@@ -862,6 +2084,136 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "compaction",
       "hourly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 385,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-sheepsfoot-compactor-padfoot-drum",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Sheepsfoot compactor, padfoot drum",
+    "description": "Padfoot sheepsfoot roller for cohesive soil compaction in fill and subgrade areas.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-smooth-drum-compactor-vibratory-84-in",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Smooth-drum compactor, vibratory, 84 in",
+    "description": "Vibratory smooth-drum roller for soil and aggregate base compaction on large areas.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-soil-stabilizer-reclaimer-8-ft-cut",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Soil stabilizer, reclaimer, 8 ft cut",
+    "description": "Soil stabilizer/reclaimer for in-place mixing of lime, cement, or asphalt into subgrade.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-water-truck-2-000-gal-for-dust-control",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Water truck, 2,000 gal, for dust control",
+    "description": "Water truck for dust suppression on active construction sites and compaction moisture.",
+    "tags": [
+      "earthwork",
+      "compaction",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-auger-attachment-18-in-diameter",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Auger attachment, 18 in diameter",
+    "description": "Hydraulic auger attachment for excavator post hole and pier drilling in soil conditions.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
     ]
   },
   {
@@ -917,6 +2269,110 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 650,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-bulldozer-d4-class-crawler",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Bulldozer, D4 class, crawler",
+    "description": "Crawler bulldozer for rough grading, backfilling, and site clearing on medium-size projects.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 950,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-bulldozer-d6-class-crawler",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Bulldozer, D6 class, crawler",
+    "description": "Large crawler bulldozer for mass grading, push-loading, and heavy site development work.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-dewatering-pump-2-in-electric-submersible",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Dewatering pump, 2 in, electric submersible",
+    "description": "Electric submersible dewatering pump for trench, footing, and excavation water removal.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-dewatering-pump-4-in-diesel-trash-pump",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Dewatering pump, 4 in, diesel trash pump",
+    "description": "Diesel trash pump for high-volume dewatering of excavations and flooded site areas.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-earthwork-equipment-excavation-excavator-tracked-20-ton-class",
@@ -962,6 +2418,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "excavation",
       "weekly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-excavator-tracked-30-ton-class",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Excavator, tracked, 30-ton class",
+    "description": "Large hydraulic tracked excavator for mass excavation, site grading, and heavy utility trenching.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1200,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-excavator-tracked-50-ton-class",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Excavator, tracked, 50-ton class",
+    "description": "Extra-large hydraulic excavator for deep excavation, mass grading, and major site development.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
     ]
   },
   {
@@ -1013,6 +2521,110 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "excavation",
       "daily",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 750,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-motor-grader-14-ft-blade",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Motor grader, 14 ft blade",
+    "description": "Motor grader for fine grading, road subgrade preparation, and surface leveling.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 350,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-rock-breaker-attachment-20-ton-class",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Rock breaker attachment, 20-ton class",
+    "description": "Hydraulic rock breaker attachment for excavator demolition and rock excavation.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-trench-box-6-ft-x-16-ft-aluminum",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Trench box, 6 ft x 16 ft, aluminum",
+    "description": "Aluminum trench box for lighter utility trenching with easier handling and setup.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-trench-box-8-ft-x-24-ft-steel",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Trench box, 8 ft x 24 ft, steel",
+    "description": "Steel trench shield box for OSHA-compliant trench excavation protection during utility work.",
+    "tags": [
+      "earthwork",
+      "excavation",
+      "rental"
     ]
   },
   {
@@ -1391,6 +3003,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 750,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-articulated-dump-truck-25-ton",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Articulated dump truck, 25 ton",
+    "description": "Articulated off-road dump truck for hauling excavated material on rough site terrain.",
+    "tags": [
+      "earthwork",
+      "hauling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-earthwork-equipment-hauling-dump-truck-tandem-axle",
@@ -1435,6 +3073,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "hauling",
       "daily",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 950,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-off-road-haul-truck-35-ton",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Off-road haul truck, 35 ton",
+    "description": "Rigid-frame off-road haul truck for long-distance material hauling on large sites.",
+    "tags": [
+      "earthwork",
+      "hauling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 650,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-scraper-14-cu-yd-motorized",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Scraper, 14 cu yd, motorized",
+    "description": "Motorized earth scraper for cut-and-fill grading on large site development projects.",
+    "tags": [
+      "earthwork",
+      "hauling",
+      "rental"
     ]
   },
   {
@@ -1541,6 +3231,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-skid-steer-tracked-high-flow",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Skid steer, tracked, high-flow",
+    "description": "High-flow compact track loader for grading, loading, and attachment-driven earthwork.",
+    "tags": [
+      "earthwork",
+      "loading",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 550,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-earthwork-wheel-loader-3-5-cu-yd-bucket",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Wheel loader, 3.5 cu yd bucket",
+    "description": "Front-end wheel loader for loading trucks, stockpiling, and material handling on site.",
+    "tags": [
+      "earthwork",
+      "loading",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-flooring-surface-prep-grinding-floor-grinder-walk-behind-concrete-surface-prep",
@@ -1617,6 +3359,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
     "costConfidence": "placeholder",
     "pricingRequired": true,
     "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-material-hoist-1-000-lb-50-ft-lift",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Material hoist, 1,000 lb, 50 ft lift",
+    "description": "Electric material hoist for lifting brick, block, and materials to elevated floors.",
+    "tags": [
+      "lifting",
+      "aerial and material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 40,
     "id": "equipment-material-hoist-2-000-lb-40-ft",
     "type": "equipment",
@@ -1636,6 +3404,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "lifting",
       "aerial",
       "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 650,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-personnel-hoist-rack-and-pinion-2-000-lb",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Personnel hoist, rack-and-pinion, 2,000 lb",
+    "description": "Rack-and-pinion personnel/material hoist for multi-story building construction access.",
+    "tags": [
+      "lifting",
+      "aerial and material handling",
       "rental"
     ]
   },
@@ -1746,6 +3540,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 850,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-truck-crane-hydraulic-35-ton-capacity",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Truck crane, hydraulic, 35-ton capacity",
+    "description": "Hydraulic truck-mounted crane for steel, HVAC, and material placement on commercial projects.",
+    "tags": [
+      "lifting",
+      "aerial and material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-lifting-access-aerial-lift-boom-lift-articulating-45-ft-platform-height",
@@ -1796,6 +3616,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 550,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-boom-lift-articulating-80-ft-platform-height",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Boom lift, articulating, 80 ft platform height",
+    "description": "Large articulating boom lift for high-reach exterior facade and steel erection work.",
+    "tags": [
+      "lifting",
+      "aerial lift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 75,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-personnel-lift-push-around-20-ft",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Personnel lift, push-around, 20 ft",
+    "description": "Push-around single-personnel lift for interior maintenance and light elevated work.",
+    "tags": [
+      "lifting",
+      "aerial lift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-lifting-access-aerial-lift-scissor-lift-electric-slab-19-ft-platform-height",
@@ -1840,6 +3712,84 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "aerial lift",
       "weekly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-scissor-lift-rough-terrain-32-ft",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scissor lift, rough-terrain, 32 ft",
+    "description": "Rough-terrain scissor lift for outdoor elevated work on uneven ground conditions.",
+    "tags": [
+      "lifting",
+      "aerial lift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-chain-hoist-manual-2-ton",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Chain hoist, manual, 2-ton",
+    "description": "Manual chain hoist for precise lifting and positioning of equipment and materials.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-crane-mat-timber-8-ft-x-8-ft-x-8-in",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Crane mat, timber, 8 ft x 8 ft x 8 in",
+    "description": "Timber crane mat for distributing outrigger loads on soft ground during crane setup.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
     ]
   },
   {
@@ -1895,6 +3845,84 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-forklift-warehouse-5-000-lb-cushion-tire",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Forklift, warehouse, 5,000 lb cushion tire",
+    "description": "Cushion-tire warehouse forklift for indoor material handling on slab surfaces.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-outrigger-pad-composite-24-in-x-24-in",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Outrigger pad, composite, 24 in x 24 in",
+    "description": "Composite outrigger pad for crane and aerial lift setup on paved and soft surfaces.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-rigging-sling-nylon-6-ft-6-000-lb",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Rigging sling, nylon, 6 ft, 6,000 lb",
+    "description": "Nylon web sling for rigging and lifting materials with crane and hoist equipment.",
+    "tags": [
+      "lifting",
+      "material handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-lifting-access-material-handling-telehandler-6-000-lb-42-ft-reach",
@@ -1944,6 +3972,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 750,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-mast-climbing-work-platform-dual-mast",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Mast climbing work platform, dual mast",
+    "description": "Dual-mast climbing work platform for exterior masonry, EIFS, and facade installation.",
+    "tags": [
+      "lifting",
+      "scaffolding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-lifting-access-scaffolding-scaffold-frame-set-rolling-tower",
@@ -1988,6 +4042,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "scaffolding",
       "hourly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-spider-scaffold-modular-frame-set",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Spider scaffold, modular frame set",
+    "description": "Modular spider scaffold frame set for irregular and curved facade access.",
+    "tags": [
+      "lifting",
+      "scaffolding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-lifting-access-swing-stage-scaffold-40-ft-platform",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Swing-stage scaffold, 40 ft platform",
+    "description": "Powered swing-stage scaffold system for exterior facade work on multi-story buildings.",
+    "tags": [
+      "lifting",
+      "scaffolding",
+      "rental"
     ]
   },
   {
@@ -2250,6 +4356,32 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 325,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dust-control-water-truck-2-500-gal",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dust control water truck, 2,500 gal",
+    "description": "Water truck dedicated to dust suppression on active construction and grading sites.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-temporary-site-power-generator-portable-6500-watt",
@@ -2294,6 +4426,214 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "power",
       "daily",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-security-camera-wireless-solar-powered",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Security camera, wireless, solar-powered",
+    "description": "Solar-powered wireless security camera for construction site monitoring and theft deterrence.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 95,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-water-trailer-1-000-gal-towable",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Water trailer, 1,000 gal, towable",
+    "description": "Large towable water trailer for extended dust control and site water needs.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-water-trailer-500-gal-towable",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Water trailer, 500 gal, towable",
+    "description": "Towable water trailer for dust control, compaction, and temporary site water supply.",
+    "tags": [
+      "temporary",
+      "power",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-extension-cord-heavy-duty-100-ft-12-3",
+    "category": "Temporary / Site",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Extension cord, heavy-duty, 100 ft, 12/3",
+    "description": "Heavy-duty 100-foot extension cord for temporary power distribution on jobsites.",
+    "tags": [
+      "temporary",
+      "power and lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-temporary-power-pole-metered-200a",
+    "category": "Temporary / Site",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary power pole, metered, 200A",
+    "description": "Temporary metered power pole for construction site electrical service during building.",
+    "tags": [
+      "temporary",
+      "power and lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-first-aid-station-ansi-class-a-cabinet",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "First aid station, ANSI Class A, cabinet",
+    "description": "ANSI Class A first aid cabinet for OSHA-compliant construction site medical supplies.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-job-box-gang-box-48-in-lockable",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Job box, gang box, 48 in, lockable",
+    "description": "Lockable gang box for secure storage of small tools and consumables on jobsites.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 275,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-site-office-trailer-8x20-ft-furnished",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Site office trailer, 8x20 ft, furnished",
+    "description": "Furnished site office trailer for project management, meetings, and plan storage.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
     ]
   },
   {
@@ -2348,6 +4688,214 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
   {
     "costConfidence": "placeholder",
     "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-storage-container-20-ft-wind-and-watertight",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Storage container, 20 ft, wind and watertight",
+    "description": "20-foot shipping container for secure on-site material and equipment storage.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-storage-container-40-ft-wind-and-watertight",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Storage container, 40 ft, wind and watertight",
+    "description": "40-foot shipping container for large-capacity on-site material storage.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-temporary-fence-barricade-water-filled-6-ft",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence, barricade, water-filled, 6 ft",
+    "description": "Water-filled plastic barricade for traffic control and site perimeter delineation.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-temporary-fence-chain-link-6-ft-x-10-ft-panel",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary fence, chain link, 6 ft x 10 ft panel",
+    "description": "Chain link temporary fence panel for site perimeter security and OSHA compliance.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-tool-trailer-enclosed-16-ft",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Tool trailer, enclosed, 16 ft",
+    "description": "Enclosed tool trailer for secure storage and transport of jobsite tools and equipment.",
+    "tags": [
+      "temporary",
+      "storage",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 350,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dumpster-10-cy-weekly-haul",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dumpster, 10 CY, weekly haul",
+    "description": "10 cubic yard roll-off dumpster for construction debris and waste disposal.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 425,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dumpster-20-cy-weekly-haul",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dumpster, 20 CY, weekly haul",
+    "description": "20 cubic yard roll-off dumpster for medium-size construction waste disposal.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 525,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-dumpster-30-cy-weekly-haul",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Dumpster, 30 CY, weekly haul",
+    "description": "30 cubic yard roll-off dumpster for large construction and demolition waste disposal.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
     "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
     "defaultUnitCost": 0,
     "id": "equipment-temporary-site-waste-dumpster-roll-off-20-cy",
@@ -2392,6 +4940,58 @@ export const STARTER_EQUIPMENT_ITEMS: StarterCostLibraryItem[] = [
       "waste",
       "hourly",
       "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-portable-toilet-ada-compliant-monthly-rental",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Portable toilet, ADA compliant, monthly rental",
+    "description": "ADA-compliant portable toilet for accessible worker sanitation on construction sites.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-temporary-site-portable-toilet-standard-monthly-rental",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Portable toilet, standard, monthly rental",
+    "description": "Standard portable toilet unit for construction site worker sanitation requirements.",
+    "tags": [
+      "temporary",
+      "waste",
+      "rental"
     ]
   },
   {

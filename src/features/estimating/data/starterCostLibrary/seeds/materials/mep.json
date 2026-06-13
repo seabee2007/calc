@@ -1396,5 +1396,2294 @@
       "water",
       "contractor"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 1-1/2 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 1-1/2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 2 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 2 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-3in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 3 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 3 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 4 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 4 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-90-elbow-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 90° elbow, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, 90° elbow, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "90° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-45-elbow-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, 45° elbow, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, 45° elbow, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "45° elbow"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-tee-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, tee, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, tee, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-coupling-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, coupling, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, coupling, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "coupling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-cleanout-tee-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, cleanout tee, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, cleanout tee, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "cleanout tee"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-wye-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, wye, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, wye, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "wye"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-pvc-dwv-reducer-6in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC DWV fitting, reducer, Schedule 40, 6 inch",
+    "description": "PVC drain-waste-vent fitting, reducer, Schedule 40, 6 inch, for sanitary drainage and vent piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "dwv",
+      "reducer"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-tee-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-coupling-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-copper-cap-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 1/2 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-tee-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-coupling-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-copper-cap-3-4in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 3/4 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 3/4 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 1 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-tee-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 1 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-coupling-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 1 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "type": "material",
+    "id": "material-mep-copper-cap-1in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 1 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 1 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-90-elbow-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, 90° elbow, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, 90° elbow, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-tee-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, tee, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, tee, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-coupling-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, coupling, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, coupling, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-copper-cap-1-1-2in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Copper fitting, cap, sweat, 1-1/2 inch",
+    "description": "Copper water supply fitting, cap, sweat connection, 1-1/2 inch, for hot and cold water distribution piping.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "plumbing",
+      "copper",
+      "fitting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-mep-black-steel-pipe-schedule-40-3-4-in-10-ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Black steel pipe, Schedule 40, 3/4 in, 10 ft",
+    "description": "Black steel gas pipe for natural gas and propane distribution in commercial and residential buildings.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "material",
+    "id": "material-mep-csst-gas-tubing-1-2-in-25-ft-coil",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CSST gas tubing, 1/2 in, 25 ft coil",
+    "description": "Corrugated stainless steel gas tubing for flexible gas appliance connections and distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-mep-gas-shutoff-valve-ball-3-4-in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Gas shutoff valve, ball, 3/4 in",
+    "description": "Full-port gas ball shutoff valve for appliance and branch line isolation in gas piping systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 28,
+    "type": "material",
+    "id": "material-mep-gas-flex-connector-3-4-in-x-24-in",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Gas flex connector, 3/4 in x 24 in",
+    "description": "Flexible gas appliance connector for ranges, dryers, and gas-fired equipment connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "gas",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.45,
+    "type": "material",
+    "id": "material-mep-electrical-emt-connector-set-screw-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT connector, set-screw, 1/2 in",
+    "description": "EMT connector, set-screw, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.85,
+    "type": "material",
+    "id": "material-mep-electrical-emt-connector-compression-3-4-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT connector, compression, 3/4 in",
+    "description": "EMT connector, compression, 3/4 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.35,
+    "type": "material",
+    "id": "material-mep-electrical-emt-coupling-set-screw-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT coupling, set-screw, 1/2 in",
+    "description": "EMT coupling, set-screw, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-mep-electrical-emt-coupling-compression-1-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT coupling, compression, 1 in",
+    "description": "EMT coupling, compression, 1 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-electrical-emt-lb-conduit-body-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT LB conduit body, 1/2 in",
+    "description": "EMT LB conduit body, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-mep-electrical-emt-ll-conduit-body-3-4-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT LL conduit body, 3/4 in",
+    "description": "EMT LL conduit body, 3/4 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "material",
+    "id": "material-mep-electrical-emt-lr-conduit-body-1-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT LR conduit body, 1 in",
+    "description": "EMT LR conduit body, 1 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.5,
+    "type": "material",
+    "id": "material-mep-electrical-emt-90-elbow-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT 90° elbow, 1/2 in",
+    "description": "EMT 90° elbow, 1/2 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.25,
+    "type": "material",
+    "id": "material-mep-electrical-emt-90-elbow-3-4-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT 90° elbow, 3/4 in",
+    "description": "EMT 90° elbow, 3/4 in for electrical metallic tubing conduit systems in branch circuit and feeder wiring.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "electrical",
+      "conduit",
+      "emt"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16,
+    "type": "material",
+    "id": "material-mep-gfci-receptacle-20a-tamper-resistant-white",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "GFCI receptacle, 20A, tamper resistant, white",
+    "description": "Ground-fault circuit interrupter receptacle for wet location and code-required GFCI protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 42,
+    "type": "material",
+    "id": "material-mep-afci-breaker-15a-single-pole",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "AFCI breaker, 15A, single pole",
+    "description": "Arc-fault circuit interrupter breaker for bedroom and living area branch circuit protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-mep-disconnect-switch-60a-non-fused-nema-3r",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Disconnect switch, 60A, non-fused, NEMA 3R",
+    "description": "Non-fused safety disconnect switch for HVAC equipment and motor load isolation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-mep-junction-box-4x4x2-1-8-weatherproof",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Junction box, 4x4x2-1/8, weatherproof",
+    "description": "Weatherproof junction box for exterior electrical splice and device mounting.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-mep-mc-cable-connector-1-2-in",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "MC cable connector, 1/2 in",
+    "description": "Metal-clad cable connector for armored cable termination in boxes and panels.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-mep-surge-protector-whole-house-200a-panel",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Surge protector, whole-house, 200A panel",
+    "description": "Whole-house surge protection device for main electrical panel lightning and surge protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "wiring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "type": "material",
+    "id": "material-mep-hvac-rectangular-duct-galvanized-24-ga-12x8-in-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Rectangular duct, galvanized, 24 ga, 12x8 in, per LF",
+    "description": "Galvanized rectangular ductwork for supply and return air distribution in HVAC systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "material",
+    "id": "material-mep-hvac-rectangular-duct-galvanized-24-ga-16x10-in-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Rectangular duct, galvanized, 24 ga, 16x10 in, per LF",
+    "description": "Galvanized rectangular trunk duct for main supply air distribution runs.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-hvac-spiral-round-duct-galvanized-8-in-diameter-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Spiral round duct, galvanized, 8 in diameter, per LF",
+    "description": "Spiral round galvanized duct for branch duct connections and exposed ductwork.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 14,
+    "type": "material",
+    "id": "material-mep-hvac-spiral-round-duct-galvanized-12-in-diameter-per-lf",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Spiral round duct, galvanized, 12 in diameter, per LF",
+    "description": "Spiral round galvanized duct for main trunk and large branch duct runs.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-mep-hvac-duct-elbow-rectangular-12x8-in-90",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Duct elbow, rectangular, 12x8 in, 90°",
+    "description": "Rectangular duct elbow for changing direction in rectangular ductwork systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "material",
+    "id": "material-mep-hvac-volume-damper-manual-12x8-in",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Volume damper, manual, 12x8 in",
+    "description": "Manual volume damper for balancing airflow in rectangular duct branch runs.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "type": "material",
+    "id": "material-mep-insulation-pipe-insulation-fiberglass-3-4-in-id-1-in-wall",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Pipe insulation, fiberglass, 3/4 in ID, 1 in wall",
+    "description": "Fiberglass pipe insulation for hot and cold water piping thermal and condensation control.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "type": "material",
+    "id": "material-mep-insulation-pipe-insulation-rubber-1-in-id-3-4-in-wall",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Pipe insulation, rubber, 1 in ID, 3/4 in wall",
+    "description": "Closed-cell rubber pipe insulation for refrigeration and chilled water piping systems.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.25,
+    "type": "material",
+    "id": "material-mep-insulation-duct-insulation-fiberglass-wrap-r-6-48-in-wide",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Duct insulation, fiberglass wrap, R-6, 48 in wide",
+    "description": "Fiberglass duct wrap insulation for exterior ductwork thermal and condensation control.",
+    "unit": "SF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 2.5,
+    "type": "material",
+    "id": "material-mep-insulation-duct-liner-fiberglass-1-in-58-in-wide",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 07 00",
+    "name": "Duct liner, fiberglass, 1 in, 58 in wide",
+    "description": "Fiberglass duct liner for internal acoustic and thermal treatment of sheet metal duct.",
+    "unit": "SF",
+    "commonUnits": [
+      "LF",
+      "SF",
+      "ROLL"
+    ],
+    "tags": [
+      "hvac",
+      "insulation",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1-2in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1/2 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1/2 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-3-4in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 3/4 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 3/4 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 17,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1-1-4in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1-1/4 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1-1/4 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 21,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-1-1-2in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 1-1/2 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 1-1/2 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "material",
+    "id": "material-mep-pvc-schedule-80-2in-10ft",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "PVC pipe, Schedule 80, 2 inch, 10 ft",
+    "description": "PVC Schedule 80 pipe, 2 inch, 10 foot stick for high-pressure and industrial plumbing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "pvc",
+      "pipe"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "material",
+    "id": "material-mep-water-meter-3-4-in-residential",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Water meter, 3/4 in, residential",
+    "description": "Residential water meter for potable water service entry and utility billing connection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 285,
+    "type": "material",
+    "id": "material-mep-backflow-preventer-1-in-reduced-pressure",
+    "category": "Plumbing",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "Backflow preventer, 1 in, reduced pressure",
+    "description": "Reduced pressure backflow preventer for irrigation and fire line cross-connection protection.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "type": "material",
+    "id": "material-mep-conduit-pvc-schedule-40-1-in-10-ft",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Conduit, PVC, Schedule 40, 1 in, 10 ft",
+    "description": "PVC electrical conduit for underground and encased electrical branch circuit routing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 185,
+    "type": "material",
+    "id": "material-mep-panel-sub-100a-20-space",
+    "category": "Electrical",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Panel, sub, 100A, 20-space",
+    "description": "100 amp sub-panel for garage, shop, and addition electrical distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 165,
+    "type": "material",
+    "id": "material-mep-thermostat-smart-wifi-programmable",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Thermostat, smart, WiFi, programmable",
+    "description": "WiFi-enabled smart thermostat for HVAC zone control and energy management.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 65,
+    "type": "material",
+    "id": "material-mep-exhaust-fan-bath-80-cfm-with-light",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Exhaust fan, bath, 80 CFM, with light",
+    "description": "Bathroom exhaust fan with integrated light for moisture and odor ventilation.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "type": "material",
+    "id": "material-mep-condensate-pump-120v-with-safety-switch",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Condensate pump, 120V, with safety switch",
+    "description": "Condensate removal pump for HVAC air handler and furnace condensate drainage.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "material",
+    "id": "material-mep-duct-sealant-mastic-1-gal",
+    "category": "HVAC",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Duct sealant, mastic, 1 gal",
+    "description": "HVAC duct mastic sealant for sealing duct joints and connections in air distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep",
+      "plumbing",
+      "electrical",
+      "hvac"
+    ]
   }
 ]

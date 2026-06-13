@@ -143,5 +143,369 @@
       "daily",
       "rental-rate"
     ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-texture-sprayer-hopper-gun-pneumatic",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Texture sprayer, hopper gun, pneumatic",
+    "description": "Pneumatic hopper gun texture sprayer for orange peel and knockdown ceiling textures.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-airless-paint-sprayer-595-tip-electric",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Airless paint sprayer, 595 tip, electric",
+    "description": "Electric airless paint sprayer for high-volume interior and exterior paint application.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-paint-sprayer-hvlp-cup-gun",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Paint sprayer, HVLP, cup gun",
+    "description": "HVLP cup gun paint sprayer for fine-finish trim, cabinet, and detail painting.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-floor-buffer-17-in-dual-speed",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Floor buffer, 17 in, dual-speed",
+    "description": "Dual-speed floor buffer for cleaning, buffing, and maintaining finished floor surfaces.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 125,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-floor-polisher-propane-27-in",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Grinding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Floor polisher, propane, 27 in",
+    "description": "Propane-powered floor polisher for large-area concrete and terrazzo floor finishing.",
+    "tags": [
+      "drywall",
+      "grinding",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-carpet-stretcher-power-12-ft",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Carpet stretcher, power, 12 ft",
+    "description": "Power carpet stretcher for installing wall-to-wall carpet with proper tension.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 55,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-tile-saw-wet-10-in-sliding-table",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Tile saw, wet, 10 in sliding table",
+    "description": "10-inch wet tile saw with sliding table for cutting ceramic and porcelain floor and wall tile.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-tile-cutter-manual-24-in-rail",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Tile cutter, manual, 24 in rail",
+    "description": "Manual rail tile cutter for straight cuts in ceramic wall and floor tile.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-knee-kicker-carpet-installation",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Knee kicker, carpet installation",
+    "description": "Carpet knee kicker for stretching and positioning carpet during installation.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 25,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-wall-trimmer-carpet-electric",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Wall trimmer, carpet, electric",
+    "description": "Electric carpet wall trimmer for tucking carpet edge at baseboards and transitions.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-heat-gun-1500w-variable-temperature",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Heat gun, 1500W, variable temperature",
+    "description": "Variable-temperature heat gun for shrink wrap, paint stripping, and membrane welding.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-drywall-lift-panel-11-ft-telescoping",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Drywall lift, panel, 11 ft telescoping",
+    "description": "Telescoping drywall panel lift for installing ceiling and high wall gypsum board.",
+    "tags": [
+      "drywall",
+      "handling",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-drywall-sander-pole-vacuum-assist",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Drywall sander, pole, vacuum-assist",
+    "description": "Vacuum-assist pole drywall sander for dust-free finishing of gypsum board joints.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 22,
+    "type": "equipment",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "id": "equipment-drywall-finishes-wallpaper-steamer-electric-1-gal",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Wallpaper steamer, electric, 1 gal",
+    "description": "Electric wallpaper steamer for removing wallpaper and wall coverings during renovation.",
+    "tags": [
+      "drywall",
+      "finishing",
+      "rental"
+    ]
   }
 ]
