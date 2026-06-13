@@ -1,0 +1,147 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-drywall-finish-equipment-handling-drywall-lift-panel-hoist",
+    "type": "equipment",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall lift, panel hoist",
+    "description": "Panel lift used to raise and hold drywall sheets for ceiling installation and upper wall placement.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "drywall / finish equipment",
+      "handling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-drywall-finish-equipment-finishing-texture-sprayer-hopper-compressor-setup",
+    "type": "equipment",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 90 00",
+    "name": "Texture sprayer, hopper/compressor setup",
+    "description": "Texture spraying equipment for applying knockdown, orange peel, and acoustic texture finishes.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "drywall / finish equipment",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-flooring-surface-prep-grinding-floor-grinder-walk-behind-concrete-surface-prep",
+    "type": "equipment",
+    "category": "Flooring / Surface Prep",
+    "subcategory": "Grinding",
+    "csiDivision": "09",
+    "csiSection": "09 60 00",
+    "name": "Floor grinder, walk-behind, concrete surface prep",
+    "description": "Walk-behind floor grinder for concrete surface preparation, coating removal, leveling, and polishing preparation.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "flooring / surface prep",
+      "grinding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-drywall-finish-equipment-handling-drywall-lift-panel-hoist-weekly-rate-29",
+    "type": "equipment",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Handling",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Drywall lift, panel hoist, weekly rental rate",
+    "description": "Panel lift used to raise and hold drywall sheets for ceiling installation and upper wall placement. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "drywall / finish equipment",
+      "handling",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-drywall-finish-equipment-finishing-texture-sprayer-hopper-compressor-setup-hourly-rate-30",
+    "type": "equipment",
+    "category": "Drywall / Finish Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 90 00",
+    "name": "Texture sprayer, hopper/compressor setup, hourly rental rate",
+    "description": "Texture spraying equipment for applying knockdown, orange peel, and acoustic texture finishes. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "drywall / finish equipment",
+      "finishing",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-flooring-surface-prep-grinding-floor-grinder-walk-behind-concrete-surface-prep-daily-rate-31",
+    "type": "equipment",
+    "category": "Flooring / Surface Prep",
+    "subcategory": "Grinding",
+    "csiDivision": "09",
+    "csiSection": "09 60 00",
+    "name": "Floor grinder, walk-behind, concrete surface prep, daily rental rate",
+    "description": "Walk-behind floor grinder for concrete surface preparation, coating removal, leveling, and polishing preparation. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "flooring / surface prep",
+      "grinding",
+      "daily",
+      "rental-rate"
+    ]
+  }
+]

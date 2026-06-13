@@ -1,0 +1,1400 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-plumbing-pex-tubing-1-2-in-red-blue-100-ft-coil",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "PEX tubing, 1/2 in, red/blue, 100 ft coil",
+    "description": "Cross-linked polyethylene tubing for domestic water distribution, branch lines, and fixture supply piping.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-plumbing-pvc-dwv-pipe-schedule-40-3-in-x-10-ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "PVC DWV pipe, Schedule 40, 3 in x 10 ft",
+    "description": "PVC drain-waste-vent pipe for sanitary drainage and vent systems in residential and light commercial plumbing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-electrical-nm-b-cable-12-2-with-ground-250-ft-roll",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "NM-B cable, 12/2 with ground, 250 ft roll",
+    "description": "Nonmetallic sheathed cable for residential branch circuits where permitted by electrical code.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-electrical-emt-conduit-galvanized-3-4-in-x-10-ft",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT conduit, galvanized, 3/4 in x 10 ft",
+    "description": "Electrical metallic tubing conduit for exposed or concealed electrical raceway systems.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "electrical"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-hvac-flexible-duct-insulated-8-in-diameter",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Flexible duct, insulated, 8 in diameter",
+    "description": "Insulated flexible duct used for HVAC supply and return air distribution.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "box"
+    ],
+    "tags": [
+      "mep materials",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-hvac-mini-split-heat-pump-single-zone-12-000-btu",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 81 00",
+    "name": "Mini split heat pump, single-zone, 12,000 BTU",
+    "description": "Ductless single-zone mini split heat pump system for heating and cooling individual rooms or spaces.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "hvac"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-plumbing-cpvc-hot-cold-1-2in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 1/2 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 1/2 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "1/2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "id": "material-plumbing-cpvc-hot-cold-3-4in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 3/4 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 3/4 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "3/4"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11,
+    "id": "material-plumbing-cpvc-hot-cold-1in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 1 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 1 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "1"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 15,
+    "id": "material-plumbing-cpvc-hot-cold-1-1-2in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 1-1/2 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 1-1/2 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "1-1/2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 19,
+    "id": "material-plumbing-cpvc-hot-cold-2in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 2 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 2 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 23,
+    "id": "material-plumbing-cpvc-hot-cold-3in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 3 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 3 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "3"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 27,
+    "id": "material-plumbing-cpvc-hot-cold-4in-10ft",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 4 inch, 10 ft stick",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 4 inch nominal diameter, 10 foot stick length for residential plumbing distribution.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "4"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-water-closet-elongated-1-28-gpf",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Water closet, elongated, 1.28 GPF",
+    "description": "Elongated floor-mount water closet, 1.28 gallons per flush, for commercial and residential restroom fixtures",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-lavatory-undermount-vitreous-china",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Lavatory, undermount, vitreous china",
+    "description": "Undermount vitreous china lavatory for vanity countertop installation in restrooms and bathrooms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-kitchen-sink-stainless-double-bowl-33-in",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Kitchen sink, stainless, double bowl, 33 in",
+    "description": "Stainless steel double-bowl kitchen sink, 33 inch width, for residential kitchen base cabinet installation",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-shower-valve-trim-pressure-balance-chrom",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Shower valve trim, pressure balance, chrome",
+    "description": "Pressure-balance shower valve trim kit, chrome finish, for tub and shower mixing valve finish installation",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-water-heater-50-gal-electric-240v",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Water heater, 50 gal, electric, 240V",
+    "description": "Electric storage water heater, 50 gallon capacity, 240 volt, for residential domestic hot water",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-pex-tubing-3-4-in-red-100-ft-coil",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "PEX tubing, 3/4 in, red, 100 ft coil",
+    "description": "PEX-A tubing, 3/4 inch, red, 100 foot coil, for hot water distribution piping",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 45,
+    "id": "material-electrical-copper-thhn-12-awg-500ft",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Building Wire",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "Copper building wire, THHN/THWN, 12 AWG, 500 ft reel",
+    "description": "Copper THHN/THWN building wire, 12 AWG, 500 foot reel, for branch circuit and feeder conductor installation in conduit or cable assemblies.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "wire",
+      "copper",
+      "12 AWG"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 110,
+    "id": "material-electrical-copper-thhn-10-awg-500ft",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Building Wire",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "Copper building wire, THHN/THWN, 10 AWG, 500 ft reel",
+    "description": "Copper THHN/THWN building wire, 10 AWG, 500 foot reel, for branch circuit and feeder conductor installation in conduit or cable assemblies.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "wire",
+      "copper",
+      "10 AWG"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 175,
+    "id": "material-electrical-copper-thhn-8-awg-500ft",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Building Wire",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "Copper building wire, THHN/THWN, 8 AWG, 500 ft reel",
+    "description": "Copper THHN/THWN building wire, 8 AWG, 500 foot reel, for branch circuit and feeder conductor installation in conduit or cable assemblies.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "wire",
+      "copper",
+      "8 AWG"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 240,
+    "id": "material-electrical-copper-thhn-6-awg-500ft",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Building Wire",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "Copper building wire, THHN/THWN, 6 AWG, 500 ft reel",
+    "description": "Copper THHN/THWN building wire, 6 AWG, 500 foot reel, for branch circuit and feeder conductor installation in conduit or cable assemblies.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "wire",
+      "copper",
+      "6 AWG"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 305,
+    "id": "material-electrical-copper-thhn-4-awg-500ft",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Building Wire",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "Copper building wire, THHN/THWN, 4 AWG, 500 ft reel",
+    "description": "Copper THHN/THWN building wire, 4 AWG, 500 foot reel, for branch circuit and feeder conductor installation in conduit or cable assemblies.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "wire",
+      "copper",
+      "4 AWG"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-electrical-receptacle-duplex-20a-tamper-resistant",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Devices and Distribution",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Receptacle, duplex, 20A, tamper resistant",
+    "description": "Tamper-resistant duplex receptacle, 20 amp, 125 volt, for general-purpose branch circuit device installation",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "conduit",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-electrical-switch-single-pole-15a-commercial-grade",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Devices and Distribution",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Switch, single pole, 15A, commercial grade",
+    "description": "Commercial grade single-pole switch, 15 amp, for lighting and switched receptacle control",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "conduit",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-electrical-panelboard-200a-40-space-main-breaker",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Devices and Distribution",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Panelboard, 200A, 40-space, main breaker",
+    "description": "200 amp main breaker panelboard, 40 space, for residential and light commercial service and distribution",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "conduit",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-electrical-emt-conduit-3-4-in-10-ft",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Devices and Distribution",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "EMT conduit, 3/4 in, 10 ft",
+    "description": "Electrical metallic tubing conduit, 3/4 inch, 10 foot length, for exposed and concealed branch circuit routing",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "conduit",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-electrical-junction-box-4x4x2-1-8-steel",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Devices and Distribution",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "Junction box, 4x4x2-1/8, steel",
+    "description": "Steel junction box, 4 inch by 4 inch by 2-1/8 inch deep, for splice and device mounting in conduit systems",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "conduit",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-electrical-led-downlight-6-in-3000k-dimmable",
+    "type": "material",
+    "category": "Electrical",
+    "subcategory": "Devices and Distribution",
+    "csiDivision": "26",
+    "csiSection": "26 27 00",
+    "name": "LED downlight, 6 in, 3000K, dimmable",
+    "description": "6 inch recessed LED downlight, 3000K color temperature, dimmable, for ceiling lighting in finished spaces",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "electrical",
+      "device",
+      "conduit",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-flex-duct-insulated-r-6-8-in-x-25-ft",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Flex duct, insulated, R-6, 8 in x 25 ft",
+    "description": "Insulated flexible duct, R-6, 8 inch diameter, 25 foot length, for branch duct connections to diffusers",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-flex-duct-insulated-r-6-12-in-x-25-ft",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Flex duct, insulated, R-6, 12 in x 25 ft",
+    "description": "Insulated flexible duct, R-6, 12 inch diameter, 25 foot length, for trunk and branch duct connections",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-register-floor-4x10-steel",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Register, floor, 4x10, steel",
+    "description": "Steel floor supply air register, 4 inch by 10 inch, for forced-air distribution terminal devices",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-grille-return-14x14-steel",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Grille, return, 14x14, steel",
+    "description": "Steel return air grille, 14 inch by 14 inch, for return air intake at walls or ceilings",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-mini-split-condenser-2-ton-16-seer2",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Mini-split condenser, 2 ton, 16 SEER2",
+    "description": "Ductless mini-split outdoor condenser unit, 2 ton capacity, 16 SEER2, for single-zone cooling and heating",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-mini-split-air-handler-2-ton-wall-mount",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Mini-split air handler, 2 ton, wall mount",
+    "description": "Ductless mini-split indoor wall-mounted air handler, 2 ton, for zone heating and cooling distribution",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-rtu-curb-adapter-5-ton",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "RTU curb adapter, 5 ton",
+    "description": "Roof curb adapter for 5 ton packaged rooftop unit installation on structural roof curb",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-hvac-thermostat-programmable-7-day",
+    "type": "material",
+    "category": "HVAC",
+    "subcategory": "Duct and Equipment",
+    "csiDivision": "23",
+    "csiSection": "23 37 00",
+    "name": "Thermostat, programmable, 7-day",
+    "description": "7-day programmable thermostat for HVAC system temperature scheduling and control",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "hvac",
+      "duct",
+      "mechanical",
+      "air"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-plumbing-pex-tubing-1-2-in-red-blue-100-ft-coil-variant-61",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 11 16",
+    "name": "PEX tubing, 1/2 in, red/blue, 100 ft coil, contractor grade",
+    "description": "Cross-linked polyethylene tubing for domestic water distribution, branch lines, and fixture supply piping. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-plumbing-pvc-dwv-pipe-schedule-40-3-in-x-10-ft-variant-62",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Plumbing",
+    "csiDivision": "22",
+    "csiSection": "22 13 16",
+    "name": "PVC DWV pipe, Schedule 40, 3 in x 10 ft, premium grade",
+    "description": "PVC drain-waste-vent pipe for sanitary drainage and vent systems in residential and light commercial plumbing. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "plumbing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-electrical-nm-b-cable-12-2-with-ground-250-ft-roll-variant-63",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 19",
+    "name": "NM-B cable, 12/2 with ground, 250 ft roll, bulk pack",
+    "description": "Nonmetallic sheathed cable for residential branch circuits where permitted by electrical code. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "electrical",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-electrical-emt-conduit-galvanized-3-4-in-x-10-ft-variant-64",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "Electrical",
+    "csiDivision": "26",
+    "csiSection": "26 05 33",
+    "name": "EMT conduit, galvanized, 3/4 in x 10 ft, contractor grade",
+    "description": "Electrical metallic tubing conduit for exposed or concealed electrical raceway systems. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "mep materials",
+      "electrical",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-hvac-flexible-duct-insulated-8-in-diameter-variant-65",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 31 00",
+    "name": "Flexible duct, insulated, 8 in diameter, premium grade",
+    "description": "Insulated flexible duct used for HVAC supply and return air distribution. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "box"
+    ],
+    "tags": [
+      "mep materials",
+      "hvac",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-mep-materials-hvac-mini-split-heat-pump-single-zone-12-000-btu-variant-66",
+    "type": "material",
+    "category": "MEP Materials",
+    "subcategory": "HVAC",
+    "csiDivision": "23",
+    "csiSection": "23 81 00",
+    "name": "Mini split heat pump, single-zone, 12,000 BTU, bulk pack",
+    "description": "Ductless single-zone mini split heat pump system for heating and cooling individual rooms or spaces. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "mep materials",
+      "hvac",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.48,
+    "id": "material-plumbing-cpvc-hot-cold-1-2in-10ft-variant-170",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 1/2 inch, 10 ft stick, premium grade",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 1/2 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "1/2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7,
+    "id": "material-plumbing-cpvc-hot-cold-3-4in-10ft-variant-171",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 3/4 inch, 10 ft stick, bulk pack",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 3/4 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "3/4",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11.44,
+    "id": "material-plumbing-cpvc-hot-cold-1in-10ft-variant-172",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 1 inch, 10 ft stick, contractor grade",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 1 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "1",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 16.2,
+    "id": "material-plumbing-cpvc-hot-cold-1-1-2in-10ft-variant-173",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 1-1/2 inch, 10 ft stick, premium grade",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 1-1/2 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "1-1/2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 21.28,
+    "id": "material-plumbing-cpvc-hot-cold-2in-10ft-variant-174",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 2 inch, 10 ft stick, bulk pack",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 2 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 26.68,
+    "id": "material-plumbing-cpvc-hot-cold-3in-10ft-variant-175",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 3 inch, 10 ft stick, contractor grade",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 3 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "3",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 27,
+    "id": "material-plumbing-cpvc-hot-cold-4in-10ft-variant-176",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "CPVC Pipe",
+    "csiDivision": "22",
+    "csiSection": "22 11 00",
+    "name": "CPVC pipe, Schedule 40, 4 inch, 10 ft stick, premium grade",
+    "description": "CPVC hot-and-cold water pipe, Schedule 40, 4 inch nominal diameter, 10 foot stick length for residential plumbing distribution. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "plumbing",
+      "cpvc",
+      "pipe",
+      "4",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 41.6,
+    "id": "material-plumbing-water-closet-elongated-1-28-gpf-variant-177",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Water closet, elongated, 1.28 GPF, bulk pack",
+    "description": "Elongated floor-mount water closet, 1.28 gallons per flush, for commercial and residential restroom fixtures Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 43.2,
+    "id": "material-plumbing-lavatory-undermount-vitreous-china-variant-178",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Lavatory, undermount, vitreous china, contractor grade",
+    "description": "Undermount vitreous china lavatory for vanity countertop installation in restrooms and bathrooms Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 44.8,
+    "id": "material-plumbing-kitchen-sink-stainless-double-bowl-33-in-variant-179",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Kitchen sink, stainless, double bowl, 33 in, premium grade",
+    "description": "Stainless steel double-bowl kitchen sink, 33 inch width, for residential kitchen base cabinet installation Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 46.4,
+    "id": "material-plumbing-shower-valve-trim-pressure-balance-chrom-variant-180",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Shower valve trim, pressure balance, chrome, bulk pack",
+    "description": "Pressure-balance shower valve trim kit, chrome finish, for tub and shower mixing valve finish installation Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "material-plumbing-water-heater-50-gal-electric-240v-variant-181",
+    "type": "material",
+    "category": "Plumbing",
+    "subcategory": "Fixtures and Equipment",
+    "csiDivision": "22",
+    "csiSection": "22 40 00",
+    "name": "Water heater, 50 gal, electric, 240V, contractor grade",
+    "description": "Electric storage water heater, 50 gallon capacity, 240 volt, for residential domestic hot water Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "plumbing",
+      "fixture",
+      "pipe",
+      "water",
+      "contractor"
+    ]
+  }
+]

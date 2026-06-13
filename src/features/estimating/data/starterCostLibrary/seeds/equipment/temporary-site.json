@@ -1,0 +1,536 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-power-generator-portable-6500-watt",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Generator, portable, 6500 watt",
+    "description": "Portable gasoline generator for temporary power to small tools, lighting, and jobsite equipment.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "temporary / site",
+      "power"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-lighting-light-tower-towable-diesel",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Light tower, towable, diesel",
+    "description": "Towable light tower for night work, site security, concrete placement, and temporary jobsite lighting.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "temporary / site",
+      "lighting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-waste-dumpster-roll-off-20-cy",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 74 19",
+    "name": "Dumpster, roll-off, 20 CY",
+    "description": "Roll-off dumpster container for construction debris, demolition waste, packaging, and jobsite cleanup.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "haul",
+      "week"
+    ],
+    "tags": [
+      "temporary / site",
+      "waste"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-storage-storage-container-20-ft-jobsite",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Storage container, 20 ft, jobsite",
+    "description": "Steel storage container for secure on-site storage of materials, tools, and equipment.",
+    "unit": "month",
+    "commonUnits": [
+      "week",
+      "month"
+    ],
+    "tags": [
+      "temporary / site",
+      "storage"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "id": "equipment-temporary-power-panel-100a-metered",
+    "type": "equipment",
+    "category": "Temporary Facilities",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary power panel, 100A, metered",
+    "description": "Temporary metered power panel, 100 amp, for jobsite electrical distribution during construction",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary",
+      "power",
+      "lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "id": "equipment-temporary-lighting-string-led-100-ft",
+    "type": "equipment",
+    "category": "Temporary Facilities",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Temporary lighting string, LED, 100 ft",
+    "description": "Temporary LED string lighting, 100 foot length, for interior and exterior night work illumination",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary",
+      "power",
+      "lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "id": "equipment-portable-generator-20-kw-diesel",
+    "type": "equipment",
+    "category": "Temporary Facilities",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Portable generator, 20 kW, diesel",
+    "description": "Portable diesel generator, 20 kW, for temporary power where utility service is not available",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary",
+      "power",
+      "lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "id": "equipment-air-compressor-towable-185-cfm",
+    "type": "equipment",
+    "category": "Temporary Facilities",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Air compressor, towable, 185 CFM",
+    "description": "Towable air compressor, 185 CFM, for pneumatic tools, sandblasting, and spray applications",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary",
+      "power",
+      "lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20,
+    "id": "equipment-light-tower-diesel-4-head-30-ft-mast",
+    "type": "equipment",
+    "category": "Temporary Facilities",
+    "subcategory": "Power and Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Light tower, diesel, 4-head, 30 ft mast",
+    "description": "Diesel light tower with 4 heads and 30 foot mast for nighttime site illumination",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary",
+      "power",
+      "lighting",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-pipe-threader-1-2-to-2-in-portable",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Pipe threader, 1/2 to 2 in, portable",
+    "description": "Portable pipe threading machine, 1/2 to 2 inch capacity, for plumbing pipe field threading",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-wire-puller-electric-10-000-lb",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Wire puller, electric, 10,000 lb",
+    "description": "Electric wire puller, 10,000 lb capacity, for conduit wire and cable pulling",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-duct-lift-material-hoist-600-lb",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Duct lift, material hoist, 600 lb",
+    "description": "HVAC duct lift/material hoist, 600 lb capacity, for overhead duct and equipment placement",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-demo-hammer-electric-30-lb-class",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Demo hammer, electric, 30 lb class",
+    "description": "Electric demolition hammer, 30 lb class, for concrete and masonry selective demolition",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-concrete-grinder-walk-behind-20-in",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Concrete grinder, walk-behind, 20 in",
+    "description": "Walk-behind concrete grinder, 20 inch path, for slab prep, coating removal, and floor leveling",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-drywall-lift-panel-11-ft-reach",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Drywall lift, panel, 11 ft reach",
+    "description": "Drywall panel lift with 11 foot reach for ceiling and wall board installation",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-scaffolding-frame-set-5-ft-x-5-ft-x-7-ft",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scaffolding, frame set, 5 ft x 5 ft x 7 ft",
+    "description": "Frame scaffolding section, 5 foot by 5 foot frame by 7 foot height, for exterior masonry and facade access",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "equipment-welding-machine-engine-driven-250a",
+    "type": "equipment",
+    "category": "Specialty Equipment",
+    "subcategory": "Trade Tools and Access",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Welding machine, engine driven, 250A",
+    "description": "Engine-driven welding machine, 250 amp, for field steel and miscellaneous metal welding",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "specialty",
+      "tool",
+      "rental",
+      "trade"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-power-generator-portable-6500-watt-daily-rate-22",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Power",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Generator, portable, 6500 watt, daily rental rate",
+    "description": "Portable gasoline generator for temporary power to small tools, lighting, and jobsite equipment. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary / site",
+      "power",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-lighting-light-tower-towable-diesel-weekly-rate-23",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Lighting",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Light tower, towable, diesel, weekly rental rate",
+    "description": "Towable light tower for night work, site security, concrete placement, and temporary jobsite lighting. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary / site",
+      "lighting",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-waste-dumpster-roll-off-20-cy-hourly-rate-24",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Waste",
+    "csiDivision": "01",
+    "csiSection": "01 74 19",
+    "name": "Dumpster, roll-off, 20 CY, hourly rental rate",
+    "description": "Roll-off dumpster container for construction debris, demolition waste, packaging, and jobsite cleanup. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "temporary / site",
+      "waste",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-temporary-site-storage-storage-container-20-ft-jobsite-daily-rate-25",
+    "type": "equipment",
+    "category": "Temporary / Site",
+    "subcategory": "Storage",
+    "csiDivision": "01",
+    "csiSection": "01 50 00",
+    "name": "Storage container, 20 ft, jobsite, daily rental rate",
+    "description": "Steel storage container for secure on-site storage of materials, tools, and equipment. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "temporary / site",
+      "storage",
+      "daily",
+      "rental-rate"
+    ]
+  }
+]

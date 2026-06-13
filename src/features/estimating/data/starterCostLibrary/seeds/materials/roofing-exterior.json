@@ -1,0 +1,1146 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-roofing-shingles-asphalt-shingles-architectural-laminated-per-square",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Shingles",
+    "csiDivision": "07",
+    "csiSection": "07 31 13",
+    "name": "Asphalt shingles, architectural, laminated, per square",
+    "description": "Laminated architectural asphalt roofing shingles for sloped roof applications, priced by roofing square.",
+    "unit": "Sq",
+    "commonUnits": [
+      "Sq",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingles"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-roofing-underlayment-synthetic-roofing-underlayment-roll",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Underlayment",
+    "csiDivision": "07",
+    "csiSection": "07 30 00",
+    "name": "Synthetic roofing underlayment, roll",
+    "description": "Synthetic underlayment installed over roof deck below shingles or metal roofing as secondary water barrier.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "SF"
+    ],
+    "tags": [
+      "roofing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-roofing-flashing-drip-edge-flashing-aluminum-10-ft-length",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Drip edge flashing, aluminum, 10 ft length",
+    "description": "Preformed metal flashing installed at roof eaves and rakes to protect deck edges and direct water.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "flashing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-doors-windows-openings-doors-interior-door-hollow-core-prehung-30-in-x-80-in",
+    "type": "material",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 14 00",
+    "name": "Interior door, hollow core, prehung, 30 in x 80 in",
+    "description": "Prehung hollow-core interior door unit with jamb for bedrooms, closets, and interior partitions.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "doors / windows / openings",
+      "doors"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-doors-windows-openings-windows-window-unit-vinyl-single-hung-36-in-x-48-in",
+    "type": "material",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 53 00",
+    "name": "Window unit, vinyl, single-hung, 36 in x 48 in",
+    "description": "Vinyl single-hung window unit for residential window openings, including frame and insulated glass.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "doors / windows / openings",
+      "windows"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-architectural-shingle-charcoal-3-tab-equ",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, charcoal, 3-tab equiv bundle",
+    "description": "Architectural asphalt shingle bundle, charcoal color, coverage approx 33 SF per bundle for steep-slope roofing",
+    "unit": "SQ",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-ice-and-water-shield-36-in-x-66-ft-roll",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Ice and water shield, 36 in x 66 ft roll",
+    "description": "Self-adhered ice and water membrane, 36 inch by 66 foot roll, for eaves and valley waterproofing",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-synthetic-underlayment-4-ft-x-250-ft-rol",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Synthetic underlayment, 4 ft x 250 ft roll",
+    "description": "Synthetic roofing underlayment roll, 4 foot by 250 foot, for full roof deck moisture protection",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-drip-edge-aluminum-10-ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Drip edge, aluminum, 10 ft",
+    "description": "Aluminum drip edge flashing, 10 foot length, for roof eave and rake edge water management",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-ridge-vent-shingle-over-4-ft",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Ridge vent, shingle-over, 4 ft",
+    "description": "Shingle-over ridge vent section, 4 foot length, for attic exhaust ventilation at roof ridge",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-step-flashing-galvanized-8-in-x-8-in",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Step flashing, galvanized, 8 in x 8 in",
+    "description": "Galvanized step flashing pieces, 8 inch by 8 inch, for sidewall to roof intersection waterproofing",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-fiber-cement-lap-siding-5-16-in-12-ft",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Fiber cement lap siding, 5/16 in, 12 ft",
+    "description": "Fiber cement lap siding plank, 5/16 inch by 12 foot, for exterior wall cladding with paint-ready finish",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-vinyl-siding-double-4-inch-12-ft",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Vinyl siding, double 4 inch, 12 ft",
+    "description": "Vinyl lap siding, double 4 inch profile, 12 foot length, for residential exterior wall cladding",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-house-wrap-tyvek-9-ft-x-150-ft",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "House wrap, Tyvek, 9 ft x 150 ft",
+    "description": "Building wrap weather barrier, 9 foot by 150 foot roll, for exterior wall air and water resistive barrier",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-corner-post-vinyl-outside-10-ft",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Corner post, vinyl, outside, 10 ft",
+    "description": "Vinyl outside corner post, 10 foot length, for vinyl siding corner trim detail",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-j-channel-vinyl-12-ft",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "J-channel, vinyl, 12 ft",
+    "description": "Vinyl J-channel trim, 12 foot length, for siding termination at windows and doors",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-fascia-board-pvc-1x6-12-ft",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Fascia board, PVC, 1x6, 12 ft",
+    "description": "PVC fascia board, 1x6 nominal, 12 foot length, for roof eave fascia trim",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-waterproofing-foundation-waterproofing-membrane-40-mil",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Foundation waterproofing membrane, 40 mil, 4 ft x 75 ft",
+    "description": "Self-adhered foundation waterproofing membrane, 40 mil, 4 foot by 75 foot roll, for below-grade wall protection",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-waterproofing-drainage-board-dimple-mat-4-ft-x-50-ft",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Drainage board, dimple mat, 4 ft x 50 ft",
+    "description": "Foundation drainage dimple mat, 4 foot by 50 foot roll, for exterior foundation wall water management",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-waterproofing-window-flashing-tape-6-in-x-75-ft",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Window flashing tape, 6 in x 75 ft",
+    "description": "Flexible window flashing tape, 6 inch by 75 foot roll, for rough opening pan and jamb flashing",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-waterproofing-exterior-sealant-polyurethane-10-oz-tube",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Exterior sealant, polyurethane, 10 oz tube",
+    "description": "Polyurethane exterior sealant, 10 ounce tube, for siding, trim, and window perimeter joint sealing",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-waterproofing-backer-rod-closed-cell-1-2-in-x-100-ft",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Backer rod, closed cell, 1/2 in x 100 ft",
+    "description": "Closed-cell backer rod, 1/2 inch diameter, 100 foot roll, for joint backing before sealant application",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-roofing-shingles-asphalt-shingles-architectural-laminated-per-square-variant-48",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Shingles",
+    "csiDivision": "07",
+    "csiSection": "07 31 13",
+    "name": "Asphalt shingles, architectural, laminated, per square, bulk pack",
+    "description": "Laminated architectural asphalt roofing shingles for sloped roof applications, priced by roofing square. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "Sq",
+    "commonUnits": [
+      "Sq",
+      "bundle"
+    ],
+    "tags": [
+      "roofing",
+      "shingles",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-roofing-underlayment-synthetic-roofing-underlayment-roll-variant-49",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Underlayment",
+    "csiDivision": "07",
+    "csiSection": "07 30 00",
+    "name": "Synthetic roofing underlayment, roll, contractor grade",
+    "description": "Synthetic underlayment installed over roof deck below shingles or metal roofing as secondary water barrier. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "SF"
+    ],
+    "tags": [
+      "roofing",
+      "underlayment",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-roofing-flashing-drip-edge-flashing-aluminum-10-ft-length-variant-50",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Flashing",
+    "csiDivision": "07",
+    "csiSection": "07 62 00",
+    "name": "Drip edge flashing, aluminum, 10 ft length, premium grade",
+    "description": "Preformed metal flashing installed at roof eaves and rakes to protect deck edges and direct water. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "flashing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-doors-windows-openings-doors-interior-door-hollow-core-prehung-30-in-x-80-in-variant-57",
+    "type": "material",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Doors",
+    "csiDivision": "08",
+    "csiSection": "08 14 00",
+    "name": "Interior door, hollow core, prehung, 30 in x 80 in, bulk pack",
+    "description": "Prehung hollow-core interior door unit with jamb for bedrooms, closets, and interior partitions. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "doors / windows / openings",
+      "doors",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-doors-windows-openings-windows-window-unit-vinyl-single-hung-36-in-x-48-in-variant-58",
+    "type": "material",
+    "category": "Doors / Windows / Openings",
+    "subcategory": "Windows",
+    "csiDivision": "08",
+    "csiSection": "08 53 00",
+    "name": "Window unit, vinyl, single-hung, 36 in x 48 in, contractor grade",
+    "description": "Vinyl single-hung window unit for residential window openings, including frame and insulated glass. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "doors / windows / openings",
+      "windows",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.48,
+    "id": "material-roofing-architectural-shingle-charcoal-3-tab-equ-variant-135",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Architectural shingle, charcoal, 3-tab equiv bundle, bulk pack",
+    "description": "Architectural asphalt shingle bundle, charcoal color, coverage approx 33 SF per bundle for steep-slope roofing Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SQ",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-roofing-ice-and-water-shield-36-in-x-66-ft-roll-variant-136",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Ice and water shield, 36 in x 66 ft roll, contractor grade",
+    "description": "Self-adhered ice and water membrane, 36 inch by 66 foot roll, for eaves and valley waterproofing Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.12,
+    "id": "material-roofing-synthetic-underlayment-4-ft-x-250-ft-rol-variant-137",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Synthetic underlayment, 4 ft x 250 ft roll, premium grade",
+    "description": "Synthetic roofing underlayment roll, 4 foot by 250 foot, for full roof deck moisture protection Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.24,
+    "id": "material-roofing-drip-edge-aluminum-10-ft-variant-138",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Drip edge, aluminum, 10 ft, bulk pack",
+    "description": "Aluminum drip edge flashing, 10 foot length, for roof eave and rake edge water management Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.36,
+    "id": "material-roofing-ridge-vent-shingle-over-4-ft-variant-139",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Ridge vent, shingle-over, 4 ft, contractor grade",
+    "description": "Shingle-over ridge vent section, 4 foot length, for attic exhaust ventilation at roof ridge Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.48,
+    "id": "material-roofing-step-flashing-galvanized-8-in-x-8-in-variant-140",
+    "type": "material",
+    "category": "Roofing",
+    "subcategory": "Asphalt Shingle Roofing",
+    "csiDivision": "07",
+    "csiSection": "07 31 00",
+    "name": "Step flashing, galvanized, 8 in x 8 in, premium grade",
+    "description": "Galvanized step flashing pieces, 8 inch by 8 inch, for sidewall to roof intersection waterproofing Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "SQ",
+      "LF"
+    ],
+    "tags": [
+      "roofing",
+      "shingle",
+      "flashing",
+      "underlayment",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-fiber-cement-lap-siding-5-16-in-12-ft-variant-141",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Fiber cement lap siding, 5/16 in, 12 ft, bulk pack",
+    "description": "Fiber cement lap siding plank, 5/16 inch by 12 foot, for exterior wall cladding with paint-ready finish Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.12,
+    "id": "material-siding-vinyl-siding-double-4-inch-12-ft-variant-142",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Vinyl siding, double 4 inch, 12 ft, contractor grade",
+    "description": "Vinyl lap siding, double 4 inch profile, 12 foot length, for residential exterior wall cladding Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.24,
+    "id": "material-siding-house-wrap-tyvek-9-ft-x-150-ft-variant-143",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "House wrap, Tyvek, 9 ft x 150 ft, premium grade",
+    "description": "Building wrap weather barrier, 9 foot by 150 foot roll, for exterior wall air and water resistive barrier Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.36,
+    "id": "material-siding-corner-post-vinyl-outside-10-ft-variant-144",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Corner post, vinyl, outside, 10 ft, bulk pack",
+    "description": "Vinyl outside corner post, 10 foot length, for vinyl siding corner trim detail Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3.48,
+    "id": "material-siding-j-channel-vinyl-12-ft-variant-145",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "J-channel, vinyl, 12 ft, contractor grade",
+    "description": "Vinyl J-channel trim, 12 foot length, for siding termination at windows and doors Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 3,
+    "id": "material-siding-fascia-board-pvc-1x6-12-ft-variant-146",
+    "type": "material",
+    "category": "Exterior Cladding",
+    "subcategory": "Siding and Trim",
+    "csiDivision": "07",
+    "csiSection": "07 46 00",
+    "name": "Fascia board, PVC, 1x6, 12 ft, premium grade",
+    "description": "PVC fascia board, 1x6 nominal, 12 foot length, for roof eave fascia trim Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "siding",
+      "exterior",
+      "cladding",
+      "trim",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10.4,
+    "id": "material-waterproofing-foundation-waterproofing-membrane-40-mil-variant-147",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Foundation waterproofing membrane, 40 mil, 4 ft x 75 ft, bulk pack",
+    "description": "Self-adhered foundation waterproofing membrane, 40 mil, 4 foot by 75 foot roll, for below-grade wall protection Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10.8,
+    "id": "material-waterproofing-drainage-board-dimple-mat-4-ft-x-50-ft-variant-148",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Drainage board, dimple mat, 4 ft x 50 ft, contractor grade",
+    "description": "Foundation drainage dimple mat, 4 foot by 50 foot roll, for exterior foundation wall water management Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11.2,
+    "id": "material-waterproofing-window-flashing-tape-6-in-x-75-ft-variant-149",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Window flashing tape, 6 in x 75 ft, premium grade",
+    "description": "Flexible window flashing tape, 6 inch by 75 foot roll, for rough opening pan and jamb flashing Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 11.6,
+    "id": "material-waterproofing-exterior-sealant-polyurethane-10-oz-tube-variant-150",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Exterior sealant, polyurethane, 10 oz tube, bulk pack",
+    "description": "Polyurethane exterior sealant, 10 ounce tube, for siding, trim, and window perimeter joint sealing Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10,
+    "id": "material-waterproofing-backer-rod-closed-cell-1-2-in-x-100-ft-variant-151",
+    "type": "material",
+    "category": "Waterproofing",
+    "subcategory": "Below-Grade and Joint Sealants",
+    "csiDivision": "07",
+    "csiSection": "07 10 00",
+    "name": "Backer rod, closed cell, 1/2 in x 100 ft, contractor grade",
+    "description": "Closed-cell backer rod, 1/2 inch diameter, 100 foot roll, for joint backing before sealant application Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "ROLL",
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "waterproofing",
+      "sealant",
+      "flashing",
+      "membrane",
+      "contractor"
+    ]
+  }
+]

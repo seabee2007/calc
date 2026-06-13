@@ -1,0 +1,147 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-carpentry-tools-sawing-miter-saw-sliding-compound-12-in",
+    "type": "equipment",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Miter saw, sliding compound, 12 in",
+    "description": "Sliding compound miter saw for framing, trim, blocking, flooring, siding, and finish carpentry cuts.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "carpentry / tools",
+      "sawing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-carpentry-tools-fastening-air-compressor-portable-twin-stack",
+    "type": "equipment",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Air compressor, portable, twin-stack",
+    "description": "Portable compressor for pneumatic nailers, staplers, small tools, and finish/rough carpentry operations.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "carpentry / tools",
+      "fastening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-carpentry-tools-fastening-framing-nailer-pneumatic-21-degree",
+    "type": "equipment",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing nailer, pneumatic, 21-degree",
+    "description": "Pneumatic framing nailer for wall framing, roof framing, blocking, sheathing, and rough carpentry.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "carpentry / tools",
+      "fastening"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-carpentry-tools-sawing-miter-saw-sliding-compound-12-in-weekly-rate-26",
+    "type": "equipment",
+    "category": "Carpentry / Tools",
+    "subcategory": "Sawing",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Miter saw, sliding compound, 12 in, weekly rental rate",
+    "description": "Sliding compound miter saw for framing, trim, blocking, flooring, siding, and finish carpentry cuts. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "carpentry / tools",
+      "sawing",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-carpentry-tools-fastening-air-compressor-portable-twin-stack-hourly-rate-27",
+    "type": "equipment",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Air compressor, portable, twin-stack, hourly rental rate",
+    "description": "Portable compressor for pneumatic nailers, staplers, small tools, and finish/rough carpentry operations. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "carpentry / tools",
+      "fastening",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-carpentry-tools-fastening-framing-nailer-pneumatic-21-degree-daily-rate-28",
+    "type": "equipment",
+    "category": "Carpentry / Tools",
+    "subcategory": "Fastening",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing nailer, pneumatic, 21-degree, daily rental rate",
+    "description": "Pneumatic framing nailer for wall framing, roof framing, blocking, sheathing, and rough carpentry. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "carpentry / tools",
+      "fastening",
+      "daily",
+      "rental-rate"
+    ]
+  }
+]

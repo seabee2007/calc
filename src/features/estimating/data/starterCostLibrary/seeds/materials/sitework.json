@@ -1,0 +1,476 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-sitework-fill-sand-screened-cy",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Fill sand, screened, CY",
+    "description": "Screened fill sand by cubic yard for backfill, pipe bedding, and fine grading under slabs and pavers",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "earthwork",
+      "aggregate",
+      "grading",
+      "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-sitework-crushed-stone-57-cy",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Crushed stone, #57, CY",
+    "description": "Clean crushed stone aggregate, #57 size, by cubic yard for subbase, drainage, and utility trench backfill",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "earthwork",
+      "aggregate",
+      "grading",
+      "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-sitework-road-base-compactable-cy",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Road base, compactable, CY",
+    "description": "Compactable road base aggregate by cubic yard for driveways, parking areas, and subgrade stabilization",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "earthwork",
+      "aggregate",
+      "grading",
+      "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-sitework-topsoil-screened-cy",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Topsoil, screened, CY",
+    "description": "Screened topsoil by cubic yard for final grading, landscaping beds, and lawn establishment",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "earthwork",
+      "aggregate",
+      "grading",
+      "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-sitework-geotextile-fabric-woven-12-5-ft-x-360-ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Geotextile fabric, woven, 12.5 ft x 360 ft",
+    "description": "Woven geotextile separation fabric, 12.5 foot by 360 foot roll, for subgrade stabilization under aggregate",
+    "unit": "ROLL",
+    "commonUnits": [
+      "CY",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "earthwork",
+      "aggregate",
+      "grading",
+      "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-sitework-silt-fence-3-ft-x-100-ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Aggregates and Erosion Control",
+    "csiDivision": "31",
+    "csiSection": "31 20 00",
+    "name": "Silt fence, 3 ft x 100 ft",
+    "description": "Silt fence erosion control barrier, 3 foot height by 100 foot roll, for perimeter sediment control during grading",
+    "unit": "ROLL",
+    "commonUnits": [
+      "CY",
+      "TON",
+      "ROLL"
+    ],
+    "tags": [
+      "earthwork",
+      "aggregate",
+      "grading",
+      "erosion"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-drainage-corrugated-drain-pipe-4-in-perforated-10",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Corrugated drain pipe, 4 in, perforated, 100 ft",
+    "description": "Perforated corrugated HDPE drain pipe, 4 inch diameter, 100 foot coil, for foundation and yard drainage",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "drainage",
+      "storm",
+      "pipe",
+      "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-drainage-corrugated-drain-pipe-6-in-solid-100-ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Corrugated drain pipe, 6 in, solid, 100 ft",
+    "description": "Solid corrugated HDPE drain pipe, 6 inch diameter, 100 foot coil, for storm and footer drain leaders",
+    "unit": "ROLL",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "drainage",
+      "storm",
+      "pipe",
+      "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-drainage-catch-basin-precast-24x24",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Catch basin, precast, 24x24",
+    "description": "Precast concrete catch basin, 24 inch by 24 inch, for surface drainage collection at low points",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "drainage",
+      "storm",
+      "pipe",
+      "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-drainage-drain-grate-cast-iron-12x12",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Drain grate, cast iron, 12x12",
+    "description": "Cast iron drainage grate, 12 inch by 12 inch, for catch basin and trench drain inlet covers",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "drainage",
+      "storm",
+      "pipe",
+      "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-drainage-trench-drain-system-polymer-4-in-x-10-ft",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Trench drain system, polymer, 4 in x 10 ft",
+    "description": "Polymer trench drain channel section, 4 inch width by 10 foot length, for garage and hardscape surface drainage",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "drainage",
+      "storm",
+      "pipe",
+      "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6,
+    "id": "material-drainage-pop-up-emitter-3-in",
+    "type": "material",
+    "category": "Sitework / Earthwork",
+    "subcategory": "Drainage Materials",
+    "csiDivision": "33",
+    "csiSection": "33 40 00",
+    "name": "Pop-up emitter, 3 in",
+    "description": "Pop-up drain emitter, 3 inch connection, for discharging subsurface drain lines at grade",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "ROLL",
+      "LF"
+    ],
+    "tags": [
+      "drainage",
+      "storm",
+      "pipe",
+      "site"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-landscape-sod-kentucky-bluegrass-sy",
+    "type": "material",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Sod, Kentucky bluegrass, SY",
+    "description": "Kentucky bluegrass sod by square yard for lawn installation and finish landscaping",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "CY",
+      "ROLL",
+      "EA"
+    ],
+    "tags": [
+      "landscape",
+      "sod",
+      "mulch",
+      "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-landscape-seed-mix-turf-grass-50-lb-bag",
+    "type": "material",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Seed mix, turf grass, 50 lb bag",
+    "description": "Turf grass seed mix, 50 lb bag, for hydroseed or broadcast lawn establishment",
+    "unit": "ROLL",
+    "commonUnits": [
+      "SF",
+      "CY",
+      "ROLL",
+      "EA"
+    ],
+    "tags": [
+      "landscape",
+      "sod",
+      "mulch",
+      "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-landscape-mulch-hardwood-cy",
+    "type": "material",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Mulch, hardwood, CY",
+    "description": "Shredded hardwood mulch by cubic yard for planting bed coverage and weed suppression",
+    "unit": "CY",
+    "commonUnits": [
+      "SF",
+      "CY",
+      "ROLL",
+      "EA"
+    ],
+    "tags": [
+      "landscape",
+      "sod",
+      "mulch",
+      "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-landscape-edging-steel-16-ga-4-in-x-16-ft",
+    "type": "material",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Edging, steel, 16 ga, 4 in x 16 ft",
+    "description": "Steel landscape edging, 16 gauge, 4 inch height by 16 foot length, for bed and walkway separation",
+    "unit": "ROLL",
+    "commonUnits": [
+      "SF",
+      "CY",
+      "ROLL",
+      "EA"
+    ],
+    "tags": [
+      "landscape",
+      "sod",
+      "mulch",
+      "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-landscape-landscape-fabric-woven-6-ft-x-300-ft",
+    "type": "material",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Landscape fabric, woven, 6 ft x 300 ft",
+    "description": "Woven landscape fabric, 6 foot by 300 foot roll, for weed barrier under mulch and gravel",
+    "unit": "ROLL",
+    "commonUnits": [
+      "SF",
+      "CY",
+      "ROLL",
+      "EA"
+    ],
+    "tags": [
+      "landscape",
+      "sod",
+      "mulch",
+      "paver"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-landscape-concrete-paver-4x8-gray-sf",
+    "type": "material",
+    "category": "Landscaping",
+    "subcategory": "Softscape and Hardscape",
+    "csiDivision": "32",
+    "csiSection": "32 90 00",
+    "name": "Concrete paver, 4x8, gray, SF",
+    "description": "Interlocking concrete paver, 4 inch by 8 inch profile, gray color, per square foot for patio and walk paving",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "CY",
+      "ROLL",
+      "EA"
+    ],
+    "tags": [
+      "landscape",
+      "sod",
+      "mulch",
+      "paver"
+    ]
+  }
+]

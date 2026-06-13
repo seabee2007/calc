@@ -1,0 +1,1344 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-gypsum-board-gypsum-wallboard-1-2in-x-4ft-x-8ft",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum wallboard, 1/2\" x 4' x 8'",
+    "description": "Standard gypsum drywall panel for interior walls and ceilings in residential and light commercial construction.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "gypsum board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-gypsum-board-gypsum-wallboard-5-8in-x-4ft-x-8ft-type-x",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum wallboard, 5/8\" x 4' x 8', Type X",
+    "description": "Fire-resistant Type X gypsum drywall panel for rated walls, ceilings, garages, corridors, and commercial assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "gypsum board"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-finishing-joint-compound-all-purpose-4-5-gal-pail",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Joint compound, all-purpose, 4.5 gal pail",
+    "description": "Premixed all-purpose drywall joint compound for taping, finishing, skim coating, and patching gypsum board.",
+    "unit": "pail",
+    "commonUnits": [
+      "pail",
+      "gal"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-paint-interior-latex-primer-5-gal-pail",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 90 00",
+    "name": "Interior latex primer, 5 gal pail",
+    "description": "Interior primer used over drywall, patches, and prepared surfaces before finish paint.",
+    "unit": "pail",
+    "commonUnits": [
+      "pail",
+      "gal"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "paint"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-insulation-batts-fiberglass-batt-insulation-r-13-15-in-x-93-in",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Batts",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt insulation, R-13, 15 in x 93 in",
+    "description": "Fiberglass batt insulation for 2x4 wall cavities at 16-inch on-center framing.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "SF"
+    ],
+    "tags": [
+      "insulation",
+      "batts"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-insulation-batts-fiberglass-batt-insulation-r-19-15-in-x-93-in",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Batts",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt insulation, R-19, 15 in x 93 in",
+    "description": "Fiberglass batt insulation for 2x6 walls, floors, and cavity insulation where R-19 thermal value is required.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "SF"
+    ],
+    "tags": [
+      "insulation",
+      "batts"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-flooring-resilient-flooring-luxury-vinyl-plank-flooring-floating-20-mil-wear-layer",
+    "type": "material",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 65 00",
+    "name": "Luxury vinyl plank flooring, floating, 20 mil wear layer",
+    "description": "Floating LVP flooring plank material for residential and commercial interior floors requiring durable finish.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "box"
+    ],
+    "tags": [
+      "flooring",
+      "resilient flooring"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-flooring-tile-ceramic-floor-tile-12-in-x-24-in",
+    "type": "material",
+    "category": "Flooring",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Ceramic floor tile, 12 in x 24 in",
+    "description": "Ceramic tile floor material for bathrooms, kitchens, commercial areas, and interior finish floors.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "box"
+    ],
+    "tags": [
+      "flooring",
+      "tile"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-1-2-in-regular-gypsum-board-4x8",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "1/2 in regular gypsum board, 4x8",
+    "description": "Regular gypsum wallboard, 1/2 inch, 4 foot by 8 foot, for interior walls and ceilings",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-5-8-in-type-x-gypsum-board-4x8",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "5/8 in type X gypsum board, 4x8",
+    "description": "Fire-rated Type X gypsum board, 5/8 inch, 4 foot by 8 foot, for fire-rated walls and ceilings",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-5-8-in-moisture-resistant-gypsum-4x8",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "5/8 in moisture-resistant gypsum, 4x8",
+    "description": "Moisture-resistant gypsum board, 5/8 inch, 4 foot by 8 foot, for tub surrounds and humid areas",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-1-2-in-lightweight-gypsum-board-4x12",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "1/2 in lightweight gypsum board, 4x12",
+    "description": "Lightweight gypsum wallboard, 1/2 inch, 4 foot by 12 foot, for ceilings and long wall runs",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-corner-bead-metal-8-ft",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Corner bead, metal, 8 ft",
+    "description": "Metal drywall corner bead, 8 foot length, for outside corner protection and finishing",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-joint-compound-all-purpose-4-5-gal",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Joint compound, all-purpose, 4.5 gal",
+    "description": "All-purpose joint compound, 4.5 gallon pail, for taping, filling, and finishing gypsum board joints",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.30000000000000004,
+    "id": "material-insulation-fiberglass-batt-r-13-3-1-2-in-15-in-wide",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt, R-13, 3-1/2 in, 15 in wide",
+    "description": "Fiberglass insulation batt, R-13, 3-1/2 inch thick, 15 inch width, for 2x4 wood stud wall cavities",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.30000000000000004,
+    "id": "material-insulation-fiberglass-batt-r-19-6-1-4-in-15-in-wide",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt, R-19, 6-1/4 in, 15 in wide",
+    "description": "Fiberglass insulation batt, R-19, 6-1/4 inch thick, 15 inch width, for 2x6 wood stud wall cavities",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.30000000000000004,
+    "id": "material-insulation-fiberglass-batt-r-30-9-1-2-in-16-in-wide",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt, R-30, 9-1/2 in, 16 in wide",
+    "description": "Fiberglass insulation batt, R-30, 9-1/2 inch thick, 16 inch width, for attic floor and ceiling applications",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.30000000000000004,
+    "id": "material-insulation-spray-foam-kit-closed-cell-600-bd-ft",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Spray foam kit, closed cell, 600 bd ft",
+    "description": "Two-component closed-cell spray foam kit, 600 board feet yield, for air sealing and insulation",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.30000000000000004,
+    "id": "material-insulation-rigid-foam-board-xps-2-in-4x8",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Rigid foam board, XPS, 2 in, 4x8",
+    "description": "Extruded polystyrene rigid insulation board, 2 inch, 4 foot by 8 foot, for exterior continuous insulation",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.30000000000000004,
+    "id": "material-insulation-acoustic-insulation-mineral-wool-2-in-16",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Acoustic insulation, mineral wool, 2 in, 16 in",
+    "description": "Mineral wool acoustic insulation batt, 2 inch by 16 inch width, for sound-rated partition cavities",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-interior-latex-paint-eggshell-white-5-ga",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Interior latex paint, eggshell, white, 5 gal",
+    "description": "Interior latex wall paint, eggshell sheen, white, 5 gallon pail, for living areas and general interior walls",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-interior-latex-paint-semi-gloss-white-1-",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Interior latex paint, semi-gloss, white, 1 gal",
+    "description": "Interior latex trim paint, semi-gloss sheen, white, 1 gallon, for doors, trim, and wet-area walls",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-primer-sealer-interior-5-gal",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Primer/sealer, interior, 5 gal",
+    "description": "Interior primer sealer, 5 gallon pail, for new drywall and repainting preparation",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-ceramic-floor-tile-12x12-porcelain-box",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Ceramic floor tile, 12x12, porcelain, box",
+    "description": "Porcelain ceramic floor tile, 12 inch by 12 inch, per box coverage, for bathroom and kitchen floors",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-lvp-flooring-6-mil-wear-layer-20-sf-box",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "LVP flooring, 6 mil wear layer, 20 SF box",
+    "description": "Luxury vinyl plank flooring, 6 mil wear layer, 20 SF per box, for residential living and bedroom floors",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-carpet-tile-modular-24x24-box",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Carpet tile, modular, 24x24, box",
+    "description": "Modular carpet tile, 24 inch by 24 inch, per box, for office and commercial floor finishes",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-gypsum-board-gypsum-wallboard-1-2in-x-4ft-x-8ft-variant-51",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum wallboard, 1/2\" x 4' x 8', bulk pack",
+    "description": "Standard gypsum drywall panel for interior walls and ceilings in residential and light commercial construction. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "gypsum board",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-gypsum-board-gypsum-wallboard-5-8in-x-4ft-x-8ft-type-x-variant-52",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Gypsum wallboard, 5/8\" x 4' x 8', Type X, contractor grade",
+    "description": "Fire-resistant Type X gypsum drywall panel for rated walls, ceilings, garages, corridors, and commercial assemblies. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "gypsum board",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-finishing-joint-compound-all-purpose-4-5-gal-pail-variant-53",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Finishing",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Joint compound, all-purpose, 4.5 gal pail, premium grade",
+    "description": "Premixed all-purpose drywall joint compound for taping, finishing, skim coating, and patching gypsum board. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "pail",
+    "commonUnits": [
+      "pail",
+      "gal"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "finishing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-drywall-finishes-paint-interior-latex-primer-5-gal-pail-variant-54",
+    "type": "material",
+    "category": "Drywall / Finishes",
+    "subcategory": "Paint",
+    "csiDivision": "09",
+    "csiSection": "09 90 00",
+    "name": "Interior latex primer, 5 gal pail, bulk pack",
+    "description": "Interior primer used over drywall, patches, and prepared surfaces before finish paint. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "pail",
+    "commonUnits": [
+      "pail",
+      "gal"
+    ],
+    "tags": [
+      "drywall / finishes",
+      "paint",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-insulation-batts-fiberglass-batt-insulation-r-13-15-in-x-93-in-variant-55",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Batts",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt insulation, R-13, 15 in x 93 in, contractor grade",
+    "description": "Fiberglass batt insulation for 2x4 wall cavities at 16-inch on-center framing. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "SF"
+    ],
+    "tags": [
+      "insulation",
+      "batts",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-insulation-batts-fiberglass-batt-insulation-r-19-15-in-x-93-in-variant-56",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Batts",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt insulation, R-19, 15 in x 93 in, premium grade",
+    "description": "Fiberglass batt insulation for 2x6 walls, floors, and cavity insulation where R-19 thermal value is required. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "SF"
+    ],
+    "tags": [
+      "insulation",
+      "batts",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-flooring-resilient-flooring-luxury-vinyl-plank-flooring-floating-20-mil-wear-layer-variant-59",
+    "type": "material",
+    "category": "Flooring",
+    "subcategory": "Resilient Flooring",
+    "csiDivision": "09",
+    "csiSection": "09 65 00",
+    "name": "Luxury vinyl plank flooring, floating, 20 mil wear layer, premium grade",
+    "description": "Floating LVP flooring plank material for residential and commercial interior floors requiring durable finish. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "box"
+    ],
+    "tags": [
+      "flooring",
+      "resilient flooring",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-flooring-tile-ceramic-floor-tile-12-in-x-24-in-variant-60",
+    "type": "material",
+    "category": "Flooring",
+    "subcategory": "Tile",
+    "csiDivision": "09",
+    "csiSection": "09 30 00",
+    "name": "Ceramic floor tile, 12 in x 24 in, bulk pack",
+    "description": "Ceramic tile floor material for bathrooms, kitchens, commercial areas, and interior finish floors. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "box"
+    ],
+    "tags": [
+      "flooring",
+      "tile",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.2,
+    "id": "material-drywall-1-2-in-regular-gypsum-board-4x8-variant-152",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "1/2 in regular gypsum board, 4x8, premium grade",
+    "description": "Regular gypsum wallboard, 1/2 inch, 4 foot by 8 foot, for interior walls and ceilings Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.4,
+    "id": "material-drywall-5-8-in-type-x-gypsum-board-4x8-variant-153",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "5/8 in type X gypsum board, 4x8, bulk pack",
+    "description": "Fire-rated Type X gypsum board, 5/8 inch, 4 foot by 8 foot, for fire-rated walls and ceilings Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.6,
+    "id": "material-drywall-5-8-in-moisture-resistant-gypsum-4x8-variant-154",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "5/8 in moisture-resistant gypsum, 4x8, contractor grade",
+    "description": "Moisture-resistant gypsum board, 5/8 inch, 4 foot by 8 foot, for tub surrounds and humid areas Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.8,
+    "id": "material-drywall-1-2-in-lightweight-gypsum-board-4x12-variant-155",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "1/2 in lightweight gypsum board, 4x12, premium grade",
+    "description": "Lightweight gypsum wallboard, 1/2 inch, 4 foot by 12 foot, for ceilings and long wall runs Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5,
+    "id": "material-drywall-corner-bead-metal-8-ft-variant-156",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Corner bead, metal, 8 ft, bulk pack",
+    "description": "Metal drywall corner bead, 8 foot length, for outside corner protection and finishing Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.2,
+    "id": "material-drywall-joint-compound-all-purpose-4-5-gal-variant-157",
+    "type": "material",
+    "category": "Drywall / Gypsum",
+    "subcategory": "Gypsum Board",
+    "csiDivision": "09",
+    "csiSection": "09 29 00",
+    "name": "Joint compound, all-purpose, 4.5 gal, contractor grade",
+    "description": "All-purpose joint compound, 4.5 gallon pail, for taping, filling, and finishing gypsum board joints Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "LF"
+    ],
+    "tags": [
+      "drywall",
+      "gypsum",
+      "board",
+      "finishing",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.32,
+    "id": "material-insulation-fiberglass-batt-r-13-3-1-2-in-15-in-wide-variant-158",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt, R-13, 3-1/2 in, 15 in wide, premium grade",
+    "description": "Fiberglass insulation batt, R-13, 3-1/2 inch thick, 15 inch width, for 2x4 wood stud wall cavities Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.34,
+    "id": "material-insulation-fiberglass-batt-r-19-6-1-4-in-15-in-wide-variant-159",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt, R-19, 6-1/4 in, 15 in wide, bulk pack",
+    "description": "Fiberglass insulation batt, R-19, 6-1/4 inch thick, 15 inch width, for 2x6 wood stud wall cavities Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.35,
+    "id": "material-insulation-fiberglass-batt-r-30-9-1-2-in-16-in-wide-variant-160",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Fiberglass batt, R-30, 9-1/2 in, 16 in wide, contractor grade",
+    "description": "Fiberglass insulation batt, R-30, 9-1/2 inch thick, 16 inch width, for attic floor and ceiling applications Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.3,
+    "id": "material-insulation-spray-foam-kit-closed-cell-600-bd-ft-variant-161",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Spray foam kit, closed cell, 600 bd ft, premium grade",
+    "description": "Two-component closed-cell spray foam kit, 600 board feet yield, for air sealing and insulation Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.31,
+    "id": "material-insulation-rigid-foam-board-xps-2-in-4x8-variant-162",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Rigid foam board, XPS, 2 in, 4x8, bulk pack",
+    "description": "Extruded polystyrene rigid insulation board, 2 inch, 4 foot by 8 foot, for exterior continuous insulation Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0.32,
+    "id": "material-insulation-acoustic-insulation-mineral-wool-2-in-16-variant-163",
+    "type": "material",
+    "category": "Insulation",
+    "subcategory": "Thermal and Acoustic Insulation",
+    "csiDivision": "07",
+    "csiSection": "07 21 00",
+    "name": "Acoustic insulation, mineral wool, 2 in, 16 in, contractor grade",
+    "description": "Mineral wool acoustic insulation batt, 2 inch by 16 inch width, for sound-rated partition cavities Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "EA",
+      "BAG"
+    ],
+    "tags": [
+      "insulation",
+      "batt",
+      "thermal",
+      "r-value",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.48,
+    "id": "material-finish-interior-latex-paint-eggshell-white-5-ga-variant-164",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Interior latex paint, eggshell, white, 5 gal, premium grade",
+    "description": "Interior latex wall paint, eggshell sheen, white, 5 gallon pail, for living areas and general interior walls Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.64,
+    "id": "material-finish-interior-latex-paint-semi-gloss-white-1--variant-165",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Interior latex paint, semi-gloss, white, 1 gal, bulk pack",
+    "description": "Interior latex trim paint, semi-gloss sheen, white, 1 gallon, for doors, trim, and wet-area walls Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-finish-primer-sealer-interior-5-gal-variant-166",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Primer/sealer, interior, 5 gal, contractor grade",
+    "description": "Interior primer sealer, 5 gallon pail, for new drywall and repainting preparation Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.16,
+    "id": "material-finish-ceramic-floor-tile-12x12-porcelain-box-variant-167",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Ceramic floor tile, 12x12, porcelain, box, premium grade",
+    "description": "Porcelain ceramic floor tile, 12 inch by 12 inch, per box coverage, for bathroom and kitchen floors Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.32,
+    "id": "material-finish-lvp-flooring-6-mil-wear-layer-20-sf-box-variant-168",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "LVP flooring, 6 mil wear layer, 20 SF box, bulk pack",
+    "description": "Luxury vinyl plank flooring, 6 mil wear layer, 20 SF per box, for residential living and bedroom floors Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SF",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.48,
+    "id": "material-finish-carpet-tile-modular-24x24-box-variant-169",
+    "type": "material",
+    "category": "Finishes",
+    "subcategory": "Paint and Floor Finishes",
+    "csiDivision": "09",
+    "csiSection": "09 91 00",
+    "name": "Carpet tile, modular, 24x24, box, contractor grade",
+    "description": "Modular carpet tile, 24 inch by 24 inch, per box, for office and commercial floor finishes Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "SF",
+      "BOX",
+      "GAL"
+    ],
+    "tags": [
+      "paint",
+      "flooring",
+      "tile",
+      "finish",
+      "contractor"
+    ]
+  }
+]

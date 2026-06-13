@@ -1,0 +1,405 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-material-handling-forklift-rough-terrain-5-000-lb",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Forklift, rough-terrain, 5,000 lb",
+    "description": "Rough-terrain forklift used for unloading, staging, and moving pallets, bundled materials, and jobsite supplies.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "lifting / access",
+      "material handling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-material-handling-telehandler-6-000-lb-42-ft-reach",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Telehandler, 6,000 lb, 42 ft reach",
+    "description": "Rough-terrain telescopic handler used to lift and place materials at elevated floors, roofs, and rough jobsite terrain.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "lifting / access",
+      "material handling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-aerial-lift-boom-lift-articulating-45-ft-platform-height",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Boom lift, articulating, 45 ft platform height",
+    "description": "Articulating aerial work platform for elevated work with horizontal reach around obstacles and building edges.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "lifting / access",
+      "aerial lift"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-aerial-lift-scissor-lift-electric-slab-19-ft-platform-height",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scissor lift, electric slab, 19 ft platform height",
+    "description": "Electric scissor lift for indoor elevated work on flat slabs, ceilings, MEP rough-in, and finish tasks.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "lifting / access",
+      "aerial lift"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-scaffolding-scaffold-frame-set-rolling-tower",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scaffold frame set, rolling tower",
+    "description": "Rolling scaffold tower used for elevated interior or exterior work where repeated repositioning is required.",
+    "unit": "week",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "lifting / access",
+      "scaffolding"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-telehandler-8-000-lb-44-ft-reach",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Telehandler, 8,000 lb, 44 ft reach",
+    "description": "Rough-terrain telehandler, 8,000 lb capacity, 44 foot reach, for steel, truss, and material placement",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting",
+      "aerial",
+      "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-rough-terrain-forklift-6-000-lb",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Rough-terrain forklift, 6,000 lb",
+    "description": "Rough-terrain forklift, 6,000 lb capacity, for palletized material unloading and staging",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting",
+      "aerial",
+      "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-boom-lift-telescopic-60-ft-platform-height",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Boom lift, telescopic, 60 ft platform height",
+    "description": "Telescopic boom lift, 60 foot platform height, for exterior facade and steel erection access",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting",
+      "aerial",
+      "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-scissor-lift-electric-slab-26-ft-platform-height",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scissor lift, electric slab, 26 ft platform height",
+    "description": "Electric slab scissor lift, 26 foot platform height, for interior elevated MEP and finish work",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting",
+      "aerial",
+      "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-material-hoist-2-000-lb-40-ft",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Material hoist, 2,000 lb, 40 ft",
+    "description": "Material hoist, 2,000 lb capacity, 40 foot lift height, for masonry and material lifting at building face",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting",
+      "aerial",
+      "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-tower-crane-8-ton-150-ft-jib",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial and Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Tower crane, 8 ton, 150 ft jib",
+    "description": "Tower crane, 8 ton capacity, 150 foot jib, for high-rise material lifting and steel placement",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting",
+      "aerial",
+      "forklift",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-material-handling-forklift-rough-terrain-5-000-lb-weekly-rate-17",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Forklift, rough-terrain, 5,000 lb, weekly rental rate",
+    "description": "Rough-terrain forklift used for unloading, staging, and moving pallets, bundled materials, and jobsite supplies. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting / access",
+      "material handling",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-material-handling-telehandler-6-000-lb-42-ft-reach-hourly-rate-18",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Material Handling",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Telehandler, 6,000 lb, 42 ft reach, hourly rental rate",
+    "description": "Rough-terrain telescopic handler used to lift and place materials at elevated floors, roofs, and rough jobsite terrain. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "lifting / access",
+      "material handling",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-aerial-lift-boom-lift-articulating-45-ft-platform-height-daily-rate-19",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Boom lift, articulating, 45 ft platform height, daily rental rate",
+    "description": "Articulating aerial work platform for elevated work with horizontal reach around obstacles and building edges. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting / access",
+      "aerial lift",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-aerial-lift-scissor-lift-electric-slab-19-ft-platform-height-weekly-rate-20",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Aerial Lift",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scissor lift, electric slab, 19 ft platform height, weekly rental rate",
+    "description": "Electric scissor lift for indoor elevated work on flat slabs, ceilings, MEP rough-in, and finish tasks. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "lifting / access",
+      "aerial lift",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-lifting-access-scaffolding-scaffold-frame-set-rolling-tower-hourly-rate-21",
+    "type": "equipment",
+    "category": "Lifting / Access",
+    "subcategory": "Scaffolding",
+    "csiDivision": "01",
+    "csiSection": "01 54 00",
+    "name": "Scaffold frame set, rolling tower, hourly rental rate",
+    "description": "Rolling scaffold tower used for elevated interior or exterior work where repeated repositioning is required. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "lifting / access",
+      "scaffolding",
+      "hourly",
+      "rental-rate"
+    ]
+  }
+]

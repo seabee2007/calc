@@ -1,0 +1,873 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-excavation-mini-excavator-tracked-3-ton-class",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Mini excavator, tracked, 3-ton class",
+    "description": "Compact tracked excavator used for trenching, footing excavation, utility work, grading, and confined-access earthwork.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "excavation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-excavation-excavator-tracked-20-ton-class",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Excavator, tracked, 20-ton class",
+    "description": "Hydraulic tracked excavator for mass excavation, trenching, loading trucks, demolition support, and site development.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "excavation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-excavation-backhoe-loader-4wd-standard-bucket",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Backhoe loader, 4WD, standard bucket",
+    "description": "Rubber-tired backhoe loader with front bucket and rear excavator arm for utility trenching, loading, and general sitework.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "excavation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-loading-skid-steer-loader-wheeled-standard-bucket",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Skid steer loader, wheeled, standard bucket",
+    "description": "Compact wheeled loader for grading, backfill, material handling, cleanup, and tight-access jobsite work.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "loading"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-loading-compact-track-loader-rubber-track-standard-bucket",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Compact track loader, rubber track, standard bucket",
+    "description": "Tracked compact loader for rough terrain, grading, backfill, material handling, and soft-ground access.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "loading"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-compactor-vibratory-plate-walk-behind",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Compactor, vibratory plate, walk-behind",
+    "description": "Walk-behind vibratory plate compactor for compacting granular base, trenches, pavers, and small slab subgrades.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-compactor-vibratory-sled-trench-roller-remote-controlled",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Compactor, vibratory sled/trench roller, remote controlled",
+    "description": "Remote-controlled vibratory trench roller/sled compactor for cohesive soils, trench backfill, and confined excavation compaction.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-compactor-jumping-jack-rammer",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Compactor, jumping jack rammer",
+    "description": "Upright tamping rammer for compacting cohesive soil in narrow trenches, around utilities, and tight work areas.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-roller-vibratory-smooth-drum-ride-on",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Roller, vibratory smooth drum, ride-on",
+    "description": "Ride-on smooth drum vibratory roller for compacting subgrade, aggregate base, asphalt base, and larger flatwork areas.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week",
+      "month"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-hauling-dump-truck-tandem-axle",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Dump truck, tandem axle",
+    "description": "Tandem axle dump truck for hauling soil, aggregate, demolition debris, asphalt, and construction materials.",
+    "unit": "hour",
+    "commonUnits": [
+      "hour",
+      "day"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "hauling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-mini-excavator-3-4-ton-rubber-track",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Mini excavator, 3-4 ton, rubber track",
+    "description": "Mini hydraulic excavator, 3 to 4 ton class, rubber tracks, for trenching, footing excavation, and tight-access earthwork",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-skid-steer-loader-2-200-lb-roc",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Skid steer loader, 2,200 lb ROC",
+    "description": "Wheeled skid steer loader, 2,200 lb rated operating capacity, for grading, loading, and material handling",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-compact-track-loader-2-800-lb-roc",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Compact track loader, 2,800 lb ROC",
+    "description": "Compact track loader, 2,800 lb rated operating capacity, for grading and material movement on soft ground",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-backhoe-loader-extendahoe-14-ft-dig",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Backhoe loader, extendahoe, 14 ft dig",
+    "description": "Backhoe loader with extendahoe, 14 foot dig depth, for utility trenching and general excavation",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-vibratory-plate-compactor-4-000-lb",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Vibratory plate compactor, 4,000 lb",
+    "description": "Vibratory plate compactor, 4,000 lb centrifugal force, for trench and slab subgrade compaction",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-jumping-jack-tamper-gas",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Jumping jack tamper, gas",
+    "description": "Gas-powered jumping jack tamper for trench backfill and confined area soil compaction",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-compactor-vibratory-sled-trench-roller-remote-cont",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Compactor, vibratory sled/trench roller, remote controlled",
+    "description": "Remote-controlled vibratory trench roller for pipe trench and narrow-area compaction",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-excavation-mini-excavator-tracked-3-ton-class-daily-rate-1",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Mini excavator, tracked, 3-ton class, daily rental rate",
+    "description": "Compact tracked excavator used for trenching, footing excavation, utility work, grading, and confined-access earthwork. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "excavation",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-excavation-excavator-tracked-20-ton-class-weekly-rate-2",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Excavator, tracked, 20-ton class, weekly rental rate",
+    "description": "Hydraulic tracked excavator for mass excavation, trenching, loading trucks, demolition support, and site development. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "excavation",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-excavation-backhoe-loader-4wd-standard-bucket-hourly-rate-3",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Backhoe loader, 4WD, standard bucket, hourly rental rate",
+    "description": "Rubber-tired backhoe loader with front bucket and rear excavator arm for utility trenching, loading, and general sitework. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "excavation",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-loading-skid-steer-loader-wheeled-standard-bucket-daily-rate-4",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Skid steer loader, wheeled, standard bucket, daily rental rate",
+    "description": "Compact wheeled loader for grading, backfill, material handling, cleanup, and tight-access jobsite work. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "loading",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-loading-compact-track-loader-rubber-track-standard-bucket-weekly-rate-5",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Loading",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Compact track loader, rubber track, standard bucket, weekly rental rate",
+    "description": "Tracked compact loader for rough terrain, grading, backfill, material handling, and soft-ground access. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "loading",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-compactor-vibratory-plate-walk-behind-hourly-rate-6",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Compactor, vibratory plate, walk-behind, hourly rental rate",
+    "description": "Walk-behind vibratory plate compactor for compacting granular base, trenches, pavers, and small slab subgrades. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-compactor-vibratory-sled-trench-roller-remote-controlled-daily-rate-7",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Compactor, vibratory sled/trench roller, remote controlled, daily rental rate",
+    "description": "Remote-controlled vibratory trench roller/sled compactor for cohesive soils, trench backfill, and confined excavation compaction. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-compactor-jumping-jack-rammer-weekly-rate-8",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Compactor, jumping jack rammer, weekly rental rate",
+    "description": "Upright tamping rammer for compacting cohesive soil in narrow trenches, around utilities, and tight work areas. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-compaction-roller-vibratory-smooth-drum-ride-on-hourly-rate-9",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 23 23",
+    "name": "Roller, vibratory smooth drum, ride-on, hourly rental rate",
+    "description": "Ride-on smooth drum vibratory roller for compacting subgrade, aggregate base, asphalt base, and larger flatwork areas. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "compaction",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-earthwork-equipment-hauling-dump-truck-tandem-axle-daily-rate-10",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Hauling",
+    "csiDivision": "31",
+    "csiSection": "31 23 00",
+    "name": "Dump truck, tandem axle, daily rental rate",
+    "description": "Tandem axle dump truck for hauling soil, aggregate, demolition debris, asphalt, and construction materials. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork equipment",
+      "hauling",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 382.5,
+    "id": "equipment-mini-excavator-3-4-ton-rubber-track-weekly-rate-32",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Mini excavator, 3-4 ton, rubber track, weekly rental rate",
+    "description": "Mini hydraulic excavator, 3 to 4 ton class, rubber tracks, for trenching, footing excavation, and tight-access earthwork Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12.75,
+    "id": "equipment-skid-steer-loader-2-200-lb-roc-hourly-rate-33",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Skid steer loader, 2,200 lb ROC, hourly rental rate",
+    "description": "Wheeled skid steer loader, 2,200 lb rated operating capacity, for grading, loading, and material handling Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-compact-track-loader-2-800-lb-roc-daily-rate-34",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Compact track loader, 2,800 lb ROC, daily rental rate",
+    "description": "Compact track loader, 2,800 lb rated operating capacity, for grading and material movement on soft ground Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 382.5,
+    "id": "equipment-backhoe-loader-extendahoe-14-ft-dig-weekly-rate-35",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Backhoe loader, extendahoe, 14 ft dig, weekly rental rate",
+    "description": "Backhoe loader with extendahoe, 14 foot dig depth, for utility trenching and general excavation Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12.75,
+    "id": "equipment-vibratory-plate-compactor-4-000-lb-hourly-rate-36",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Vibratory plate compactor, 4,000 lb, hourly rental rate",
+    "description": "Vibratory plate compactor, 4,000 lb centrifugal force, for trench and slab subgrade compaction Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 85,
+    "id": "equipment-jumping-jack-tamper-gas-daily-rate-37",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Jumping jack tamper, gas, daily rental rate",
+    "description": "Gas-powered jumping jack tamper for trench backfill and confined area soil compaction Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 382.5,
+    "id": "equipment-compactor-vibratory-sled-trench-roller-remote-cont-weekly-rate-38",
+    "type": "equipment",
+    "category": "Earthwork Equipment",
+    "subcategory": "Excavation and Compaction",
+    "csiDivision": "31",
+    "csiSection": "31 00 00",
+    "name": "Compactor, vibratory sled/trench roller, remote controlled, weekly rental rate",
+    "description": "Remote-controlled vibratory trench roller for pipe trench and narrow-area compaction Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "earthwork",
+      "excavator",
+      "compactor",
+      "rental",
+      "weekly",
+      "rental-rate"
+    ]
+  }
+]

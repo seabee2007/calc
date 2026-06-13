@@ -1,0 +1,423 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-placement-concrete-pump-trailer-mounted-line-pump",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete pump, trailer-mounted line pump",
+    "description": "Trailer-mounted concrete line pump for placing concrete through hoses where truck chute access is limited.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day"
+    ],
+    "tags": [
+      "concrete equipment",
+      "placement"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-placement-concrete-buggy-motorized-16-cu-ft",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete buggy, motorized, 16 cu ft",
+    "description": "Motorized concrete buggy for transporting wet concrete from truck discharge point to placement area.",
+    "unit": "day",
+    "commonUnits": [
+      "hour",
+      "day",
+      "week"
+    ],
+    "tags": [
+      "concrete equipment",
+      "placement"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-consolidation-concrete-vibrator-electric-1-1-2-in-head",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Consolidation",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete vibrator, electric, 1-1/2 in head",
+    "description": "Electric internal concrete vibrator used to consolidate freshly placed concrete in walls, columns, beams, and slabs.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "concrete equipment",
+      "consolidation"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-finishing-power-trowel-walk-behind-36-in",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 35 00",
+    "name": "Power trowel, walk-behind, 36 in",
+    "description": "Walk-behind power trowel for finishing concrete slabs after initial set to produce smooth finished surface.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "concrete equipment",
+      "finishing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-cutting-concrete-saw-walk-behind-gas-14-18-in-blade",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete saw, walk-behind, gas, 14-18 in blade",
+    "description": "Walk-behind concrete saw for control joints, slab cutting, pavement cutting, and demolition saw cuts.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "concrete equipment",
+      "cutting"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-drilling-core-drill-rig-electric-wet-drilling",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Drilling",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Core drill rig, electric, wet drilling",
+    "description": "Core drilling rig for drilling round penetrations in concrete slabs, walls, masonry, and structural surfaces.",
+    "unit": "day",
+    "commonUnits": [
+      "day",
+      "week"
+    ],
+    "tags": [
+      "concrete equipment",
+      "drilling"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-concrete-pump-truck-boom-32-meter",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement and Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete pump truck, boom, 32 meter",
+    "description": "Truck-mounted concrete boom pump, 32 meter reach, for placing ready-mix in elevated and hard-to-reach forms",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete",
+      "pump",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-line-pump-trailer-80-yd-hr",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement and Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Line pump trailer, 80 yd/hr",
+    "description": "Trailer-mounted concrete line pump, 80 cubic yards per hour, for slab and footing concrete placement",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete",
+      "pump",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-power-trowel-ride-on-48-in",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement and Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Power trowel, ride-on, 48 in",
+    "description": "Ride-on power trowel, 48 inch path, for large slab finishing after bull floating",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete",
+      "pump",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-concrete-vibrator-backpack-gas",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement and Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete vibrator, backpack, gas",
+    "description": "Backpack gas-powered concrete vibrator for wall and column consolidation in remote placements",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete",
+      "pump",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 40,
+    "id": "equipment-rebar-bender-cutter-electric-portable",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement and Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Rebar bender/cutter, electric, portable",
+    "description": "Portable electric rebar bender and cutter for field fabrication of reinforcing steel",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete",
+      "pump",
+      "finishing",
+      "rental"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-placement-concrete-pump-trailer-mounted-line-pump-weekly-rate-11",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete pump, trailer-mounted line pump, weekly rental rate",
+    "description": "Trailer-mounted concrete line pump for placing concrete through hoses where truck chute access is limited. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete equipment",
+      "placement",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-placement-concrete-buggy-motorized-16-cu-ft-hourly-rate-12",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Placement",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete buggy, motorized, 16 cu ft, hourly rental rate",
+    "description": "Motorized concrete buggy for transporting wet concrete from truck discharge point to placement area. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "concrete equipment",
+      "placement",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-consolidation-concrete-vibrator-electric-1-1-2-in-head-daily-rate-13",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Consolidation",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete vibrator, electric, 1-1/2 in head, daily rental rate",
+    "description": "Electric internal concrete vibrator used to consolidate freshly placed concrete in walls, columns, beams, and slabs. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete equipment",
+      "consolidation",
+      "daily",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-finishing-power-trowel-walk-behind-36-in-weekly-rate-14",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Finishing",
+    "csiDivision": "03",
+    "csiSection": "03 35 00",
+    "name": "Power trowel, walk-behind, 36 in, weekly rental rate",
+    "description": "Walk-behind power trowel for finishing concrete slabs after initial set to produce smooth finished surface. Quoted on a weekly rental basis for estimating equipment cost allowances.",
+    "unit": "WEEK",
+    "commonUnits": [
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete equipment",
+      "finishing",
+      "weekly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-cutting-concrete-saw-walk-behind-gas-14-18-in-blade-hourly-rate-15",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Cutting",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete saw, walk-behind, gas, 14-18 in blade, hourly rental rate",
+    "description": "Walk-behind concrete saw for control joints, slab cutting, pavement cutting, and demolition saw cuts. Quoted on a hourly rental basis for estimating equipment cost allowances.",
+    "unit": "HR",
+    "commonUnits": [
+      "HR",
+      "DAY"
+    ],
+    "tags": [
+      "concrete equipment",
+      "cutting",
+      "hourly",
+      "rental-rate"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "equipment-concrete-equipment-drilling-core-drill-rig-electric-wet-drilling-daily-rate-16",
+    "type": "equipment",
+    "category": "Concrete Equipment",
+    "subcategory": "Drilling",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Core drill rig, electric, wet drilling, daily rental rate",
+    "description": "Core drilling rig for drilling round penetrations in concrete slabs, walls, masonry, and structural surfaces. Quoted on a daily rental basis for estimating equipment cost allowances.",
+    "unit": "DAY",
+    "commonUnits": [
+      "HR",
+      "DAY",
+      "WEEK"
+    ],
+    "tags": [
+      "concrete equipment",
+      "drilling",
+      "daily",
+      "rental-rate"
+    ]
+  }
+]

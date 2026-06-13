@@ -1,0 +1,2953 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-2500-psi-normal-weight",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 2500 PSI, normal weight",
+    "description": "Plant-batched normal-weight ready-mix concrete for non-structural slabs, walks, fence bases, and light-duty flatwork.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-3000-psi-normal-weight",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3000 PSI, normal weight",
+    "description": "Plant-batched normal-weight ready-mix concrete for residential slabs, sidewalks, patios, and general cast-in-place work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-3500-psi-normal-weight",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3500 PSI, normal weight",
+    "description": "General-purpose structural ready-mix concrete for slabs, footings, driveways, and foundation work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-4000-psi-normal-weight",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4000 PSI, normal weight",
+    "description": "Higher-strength ready-mix concrete for structural slabs, foundations, columns, grade beams, and commercial flatwork.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-4500-psi-normal-weight",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4500 PSI, normal weight",
+    "description": "High-strength ready-mix concrete for structural applications, exposed slabs, and higher performance concrete placements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-5000-psi-normal-weight",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 5000 PSI, normal weight",
+    "description": "High-strength ready-mix concrete for structural concrete, heavy-use slabs, equipment pads, and elevated performance work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-bagged-concrete-concrete-mix-bagged-60-lb",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Bagged Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete mix, bagged, 60 lb",
+    "description": "Preblended bagged concrete mix for small hand-mixed placements, post bases, patching, and minor concrete work.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "bag",
+      "pallet"
+    ],
+    "tags": [
+      "concrete",
+      "bagged concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-bagged-concrete-concrete-mix-bagged-80-lb",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Bagged Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete mix, bagged, 80 lb",
+    "description": "Preblended bagged concrete mix for small placements, fence posts, pier repairs, and jobs where ready-mix delivery is not practical.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "bag",
+      "pallet"
+    ],
+    "tags": [
+      "concrete",
+      "bagged concrete"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-grout-and-repair-non-shrink-grout-cementitious-50-lb-bag",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Non-shrink grout, cementitious, 50 lb bag",
+    "description": "High-strength non-shrink grout for base plates, equipment pads, anchor pockets, and structural bearing surfaces.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "grout and repair"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-vapor-barrier-10-mil-polyethylene-sheeting",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Vapor barrier, 10 mil polyethylene sheeting",
+    "description": "Polyethylene vapor retarder installed below slabs-on-grade to reduce moisture migration from subgrade.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "roll"
+    ],
+    "tags": [
+      "concrete",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-vapor-barrier-15-mil-reinforced-polyethylene",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Vapor barrier, 15 mil reinforced polyethylene",
+    "description": "Heavy-duty reinforced vapor barrier for slabs-on-grade, commercial floors, and moisture-sensitive floor assemblies.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "roll"
+    ],
+    "tags": [
+      "concrete",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-expansion-joint-filler-asphalt-fiber-1-2-in-x-4-in",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Expansion joint filler, asphalt fiber, 1/2 in x 4 in",
+    "description": "Compressible isolation joint filler for slabs, walks, driveways, foundations, and vertical concrete interfaces.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-curing-compound-water-based-concrete-flatwork",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 39 00",
+    "name": "Curing compound, water-based, concrete flatwork",
+    "description": "Spray-applied curing compound used to reduce moisture loss and support concrete curing after finishing.",
+    "unit": "gal",
+    "commonUnits": [
+      "gal",
+      "pail"
+    ],
+    "tags": [
+      "concrete",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-3-reinforcing-bar-deformed-steel-grade-60",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#3 reinforcing bar, deformed steel, Grade 60",
+    "description": "Deformed steel reinforcing bar, #3 nominal size, used for light slabs, ties, stirrups, and small reinforced concrete elements.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-4-reinforcing-bar-deformed-steel-grade-60",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#4 reinforcing bar, deformed steel, Grade 60",
+    "description": "Deformed steel reinforcing bar, #4 nominal size, used for slabs, footings, foundations, walls, and general concrete reinforcement.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-5-reinforcing-bar-deformed-steel-grade-60",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#5 reinforcing bar, deformed steel, Grade 60",
+    "description": "Deformed steel reinforcing bar, #5 nominal size, used for structural slabs, grade beams, foundations, and walls.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-6-reinforcing-bar-deformed-steel-grade-60",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#6 reinforcing bar, deformed steel, Grade 60",
+    "description": "Deformed steel reinforcing bar, #6 nominal size, used for heavier concrete foundations, beams, walls, and structural work.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-accessories-rebar-tie-wire-annealed-steel-16-gauge-roll",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar tie wire, annealed steel, 16 gauge roll",
+    "description": "Soft annealed steel tie wire used to secure reinforcing bars, dowels, chairs, and welded wire reinforcement before concrete placement.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "box"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-accessories-rebar-chair-slab-bolster-plastic-or-steel",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar chair, slab bolster, plastic or steel",
+    "description": "Support chair used to maintain reinforcing steel elevation and required concrete cover in slabs and flatwork.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "box"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-accessories-welded-wire-reinforcement-6x6-w1-4-w1-4-sheet",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Welded wire reinforcement, 6x6 W1.4/W1.4 sheet",
+    "description": "Welded wire reinforcement sheet used for slabs-on-grade, sidewalks, driveways, and light-duty concrete reinforcement.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "sheet"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "accessories"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-form-lumber-form-lumber-spf-2inx4inx10ft",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Form Lumber",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Form lumber, SPF, 2\"x4\"x10'",
+    "description": "Dimensional lumber used for concrete edge forms, bulkheads, kickers, stakes, and temporary concrete formwork bracing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "concrete formwork",
+      "form lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-form-lumber-form-lumber-spf-2inx6inx10ft",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Form Lumber",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Form lumber, SPF, 2\"x6\"x10'",
+    "description": "Dimensional lumber used for deeper concrete forms, slab edges, footings, and temporary bracing assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "concrete formwork",
+      "form lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-sheet-goods-form-plywood-3-4in-x-4ft-x-8ft",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Sheet Goods",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Form plywood, 3/4\" x 4' x 8'",
+    "description": "Plywood panel used for concrete wall forms, beam sides, column forms, and repeated formwork applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "concrete formwork",
+      "sheet goods"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-round-forms-sonotube-round-concrete-form-8-in-diameter",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Round Forms",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Sonotube round concrete form, 8 in diameter",
+    "description": "Round fiber tube concrete form for piers, deck posts, sign bases, and small concrete columns.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "concrete formwork",
+      "round forms"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-round-forms-sonotube-round-concrete-form-12-in-diameter",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Round Forms",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Sonotube round concrete form, 12 in diameter",
+    "description": "Round fiber tube concrete form for concrete piers, post foundations, and light structural column applications.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "concrete formwork",
+      "round forms"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-concrete-masonry-concrete-masonry-unit-8inx8inx16in-standard-gray",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry",
+    "csiDivision": "04",
+    "csiSection": "04 20 00",
+    "name": "Concrete masonry unit, 8\"x8\"x16\", standard gray",
+    "description": "Standard hollow CMU block for load-bearing and non-load-bearing masonry walls, foundations, partitions, and site walls.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "concrete masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-concrete-masonry-concrete-masonry-unit-6inx8inx16in-standard-gray",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry",
+    "csiDivision": "04",
+    "csiSection": "04 20 00",
+    "name": "Concrete masonry unit, 6\"x8\"x16\", standard gray",
+    "description": "Nominal 6-inch hollow CMU block for partitions, site walls, and masonry assemblies requiring reduced wall thickness.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "concrete masonry"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-mortar-and-grout-mortar-mix-type-s-80-lb-bag",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 13",
+    "name": "Mortar mix, Type S, 80 lb bag",
+    "description": "Preblended Type S masonry mortar for CMU, brick, and stone work requiring higher bond and compressive strength.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "mortar and grout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-mortar-and-grout-mortar-mix-type-n-80-lb-bag",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 13",
+    "name": "Mortar mix, Type N, 80 lb bag",
+    "description": "Preblended Type N masonry mortar for above-grade brick, block, and stone masonry work.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "mortar and grout"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-reinforcement-masonry-ladder-wire-reinforcement-8-in-wall",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 19",
+    "name": "Masonry ladder wire reinforcement, 8 in wall",
+    "description": "Horizontal joint reinforcement for CMU walls to reduce cracking and improve wall continuity.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "roll"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 145,
+    "id": "material-concrete-ready-mix-2500-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 2500 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 2500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "2500-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 151,
+    "id": "material-concrete-ready-mix-3000-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3000 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 3000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "3000-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 157,
+    "id": "material-concrete-ready-mix-3500-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3500 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 3500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "3500-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 163,
+    "id": "material-concrete-ready-mix-4000-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4000 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 4000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "4000-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 169,
+    "id": "material-concrete-ready-mix-4500-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4500 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 4500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "4500-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 175,
+    "id": "material-concrete-ready-mix-5000-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 5000 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 5000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "5000-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 181,
+    "id": "material-concrete-ready-mix-5500-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 5500 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 5500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "5500-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 187,
+    "id": "material-concrete-ready-mix-6000-psi-4in-slump",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 6000 PSI, normal weight, 4-inch slump",
+    "description": "Plant-batched normal-weight ready-mix concrete at 6000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "6000-psi"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8,
+    "id": "material-rebar-grade-60-deformed-no3",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #3, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #3 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#3",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12.5,
+    "id": "material-rebar-grade-60-deformed-no4",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #4, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #4 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#4",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 17,
+    "id": "material-rebar-grade-60-deformed-no5",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #5, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #5 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#5",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 21.5,
+    "id": "material-rebar-grade-60-deformed-no6",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #6, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #6 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#6",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 26,
+    "id": "material-rebar-grade-60-deformed-no7",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #7, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #7 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#7",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 30.5,
+    "id": "material-rebar-grade-60-deformed-no8",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #8, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #8 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#8",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-rebar-grade-60-deformed-no9",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #9, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #9 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#9",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 39.5,
+    "id": "material-rebar-grade-60-deformed-no10",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #10, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #10 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#10",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 44,
+    "id": "material-rebar-grade-60-deformed-no11",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #11, 20 ft length",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #11 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#11",
+      "grade-60"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.7,
+    "id": "material-cmu-standard-weight-8x8x16",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, standard weight, 8 inch x 8 inch x 16 inch",
+    "description": "Standard-weight concrete masonry unit, 8 inch x 8 inch x 16 inch, for load-bearing and non-load-bearing walls, partitions, and backup masonry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "8x8x16"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.7,
+    "id": "material-cmu-standard-weight-8x8x8",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, standard weight, 8 inch x 8 inch x 8 inch",
+    "description": "Standard-weight concrete masonry unit, 8 inch x 8 inch x 8 inch, for load-bearing and non-load-bearing walls, partitions, and backup masonry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "8x8x8"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.7,
+    "id": "material-cmu-standard-weight-12x8x16",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, standard weight, 12 inch x 8 inch x 16 inch",
+    "description": "Standard-weight concrete masonry unit, 12 inch x 8 inch x 16 inch, for load-bearing and non-load-bearing walls, partitions, and backup masonry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "12x8x16"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.5,
+    "id": "material-mortar-type-n-80lb-bag",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type N, 80 lb bag",
+    "description": "Preblended dry masonry mortar mix, Type N, packaged in 80 lb bags for general-purpose exterior above-grade masonry.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "type-n"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.5,
+    "id": "material-mortar-type-s-80lb-bag",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, 80 lb bag",
+    "description": "Preblended dry masonry mortar mix, Type S, packaged in 80 lb bags for high-strength structural masonry and below-grade work.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "type-s"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.5,
+    "id": "material-mortar-type-m-80lb-bag",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type M, 80 lb bag",
+    "description": "Preblended dry masonry mortar mix, Type M, packaged in 80 lb bags for high-compressive-strength load-bearing masonry.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "type-m"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-2x4-stakes",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "2x4 stakes, construction supply catalog item",
+    "description": "2x4 wood stakes for formwork alignment and bracing on slab and footing forms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "2x4"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-3-4-in-plywood-form-face",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "3/4 in plywood form face",
+    "description": "3/4 inch plywood form facing for wall and column concrete forms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "3"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-form-release-agent-5-gal",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "form release agent, 5 gal",
+    "description": "Form release agent in 5 gallon pail for steel and wood concrete forms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-snap-ties-8-in-wall",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "snap ties, 8 in wall",
+    "description": "Snap ties for 8 inch concrete wall forms with waler and plywood systems",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "snap"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-form-oil-sprayer",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "form oil sprayer",
+    "description": "Low-pressure sprayer for applying form release to concrete formwork surfaces",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-2500-psi-normal-weight-variant-1",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 2500 PSI, normal weight, contractor grade",
+    "description": "Plant-batched normal-weight ready-mix concrete for non-structural slabs, walks, fence bases, and light-duty flatwork. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-3000-psi-normal-weight-variant-2",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3000 PSI, normal weight, premium grade",
+    "description": "Plant-batched normal-weight ready-mix concrete for residential slabs, sidewalks, patios, and general cast-in-place work. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-3500-psi-normal-weight-variant-3",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3500 PSI, normal weight, bulk pack",
+    "description": "General-purpose structural ready-mix concrete for slabs, footings, driveways, and foundation work. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-4000-psi-normal-weight-variant-4",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4000 PSI, normal weight, contractor grade",
+    "description": "Higher-strength ready-mix concrete for structural slabs, foundations, columns, grade beams, and commercial flatwork. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-4500-psi-normal-weight-variant-5",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4500 PSI, normal weight, premium grade",
+    "description": "High-strength ready-mix concrete for structural applications, exposed slabs, and higher performance concrete placements. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-ready-mix-concrete-ready-mix-concrete-5000-psi-normal-weight-variant-6",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 5000 PSI, normal weight, bulk pack",
+    "description": "High-strength ready-mix concrete for structural concrete, heavy-use slabs, equipment pads, and elevated performance work. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY",
+      "m³"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix concrete",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-bagged-concrete-concrete-mix-bagged-60-lb-variant-7",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Bagged Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete mix, bagged, 60 lb, contractor grade",
+    "description": "Preblended bagged concrete mix for small hand-mixed placements, post bases, patching, and minor concrete work. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "bag",
+      "pallet"
+    ],
+    "tags": [
+      "concrete",
+      "bagged concrete",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-bagged-concrete-concrete-mix-bagged-80-lb-variant-8",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Bagged Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Concrete mix, bagged, 80 lb, premium grade",
+    "description": "Preblended bagged concrete mix for small placements, fence posts, pier repairs, and jobs where ready-mix delivery is not practical. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "bag",
+      "pallet"
+    ],
+    "tags": [
+      "concrete",
+      "bagged concrete",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-grout-and-repair-non-shrink-grout-cementitious-50-lb-bag-variant-9",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Grout and Repair",
+    "csiDivision": "03",
+    "csiSection": "03 60 00",
+    "name": "Non-shrink grout, cementitious, 50 lb bag, bulk pack",
+    "description": "High-strength non-shrink grout for base plates, equipment pads, anchor pockets, and structural bearing surfaces. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "grout and repair",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-vapor-barrier-10-mil-polyethylene-sheeting-variant-10",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Vapor barrier, 10 mil polyethylene sheeting, contractor grade",
+    "description": "Polyethylene vapor retarder installed below slabs-on-grade to reduce moisture migration from subgrade. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "roll"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-vapor-barrier-15-mil-reinforced-polyethylene-variant-11",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Vapor barrier, 15 mil reinforced polyethylene, premium grade",
+    "description": "Heavy-duty reinforced vapor barrier for slabs-on-grade, commercial floors, and moisture-sensitive floor assemblies. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "roll"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-expansion-joint-filler-asphalt-fiber-1-2-in-x-4-in-variant-12",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 15 00",
+    "name": "Expansion joint filler, asphalt fiber, 1/2 in x 4 in, bulk pack",
+    "description": "Compressible isolation joint filler for slabs, walks, driveways, foundations, and vertical concrete interfaces. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-accessories-curing-compound-water-based-concrete-flatwork-variant-13",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 39 00",
+    "name": "Curing compound, water-based, concrete flatwork, contractor grade",
+    "description": "Spray-applied curing compound used to reduce moisture loss and support concrete curing after finishing. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "gal",
+    "commonUnits": [
+      "gal",
+      "pail"
+    ],
+    "tags": [
+      "concrete",
+      "accessories",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-3-reinforcing-bar-deformed-steel-grade-60-variant-14",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#3 reinforcing bar, deformed steel, Grade 60, premium grade",
+    "description": "Deformed steel reinforcing bar, #3 nominal size, used for light slabs, ties, stirrups, and small reinforced concrete elements. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-4-reinforcing-bar-deformed-steel-grade-60-variant-15",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#4 reinforcing bar, deformed steel, Grade 60, bulk pack",
+    "description": "Deformed steel reinforcing bar, #4 nominal size, used for slabs, footings, foundations, walls, and general concrete reinforcement. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-5-reinforcing-bar-deformed-steel-grade-60-variant-16",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#5 reinforcing bar, deformed steel, Grade 60, contractor grade",
+    "description": "Deformed steel reinforcing bar, #5 nominal size, used for structural slabs, grade beams, foundations, and walls. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-reinforcing-steel-6-reinforcing-bar-deformed-steel-grade-60-variant-17",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "#6 reinforcing bar, deformed steel, Grade 60, premium grade",
+    "description": "Deformed steel reinforcing bar, #6 nominal size, used for heavier concrete foundations, beams, walls, and structural work. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA",
+      "ton"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "reinforcing steel",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-accessories-rebar-tie-wire-annealed-steel-16-gauge-roll-variant-18",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar tie wire, annealed steel, 16 gauge roll, bulk pack",
+    "description": "Soft annealed steel tie wire used to secure reinforcing bars, dowels, chairs, and welded wire reinforcement before concrete placement. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "roll",
+    "commonUnits": [
+      "roll",
+      "box"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "accessories",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-accessories-rebar-chair-slab-bolster-plastic-or-steel-variant-19",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar chair, slab bolster, plastic or steel, contractor grade",
+    "description": "Support chair used to maintain reinforcing steel elevation and required concrete cover in slabs and flatwork. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "box"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "accessories",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-rebar-reinforcement-accessories-welded-wire-reinforcement-6x6-w1-4-w1-4-sheet-variant-20",
+    "type": "material",
+    "category": "Rebar / Reinforcement",
+    "subcategory": "Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Welded wire reinforcement, 6x6 W1.4/W1.4 sheet, premium grade",
+    "description": "Welded wire reinforcement sheet used for slabs-on-grade, sidewalks, driveways, and light-duty concrete reinforcement. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "SF",
+    "commonUnits": [
+      "SF",
+      "sheet"
+    ],
+    "tags": [
+      "rebar / reinforcement",
+      "accessories",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-form-lumber-form-lumber-spf-2inx4inx10ft-variant-21",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Form Lumber",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Form lumber, SPF, 2\"x4\"x10', bulk pack",
+    "description": "Dimensional lumber used for concrete edge forms, bulkheads, kickers, stakes, and temporary concrete formwork bracing. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "concrete formwork",
+      "form lumber",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-form-lumber-form-lumber-spf-2inx6inx10ft-variant-22",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Form Lumber",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Form lumber, SPF, 2\"x6\"x10', contractor grade",
+    "description": "Dimensional lumber used for deeper concrete forms, slab edges, footings, and temporary bracing assemblies. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "concrete formwork",
+      "form lumber",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-sheet-goods-form-plywood-3-4in-x-4ft-x-8ft-variant-23",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Sheet Goods",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Form plywood, 3/4\" x 4' x 8', premium grade",
+    "description": "Plywood panel used for concrete wall forms, beam sides, column forms, and repeated formwork applications. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "concrete formwork",
+      "sheet goods",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-round-forms-sonotube-round-concrete-form-8-in-diameter-variant-24",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Round Forms",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Sonotube round concrete form, 8 in diameter, bulk pack",
+    "description": "Round fiber tube concrete form for piers, deck posts, sign bases, and small concrete columns. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "concrete formwork",
+      "round forms",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-concrete-formwork-round-forms-sonotube-round-concrete-form-12-in-diameter-variant-25",
+    "type": "material",
+    "category": "Concrete Formwork",
+    "subcategory": "Round Forms",
+    "csiDivision": "03",
+    "csiSection": "03 10 00",
+    "name": "Sonotube round concrete form, 12 in diameter, contractor grade",
+    "description": "Round fiber tube concrete form for concrete piers, post foundations, and light structural column applications. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "concrete formwork",
+      "round forms",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-concrete-masonry-concrete-masonry-unit-8inx8inx16in-standard-gray-variant-26",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry",
+    "csiDivision": "04",
+    "csiSection": "04 20 00",
+    "name": "Concrete masonry unit, 8\"x8\"x16\", standard gray, premium grade",
+    "description": "Standard hollow CMU block for load-bearing and non-load-bearing masonry walls, foundations, partitions, and site walls. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "concrete masonry",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-concrete-masonry-concrete-masonry-unit-6inx8inx16in-standard-gray-variant-27",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry",
+    "csiDivision": "04",
+    "csiSection": "04 20 00",
+    "name": "Concrete masonry unit, 6\"x8\"x16\", standard gray, bulk pack",
+    "description": "Nominal 6-inch hollow CMU block for partitions, site walls, and masonry assemblies requiring reduced wall thickness. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "concrete masonry",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-mortar-and-grout-mortar-mix-type-s-80-lb-bag-variant-28",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 13",
+    "name": "Mortar mix, Type S, 80 lb bag, contractor grade",
+    "description": "Preblended Type S masonry mortar for CMU, brick, and stone work requiring higher bond and compressive strength. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "mortar and grout",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-mortar-and-grout-mortar-mix-type-n-80-lb-bag-variant-29",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 13",
+    "name": "Mortar mix, Type N, 80 lb bag, premium grade",
+    "description": "Preblended Type N masonry mortar for above-grade brick, block, and stone masonry work. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "bag",
+    "commonUnits": [
+      "bag",
+      "EA"
+    ],
+    "tags": [
+      "masonry",
+      "mortar and grout",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-masonry-reinforcement-masonry-ladder-wire-reinforcement-8-in-wall-variant-30",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Reinforcement",
+    "csiDivision": "04",
+    "csiSection": "04 05 19",
+    "name": "Masonry ladder wire reinforcement, 8 in wall, bulk pack",
+    "description": "Horizontal joint reinforcement for CMU walls to reduce cracking and improve wall continuity. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "roll"
+    ],
+    "tags": [
+      "masonry",
+      "reinforcement",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 150.8,
+    "id": "material-concrete-ready-mix-2500-psi-4in-slump-variant-67",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 2500 PSI, normal weight, 4-inch slump, contractor grade",
+    "description": "Plant-batched normal-weight ready-mix concrete at 2500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "2500-psi",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 163.08,
+    "id": "material-concrete-ready-mix-3000-psi-4in-slump-variant-68",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3000 PSI, normal weight, 4-inch slump, premium grade",
+    "description": "Plant-batched normal-weight ready-mix concrete at 3000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "3000-psi",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 175.84,
+    "id": "material-concrete-ready-mix-3500-psi-4in-slump-variant-69",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 3500 PSI, normal weight, 4-inch slump, bulk pack",
+    "description": "Plant-batched normal-weight ready-mix concrete at 3500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "3500-psi",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 189.08,
+    "id": "material-concrete-ready-mix-4000-psi-4in-slump-variant-70",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4000 PSI, normal weight, 4-inch slump, contractor grade",
+    "description": "Plant-batched normal-weight ready-mix concrete at 4000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "4000-psi",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 169,
+    "id": "material-concrete-ready-mix-4500-psi-4in-slump-variant-71",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 4500 PSI, normal weight, 4-inch slump, premium grade",
+    "description": "Plant-batched normal-weight ready-mix concrete at 4500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "4500-psi",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 182,
+    "id": "material-concrete-ready-mix-5000-psi-4in-slump-variant-72",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 5000 PSI, normal weight, 4-inch slump, bulk pack",
+    "description": "Plant-batched normal-weight ready-mix concrete at 5000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "5000-psi",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 195.48,
+    "id": "material-concrete-ready-mix-5500-psi-4in-slump-variant-73",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 5500 PSI, normal weight, 4-inch slump, contractor grade",
+    "description": "Plant-batched normal-weight ready-mix concrete at 5500 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "5500-psi",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 209.44,
+    "id": "material-concrete-ready-mix-6000-psi-4in-slump-variant-74",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Ready-Mix Concrete",
+    "csiDivision": "03",
+    "csiSection": "03 30 00",
+    "name": "Ready-mix concrete, 6000 PSI, normal weight, 4-inch slump, premium grade",
+    "description": "Plant-batched normal-weight ready-mix concrete at 6000 PSI with 4-inch slump for structural slabs, footings, walls, and general cast-in-place concrete work. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "CY",
+    "commonUnits": [
+      "CY"
+    ],
+    "tags": [
+      "concrete",
+      "ready-mix",
+      "6000-psi",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.28,
+    "id": "material-rebar-grade-60-deformed-no3-variant-75",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #3, 20 ft length, bulk pack",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #3 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#3",
+      "grade-60",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12.5,
+    "id": "material-rebar-grade-60-deformed-no4-variant-76",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #4, 20 ft length, contractor grade",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #4 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#4",
+      "grade-60",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 17.68,
+    "id": "material-rebar-grade-60-deformed-no5-variant-77",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #5, 20 ft length, premium grade",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #5 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#5",
+      "grade-60",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 23.22,
+    "id": "material-rebar-grade-60-deformed-no6-variant-78",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #6, 20 ft length, bulk pack",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #6 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#6",
+      "grade-60",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 29.12,
+    "id": "material-rebar-grade-60-deformed-no7-variant-79",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #7, 20 ft length, contractor grade",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #7 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#7",
+      "grade-60",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35.38,
+    "id": "material-rebar-grade-60-deformed-no8-variant-80",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #8, 20 ft length, premium grade",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #8 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#8",
+      "grade-60",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 35,
+    "id": "material-rebar-grade-60-deformed-no9-variant-81",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #9, 20 ft length, bulk pack",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #9 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#9",
+      "grade-60",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 41.08,
+    "id": "material-rebar-grade-60-deformed-no10-variant-82",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #10, 20 ft length, contractor grade",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #10 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#10",
+      "grade-60",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 47.52,
+    "id": "material-rebar-grade-60-deformed-no11-variant-83",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Reinforcing Steel",
+    "csiDivision": "03",
+    "csiSection": "03 20 00",
+    "name": "Rebar, Grade 60, deformed, #11, 20 ft length, premium grade",
+    "description": "Deformed billet-steel reinforcing bar, ASTM A615 Grade 60, #11 diameter, 20-foot stick length for slab, footing, wall, and beam reinforcement. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "TON",
+      "LF"
+    ],
+    "tags": [
+      "rebar",
+      "reinforcing",
+      "#11",
+      "grade-60",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.9,
+    "id": "material-cmu-standard-weight-8x8x16-variant-84",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, standard weight, 8 inch x 8 inch x 16 inch, bulk pack",
+    "description": "Standard-weight concrete masonry unit, 8 inch x 8 inch x 16 inch, for load-bearing and non-load-bearing walls, partitions, and backup masonry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "8x8x16",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.97,
+    "id": "material-cmu-standard-weight-8x8x8-variant-85",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, standard weight, 8 inch x 8 inch x 8 inch, contractor grade",
+    "description": "Standard-weight concrete masonry unit, 8 inch x 8 inch x 8 inch, for load-bearing and non-load-bearing walls, partitions, and backup masonry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "8x8x8",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 1.7,
+    "id": "material-cmu-standard-weight-12x8x16-variant-86",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Concrete Masonry Units",
+    "csiDivision": "04",
+    "csiSection": "04 22 00",
+    "name": "CMU block, standard weight, 12 inch x 8 inch x 16 inch, premium grade",
+    "description": "Standard-weight concrete masonry unit, 12 inch x 8 inch x 16 inch, for load-bearing and non-load-bearing walls, partitions, and backup masonry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "cmu",
+      "block",
+      "masonry",
+      "12x8x16",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.88,
+    "id": "material-mortar-type-n-80lb-bag-variant-87",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type N, 80 lb bag, bulk pack",
+    "description": "Preblended dry masonry mortar mix, Type N, packaged in 80 lb bags for general-purpose exterior above-grade masonry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "type-n",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10.26,
+    "id": "material-mortar-type-s-80lb-bag-variant-88",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type S, 80 lb bag, contractor grade",
+    "description": "Preblended dry masonry mortar mix, Type S, packaged in 80 lb bags for high-strength structural masonry and below-grade work. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "type-s",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 10.64,
+    "id": "material-mortar-type-m-80lb-bag-variant-89",
+    "type": "material",
+    "category": "Masonry",
+    "subcategory": "Mortar and Grout",
+    "csiDivision": "04",
+    "csiSection": "04 05 00",
+    "name": "Masonry mortar mix, Type M, 80 lb bag, premium grade",
+    "description": "Preblended dry masonry mortar mix, Type M, packaged in 80 lb bags for high-compressive-strength load-bearing masonry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "BAG",
+    "commonUnits": [
+      "BAG",
+      "EA"
+    ],
+    "tags": [
+      "mortar",
+      "masonry",
+      "type-m",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.64,
+    "id": "material-formwork-2x4-stakes-variant-90",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "2x4 stakes, bulk pack",
+    "description": "2x4 wood stakes for formwork alignment and bracing on slab and footing forms Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "2x4",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-3-4-in-plywood-form-face-variant-91",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "3/4 in plywood form face, contractor grade",
+    "description": "3/4 inch plywood form facing for wall and column concrete forms Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "3",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.16,
+    "id": "material-formwork-form-release-agent-5-gal-variant-92",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "form release agent, 5 gal, premium grade",
+    "description": "Form release agent in 5 gallon pail for steel and wood concrete forms Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.32,
+    "id": "material-formwork-snap-ties-8-in-wall-variant-93",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "snap ties, 8 in wall, bulk pack",
+    "description": "Snap ties for 8 inch concrete wall forms with waler and plywood systems Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "snap",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4.48,
+    "id": "material-formwork-form-oil-sprayer-variant-94",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "form oil sprayer, contractor grade",
+    "description": "Low-pressure sprayer for applying form release to concrete formwork surfaces Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-form-stakes-wood-2x4-12-ft",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form stakes, wood, 2x4, 12 ft",
+    "description": "2x4 wood stakes, 12 foot length, for formwork alignment and bracing on slab and footing forms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-plywood-form-face-3-4-in-4x8",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Plywood form face, 3/4 in, 4x8",
+    "description": "3/4 inch plywood form facing, 4 foot by 8 foot sheet, for wall and column concrete forms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "plywood"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-form-release-agent-water-based-5-gal",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form release agent, water-based, 5 gal",
+    "description": "Water-based form release agent in 5 gallon pail for steel and wood concrete forms",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-snap-ties-8-in-wall-thickness",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Snap ties, 8 in wall thickness",
+    "description": "Snap ties for 8 inch concrete wall forms with waler and plywood forming systems",
+    "unit": "BOX",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "snap"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 4,
+    "id": "material-formwork-form-oil-sprayer-low-pressure",
+    "type": "material",
+    "category": "Concrete",
+    "subcategory": "Formwork Accessories",
+    "csiDivision": "03",
+    "csiSection": "03 11 00",
+    "name": "Form oil sprayer, low-pressure",
+    "description": "Low-pressure sprayer for applying form release to concrete formwork surfaces",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX",
+      "LF"
+    ],
+    "tags": [
+      "formwork",
+      "concrete",
+      "form"
+    ]
+  }
+]

@@ -1,0 +1,2913 @@
+[
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-studs-stud-spf-2-2inx4inx92-5-8in",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Studs",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Stud, SPF #2, 2\"x4\"x92-5/8\"",
+    "description": "Precut dimensional framing stud for standard 8-foot wall framing, interior partitions, backing, and light wood framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "studs"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-studs-stud-spf-2-2inx4inx104-5-8in",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Studs",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Stud, SPF #2, 2\"x4\"x104-5/8\"",
+    "description": "Precut dimensional framing stud for standard 9-foot wall framing, interior partitions, and light wood framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "studs"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-studs-stud-spf-2-2inx6inx92-5-8in",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Studs",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Stud, SPF #2, 2\"x6\"x92-5/8\"",
+    "description": "Precut dimensional framing stud for 2x6 exterior walls, bearing partitions, and insulated wall assemblies.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "studs"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx4inx10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x4\"x10'",
+    "description": "Dimensional framing lumber for walls, blocking, bracing, backing, plates, and general rough carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx6inx10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x6\"x10'",
+    "description": "Dimensional framing lumber for exterior walls, plates, headers, blocking, and general structural framing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx8inx12ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x8\"x12'",
+    "description": "Dimensional lumber for floor joists, rafters, headers, blocking, and structural framing members.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx10inx16ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x10\"x16'",
+    "description": "Dimensional lumber for joists, rafters, headers, beams, and longer-span framing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-treated-lumber-pressure-treated-lumber-ground-contact-2inx4inx8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 53",
+    "name": "Pressure-treated lumber, ground contact, 2\"x4\"x8'",
+    "description": "Preservative-treated dimensional lumber for exterior framing, sill plates, decks, blocking, and ground-contact applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "treated lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-treated-lumber-pressure-treated-post-ground-contact-4inx4inx8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 53",
+    "name": "Pressure-treated post, ground contact, 4\"x4\"x8'",
+    "description": "Preservative-treated square post for decks, fences, rails, light supports, and exterior structures.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "treated lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-engineered-lumber-lvl-beam-1-3-4inx11-7-8in-structural",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 1-3/4\"x11-7/8\", structural",
+    "description": "Engineered laminated veneer lumber beam used for headers, beams, and structural framing where higher capacity is required.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lumber / framing",
+      "engineered lumber"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-sheathing-panels-osb-osb-wall-sheathing-7-16in-x-4ft-x-8ft",
+    "type": "material",
+    "category": "Sheathing / Panels",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "OSB wall sheathing, 7/16\" x 4' x 8'",
+    "description": "Oriented strand board panel used for wall sheathing, roof decking, bracing, and structural sheathing applications.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "sheathing / panels",
+      "osb"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-sheathing-panels-plywood-plywood-sheathing-cdx-1-2in-x-4ft-x-8ft",
+    "type": "material",
+    "category": "Sheathing / Panels",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Plywood sheathing, CDX, 1/2\" x 4' x 8'",
+    "description": "CDX plywood panel for wall sheathing, roof decking, temporary protection, and general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "sheathing / panels",
+      "plywood"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-sheathing-panels-subfloor-subfloor-panel-t-g-3-4in-x-4ft-x-8ft",
+    "type": "material",
+    "category": "Sheathing / Panels",
+    "subcategory": "Subfloor",
+    "csiDivision": "06",
+    "csiSection": "06 16 23",
+    "name": "Subfloor panel, T&G, 3/4\" x 4' x 8'",
+    "description": "Tongue-and-groove subfloor panel for wood-framed floor systems and structural floor sheathing.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "sheathing / panels",
+      "subfloor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-nails-framing-nails-16d-common-bright-50-lb-box",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Nails",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Framing nails, 16d common, bright, 50 lb box",
+    "description": "Common framing nails for structural wood framing, plates, blocking, and general rough carpentry.",
+    "unit": "box",
+    "commonUnits": [
+      "box",
+      "lb"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "nails"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-screws-deck-screws-exterior-coated-9-x-3-in",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Screws",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Deck screws, exterior coated, #9 x 3 in",
+    "description": "Corrosion-resistant exterior deck screws for decking, exterior carpentry, and treated lumber connections.",
+    "unit": "box",
+    "commonUnits": [
+      "box",
+      "lb"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "screws"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-connectors-joist-hanger-galvanized-2x8-nominal",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Joist hanger, galvanized, 2x8 nominal",
+    "description": "Galvanized metal connector used to support wood joists at beams, ledgers, and headers.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "connectors"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter catalog item only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-connectors-hurricane-tie-galvanized-framing-connector",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Hurricane tie, galvanized framing connector",
+    "description": "Galvanized tie connector used to resist uplift at rafters, trusses, and framing connections.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "connectors"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.8,
+    "id": "material-lumber-spf-2-2x4-8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 8'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 8 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x4-10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 10'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 10 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.199999999999999,
+    "id": "material-lumber-spf-2-2x4-12ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 12'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 12 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.899999999999999,
+    "id": "material-lumber-spf-2-2x4-14ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 14'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 14 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.6,
+    "id": "material-lumber-spf-2-2x4-16ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 16'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 16 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.8,
+    "id": "material-lumber-spf-2-2x6-8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 8'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 8 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x6-10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 10'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 10 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.199999999999999,
+    "id": "material-lumber-spf-2-2x6-12ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 12'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 12 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.899999999999999,
+    "id": "material-lumber-spf-2-2x6-14ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 14'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 14 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.6,
+    "id": "material-lumber-spf-2-2x6-16ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 16'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 16 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.8,
+    "id": "material-lumber-spf-2-2x8-8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 8'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 8 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x8-10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 10'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 10 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.199999999999999,
+    "id": "material-lumber-spf-2-2x8-12ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 12'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 12 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.899999999999999,
+    "id": "material-lumber-spf-2-2x8-14ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 14'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 14 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.6,
+    "id": "material-lumber-spf-2-2x8-16ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 16'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 16 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.8,
+    "id": "material-lumber-spf-2-2x10-8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 8'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 8 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x10-10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 10'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 10 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.199999999999999,
+    "id": "material-lumber-spf-2-2x10-12ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 12'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 12 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.899999999999999,
+    "id": "material-lumber-spf-2-2x10-14ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 14'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 14 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.6,
+    "id": "material-lumber-spf-2-2x10-16ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 16'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 16 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 5.8,
+    "id": "material-lumber-spf-2-2x12-8ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 8'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 8 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x12-10ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 10'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 10 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.199999999999999,
+    "id": "material-lumber-spf-2-2x12-12ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 12'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 12 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.899999999999999,
+    "id": "material-lumber-spf-2-2x12-14ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 14'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 14 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.6,
+    "id": "material-lumber-spf-2-2x12-16ft",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 16'",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 16 foot length, for wall framing, blocking, backing, and general carpentry.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sheathing-7-16-in-osb-sheathing-4x8",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "7/16 in OSB sheathing, 4x8",
+    "description": "OSB structural panel sheathing, 7/16 inch, 4 foot by 8 foot, for wall and roof decking",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sheathing-1-2-in-gypsum-sheathing-4x8",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "1/2 in gypsum sheathing, 4x8",
+    "description": "Gypsum sheathing board, 1/2 inch, 4 foot by 8 foot, for exterior wall sheathing under cladding",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sheathing-5-8-in-fire-rated-gypsum-sheathing-4x8",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "5/8 in fire-rated gypsum sheathing, 4x8",
+    "description": "Type X gypsum sheathing, 5/8 inch, 4 foot by 8 foot, for fire-rated exterior wall assemblies",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sheathing-3-4-in-cdx-plywood-sheathing-4x8",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "3/4 in CDX plywood sheathing, 4x8",
+    "description": "CDX plywood sheathing, 3/4 inch, 4 foot by 8 foot, for floor and roof decking",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sheathing-1-2-in-cdx-plywood-sheathing-4x8",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "1/2 in CDX plywood sheathing, 4x8",
+    "description": "CDX plywood sheathing, 1/2 inch, 4 foot by 8 foot, for wall and roof sheathing",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-joist-hanger-lus210",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Joist hanger, LUS210",
+    "description": "Single joist hanger, LUS210, for 2x10 nominal joist to ledger or beam connection",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-hold-down-hdu2",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Hold-down, HDU2",
+    "description": "Simpson hold-down anchor, HDU2, for shear wall overturning restraint at end posts",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-hurricane-tie-h2-5a",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Hurricane tie, H2.5A",
+    "description": "Hurricane clip tie, H2.5A, for rafter or truss to top plate connection",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-post-base-abu66",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Post base, ABU66",
+    "description": "Adjustable post base, ABU66, for 6x6 post to concrete anchor connection",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-angle-clip-a34",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Angle clip, A34",
+    "description": "Framing angle clip, A34, for general wood-to-wood reinforcement at joints",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-fastener-framing-nails-16d-sinker-50-lb",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing nails, 16d sinker, 50 lb",
+    "description": "16 penny sinker framing nails, 50 lb box, for general wood framing and sheathing attachment",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-fastener-framing-nails-10d-common-50-lb",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing nails, 10d common, 50 lb",
+    "description": "10 penny common framing nails, 50 lb box, for sheathing and lighter framing connections",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-fastener-structural-screws-3-in-grk-50-ct",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Structural screws, 3 in, GRK, 50 ct",
+    "description": "3 inch structural wood screws, GRK-style, 50 count box, for ledger and heavy framing connections",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-fastener-subfloor-screws-2-1-4-in-5-lb",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Subfloor screws, 2-1/4 in, 5 lb",
+    "description": "2-1/4 inch subfloor/deck screws, 5 lb box, for OSB and plywood floor sheathing",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-fastener-joist-tape-3-in-x-75-ft-roll",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Joist tape, 3 in x 75 ft roll",
+    "description": "Butyl joist flashing tape, 3 inch by 75 foot roll, for deck joist top protection",
+    "unit": "ROLL",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-studs-stud-spf-2-2inx4inx92-5-8in-variant-31",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Studs",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Stud, SPF #2, 2\"x4\"x92-5/8\", contractor grade",
+    "description": "Precut dimensional framing stud for standard 8-foot wall framing, interior partitions, backing, and light wood framing. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "studs",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-studs-stud-spf-2-2inx4inx104-5-8in-variant-32",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Studs",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Stud, SPF #2, 2\"x4\"x104-5/8\", premium grade",
+    "description": "Precut dimensional framing stud for standard 9-foot wall framing, interior partitions, and light wood framing. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "studs",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-studs-stud-spf-2-2inx6inx92-5-8in-variant-33",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Studs",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Stud, SPF #2, 2\"x6\"x92-5/8\", bulk pack",
+    "description": "Precut dimensional framing stud for 2x6 exterior walls, bearing partitions, and insulated wall assemblies. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "studs",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx4inx10ft-variant-34",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x4\"x10', contractor grade",
+    "description": "Dimensional framing lumber for walls, blocking, bracing, backing, plates, and general rough carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx6inx10ft-variant-35",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x6\"x10', premium grade",
+    "description": "Dimensional framing lumber for exterior walls, plates, headers, blocking, and general structural framing. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx8inx12ft-variant-36",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x8\"x12', bulk pack",
+    "description": "Dimensional lumber for floor joists, rafters, headers, blocking, and structural framing members. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-dimensional-lumber-lumber-spf-2-2inx10inx16ft-variant-37",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Lumber, SPF #2, 2\"x10\"x16', contractor grade",
+    "description": "Dimensional lumber for joists, rafters, headers, beams, and longer-span framing applications. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "dimensional lumber",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-treated-lumber-pressure-treated-lumber-ground-contact-2inx4inx8ft-variant-38",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 53",
+    "name": "Pressure-treated lumber, ground contact, 2\"x4\"x8', premium grade",
+    "description": "Preservative-treated dimensional lumber for exterior framing, sill plates, decks, blocking, and ground-contact applications. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "treated lumber",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-treated-lumber-pressure-treated-post-ground-contact-4inx4inx8ft-variant-39",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Treated Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 53",
+    "name": "Pressure-treated post, ground contact, 4\"x4\"x8', bulk pack",
+    "description": "Preservative-treated square post for decks, fences, rails, light supports, and exterior structures. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF"
+    ],
+    "tags": [
+      "lumber / framing",
+      "treated lumber",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-lumber-framing-engineered-lumber-lvl-beam-1-3-4inx11-7-8in-structural-variant-40",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Engineered Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 17 00",
+    "name": "LVL beam, 1-3/4\"x11-7/8\", structural, contractor grade",
+    "description": "Engineered laminated veneer lumber beam used for headers, beams, and structural framing where higher capacity is required. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "LF",
+    "commonUnits": [
+      "LF",
+      "EA"
+    ],
+    "tags": [
+      "lumber / framing",
+      "engineered lumber",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-sheathing-panels-osb-osb-wall-sheathing-7-16in-x-4ft-x-8ft-variant-41",
+    "type": "material",
+    "category": "Sheathing / Panels",
+    "subcategory": "OSB",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "OSB wall sheathing, 7/16\" x 4' x 8', premium grade",
+    "description": "Oriented strand board panel used for wall sheathing, roof decking, bracing, and structural sheathing applications. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "sheathing / panels",
+      "osb",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-sheathing-panels-plywood-plywood-sheathing-cdx-1-2in-x-4ft-x-8ft-variant-42",
+    "type": "material",
+    "category": "Sheathing / Panels",
+    "subcategory": "Plywood",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "Plywood sheathing, CDX, 1/2\" x 4' x 8', bulk pack",
+    "description": "CDX plywood panel for wall sheathing, roof decking, temporary protection, and general construction use. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "sheathing / panels",
+      "plywood",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-sheathing-panels-subfloor-subfloor-panel-t-g-3-4in-x-4ft-x-8ft-variant-43",
+    "type": "material",
+    "category": "Sheathing / Panels",
+    "subcategory": "Subfloor",
+    "csiDivision": "06",
+    "csiSection": "06 16 23",
+    "name": "Subfloor panel, T&G, 3/4\" x 4' x 8', contractor grade",
+    "description": "Tongue-and-groove subfloor panel for wood-framed floor systems and structural floor sheathing. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "SF"
+    ],
+    "tags": [
+      "sheathing / panels",
+      "subfloor",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-nails-framing-nails-16d-common-bright-50-lb-box-variant-44",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Nails",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Framing nails, 16d common, bright, 50 lb box, premium grade",
+    "description": "Common framing nails for structural wood framing, plates, blocking, and general rough carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "box",
+    "commonUnits": [
+      "box",
+      "lb"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "nails",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-screws-deck-screws-exterior-coated-9-x-3-in-variant-45",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Screws",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Deck screws, exterior coated, #9 x 3 in, bulk pack",
+    "description": "Corrosion-resistant exterior deck screws for decking, exterior carpentry, and treated lumber connections. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "box",
+    "commonUnits": [
+      "box",
+      "lb"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "screws",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-connectors-joist-hanger-galvanized-2x8-nominal-variant-46",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Joist hanger, galvanized, 2x8 nominal, contractor grade",
+    "description": "Galvanized metal connector used to support wood joists at beams, ledgers, and headers. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "connectors",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-fasteners-connectors-connectors-hurricane-tie-galvanized-framing-connector-variant-47",
+    "type": "material",
+    "category": "Fasteners / Connectors",
+    "subcategory": "Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 23",
+    "name": "Hurricane tie, galvanized framing connector, premium grade",
+    "description": "Galvanized tie connector used to resist uplift at rafters, trusses, and framing connections. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA"
+    ],
+    "tags": [
+      "fasteners / connectors",
+      "connectors",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.73,
+    "id": "material-lumber-spf-2-2x4-8ft-variant-95",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 8', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 8 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x4-10ft-variant-96",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 10', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 10 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.49,
+    "id": "material-lumber-spf-2-2x4-12ft-variant-97",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 12', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 12 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.53,
+    "id": "material-lumber-spf-2-2x4-14ft-variant-98",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 14', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 14 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.63,
+    "id": "material-lumber-spf-2-2x4-16ft-variant-99",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x4 x 16', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x4 by 16 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x4",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.73,
+    "id": "material-lumber-spf-2-2x6-8ft-variant-100",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 8', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 8 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x6-10ft-variant-101",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 10', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 10 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.49,
+    "id": "material-lumber-spf-2-2x6-12ft-variant-102",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 12', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 12 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.53,
+    "id": "material-lumber-spf-2-2x6-14ft-variant-103",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 14', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 14 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.63,
+    "id": "material-lumber-spf-2-2x6-16ft-variant-104",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x6 x 16', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x6 by 16 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x6",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.73,
+    "id": "material-lumber-spf-2-2x8-8ft-variant-105",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 8', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 8 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x8-10ft-variant-106",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 10', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 10 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.49,
+    "id": "material-lumber-spf-2-2x8-12ft-variant-107",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 12', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 12 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.53,
+    "id": "material-lumber-spf-2-2x8-14ft-variant-108",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 14', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 14 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.63,
+    "id": "material-lumber-spf-2-2x8-16ft-variant-109",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x8 x 16', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x8 by 16 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x8",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.73,
+    "id": "material-lumber-spf-2-2x10-8ft-variant-110",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 8', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 8 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x10-10ft-variant-111",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 10', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 10 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.49,
+    "id": "material-lumber-spf-2-2x10-12ft-variant-112",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 12', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 12 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.53,
+    "id": "material-lumber-spf-2-2x10-14ft-variant-113",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 14', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 14 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.63,
+    "id": "material-lumber-spf-2-2x10-16ft-variant-114",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x10 x 16', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x10 by 16 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x10",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.73,
+    "id": "material-lumber-spf-2-2x12-8ft-variant-115",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 8', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 8 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 6.5,
+    "id": "material-lumber-spf-2-2x12-10ft-variant-116",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 10', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 10 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 7.49,
+    "id": "material-lumber-spf-2-2x12-12ft-variant-117",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 12', bulk pack",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 12 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 8.53,
+    "id": "material-lumber-spf-2-2x12-14ft-variant-118",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 14', contractor grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 14 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 9.63,
+    "id": "material-lumber-spf-2-2x12-16ft-variant-119",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Dimensional Lumber",
+    "csiDivision": "06",
+    "csiSection": "06 10 00",
+    "name": "Framing lumber, SPF #2, 2x12 x 16', premium grade",
+    "description": "Kiln-dried SPF #2 dimensional framing lumber, nominal 2x12 by 16 foot length, for wall framing, blocking, backing, and general carpentry. Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "LF",
+      "MBF"
+    ],
+    "tags": [
+      "lumber",
+      "framing",
+      "2x12",
+      "spf #2",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20.88,
+    "id": "material-sheathing-7-16-in-osb-sheathing-4x8-variant-120",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "7/16 in OSB sheathing, 4x8, bulk pack",
+    "description": "OSB structural panel sheathing, 7/16 inch, 4 foot by 8 foot, for wall and roof decking Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18,
+    "id": "material-sheathing-1-2-in-gypsum-sheathing-4x8-variant-121",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "1/2 in gypsum sheathing, 4x8, contractor grade",
+    "description": "Gypsum sheathing board, 1/2 inch, 4 foot by 8 foot, for exterior wall sheathing under cladding Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 18.72,
+    "id": "material-sheathing-5-8-in-fire-rated-gypsum-sheathing-4x8-variant-122",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "5/8 in fire-rated gypsum sheathing, 4x8, premium grade",
+    "description": "Type X gypsum sheathing, 5/8 inch, 4 foot by 8 foot, for fire-rated exterior wall assemblies Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 19.44,
+    "id": "material-sheathing-3-4-in-cdx-plywood-sheathing-4x8-variant-123",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "3/4 in CDX plywood sheathing, 4x8, bulk pack",
+    "description": "CDX plywood sheathing, 3/4 inch, 4 foot by 8 foot, for floor and roof decking Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 20.16,
+    "id": "material-sheathing-1-2-in-cdx-plywood-sheathing-4x8-variant-124",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Sheathing",
+    "csiDivision": "06",
+    "csiSection": "06 16 00",
+    "name": "1/2 in CDX plywood sheathing, 4x8, contractor grade",
+    "description": "CDX plywood sheathing, 1/2 inch, 4 foot by 8 foot, for wall and roof sheathing Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "SQ",
+    "commonUnits": [
+      "SQ",
+      "SF",
+      "EA"
+    ],
+    "tags": [
+      "sheathing",
+      "osb",
+      "plywood",
+      "panel",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-joist-hanger-lus210-variant-125",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Joist hanger, LUS210, premium grade",
+    "description": "Single joist hanger, LUS210, for 2x10 nominal joist to ledger or beam connection Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-hold-down-hdu2-variant-126",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Hold-down, HDU2, bulk pack",
+    "description": "Simpson hold-down anchor, HDU2, for shear wall overturning restraint at end posts Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-hurricane-tie-h2-5a-variant-127",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Hurricane tie, H2.5A, contractor grade",
+    "description": "Hurricane clip tie, H2.5A, for rafter or truss to top plate connection Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-post-base-abu66-variant-128",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Post base, ABU66, premium grade",
+    "description": "Adjustable post base, ABU66, for 6x6 post to concrete anchor connection Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 0,
+    "id": "material-connector-angle-clip-a34-variant-129",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Framing Connectors",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Angle clip, A34, bulk pack",
+    "description": "Framing angle clip, A34, for general wood-to-wood reinforcement at joints Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "EA",
+    "commonUnits": [
+      "EA",
+      "BOX"
+    ],
+    "tags": [
+      "connector",
+      "simpson",
+      "framing",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13.92,
+    "id": "material-fastener-framing-nails-16d-sinker-50-lb-variant-130",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing nails, 16d sinker, 50 lb, contractor grade",
+    "description": "16 penny sinker framing nails, 50 lb box, for general wood framing and sheathing attachment Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12,
+    "id": "material-fastener-framing-nails-10d-common-50-lb-variant-131",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Framing nails, 10d common, 50 lb, premium grade",
+    "description": "10 penny common framing nails, 50 lb box, for sheathing and lighter framing connections Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing",
+      "premium"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12.48,
+    "id": "material-fastener-structural-screws-3-in-grk-50-ct-variant-132",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Structural screws, 3 in, GRK, 50 ct, bulk pack",
+    "description": "3 inch structural wood screws, GRK-style, 50 count box, for ledger and heavy framing connections Supplied as bulk pack — bulk packaged quantity for larger production quantities on commercial projects.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing",
+      "bulk"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 12.96,
+    "id": "material-fastener-subfloor-screws-2-1-4-in-5-lb-variant-133",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Subfloor screws, 2-1/4 in, 5 lb, contractor grade",
+    "description": "2-1/4 inch subfloor/deck screws, 5 lb box, for OSB and plywood floor sheathing Supplied as contractor grade — standard contractor-grade supply for general construction use.",
+    "unit": "BOX",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing",
+      "contractor"
+    ]
+  },
+  {
+    "costConfidence": "placeholder",
+    "pricingRequired": true,
+    "notes": "Starter placeholder only. Verify local supplier pricing before proposal.",
+    "defaultUnitCost": 13.44,
+    "id": "material-fastener-joist-tape-3-in-x-75-ft-roll-variant-134",
+    "type": "material",
+    "category": "Lumber / Framing",
+    "subcategory": "Fasteners",
+    "csiDivision": "06",
+    "csiSection": "06 05 00",
+    "name": "Joist tape, 3 in x 75 ft roll, premium grade",
+    "description": "Butyl joist flashing tape, 3 inch by 75 foot roll, for deck joist top protection Supplied as premium grade — premium grade supply selected for higher finish or performance requirements.",
+    "unit": "ROLL",
+    "commonUnits": [
+      "BOX",
+      "EA",
+      "ROLL"
+    ],
+    "tags": [
+      "fastener",
+      "nails",
+      "screws",
+      "framing",
+      "premium"
+    ]
+  }
+]
