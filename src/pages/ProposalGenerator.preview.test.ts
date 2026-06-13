@@ -6,6 +6,10 @@ const proposalGeneratorSource = readFileSync(
   resolve(process.cwd(), 'src/pages/ProposalGenerator.tsx'),
   'utf8',
 );
+const proposalSetupPanelSource = readFileSync(
+  resolve(process.cwd(), 'src/components/proposals/ProposalSetupPanel.tsx'),
+  'utf8',
+);
 
 describe('ProposalGenerator preview actions', () => {
   it('uses ProposalPreviewActionBar instead of a separate Email button', () => {
@@ -72,10 +76,16 @@ describe('ProposalGenerator preview actions', () => {
     expect(proposalGeneratorSource).toContain('Send to Client');
   });
 
-  it('keeps the project source and pricing summary sections visible', () => {
-    expect(proposalGeneratorSource).toContain('ProposalProjectSourcePanel');
+  it('keeps the compact setup and pricing summary sections visible', () => {
+    expect(proposalGeneratorSource).toContain('ProposalSetupPanel');
     expect(proposalGeneratorSource).toContain('Estimate / Pricing Summary');
-    expect(proposalGeneratorSource).toContain('Import Current Estimate');
+    expect(proposalGeneratorSource).toContain('onSelectProject={handleSelectProject}');
+    expect(proposalGeneratorSource).not.toContain('Project Source');
+    expect(proposalGeneratorSource).not.toContain('Proposal Settings');
+    expect(proposalGeneratorSource).not.toContain('Nothing imported yet');
+    expect(proposalSetupPanelSource).toContain('Select a project...');
+    expect(proposalSetupPanelSource).not.toContain('Nothing imported yet');
+    expect(proposalSetupPanelSource).not.toContain('Import Current Estimate');
   });
 
   it('does not use old calculator-era proposal copy', () => {

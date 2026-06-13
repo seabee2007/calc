@@ -52,13 +52,12 @@ import {
 import ProposalPricingEditor, {
   proposalIndirectFromData,
 } from '../components/proposals/ProposalPricingEditor';
-import ProposalProjectSourcePanel from '../components/proposals/ProposalProjectSourcePanel';
+import ProposalSetupPanel from '../components/proposals/ProposalSetupPanel';
 import ProposalClientRecipientSection from '../components/proposals/ProposalClientRecipientSection';
 import ProposalBusinessInfoCollapsible from '../components/proposals/ProposalBusinessInfoCollapsible';
 import ProposalPreviewActionBar from '../components/proposals/ProposalPreviewActionBar';
 import AppPage from '../components/ui/AppPage';
 import {
-  computeProposalBreakdown,
   emptyProposalPricingState,
   formatProposalTotal,
   hydrateProposalPricing,
@@ -95,7 +94,6 @@ import {
   formatProposalPreviewSubtitle,
   normalizeDisplayText,
 } from '../utils/normalizeDisplayText';
-import { formatChangeOrderMoney } from '../utils/changeOrderFinancials';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
@@ -163,7 +161,6 @@ const ProposalGenerator: React.FC = () => {
     type: ToastType;
   } | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectAutoSelected, setProjectAutoSelected] = useState(false);
   const [businessInfoExpanded, setBusinessInfoExpanded] = useState(false);
   const [updatingProjectClient, setUpdatingProjectClient] = useState(false);
   const [selectedProjectImportable, setSelectedProjectImportable] = useState<boolean | null>(null);
@@ -358,7 +355,6 @@ const ProposalGenerator: React.FC = () => {
       setSelectedTemplate(draft.selectedTemplate);
       setShowPreview(draft.showPreview);
       setSelectedProjectId(contextProjectId);
-      setProjectAutoSelected(true);
       proposalDraftRestoredRef.current = true;
       importedPricingRef.current = contextProjectId;
       projectImportInitializedRef.current = true;
@@ -367,7 +363,6 @@ const ProposalGenerator: React.FC = () => {
 
     proposalDraftRestoredRef.current = true;
     setSelectedProjectId(contextProjectId);
-    setProjectAutoSelected(true);
     void applyProjectImport(contextProjectId, { overwrite: true, silent: true }).finally(() => {
       projectImportInitializedRef.current = true;
     });
@@ -550,8 +545,11 @@ const ProposalGenerator: React.FC = () => {
     });
   };
 
-  const handleSelectProject = (projectId: string) => {
-    setProjectAutoSelected(false);
+  const handleSelectProject = (projectId: string | null) => {
+    if (!projectId) {
+      handleClearSelectedProject();
+      return;
+    }
     void applyProjectImport(projectId, { overwrite: true });
   };
 
@@ -594,7 +592,6 @@ const ProposalGenerator: React.FC = () => {
 
   const handleClearSelectedProject = () => {
     setSelectedProjectId(null);
-    setProjectAutoSelected(false);
   };
 
   const handleUpdateProjectClientInfo = async () => {
@@ -629,10 +626,6 @@ const ProposalGenerator: React.FC = () => {
     }
   };
 
-  const selectedProject = selectedProjectId
-    ? projects.find((entry) => entry.id === selectedProjectId)
-    : undefined;
-
   const hasPricingLines =
     (proposalData.laborItems?.length ?? 0) +
       (proposalData.materialItems?.length ?? 0) +
@@ -644,19 +637,6 @@ const ProposalGenerator: React.FC = () => {
     Boolean(selectedProjectId) &&
     !hasPricingLines &&
     selectedProjectImportable === false;
-
-  const pricingBreakdown = computeProposalBreakdown(proposalData, companyTaxSettings);
-  const hasImportedPricingSummary =
-    Boolean(proposalData.importedEstimateSummary) || hasPricingLines;
-  const importSummaryMetrics = hasImportedPricingSummary
-    ? [
-        { label: 'Labor', value: formatChangeOrderMoney(pricingBreakdown.laborTotal) },
-        { label: 'Materials', value: formatChangeOrderMoney(pricingBreakdown.materialCostAdjusted) },
-        { label: 'Equipment', value: formatChangeOrderMoney(pricingBreakdown.equipmentTotal) },
-        { label: 'Direct Cost', value: formatChangeOrderMoney(pricingBreakdown.directCost) },
-        { label: 'Final Price', value: formatChangeOrderMoney(pricingBreakdown.totalPrice) },
-      ]
-    : [];
 
   const workflowProject = workflowProjectId
     ? projects.find((p) => p.id === workflowProjectId)
@@ -811,14 +791,23 @@ const ProposalGenerator: React.FC = () => {
 
   // Auto-generate title from project data
   const generateTitle = () => {
+    if (selectedProjectId) {
+      const project = projects.find((item) => item.id === selectedProjectId);
+      if (project) {
+        setProposalTitle(buildDefaultProposalTitle(project.name));
+        return;
+      }
+    }
+
     const parts = [];
     if (proposalData.projectTitle) parts.push(proposalData.projectTitle);
     if (proposalData.clientName) parts.push(`for ${proposalData.clientName}`);
-    
-    const generated = parts.length > 0 
-      ? parts.join(' ') 
-      : `Proposal - ${new Date().toLocaleDateString()}`;
-    
+
+    const generated =
+      parts.length > 0
+        ? parts.join(' ')
+        : `Proposal - ${new Date().toLocaleDateString()}`;
+
     setProposalTitle(generated);
   };
 
@@ -1350,90 +1339,19 @@ const ProposalGenerator: React.FC = () => {
         </div>
 
         <div className="mx-auto w-full max-w-6xl space-y-6">
-            {!isEditing && (
-              <ProposalProjectSourcePanel
-                projects={projects}
-                selectedProjectId={selectedProjectId}
-                onSelectProject={handleSelectProject}
-                onImportProject={() => {
-                  if (selectedProjectId) {
-                    void applyProjectImport(selectedProjectId, { overwrite: true });
-                  }
-                }}
-                onClearProject={handleClearSelectedProject}
-                autoSelected={projectAutoSelected}
-                importSummary={importSummaryMetrics}
-              />
-            )}
-
-            {/* Proposal Title & Save */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className={SECTION_CARD}
             >
-              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className={SECTION_TITLE}>Proposal Settings</h2>
-                  <p className={SECTION_HELP}>
-                    Name the proposal and keep draft, preview, and send actions within reach.
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div>
-                  <label className={FORM_LABEL}>
-                    Proposal title
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Example: Slab Replacement Proposal"
-                    value={proposalTitle}
-                    onChange={(e) => setProposalTitle(e.target.value)}
-                    className={INPUT_CLASS}
-                  />
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={generateTitle}
-                    className={`whitespace-nowrap ${OUTLINE_BUTTON_CLASS}`}
-                  >
-                    Auto Generate
-                  </Button>
-                  <Button
-                    variant="accent"
-                    size="sm"
-                    onClick={handleSave}
-                    disabled={saving || !proposalTitle.trim()}
-                    isLoading={saving}
-                    icon={<Save size={18} />}
-                    className="whitespace-nowrap"
-                  >
-                    Save Draft
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPreview(true)}
-                    icon={<FileText size={18} />}
-                    className={`whitespace-nowrap ${OUTLINE_BUTTON_CLASS}`}
-                  >
-                    Preview
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSendProposal}
-                    disabled={saving || !proposalTitle.trim()}
-                    icon={<Send size={18} />}
-                    className={`whitespace-nowrap ${OUTLINE_BUTTON_CLASS}`}
-                  >
-                    Send to Client
-                  </Button>
-                </div>
-              </div>
+              <ProposalSetupPanel
+                projects={projects}
+                selectedProjectId={selectedProjectId}
+                onSelectProject={handleSelectProject}
+                showProjectImport={!isEditing}
+                proposalTitle={proposalTitle}
+                onProposalTitleChange={setProposalTitle}
+                onAutoGenerateTitle={generateTitle}
+              />
             </motion.div>
 
             {/* Template Selection */}

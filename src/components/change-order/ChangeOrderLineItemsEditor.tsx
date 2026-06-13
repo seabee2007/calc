@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import type { ChangeOrderLineItem, ChangeOrderLineItemCategory } from '../../types/changeOrder';
 import {
@@ -15,6 +15,53 @@ interface Props {
   items: ChangeOrderLineItem[];
   onChange: (items: ChangeOrderLineItem[]) => void;
   emptyText?: string;
+}
+
+function parseOptionalNumber(raw: string): number | undefined {
+  if (raw === '' || raw === '.' || raw === '-') return undefined;
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function LineItemNumberField({
+  value,
+  onChange,
+  placeholder,
+  step = 1,
+}: {
+  value?: number;
+  onChange: (value: number | undefined) => void;
+  placeholder: string;
+  step?: number;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const display =
+    draft ?? (value == null || value === 0 ? '' : String(value));
+
+  return (
+    <input
+      type="number"
+      min={0}
+      step={step}
+      placeholder={placeholder}
+      value={display}
+      className={PLANNER_INPUT}
+      onFocus={() => {
+        setDraft(value == null || value === 0 ? '' : String(value));
+      }}
+      onBlur={() => {
+        if (draft !== null) {
+          onChange(parseOptionalNumber(draft));
+          setDraft(null);
+        }
+      }}
+      onChange={(event) => {
+        const next = event.target.value;
+        setDraft(next);
+        onChange(parseOptionalNumber(next));
+      }}
+    />
+  );
 }
 
 function applyPatch(
@@ -91,47 +138,23 @@ export default function ChangeOrderLineItemsEditor({
               placeholder="Description"
               className={PLANNER_INPUT}
             />
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={row.qty ?? ''}
-              onChange={(e) =>
-                update(index, { qty: e.target.value ? Number(e.target.value) : undefined })
-              }
+            <LineItemNumberField
+              value={row.qty}
               placeholder="Qty"
-              className={PLANNER_INPUT}
+              onChange={(next) => update(index, { qty: next })}
             />
             {isEquipment && (
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={row.hours ?? ''}
-                onChange={(e) =>
-                  update(index, { hours: e.target.value ? Number(e.target.value) : undefined })
-                }
+              <LineItemNumberField
+                value={row.hours}
                 placeholder="Hrs"
-                className={PLANNER_INPUT}
+                onChange={(next) => update(index, { hours: next })}
               />
             )}
-            <input
-              type="number"
-              min={0}
-              step={isEquipment ? 1 : 0.01}
-              value={row.unitPrice ?? ''}
-              onChange={(e) =>
-                update(index, {
-                  unitPrice: e.target.value ? Number(e.target.value) : undefined,
-                })
-              }
+            <LineItemNumberField
+              value={row.unitPrice}
               placeholder={isEquipment ? '$/hr' : 'Unit $'}
-              title={
-                isEquipment
-                  ? 'Equipment rate per hour'
-                  : 'Unit price (e.g. $/hr or $/SF); line total = Qty × unit price'
-              }
-              className={PLANNER_INPUT}
+              step={isEquipment ? 1 : 0.01}
+              onChange={(next) => update(index, { unitPrice: next })}
             />
             <div
               className="flex min-h-[42px] items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium tabular-nums text-gray-900 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100"

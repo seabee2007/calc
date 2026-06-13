@@ -1,8 +1,9 @@
 import React from 'react';
 import type { PricingParams, TaxApplication, TaxSystem } from '../../types/pricingParams';
-import Input from '../ui/Input';
+import { TEXT_FOREGROUND } from '../../theme/appTheme';
 import Select from '../ui/Select';
 import DarkSelect from '../ui/DarkSelect';
+import ClearableNumberInput from './ClearableNumberInput';
 import TaxRatePercentInput from './TaxRatePercentInput';
 
 const WASTE_OPTIONS = [
@@ -34,8 +35,6 @@ const TAX_APPLICATION_OPTIONS: { value: TaxApplication; label: string }[] = [
   { value: 'materials_and_equipment', label: 'Materials + Equipment' },
   { value: 'entire_project', label: 'Entire Project' },
 ];
-
-import { TEXT_FOREGROUND } from '../../theme/appTheme';
 
 const groupClass =
   'rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/70 dark:bg-slate-950/40';
@@ -138,27 +137,23 @@ export default function PricingParamsEditor({
       <section className={groupClass}>
         <h4 className={groupTitleClass}>Fees & permits</h4>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Input
+          <ClearableNumberInput
             label="Fees ($)"
-            type="number"
             min={0}
             step={0.01}
             value={params.feesAmount}
-            onChange={(e) =>
-              set('feesAmount', Math.max(0, Number(e.target.value) || 0))
-            }
+            onChange={(next) => set('feesAmount', next)}
             fullWidth
+            data-testid="proposal-fees-input"
           />
-          <Input
+          <ClearableNumberInput
             label="Permits ($)"
-            type="number"
             min={0}
             step={0.01}
             value={params.permitsAmount}
-            onChange={(e) =>
-              set('permitsAmount', Math.max(0, Number(e.target.value) || 0))
-            }
+            onChange={(next) => set('permitsAmount', next)}
             fullWidth
+            data-testid="proposal-permits-input"
           />
         </div>
       </section>
@@ -166,56 +161,47 @@ export default function PricingParamsEditor({
       <section className={groupClass}>
         <h4 className={groupTitleClass}>Margin / overhead</h4>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Input
+          <ClearableNumberInput
             label={isLegacy ? 'Overhead % (of direct cost)' : 'Overhead %'}
-            type="number"
             min={0}
             step={1}
+            integer
             value={params.overheadPercent}
-            onChange={(e) =>
-              set('overheadPercent', Math.max(0, Number(e.target.value) || 0))
-            }
+            onChange={(next) => set('overheadPercent', next)}
             fullWidth
+            data-testid="proposal-overhead-input"
           />
           {isLegacy ? (
             <>
-              <Input
+              <ClearableNumberInput
                 label="Profit % (of direct cost)"
-                type="number"
                 min={0}
                 step={1}
+                integer
                 value={params.profitPercent ?? 0}
-                onChange={(e) =>
-                  set('profitPercent', Math.max(0, Number(e.target.value) || 0))
-                }
+                onChange={(next) => set('profitPercent', next)}
                 fullWidth
               />
-              <Input
+              <ClearableNumberInput
                 label="Markup % (material only)"
-                type="number"
                 min={0}
+                integer
                 value={params.markupPercent ?? 0}
-                onChange={(e) =>
-                  set('markupPercent', Math.max(0, Number(e.target.value) || 0))
-                }
+                onChange={(next) => set('markupPercent', next)}
                 fullWidth
               />
             </>
           ) : (
-            <Input
+            <ClearableNumberInput
               label="Target margin % (on price)"
-              type="number"
               min={0}
               max={99}
               step={1}
+              integer
               value={params.targetMarginPercent}
-              onChange={(e) =>
-                set(
-                  'targetMarginPercent',
-                  Math.min(99, Math.max(0, Number(e.target.value) || 0)),
-                )
-              }
+              onChange={(next) => set('targetMarginPercent', next)}
               fullWidth
+              data-testid="proposal-target-margin-input"
             />
           )}
         </div>

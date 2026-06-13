@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import StandardPricingBreakdown from './StandardPricingBreakdown';
 import type { ChangeOrderPricingBreakdown } from '../../utils/changeOrderFinancials';
 
@@ -51,5 +52,34 @@ describe('StandardPricingBreakdown', () => {
     expect(container.innerHTML).toContain('text-slate-900 dark:text-slate-100');
     expect(container.innerHTML).toContain('text-cyan-700 dark:text-cyan-400');
     expect(container.innerHTML).not.toContain('text-slate-200');
+  });
+
+  it('starts with internal cost breakdown collapsed and summary total visible', () => {
+    render(<StandardPricingBreakdown breakdown={breakdown} />);
+
+    const toggle = screen.getByTestId('internal-cost-breakdown-toggle');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('Internal Cost Breakdown')).toBeInTheDocument();
+    expect(screen.getAllByText('$1,790.25').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Materials (base)')).not.toBeInTheDocument();
+    expect(screen.getByText('Pricing breakdown')).toBeInTheDocument();
+  });
+
+  it('expands and collapses internal cost breakdown from the header', async () => {
+    const user = userEvent.setup();
+    render(<StandardPricingBreakdown breakdown={breakdown} />);
+
+    const toggle = screen.getByTestId('internal-cost-breakdown-toggle');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Materials (base)')).toBeInTheDocument();
+    expect(screen.getByText('Direct cost')).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await waitFor(() => {
+      expect(screen.queryByText('Materials (base)')).not.toBeInTheDocument();
+    });
   });
 });

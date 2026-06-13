@@ -66,6 +66,19 @@ describe('PricingParamsEditor cost adjustments', () => {
     );
   });
 
+  it('allows editing permits from an empty zero default', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    render(<PricingParamsEditor params={baseParams} onChange={onChange} />);
+
+    const permitsInput = screen.getByTestId('proposal-permits-input');
+    await user.click(permitsInput);
+    await user.type(permitsInput, '125');
+
+    expect(onChange.mock.calls.some(([next]) => next.permitsAmount === 125)).toBe(true);
+  });
+
   it('uses selected waste and contingency values in pricing breakdown', () => {
     const data: ProposalData = {
       businessName: '',

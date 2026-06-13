@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ProposalProjectSourcePanel from './ProposalProjectSourcePanel';
+import ProposalSetupPanel from './ProposalSetupPanel';
 import ProposalBusinessInfoCollapsible from './ProposalBusinessInfoCollapsible';
 import ProposalClientRecipientSection from './ProposalClientRecipientSection';
 import { EMPTY_PROPOSAL_DOCUMENT_FIELDS } from '../../types/proposal';
@@ -29,10 +29,10 @@ const sampleData = {
   ...EMPTY_PROPOSAL_DOCUMENT_FIELDS,
 };
 
-describe('ProposalProjectSourcePanel', () => {
-  it('renders project import selector', () => {
+describe('ProposalSetupPanel', () => {
+  it('renders compact project and title setup on one row', () => {
     render(
-      <ProposalProjectSourcePanel
+      <ProposalSetupPanel
         projects={[
           {
             id: 'p1',
@@ -43,23 +43,72 @@ describe('ProposalProjectSourcePanel', () => {
         ]}
         selectedProjectId={null}
         onSelectProject={vi.fn()}
-        onImportProject={vi.fn()}
-        onClearProject={vi.fn()}
+        proposalTitle=""
+        onProposalTitleChange={vi.fn()}
+        onAutoGenerateTitle={vi.fn()}
       />,
     );
 
-    expect(screen.getByTestId('proposal-project-selector')).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-setup-panel')).toBeInTheDocument();
     expect(
-      screen.getByText(
-        /Start from a blank proposal or import the current estimate, activity scope/i,
-      ),
+      screen.getByText('Import a project or create proposal title'),
     ).toBeInTheDocument();
-    expect(screen.getByTestId('proposal-import-project-button')).toHaveTextContent(
-      'Import Current Estimate',
+    expect(
+      screen.getByText('Start from a project estimate, or create a proposal title manually.'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-setup-controls')).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-project-selector')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Select a project...' })).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-title-input')).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-auto-generate-title-button')).toBeInTheDocument();
+    expect(screen.queryByText('Nothing imported yet')).not.toBeInTheDocument();
+    expect(screen.queryByText('Import Current Estimate')).not.toBeInTheDocument();
+    expect(screen.queryByText('Save Draft')).not.toBeInTheDocument();
+  });
+
+  it('selects a project from the dropdown', async () => {
+    const user = userEvent.setup();
+    const onSelectProject = vi.fn();
+
+    render(
+      <ProposalSetupPanel
+        projects={[
+          {
+            id: 'p1',
+            name: 'Riverfront Slab',
+            description: '',
+            clientInfo: { clientName: 'Jane Client' },
+          } as never,
+        ]}
+        selectedProjectId={null}
+        onSelectProject={onSelectProject}
+        proposalTitle=""
+        onProposalTitleChange={vi.fn()}
+        onAutoGenerateTitle={vi.fn()}
+      />,
     );
-    expect(screen.getByTestId('proposal-import-summary')).toHaveTextContent(
-      'Nothing imported yet',
+
+    await user.selectOptions(screen.getByTestId('proposal-project-selector'), 'p1');
+    expect(onSelectProject).toHaveBeenCalledWith('p1');
+  });
+
+  it('calls auto generate from the setup card', async () => {
+    const user = userEvent.setup();
+    const onAutoGenerateTitle = vi.fn();
+
+    render(
+      <ProposalSetupPanel
+        projects={[]}
+        selectedProjectId={null}
+        onSelectProject={vi.fn()}
+        proposalTitle=""
+        onProposalTitleChange={vi.fn()}
+        onAutoGenerateTitle={onAutoGenerateTitle}
+      />,
     );
+
+    await user.click(screen.getByTestId('proposal-auto-generate-title-button'));
+    expect(onAutoGenerateTitle).toHaveBeenCalled();
   });
 });
 
