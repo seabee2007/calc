@@ -240,7 +240,7 @@ describe('OperationsDashboard layout', () => {
       </MemoryRouter>,
     );
     const grid = container.querySelector('[data-testid="dashboard-active-proposals-grid"]');
-    expect(grid).toHaveClass('lg:grid-cols-2');
+    expect(grid).toHaveClass('lg:items-stretch');
     expect(within(grid as HTMLElement).getByText('Proposal pipeline')).toBeInTheDocument();
     expect(within(grid as HTMLElement).getByText('Active projects')).toBeInTheDocument();
   });

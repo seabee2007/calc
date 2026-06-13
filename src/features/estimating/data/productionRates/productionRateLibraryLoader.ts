@@ -5,6 +5,7 @@
  * Debug: source-level index (~1,200+ rows) via loadSourceProductionRateLibrary().
  *
  * Dynamic import keeps generated bundles out of EstimateWorkspacePage until needed.
+ * Import paths MUST be string literals so Vite can emit hashed chunk URLs in production.
  */
 import type { ProductionRateLibraryEntry } from './productionRateTypes';
 import { ESTIMATOR_ALLOWED_QA_STATUS } from './productionRateTypes';
@@ -65,15 +66,34 @@ function enforceSafetyGate(entries: IndexEntry[]): ProductionRateLibraryEntry[] 
     .map(stripIndexMeta);
 }
 
-async function loadIndex(
-  importPath: './generated/generatedCanonicalProductionRateIndex' | './generated/generatedProductionRateIndex',
-  exportName: 'GENERATED_CANONICAL_PRODUCTION_RATE_INDEX' | 'GENERATED_PRODUCTION_RATE_INDEX',
+function buildLoadedLibrary(
+  index: readonly IndexEntry[],
   isSourceIndex: boolean,
-): Promise<LoadedProductionRateLibrary> {
-  const module = await import(importPath);
-  const index = module[exportName] as readonly IndexEntry[];
+): LoadedProductionRateLibrary {
   const rates = enforceSafetyGate([...index]);
   return { rates, count: rates.length, isSourceIndex };
+}
+
+async function loadCanonicalIndexModule(): Promise<LoadedProductionRateLibrary> {
+  try {
+    const module = await import('./generated/generatedCanonicalProductionRateIndex');
+    const loaded = buildLoadedLibrary(module.GENERATED_CANONICAL_PRODUCTION_RATE_INDEX, false);
+    return loaded;
+  } catch (error) {
+    console.error('[Production Rates] Failed to load generated canonical index', error);
+    throw new Error('Production rate library failed to load. Please refresh and try again.');
+  }
+}
+
+async function loadSourceIndexModule(): Promise<LoadedProductionRateLibrary> {
+  try {
+    const module = await import('./generated/generatedProductionRateIndex');
+    const loaded = buildLoadedLibrary(module.GENERATED_PRODUCTION_RATE_INDEX, true);
+    return loaded;
+  } catch (error) {
+    console.error('[Production Rates] Failed to load generated source index', error);
+    throw new Error('Production rate library failed to load. Please refresh and try again.');
+  }
 }
 
 /** Load canonical contractor-facing library (default for estimator UI). */
@@ -81,11 +101,7 @@ export async function loadCanonicalProductionRateLibrary(): Promise<LoadedProduc
   if (cachedCanonicalLibrary) return cachedCanonicalLibrary;
   if (canonicalLoadPromise) return canonicalLoadPromise;
 
-  canonicalLoadPromise = loadIndex(
-    './generated/generatedCanonicalProductionRateIndex',
-    'GENERATED_CANONICAL_PRODUCTION_RATE_INDEX',
-    false,
-  ).then((loaded) => {
+  canonicalLoadPromise = loadCanonicalIndexModule().then((loaded) => {
     cachedCanonicalLibrary = loaded;
     return loaded;
   });
@@ -103,11 +119,7 @@ export async function loadSourceProductionRateLibrary(): Promise<LoadedProductio
   if (cachedSourceLibrary) return cachedSourceLibrary;
   if (sourceLoadPromise) return sourceLoadPromise;
 
-  sourceLoadPromise = loadIndex(
-    './generated/generatedProductionRateIndex',
-    'GENERATED_PRODUCTION_RATE_INDEX',
-    true,
-  ).then((loaded) => {
+  sourceLoadPromise = loadSourceIndexModule().then((loaded) => {
     cachedSourceLibrary = loaded;
     return loaded;
   });

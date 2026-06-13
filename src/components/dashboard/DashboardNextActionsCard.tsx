@@ -19,6 +19,7 @@ interface DashboardNextActionsCardProps {
   extraActions?: DashboardExtraAction[];
   maxItems?: number;
   onProposalAction?: (action: ProposalNextAction) => void;
+  className?: string;
 }
 
 const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
@@ -26,6 +27,7 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
   extraActions = [],
   maxItems = 5,
   onProposalAction,
+  className = '',
 }) => {
   const navigate = useNavigate();
   const proposalActions = useMemo(() => buildCrmNextActions(proposals), [proposals]);
@@ -51,8 +53,8 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
   if (items.length === 0) return null;
 
   return (
-    <OpsCard>
-      <div className="mb-3 flex items-center justify-between gap-2">
+    <OpsCard className={`flex min-h-0 flex-col lg:h-full ${className}`.trim()}>
+      <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ListTodo className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
           <h3 className={`font-semibold ${OPS_TITLE}`}>Next actions</h3>
@@ -65,7 +67,7 @@ const DashboardNextActionsCard: React.FC<DashboardNextActionsCardProps> = ({
           View all →
         </button>
       </div>
-      <ul className="space-y-3">
+      <ul className="min-h-0 flex-1 space-y-3 lg:overflow-y-auto lg:pr-1">
         {items.map((item) => (
           <li key={item.id}>
             <button

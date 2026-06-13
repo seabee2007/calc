@@ -291,22 +291,25 @@ const OperationsDashboard: React.FC = () => {
 
       <section
         data-testid="dashboard-active-proposals-grid"
-        className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch"
+        className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch"
       >
-        <div className="min-h-0 h-full">
+        <div className="flex min-h-0 flex-col lg:h-full lg:min-h-0">
           <ActiveProjectsPanel projects={snapshot.projects} />
         </div>
-        <div className="space-y-5">
-          <ProposalPipelineCard
+        <div className="flex min-h-0 flex-col gap-5 lg:h-full lg:min-h-0">
+          <div className="shrink-0">
+            <ProposalPipelineCard
             pipeline={pipeline}
             pipelineValue={crmRevenueMetrics.pipelineValue}
             weightedForecast={proposalWeightedForecast}
             proposals={proposals}
             winRate={financial.winRate}
             wonThisMonth={financial.monthlyRevenue}
-          />
+            />
+          </div>
           {isOwner ? (
             <DashboardNextActionsCard
+              className="min-h-0 lg:flex-1"
               proposals={proposals}
               extraActions={dashboardExtraActions}
               maxItems={5}
