@@ -63,8 +63,12 @@ const LABOR_SUMMARY_CARDS = [
   { key: 'excludedTasksDisplay', label: 'Excluded activities' },
   { key: 'totalLaborHoursDisplay', label: 'Total labor hours' },
   { key: 'totalManDaysDisplay', label: 'Total man-days' },
-  { key: 'totalCrewDaysDisplay', label: 'Total crew-days' },
-  { key: 'totalDurationDaysDisplay', label: 'Estimated duration' },
+  {
+    key: 'totalCrewDaysDisplay',
+    label: 'Labor crew-days',
+    helper: 'Man-days ÷ crew size per activity (calendar crew-days from labor).',
+  },
+  { key: 'totalDurationDaysDisplay', label: 'Activity duration (sum)' },
 ] as const;
 
 function resolveSourceBadgeLabel(source: EstimateSchedulePreviewSource): string {
@@ -183,14 +187,22 @@ export default function EstimateSchedulePreviewPanel({
 
       <div className="space-y-2">
         <h3 className={PLANNER_SECTION_TITLE}>Labor rollup summary</h3>
+        <p className={`text-xs ${PLANNER_MUTED}`}>
+          Labor crew-days here use man-days ÷ crew size per activity. Costs &amp; Markup crew-days
+          use duration × crew size (headcount-days).
+        </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {LABOR_SUMMARY_CARDS.map((card) => (
-            <EstimateSummaryCard
-              key={card.key}
-              label={card.label}
-              value={laborSummary[card.key]}
-              loading={loading}
-            />
+            <div key={card.key} className={card.helper ? 'space-y-1' : undefined}>
+              <EstimateSummaryCard
+                label={card.label}
+                value={laborSummary[card.key]}
+                loading={loading}
+              />
+              {card.helper ? (
+                <p className={`text-xs ${PLANNER_MUTED}`}>{card.helper}</p>
+              ) : null}
+            </div>
           ))}
         </div>
       </div>

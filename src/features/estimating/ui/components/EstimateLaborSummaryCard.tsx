@@ -19,8 +19,10 @@ interface Props {
 
 export default function EstimateLaborSummaryCard({ metrics, loading = false }: Props) {
   const durationValue =
-    metrics.durationDays != null
-      ? `${formatEstimateNumber(metrics.durationDays, { decimals: 1 })} days`
+    metrics.durationDays != null && metrics.durationDays > 0
+      ? `${formatEstimateNumber(metrics.durationDays, {
+          decimals: Number.isInteger(metrics.durationDays) ? 0 : 1,
+        })}d`
       : ESTIMATE_BLANK;
 
   return (
@@ -44,7 +46,7 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
           label="Man-days"
           value={
             metrics.manDays > 0
-              ? formatEstimateNumber(metrics.manDays, { decimals: 2 })
+              ? `${formatEstimateNumber(metrics.manDays, { decimals: 1 })} MD`
               : ESTIMATE_BLANK
           }
           loading={loading}
@@ -53,21 +55,26 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
           label="Crew-days"
           value={
             metrics.crewDays > 0
-              ? formatEstimateNumber(metrics.crewDays, { decimals: 2 })
+              ? `${formatEstimateNumber(metrics.crewDays, { decimals: 1 })} CD`
               : ESTIMATE_BLANK
           }
           loading={loading}
         />
         <EstimateSummaryCard
-          label="Estimated duration"
+          label="Project duration"
           value={durationValue}
           loading={loading}
         />
       </div>
 
+      <p className={`text-xs ${TEXT_BODY} ${PLANNER_MUTED}`}>
+        Crew-days use duration × crew size (headcount-days). Project duration uses the CPM schedule
+        span when available.
+      </p>
+
       {metrics.durationDays == null ? (
         <p className={`text-xs ${TEXT_BODY} ${PLANNER_MUTED}`}>
-          Duration days appear when activities include schedule duration metrics.
+          Project duration appears when schedule-enabled activities have CPM dates.
         </p>
       ) : null}
     </div>

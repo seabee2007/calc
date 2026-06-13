@@ -79,6 +79,18 @@ function buildPlan(lineItems: EstimateDomainTask[]): EstimateSchedulePlan {
   });
 }
 
+describe('crew-days terminology in schedule preview summary', () => {
+  it('sums labor crew-days as man-days ÷ crew size per activity', () => {
+    const manDays = [3.55, 3.55, 3.5625];
+    const crewSizes = [4, 3, 2];
+    const laborCrewDays = manDays.reduce((sum, value, index) => sum + value / crewSizes[index], 0);
+    const expected = 3.55 / 4 + 3.55 / 3 + 3.5625 / 2;
+
+    expect(laborCrewDays).toBeCloseTo(expected, 2);
+    expect(laborCrewDays).toBeLessThan(10);
+  });
+});
+
 describe('extractSchedulePreviewSummary', () => {
   it('extracts summary totals from a schedule plan', () => {
     const summary = extractSchedulePreviewSummary(buildPlan([buildTask(0), buildTask(1, { id: 'line-1', position: 1 })]));

@@ -9,9 +9,12 @@ import {
   sanitizeCost,
 } from '../domain/estimateMath';
 import type {
+  ActivityEquipmentResource,
+  ActivityMaterialResource,
   ProjectActivityLineItem,
   ProjectConstructionActivity,
 } from '../domain/constructionActivityTypes';
+import { calculateEstimateResourceCostBreakdown } from '../domain/constructionActivityCalculations';
 import type { EstimateSettings } from '../domain/estimateTypes';
 import {
   normalizeEstimateSettings,
@@ -24,6 +27,9 @@ export interface ConstructionActivityEstimateTotalsInput {
   activities: readonly ProjectConstructionActivity[];
   markupSettings?: Partial<EstimateSettings> | null;
   lineItemsByActivityId?: ReadonlyMap<string, readonly ProjectActivityLineItem[]>;
+  /** When provided, material/equipment totals come from saved resource rows (source of truth). */
+  projectMaterialResources?: readonly ActivityMaterialResource[];
+  projectEquipmentResources?: readonly ActivityEquipmentResource[];
 }
 
 export interface ConstructionActivityEstimateTotals {
@@ -136,12 +142,25 @@ export function calculateEstimateTotalsFromConstructionActivities(
     totalManHours = roundToTwo(totalManHours + costs.totalManHours);
   }
 
-  const directCostSubtotal = calculateDirectCost(
-    laborCost,
-    materialCost,
-    equipmentCost,
-    subcontractorCost,
-  );
+  const hasProjectResources =
+    input.projectMaterialResources != null || input.projectEquipmentResources != null;
+
+  if (hasProjectResources) {
+    const resourceBreakdown = calculateEstimateResourceCostBreakdown({
+      laborTotal: laborCost,
+      materials: input.projectMaterialResources ?? [],
+      equipment: input.projectEquipmentResources ?? [],
+      subcontractorTotal: subcontractorCost,
+    });
+    laborCost = resourceBreakdown.laborTotal;
+    materialCost = resourceBreakdown.materialTotal;
+    equipmentCost = resourceBreakdown.equipmentTotal;
+    subcontractorCost = resourceBreakdown.subcontractorTotal;
+  }
+
+  const directCostSubtotal = hasProjectResources
+    ? roundToTwo(laborCost + materialCost + equipmentCost + subcontractorCost)
+    : calculateDirectCost(laborCost, materialCost, equipmentCost, subcontractorCost);
   const indirectCost = calculateOverhead(directCostSubtotal, settings.indirectCostPercent);
   const overheadBaseAmount = resolveOverheadBaseAmount(settings, directCostSubtotal, laborCost);
   const overheadAmount = calculateOverhead(overheadBaseAmount, settings.overheadPercent);

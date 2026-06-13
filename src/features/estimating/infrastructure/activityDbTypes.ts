@@ -218,3 +218,84 @@ export type ProjectActivityLineItemInsert = Omit<
   ProjectActivityLineItemRow,
   'id' | 'created_at'
 >;
+
+// ---------------------------------------------------------------------------
+// Activity resource row types
+// ---------------------------------------------------------------------------
+
+export interface ActivityMaterialResourceRow {
+  id: string;
+  project_activity_id: string;
+  project_id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  subcategory: string | null;
+  quantity: number;
+  unit: string;
+  unit_cost: number;
+  total_cost: number;
+  source_provider: 'manual' | 'company_library' | 'arden_starter';
+  source_id: string | null;
+  company_library_item_id: string | null;
+  source_snapshot: Record<string, unknown> | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActivityEquipmentResourceRow {
+  id: string;
+  project_activity_id: string;
+  project_id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  subcategory: string | null;
+  quantity: number;
+  unit: string;
+  unit_cost: number;
+  total_cost: number;
+  source_provider: 'manual' | 'company_library' | 'arden_starter';
+  source_id: string | null;
+  company_library_item_id: string | null;
+  source_snapshot: Record<string, unknown> | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyCostLibraryItemRow {
+  id: string;
+  user_id: string;
+  type: 'material' | 'equipment';
+  name: string;
+  description: string | null;
+  category: string | null;
+  subcategory: string | null;
+  unit: string;
+  default_unit_cost: number;
+  source_provider: 'manual' | 'company_library' | 'arden_starter';
+  source_id: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ActivityMaterialResourceInsert = Omit<
+  ActivityMaterialResourceRow,
+  'id' | 'created_at' | 'updated_at'
+>;
+
+export type ActivityEquipmentResourceInsert = Omit<
+  ActivityEquipmentResourceRow,
+  'id' | 'created_at' | 'updated_at'
+>;
+
+export type CompanyCostLibraryItemInsert = Omit<
+  CompanyCostLibraryItemRow,
+  'id' | 'created_at' | 'updated_at'
+>;

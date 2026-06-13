@@ -1,7 +1,11 @@
 import { calculateEstimateTotalsFromConstructionActivities } from '../application/constructionActivityEstimateTotals';
+import { calculateLaborPlanningMetrics } from '../application/laborPlanningMetrics';
+import { normalizeEstimateSettings } from '../application/estimateSettings';
 import { buildConceptualEstimateCostTotals } from '../application/conceptualEstimateCalculations';
 import type { ConceptualEstimateRollup } from '../domain/conceptualEstimateTypes';
 import type {
+  ActivityEquipmentResource,
+  ActivityMaterialResource,
   ProjectActivityLineItem,
   ProjectConstructionActivity,
 } from '../domain/constructionActivityTypes';
@@ -17,6 +21,8 @@ import type {
   EstimateType,
 } from '../domain/estimateTypes';
 import type { EstimateDomainTask, EstimateDomainVersion } from '../infrastructure/estimateDbTypes';
+import type { ScheduleActivity } from '../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import type { CpmActivityResult } from '../scheduling/cpmTypes';
 
 const ZERO_TOTALS: EstimateCostTotals = {
   directCost: 0,
@@ -286,11 +292,20 @@ export function buildEstimateTotalsReviewFromConstructionActivities(
   activities: readonly ProjectConstructionActivity[],
   markupSettings?: Partial<EstimateSettings> | null,
   lineItemsByActivityId?: ReadonlyMap<string, readonly ProjectActivityLineItem[]>,
+  projectMaterialResources?: readonly ActivityMaterialResource[],
+  projectEquipmentResources?: readonly ActivityEquipmentResource[],
+  scheduleLaborPlanning?: {
+    scheduleActivities?: readonly ScheduleActivity[];
+    projectDurationDays?: number | null;
+    cpmActivities?: readonly CpmActivityResult[];
+  },
 ): EstimateTotalsReviewData {
   const totals = calculateEstimateTotalsFromConstructionActivities({
     activities,
     markupSettings,
     lineItemsByActivityId,
+    projectMaterialResources,
+    projectEquipmentResources,
   });
 
   const rollups: EstimateLineCostRollups = {
@@ -324,13 +339,24 @@ export function buildEstimateTotalsReviewFromConstructionActivities(
     finalSellPrice: totals.grandTotal,
   };
 
+  const settings = markupSettings ? normalizeEstimateSettings(markupSettings) : null;
+  const laborPlanning = calculateLaborPlanningMetrics({
+    laborHours: totals.totalManHours,
+    activities,
+    scheduleActivities: scheduleLaborPlanning?.scheduleActivities,
+    projectDurationDays: scheduleLaborPlanning?.projectDurationDays,
+    cpmActivities: scheduleLaborPlanning?.cpmActivities,
+    hoursPerDay: settings?.hoursPerDay,
+  });
+
   return {
     costGroups,
     laborMetrics: {
-      laborHours: totals.totalManHours,
-      manDays: 0,
-      crewDays: 0,
-      durationDays: null,
+      laborHours: laborPlanning.laborHours,
+      manDays: laborPlanning.manDays,
+      crewDays: laborPlanning.crewDays,
+      durationDays:
+        laborPlanning.estimatedDurationDays > 0 ? laborPlanning.estimatedDurationDays : null,
     },
     percentBreakdown: buildPercentBreakdown(rollups, costTotals, totals.grandTotal),
     hasTotals: activities.length > 0,
@@ -401,6 +427,11 @@ export interface ResolveEstimateTotalsReviewInput {
   markupSettings?: Partial<EstimateSettings> | null;
   conceptualRollup?: ConceptualEstimateRollup | null;
   lineItemsByActivityId?: ReadonlyMap<string, readonly ProjectActivityLineItem[]>;
+  projectMaterialResources?: readonly ActivityMaterialResource[];
+  projectEquipmentResources?: readonly ActivityEquipmentResource[];
+  scheduleActivities?: readonly ScheduleActivity[];
+  projectDurationDays?: number | null;
+  cpmActivities?: readonly CpmActivityResult[];
 }
 
 export function resolveEstimateTotalsReview(
@@ -416,6 +447,13 @@ export function resolveEstimateTotalsReview(
       input.constructionActivities ?? [],
       input.markupSettings,
       input.lineItemsByActivityId,
+      input.projectMaterialResources,
+      input.projectEquipmentResources,
+      {
+        scheduleActivities: input.scheduleActivities,
+        projectDurationDays: input.projectDurationDays,
+        cpmActivities: input.cpmActivities,
+      },
     );
   }
 

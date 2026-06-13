@@ -262,3 +262,174 @@ export function mapProjectLineItemToInsert(
     sort_order: li.sortOrder ?? 0,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Activity resource mappers
+// ---------------------------------------------------------------------------
+
+import type {
+  ActivityMaterialResource,
+  ActivityEquipmentResource,
+  ActivityResourceSnapshot,
+  CompanyCostLibraryItem,
+} from '../domain/constructionActivityTypes';
+import type {
+  ActivityMaterialResourceRow,
+  ActivityEquipmentResourceRow,
+  ActivityMaterialResourceInsert,
+  ActivityEquipmentResourceInsert,
+  CompanyCostLibraryItemRow,
+  CompanyCostLibraryItemInsert,
+} from './activityDbTypes';
+
+function parseSnapshot(raw: Record<string, unknown> | null): ActivityResourceSnapshot | undefined {
+  if (!raw) return undefined;
+  return {
+    sourceName: String(raw['sourceName'] ?? ''),
+    originalName: String(raw['originalName'] ?? ''),
+    originalUnit: String(raw['originalUnit'] ?? ''),
+    originalDefaultUnitCost: Number(raw['originalDefaultUnitCost'] ?? 0),
+    category: raw['category'] != null ? String(raw['category']) : undefined,
+    subcategory: raw['subcategory'] != null ? String(raw['subcategory']) : undefined,
+    csiDivision: raw['csiDivision'] != null ? String(raw['csiDivision']) : undefined,
+    csiSection: raw['csiSection'] != null ? String(raw['csiSection']) : undefined,
+    notes: raw['notes'] != null ? String(raw['notes']) : undefined,
+    selectedAt: String(raw['selectedAt'] ?? ''),
+  };
+}
+
+export function mapMaterialResourceFromRow(row: ActivityMaterialResourceRow): ActivityMaterialResource {
+  return {
+    id: row.id,
+    activityId: row.project_activity_id,
+    projectId: row.project_id,
+    name: row.name,
+    description: row.description ?? undefined,
+    category: row.category ?? undefined,
+    subcategory: row.subcategory ?? undefined,
+    quantity: row.quantity,
+    unit: row.unit,
+    unitCost: row.unit_cost,
+    totalCost: row.total_cost,
+    sourceProvider: row.source_provider,
+    sourceSnapshot: parseSnapshot(row.source_snapshot),
+    sourceId: row.source_id ?? undefined,
+    companyLibraryItemId: row.company_library_item_id ?? undefined,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapMaterialResourceToInsert(
+  resource: Omit<ActivityMaterialResource, 'id' | 'createdAt' | 'updatedAt'>,
+  userId: string,
+): ActivityMaterialResourceInsert {
+  return {
+    project_activity_id: resource.activityId,
+    project_id: resource.projectId,
+    user_id: userId,
+    name: resource.name,
+    description: resource.description ?? null,
+    category: resource.category ?? null,
+    subcategory: resource.subcategory ?? null,
+    quantity: resource.quantity,
+    unit: resource.unit,
+    unit_cost: resource.unitCost,
+    total_cost: resource.totalCost,
+    source_provider: resource.sourceProvider,
+    source_id: resource.sourceId ?? null,
+    company_library_item_id: resource.companyLibraryItemId ?? null,
+    source_snapshot: resource.sourceSnapshot
+      ? (resource.sourceSnapshot as unknown as Record<string, unknown>)
+      : null,
+    sort_order: resource.sortOrder ?? 0,
+  };
+}
+
+export function mapEquipmentResourceFromRow(row: ActivityEquipmentResourceRow): ActivityEquipmentResource {
+  return {
+    id: row.id,
+    activityId: row.project_activity_id,
+    projectId: row.project_id,
+    name: row.name,
+    description: row.description ?? undefined,
+    category: row.category ?? undefined,
+    subcategory: row.subcategory ?? undefined,
+    quantity: row.quantity,
+    unit: row.unit,
+    unitCost: row.unit_cost,
+    totalCost: row.total_cost,
+    sourceProvider: row.source_provider,
+    sourceSnapshot: parseSnapshot(row.source_snapshot),
+    sourceId: row.source_id ?? undefined,
+    companyLibraryItemId: row.company_library_item_id ?? undefined,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapEquipmentResourceToInsert(
+  resource: Omit<ActivityEquipmentResource, 'id' | 'createdAt' | 'updatedAt'>,
+  userId: string,
+): ActivityEquipmentResourceInsert {
+  return {
+    project_activity_id: resource.activityId,
+    project_id: resource.projectId,
+    user_id: userId,
+    name: resource.name,
+    description: resource.description ?? null,
+    category: resource.category ?? null,
+    subcategory: resource.subcategory ?? null,
+    quantity: resource.quantity,
+    unit: resource.unit,
+    unit_cost: resource.unitCost,
+    total_cost: resource.totalCost,
+    source_provider: resource.sourceProvider,
+    source_id: resource.sourceId ?? null,
+    company_library_item_id: resource.companyLibraryItemId ?? null,
+    source_snapshot: resource.sourceSnapshot
+      ? (resource.sourceSnapshot as unknown as Record<string, unknown>)
+      : null,
+    sort_order: resource.sortOrder ?? 0,
+  };
+}
+
+export function mapCompanyCostLibraryItemFromRow(row: CompanyCostLibraryItemRow): CompanyCostLibraryItem {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    type: row.type,
+    name: row.name,
+    description: row.description ?? undefined,
+    category: row.category ?? undefined,
+    subcategory: row.subcategory ?? undefined,
+    unit: row.unit,
+    defaultUnitCost: row.default_unit_cost,
+    sourceProvider: row.source_provider,
+    sourceId: row.source_id ?? undefined,
+    notes: row.notes ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapCompanyCostLibraryItemToInsert(
+  item: Omit<CompanyCostLibraryItem, 'id' | 'createdAt' | 'updatedAt'>,
+): CompanyCostLibraryItemInsert {
+  return {
+    user_id: item.userId,
+    type: item.type,
+    name: item.name,
+    description: item.description ?? null,
+    category: item.category ?? null,
+    subcategory: item.subcategory ?? null,
+    unit: item.unit,
+    default_unit_cost: item.defaultUnitCost,
+    source_provider: item.sourceProvider,
+    source_id: item.sourceId ?? null,
+    notes: item.notes ?? null,
+    is_active: true,
+  };
+}

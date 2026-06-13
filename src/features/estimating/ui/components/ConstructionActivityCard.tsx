@@ -8,12 +8,16 @@
  */
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Calendar, Trash2, AlertTriangle, ClipboardList, Pencil } from 'lucide-react';
-import type { ProjectActivityLineItem, ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type { ProjectActivityLineItem, ProjectConstructionActivity, ActivityMaterialResource, ActivityEquipmentResource } from '../../domain/constructionActivityTypes';
 import { getConstructionActivityWarnings, hasConstructionActivityEstimateWarnings } from '../../domain/constructionActivityCalculations';
 import ActivityLineItemRow from './ActivityLineItemRow';
 import ActivityProgressSummary from './ActivityProgressSummary';
 import ActivityProgressForm from './ActivityProgressForm';
 import { useActivityProgress } from '../hooks/useActivityProgress';
+import { useActivityResources } from '../hooks/useActivityResources';
+import { ActivityMaterialsSection } from './ActivityMaterialsSection';
+import { ActivityEquipmentSection } from './ActivityEquipmentSection';
+import { ActivityResourcePickerModal } from './ActivityResourcePickerModal';
 
 interface Props {
   activity: ProjectConstructionActivity;
@@ -54,6 +58,13 @@ export default function ConstructionActivityCard({
     activity,
     currentProjectDay,
   );
+
+  // Resource sections — only loaded when card is expanded
+  const resources = useActivityResources(expanded ? activity.id : '');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerType, setPickerType] = useState<'material' | 'equipment'>('material');
+  const [editingMaterial, setEditingMaterial] = useState<ActivityMaterialResource | null>(null);
+  const [editingEquipment, setEditingEquipment] = useState<ActivityEquipmentResource | null>(null);
 
   const mh = activity.calculatedManHours ?? 0;
   const dur = activity.effectiveDurationDays ?? activity.calculatedDurationDays ?? 0;
@@ -126,6 +137,18 @@ export default function ConstructionActivityCard({
             <StatChip
               label="Labor"
               value={`$${(activity.totalLaborCost ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+            />
+          )}
+          {(activity.totalMaterialCost ?? 0) > 0 && (
+            <StatChip
+              label="Mat."
+              value={`$${(activity.totalMaterialCost ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+            />
+          )}
+          {(activity.totalEquipmentCost ?? 0) > 0 && (
+            <StatChip
+              label="Equip."
+              value={`$${(activity.totalEquipmentCost ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
             />
           )}
         </div>
@@ -266,6 +289,49 @@ export default function ConstructionActivityCard({
                   {mh.toFixed(2)} MH total
                 </span>
               </div>
+
+              {/* Materials & Equipment sections */}
+              <div className="space-y-2 px-3 pb-3 pt-2">
+                <ActivityMaterialsSection
+                  activityId={activity.id}
+                  projectId={activity.projectId}
+                  resources={resources.materials}
+                  error={resources.error}
+                  onAdd={() => { setPickerType('material'); setPickerOpen(true); }}
+                  onEdit={(r) => { setEditingMaterial(r); setPickerType('material'); setPickerOpen(true); }}
+                  onRemove={resources.removeMaterial}
+                />
+                <ActivityEquipmentSection
+                  activityId={activity.id}
+                  projectId={activity.projectId}
+                  resources={resources.equipment}
+                  error={resources.error}
+                  onAdd={() => { setPickerType('equipment'); setPickerOpen(true); }}
+                  onEdit={(r) => { setEditingEquipment(r); setPickerType('equipment'); setPickerOpen(true); }}
+                  onRemove={resources.removeEquipment}
+                />
+                {/* Cost breakdown footer when resources exist */}
+                {(resources.totalMaterialCost > 0 || resources.totalEquipmentCost > 0) && (
+                  <div className="flex flex-wrap gap-3 rounded-lg bg-slate-800/30 px-3 py-2 text-xs">
+                    <span className="text-slate-400">
+                      Labor: <strong className="text-slate-200">${(activity.totalLaborCost ?? 0).toLocaleString()}</strong>
+                    </span>
+                    {resources.totalMaterialCost > 0 && (
+                      <span className="text-slate-400">
+                        Materials: <strong className="text-slate-200">${resources.totalMaterialCost.toLocaleString()}</strong>
+                      </span>
+                    )}
+                    {resources.totalEquipmentCost > 0 && (
+                      <span className="text-slate-400">
+                        Equipment: <strong className="text-slate-200">${resources.totalEquipmentCost.toLocaleString()}</strong>
+                      </span>
+                    )}
+                    <span className="ml-auto font-semibold text-cyan-300">
+                      Total: ${((activity.totalLaborCost ?? 0) + resources.totalMaterialCost + resources.totalEquipmentCost).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -311,6 +377,44 @@ export default function ConstructionActivityCard({
           onCancel={() => setShowProgressForm(false)}
         />
       )}
+
+      {/* Resource picker modal */}
+      <ActivityResourcePickerModal
+        isOpen={pickerOpen}
+        onClose={() => {
+          setPickerOpen(false);
+          setEditingMaterial(null);
+          setEditingEquipment(null);
+        }}
+        resourceType={pickerType}
+        activityId={activity.id}
+        projectId={activity.projectId}
+        onSave={
+          pickerType === 'material'
+            ? editingMaterial
+              ? (input) => resources.updateMaterial(editingMaterial.id, {
+                  name: input.name,
+                  description: input.description,
+                  category: input.category,
+                  subcategory: input.subcategory,
+                  quantity: input.quantity,
+                  unit: input.unit,
+                  unitCost: input.unitCost,
+                }, editingMaterial)
+              : resources.addMaterial
+            : editingEquipment
+              ? (input) => resources.updateEquipment(editingEquipment.id, {
+                  name: input.name,
+                  description: input.description,
+                  category: input.category,
+                  subcategory: input.subcategory,
+                  quantity: input.quantity,
+                  unit: input.unit,
+                  unitCost: input.unitCost,
+                }, editingEquipment)
+              : resources.addEquipment
+        }
+      />
     </div>
   );
 }

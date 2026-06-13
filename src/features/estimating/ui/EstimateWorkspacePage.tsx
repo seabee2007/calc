@@ -17,7 +17,7 @@ import {
 import { useAuth } from '../../../hooks/useAuth';
 import { usePlannerProject } from '../../../contexts/PlannerProjectContext';
 import { useProjectStore } from '../../../store';
-import { DEFAULT_ESTIMATE_METHOD, isConceptualEstimateType, isQuickEstimateType, normalizeEstimateMethod } from '../domain/estimateMethods';
+import { DEFAULT_ESTIMATE_METHOD, isConceptualEstimateType, isQuickEstimateType, normalizeEstimateMethod, supportsConstructionActivitiesWorkflow } from '../domain/estimateMethods';
 import type { EstimateSelectedDivision, EstimateType } from '../domain/estimateTypes';
 import {
   getDefaultWorkspaceTabForEstimateType,
@@ -132,6 +132,7 @@ import {
 } from '../schedule/ganttExportValidation';
 import type { BuildGanttScheduleResult } from '../schedule/buildGanttSchedule';
 import { useProjectConstructionActivitiesForSchedule } from './hooks/useProjectConstructionActivitiesForSchedule';
+import { useProjectActivityResourceTotals } from './hooks/useProjectActivityResourceTotals';
 import { runCpmCalculation } from '../scheduling/cpm/calculateCpm';
 import type {
   CpmLogicLink,
@@ -347,6 +348,23 @@ export default function EstimateWorkspacePage() {
   // scheduleActivitiesResult reads constructionActivities.
   const { constructionActivities, constructionActivitiesLoading, reloadConstructionActivities } =
     useProjectConstructionActivitiesForSchedule(resolvedProjectId, estimate?.id);
+
+  const overviewResourceTotalsEnabled =
+    activeTab === 'overview' &&
+    estimate != null &&
+    supportsConstructionActivitiesWorkflow(resolvedEstimateType);
+
+  const projectResourceTotals = useProjectActivityResourceTotals(
+    resolvedProjectId,
+    overviewResourceTotalsEnabled,
+  );
+
+  useEffect(() => {
+    if (activeTab !== 'overview') return;
+    if (!supportsConstructionActivitiesWorkflow(resolvedEstimateType)) return;
+    reloadConstructionActivities();
+    projectResourceTotals.reload();
+  }, [activeTab, resolvedEstimateType, reloadConstructionActivities, projectResourceTotals.reload]);
 
   const enableLegacyEstimateScheduleFallback =
     schedulePlanControls.useLegacyEstimateSchedule === true;
@@ -2181,12 +2199,30 @@ export default function EstimateWorkspacePage() {
         {!loadError && showOverviewFinancialSummary && hasEstimateAdapter ? (
           <EstimateTotalsReviewPanel
             version={estimateAdapter}
-            loading={dataLoading || constructionActivitiesLoading}
+            loading={
+              dataLoading ||
+              constructionActivitiesLoading ||
+              (supportsConstructionActivitiesWorkflow(resolvedEstimateType) &&
+                projectResourceTotals.loading)
+            }
             estimateType={resolvedEstimateType}
             constructionActivities={constructionActivities}
+            projectMaterialResources={
+              supportsConstructionActivitiesWorkflow(resolvedEstimateType)
+                ? projectResourceTotals.materials
+                : undefined
+            }
+            projectEquipmentResources={
+              supportsConstructionActivitiesWorkflow(resolvedEstimateType)
+                ? projectResourceTotals.equipment
+                : undefined
+            }
             settingsState={estimateSettings}
             conceptualRollup={isConceptualEstimate ? conceptualEstimate.rollup : null}
             canEdit={canEditEstimate}
+            scheduleActivities={scheduleActivitiesResult.activities}
+            projectDurationDays={cpmResult?.projectDurationDays ?? null}
+            cpmActivities={cpmResult?.activities}
           />
         ) : null}
 

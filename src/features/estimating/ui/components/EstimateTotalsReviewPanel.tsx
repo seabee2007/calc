@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
-import type { ProjectConstructionActivity } from '../../domain/constructionActivityTypes';
+import type {
+  ActivityEquipmentResource,
+  ActivityMaterialResource,
+  ProjectConstructionActivity,
+} from '../../domain/constructionActivityTypes';
 import type { ConceptualEstimateRollup } from '../../domain/conceptualEstimateTypes';
 import {
   isConceptualEstimateType,
@@ -9,6 +13,8 @@ import {
 } from '../../domain/estimateMethods';
 import type { EstimateSettings, EstimateType } from '../../domain/estimateTypes';
 import type { EstimateDomainVersion } from '../../infrastructure/estimateDbTypes';
+import type { ScheduleActivity } from '../../scheduling/adapters/estimateLineItemsToScheduleActivities';
+import type { CpmActivityResult } from '../../scheduling/cpmTypes';
 import { parseEstimateFormNumber } from '../estimateFormDefaults';
 import { formatEstimateCurrency } from '../estimateFormatters';
 import {
@@ -41,10 +47,15 @@ interface Props {
   loading?: boolean;
   estimateType?: EstimateType | string | null;
   constructionActivities?: readonly ProjectConstructionActivity[];
+  projectMaterialResources?: readonly ActivityMaterialResource[];
+  projectEquipmentResources?: readonly ActivityEquipmentResource[];
   markupSettings?: EstimateSettings;
   settingsState?: UseEstimateSettingsResult;
   conceptualRollup?: ConceptualEstimateRollup | null;
   canEdit?: boolean;
+  scheduleActivities?: readonly ScheduleActivity[];
+  projectDurationDays?: number | null;
+  cpmActivities?: readonly CpmActivityResult[];
 }
 
 function MarkupSettingsSection({
@@ -190,10 +201,15 @@ export default function EstimateTotalsReviewPanel({
   loading = false,
   estimateType = null,
   constructionActivities = [],
+  projectMaterialResources,
+  projectEquipmentResources,
   markupSettings,
   settingsState,
   conceptualRollup = null,
   canEdit = false,
+  scheduleActivities,
+  projectDurationDays,
+  cpmActivities,
 }: Props) {
   const resolvedEstimateType = estimateType ?? version?.estimateType ?? null;
   const usesConstructionActivities = supportsConstructionActivitiesWorkflow(resolvedEstimateType);
@@ -207,6 +223,11 @@ export default function EstimateTotalsReviewPanel({
         constructionActivities,
         markupSettings: markupSettings ?? settingsState?.settings,
         conceptualRollup,
+        projectMaterialResources,
+        projectEquipmentResources,
+        scheduleActivities,
+        projectDurationDays,
+        cpmActivities,
       }),
     [
       version,
@@ -215,6 +236,11 @@ export default function EstimateTotalsReviewPanel({
       markupSettings,
       settingsState?.settings,
       conceptualRollup,
+      projectMaterialResources,
+      projectEquipmentResources,
+      scheduleActivities,
+      projectDurationDays,
+      cpmActivities,
     ],
   );
 

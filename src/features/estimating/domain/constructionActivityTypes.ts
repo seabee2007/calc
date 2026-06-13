@@ -223,6 +223,91 @@ export interface ProjectActivityLineItem {
   createdAt?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Activity resource types (Materials & Equipment)
+// ---------------------------------------------------------------------------
+
+/** Who supplied the resource data. 'external_api' is reserved for a future phase. */
+export type ActivityResourceProvider =
+  | 'manual'
+  | 'company_library'
+  | 'arden_starter';
+
+/** Immutable snapshot of the source item at the time the resource was added. */
+export interface ActivityResourceSnapshot {
+  /** Human-readable source description (e.g. "Arden Starter Library"). */
+  sourceName: string;
+  /** Original item name from the source. */
+  originalName: string;
+  /** Original unit from the source. */
+  originalUnit: string;
+  /** Default unit cost in the source (may be 0 for placeholder items). */
+  originalDefaultUnitCost: number;
+  /** Category from the source. */
+  category?: string;
+  /** Subcategory from the source. */
+  subcategory?: string;
+  /** CSI division from the source. */
+  csiDivision?: string;
+  /** CSI section from the source. */
+  csiSection?: string;
+  /** Source-specific notes or warnings. */
+  notes?: string;
+  /** ISO timestamp when the user selected this item. */
+  selectedAt: string;
+}
+
+/** Shared base fields for material and equipment activity resources. */
+export interface ActivityResourceBase {
+  id: string;
+  activityId: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  category?: string;
+  subcategory?: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  totalCost: number;
+  sourceProvider: ActivityResourceProvider;
+  sourceSnapshot?: ActivityResourceSnapshot;
+  /** For starter library items: their string ID. For company library: the UUID. For manual: undefined. */
+  sourceId?: string;
+  /** UUID FK to company_cost_library_items — only set when sourceProvider is 'company_library'. */
+  companyLibraryItemId?: string;
+  sortOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** A material resource attached to a construction activity. */
+export interface ActivityMaterialResource extends ActivityResourceBase {}
+
+/** An equipment resource attached to a construction activity. */
+export interface ActivityEquipmentResource extends ActivityResourceBase {}
+
+/** An item in a company's reusable cost library. */
+export interface CompanyCostLibraryItem {
+  id: string;
+  userId: string;
+  /** 'material' or 'equipment' */
+  type: 'material' | 'equipment';
+  name: string;
+  description?: string;
+  category?: string;
+  subcategory?: string;
+  unit: string;
+  defaultUnitCost: number;
+  /** Where this item originally came from. */
+  sourceProvider: ActivityResourceProvider;
+  /** If promoted from a starter item, the starter item's ID. */
+  sourceId?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 /** Default labor pricing snapshot fields for new line items (no rate assigned). */
 export const EMPTY_LABOR_PRICING_SNAPSHOT = {
   laborRoleId: null as string | null,

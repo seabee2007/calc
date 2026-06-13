@@ -274,14 +274,35 @@ describe('resolveEstimateTotalsReview', () => {
           productionFactor: 1,
           totalLaborCost: 1500,
           calculatedManHours: 30,
+          effectiveDurationDays: 2,
         },
       ],
       markupSettings: DEFAULT_ESTIMATE_SETTINGS,
+      scheduleActivities: [
+        {
+          activityCode: '03-01-01',
+          activityDescription: 'Slab',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          durationDays: 2,
+          laborHours: 30,
+          manDays: 3.75,
+          crewDays: 0.9375,
+          crewSize: 4,
+          totalCost: 1500,
+          relationshipType: 'FS',
+          lagDays: 0,
+        },
+      ],
+      projectDurationDays: 2,
     });
 
     expect(review.hasTotals).toBe(true);
     expect(review.costGroups.labor).toBe(1500);
     expect(review.laborMetrics.laborHours).toBe(30);
+    expect(review.laborMetrics.manDays).toBeCloseTo(3.75, 2);
+    expect(review.laborMetrics.crewDays).toBe(8);
+    expect(review.laborMetrics.durationDays).toBe(2);
     expect(shouldUseConstructionActivitiesTotalsReview('detailed', [{ id: 'act-1' } as never])).toBe(
       true,
     );

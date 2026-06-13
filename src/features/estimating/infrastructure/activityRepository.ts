@@ -364,3 +364,145 @@ export async function saveActivityBundle(
     return failure(err);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Activity resource CRUD
+// ---------------------------------------------------------------------------
+import type {
+  ActivityMaterialResource,
+  ActivityEquipmentResource,
+} from '../domain/constructionActivityTypes';
+import type {
+  ActivityMaterialResourceRow,
+  ActivityEquipmentResourceRow,
+  ActivityMaterialResourceInsert,
+  ActivityEquipmentResourceInsert,
+} from './activityDbTypes';
+import {
+  mapMaterialResourceFromRow,
+  mapEquipmentResourceFromRow,
+} from './activityMappers';
+
+export async function fetchActivityMaterials(
+  activityId: string,
+): Promise<RepositoryResult<ActivityMaterialResource[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_material_resources')
+      .select('*')
+      .eq('project_activity_id', activityId)
+      .order('sort_order', { ascending: true });
+    if (error) return failure(error);
+    return success((data as ActivityMaterialResourceRow[]).map(mapMaterialResourceFromRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function fetchActivityEquipment(
+  activityId: string,
+): Promise<RepositoryResult<ActivityEquipmentResource[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_equipment_resources')
+      .select('*')
+      .eq('project_activity_id', activityId)
+      .order('sort_order', { ascending: true });
+    if (error) return failure(error);
+    return success((data as ActivityEquipmentResourceRow[]).map(mapEquipmentResourceFromRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+/** All material resources for a project (RLS-scoped). */
+export async function fetchProjectMaterialResources(
+  projectId: string,
+): Promise<RepositoryResult<ActivityMaterialResource[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_material_resources')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('sort_order', { ascending: true });
+    if (error) return failure(error);
+    return success((data as ActivityMaterialResourceRow[]).map(mapMaterialResourceFromRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+/** All equipment resources for a project (RLS-scoped). */
+export async function fetchProjectEquipmentResources(
+  projectId: string,
+): Promise<RepositoryResult<ActivityEquipmentResource[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_equipment_resources')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('sort_order', { ascending: true });
+    if (error) return failure(error);
+    return success((data as ActivityEquipmentResourceRow[]).map(mapEquipmentResourceFromRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function upsertMaterialResource(
+  payload: ActivityMaterialResourceInsert & { id?: string },
+): Promise<RepositoryResult<ActivityMaterialResource>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_material_resources')
+      .upsert(payload)
+      .select()
+      .single();
+    if (error || !data) return failure(error ?? 'Upsert failed');
+    return success(mapMaterialResourceFromRow(data as ActivityMaterialResourceRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function upsertEquipmentResource(
+  payload: ActivityEquipmentResourceInsert & { id?: string },
+): Promise<RepositoryResult<ActivityEquipmentResource>> {
+  try {
+    const { data, error } = await supabase
+      .from('project_activity_equipment_resources')
+      .upsert(payload)
+      .select()
+      .single();
+    if (error || !data) return failure(error ?? 'Upsert failed');
+    return success(mapEquipmentResourceFromRow(data as ActivityEquipmentResourceRow));
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function deleteMaterialResource(id: string): Promise<RepositoryResult<void>> {
+  try {
+    const { error } = await supabase
+      .from('project_activity_material_resources')
+      .delete()
+      .eq('id', id);
+    if (error) return failure(error);
+    return success(undefined);
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+export async function deleteEquipmentResource(id: string): Promise<RepositoryResult<void>> {
+  try {
+    const { error } = await supabase
+      .from('project_activity_equipment_resources')
+      .delete()
+      .eq('id', id);
+    if (error) return failure(error);
+    return success(undefined);
+  } catch (err) {
+    return failure(err);
+  }
+}

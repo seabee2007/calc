@@ -5,6 +5,7 @@ import type {
   ProjectActivityLineItem,
   ProjectConstructionActivity,
 } from './constructionActivityTypes';
+import { roundToTwo } from './estimateMath';
 
 const DEFAULT_HOURS_PER_DAY = 8;
 const DEFAULT_PRODUCTION_FACTOR = 1;
@@ -241,4 +242,92 @@ export function manHoursPerUnitFromLineItemTemplate(
     if (rate) return manHoursPerUnitFromProductionRate(rate);
   }
   return normalizeNonNegative(template.defaultManHoursPerUnit ?? 0);
+}
+
+// ---------------------------------------------------------------------------
+// Material & Equipment resource calculations
+// ---------------------------------------------------------------------------
+
+/** Total cost for a single material or equipment resource line. */
+export function calculateResourceLineTotal(quantity: number, unitCost: number): number {
+  return normalizeNonNegative(quantity) * normalizeNonNegative(unitCost);
+}
+
+/** @deprecated Use calculateResourceLineTotal */
+export const calculateMaterialResourceTotal = calculateResourceLineTotal;
+/** @deprecated Use calculateResourceLineTotal */
+export const calculateEquipmentResourceTotal = calculateResourceLineTotal;
+
+/**
+ * Rolls up material and equipment totals for an activity.
+ * Does NOT touch labor — labor is owned by the separate labor calculation system.
+ */
+export function calculateActivityResourceRollup(input: {
+  laborTotal: number;
+  materialLineTotals: number[];
+  equipmentLineTotals: number[];
+}): {
+  totalMaterialCost: number;
+  totalEquipmentCost: number;
+  totalCost: number;
+} {
+  const totalMaterialCost = input.materialLineTotals.reduce(
+    (sum, v) => sum + normalizeNonNegative(v),
+    0,
+  );
+  const totalEquipmentCost = input.equipmentLineTotals.reduce(
+    (sum, v) => sum + normalizeNonNegative(v),
+    0,
+  );
+  return {
+    totalMaterialCost,
+    totalEquipmentCost,
+    totalCost: normalizeNonNegative(input.laborTotal) + totalMaterialCost + totalEquipmentCost,
+  };
+}
+
+/** Sum line totals from activity resource rows; prefers saved totalCost when present. */
+export function sumActivityResourceLineTotals(
+  resources: ReadonlyArray<{ quantity: number; unitCost: number; totalCost: number }>,
+): number {
+  return roundToTwo(
+    resources.reduce((sum, resource) => {
+      const computed = calculateResourceLineTotal(resource.quantity, resource.unitCost);
+      const lineTotal =
+        resource.totalCost != null && Number.isFinite(resource.totalCost) && resource.totalCost > 0
+          ? resource.totalCost
+          : computed;
+      return sum + normalizeNonNegative(lineTotal);
+    }, 0),
+  );
+}
+
+/**
+ * Project-level cost breakdown from saved activity resource rows.
+ * Labor and subcontractor totals are passed in from the existing activity rollup.
+ * Direct cost follows calculateDirectCost: labor + materials + equipment + subcontractors.
+ */
+export function calculateEstimateResourceCostBreakdown(input: {
+  laborTotal: number;
+  materials: ReadonlyArray<{ quantity: number; unitCost: number; totalCost: number }>;
+  equipment: ReadonlyArray<{ quantity: number; unitCost: number; totalCost: number }>;
+  subcontractorTotal?: number;
+}): {
+  laborTotal: number;
+  materialTotal: number;
+  equipmentTotal: number;
+  subcontractorTotal: number;
+  directCost: number;
+} {
+  const laborTotal = normalizeNonNegative(input.laborTotal);
+  const materialTotal = sumActivityResourceLineTotals(input.materials);
+  const equipmentTotal = sumActivityResourceLineTotals(input.equipment);
+  const subcontractorTotal = normalizeNonNegative(input.subcontractorTotal ?? 0);
+  return {
+    laborTotal,
+    materialTotal,
+    equipmentTotal,
+    subcontractorTotal,
+    directCost: roundToTwo(laborTotal + materialTotal + equipmentTotal + subcontractorTotal),
+  };
 }

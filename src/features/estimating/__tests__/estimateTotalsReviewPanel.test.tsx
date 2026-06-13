@@ -178,4 +178,112 @@ describe('EstimateTotalsReviewPanel', () => {
 
     expect(screen.getAllByText('$4,330.97').length).toBeGreaterThan(0);
   });
+
+  it('shows labor planning metrics from schedule rollup', () => {
+    render(
+      <EstimateTotalsReviewPanel
+        version={null}
+        estimateType="detailed"
+        constructionActivities={[
+          makeActivity({ calculatedManHours: 85.3, totalLaborCost: 4330.97 }),
+        ]}
+        settingsState={buildSettingsState()}
+        scheduleActivities={[
+          {
+            activityCode: '03-01-01',
+            activityDescription: 'Place Slab',
+            divisionCode: '03',
+            divisionName: 'Concrete',
+            durationDays: 2,
+            laborHours: 28.4,
+            manDays: 3.55,
+            crewDays: 0.8875,
+            crewSize: 4,
+            totalCost: 4330.97,
+            relationshipType: 'FS',
+            lagDays: 0,
+          },
+          {
+            activityCode: '03-01-02',
+            activityDescription: 'Wall',
+            divisionCode: '03',
+            divisionName: 'Concrete',
+            durationDays: 1,
+            laborHours: 28.4,
+            manDays: 3.55,
+            crewDays: 0.8875,
+            crewSize: 3,
+            totalCost: 0,
+            relationshipType: 'FS',
+            lagDays: 0,
+          },
+          {
+            activityCode: '03-01-03',
+            activityDescription: 'Finish',
+            divisionCode: '03',
+            divisionName: 'Concrete',
+            durationDays: 1,
+            laborHours: 28.5,
+            manDays: 3.5625,
+            crewDays: 0.890625,
+            crewSize: 2,
+            totalCost: 0,
+            relationshipType: 'FS',
+            lagDays: 0,
+          },
+        ]}
+        projectDurationDays={4}
+      />,
+    );
+
+    expect(screen.getByText('85.3 hr')).toBeInTheDocument();
+    expect(screen.getByText('10.7 MD')).toBeInTheDocument();
+    expect(screen.getByText('13.0 CD')).toBeInTheDocument();
+    expect(screen.getByText('4d')).toBeInTheDocument();
+    expect(screen.getByText('Project duration')).toBeInTheDocument();
+    expect(screen.getByText(/duration × crew size/i)).toBeInTheDocument();
+  });
+
+  it('includes project material and equipment resources in cost breakdown', () => {
+    render(
+      <EstimateTotalsReviewPanel
+        version={null}
+        estimateType="detailed"
+        constructionActivities={[makeActivity({ totalLaborCost: 1000 })]}
+        projectMaterialResources={[
+          {
+            id: 'mat-1',
+            activityId: 'act-1',
+            projectId: 'project-1',
+            name: 'Drywall',
+            quantity: 2,
+            unit: 'SF',
+            unitCost: 100,
+            totalCost: 200,
+            sourceProvider: 'manual',
+          },
+        ]}
+        projectEquipmentResources={[
+          {
+            id: 'equip-1',
+            activityId: 'act-1',
+            projectId: 'project-1',
+            name: 'Lift',
+            quantity: 1,
+            unit: 'day',
+            unitCost: 300,
+            totalCost: 300,
+            sourceProvider: 'manual',
+          },
+        ]}
+        settingsState={buildSettingsState()}
+      />,
+    );
+
+    expect(screen.getByText('Materials')).toBeInTheDocument();
+    expect(screen.getByText('Equipment')).toBeInTheDocument();
+    expect(screen.getByText('$200.00')).toBeInTheDocument();
+    expect(screen.getByText('$300.00')).toBeInTheDocument();
+    expect(screen.getAllByText('$1,500.00').length).toBeGreaterThan(0);
+  });
 });
