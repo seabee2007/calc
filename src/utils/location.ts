@@ -232,16 +232,16 @@ export function getLocationInstructions(): {
   const pwa = isPWA();
 
   const instructions = [
-    'Open your browser site settings for Concrete Calc',
+    'Open your browser site settings for Arden Project OS',
     'Allow Location access for this site',
-    'Return to Concrete Calc and tap "Try Again"',
+    'Return to Arden Project OS and tap "Try Again"',
   ];
 
   const systemInstructions = [
     isIOS ? 'Open iOS Settings' : 'Open your device settings',
     isIOS ? 'Tap "Privacy & Security"' : 'Find Location or Privacy settings',
     'Turn ON Location Services',
-    'Return to Concrete Calc and tap "Try Again"',
+    'Return to Arden Project OS and tap "Try Again"',
   ];
 
   return { isIOS, isPWA: pwa, instructions, systemInstructions };

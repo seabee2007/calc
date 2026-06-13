@@ -73,7 +73,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
           </h1>
           <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             Before continuing, please review and accept the current Terms of Service and Privacy
-            Policy. These documents explain your responsibilities when using Concrete Calc for
+            Policy. These documents explain your responsibilities when using Arden Project OS for
             estimates, proposals, schedules, exports, emails, billing, and project records.
           </p>
         </div>

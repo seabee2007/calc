@@ -3,17 +3,23 @@ import React from 'react';
 const UserAgreement: React.FC = () => {
   return (
     <div className="prose prose-sm max-w-none">
-      <h2 className="text-xl font-semibold mb-4">ConcreteCalc User Agreement</h2>
+      <h2 className="text-xl font-semibold mb-4">Arden Project OS User Agreement</h2>
       <p className="text-sm text-gray-500 mb-4">Effective Date: May 22, 2025</p>
-      
+
       <p className="mb-4">
-        This User Agreement ("Agreement") is a binding legal contract between you ("You," "User") and ConcreteCalc, LLC ("ConcreteCalc," "we," "us," or "our"). By accessing or using the ConcreteCalc mobile or web application (the "App"), you agree to be bound by this Agreement. If you do not agree to any provision of this Agreement, do not use the App.
+        This User Agreement (&quot;Agreement&quot;) is a binding legal contract between you
+        (&quot;You,&quot; &quot;User&quot;) and Arden Project OS (&quot;Arden Project OS,&quot;
+        &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). By accessing or using the Arden Project
+        OS web application (the &quot;App&quot;), you agree to be bound by this Agreement. If you do not
+        agree to any provision of this Agreement, do not use the App.
       </p>
 
       <section className="mb-6">
         <h3 className="text-lg font-semibold mb-2">1. License Grant</h3>
         <p>
-          Subject to your compliance with this Agreement, ConcreteCalc grants you a limited, non-exclusive, non-transferable, revocable license to access and use the App solely for your internal business or personal use.
+          Subject to your compliance with this Agreement, Arden Project OS grants you a limited,
+          non-exclusive, non-transferable, revocable license to access and use the App solely for your
+          internal business or personal use.
         </p>
       </section>
 
@@ -29,9 +35,9 @@ const UserAgreement: React.FC = () => {
       <section className="mb-6">
         <h3 className="text-lg font-semibold mb-2">3. Disclaimers</h3>
         <p className="uppercase mb-4">
-          TO THE FULLEST EXTENT PERMITTED BY LAW, THE APP AND ITS CONTENT ARE PROVIDED "AS-IS," "AS AVAILABLE," AND "WITH ALL FAULTS."
+          TO THE FULLEST EXTENT PERMITTED BY LAW, THE APP AND ITS CONTENT ARE PROVIDED &quot;AS-IS,&quot; &quot;AS AVAILABLE,&quot; AND &quot;WITH ALL FAULTS.&quot;
         </p>
-        <p>CONCRETECALC DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. CONCRETECALC DOES NOT WARRANT THAT:</p>
+        <p>ARDEN PROJECT OS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. ARDEN PROJECT OS DOES NOT WARRANT THAT:</p>
         <ul className="list-disc pl-5 mt-2">
           <li>THE APP WILL MEET YOUR REQUIREMENTS;</li>
           <li>THE APP WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE;</li>
@@ -46,10 +52,10 @@ const UserAgreement: React.FC = () => {
         <p className="uppercase mb-2">TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:</p>
         <ul className="list-disc pl-5 space-y-2">
           <li>
-            <strong>NO INDIRECT DAMAGES.</strong> NEITHER CONCRETECALC NOR ITS OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, OR LICENSORS SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES.
+            <strong>NO INDIRECT DAMAGES.</strong> NEITHER ARDEN PROJECT OS NOR ITS OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, OR LICENSORS SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES.
           </li>
           <li>
-            <strong>CAP ON LIABILITY.</strong> CONCRETECALC'S TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED USD 100 (ONE HUNDRED DOLLARS).
+            <strong>CAP ON LIABILITY.</strong> ARDEN PROJECT OS&apos;S TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED USD 100 (ONE HUNDRED DOLLARS).
           </li>
           <li>
             <strong>NO LIABILITY FOR DECISIONS.</strong> YOU ASSUME ALL RISK AND LIABILITY FOR YOUR CONCRETE PLACEMENT DECISIONS.
@@ -60,14 +66,14 @@ const UserAgreement: React.FC = () => {
       <section className="mb-6">
         <h3 className="text-lg font-semibold mb-2">5. Indemnification</h3>
         <p>
-          You agree to indemnify, defend, and hold harmless ConcreteCalc and its officers, directors, employees, agents, and licensors from and against all claims, liabilities, losses, damages, costs, and expenses arising out of or related to your use of the App.
+          You agree to indemnify, defend, and hold harmless Arden Project OS and its officers, directors, employees, agents, and licensors from and against all claims, liabilities, losses, damages, costs, and expenses arising out of or related to your use of the App.
         </p>
       </section>
 
       <section className="mb-6">
         <h3 className="text-lg font-semibold mb-2">6. User Data; Privacy</h3>
         <p>
-          ConcreteCalc's collection and use of your personal data are governed by our Privacy Policy. By using the App, you consent to the terms of that policy.
+          Arden Project OS&apos;s collection and use of your personal data are governed by our Privacy Policy. By using the App, you consent to the terms of that policy.
         </p>
       </section>
 
@@ -95,16 +101,16 @@ const UserAgreement: React.FC = () => {
       <section className="mb-6">
         <h3 className="text-lg font-semibold mb-2">10. Entire Agreement; Amendments</h3>
         <p>
-          This Agreement constitutes the entire agreement between you and ConcreteCalc regarding the App. We may modify this Agreement at any time by posting a revised version.
+          This Agreement constitutes the entire agreement between you and Arden Project OS regarding the App. We may modify this Agreement at any time by posting a revised version.
         </p>
       </section>
 
       <section className="mt-8 pt-4 border-t">
         <p className="text-sm text-gray-600">
           <strong>Contact:</strong><br />
-          ConcreteCalc, LLC<br />
-          Email: support@concretecalc.com<br />
-          Address: 1234 Builder's Way, San Francisco, CA 94107
+          Arden Project OS<br />
+          Email: support@ardenprojectos.com<br />
+          Address: [Insert Legal Business Mailing Address]
         </p>
       </section>
     </div>

@@ -58,7 +58,7 @@ const TaxCategoryMapping: React.FC<TaxCategoryMappingProps> = ({ onChange }) => 
   return (
     <div className="space-y-4" data-testid="tax-category-mapping">
       <p className="text-sm text-slate-600 dark:text-slate-400">
-        Map Concrete Calc cost categories to tax/accounting labels. Leave blank to use the
+        Map Arden Project OS cost categories to tax/accounting labels. Leave blank to use the
         default label.
       </p>
       <div className="overflow-x-auto">

@@ -886,7 +886,7 @@ export default function DocumentBuilderPage() {
         });
       } else {
         await exportContractDraftPdf(assembly, risk, {
-          companyName: company.legalName || documentCompanySettings.companyName || 'Concrete Calc',
+          companyName: company.legalName || documentCompanySettings.companyName || 'Arden Project OS',
           address: company.address || documentCompanySettings.address || '',
           phone: company.phone || documentCompanySettings.phone || '',
           email: company.email || documentCompanySettings.email,

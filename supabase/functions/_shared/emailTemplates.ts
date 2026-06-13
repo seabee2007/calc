@@ -31,8 +31,8 @@ function layout(input: {
 
   return {
     subject: input.title,
-    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 0;"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tr><td style="padding:20px 24px;background:#0f172a;color:#ffffff;font-size:18px;font-weight:700;">ConcreteCalc</td></tr><tr><td style="padding:24px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(input.title)}</h1>${input.bodyHtml}${ctaHtml}<p style="margin:24px 0 0;font-size:13px;color:#64748b;">ConcreteCalc — estimating, scheduling, and project management for contractors.</p></td></tr></table></td></tr></table></body></html>`,
-    text: `${input.title}\n\n${input.bodyText}${ctaText}\nConcreteCalc — estimating, scheduling, and project management for contractors.`,
+    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 0;"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tr><td style="padding:20px 24px;background:#0f172a;color:#ffffff;font-size:18px;font-weight:700;">Arden Project OS</td></tr><tr><td style="padding:24px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${escapeHtml(input.title)}</h1>${input.bodyHtml}${ctaHtml}<p style="margin:24px 0 0;font-size:13px;color:#64748b;">Arden Project OS — estimating, scheduling, and project management for contractors.</p></td></tr></table></td></tr></table></body></html>`,
+    text: `${input.title}\n\n${input.bodyText}${ctaText}\nArden Project OS — estimating, scheduling, and project management for contractors.`,
   };
 }
 
@@ -48,17 +48,17 @@ export function renderEmailTemplate(
   switch (templateKey) {
     case "welcome":
       return layout({
-        title: "Welcome to ConcreteCalc",
+        title: "Welcome to Arden Project OS",
         bodyHtml: `<p style="margin:0 0 12px;">Your account is ready. Start building estimates, schedules, and project plans from one workspace.</p>`,
         bodyText: "Your account is ready. Start building estimates, schedules, and project plans from one workspace.",
-        ctaLabel: "Open ConcreteCalc",
+        ctaLabel: "Open Arden Project OS",
         ctaUrl: str(data, "appUrl"),
       });
     case "teamInvite":
       return layout({
-        title: "You have been invited to join a ConcreteCalc team",
-        bodyHtml: `<p style="margin:0 0 12px;">${escapeHtml(str(data, "inviterName", "A team owner"))} invited you to join ${escapeHtml(str(data, "companyName", "their company"))} on ConcreteCalc.</p>`,
-        bodyText: `${str(data, "inviterName", "A team owner")} invited you to join ${str(data, "companyName", "their company")} on ConcreteCalc.`,
+        title: "You have been invited to join a Arden Project OS team",
+        bodyHtml: `<p style="margin:0 0 12px;">${escapeHtml(str(data, "inviterName", "A team owner"))} invited you to join ${escapeHtml(str(data, "companyName", "their company"))} on Arden Project OS.</p>`,
+        bodyText: `${str(data, "inviterName", "A team owner")} invited you to join ${str(data, "companyName", "their company")} on Arden Project OS.`,
         ctaLabel: "Accept invite",
         ctaUrl: str(data, "inviteUrl"),
       });
@@ -146,15 +146,15 @@ export function renderEmailTemplate(
       });
     case "trialStarted":
       return layout({
-        title: "Your ConcreteCalc trial has started",
+        title: "Your Arden Project OS trial has started",
         bodyHtml: `<p style="margin:0;">Your trial is active. Explore estimating, scheduling, and project tools during your trial period.</p>`,
         bodyText: "Your trial is active. Explore estimating, scheduling, and project tools during your trial period.",
-        ctaLabel: "Open ConcreteCalc",
+        ctaLabel: "Open Arden Project OS",
         ctaUrl: str(data, "appUrl"),
       });
     case "trialEndingSoon":
       return layout({
-        title: "Your ConcreteCalc trial ends soon",
+        title: "Your Arden Project OS trial ends soon",
         bodyHtml: `<p style="margin:0;">Your trial ends on ${escapeHtml(str(data, "trialEndDate", "soon"))}. Activate your subscription to keep your workspace running.</p>`,
         bodyText: `Your trial ends on ${str(data, "trialEndDate", "soon")}. Activate your subscription to keep your workspace running.`,
         ctaLabel: "Manage subscription",
@@ -162,15 +162,15 @@ export function renderEmailTemplate(
       });
     case "subscriptionActive":
       return layout({
-        title: "Your ConcreteCalc subscription is active",
+        title: "Your Arden Project OS subscription is active",
         bodyHtml: `<p style="margin:0;">Thank you. Your subscription is active and your workspace is ready.</p>`,
         bodyText: "Thank you. Your subscription is active and your workspace is ready.",
-        ctaLabel: "Open ConcreteCalc",
+        ctaLabel: "Open Arden Project OS",
         ctaUrl: str(data, "appUrl"),
       });
     case "paymentFailed":
       return layout({
-        title: "Payment failed for your ConcreteCalc subscription",
+        title: "Payment failed for your Arden Project OS subscription",
         bodyHtml: `<p style="margin:0;">We could not process your latest payment. Update your billing details to avoid interruption.</p>`,
         bodyText: "We could not process your latest payment. Update your billing details to avoid interruption.",
         ctaLabel: "Update billing",
@@ -218,9 +218,9 @@ export function renderEmailTemplate(
       });
     default:
       return layout({
-        title: "ConcreteCalc notification",
-        bodyHtml: `<p style="margin:0;">You have a new update in ConcreteCalc.</p>`,
-        bodyText: "You have a new update in ConcreteCalc.",
+        title: "Arden Project OS notification",
+        bodyHtml: `<p style="margin:0;">You have a new update in Arden Project OS.</p>`,
+        bodyText: "You have a new update in Arden Project OS.",
       });
   }
 }

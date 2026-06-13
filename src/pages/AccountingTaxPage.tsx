@@ -414,7 +414,7 @@ const AccountingTaxPage: React.FC = () => {
               </h2>
             </div>
             <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
-              Customize how Concrete Calc categories map to tax/accounting labels in your
+              Customize how Arden Project OS categories map to tax/accounting labels in your
               exports.
             </p>
             <TaxCategoryMapping onChange={setTaxCategoryMap} />

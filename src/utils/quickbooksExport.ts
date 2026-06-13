@@ -101,7 +101,7 @@ export function buildQuickBooksInvoicesCsvContent(data: AccountingExportData): s
       row.totalRevenue,
       row.status,
       row.title,
-      'Concrete Calc proposal',
+      'Arden Project OS proposal',
     );
   }
 
@@ -181,7 +181,7 @@ export const TURBOTAX_HELPER_DISCLAIMER =
  */
 export function buildTurboTaxHelperCsvContent(data: AccountingExportData): string {
   let csv = '';
-  csv += csvRow('Concrete Calc — TurboTax Helper Export');
+  csv += csvRow('Arden Project OS — TurboTax Helper Export');
   csv += csvRow(`Tax Year: ${data.taxYear}`);
   csv += csvRow('');
   csv += csvRow('NOTICE', TURBOTAX_HELPER_DISCLAIMER);

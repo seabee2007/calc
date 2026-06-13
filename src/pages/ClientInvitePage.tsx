@@ -105,7 +105,7 @@ export default function ClientInvitePage() {
           className={authPrimaryButtonClassName}
           onClick={() => navigate('/')}
         >
-          Go to Concrete Calc
+          Go to Arden Project OS
         </Button>
       </AuthLayout>
     );
@@ -123,7 +123,7 @@ export default function ClientInvitePage() {
           className={authPrimaryButtonClassName}
           onClick={() => navigate('/')}
         >
-          Go to Concrete Calc
+          Go to Arden Project OS
         </Button>
       </AuthLayout>
     );
@@ -131,7 +131,7 @@ export default function ClientInvitePage() {
 
   return (
     <AuthLayout
-      title="You've been invited to Concrete Calc"
+      title="You've been invited to Arden Project OS"
       subtitle="Join a professional construction project workspace."
     >
       <div className={`${AUTH_ACCENT.authCard} space-y-5 !p-6 sm:!p-8`}>
@@ -208,7 +208,7 @@ export default function ClientInvitePage() {
               className={`inline-flex items-center gap-1 text-sm ${authLinkClassName}`}
               onClick={() => navigate('/')}
             >
-              Learn more about Concrete Calc
+              Learn more about Arden Project OS
               <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
           </div>

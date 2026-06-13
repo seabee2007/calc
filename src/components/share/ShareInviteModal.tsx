@@ -102,7 +102,7 @@ export default function ShareInviteModal({ isOpen, onClose }: ShareInviteModalPr
 
   const handleShareApp = async () => {
     const result = await shareOrCopy({
-      title: 'Concrete Calc',
+      title: 'Arden Project OS',
       text: 'Professional construction project management for estimates, proposals, schedules, and field tracking.',
       url: appShareUrl,
     });
@@ -150,8 +150,8 @@ export default function ShareInviteModal({ isOpen, onClose }: ShareInviteModalPr
   const handleShareInvite = async () => {
     if (!inviteUrl) return;
     const result = await shareOrCopy({
-      title: "You're invited to Concrete Calc",
-      text: 'View your project workspace on Concrete Calc.',
+      title: "You're invited to Arden Project OS",
+      text: 'View your project workspace on Arden Project OS.',
       url: inviteUrl,
     });
     await handleShareResult(result);
@@ -177,9 +177,9 @@ export default function ShareInviteModal({ isOpen, onClose }: ShareInviteModalPr
           <section className="rounded-2xl border border-white/10 bg-slate-950/70 p-5">
             <div className="relative space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-white">Share Concrete Calc</h3>
+                <h3 className="text-lg font-semibold text-white">Share Arden Project OS</h3>
                 <p className="mt-1 text-sm text-slate-300">
-                  Invite someone to view Concrete Calc and create their own workspace.
+                  Invite someone to view Arden Project OS and create their own workspace.
                 </p>
               </div>
 

@@ -197,7 +197,7 @@ const Login: React.FC = () => {
           </Button>
 
           <p className="text-center text-sm text-slate-300">
-            New to Concrete Calc?{' '}
+            New to Arden Project OS?{' '}
             <button
               type="button"
               onClick={() =>

@@ -489,7 +489,7 @@ export async function buildLevelThreeGanttExcelWorkbook(
   }
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Concrete Calc';
+  workbook.creator = 'Arden Project OS';
   workbook.created = params.exportedAt ?? new Date();
 
   addLevelThreeGanttSheet(workbook, params);

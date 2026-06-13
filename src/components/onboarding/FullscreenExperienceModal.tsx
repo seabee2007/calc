@@ -59,7 +59,7 @@ export default function FullscreenExperienceModal({ isOpen, onConfirm }: Props) 
         </div>
 
         <p className="text-sm leading-relaxed text-slate-300">
-          Concrete Calc works best in full screen, especially when using estimates, schedules, Gantt
+          Arden Project OS works best in full screen, especially when using estimates, schedules, Gantt
           charts, and logic networks.
         </p>
 

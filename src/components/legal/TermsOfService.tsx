@@ -13,10 +13,10 @@ const TermsOfService: React.FC = () => {
   return (
     <div className={LEGAL_MODAL_ROOT}>
       <section className={LEGAL_MODAL_SECTION}>
-        <h2 className={`${LEGAL_MODAL_H3} text-xl`}>Concrete Calc Terms of Service</h2>
+        <h2 className={`${LEGAL_MODAL_H3} text-xl`}>Arden Project OS Terms of Service</h2>
         <p className={LEGAL_MODAL_META}>Last Updated: 12 June 2026</p>
         <p>
-          These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of Concrete Calc,
+          These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of Arden Project OS,
           including our websites, web application, mobile or progressive web application, calculators,
           estimating tools, proposal tools, scheduling tools, project management tools, client portal
           features, accounting and tax export tools, emails, APIs, and any related services we provide
@@ -24,9 +24,8 @@ const TermsOfService: React.FC = () => {
         </p>
         <p>
           These Terms form a legally binding agreement between you and{' '}
-          <strong>ConcreteCalc, LLC</strong> (&ldquo;Concrete Calc,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo;
-          or &ldquo;our&rdquo;). If your legal entity name is different, replace &ldquo;ConcreteCalc, LLC&rdquo;
-          with the correct legal name before publishing.
+          <strong>Arden Project OS</strong> (&ldquo;Arden Project OS,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo;
+          or &ldquo;our&rdquo;).
         </p>
         <p>
           By creating an account, accessing the Service, using a free trial, subscribing to a paid plan,
@@ -55,7 +54,7 @@ const TermsOfService: React.FC = () => {
       <section className={LEGAL_MODAL_SECTION}>
         <h3 className={`${LEGAL_MODAL_H3} mb-2`}>2. Description of the Service</h3>
         <p>
-          Concrete Calc provides software tools for contractors and construction professionals, including
+          Arden Project OS provides software tools for contractors and construction professionals, including
           some or all of the following:
         </p>
         <ul className={LEGAL_MODAL_LIST}>
@@ -81,7 +80,7 @@ const TermsOfService: React.FC = () => {
 
       <section className={LEGAL_MODAL_SECTION}>
         <h3 className={`${LEGAL_MODAL_H3} mb-2`}>3. No Professional, Engineering, Legal, Tax, or Financial Advice</h3>
-        <p>Concrete Calc is a software tool. It does not provide professional advice.</p>
+        <p>Arden Project OS is a software tool. It does not provide professional advice.</p>
         <p>
           The Service may generate calculations, estimates, schedules, production-rate outputs, proposal
           documents, risk indicators, tax summaries, accounting exports, weather-related suggestions, or other
@@ -92,7 +91,7 @@ const TermsOfService: React.FC = () => {
           for bids, contracts, schedules, purchases, construction activities, safety planning, tax filings,
           accounting records, client communications, or business decisions.
         </p>
-        <p>Concrete Calc does not replace:</p>
+        <p>Arden Project OS does not replace:</p>
         <ul className={LEGAL_MODAL_LIST}>
           <li>Licensed contractors</li>
           <li>Engineers</li>
@@ -131,7 +130,7 @@ const TermsOfService: React.FC = () => {
           subcontractor pricing, supplier pricing, permit requirements, inspection requirements, and market
           conditions may differ significantly from software-generated estimates.
         </p>
-        <p>Concrete Calc does not guarantee:</p>
+        <p>Arden Project OS does not guarantee:</p>
         <ul className={LEGAL_MODAL_LIST}>
           <li>Accuracy of any estimate</li>
           <li>Suitability of any production rate for your project</li>
@@ -161,7 +160,7 @@ const TermsOfService: React.FC = () => {
         </p>
         <p>
           Scheduling outputs depend on user-entered durations, logic links, crew assumptions, activity
-          selections, calendars, constraints, and project data. Concrete Calc does not guarantee that a
+          selections, calendars, constraints, and project data. Arden Project OS does not guarantee that a
           generated schedule is feasible, contract-compliant, resource-loaded, risk-adjusted, or suitable for
           submission to an owner, general contractor, government entity, or any other party.
         </p>
@@ -272,7 +271,7 @@ const TermsOfService: React.FC = () => {
           <li>Consulting qualified professionals</li>
         </ul>
         <p>
-          Concrete Calc does not guarantee tax savings, tax compliance, audit protection, accounting
+          Arden Project OS does not guarantee tax savings, tax compliance, audit protection, accounting
           accuracy, or acceptance by any third-party software or tax authority.
         </p>
       </section>
@@ -565,7 +564,7 @@ const TermsOfService: React.FC = () => {
         <p>
           The Service, including software, design, user interface, workflows, templates, documentation,
           graphics, logos, trademarks, trade names, data structures, and other materials we provide, is owned
-          by Concrete Calc or its licensors and is protected by intellectual property laws.
+          by Arden Project OS or its licensors and is protected by intellectual property laws.
         </p>
         <p>
           You may not copy, modify, distribute, sell, lease, sublicense, reverse engineer, or create
@@ -689,7 +688,7 @@ const TermsOfService: React.FC = () => {
       <section className={LEGAL_MODAL_SECTION}>
         <h3 className={`${LEGAL_MODAL_H3} mb-2`}>32. Indemnification</h3>
         <p>
-          You agree to defend, indemnify, and hold harmless Concrete Calc and its owners, officers, directors,
+          You agree to defend, indemnify, and hold harmless Arden Project OS and its owners, officers, directors,
           employees, contractors, affiliates, agents, suppliers, and licensors from and against all claims,
           damages, losses, liabilities, costs, and expenses, including reasonable attorneys&rsquo; fees, arising
           out of or related to:
@@ -727,7 +726,7 @@ const TermsOfService: React.FC = () => {
           party may bring an individual claim in small claims court if eligible.
         </p>
         <p>
-          You and Concrete Calc waive any right to a jury trial and waive any right to participate in a class
+          You and Arden Project OS waive any right to a jury trial and waive any right to participate in a class
           action, class arbitration, collective action, private attorney general action, or representative
           proceeding.
         </p>
@@ -849,22 +848,18 @@ const TermsOfService: React.FC = () => {
         <p>If you have questions about these Terms, contact us at:</p>
         <address className="not-italic mt-2 space-y-1">
           <p>
-            <strong>ConcreteCalc, LLC</strong>
+            <strong>Arden Project OS</strong>
           </p>
           <p>
             Email:{' '}
-            <a href="mailto:support@concrete-calc.com" className={LEGAL_MODAL_LINK}>
-              support@concrete-calc.com
+            <a href="mailto:support@ardenprojectos.com" className={LEGAL_MODAL_LINK}>
+              support@ardenprojectos.com
             </a>
           </p>
           <p>
             <strong>Address:</strong> [Insert Legal Business Mailing Address]
           </p>
         </address>
-        <p className={LEGAL_MODAL_META}>
-          Do not publish a placeholder address. Use your actual legal business mailing address or registered
-          business address before making these Terms public.
-        </p>
       </section>
     </div>
   );

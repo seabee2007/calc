@@ -14,12 +14,12 @@ const PrivacyPolicy: React.FC = () => {
   return (
     <div className={LEGAL_MODAL_ROOT}>
       <section className={LEGAL_MODAL_SECTION}>
-        <h2 className={`${LEGAL_MODAL_H3} text-xl`}>Concrete Calc Privacy Policy</h2>
+        <h2 className={`${LEGAL_MODAL_H3} text-xl`}>Arden Project OS Privacy Policy</h2>
         <p className={LEGAL_MODAL_META}>Last Updated: 12 June 2026</p>
         <p>
-          This Privacy Policy explains how <strong>ConcreteCalc, LLC</strong> (&ldquo;Concrete Calc,&rdquo;
+          This Privacy Policy explains how <strong>Arden Project OS</strong> (&ldquo;Arden Project OS,&rdquo;
           &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) collects, uses, stores, shares, and protects
-          information when you access or use Concrete Calc, including our websites, web application, mobile or
+          information when you access or use Arden Project OS, including our websites, web application, mobile or
           progressive web application, calculators, estimating tools, proposal tools, scheduling tools, project
           management tools, client portal features, email features, accounting and tax export tools, integrations,
           and related services (collectively, the &ldquo;Service&rdquo;).
@@ -27,10 +27,6 @@ const PrivacyPolicy: React.FC = () => {
         <p>
           By using the Service, you agree to the collection and use of information as described in this Privacy
           Policy. If you do not agree, do not use the Service.
-        </p>
-        <p>
-          If your legal company name, support email, or mailing address is different from the placeholders in this
-          Policy, update them before publishing.
         </p>
       </section>
 
@@ -776,22 +772,18 @@ const PrivacyPolicy: React.FC = () => {
         </p>
         <address className="not-italic mt-2 space-y-1">
           <p>
-            <strong>ConcreteCalc, LLC</strong>
+            <strong>Arden Project OS</strong>
           </p>
           <p>
             Email:{' '}
-            <a href="mailto:support@concrete-calc.com" className={LEGAL_MODAL_LINK}>
-              support@concrete-calc.com
+            <a href="mailto:support@ardenprojectos.com" className={LEGAL_MODAL_LINK}>
+              support@ardenprojectos.com
             </a>
           </p>
           <p>
             <strong>Address:</strong> [Insert Legal Business Mailing Address]
           </p>
         </address>
-        <p className={LEGAL_MODAL_META}>
-          Do not publish a placeholder address. Use your actual legal business mailing address or registered business
-          address before making this Privacy Policy public.
-        </p>
       </section>
     </div>
   );

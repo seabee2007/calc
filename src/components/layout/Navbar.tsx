@@ -26,6 +26,12 @@ import ShareInviteModal from '../share/ShareInviteModal';
 import PilotSurveyModal from '../survey/PilotSurveyModal';
 import Button from '../ui/Button';
 import { APP_NAV_HEADER, APP_NAV_MOBILE_MENU, appNavIconButtonClass } from './appNavStyles';
+import {
+  BRAND_NAME,
+  getAppLoginUrl,
+  goToAppAuth,
+  isMarketingHost,
+} from '../../config/brand';
 
 function sectionLabelForPath(pathname: string, search = ''): string {
   if (pathname === '/') return 'Operations';
@@ -43,7 +49,7 @@ function sectionLabelForPath(pathname: string, search = ''): string {
     return inWorkflow ? 'Estimates' : 'Calculators';
   }
   if (pathname.startsWith('/employee')) return 'Employee Portal';
-  return 'Concrete Calc';
+  return BRAND_NAME;
 }
 
 interface NavbarProps {
@@ -122,7 +128,7 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
             to="/"
             className="inline-flex shrink-0 items-center gap-1.5 rounded px-2 py-1.5 text-sm font-semibold text-white hover:bg-white/10"
           >
-            Concrete Calc
+            {BRAND_NAME}
           </Link>
         )}
 
@@ -312,19 +318,30 @@ const Navbar: React.FC<NavbarProps> = ({ showThemeToggle = true }) => {
           </div>
         ) : (
           <div className="flex items-center gap-1">
-            <Link
-              to="/login"
-              className={appNavIconButtonClass()}
-              aria-label="Sign in"
-              title="Sign in"
-            >
-              <LogIn className="h-5 w-5" />
-            </Link>
+            {isMarketingHost() ? (
+              <a
+                href={getAppLoginUrl()}
+                className={appNavIconButtonClass()}
+                aria-label="Sign in"
+                title="Sign in"
+              >
+                <LogIn className="h-5 w-5" />
+              </a>
+            ) : (
+              <Link
+                to="/login"
+                className={appNavIconButtonClass()}
+                aria-label="Sign in"
+                title="Sign in"
+              >
+                <LogIn className="h-5 w-5" />
+              </Link>
+            )}
             <Button
               variant="accent"
               size="sm"
               className="!h-8 !px-2 !py-1 !text-xs"
-              onClick={() => navigate('/signup')}
+              onClick={() => goToAppAuth('/signup', navigate)}
               icon={<UserPlus className="h-3.5 w-3.5" />}
               aria-label="Sign up"
             >

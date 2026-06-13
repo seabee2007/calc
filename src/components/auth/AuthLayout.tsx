@@ -98,7 +98,7 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
             animate={marketingMotion.animate}
             transition={marketingMotion.transition}
           >
-            <p className={AUTH_ACCENT.brandLabelDesktop}>Concrete Calc</p>
+            <p className={AUTH_ACCENT.brandLabelDesktop}>Arden Project OS</p>
             <h1 className="mt-4 text-4xl font-bold leading-tight text-white xl:text-5xl">
               Professional construction project management software.
             </h1>
@@ -132,7 +132,7 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
               animate="visible"
             >
               <motion.div className="mb-8 text-center lg:text-left" variants={fadeUpVariant}>
-                <p className={`${AUTH_ACCENT.brandLabelMobile} lg:hidden`}>Concrete Calc</p>
+                <p className={`${AUTH_ACCENT.brandLabelMobile} lg:hidden`}>Arden Project OS</p>
                 <h2 className="mt-2 text-3xl font-bold text-white">{title}</h2>
                 <p className="mt-2 text-sm text-slate-300">{subtitle}</p>
               </motion.div>

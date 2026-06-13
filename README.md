@@ -18,13 +18,13 @@ In **Supabase Dashboard → Authentication → URL Configuration**:
 **Site URL:**
 
 ```text
-https://app.concrete-calc.com
+https://app.ardenprojectos.com
 ```
 
 **Additional Redirect URLs:**
 
 ```text
-https://app.concrete-calc.com/auth/callback
+https://app.ardenprojectos.com/auth/callback
 http://localhost:5173/auth/callback
 ```
 
@@ -34,8 +34,8 @@ The app uses `redirectTo: ${window.location.origin}/auth/callback` for OAuth. Th
 
 | Site | Role |
 | --- | --- |
-| `https://concrete-calc.com` | Public marketing site only. Sign-in buttons must link to `https://app.concrete-calc.com/login`. The marketing site must **not** host `/auth/callback`. |
-| `https://app.concrete-calc.com` | App owns `/login`, `/signup`, `/auth/callback`, onboarding, and the workspace. |
+| `https://ardenprojectos.com` | Public marketing site only. Sign-in buttons must link to `https://app.ardenprojectos.com/login`. The marketing site must **not** host `/auth/callback`. |
+| `https://app.ardenprojectos.com` | App owns `/login`, `/signup`, `/auth/callback`, onboarding, and the workspace. |
 
 Sign-in entry points on the app:
 

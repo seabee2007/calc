@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { goToAppAuth } from '../config/brand';
 import { useAuth } from '../hooks/useAuth';
 import ResourceCard from '../components/resources/ResourceCard';
 import ConcreteChat from '../components/ConcreteChat';
@@ -83,7 +84,7 @@ const Resources: React.FC<ResourcesProps> = ({ chatStore }) => {
 
   const handleChatClick = () => {
     if (!user) {
-      navigate('/login');
+      goToAppAuth('/login', navigate);
     } else {
       setShowChat(true);
     }

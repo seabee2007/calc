@@ -96,7 +96,7 @@ const ClientPortal: React.FC = () => {
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="max-w-5xl mx-auto px-4 py-5 sm:px-6">
           <p className={`text-xs uppercase tracking-widest font-semibold ${OPS_HERO_LABEL}`}>
-            ConcreteCalc Client Portal
+            Arden Project OS Client Portal
           </p>
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">

@@ -31,7 +31,7 @@ describe('email infrastructure safeguards', () => {
       env: {
         EMAIL_SENDING_ENABLED: 'false',
         RESEND_API_KEY: 're_test',
-        RESEND_FROM_EMAIL: 'ConcreteCalc <noreply@concrete-calc.com>',
+        RESEND_FROM_EMAIL: 'Arden Project OS <noreply@ardenprojectos.com>',
       },
     });
 
@@ -56,7 +56,7 @@ describe('email infrastructure safeguards', () => {
       EMAIL_SENDING_ENABLED: 'true',
       EMAIL_TEST_MODE: 'true',
       RESEND_API_KEY: 're_test',
-      RESEND_FROM_EMAIL: 'ConcreteCalc <noreply@concrete-calc.com>',
+      RESEND_FROM_EMAIL: 'Arden Project OS <noreply@ardenprojectos.com>',
     });
 
     expect(validateEmailConfigForSend(config)).toEqual({
@@ -67,6 +67,14 @@ describe('email infrastructure safeguards', () => {
 });
 
 describe('email templates', () => {
+  it('uses Arden Project OS branding in the shared layout', () => {
+    const rendered = renderEmailTemplate('welcome', {});
+
+    expect(rendered.html).toContain('Arden Project OS');
+    expect(rendered.text).toContain('Arden Project OS');
+    expect(rendered.html).not.toContain('ConcreteCalc');
+  });
+
   it('renders subject, html, and text for proposalSent', () => {
     const rendered = renderEmailTemplate('proposalSent', {
       projectName: 'Riverfront Slab',

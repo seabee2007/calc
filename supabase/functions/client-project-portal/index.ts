@@ -122,7 +122,7 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") ??
       req.headers.get("referer")?.replace(/\/[^/]*$/, "") ??
-      "https://concrete-calc.com";
+      "https://ardenprojectos.com";
 
     const payload = buildClientPortalSafePayload({
       origin,

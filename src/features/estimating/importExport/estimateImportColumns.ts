@@ -1,4 +1,4 @@
-export const CONCRETE_CALC_BID_ESTIMATE_TEMPLATE_NAME = 'Concrete Calc Bid Estimate Template';
+export const CONCRETE_CALC_BID_ESTIMATE_TEMPLATE_NAME = 'Arden Project OS Bid Estimate Template';
 
 export const ESTIMATE_IMPORT_TEMPLATE_VERSION = '2.0';
 

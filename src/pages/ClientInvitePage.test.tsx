@@ -81,7 +81,7 @@ describe('ClientInvitePage', () => {
     );
 
     expect(
-      await screen.findByRole('heading', { name: "You've been invited to Concrete Calc" }),
+      await screen.findByRole('heading', { name: "You've been invited to Arden Project OS" }),
     ).toBeInTheDocument();
     expect(screen.getByText('Riverfront Slab')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();

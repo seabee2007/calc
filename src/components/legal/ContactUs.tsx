@@ -19,9 +19,8 @@ const ContactUs: React.FC = () => {
             <h3 className={CONTACT_MODAL_HEADING}>Address</h3>
           </div>
           <p className={`${CONTACT_MODAL_BODY} leading-relaxed`}>
-            ConcreteCalc, LLC<br />
-            1234 Builder's Way<br />
-            San Francisco, CA 94107
+            Arden Project OS<br />
+            [Insert Legal Business Mailing Address]
           </p>
         </div>
 
@@ -31,10 +30,10 @@ const ContactUs: React.FC = () => {
             <h3 className={CONTACT_MODAL_HEADING}>Email</h3>
           </div>
           <a
-            href="mailto:support@concretecalc.com"
+            href="mailto:support@ardenprojectos.com"
             className={CONTACT_MODAL_LINK}
           >
-            support@concretecalc.com
+            support@ardenprojectos.com
           </a>
         </div>
 

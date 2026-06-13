@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { BRAND_NAME, goToAppAuth } from '../config/brand';
 import { MessageSquare, Send, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useProjectStore } from '../store';
@@ -68,7 +69,7 @@ function resolvePageLabel(pathname: string): string {
   if (pathname.startsWith('/calculator')) return 'Calculators';
   if (pathname.startsWith('/settings')) return 'Settings';
   if (pathname.startsWith('/resources')) return 'Resources';
-  return 'ConcreteCalc';
+  return BRAND_NAME;
 }
 
 interface ConcreteChatProps {
@@ -176,10 +177,10 @@ function ChatPanel({ onClose }: { onClose?: () => void }) {
             Get placement, mix, labor, and ready-mix guidance tied to your projects.
           </p>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => navigate('/login')}>
+            <Button variant="outline" onClick={() => goToAppAuth('/login', navigate)}>
               Sign In
             </Button>
-            <Button onClick={() => navigate('/signup')}>Create Account</Button>
+            <Button onClick={() => goToAppAuth('/signup', navigate)}>Create Account</Button>
           </div>
         </div>
       </div>

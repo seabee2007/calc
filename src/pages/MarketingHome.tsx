@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { goToAppAuth } from '../config/brand';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { AUTH_ACCENT } from '../components/auth/authBrandTheme';
@@ -63,7 +64,7 @@ export default function MarketingHome() {
                   variant="accent"
                   fullWidth
                   className="sm:w-auto"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => goToAppAuth('/signup', navigate)}
                   icon={<LayoutDashboard size={20} />}
                 >
                   Get started
@@ -73,7 +74,7 @@ export default function MarketingHome() {
                   variant="outline"
                   fullWidth
                   className="border-white/20 bg-white/5 text-white hover:bg-white/10 sm:w-auto"
-                  onClick={() => navigate('/login')}
+                  onClick={() => goToAppAuth('/login', navigate)}
                 >
                   Sign in
                 </Button>
@@ -113,7 +114,13 @@ export default function MarketingHome() {
               >
                 <button
                   type="button"
-                  onClick={() => navigate(feature.path)}
+                  onClick={() => {
+                    if (feature.path === '/signup' || feature.path === '/login') {
+                      goToAppAuth(feature.path, navigate);
+                      return;
+                    }
+                    navigate(feature.path);
+                  }}
                   className={AUTH_ACCENT.featureCardHover}
                 >
                   <div className={AUTH_ACCENT.featureIconBox}>

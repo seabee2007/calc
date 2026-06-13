@@ -35,7 +35,7 @@ export default class RootErrorBoundary extends React.Component<
         <div className="flex min-h-screen items-center justify-center bg-white p-6 dark:bg-slate-950">
           <div className="max-w-md text-center">
             <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
-              Something went wrong loading Concrete Calc.
+              Something went wrong loading Arden Project OS.
             </h1>
             <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
               Please refresh or contact support.

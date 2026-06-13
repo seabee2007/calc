@@ -8,7 +8,7 @@ import {
   Network,
 } from 'lucide-react';
 
-export const MARKETING_HERO_TITLE = 'Concrete Calc Project Management Suite';
+export const MARKETING_HERO_TITLE = 'Arden Project OS Project Management Suite';
 
 export const MARKETING_HERO_SUBTITLE =
   'Estimate work, build schedules, manage RFIs, track field activity, and control project execution from one professional workspace.';

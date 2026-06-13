@@ -18,7 +18,7 @@ export function addCompanyHeader(
 ) {
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(company.companyName || 'Concrete Calc', margin, y.value);
+  doc.text(company.companyName || 'Arden Project OS', margin, y.value);
   y.value += 7;
 
   doc.setFontSize(9);

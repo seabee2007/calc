@@ -1,13 +1,14 @@
-const DEFAULT_SHARE_ORIGIN = 'https://app.concrete-calc.com';
+import { APP_URL, normalizeUrlBase } from '../config/brand';
 
 const UNSAFE_PATH_PREFIXES = ['/auth/callback', '/login', '/signup', '/reset-password'];
 
 export function getAppShareOrigin(): string {
-  const fromEnv = import.meta.env.VITE_APP_SHARE_ORIGIN;
+  const fromEnv =
+    import.meta.env.VITE_APP_SHARE_ORIGIN ?? import.meta.env.VITE_APP_URL;
   if (typeof fromEnv === 'string' && fromEnv.trim()) {
-    return fromEnv.trim().replace(/\/$/, '');
+    return normalizeUrlBase(fromEnv);
   }
-  return DEFAULT_SHARE_ORIGIN;
+  return normalizeUrlBase(APP_URL);
 }
 
 export function getSafeShareUrl(pathname?: string): string {
@@ -96,19 +97,19 @@ export function buildMailtoLink(options: {
   return `mailto:${encodeURIComponent(recipient)}?${query}`;
 }
 
-export const APP_SHARE_EMAIL_SUBJECT = 'Concrete Calc Project Management Suite';
+export const APP_SHARE_EMAIL_SUBJECT = 'Arden Project OS Project Management Suite';
 
 export function buildAppShareEmailBody(url?: string): string {
   const link = url ?? getAppShareOrigin();
   return [
-    'I wanted to share Concrete Calc with you. It is a professional construction project management workspace for estimates, proposals, schedules, and field tracking.',
+    'I wanted to share Arden Project OS with you. It is a professional construction project management workspace for estimates, proposals, schedules, and field tracking.',
     '',
     'Open it here:',
     link,
   ].join('\n');
 }
 
-export const PROJECT_INVITE_EMAIL_SUBJECT = "You're invited to Concrete Calc";
+export const PROJECT_INVITE_EMAIL_SUBJECT = "You're invited to Arden Project OS";
 
 export function buildProjectInviteEmailBody(options: {
   inviteeName?: string;
@@ -121,7 +122,7 @@ export function buildProjectInviteEmailBody(options: {
   return [
     greeting,
     '',
-    "I'd like to invite you to Concrete Calc, a professional construction project management workspace for estimates, proposals, schedules, and project tracking.",
+    "I'd like to invite you to Arden Project OS, a professional construction project management workspace for estimates, proposals, schedules, and project tracking.",
     '',
     'Open your invite here:',
     options.inviteUrl,

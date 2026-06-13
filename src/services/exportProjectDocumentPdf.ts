@@ -167,7 +167,7 @@ export async function exportProjectDocumentPdf(
         assembly,
         risk,
         {
-          companyName: company.legalName || companySettings.companyName || 'Concrete Calc',
+          companyName: company.legalName || companySettings.companyName || 'Arden Project OS',
           address: company.address || companySettings.address || '',
           phone: company.phone || companySettings.phone || '',
           email: company.email || companySettings.email,

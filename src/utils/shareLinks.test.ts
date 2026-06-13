@@ -8,7 +8,7 @@ import {
 
 describe('shareLinks', () => {
   beforeEach(() => {
-    vi.stubEnv('VITE_APP_SHARE_ORIGIN', 'https://app.concrete-calc.com');
+    vi.stubEnv('VITE_APP_SHARE_ORIGIN', 'https://app.ardenprojectos.com');
   });
 
   afterEach(() => {
@@ -17,19 +17,19 @@ describe('shareLinks', () => {
   });
 
   it('getAppShareOrigin uses env with fallback', () => {
-    expect(getAppShareOrigin()).toBe('https://app.concrete-calc.com');
+    expect(getAppShareOrigin()).toBe('https://app.ardenprojectos.com');
   });
 
   it('getSafeShareUrl does not share localhost', () => {
-    expect(getSafeShareUrl('/projects')).toBe('https://app.concrete-calc.com/projects');
-    expect(getSafeShareUrl('/')).toBe('https://app.concrete-calc.com');
+    expect(getSafeShareUrl('/projects')).toBe('https://app.ardenprojectos.com/projects');
+    expect(getSafeShareUrl('/')).toBe('https://app.ardenprojectos.com');
   });
 
   it('getSafeShareUrl replaces unsafe auth paths with app root', () => {
-    expect(getSafeShareUrl('/login')).toBe('https://app.concrete-calc.com');
-    expect(getSafeShareUrl('/signup')).toBe('https://app.concrete-calc.com');
-    expect(getSafeShareUrl('/reset-password')).toBe('https://app.concrete-calc.com');
-    expect(getSafeShareUrl('/auth/callback')).toBe('https://app.concrete-calc.com');
+    expect(getSafeShareUrl('/login')).toBe('https://app.ardenprojectos.com');
+    expect(getSafeShareUrl('/signup')).toBe('https://app.ardenprojectos.com');
+    expect(getSafeShareUrl('/reset-password')).toBe('https://app.ardenprojectos.com');
+    expect(getSafeShareUrl('/auth/callback')).toBe('https://app.ardenprojectos.com');
   });
 
   it('shareOrCopy falls back to clipboard when navigator.share is unavailable', async () => {
@@ -44,13 +44,13 @@ describe('shareLinks', () => {
     });
 
     const result = await shareOrCopy({
-      title: 'Concrete Calc',
-      text: 'Try Concrete Calc',
-      url: 'https://app.concrete-calc.com',
+      title: 'Arden Project OS',
+      text: 'Try Arden Project OS',
+      url: 'https://app.ardenprojectos.com',
     });
 
     expect(result).toBe('copied');
-    expect(writeText).toHaveBeenCalledWith('https://app.concrete-calc.com');
+    expect(writeText).toHaveBeenCalledWith('https://app.ardenprojectos.com');
   });
 
   it('shareOrCopy returns cancelled when user aborts native share', async () => {
@@ -59,7 +59,7 @@ describe('shareLinks', () => {
       value: vi.fn().mockRejectedValue(Object.assign(new Error('cancelled'), { name: 'AbortError' })),
     });
 
-    const result = await shareOrCopy({ url: 'https://app.concrete-calc.com' });
+    const result = await shareOrCopy({ url: 'https://app.ardenprojectos.com' });
     expect(result).toBe('cancelled');
   });
 
@@ -70,7 +70,7 @@ describe('shareLinks', () => {
       value: { writeText },
     });
 
-    await expect(copyToClipboard('https://app.concrete-calc.com')).resolves.toBe(true);
-    expect(writeText).toHaveBeenCalledWith('https://app.concrete-calc.com');
+    await expect(copyToClipboard('https://app.ardenprojectos.com')).resolves.toBe(true);
+    expect(writeText).toHaveBeenCalledWith('https://app.ardenprojectos.com');
   });
 });

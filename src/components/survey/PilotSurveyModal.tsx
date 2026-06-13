@@ -234,7 +234,7 @@ export default function PilotSurveyModal({ isOpen, onClose }: PilotSurveyModalPr
                   Pilot Program
                 </p>
                 <h2 className="mt-1 text-xl font-semibold text-white sm:text-2xl">
-                  Concrete Calc Pilot Survey
+                  Arden Project OS Pilot Survey
                 </h2>
               </div>
               <button
@@ -292,7 +292,7 @@ export default function PilotSurveyModal({ isOpen, onClose }: PilotSurveyModalPr
                         />
                       </div>
                       <div>
-                        <FieldLabel>What kind of project did you test in Concrete Calc?</FieldLabel>
+                        <FieldLabel>What kind of project did you test in Arden Project OS?</FieldLabel>
                         <SurveyTextarea
                           value={form.testedProjectType}
                           onChange={(value) => setField('testedProjectType', value)}

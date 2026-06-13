@@ -36,7 +36,7 @@ function mkSheet(rows: (string | number | null)[][]): XLSX.WorkSheet {
 
 function buildSummarySheet(data: AccountingExportData): XLSX.WorkSheet {
   const rows: (string | number | null)[][] = [
-    ['Concrete Calc — CPA Workbook'],
+    ['Arden Project OS — CPA Workbook'],
     ['Schedule C style summary — not an official IRS form'],
     [],
     ['Tax Year', data.taxYear],
@@ -184,7 +184,7 @@ function buildTaxCategoryMappingSheet(data: AccountingExportData): XLSX.WorkShee
 
 function buildNotesSheet(data: AccountingExportData): XLSX.WorkSheet {
   const rows: (string | number)[][] = [
-    ['Concrete Calc — Accounting & Tax Prep Package'],
+    ['Arden Project OS — Accounting & Tax Prep Package'],
     ['Notes & Assumptions'],
     [],
     ['Generated', new Date().toISOString()],
@@ -195,13 +195,13 @@ function buildNotesSheet(data: AccountingExportData): XLSX.WorkSheet {
     [SCHEDULE_C_DISCLAIMER],
     [],
     ['DATA SOURCES'],
-    ['Revenue data sourced from accepted proposals in Concrete Calc.'],
+    ['Revenue data sourced from accepted proposals in Arden Project OS.'],
     ['Cost data are job-cost estimates from proposal pricing records.'],
     ['Equipment and subcontractor costs may be combined with labor/materials.'],
     ['Change order data sourced from accepted change order records.'],
     [],
     ['NOT INCLUDED IN THIS EXPORT'],
-    ['• Actual vendor invoices or bills (not tracked in Concrete Calc Phase 1)'],
+    ['• Actual vendor invoices or bills (not tracked in Arden Project OS Phase 1)'],
     ['• Partial payments or payment schedules beyond paid_at / deposit_paid_at timestamps'],
     ['• Overhead, insurance, vehicle, and other indirect expenses (not tracked)'],
     ['• Federal, state, or payroll tax calculations'],

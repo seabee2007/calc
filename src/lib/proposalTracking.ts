@@ -6,6 +6,7 @@ import type { ProposalFinancialFields } from '../types/proposalTracking';
 import type { TrackedProposalRow } from '../types/proposalTracking';
 import { computeProposalFinancials } from '../utils/proposalFinancials';
 import type { ProposalData } from '../types/proposal';
+import { getAppUrl, isMarketingHost } from '../config/brand';
 
 function trackProposalRow(row: Record<string, unknown>): TrackedProposalRow {
   const normalized = normalizeProposal(row);
@@ -26,7 +27,11 @@ const TIMESTAMP_COLUMN: Record<ProposalStatus, string | null> = {
 };
 
 export function getPublicProposalUrl(publicToken: string): string {
-  return `${window.location.origin}/proposal/${publicToken}`;
+  const origin =
+    typeof window !== 'undefined' && !isMarketingHost()
+      ? window.location.origin
+      : getAppUrl();
+  return `${origin}/proposal/${publicToken}`;
 }
 
 export async function updateProposalStatus(

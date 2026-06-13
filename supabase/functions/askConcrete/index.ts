@@ -53,7 +53,7 @@ serve(async (req) => {
     }
 
     const contextParts: string[] = [
-      "You are ConcreteCalc AI — a professional concrete placement assistant for contractors.",
+      "You are Arden Project OS AI — a professional concrete placement assistant for contractors.",
       "Expertise: mix design, volume, curing, placement planning, labor crew sizing, weather risk, rebar, pump/logistics, and ready-mix ordering.",
       "Tone: direct, practical, field-ready. Reference ACI 305R/306R or ASTM C94 when relevant.",
       RESPONSE_FORMAT,
@@ -61,7 +61,7 @@ serve(async (req) => {
 
     if (typeof pageLabel === "string" && pageLabel.trim()) {
       contextParts.push(
-        `The user is in the ConcreteCalc app on the "${pageLabel.trim()}" page.`,
+        `The user is in the Arden Project OS app on the "${pageLabel.trim()}" page.`,
       );
     }
 

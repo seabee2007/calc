@@ -137,7 +137,7 @@ export default function EstimateImportModal({ isOpen, saving, onClose, onApply }
     <Modal isOpen={isOpen} onClose={handleClose} title="Import estimate" size="lg">
       <div className="space-y-4">
         <p className={`text-sm ${TEXT_BODY}`}>
-          Upload a Concrete Calc Bid Estimate Template file (.xlsx or .csv). Imported rows become
+          Upload a Arden Project OS Bid Estimate Template file (.xlsx or .csv). Imported rows become
           normal estimate divisions and line items with structured activity codes.
         </p>
 

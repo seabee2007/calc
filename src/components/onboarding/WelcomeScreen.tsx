@@ -61,7 +61,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
               className="absolute inset-0 flex items-center justify-center"
             >
               <h1 className={`text-6xl font-bold sm:text-7xl md:text-8xl ${ONBOARDING_BRAND_GRADIENT}`}>
-                Concrete Calc
+                Arden Project OS
               </h1>
             </motion.div>
           )}
@@ -84,7 +84,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
                   transition={{ delay: 0.3, duration: 0.6 }}
                   className={ONBOARDING_TITLE}
                 >
-                  Welcome to Concrete Calc
+                  Welcome to Arden Project OS
                 </motion.h2>
 
                 <motion.p

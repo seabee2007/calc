@@ -133,7 +133,7 @@ function amountStr(v: number | null): string {
 
 export function buildScheduleCSummaryCsvContent(summary: ScheduleCSummary): string {
   let csv = '';
-  csv += csvRow('Concrete Calc — Schedule C Style Summary');
+  csv += csvRow('Arden Project OS — Schedule C Style Summary');
   csv += csvRow(`Tax Year: ${summary.taxYear}`);
   csv += csvRow(`Entity Type: ${summary.entityType}`);
   csv += csvRow(`Accounting Method: ${summary.accountingMethod}`);
@@ -195,7 +195,7 @@ export async function downloadScheduleCSummaryPdf(
   // Title
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Concrete Calc — ${SCHEDULE_C_LABEL}`, margin, y);
+  doc.text(`Arden Project OS — ${SCHEDULE_C_LABEL}`, margin, y);
   y += 22;
 
   doc.setFontSize(10);
