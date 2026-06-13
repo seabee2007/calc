@@ -1,92 +1,71 @@
 import React, { useState } from 'react';
-import { Calculator } from 'lucide-react';
 import Modal from '../ui/Modal';
 import TermsOfService from '../legal/TermsOfService';
 import PrivacyPolicy from '../legal/PrivacyPolicy';
 import ContactUs from '../legal/ContactUs';
 import { BRAND_NAME } from '../../config/brand';
 
+const legalLinkClassName =
+  'text-slate-400 transition-colors hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07111d]';
+
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showContact, setShowContact] = useState(false);
-  
+
   return (
-    <footer className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-t border-gray-200 dark:border-gray-800 w-full mt-auto">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8" style={{
-        paddingLeft: 'max(env(safe-area-inset-left), 1rem)',
-        paddingRight: 'max(env(safe-area-inset-right), 1rem)',
-        paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)'
-      }}>
-        <div className="flex flex-col items-center space-y-4">
-          <div className="flex items-center">
-            <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">{BRAND_NAME}</span>
-          </div>
+    <footer
+      className="relative mt-auto w-full border-t border-white/10 bg-[#07111d]/90 px-6 py-8 text-center backdrop-blur-md sm:py-10"
+      style={{
+        paddingLeft: 'max(env(safe-area-inset-left), 1.5rem)',
+        paddingRight: 'max(env(safe-area-inset-right), 1.5rem)',
+        paddingBottom: 'max(env(safe-area-inset-bottom), 2rem)',
+      }}
+    >
+      <div
+        className="pointer-events-none absolute left-1/2 top-8 h-24 w-80 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl"
+        aria-hidden="true"
+      />
 
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-            Built for construction professionals.
-          </p>
-          
-          <div className="flex flex-col md:flex-row md:space-x-8 text-sm text-gray-600 dark:text-gray-400 items-center">
-          <button
-  type="button"
-  onClick={() => setShowTerms(true)}
-  className="hover:text-blue-600 dark:hover:text-blue-400 mb-2 md:mb-0"
->
-  Terms of Service
-</button>
+      <div className="relative mx-auto max-w-4xl">
+        <img
+          src="/images/ARDEN-removebg-preview.png"
+          alt="Arden Project OS"
+          className="mx-auto h-auto w-[240px] max-w-[80vw] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)] sm:w-[260px]"
+        />
 
-<button
-  type="button"
-  onClick={() => setShowPrivacy(true)}
-  className="hover:text-blue-600 dark:hover:text-blue-400 mb-2 md:mb-0"
->
-  Privacy Policy
-</button>
+        <p className="mt-3 text-sm text-slate-400 sm:text-base">Built for construction professionals.</p>
 
-<button
-  type="button"
-  onClick={() => setShowContact(true)}
-  className="hover:text-blue-600 dark:hover:text-blue-400"
->
-  Contact Us
-</button>
-          </div>
-          
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-800 w-full">
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              © {currentYear} {BRAND_NAME}. All rights reserved.
-            </p>
-          </div>
+        <nav
+          className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-slate-400"
+          aria-label="Legal"
+        >
+          <button type="button" onClick={() => setShowTerms(true)} className={legalLinkClassName}>
+            Terms of Service
+          </button>
+          <button type="button" onClick={() => setShowPrivacy(true)} className={legalLinkClassName}>
+            Privacy Policy
+          </button>
+          <button type="button" onClick={() => setShowContact(true)} className={legalLinkClassName}>
+            Contact Us
+          </button>
+        </nav>
+
+        <div className="mt-6 border-t border-white/10 pt-4 text-xs text-slate-500">
+          © {currentYear} {BRAND_NAME}. All rights reserved.
         </div>
       </div>
 
-      <Modal
-        isOpen={showTerms}
-        onClose={() => setShowTerms(false)}
-        title="Terms of Service"
-        size="lg"
-      >
+      <Modal isOpen={showTerms} onClose={() => setShowTerms(false)} title="Terms of Service" size="lg">
         <TermsOfService />
       </Modal>
 
-      <Modal
-        isOpen={showPrivacy}
-        onClose={() => setShowPrivacy(false)}
-        title="Privacy Policy"
-        size="lg"
-      >
+      <Modal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} title="Privacy Policy" size="lg">
         <PrivacyPolicy />
       </Modal>
 
-      <Modal
-        isOpen={showContact}
-        onClose={() => setShowContact(false)}
-        title="Contact Us"
-        size="md"
-      >
+      <Modal isOpen={showContact} onClose={() => setShowContact(false)} title="Contact Us" size="md">
         <ContactUs />
       </Modal>
     </footer>
