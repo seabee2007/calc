@@ -35,8 +35,11 @@ const TAX_APPLICATION_OPTIONS: { value: TaxApplication; label: string }[] = [
   { value: 'entire_project', label: 'Entire Project' },
 ];
 
-const groupClass = 'rounded-xl border border-slate-700/70 bg-slate-950/40 p-4';
-const groupTitleClass = 'mb-3 text-sm font-semibold text-slate-100';
+import { TEXT_FOREGROUND } from '../../theme/appTheme';
+
+const groupClass =
+  'rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/70 dark:bg-slate-950/40';
+const groupTitleClass = `mb-3 text-sm font-semibold ${TEXT_FOREGROUND}`;
 
 interface PricingParamsEditorProps {
   params: PricingParams;

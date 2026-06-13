@@ -7,7 +7,7 @@ import StandardPricingBreakdown from '../pricing/StandardPricingBreakdown';
 import { computeProposalBreakdown, defaultProposalPricingIndirect } from '../../utils/proposalPricing';
 import { hydratePricingParams } from '../../utils/pricingParams';
 import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
-import { PREMIUM_INNER_PANEL, TEXT_MUTED } from '../../theme/appTheme';
+import { PREMIUM_INNER_PANEL, TEXT_ACCENT, TEXT_FOREGROUND, TEXT_MUTED } from '../../theme/appTheme';
 
 interface ProposalPricingEditorProps {
   laborItems: ChangeOrderLineItem[];
@@ -103,11 +103,11 @@ export default function ProposalPricingEditor({
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   {card.label}
                 </p>
-                <p className="mt-1 text-lg font-bold text-slate-100">
+                <p className={`mt-1 text-lg font-bold ${TEXT_FOREGROUND}`}>
                   {formatChangeOrderMoney(card.value)}
                 </p>
               </div>
-              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold text-cyan-300">
+              <span className={`rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold ${TEXT_ACCENT}`}>
                 {card.count} line{card.count === 1 ? '' : 's'}
               </span>
             </div>
@@ -120,7 +120,7 @@ export default function ProposalPricingEditor({
 
       <section className={`${PREMIUM_INNER_PANEL} space-y-4 p-4`}>
         <div>
-          <h3 className="font-semibold text-slate-100">Estimate lines</h3>
+          <h3 className={`font-semibold ${TEXT_FOREGROUND}`}>Estimate lines</h3>
           <p className={`text-sm ${TEXT_MUTED}`}>
             Imported or manually entered cost lines grouped by trade category.
           </p>
@@ -157,7 +157,7 @@ export default function ProposalPricingEditor({
 
       <section className={`${PREMIUM_INNER_PANEL} p-4`}>
         <div className="mb-4">
-          <h3 className="font-semibold text-slate-100">Pricing controls</h3>
+          <h3 className={`font-semibold ${TEXT_FOREGROUND}`}>Pricing controls</h3>
           <p className={`text-sm ${TEXT_MUTED}`}>
             Adjust cost allowances, tax, fees, permits, margin, and overhead.
           </p>
@@ -170,7 +170,7 @@ export default function ProposalPricingEditor({
       </section>
 
       <StandardPricingBreakdown breakdown={breakdown} />
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className={`text-xs ${TEXT_MUTED}`}>
         Clients see only the total proposal price — internal costs are not shown.
       </p>
     </div>

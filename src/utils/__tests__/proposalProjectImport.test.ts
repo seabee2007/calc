@@ -9,6 +9,9 @@ import {
   importProjectIntoProposal,
   resolveProjectScopeOfWork,
 } from '../proposalProjectImport';
+import { buildProposalImportFromCurrentEstimate, type CurrentEstimateImportContext } from '../proposalCurrentEstimateImport';
+import * as constructionActivityEstimateTotals from '../../features/estimating/application/constructionActivityEstimateTotals';
+import { vi } from 'vitest';
 
 const baseProposal = (): ProposalData => ({
   businessName: 'Acme Concrete',
@@ -97,5 +100,134 @@ describe('proposalProjectImport', () => {
     expect(imported.clientEmail).toBe('override@proposal.com');
     expect(imported.projectTitle).toBe('Custom Title');
     expect(imported.clientName).toBe('Jane Client');
+  });
+
+  it('imports legacy calculator pricing when no current estimate import is provided', () => {
+    const project = {
+      ...sampleProject(),
+      calculations: [
+        {
+          result: { pricing: { concreteCost: 1500 }, volume: 12 },
+          type: 'slab',
+          psi: '4000',
+        },
+      ],
+    } as Project;
+
+    const imported = importProjectIntoProposal(baseProposal(), project, {
+      importPricing: true,
+      overwriteEmptyOnly: false,
+    });
+
+    expect(imported.materialItems?.length).toBeGreaterThan(0);
+    expect(imported.importedEstimateSummary).toBeUndefined();
+  });
+
+  it('imports current estimate pricing when currentEstimateImport is provided', () => {
+    vi.spyOn(
+      constructionActivityEstimateTotals,
+      'calculateEstimateTotalsFromConstructionActivities',
+    ).mockReturnValue({
+      totalActivities: 1,
+      totalManHours: 40,
+      laborCost: 4456.28,
+      materialCost: 1688.78,
+      equipmentCost: 600,
+      subcontractorCost: 0,
+      indirectCost: 1551.36,
+      directCostSubtotal: 6745.06,
+      contingencyPercent: 12,
+      contingencyAmount: 1529.78,
+      overheadPercent: 10,
+      overheadAmount: 809.41,
+      profitPercent: 15,
+      profitAmount: 1092.7,
+      taxPercent: 8,
+      taxAmount: 1641.96,
+      grandTotal: 13370.27,
+    });
+
+    const context: CurrentEstimateImportContext = {
+      estimate: {
+        id: 'est-1',
+        projectId: 'project-1',
+        estimateType: 'detailed',
+        estimateTypeLabel: 'Detailed',
+        schedulingEnabled: true,
+        estimateModeConfig: null,
+        pricingMode: null,
+        status: 'draft',
+        selectedDivisions: [],
+        lineItems: [],
+        totals: {},
+        summary: {},
+        assumptions: {
+          estimateSettings: {
+            overheadPercent: 10,
+            profitPercent: 15,
+            contingencyPercent: 12,
+            taxPercent: 8,
+          },
+        },
+        createdBy: null,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+      activities: [
+        {
+          id: 'act-1',
+          projectId: 'project-1',
+          divisionCode: '03',
+          divisionName: 'Concrete',
+          activityCode: '03-01-01',
+          title: 'Place Slab',
+          scheduleEnabled: true,
+          crewSize: 4,
+          hoursPerDay: 8,
+          productionFactor: 1,
+          calculatedManHours: 120,
+          totalLaborCost: 4456.28,
+        },
+      ],
+      lineItemsByActivityId: new Map(),
+      materialResources: [
+        {
+          id: 'mat-1',
+          activityId: 'act-1',
+          projectId: 'project-1',
+          name: 'Concrete mix',
+          quantity: 10,
+          unit: 'CY',
+          unitCost: 168.878,
+          totalCost: 1688.78,
+          sourceProvider: 'manual',
+        },
+      ],
+      equipmentResources: [
+        {
+          id: 'equip-1',
+          activityId: 'act-1',
+          projectId: 'project-1',
+          name: 'Pump truck',
+          quantity: 1,
+          unit: 'day',
+          unitCost: 600,
+          totalCost: 600,
+          sourceProvider: 'manual',
+        },
+      ],
+    };
+
+    const currentEstimateImport = buildProposalImportFromCurrentEstimate(context);
+    const imported = importProjectIntoProposal(baseProposal(), sampleProject(), {
+      importPricing: true,
+      overwriteEmptyOnly: false,
+      currentEstimateImport,
+    });
+
+    expect(imported.laborItems?.length).toBeGreaterThan(0);
+    expect(imported.materialItems?.length).toBeGreaterThan(0);
+    expect(imported.equipmentItems?.length).toBeGreaterThan(0);
+    expect(imported.importedEstimateSummary?.finalSellPrice).toBe(13370.27);
   });
 });

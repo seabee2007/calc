@@ -121,6 +121,8 @@ export interface ChangeOrderPricingBreakdown {
   markupPercent: number;
   markupAmount: number;
   indirectCost: number;
+  /** Estimate indirect cost dollars when imported from current estimate rollup. */
+  importedIndirectCost?: number;
   totalPrice: number;
 }
 

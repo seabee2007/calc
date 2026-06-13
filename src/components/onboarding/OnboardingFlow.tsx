@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import WelcomeScreen from './WelcomeScreen';
 import { useSettingsStore } from '../../store';
 import { useThemeStore } from '../../store/themeStore';
+import { isValidUsPhoneNumber } from '../../utils/phoneFormatting';
 import OnboardingStep from './OnboardingStep';
 import OnboardingShell from './OnboardingShell';
 import ThemeSelector from './ThemeSelector';
@@ -27,6 +28,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const { updateCompanySettings } = useSettingsStore();
   const { isDark, toggleTheme } = useThemeStore();
   const [currentStep, setCurrentStep] = useState<OnboardingStepType>('welcome');
+  const [phoneError, setPhoneError] = useState<string | undefined>();
   const [formData, setFormData] = useState({
     companyName: '',
     email: '',
@@ -38,6 +40,10 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   });
 
   const handleInputChange = (value: string) => {
+    if (currentStep === 'phone') {
+      setPhoneError(undefined);
+    }
+
     setFormData(prev => ({
       ...prev,
       [currentStep === 'company-name' ? 'companyName' : 
@@ -48,6 +54,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const handleNext = async () => {
     const steps: OnboardingStepType[] = ['welcome', 'company-name', 'email', 'phone', 'address', 'license', 'motto', 'theme'];
     const currentIndex = steps.indexOf(currentStep);
+
+    if (currentStep === 'phone') {
+      const phone = formData.phone.trim();
+      if (phone && !isValidUsPhoneNumber(phone)) {
+        setPhoneError('Enter a valid 10-digit phone number or skip this step.');
+        return;
+      }
+      setPhoneError(undefined);
+    }
     
     if (currentIndex === steps.length - 1) {
       // Save all data
@@ -120,7 +135,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
       title: 'Phone Number',
       description: 'Enter your company phone number',
       placeholder: '(555) 123-4567',
-      required: true,
+      required: false,
       type: 'tel'
     },
     'address': {
@@ -191,6 +206,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
             type={stepConfig[currentStep].type}
             isLastStep={false}
             isAddressStep={currentStep === 'address'}
+            error={currentStep === 'phone' ? phoneError : undefined}
           />
         )}
       </AnimatePresence>

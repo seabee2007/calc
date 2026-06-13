@@ -1,5 +1,5 @@
 import type { ChangeOrderLineItem } from '../types/changeOrder';
-import type { ProposalData, ProposalPricingIndirect } from '../types/proposal';
+import type { ProposalData, ImportedEstimateSummary, ProposalPricingIndirect } from '../types/proposal';
 import type { CompanyTaxDefaults } from '../types/pricingParams';
 import {
   computePricingBreakdown,
@@ -104,13 +104,85 @@ export function resolveProposalIndirect(
   ) as ProposalPricingIndirect;
 }
 
+export function buildBreakdownFromImportedEstimateSummary(
+  summary: ImportedEstimateSummary,
+  params: ReturnType<typeof hydratePricingParams>,
+): ChangeOrderPricingBreakdown {
+  const laborTotal = summary.laborTotal;
+  const materialCostBase = summary.materialTotal;
+  const materialCostAdjusted = summary.materialTotal;
+  const equipmentTotal = summary.equipmentTotal;
+  const subcontractorTotal = summary.subcontractorTotal;
+  const importedIndirectCost = summary.indirectCostTotal;
+  const directCost = summary.directCost;
+  const contingencyPercent = summary.contingencyPercent ?? params.contingencyPercent;
+  const contingencyCost = summary.contingencyTotal;
+  const taxRatePercent = summary.taxPercent ?? params.taxRatePercent;
+  const taxCost = summary.taxTotal;
+  const overheadPercent = summary.overheadPercent ?? params.overheadPercent;
+  const overheadAmount = summary.overheadTotal;
+  const preTaxCost = directCost + contingencyCost;
+  const costBeforeOverhead = preTaxCost + taxCost;
+  const costWithOverhead = costBeforeOverhead + overheadAmount;
+  const totalEstimatedCost = costWithOverhead;
+  const grossProfit = summary.profitTotal;
+  const totalPrice = summary.finalSellPrice;
+  const targetMarginPercent = summary.targetMarginPercent ?? params.targetMarginPercent;
+  const grossMarginPercent =
+    totalPrice > 0 ? Math.round((grossProfit / totalPrice) * 10000) / 100 : 0;
+  const markupPercentReporting =
+    costWithOverhead > 0 ? Math.round((grossProfit / costWithOverhead) * 10000) / 100 : 0;
+
+  return {
+    pricingModel: 'standard',
+    laborTotal,
+    materialTotal: materialCostBase,
+    equipmentTotal,
+    subcontractorTotal,
+    materialCostBase,
+    wasteFactorPercent: params.wasteFactorPercent,
+    wasteCost: 0,
+    materialCostAdjusted,
+    directCost,
+    feesAmount: 0,
+    permitsAmount: params.permitsAmount,
+    contingencyPercent,
+    contingencyCost,
+    preTaxCost,
+    taxSystem: params.taxSystem,
+    taxRatePercent,
+    taxApplication: params.taxApplication,
+    taxCost,
+    costBeforeOverhead,
+    overheadPercent,
+    overheadAmount,
+    costWithOverhead,
+    totalEstimatedCost,
+    targetMarginPercent,
+    grossProfit,
+    grossMarginPercent,
+    markupPercentReporting,
+    profitPercent: summary.profitPercent ?? 0,
+    profitAmount: grossProfit,
+    markupPercent: 0,
+    markupAmount: 0,
+    indirectCost: grossProfit,
+    importedIndirectCost,
+    totalPrice,
+  };
+}
+
 export function computeProposalBreakdown(
   data: ProposalData,
   companyTax?: CompanyTaxDefaults,
 ): ChangeOrderPricingBreakdown {
+  const params = hydratePricingParams(data, companyTax);
+  if (data.importedEstimateSummary) {
+    return buildBreakdownFromImportedEstimateSummary(data.importedEstimateSummary, params);
+  }
+
   const { laborItems, materialItems, equipmentItems, subcontractorItems } =
     resolveProposalLineItems(data);
-  const params = hydratePricingParams(data, companyTax);
   return computePricingBreakdown(
     laborItems,
     materialItems,
@@ -120,8 +192,11 @@ export function computeProposalBreakdown(
   );
 }
 
-export function formatProposalTotal(data: ProposalData): string {
-  return formatChangeOrderMoney(computeProposalBreakdown(data).totalPrice);
+export function formatProposalTotal(data: ProposalData, companyTax?: CompanyTaxDefaults): string {
+  if (data.importedEstimateSummary?.finalSellPrice != null) {
+    return formatChangeOrderMoney(data.importedEstimateSummary.finalSellPrice);
+  }
+  return formatChangeOrderMoney(computeProposalBreakdown(data, companyTax).totalPrice);
 }
 
 export function hydrateProposalPricing(

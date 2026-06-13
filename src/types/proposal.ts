@@ -2,6 +2,26 @@ import type { USAddress } from './address';
 import type { ChangeOrderLineItem } from './changeOrder';
 import type { PricingParams } from './pricingParams';
 
+/** Rollup totals imported from the current project estimate (Costs & Markup source). */
+export interface ImportedEstimateSummary {
+  laborTotal: number;
+  materialTotal: number;
+  equipmentTotal: number;
+  subcontractorTotal: number;
+  indirectCostTotal: number;
+  directCost: number;
+  overheadTotal: number;
+  profitTotal: number;
+  contingencyTotal: number;
+  taxTotal: number;
+  finalSellPrice: number;
+  contingencyPercent?: number;
+  overheadPercent?: number;
+  profitPercent?: number;
+  taxPercent?: number;
+  targetMarginPercent?: number;
+}
+
 /** Pricing parameters stored on proposals (extends standard PricingParams). */
 export type ProposalPricingIndirect = PricingParams;
 
@@ -39,6 +59,8 @@ export interface ProposalData {
   equipmentItems?: ChangeOrderLineItem[];
   subcontractorItems?: ChangeOrderLineItem[];
   pricingIndirect?: ProposalPricingIndirect;
+  /** When set, proposal totals mirror the current estimate Costs & Markup rollup. */
+  importedEstimateSummary?: ImportedEstimateSummary;
   terms: string;
   preparedBy: string;
   preparedByTitle?: string;

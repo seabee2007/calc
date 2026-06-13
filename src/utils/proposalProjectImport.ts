@@ -11,6 +11,7 @@ import {
   getProjectEstimateSourceLabels,
   projectHasImportablePricing,
 } from './proposalPricingImport';
+import type { ProposalImportFromCurrentEstimate } from './proposalCurrentEstimateImport';
 import { hydrateProposalPricing } from './proposalPricing';
 import { proposalIndirectFromData } from '../components/proposals/ProposalPricingEditor';
 import { formatUSPhoneNumber } from './phoneFormat';
@@ -56,6 +57,8 @@ export interface ImportProjectIntoProposalOptions {
   overwriteEmptyOnly?: boolean;
   importPricing?: boolean;
   companySettings?: CompanyTaxSettings;
+  /** When provided, current estimate import takes priority over legacy calculator import. */
+  currentEstimateImport?: ProposalImportFromCurrentEstimate | null;
 }
 
 function shouldFill(current: string | undefined, overwriteEmptyOnly: boolean): boolean {
@@ -104,20 +107,44 @@ export function importProjectIntoProposal(
 
   next = mergeProjectJobsiteIntoClientAddress(next, project.jobsiteAddress);
 
-  if (options.importPricing && projectHasImportablePricing(project)) {
-    const lineItems = buildProposalLineItemsFromProject(project);
+  const shouldImportPricing =
+    options.importPricing &&
+    (options.currentEstimateImport || projectHasImportablePricing(project));
+
+  if (shouldImportPricing) {
     const companySettings = options.companySettings;
-    next = hydrateProposalPricing(
-      hydrateProposalAddresses({
-        ...next,
-        ...lineItems,
-        pricingIndirect: {
-          ...proposalIndirectFromData(next, companySettings),
-          wasteFactorPercent: project.wasteFactor ?? next.pricingIndirect?.wasteFactorPercent ?? 10,
-        },
-      }),
-      companySettings,
-    );
+    const currentEstimateImport = options.currentEstimateImport;
+
+    if (currentEstimateImport) {
+      next = hydrateProposalPricing(
+        hydrateProposalAddresses({
+          ...next,
+          laborItems: currentEstimateImport.laborItems,
+          materialItems: currentEstimateImport.materialItems,
+          equipmentItems: currentEstimateImport.equipmentItems,
+          subcontractorItems: currentEstimateImport.subcontractorItems,
+          importedEstimateSummary: currentEstimateImport.importedEstimateSummary,
+          pricingIndirect: {
+            ...proposalIndirectFromData(next, companySettings),
+            ...currentEstimateImport.pricingIndirect,
+          },
+        }),
+        companySettings,
+      );
+    } else {
+      const lineItems = buildProposalLineItemsFromProject(project);
+      next = hydrateProposalPricing(
+        hydrateProposalAddresses({
+          ...next,
+          ...lineItems,
+          pricingIndirect: {
+            ...proposalIndirectFromData(next, companySettings),
+            wasteFactorPercent: project.wasteFactor ?? next.pricingIndirect?.wasteFactorPercent ?? 10,
+          },
+        }),
+        companySettings,
+      );
+    }
   }
 
   return next;

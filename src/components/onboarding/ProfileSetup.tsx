@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Phone, MapPin, FileText, Save, ArrowLeft } from 'lucide-react';
 import Input from '../ui/Input';
 import { useSettingsStore } from '../../store';
+import { formatUsPhoneNumber, isValidUsPhoneNumber } from '../../utils/phoneFormatting';
 import OnboardingShell from './OnboardingShell';
 import OnboardingStepHeader from './OnboardingStepHeader';
 import {
@@ -30,23 +31,35 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
   const [formData, setFormData] = useState({
     companyName: companySettings.companyName || '',
     email: companySettings.email || '',
-    phone: companySettings.phone || '',
+    phone: formatUsPhoneNumber(companySettings.phone || ''),
     address: companySettings.address || '',
     licenseNumber: companySettings.licenseNumber || '',
     motto: companySettings.motto || '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | undefined>();
 
   const handleInputChange = (field: string, value: string) => {
+    const nextValue = field === 'phone' ? formatUsPhoneNumber(value) : value;
+    if (field === 'phone') {
+      setPhoneError(undefined);
+    }
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: nextValue,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const phone = formData.phone.trim();
+    if (phone && !isValidUsPhoneNumber(phone)) {
+      setPhoneError('Enter a valid 10-digit phone number or skip this step.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -137,10 +150,15 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack, onComplete }) => {
 
                 <Input
                   label="Phone Number"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   placeholder="(555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   icon={<Phone size={18} className="text-slate-400" />}
+                  maxLength={14}
+                  error={phoneError}
                   fullWidth
                   className={inputClassName}
                 />

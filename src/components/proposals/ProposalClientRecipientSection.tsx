@@ -6,6 +6,7 @@ import { EMPTY_US_ADDRESS, type USAddress } from '../../types/address';
 import { displayClientAddress } from '../../utils/proposalAddress';
 import { formatUSPhoneInput } from '../../utils/phoneFormat';
 import {
+  FORM_LABEL,
   FORM_TEXTAREA,
   PREMIUM_INNER_PANEL,
   PREMIUM_PANEL,
@@ -24,7 +25,7 @@ interface ProposalClientRecipientSectionProps {
 
 const SECTION_CARD = `${PREMIUM_PANEL} p-5 sm:p-6`;
 const SECTION_TITLE = `text-lg font-semibold ${TEXT_FOREGROUND}`;
-const INPUT_CLASS = `${FORM_TEXTAREA} border-slate-700/70 bg-slate-950/50 text-slate-100 placeholder:text-slate-500`;
+const INPUT_CLASS = FORM_TEXTAREA;
 
 const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionProps> = ({
   data,
@@ -45,7 +46,7 @@ const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionPro
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-200">
+          <label className={FORM_LABEL}>
             Client name
           </label>
           <input
@@ -58,7 +59,7 @@ const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionPro
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-200">
+          <label className={FORM_LABEL}>
             Company / organization
           </label>
           <input
@@ -70,7 +71,7 @@ const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionPro
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-200">
+          <label className={FORM_LABEL}>
             Client email
           </label>
           <input
@@ -86,7 +87,7 @@ const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionPro
           </p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-200">
+          <label className={FORM_LABEL}>
             Phone
           </label>
           <input
@@ -99,8 +100,8 @@ const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionPro
           />
         </div>
         <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-slate-200">
-            Address <span className="font-normal text-slate-500">(optional)</span>
+          <label className={FORM_LABEL}>
+            Address <span className={`font-normal ${TEXT_MUTED}`}>(optional)</span>
           </label>
           <div className={`${PREMIUM_INNER_PANEL} p-4`}>
             <USAddressFields

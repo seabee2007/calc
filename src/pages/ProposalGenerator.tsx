@@ -81,10 +81,13 @@ import {
   syncProposalAddressesForSave,
 } from '../utils/proposalAddress';
 import {
+  FORM_LABEL,
   FORM_TEXTAREA,
   FOCUS_RING,
   PREMIUM_INNER_PANEL,
   PREMIUM_PANEL,
+  TEXT_ACCENT,
+  TEXT_BODY,
   TEXT_FOREGROUND,
   TEXT_MUTED,
 } from '../theme/appTheme';
@@ -97,9 +100,9 @@ import { formatChangeOrderMoney } from '../utils/changeOrderFinancials';
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
 const PROPOSAL_PAGE_BG =
-  'bg-[#020817] bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020817_0%,#07111f_45%,#020817_100%)]';
+  'bg-slate-50 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_45%,#f8fafc_100%)] dark:bg-[#020817] dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020817_0%,#07111f_45%,#020817_100%)]';
 const PROPOSAL_PAGE_SHELL =
-  'relative min-h-screen w-full overflow-x-hidden text-slate-100';
+  'relative min-h-screen w-full overflow-x-hidden text-slate-900 dark:text-slate-100';
 
 const ProposalPageBackground: React.FC = () => (
   <div
@@ -107,12 +110,14 @@ const ProposalPageBackground: React.FC = () => (
     aria-hidden
   />
 );
-const PAGE_TITLE = 'text-3xl font-bold tracking-tight text-white sm:text-4xl';
-const PAGE_SUBTITLE = 'mt-2 max-w-3xl text-sm text-slate-300 sm:text-base';
+const PAGE_TITLE = `text-3xl font-bold tracking-tight ${TEXT_FOREGROUND} sm:text-4xl`;
+const PAGE_SUBTITLE = `mt-2 max-w-3xl text-sm ${TEXT_MUTED} sm:text-base`;
 const SECTION_CARD = `${PREMIUM_PANEL} p-5 sm:p-6`;
 const SECTION_TITLE = `text-lg font-semibold ${TEXT_FOREGROUND}`;
 const SECTION_HELP = `mt-1 text-sm ${TEXT_MUTED}`;
-const INPUT_CLASS = `${FORM_TEXTAREA} border-slate-700/70 bg-slate-950/50 text-slate-100 placeholder:text-slate-500`;
+const INPUT_CLASS = FORM_TEXTAREA;
+const OUTLINE_BUTTON_CLASS =
+  'border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
 
 const ProposalGenerator: React.FC = () => {
   const confirm = useConfirm();
@@ -1164,7 +1169,7 @@ const ProposalGenerator: React.FC = () => {
         <div className={PROPOSAL_PAGE_SHELL}>
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-center py-24">
             <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-cyan-400" />
-            <p className="mt-4 text-slate-300">Loading proposal...</p>
+            <p className={`mt-4 ${TEXT_MUTED}`}>Loading proposal...</p>
           </div>
         </div>
       </>
@@ -1182,8 +1187,8 @@ const ProposalGenerator: React.FC = () => {
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <WorkflowStepHeader />
         {inWorkflow && !workflowStepReady && (
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
-            <p className="text-sm text-slate-300">
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white/90 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-600/80 dark:bg-slate-900/90">
+            <p className={`text-sm ${TEXT_BODY}`}>
               Skip this step if you do not need a formal proposal {'\u2014'} you can return to the project
               and use concrete tools from Tools when needed.
             </p>
@@ -1202,9 +1207,9 @@ const ProposalGenerator: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-xl border border-cyan-700/40 bg-slate-900/90 p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center sm:justify-between"
+            className="mb-6 flex flex-col flex-wrap gap-3 rounded-xl border border-cyan-200 bg-cyan-50/80 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-cyan-700/40 dark:bg-slate-900/90"
           >
-            <p className="text-sm text-cyan-100/90">
+            <p className="text-sm text-cyan-900 dark:text-cyan-100/90">
               {showConcreteToolActions
                 ? 'Proposal saved. Open the project to continue, or use optional concrete tools first.'
                 : 'Proposal saved. Open the project to continue managing this job.'}
@@ -1241,23 +1246,23 @@ const ProposalGenerator: React.FC = () => {
             </div>
           </motion.div>
         )}
-        <div className="mb-8 flex flex-col gap-5 rounded-3xl border border-cyan-500/20 bg-slate-950/70 p-5 shadow-2xl shadow-cyan-950/20 backdrop-blur-xl sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-8 flex flex-col gap-5 rounded-3xl border border-cyan-200/80 bg-white/90 p-5 shadow-xl shadow-slate-200/60 backdrop-blur-xl dark:border-cyan-500/20 dark:bg-slate-950/70 dark:shadow-2xl dark:shadow-cyan-950/20 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300/80">
+            <nav className={`mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] ${TEXT_ACCENT}`}>
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="hover:text-cyan-200"
+                className="hover:text-cyan-800 dark:hover:text-cyan-200"
               >
                 Dashboard
               </button>
-              <span className="text-slate-600" aria-hidden>
+              <span className="text-slate-400 dark:text-slate-600" aria-hidden>
                 /
               </span>
               <button
                 type="button"
                 onClick={() => navigate('/proposals')}
-                className="hover:text-cyan-200"
+                className="hover:text-cyan-800 dark:hover:text-cyan-200"
               >
                 Proposals
               </button>
@@ -1308,7 +1313,7 @@ const ProposalGenerator: React.FC = () => {
                 })();
               }}
               icon={<ArrowLeft size={16} />}
-              className="border-slate-700 text-slate-200 hover:bg-slate-800"
+              className={OUTLINE_BUTTON_CLASS}
             >
               {isEditing ? 'Back' : 'Cancel'}
             </Button>
@@ -1327,7 +1332,7 @@ const ProposalGenerator: React.FC = () => {
               size="sm"
               onClick={() => setShowPreview(true)}
               icon={<FileText size={16} />}
-              className="border-slate-700 text-slate-200 hover:bg-slate-800"
+              className={OUTLINE_BUTTON_CLASS}
             >
               Preview
             </Button>
@@ -1337,7 +1342,7 @@ const ProposalGenerator: React.FC = () => {
               onClick={handleSendProposal}
               disabled={saving || !proposalTitle.trim()}
               icon={<Send size={16} />}
-              className="border-slate-700 text-slate-200 hover:bg-slate-800"
+              className={OUTLINE_BUTTON_CLASS}
             >
               Send to Client
             </Button>
@@ -1377,7 +1382,7 @@ const ProposalGenerator: React.FC = () => {
               </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-200">
+                  <label className={FORM_LABEL}>
                     Proposal title
                   </label>
                   <input
@@ -1393,7 +1398,7 @@ const ProposalGenerator: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={generateTitle}
-                    className="whitespace-nowrap border-slate-700 text-slate-200 hover:bg-slate-800"
+                    className={`whitespace-nowrap ${OUTLINE_BUTTON_CLASS}`}
                   >
                     Auto Generate
                   </Button>
@@ -1413,7 +1418,7 @@ const ProposalGenerator: React.FC = () => {
                     size="sm"
                     onClick={() => setShowPreview(true)}
                     icon={<FileText size={18} />}
-                    className="whitespace-nowrap border-slate-700 text-slate-200 hover:bg-slate-800"
+                    className={`whitespace-nowrap ${OUTLINE_BUTTON_CLASS}`}
                   >
                     Preview
                   </Button>
@@ -1423,7 +1428,7 @@ const ProposalGenerator: React.FC = () => {
                     onClick={handleSendProposal}
                     disabled={saving || !proposalTitle.trim()}
                     icon={<Send size={18} />}
-                    className="whitespace-nowrap border-slate-700 text-slate-200 hover:bg-slate-800"
+                    className={`whitespace-nowrap ${OUTLINE_BUTTON_CLASS}`}
                   >
                     Send to Client
                   </Button>
@@ -1452,19 +1457,19 @@ const ProposalGenerator: React.FC = () => {
                     className={[
                       'rounded-2xl border p-4 text-left transition-all',
                       selectedTemplate === key
-                        ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-950/30'
-                        : 'border-slate-700/70 bg-slate-950/40 hover:border-cyan-500/60 hover:bg-slate-900/80',
+                        ? 'border-cyan-500 bg-cyan-50 shadow-lg shadow-cyan-200/50 dark:border-cyan-400 dark:bg-cyan-500/10 dark:shadow-cyan-950/30'
+                        : 'border-slate-200 bg-white hover:border-cyan-400 hover:bg-cyan-50/50 dark:border-slate-700/70 dark:bg-slate-950/40 dark:hover:border-cyan-500/60 dark:hover:bg-slate-900/80',
                       FOCUS_RING,
                     ].join(' ')}
                   >
-                    <div className="mb-4 h-20 rounded-xl border border-slate-700/70 bg-slate-900/70 p-3">
-                      <div className="mb-2 h-2 w-20 rounded-full bg-cyan-400/70" />
-                      <div className="mb-2 h-2 w-full rounded-full bg-slate-700" />
-                      <div className="h-2 w-2/3 rounded-full bg-slate-700" />
+                    <div className="mb-4 h-20 rounded-xl border border-slate-200 bg-slate-100 p-3 dark:border-slate-700/70 dark:bg-slate-900/70">
+                      <div className="mb-2 h-2 w-20 rounded-full bg-cyan-500/70 dark:bg-cyan-400/70" />
+                      <div className="mb-2 h-2 w-full rounded-full bg-slate-300 dark:bg-slate-700" />
+                      <div className="h-2 w-2/3 rounded-full bg-slate-300 dark:bg-slate-700" />
                     </div>
-                    <h3 className="font-semibold text-slate-100">{template.name}</h3>
-                    <p className="mt-2 text-sm text-slate-300">{template.description}</p>
-                    <p className="mt-3 text-xs font-medium text-cyan-300">{template.bestFor}</p>
+                    <h3 className={`font-semibold ${TEXT_FOREGROUND}`}>{template.name}</h3>
+                    <p className={`mt-2 text-sm ${TEXT_BODY}`}>{template.description}</p>
+                    <p className={`mt-3 text-xs font-medium ${TEXT_ACCENT}`}>{template.bestFor}</p>
                   </button>
                 ))}
               </div>
@@ -1494,7 +1499,7 @@ const ProposalGenerator: React.FC = () => {
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 mt-5 block text-sm font-medium text-slate-200">Project Title</label>
+                  <label className={FORM_LABEL}>Project Title</label>
                   <input
                     type="text"
                     placeholder="Project Title"
@@ -1504,7 +1509,7 @@ const ProposalGenerator: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-200">Date</label>
+                  <label className={FORM_LABEL}>Date</label>
                   <input
                     type="text"
                     placeholder="Today's Date"
@@ -1514,7 +1519,7 @@ const ProposalGenerator: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-200">Introduction</label>
+                  <label className={FORM_LABEL}>Introduction</label>
                   <textarea
                     placeholder="Thank you for considering our team for your project. This proposal outlines the scope, schedule, pricing, and assumptions needed for a clear client-ready decision."
                     value={proposalData.introduction}
@@ -1524,7 +1529,7 @@ const ProposalGenerator: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-200">Scope of Work</label>
+                  <label className={FORM_LABEL}>Scope of Work</label>
                   <textarea
                     placeholder="Complete the project scope described in the estimate, including labor, materials, equipment, coordination, quality control, and closeout requirements."
                     value={proposalData.scope}
@@ -1564,7 +1569,7 @@ const ProposalGenerator: React.FC = () => {
                 {proposalData.timeline.map((item, index) => (
                   <div key={index} className={`${PREMIUM_INNER_PANEL} grid grid-cols-1 gap-3 p-4 md:grid-cols-4 md:items-end`}>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-200">Phase</label>
+                      <label className={FORM_LABEL}>Phase</label>
                       <input
                         type="text"
                         placeholder="Project Phase"
@@ -1574,7 +1579,7 @@ const ProposalGenerator: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-200">Start Date</label>
+                      <label className={FORM_LABEL}>Start Date</label>
                       <input
                         type="date"
                         placeholder="Start Date"
@@ -1584,7 +1589,7 @@ const ProposalGenerator: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-200">End Date</label>
+                      <label className={FORM_LABEL}>End Date</label>
                       <input
                         type="date"
                         placeholder="End Date"
@@ -1691,7 +1696,7 @@ const ProposalGenerator: React.FC = () => {
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 mt-5 block text-sm font-medium text-slate-200">Terms & Conditions</label>
+                  <label className={FORM_LABEL}>Terms & Conditions</label>
                   <textarea
                     placeholder="A 50% deposit is due upon acceptance of this proposal. Final payment is due upon completion. All work will be performed in accordance with the approved scope, project requirements, and applicable codes."
                     value={proposalData.terms}
@@ -1702,7 +1707,7 @@ const ProposalGenerator: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-200">Prepared By</label>
+                    <label className={FORM_LABEL}>Prepared By</label>
                     <input
                       type="text"
                       placeholder="Your Name"
@@ -1712,7 +1717,7 @@ const ProposalGenerator: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-200">Title (optional)</label>
+                    <label className={FORM_LABEL}>Title (optional)</label>
                     <input
                       type="text"
                       placeholder="Project Manager"

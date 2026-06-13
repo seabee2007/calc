@@ -3,9 +3,11 @@ import { FolderOpen, X } from 'lucide-react';
 import type { Project } from '../../types';
 import Button from '../ui/Button';
 import {
+  FORM_LABEL,
   FORM_TEXTAREA,
   PREMIUM_INNER_PANEL,
   PREMIUM_PANEL,
+  TEXT_BODY,
   TEXT_FOREGROUND,
   TEXT_MUTED,
 } from '../../theme/appTheme';
@@ -24,7 +26,7 @@ interface ProposalProjectSourcePanelProps {
 
 const SECTION_CARD = `${PREMIUM_PANEL} p-5 sm:p-6`;
 const SECTION_TITLE = `text-lg font-semibold ${TEXT_FOREGROUND}`;
-const INPUT_CLASS = `${FORM_TEXTAREA} border-slate-700/70 bg-slate-950/50 text-slate-100`;
+const INPUT_CLASS = FORM_TEXTAREA;
 
 const ProposalProjectSourcePanel: React.FC<ProposalProjectSourcePanelProps> = ({
   projects,
@@ -66,7 +68,7 @@ const ProposalProjectSourcePanel: React.FC<ProposalProjectSourcePanelProps> = ({
       </div>
 
       <div className="space-y-4">
-        <label className="block text-sm font-medium text-slate-200">
+        <label className={FORM_LABEL}>
           Project
         </label>
         <select
@@ -111,9 +113,9 @@ const ProposalProjectSourcePanel: React.FC<ProposalProjectSourcePanelProps> = ({
             className={`${PREMIUM_INNER_PANEL} p-4 text-sm`}
             data-testid="proposal-imported-project-status"
           >
-            <p className="font-medium text-slate-100">{selectedProject.name}</p>
+            <p className={`font-medium ${TEXT_FOREGROUND}`}>{selectedProject.name}</p>
             {selectedProject.clientInfo?.clientName && (
-              <p className="mt-1 text-slate-300">
+              <p className={`mt-1 ${TEXT_BODY}`}>
                 Client: {selectedProject.clientInfo.clientName}
               </p>
             )}
@@ -128,8 +130,8 @@ const ProposalProjectSourcePanel: React.FC<ProposalProjectSourcePanelProps> = ({
         <div className={`${PREMIUM_INNER_PANEL} p-4`} data-testid="proposal-import-summary">
           {importSummary.length === 0 ? (
             <div>
-              <p className="font-medium text-slate-100">Nothing imported yet</p>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className={`font-medium ${TEXT_FOREGROUND}`}>Nothing imported yet</p>
+              <p className={`mt-1 text-sm ${TEXT_MUTED}`}>
                 Choose a project and import the current estimate to populate proposal pricing.
               </p>
             </div>
@@ -138,10 +140,10 @@ const ProposalProjectSourcePanel: React.FC<ProposalProjectSourcePanelProps> = ({
               {importSummary.map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-xl border border-slate-700/70 bg-slate-950/50 p-3"
+                  className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700/70 dark:bg-slate-950/50"
                 >
-                  <p className="text-xs uppercase tracking-wide text-slate-500">{item.label}</p>
-                  <p className="mt-1 font-semibold text-slate-100">{item.value}</p>
+                  <p className={`text-xs uppercase tracking-wide ${TEXT_MUTED}`}>{item.label}</p>
+                  <p className={`mt-1 font-semibold ${TEXT_FOREGROUND}`}>{item.value}</p>
                 </div>
               ))}
             </div>

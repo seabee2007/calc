@@ -42,6 +42,7 @@ import {
   parseLegacyUSAddress,
   type USAddress,
 } from '../types/address';
+import { formatUsPhoneNumber } from '../utils/phoneFormatting';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -104,7 +105,7 @@ const Settings: React.FC = () => {
     setLocalCompanySettings({
       companyName: companySettings.companyName || '',
       address: companySettings.address || '',
-      phone: companySettings.phone || '',
+      phone: formatUsPhoneNumber(companySettings.phone || ''),
       email: companySettings.email || '',
       licenseNumber: companySettings.licenseNumber || '',
       motto: companySettings.motto || '',
@@ -259,18 +260,7 @@ const Settings: React.FC = () => {
   };
 
   const handlePhoneChange = (value: string) => {
-    // Remove all non-numeric characters
-    const numericValue = value.replace(/\D/g, '');
-    
-    // Format as (XXX) XXX-XXXX
-    let formattedValue = numericValue;
-    if (numericValue.length >= 6) {
-      formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3, 6)}-${numericValue.slice(6, 10)}`;
-    } else if (numericValue.length >= 3) {
-      formattedValue = `(${numericValue.slice(0, 3)}) ${numericValue.slice(3)}`;
-    }
-    
-    handleCompanyTextChange('phone', formattedValue);
+    handleCompanyTextChange('phone', formatUsPhoneNumber(value));
   };
 
   // Force save function for manual save or when auto-save is disabled
@@ -551,12 +541,13 @@ const Settings: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Phone Number"
+              type="tel"
               value={localCompanySettings.phone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               placeholder="(555) 123-4567"
               icon={<Phone size={16} />}
-              inputMode="numeric"
-              pattern="[0-9\s\(\)\-]*"
+              inputMode="tel"
+              autoComplete="tel"
               maxLength={14}
             />
             

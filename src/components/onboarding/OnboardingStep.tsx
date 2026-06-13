@@ -2,6 +2,7 @@ import React from 'react';
 import Input from '../ui/Input';
 import USAddressFields from '../address/USAddressFields';
 import { EMPTY_US_ADDRESS, type USAddress } from '../../types/address';
+import { formatUsPhoneNumber } from '../../utils/phoneFormatting';
 import OnboardingStepHeader from './OnboardingStepHeader';
 import OnboardingFooterNav from './OnboardingFooterNav';
 import { ONBOARDING_CARD, ONBOARDING_FIELD_GROUP, ONBOARDING_INPUT } from './onboardingTheme';
@@ -19,6 +20,7 @@ interface OnboardingStepProps {
   type?: string;
   isLastStep?: boolean;
   isAddressStep?: boolean;
+  error?: string;
 }
 
 function addressFromPipe(value: string): USAddress {
@@ -50,9 +52,11 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   type = 'text',
   isLastStep = false,
   isAddressStep = false,
+  error,
 }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    const nextValue = type === 'tel' ? formatUsPhoneNumber(e.target.value) : e.target.value;
+    onChange(nextValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -107,7 +111,10 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
                 placeholder={placeholder}
                 required={required}
                 autoFocus
+                autoComplete={type === 'tel' ? 'tel' : undefined}
+                inputMode={type === 'tel' ? 'tel' : undefined}
                 maxLength={type === 'tel' ? 14 : undefined}
+                error={error}
                 className={`${ONBOARDING_INPUT} !rounded-xl !border-white/10 !bg-slate-950/70 !px-4 !py-3 !text-lg !text-white placeholder:!text-slate-500 focus:!border-cyan-400/60 focus:!ring-2 focus:!ring-cyan-400/20 !shadow-none`}
               />
             )}

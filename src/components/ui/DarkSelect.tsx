@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { FORM_LABEL, FORM_HELPER } from '../../theme/appTheme';
 
 export interface DarkSelectOption {
   value: string;
@@ -18,17 +19,17 @@ interface DarkSelectProps {
 }
 
 const triggerClass =
-  'flex h-12 w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-left text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50';
+  'flex h-12 w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 text-left text-sm text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-100';
 
 const menuClass =
-  'absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-slate-700 bg-[#020817] py-1 shadow-xl shadow-black/40';
+  'absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-[#020817] dark:shadow-black/40';
 
 const optionClass = (selected: boolean, active: boolean) =>
   [
-    'cursor-pointer px-3 py-2 text-sm text-slate-100',
-    selected ? 'bg-cyan-500/20 text-cyan-100' : '',
-    active && !selected ? 'bg-slate-800' : '',
-    !selected && !active ? 'hover:bg-slate-800' : '',
+    'cursor-pointer px-3 py-2 text-sm text-slate-900 dark:text-slate-100',
+    selected ? 'bg-cyan-500/15 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-100' : '',
+    active && !selected ? 'bg-slate-100 dark:bg-slate-800' : '',
+    !selected && !active ? 'hover:bg-slate-100 dark:hover:bg-slate-800' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -133,7 +134,7 @@ const DarkSelect: React.FC<DarkSelectProps> = ({
       className={`${fullWidth ? 'w-full' : ''} ${className}`}
       data-testid={dataTestId}
     >
-      <span id={labelId} className="mb-2 block text-sm font-medium text-slate-200">
+      <span id={labelId} className={FORM_LABEL}>
         {label}
       </span>
 
@@ -152,7 +153,7 @@ const DarkSelect: React.FC<DarkSelectProps> = ({
           <span>{selectedLabel}</span>
           <ChevronDown
             size={16}
-            className={`shrink-0 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${isOpen ? 'rotate-180' : ''}`}
             aria-hidden
           />
         </button>
@@ -180,7 +181,7 @@ const DarkSelect: React.FC<DarkSelectProps> = ({
         ) : null}
       </div>
 
-      {helperText ? <p className="mt-1 text-xs text-slate-500">{helperText}</p> : null}
+      {helperText ? <p className={FORM_HELPER}>{helperText}</p> : null}
     </div>
   );
 };

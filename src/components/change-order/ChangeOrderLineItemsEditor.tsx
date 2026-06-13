@@ -61,7 +61,7 @@ export default function ChangeOrderLineItemsEditor({
         </Button>
       </div>
       {items.length === 0 && (
-        <p className="rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-3 py-2 text-xs text-slate-400">
+        <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-400">
           {emptyText ?? 'No line items yet.'}
         </p>
       )}
