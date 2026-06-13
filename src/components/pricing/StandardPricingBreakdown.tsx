@@ -16,9 +16,9 @@ function Row({
   return (
     <div
       className={[
-        'flex justify-between gap-4 text-sm tabular-nums',
-        bold ? 'font-semibold text-gray-900 dark:text-white' : '',
-        muted ? 'text-gray-600 dark:text-slate-400' : 'text-gray-800 dark:text-slate-200',
+        'flex justify-between gap-4 rounded-lg px-3 py-2 text-sm tabular-nums',
+        bold ? 'bg-slate-900/70 font-semibold text-white' : '',
+        muted ? 'text-slate-500' : 'text-slate-200',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -36,8 +36,8 @@ export default function StandardPricingBreakdown({
 }) {
   if (b.pricingModel === 'legacy') {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm dark:border-slate-600 dark:bg-slate-800/50">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+      <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4 text-sm">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
           Cost breakdown (legacy)
         </p>
         <div className="space-y-1">
@@ -78,8 +78,8 @@ export default function StandardPricingBreakdown({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm dark:border-slate-600 dark:bg-slate-800/50">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+      <div className="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4 text-sm">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
           Internal cost breakdown
         </p>
         <div className="space-y-1">
@@ -97,6 +97,13 @@ export default function StandardPricingBreakdown({
           )}
           <Row label="Fees" value={formatChangeOrderMoney(b.feesAmount)} muted />
           <Row label="Permits" value={formatChangeOrderMoney(b.permitsAmount)} muted />
+          {(b.importedIndirectCost ?? 0) > 0 && (
+            <Row
+              label="Indirect costs"
+              value={formatChangeOrderMoney(b.importedIndirectCost ?? 0)}
+              muted
+            />
+          )}
           <Row label="Direct cost" value={formatChangeOrderMoney(b.directCost)} bold />
           <Row
             label={`Contingency (${b.contingencyPercent}%)`}
@@ -123,8 +130,8 @@ export default function StandardPricingBreakdown({
         </div>
       </div>
 
-      <div className="rounded-lg border border-cyan-200/60 bg-cyan-50/40 p-4 text-sm dark:border-cyan-800/50 dark:bg-cyan-950/20">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-cyan-800 dark:text-cyan-300">
+      <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-sm shadow-lg shadow-cyan-950/20">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-cyan-300">
           Pricing breakdown
         </p>
         <div className="space-y-1">
@@ -132,7 +139,14 @@ export default function StandardPricingBreakdown({
           <Row label="Gross profit" value={formatChangeOrderMoney(b.grossProfit)} />
           <Row label="Gross margin %" value={`${b.grossMarginPercent}%`} />
           <Row label="Markup %" value={`${b.markupPercentReporting}%`} />
-          <Row label="Proposal price" value={formatChangeOrderMoney(b.totalPrice)} bold />
+          <div className="mt-4 rounded-2xl border border-cyan-400/40 bg-slate-950/70 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+              Final proposal total
+            </p>
+            <p className="mt-2 text-3xl font-black tracking-tight text-white">
+              {formatChangeOrderMoney(b.totalPrice)}
+            </p>
+          </div>
         </div>
       </div>
     </div>

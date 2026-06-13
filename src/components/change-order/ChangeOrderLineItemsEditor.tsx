@@ -14,6 +14,7 @@ interface Props {
   category: ChangeOrderLineItemCategory;
   items: ChangeOrderLineItem[];
   onChange: (items: ChangeOrderLineItem[]) => void;
+  emptyText?: string;
 }
 
 function applyPatch(
@@ -30,6 +31,7 @@ export default function ChangeOrderLineItemsEditor({
   category,
   items,
   onChange,
+  emptyText,
 }: Props) {
   const isEquipment = category === 'equipment';
 
@@ -59,7 +61,9 @@ export default function ChangeOrderLineItemsEditor({
         </Button>
       </div>
       {items.length === 0 && (
-        <p className="text-xs text-gray-500 dark:text-slate-400">No line items yet.</p>
+        <p className="rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-3 py-2 text-xs text-slate-400">
+          {emptyText ?? 'No line items yet.'}
+        </p>
       )}
       {items.length > 0 && (
         <div

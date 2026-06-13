@@ -6,6 +6,8 @@ import PricingParamsEditor from '../pricing/PricingParamsEditor';
 import StandardPricingBreakdown from '../pricing/StandardPricingBreakdown';
 import { computeProposalBreakdown, defaultProposalPricingIndirect } from '../../utils/proposalPricing';
 import { hydratePricingParams } from '../../utils/pricingParams';
+import { formatChangeOrderMoney } from '../../utils/changeOrderFinancials';
+import { PREMIUM_INNER_PANEL, TEXT_MUTED } from '../../theme/appTheme';
 
 interface ProposalPricingEditorProps {
   laborItems: ChangeOrderLineItem[];
@@ -57,9 +59,35 @@ export default function ProposalPricingEditor({
 
   const breakdown = computeProposalBreakdown(previewData, companyTax);
   const params = hydratePricingParams(previewData, companyTax);
+  const summaryCards = [
+    {
+      label: 'Labor',
+      count: laborItems.length,
+      value: breakdown.laborTotal,
+      empty: 'No labor lines imported',
+    },
+    {
+      label: 'Materials',
+      count: materialItems.length,
+      value: breakdown.materialCostAdjusted,
+      empty: 'No material lines imported',
+    },
+    {
+      label: 'Equipment',
+      count: equipmentItems.length,
+      value: breakdown.equipmentTotal,
+      empty: 'No equipment lines imported',
+    },
+    {
+      label: 'Subcontractors',
+      count: subcontractorItems.length,
+      value: breakdown.subcontractorTotal,
+      empty: 'No subcontractor lines imported',
+    },
+  ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {params.pricingModel === 'legacy' && (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
           This proposal uses legacy pricing. Save with standard parameters to switch to
@@ -67,36 +95,79 @@ export default function ProposalPricingEditor({
         </p>
       )}
 
-      <ChangeOrderLineItemsEditor
-        label="Labor"
-        category="labor"
-        items={laborItems}
-        onChange={onLaborChange}
-      />
-      <ChangeOrderLineItemsEditor
-        label="Material"
-        category="material"
-        items={materialItems}
-        onChange={onMaterialChange}
-      />
-      <ChangeOrderLineItemsEditor
-        label="Equipment"
-        category="equipment"
-        items={equipmentItems}
-        onChange={onEquipmentChange}
-      />
-      <ChangeOrderLineItemsEditor
-        label="Subcontractors"
-        category="subcontractor"
-        items={subcontractorItems}
-        onChange={onSubcontractorChange}
-      />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map((card) => (
+          <div key={card.label} className={`${PREMIUM_INNER_PANEL} p-4`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {card.label}
+                </p>
+                <p className="mt-1 text-lg font-bold text-slate-100">
+                  {formatChangeOrderMoney(card.value)}
+                </p>
+              </div>
+              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold text-cyan-300">
+                {card.count} line{card.count === 1 ? '' : 's'}
+              </span>
+            </div>
+            {card.count === 0 ? (
+              <p className={`mt-2 text-xs ${TEXT_MUTED}`}>{card.empty}</p>
+            ) : null}
+          </div>
+        ))}
+      </div>
 
-      <PricingParamsEditor
-        params={params}
-        onChange={(next) => onIndirectChange(next as ProposalPricingIndirect)}
-        showLegacyToggle
-      />
+      <section className={`${PREMIUM_INNER_PANEL} space-y-4 p-4`}>
+        <div>
+          <h3 className="font-semibold text-slate-100">Estimate lines</h3>
+          <p className={`text-sm ${TEXT_MUTED}`}>
+            Imported or manually entered cost lines grouped by trade category.
+          </p>
+        </div>
+        <ChangeOrderLineItemsEditor
+          label="Labor"
+          category="labor"
+          items={laborItems}
+          onChange={onLaborChange}
+          emptyText="No labor lines imported"
+        />
+        <ChangeOrderLineItemsEditor
+          label="Materials"
+          category="material"
+          items={materialItems}
+          onChange={onMaterialChange}
+          emptyText="No material lines imported"
+        />
+        <ChangeOrderLineItemsEditor
+          label="Equipment"
+          category="equipment"
+          items={equipmentItems}
+          onChange={onEquipmentChange}
+          emptyText="No equipment lines imported"
+        />
+        <ChangeOrderLineItemsEditor
+          label="Subcontractors"
+          category="subcontractor"
+          items={subcontractorItems}
+          onChange={onSubcontractorChange}
+          emptyText="No subcontractor lines imported"
+        />
+      </section>
+
+      <section className={`${PREMIUM_INNER_PANEL} p-4`}>
+        <div className="mb-4">
+          <h3 className="font-semibold text-slate-100">Pricing controls</h3>
+          <p className={`text-sm ${TEXT_MUTED}`}>
+            Adjust cost allowances, tax, fees, permits, margin, and overhead.
+          </p>
+        </div>
+        <PricingParamsEditor
+          params={params}
+          onChange={(next) => onIndirectChange(next as ProposalPricingIndirect)}
+          showLegacyToggle
+        />
+      </section>
 
       <StandardPricingBreakdown breakdown={breakdown} />
       <p className="text-xs text-gray-500 dark:text-gray-400">

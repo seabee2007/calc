@@ -50,8 +50,16 @@ describe('ProposalProjectSourcePanel', () => {
 
     expect(screen.getByTestId('proposal-project-selector')).toBeInTheDocument();
     expect(
-      screen.getByText('Create proposal manually or import details from an existing project.'),
+      screen.getByText(
+        /Start from a blank proposal or import the current estimate, activity scope/i,
+      ),
     ).toBeInTheDocument();
+    expect(screen.getByTestId('proposal-import-project-button')).toHaveTextContent(
+      'Import Current Estimate',
+    );
+    expect(screen.getByTestId('proposal-import-summary')).toHaveTextContent(
+      'Nothing imported yet',
+    );
   });
 });
 

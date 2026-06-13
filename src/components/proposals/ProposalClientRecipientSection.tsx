@@ -5,7 +5,13 @@ import Button from '../ui/Button';
 import { EMPTY_US_ADDRESS, type USAddress } from '../../types/address';
 import { displayClientAddress } from '../../utils/proposalAddress';
 import { formatUSPhoneInput } from '../../utils/phoneFormat';
-import { APP_SECTION_CARD, FORM_TEXTAREA } from '../../theme/appTheme';
+import {
+  FORM_TEXTAREA,
+  PREMIUM_INNER_PANEL,
+  PREMIUM_PANEL,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+} from '../../theme/appTheme';
 
 interface ProposalClientRecipientSectionProps {
   data: ProposalData;
@@ -16,8 +22,9 @@ interface ProposalClientRecipientSectionProps {
   updatingProjectClient?: boolean;
 }
 
-const SECTION_CARD = APP_SECTION_CARD;
-const SECTION_TITLE = 'text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4';
+const SECTION_CARD = `${PREMIUM_PANEL} p-5 sm:p-6`;
+const SECTION_TITLE = `text-lg font-semibold ${TEXT_FOREGROUND}`;
+const INPUT_CLASS = `${FORM_TEXTAREA} border-slate-700/70 bg-slate-950/50 text-slate-100 placeholder:text-slate-500`;
 
 const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionProps> = ({
   data,
@@ -30,79 +37,81 @@ const ProposalClientRecipientSection: React.FC<ProposalClientRecipientSectionPro
   return (
     <div className={SECTION_CARD} data-testid="proposal-client-recipient-section">
       <h2 className={SECTION_TITLE}>Client / Recipient</h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      <p className={`mb-5 mt-1 text-sm ${TEXT_MUTED}`}>
         {selectedProjectId
           ? 'Auto-filled from the selected project. Edits here apply to this proposal only unless you update the project record.'
           : 'Enter the client contact and proposal recipient details.'}
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Client Name
+          <label className="mb-1 block text-sm font-medium text-slate-200">
+            Client name
           </label>
           <input
             type="text"
-            placeholder="Client Name"
+            placeholder="Jane Client"
             value={data.clientName}
             onChange={(e) => onFieldChange('clientName', e.target.value)}
-            className={FORM_TEXTAREA}
+            className={INPUT_CLASS}
             data-testid="proposal-client-name-input"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Client Company (optional)
+          <label className="mb-1 block text-sm font-medium text-slate-200">
+            Company / organization
           </label>
           <input
             type="text"
-            placeholder="Client Company"
+            placeholder="Client Co"
             value={data.clientCompany || ''}
             onChange={(e) => onFieldChange('clientCompany', e.target.value)}
-            className={FORM_TEXTAREA}
+            className={INPUT_CLASS}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Recipient Email
+          <label className="mb-1 block text-sm font-medium text-slate-200">
+            Client email
           </label>
           <input
             type="email"
             placeholder="client@example.com"
             value={data.clientEmail || ''}
             onChange={(e) => onFieldChange('clientEmail', e.target.value)}
-            className={FORM_TEXTAREA}
+            className={INPUT_CLASS}
             data-testid="proposal-recipient-email-input"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-slate-500">
             Used as the default To address when sending this proposal.
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Client Phone (optional)
+          <label className="mb-1 block text-sm font-medium text-slate-200">
+            Phone
           </label>
           <input
             type="tel"
             placeholder="(555) 555-5555"
             value={data.clientPhone || ''}
             onChange={(e) => onFieldChange('clientPhone', formatUSPhoneInput(e.target.value))}
-            className={FORM_TEXTAREA}
+            className={INPUT_CLASS}
             data-testid="proposal-client-phone-input"
           />
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Client address <span className="font-normal text-gray-500">(optional)</span>
+          <label className="mb-1 block text-sm font-medium text-slate-200">
+            Address <span className="font-normal text-slate-500">(optional)</span>
           </label>
-          <USAddressFields
-            value={data.clientAddressParts ?? { ...EMPTY_US_ADDRESS }}
-            onChange={onAddressChange}
-            showStreet2
-            idPrefix="proposal-client"
-          />
+          <div className={`${PREMIUM_INNER_PANEL} p-4`}>
+            <USAddressFields
+              value={data.clientAddressParts ?? { ...EMPTY_US_ADDRESS }}
+              onChange={onAddressChange}
+              showStreet2
+              idPrefix="proposal-client"
+            />
+          </div>
           {displayClientAddress(data) && (
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-xs text-slate-500">
               Formatted: {displayClientAddress(data)}
             </p>
           )}

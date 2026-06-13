@@ -54,4 +54,33 @@ describe('ProposalGenerator preview actions', () => {
     expect(proposalGeneratorSource).not.toContain('max-w-5xl mx-auto');
     expect(proposalGeneratorSource).not.toContain('proposalPreviewShellClass');
   });
+
+  it('imports pricing from the current estimate before legacy calculator data', () => {
+    expect(proposalGeneratorSource).toContain('resolveProposalPricingImport');
+    expect(proposalGeneratorSource).toContain('proposalCurrentEstimateImport');
+    expect(proposalGeneratorSource).toContain('importedEstimateSummary');
+    expect(proposalGeneratorSource).toContain('projectHasImportablePricingAsync');
+  });
+
+  it('uses Arden Proposal Builder copy and actions', () => {
+    expect(proposalGeneratorSource).toContain('Proposal Builder');
+    expect(proposalGeneratorSource).toContain(
+      'Create client-ready proposals from your project estimate, scope, pricing, and schedule.',
+    );
+    expect(proposalGeneratorSource).toContain('Save Draft');
+    expect(proposalGeneratorSource).toContain('Preview');
+    expect(proposalGeneratorSource).toContain('Send to Client');
+  });
+
+  it('keeps the project source and pricing summary sections visible', () => {
+    expect(proposalGeneratorSource).toContain('ProposalProjectSourcePanel');
+    expect(proposalGeneratorSource).toContain('Estimate / Pricing Summary');
+    expect(proposalGeneratorSource).toContain('Import Current Estimate');
+  });
+
+  it('does not use old calculator-era proposal copy', () => {
+    expect(proposalGeneratorSource).not.toContain('Create professional concrete project proposals');
+    expect(proposalGeneratorSource).not.toContain('concrete project proposals');
+    expect(proposalGeneratorSource).not.toContain('Concrete Calc');
+  });
 });

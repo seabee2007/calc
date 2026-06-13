@@ -41,10 +41,14 @@ import {
 } from '../utils/proposalProjectImport';
 import { countProposalLineItemsFromProject } from '../utils/proposalPricingImport';
 import {
-  buildProposalLineItemsFromProject,
   getProjectEstimateSourceLabels,
   projectHasImportablePricing,
 } from '../utils/proposalPricingImport';
+import {
+  countProposalImportLineItems,
+  projectHasImportablePricingAsync,
+  resolveProposalPricingImport,
+} from '../utils/proposalCurrentEstimateImport';
 import ProposalPricingEditor, {
   proposalIndirectFromData,
 } from '../components/proposals/ProposalPricingEditor';
@@ -54,7 +58,9 @@ import ProposalBusinessInfoCollapsible from '../components/proposals/ProposalBus
 import ProposalPreviewActionBar from '../components/proposals/ProposalPreviewActionBar';
 import AppPage from '../components/ui/AppPage';
 import {
+  computeProposalBreakdown,
   emptyProposalPricingState,
+  formatProposalTotal,
   hydrateProposalPricing,
 } from '../utils/proposalPricing';
 import Modal from '../components/ui/Modal';
@@ -74,20 +80,30 @@ import {
   mergeProjectJobsiteIntoClientAddress,
   syncProposalAddressesForSave,
 } from '../utils/proposalAddress';
-import { APP_SECTION_CARD, FORM_TEXTAREA } from '../theme/appTheme';
-import { CC_PAGE_SUBTITLE, CC_PAGE_TITLE } from '../theme/pageTypography';
+import {
+  FORM_TEXTAREA,
+  FOCUS_RING,
+  PREMIUM_INNER_PANEL,
+  PREMIUM_PANEL,
+  TEXT_FOREGROUND,
+  TEXT_MUTED,
+} from '../theme/appTheme';
 import {
   formatProposalPreviewSubtitle,
   normalizeDisplayText,
 } from '../utils/normalizeDisplayText';
+import { formatChangeOrderMoney } from '../utils/changeOrderFinancials';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
-/** Matches site pages: header on concrete, content in rounded cards. */
-const PAGE_TITLE = CC_PAGE_TITLE;
-const PAGE_SUBTITLE = `${CC_PAGE_SUBTITLE} mt-2`;
-const SECTION_CARD = APP_SECTION_CARD;
-const SECTION_TITLE = 'text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4';
+const PROPOSAL_CANVAS =
+  'min-h-screen bg-[#020817] text-slate-100 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_35%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_30%)]';
+const PAGE_TITLE = 'text-3xl font-bold tracking-tight text-white sm:text-4xl';
+const PAGE_SUBTITLE = 'mt-2 max-w-3xl text-sm text-slate-300 sm:text-base';
+const SECTION_CARD = `${PREMIUM_PANEL} p-5 sm:p-6`;
+const SECTION_TITLE = `text-lg font-semibold ${TEXT_FOREGROUND}`;
+const SECTION_HELP = `mt-1 text-sm ${TEXT_MUTED}`;
+const INPUT_CLASS = `${FORM_TEXTAREA} border-slate-700/70 bg-slate-950/50 text-slate-100 placeholder:text-slate-500`;
 
 const ProposalGenerator: React.FC = () => {
   const confirm = useConfirm();
@@ -136,6 +152,9 @@ const ProposalGenerator: React.FC = () => {
   const [projectAutoSelected, setProjectAutoSelected] = useState(false);
   const [businessInfoExpanded, setBusinessInfoExpanded] = useState(false);
   const [updatingProjectClient, setUpdatingProjectClient] = useState(false);
+  const [selectedProjectImportable, setSelectedProjectImportable] = useState<boolean | null>(null);
+  const [projectImportability, setProjectImportability] = useState<Record<string, boolean>>({});
+  const [importingPricing, setImportingPricing] = useState(false);
   const projectImportInitializedRef = useRef(false);
 
   const [proposalData, setProposalData] = useState<ProposalData>(() =>
@@ -226,7 +245,7 @@ const ProposalGenerator: React.FC = () => {
     setImportToast({ title, message, type });
   };
 
-  const applyProjectImport = (
+  const applyProjectImport = async (
     projectId: string,
     options?: { overwrite?: boolean; importPricing?: boolean; setTitle?: boolean; silent?: boolean },
   ) => {
@@ -238,12 +257,18 @@ const ProposalGenerator: React.FC = () => {
       return;
     }
 
+    const shouldImportPricing = options?.importPricing !== false;
+    const pricingImport = shouldImportPricing
+      ? await resolveProposalPricingImport(projectId, project, companyTaxSettings)
+      : null;
+
     setSelectedProjectId(projectId);
     setProposalData((prev) =>
       importProjectIntoProposal(prev, project, {
         overwriteEmptyOnly: options?.overwrite !== true,
-        importPricing: options?.importPricing ?? true,
+        importPricing: shouldImportPricing,
         companySettings: companyTaxSettings,
+        currentEstimateImport: pricingImport?.currentEstimateImport ?? null,
       }),
     );
 
@@ -251,16 +276,34 @@ const ProposalGenerator: React.FC = () => {
       setProposalTitle((prev) => prev.trim() || buildDefaultProposalTitle(project.name));
     }
 
-    if (options?.importPricing !== false && projectHasImportablePricing(project)) {
+    if (shouldImportPricing && pricingImport) {
       importedPricingRef.current = projectId;
-      const lineCount = countProposalLineItemsFromProject(project);
-      if (lineCount > 0 && !options?.silent) {
-        const sources = getProjectEstimateSourceLabels(project);
-        showImportFeedback(
-          'Project imported',
-          'success',
-          `Loaded details from "${project.name}"${sources.length ? ` (${sources.join(', ')})` : ''}.`,
-        );
+      if (!options?.silent) {
+        if (pricingImport.source === 'current-estimate') {
+          const summary = pricingImport.currentEstimateImport!.importedEstimateSummary;
+          const lineCount = countProposalImportLineItems(pricingImport.currentEstimateImport!);
+          showImportFeedback(
+            'Project imported',
+            'success',
+            `Loaded details and current estimate from "${project.name}" (${lineCount} line${lineCount === 1 ? '' : 's'}, total ${formatProposalTotal({ importedEstimateSummary: summary } as ProposalData)}).`,
+          );
+        } else {
+          const lineCount = countProposalLineItemsFromProject(project);
+          const sources = getProjectEstimateSourceLabels(project);
+          if (lineCount > 0) {
+            showImportFeedback(
+              'Project imported',
+              'success',
+              `Loaded details from "${project.name}"${sources.length ? ` (${sources.join(', ')})` : ''}.`,
+            );
+          } else {
+            showImportFeedback(
+              'Project imported',
+              'success',
+              `Loaded client and project details from "${project.name}".`,
+            );
+          }
+        }
       }
     } else if (!options?.silent) {
       showImportFeedback(
@@ -311,8 +354,9 @@ const ProposalGenerator: React.FC = () => {
     proposalDraftRestoredRef.current = true;
     setSelectedProjectId(contextProjectId);
     setProjectAutoSelected(true);
-    applyProjectImport(contextProjectId, { overwrite: true, silent: true });
-    projectImportInitializedRef.current = true;
+    void applyProjectImport(contextProjectId, { overwrite: true, silent: true }).finally(() => {
+      projectImportInitializedRef.current = true;
+    });
   }, [
     isEditing,
     isPreviewMode,
@@ -361,7 +405,7 @@ const ProposalGenerator: React.FC = () => {
     isPreviewMode,
   ]);
 
-  const importPricingFromProject = (
+  const importPricingFromProject = async (
     projectId: string,
     options?: { silent?: boolean },
   ) => {
@@ -371,66 +415,118 @@ const ProposalGenerator: React.FC = () => {
       return;
     }
 
-    if (!projectHasImportablePricing(project)) {
-      showImportFeedback(
-        'No estimates to import',
-        'warning',
-        'Save at least one estimate on step 2 (concrete, reinforcement, labor, or custom) to this project.',
-        options,
+    setImportingPricing(true);
+    try {
+      const pricingImport = await resolveProposalPricingImport(
+        projectId,
+        project,
+        companyTaxSettings,
       );
-      return;
-    }
 
-    const lineItems = buildProposalLineItemsFromProject(project);
-    const lineCount =
-      lineItems.laborItems.length +
-      lineItems.materialItems.length +
-      lineItems.equipmentItems.length;
-    if (lineCount === 0) {
-      showImportFeedback(
-        'Import failed',
-        'error',
-        'No pricing data could be extracted from this project.',
-        options,
-      );
-      return;
-    }
+      if (!pricingImport) {
+        showImportFeedback(
+          'No estimates to import',
+          'warning',
+          'Save a current estimate in the estimate workspace, or save at least one legacy estimate on step 2, to this project.',
+          options,
+        );
+        return;
+      }
 
-    setProposalData((prev) =>
-      hydrateProposalPricing(
-        mergeProjectJobsiteIntoClientAddress(
-          hydrateProposalAddresses({
-            ...prev,
-            ...lineItems,
-            projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
-            pricingIndirect: {
-              ...proposalIndirectFromData(prev, {
-                taxSystem: companySettings.taxSystem,
-                taxRatePercent: companySettings.taxRatePercent,
-                taxApplication: companySettings.taxApplication,
+      if (pricingImport.source === 'current-estimate') {
+        const currentEstimateImport = pricingImport.currentEstimateImport!;
+        const lineCount = countProposalImportLineItems(currentEstimateImport);
+        const finalTotal = currentEstimateImport.importedEstimateSummary.finalSellPrice;
+        if (lineCount === 0 && finalTotal <= 0) {
+          showImportFeedback(
+            'Import failed',
+            'error',
+            'No pricing data could be extracted from the current estimate.',
+            options,
+          );
+          return;
+        }
+
+        setProposalData((prev) =>
+          hydrateProposalPricing(
+            mergeProjectJobsiteIntoClientAddress(
+              hydrateProposalAddresses({
+                ...prev,
+                laborItems: currentEstimateImport.laborItems,
+                materialItems: currentEstimateImport.materialItems,
+                equipmentItems: currentEstimateImport.equipmentItems,
+                subcontractorItems: currentEstimateImport.subcontractorItems,
+                importedEstimateSummary: currentEstimateImport.importedEstimateSummary,
+                projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
+                pricingIndirect: {
+                  ...proposalIndirectFromData(prev, companyTaxSettings),
+                  ...currentEstimateImport.pricingIndirect,
+                },
               }),
-              wasteFactorPercent: project.wasteFactor ?? 10,
-            },
-          }),
-          project.jobsiteAddress,
-        ),
-        {
-          taxSystem: companySettings.taxSystem,
-          taxRatePercent: companySettings.taxRatePercent,
-          taxApplication: companySettings.taxApplication,
-        },
-      ),
-    );
+              project.jobsiteAddress,
+            ),
+            companyTaxSettings,
+          ),
+        );
+        importedPricingRef.current = projectId;
 
-    setShowProjectPicker(false);
-    const sources = getProjectEstimateSourceLabels(project);
-    const sourcesLabel = sources.length > 0 ? sources.join(', ') : 'saved estimates';
-    showImportFeedback(
-      'Pricing imported',
-      'success',
-      `Added ${lineCount} line(s) from "${project.name}" (${sourcesLabel}).`,
-      options,
-    );
+        setShowProjectPicker(false);
+        showImportFeedback(
+          'Pricing imported',
+          'success',
+          `Imported current estimate from "${project.name}" (${lineCount} line${lineCount === 1 ? '' : 's'}, total ${formatProposalTotal({ importedEstimateSummary: currentEstimateImport.importedEstimateSummary } as ProposalData)}).`,
+          options,
+        );
+        return;
+      }
+
+      const lineItems = pricingImport.legacyLineItems!;
+      const lineCount =
+        lineItems.laborItems.length +
+        lineItems.materialItems.length +
+        lineItems.equipmentItems.length;
+      if (lineCount === 0) {
+        showImportFeedback(
+          'Import failed',
+          'error',
+          'No pricing data could be extracted from this project.',
+          options,
+        );
+        return;
+      }
+
+      setProposalData((prev) =>
+        hydrateProposalPricing(
+          mergeProjectJobsiteIntoClientAddress(
+            hydrateProposalAddresses({
+              ...prev,
+              ...lineItems,
+              importedEstimateSummary: undefined,
+              projectTitle: prev.projectTitle || `${project.name} Concrete Work`,
+              pricingIndirect: {
+                ...proposalIndirectFromData(prev, companyTaxSettings),
+                wasteFactorPercent: project.wasteFactor ?? 10,
+              },
+            }),
+            project.jobsiteAddress,
+          ),
+          companyTaxSettings,
+        ),
+      );
+      importedPricingRef.current = projectId;
+
+      setShowProjectPicker(false);
+      const sources = getProjectEstimateSourceLabels(project);
+      const sourcesLabel = sources.length > 0 ? sources.join(', ') : 'saved estimates';
+      showImportFeedback(
+        'Pricing imported',
+        'success',
+        `Added ${lineCount} line(s) from "${project.name}" (${sourcesLabel}).`,
+        options,
+      );
+    } finally {
+      setImportingPricing(false);
+    }
   };
 
   const openProjectPicker = () => {
@@ -442,8 +538,45 @@ const ProposalGenerator: React.FC = () => {
 
   const handleSelectProject = (projectId: string) => {
     setProjectAutoSelected(false);
-    applyProjectImport(projectId, { overwrite: true });
+    void applyProjectImport(projectId, { overwrite: true });
   };
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setSelectedProjectImportable(null);
+      return;
+    }
+    const project = projects.find((entry) => entry.id === selectedProjectId);
+    if (!project) {
+      setSelectedProjectImportable(null);
+      return;
+    }
+    let cancelled = false;
+    void projectHasImportablePricingAsync(selectedProjectId, project).then((importable) => {
+      if (!cancelled) setSelectedProjectImportable(importable);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProjectId, projects]);
+
+  useEffect(() => {
+    if (!showProjectPicker || projects.length === 0) return;
+    let cancelled = false;
+    void Promise.all(
+      projects.map(async (project) => {
+        const importable = await projectHasImportablePricingAsync(project.id, project);
+        return [project.id, importable] as const;
+      }),
+    ).then((entries) => {
+      if (!cancelled) {
+        setProjectImportability(Object.fromEntries(entries));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [showProjectPicker, projects]);
 
   const handleClearSelectedProject = () => {
     setSelectedProjectId(null);
@@ -496,8 +629,20 @@ const ProposalGenerator: React.FC = () => {
   const showPricingWarning =
     Boolean(selectedProjectId) &&
     !hasPricingLines &&
-    selectedProject &&
-    !projectHasImportablePricing(selectedProject);
+    selectedProjectImportable === false;
+
+  const pricingBreakdown = computeProposalBreakdown(proposalData, companyTaxSettings);
+  const hasImportedPricingSummary =
+    Boolean(proposalData.importedEstimateSummary) || hasPricingLines;
+  const importSummaryMetrics = hasImportedPricingSummary
+    ? [
+        { label: 'Labor', value: formatChangeOrderMoney(pricingBreakdown.laborTotal) },
+        { label: 'Materials', value: formatChangeOrderMoney(pricingBreakdown.materialCostAdjusted) },
+        { label: 'Equipment', value: formatChangeOrderMoney(pricingBreakdown.equipmentTotal) },
+        { label: 'Direct Cost', value: formatChangeOrderMoney(pricingBreakdown.directCost) },
+        { label: 'Final Price', value: formatChangeOrderMoney(pricingBreakdown.totalPrice) },
+      ]
+    : [];
 
   const workflowProject = workflowProjectId
     ? projects.find((p) => p.id === workflowProjectId)
@@ -901,14 +1046,14 @@ const ProposalGenerator: React.FC = () => {
         '456 Client St, Client City, ST 12345, United States',
       ),
       projectTitle: getDisplayValue(proposalData.projectTitle, 'Project Title'),
-      introduction: getDisplayValue(proposalData.introduction, 'Thank you for considering our concrete services for your project. We specialize in high-strength, durable mixes designed for commercial and residential applications.'),
-      scope: getDisplayValue(proposalData.scope, 'Supply and place ready-mix concrete, including all forms, vapor barriers, reinforcement placement, slump testing, and finishing to ACI standards.'),
+      introduction: getDisplayValue(proposalData.introduction, 'Thank you for considering our team for your project. This proposal outlines the scope, schedule, pricing, and assumptions needed for a clear client-ready decision.'),
+      scope: getDisplayValue(proposalData.scope, 'Complete the project scope described in the estimate, including labor, materials, equipment, coordination, quality control, and closeout requirements.'),
       timeline: proposalData.timeline.map(item => ({
         phase: getDisplayValue(item.phase, 'Project Phase'),
         start: getDisplayValue(item.start, 'Start Date'),
         end: getDisplayValue(item.end, 'End Date'),
       })),
-      terms: getDisplayValue(proposalData.terms, 'A 50% deposit is due upon acceptance of this proposal. Final payment is due upon completion. All work performed in accordance with ACI standards and local building codes. Warranty: 1 year against workmanship defects.'),
+      terms: getDisplayValue(proposalData.terms, 'A 50% deposit is due upon acceptance of this proposal. Final payment is due upon completion. All work will be performed in accordance with the approved scope, project requirements, and applicable codes. Warranty: 1 year against workmanship defects.'),
       preparedBy: getDisplayValue(proposalData.preparedBy, 'Your Name'),
       preparedByTitle: getDisplayValue(proposalData.preparedByTitle, 'Project Manager'),
     });
@@ -933,18 +1078,18 @@ const ProposalGenerator: React.FC = () => {
   const templatePreviews = {
     classic: {
       name: 'Classic Professional',
-      description: 'Traditional business proposal with formal tables and clean layout',
-      color: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800'
+      description: 'Formal multi-section proposal with detailed tables.',
+      bestFor: 'Best for commercial and government-style submissions.',
     },
     modern: {
       name: 'Modern One-Pager',
-      description: 'Contemporary design with cards and two-column layout',
-      color: 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800'
+      description: 'Condensed proposal with scope, price, and schedule highlights.',
+      bestFor: 'Best for residential and quick-turn client review.',
     },
     minimal: {
       name: 'Minimalist Executive',
-      description: 'Clean, simple design focused on essential information',
-      color: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+      description: 'Clean summary-first proposal focused on decision-ready totals.',
+      bestFor: 'Best for owners who want a simple, polished view.',
     }
   };
 
@@ -1013,8 +1158,9 @@ const ProposalGenerator: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"
+      className={PROPOSAL_CANVAS}
     >
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <WorkflowStepHeader />
         {inWorkflow && !workflowStepReady && (
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-slate-600/80 bg-slate-900/90 p-4">
@@ -1076,62 +1222,106 @@ const ProposalGenerator: React.FC = () => {
             </div>
           </motion.div>
         )}
-        <div className="mb-8">
-          <h1 className={PAGE_TITLE}>
-            {isEditing ? 'Edit Proposal' : 'Proposal Generator'}
-          </h1>
-          <p className={PAGE_SUBTITLE}>
-            {normalizeDisplayText(
-              isEditing
-                ? `Editing: ${currentProposal?.title || 'Untitled Proposal'}`
-                : 'Create professional concrete project proposals with customizable templates',
-            )}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {isEditing ? (
-              <Button
-                variant="outline"
-                size="sm"
+        <div className="mb-8 flex flex-col gap-5 rounded-3xl border border-cyan-500/20 bg-slate-950/70 p-5 shadow-2xl shadow-cyan-950/20 backdrop-blur-xl sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300/80">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="hover:text-cyan-200"
+              >
+                Dashboard
+              </button>
+              <span className="text-slate-600" aria-hidden>
+                /
+              </span>
+              <button
+                type="button"
                 onClick={() => navigate('/proposals')}
-                icon={<ArrowLeft size={18} />}
+                className="hover:text-cyan-200"
               >
-                Back to Proposals
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  void (async () => {
-                    const hasChanges =
-                      proposalData.businessName ||
-                      proposalData.clientName ||
-                      proposalData.projectTitle ||
-                      proposalData.introduction ||
-                      proposalData.scope ||
-                      proposalTitle;
+                Proposals
+              </button>
+            </nav>
+            <h1 className={PAGE_TITLE}>{isEditing ? 'Edit Proposal' : 'Proposal Builder'}</h1>
+            <p className={PAGE_SUBTITLE}>
+              {normalizeDisplayText(
+                isEditing
+                  ? `Editing: ${currentProposal?.title || 'Untitled Proposal'}`
+                  : 'Create client-ready proposals from your project estimate, scope, pricing, and schedule.',
+              )}
+            </p>
+          </div>
 
-                    if (hasChanges) {
-                      const ok = await confirm({
-                        title: 'Confirm Cancel',
-                        message:
-                          'You have unsaved changes.\n\nIf you leave this page now, your changes will be lost.',
-                        cancelLabel: 'Stay Here',
-                        confirmLabel: 'Discard Changes',
-                        confirmVariant: 'danger',
-                        showWarningIcon: true,
-                      });
-                      if (!ok) return;
-                    }
-
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void (async () => {
+                  if (isEditing) {
                     navigate('/proposals');
-                  })();
-                }}
-                icon={<ArrowLeft size={18} />}
-              >
-                Cancel
-              </Button>
-            )}
+                    return;
+                  }
+
+                  const hasChanges =
+                    proposalData.businessName ||
+                    proposalData.clientName ||
+                    proposalData.projectTitle ||
+                    proposalData.introduction ||
+                    proposalData.scope ||
+                    proposalTitle;
+
+                  if (hasChanges) {
+                    const ok = await confirm({
+                      title: 'Confirm Cancel',
+                      message:
+                        'You have unsaved changes.\n\nIf you leave this page now, your changes will be lost.',
+                      cancelLabel: 'Stay Here',
+                      confirmLabel: 'Discard Changes',
+                      confirmVariant: 'danger',
+                      showWarningIcon: true,
+                    });
+                    if (!ok) return;
+                  }
+
+                  navigate('/proposals');
+                })();
+              }}
+              icon={<ArrowLeft size={16} />}
+              className="border-slate-700 text-slate-200 hover:bg-slate-800"
+            >
+              {isEditing ? 'Back' : 'Cancel'}
+            </Button>
+            <Button
+              variant="accent"
+              size="sm"
+              onClick={handleSave}
+              disabled={saving || !proposalTitle.trim()}
+              isLoading={saving}
+              icon={<Save size={16} />}
+            >
+              Save Draft
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(true)}
+              icon={<FileText size={16} />}
+              className="border-slate-700 text-slate-200 hover:bg-slate-800"
+            >
+              Preview
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSendProposal}
+              disabled={saving || !proposalTitle.trim()}
+              icon={<Send size={16} />}
+              className="border-slate-700 text-slate-200 hover:bg-slate-800"
+            >
+              Send to Client
+            </Button>
           </div>
         </div>
 
@@ -1143,11 +1333,12 @@ const ProposalGenerator: React.FC = () => {
                 onSelectProject={handleSelectProject}
                 onImportProject={() => {
                   if (selectedProjectId) {
-                    applyProjectImport(selectedProjectId, { overwrite: true });
+                    void applyProjectImport(selectedProjectId, { overwrite: true });
                   }
                 }}
                 onClearProject={handleClearSelectedProject}
                 autoSelected={projectAutoSelected}
+                importSummary={importSummaryMetrics}
               />
             )}
 
@@ -1157,29 +1348,38 @@ const ProposalGenerator: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               className={SECTION_CARD}
             >
-              <h2 className={SECTION_TITLE}>Proposal Settings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Proposal Title</label>
+              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className={SECTION_TITLE}>Proposal Settings</h2>
+                  <p className={SECTION_HELP}>
+                    Name the proposal and keep draft, preview, and send actions within reach.
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-200">
+                    Proposal title
+                  </label>
                   <input
                     type="text"
-                    placeholder="Enter proposal title"
+                    placeholder="Example: Slab Replacement Proposal"
                     value={proposalTitle}
                     onChange={(e) => setProposalTitle(e.target.value)}
-                    className={FORM_TEXTAREA}
+                    className={INPUT_CLASS}
                   />
                 </div>
-                <div className="md:col-span-1 flex flex-wrap items-end gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={generateTitle}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap border-slate-700 text-slate-200 hover:bg-slate-800"
                   >
                     Auto Generate
                   </Button>
                   <Button
-                    variant="primary"
+                    variant="accent"
                     size="sm"
                     onClick={handleSave}
                     disabled={saving || !proposalTitle.trim()}
@@ -1187,14 +1387,14 @@ const ProposalGenerator: React.FC = () => {
                     icon={<Save size={18} />}
                     className="whitespace-nowrap"
                   >
-                    {isEditing ? 'Update' : 'Save'}
+                    Save Draft
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowPreview(true)}
                     icon={<FileText size={18} />}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap border-slate-700 text-slate-200 hover:bg-slate-800"
                   >
                     Preview
                   </Button>
@@ -1204,7 +1404,7 @@ const ProposalGenerator: React.FC = () => {
                     onClick={handleSendProposal}
                     disabled={saving || !proposalTitle.trim()}
                     icon={<Send size={18} />}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap border-slate-700 text-slate-200 hover:bg-slate-800"
                   >
                     Send to Client
                   </Button>
@@ -1220,19 +1420,32 @@ const ProposalGenerator: React.FC = () => {
               className={SECTION_CARD}
             >
               <h2 className={SECTION_TITLE}>Choose Template</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <p className={SECTION_HELP}>
+                Pick the client-facing proposal format that best matches the submission.
+              </p>
+              <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {Object.entries(templatePreviews).map(([key, template]) => (
                   <button
                     key={key}
+                    type="button"
                     onClick={() => setSelectedTemplate(key as TemplateType)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    aria-selected={selectedTemplate === key}
+                    className={[
+                      'rounded-2xl border p-4 text-left transition-all',
                       selectedTemplate === key
-                        ? `${template.color} border-current`
-                        : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
+                        ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-950/30'
+                        : 'border-slate-700/70 bg-slate-950/40 hover:border-cyan-500/60 hover:bg-slate-900/80',
+                      FOCUS_RING,
+                    ].join(' ')}
                   >
-                    <h3 className="font-semibold text-sm mb-1 text-gray-900 dark:text-white">{template.name}</h3>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">{template.description}</p>
+                    <div className="mb-4 h-20 rounded-xl border border-slate-700/70 bg-slate-900/70 p-3">
+                      <div className="mb-2 h-2 w-20 rounded-full bg-cyan-400/70" />
+                      <div className="mb-2 h-2 w-full rounded-full bg-slate-700" />
+                      <div className="h-2 w-2/3 rounded-full bg-slate-700" />
+                    </div>
+                    <h3 className="font-semibold text-slate-100">{template.name}</h3>
+                    <p className="mt-2 text-sm text-slate-300">{template.description}</p>
+                    <p className="mt-3 text-xs font-medium text-cyan-300">{template.bestFor}</p>
                   </button>
                 ))}
               </div>
@@ -1257,45 +1470,48 @@ const ProposalGenerator: React.FC = () => {
               className={SECTION_CARD}
             >
               <h2 className={SECTION_TITLE}>Project Details</h2>
+              <p className={SECTION_HELP}>
+                Define the client-facing scope, date, and schedule narrative for this proposal.
+              </p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Title</label>
+                  <label className="mb-1 mt-5 block text-sm font-medium text-slate-200">Project Title</label>
                   <input
                     type="text"
                     placeholder="Project Title"
                     value={proposalData.projectTitle}
                     onChange={(e) => handleInputChange('projectTitle', e.target.value)}
-                    className={FORM_TEXTAREA}
+                    className={INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-200">Date</label>
                   <input
                     type="text"
                     placeholder="Today's Date"
                     value={proposalData.date}
                     onChange={(e) => handleInputChange('date', e.target.value)}
-                    className={FORM_TEXTAREA}
+                    className={INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Introduction</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-200">Introduction</label>
                   <textarea
-                    placeholder="Thank you for considering our concrete services for your project. We specialize in high-strength, durable mixes designed for commercial and residential applications."
+                    placeholder="Thank you for considering our team for your project. This proposal outlines the scope, schedule, pricing, and assumptions needed for a clear client-ready decision."
                     value={proposalData.introduction}
                     onChange={(e) => handleInputChange('introduction', e.target.value)}
                     rows={3}
-                    className={FORM_TEXTAREA}
+                    className={INPUT_CLASS}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scope of Work</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-200">Scope of Work</label>
                   <textarea
-                    placeholder="Supply and place ready-mix concrete, including all forms, vapor barriers, reinforcement placement, slump testing, and finishing to ACI standards."
+                    placeholder="Complete the project scope described in the estimate, including labor, materials, equipment, coordination, quality control, and closeout requirements."
                     value={proposalData.scope}
                     onChange={(e) => handleInputChange('scope', e.target.value)}
                     rows={4}
-                    className={FORM_TEXTAREA}
+                    className={INPUT_CLASS}
                   />
                 </div>
               </div>
@@ -1308,8 +1524,13 @@ const ProposalGenerator: React.FC = () => {
               transition={{ delay: 0.5 }}
               className={SECTION_CARD}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className={SECTION_TITLE}>Project Timeline</h2>
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className={SECTION_TITLE}>Project Timeline</h2>
+                  <p className={SECTION_HELP}>
+                    Add schedule phases clients can understand at a glance.
+                  </p>
+                </div>
                 <Button
                   type="button"
                   variant="outline"
@@ -1322,35 +1543,35 @@ const ProposalGenerator: React.FC = () => {
               </div>
               <div className="space-y-3">
                 {proposalData.timeline.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                  <div key={index} className={`${PREMIUM_INNER_PANEL} grid grid-cols-1 gap-3 p-4 md:grid-cols-4 md:items-end`}>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phase</label>
+                      <label className="mb-1 block text-sm font-medium text-slate-200">Phase</label>
                       <input
                         type="text"
                         placeholder="Project Phase"
                         value={item.phase}
                         onChange={(e) => handleTimelineChange(index, 'phase', e.target.value)}
-                        className={FORM_TEXTAREA}
+                        className={INPUT_CLASS}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                      <label className="mb-1 block text-sm font-medium text-slate-200">Start Date</label>
                       <input
                         type="date"
                         placeholder="Start Date"
                         value={item.start}
                         onChange={(e) => handleTimelineChange(index, 'start', e.target.value)}
-                        className={FORM_TEXTAREA}
+                        className={INPUT_CLASS}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                      <label className="mb-1 block text-sm font-medium text-slate-200">End Date</label>
                       <input
                         type="date"
                         placeholder="End Date"
                         value={item.end}
                         onChange={(e) => handleTimelineChange(index, 'end', e.target.value)}
-                        className={FORM_TEXTAREA}
+                        className={INPUT_CLASS}
                       />
                     </div>
                     <Button
@@ -1374,17 +1595,22 @@ const ProposalGenerator: React.FC = () => {
               transition={{ delay: 0.6 }}
               className={SECTION_CARD}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className={SECTION_TITLE}>Estimate / Pricing Summary</h2>
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className={SECTION_TITLE}>Estimate / Pricing Summary</h2>
+                  <p className={SECTION_HELP}>
+                    Review imported estimate lines, pricing controls, internal cost, and final sale price.
+                  </p>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="accent"
                     size="sm"
                     onClick={openProjectPicker}
                     icon={<Upload size={14} />}
                   >
-                    <span className="hidden sm:inline">Import from Project</span>
+                    <span className="hidden sm:inline">Import Current Estimate</span>
                     <span className="sm:hidden">Import</span>
                   </Button>
                 </div>
@@ -1441,36 +1667,39 @@ const ProposalGenerator: React.FC = () => {
               className={SECTION_CARD}
             >
               <h2 className={SECTION_TITLE}>Terms & Footer</h2>
+              <p className={SECTION_HELP}>
+                Set proposal terms and the sender details shown in the client-facing document.
+              </p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Terms & Conditions</label>
+                  <label className="mb-1 mt-5 block text-sm font-medium text-slate-200">Terms & Conditions</label>
                   <textarea
-                    placeholder="A 50% deposit is due upon acceptance of this proposal. Final payment is due upon completion. All work performed in accordance with ACI standards and local building codes. Warranty: 1 year against workmanship defects."
+                    placeholder="A 50% deposit is due upon acceptance of this proposal. Final payment is due upon completion. All work will be performed in accordance with the approved scope, project requirements, and applicable codes."
                     value={proposalData.terms}
                     onChange={(e) => handleInputChange('terms', e.target.value)}
                     rows={4}
-                    className={FORM_TEXTAREA}
+                    className={INPUT_CLASS}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prepared By</label>
+                    <label className="mb-1 block text-sm font-medium text-slate-200">Prepared By</label>
                     <input
                       type="text"
                       placeholder="Your Name"
                       value={proposalData.preparedBy}
                       onChange={(e) => handleInputChange('preparedBy', e.target.value)}
-                      className={FORM_TEXTAREA}
+                      className={INPUT_CLASS}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title (optional)</label>
+                    <label className="mb-1 block text-sm font-medium text-slate-200">Title (optional)</label>
                     <input
                       type="text"
                       placeholder="Project Manager"
                       value={proposalData.preparedByTitle || ''}
                       onChange={(e) => handleInputChange('preparedByTitle', e.target.value)}
-                      className={FORM_TEXTAREA}
+                      className={INPUT_CLASS}
                     />
                   </div>
                 </div>
@@ -1490,12 +1719,12 @@ const ProposalGenerator: React.FC = () => {
       <Modal
         isOpen={showProjectPicker}
         onClose={() => setShowProjectPicker(false)}
-        title="Import pricing from project"
+        title="Import current estimate"
         size="md"
       >
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Select a project to import saved estimates (concrete, reinforcement, labor, and/or custom)
-          into this proposal.
+          Select a project to import pricing from the current estimate workspace or saved legacy
+          estimates into this proposal.
         </p>
 
         {projects.length === 0 ? (
@@ -1510,21 +1739,22 @@ const ProposalGenerator: React.FC = () => {
           <div className="space-y-2 max-h-72 overflow-y-auto">
             {projects.map((project) => {
               const sources = getProjectEstimateSourceLabels(project);
-              const canImport = projectHasImportablePricing(project);
-              const lineCount = canImport
+              const canImport =
+                projectImportability[project.id] ?? projectHasImportablePricing(project);
+              const legacyLineCount = canImport
                 ? countProposalLineItemsFromProject(project)
                 : 0;
               return (
                 <button
                   key={project.id}
                   type="button"
-                  disabled={!canImport}
+                  disabled={!canImport || importingPricing}
                   className={`w-full text-left border rounded-lg p-3 transition-colors ${
                     canImport
                       ? 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 cursor-pointer'
                       : 'border-gray-200/80 dark:border-gray-700 opacity-60 cursor-not-allowed'
                   }`}
-                  onClick={() => importPricingFromProject(project.id)}
+                  onClick={() => void importPricingFromProject(project.id)}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
@@ -1539,16 +1769,24 @@ const ProposalGenerator: React.FC = () => {
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-gray-500 dark:text-gray-400">
                         {canImport ? (
                           <>
-                            <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                              {sources.join(' Â· ')}
-                            </span>
+                            {sources.length > 0 ? (
+                              <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                                {sources.join(' · ')}
+                              </span>
+                            ) : (
+                              <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                                Current estimate
+                              </span>
+                            )}
                             <span>
-                              {lineCount} pricing line{lineCount === 1 ? '' : 's'}
+                              {legacyLineCount > 0
+                                ? `${legacyLineCount} legacy pricing line${legacyLineCount === 1 ? '' : 's'}`
+                                : 'Estimate totals available'}
                             </span>
                           </>
                         ) : (
                           <span className="text-amber-700 dark:text-amber-400">
-                            No saved estimates {'\u2014'} complete step 2 first
+                            No saved estimates — add an estimate first
                           </span>
                         )}
                         <span>
@@ -1583,6 +1821,7 @@ const ProposalGenerator: React.FC = () => {
       </Modal>
 
       {proposalFeedbackModals}
+      </div>
     </motion.div>
   );
 };
