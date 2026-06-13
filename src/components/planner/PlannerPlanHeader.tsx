@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Download, MoreHorizontal } from 'lucide-react';
@@ -8,13 +9,15 @@ import { useProjectTabCounts, type ProjectTabCounts } from '../../hooks/useProje
 import { exportPlannerBoardJson, exportPlannerTasksCsv } from '../../utils/plannerExport';
 import { formatTabLabel } from '../../utils/formatTabLabel';
 import { DEFAULT_PROFILE_DISPLAY_NAME } from '../../services/profileService';
-import { PLANNER_MENU_PANEL } from './plannerTheme';
 import UserAvatar from './UserAvatar';
 import Button from '../ui/Button';
 import { isPlannerNavTabActive } from '../../utils/plannerRoutes';
 import { PLANNER_NAV_TAB_LABEL, PLANNER_NAV_TAB_LABEL_ACTIVE } from './plannerTheme';
 
 type TabCountKey = keyof ProjectTabCounts;
+
+const PLAN_ACTIONS_MENU_WIDTH_PX = 176;
+const PLAN_ACTIONS_MENU_MARGIN_PX = 8;
 
 const TABS: { to: string; label: string; countKey?: TabCountKey }[] = [
   { to: 'estimate', label: 'Estimate' },
@@ -43,11 +46,105 @@ export default function PlannerPlanHeader() {
   const tabCounts = useProjectTabCounts(projectId, user?.id, bundle);
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const menuWrapRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuId = useId();
+
+  const updateMenuPosition = () => {
+    const anchor = menuWrapRef.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    let left = rect.right - PLAN_ACTIONS_MENU_WIDTH_PX;
+    left = Math.max(
+      PLAN_ACTIONS_MENU_MARGIN_PX,
+      Math.min(left, window.innerWidth - PLAN_ACTIONS_MENU_WIDTH_PX - PLAN_ACTIONS_MENU_MARGIN_PX),
+    );
+    let top = rect.bottom + PLAN_ACTIONS_MENU_MARGIN_PX;
+    const menuHeight = menuRef.current?.offsetHeight ?? 88;
+    if (top + menuHeight > window.innerHeight - PLAN_ACTIONS_MENU_MARGIN_PX) {
+      top = Math.max(PLAN_ACTIONS_MENU_MARGIN_PX, rect.top - menuHeight - PLAN_ACTIONS_MENU_MARGIN_PX);
+    }
+    setMenuPos({ top, left });
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    updateMenuPosition();
+    const onLayout = () => updateMenuPosition();
+    window.addEventListener('resize', onLayout);
+    window.addEventListener('scroll', onLayout, true);
+    return () => {
+      window.removeEventListener('resize', onLayout);
+      window.removeEventListener('scroll', onLayout, true);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (menuWrapRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
 
   if (!project || !projectId) return null;
 
   const base = `/projects/${projectId}/planner`;
   const visibleTeam = team.slice(0, 4);
+
+  const planActionsMenu =
+    menuOpen && bundle ? (
+      <div
+        ref={menuRef}
+        id={menuId}
+        role="menu"
+        data-testid="planner-plan-actions-menu"
+        style={{
+          top: menuPos.top,
+          left: menuPos.left,
+          width: PLAN_ACTIONS_MENU_WIDTH_PX,
+        }}
+        className="fixed z-[1000] overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+      >
+        <button
+          role="menuitem"
+          type="button"
+          data-testid="planner-plan-actions-export-csv"
+          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-white"
+          onClick={() => {
+            exportPlannerTasksCsv(bundle, project.name);
+            setMenuOpen(false);
+          }}
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
+        </button>
+        <button
+          role="menuitem"
+          type="button"
+          data-testid="planner-plan-actions-export-json"
+          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-white"
+          onClick={() => {
+            exportPlannerBoardJson(bundle, project.name);
+            setMenuOpen(false);
+          }}
+        >
+          <Download className="h-4 w-4" />
+          Export JSON
+        </button>
+      </div>
+    ) : null;
 
   return (
     <div className="shrink-0 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
@@ -84,49 +181,22 @@ export default function PlannerPlanHeader() {
             Members
           </Button>
           {isOwner && bundle && (
-            <div className="relative">
+            <div className="relative shrink-0" ref={menuWrapRef}>
               <button
                 type="button"
-                onClick={() => setMenuOpen((o) => !o)}
+                onClick={() => setMenuOpen((open) => !open)}
                 className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-800"
                 aria-label="More actions"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-controls={menuId}
+                data-testid="planner-plan-actions-trigger"
               >
                 <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-slate-300" />
               </button>
-              {menuOpen && (
-                <>
-                  <button
-                    type="button"
-                    className="fixed inset-0 z-10"
-                    aria-label="Close"
-                    onClick={() => setMenuOpen(false)}
-                  />
-                  <div className={`absolute right-0 top-full w-44 py-1 ${PLANNER_MENU_PANEL}`}>
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
-                      onClick={() => {
-                        exportPlannerTasksCsv(bundle, project.name);
-                        setMenuOpen(false);
-                      }}
-                    >
-                      <Download className="h-4 w-4" />
-                      Export CSV
-                    </button>
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
-                      onClick={() => {
-                        exportPlannerBoardJson(bundle, project.name);
-                        setMenuOpen(false);
-                      }}
-                    >
-                      <Download className="h-4 w-4" />
-                      Export JSON
-                    </button>
-                  </div>
-                </>
-              )}
+              {typeof document !== 'undefined'
+                ? createPortal(planActionsMenu, document.body)
+                : planActionsMenu}
             </div>
           )}
         </div>
