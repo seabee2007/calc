@@ -36,6 +36,9 @@ export interface ChangeOrderFinancialKpis {
   winRate: number;
   directLaborTotal: number;
   directMaterialTotal: number;
+  directEquipmentTotal: number;
+  totalEstimatedCost: number;
+  grossProfit: number;
 }
 
 export interface ChangeOrderDashboardMetrics {
@@ -75,6 +78,16 @@ function sumMaterial(co: ChangeOrder): number {
 
 function sumSubcontractor(co: ChangeOrder): number {
   return (co.subcontractorItems ?? []).reduce((s, row) => s + num(row.amount), 0);
+}
+
+function sumEquipment(co: ChangeOrder): number {
+  return co.equipmentItems.reduce((s, row) => s + num(row.amount), 0);
+}
+
+function coGrossProfit(co: ChangeOrder): number {
+  if (co.grossProfit > 0) return num(co.grossProfit);
+  if (co.totalEstimatedCost > 0) return num(co.total) - num(co.totalEstimatedCost);
+  return 0;
 }
 
 function acceptedAt(co: ChangeOrder): string | null {
@@ -156,6 +169,9 @@ export function buildChangeOrderFinancialKpis(
     0,
   );
   const directMaterialTotal = accepted.reduce((s, co) => s + sumMaterial(co), 0);
+  const directEquipmentTotal = accepted.reduce((s, co) => s + sumEquipment(co), 0);
+  const totalEstimatedCost = accepted.reduce((s, co) => s + num(co.totalEstimatedCost), 0);
+  const grossProfit = accepted.reduce((s, co) => s + coGrossProfit(co), 0);
 
   return {
     pendingRevenue,
@@ -170,6 +186,9 @@ export function buildChangeOrderFinancialKpis(
     winRate,
     directLaborTotal,
     directMaterialTotal,
+    directEquipmentTotal,
+    totalEstimatedCost,
+    grossProfit,
   };
 }
 
@@ -194,6 +213,8 @@ export function mergeChangeOrderIntoProposalFinancial(
   const acceptedRevenue = proposal.acceptedRevenue + co.acceptedRevenue;
   const laborCostTotal = proposal.laborCostTotal + co.directLaborTotal;
   const materialCostTotal = proposal.materialCostTotal + co.directMaterialTotal;
+  const equipmentCostTotal = proposal.equipmentCostTotal + co.directEquipmentTotal;
+  const totalEstimatedCost = proposal.totalEstimatedCost + co.totalEstimatedCost;
 
   return {
     ...proposal,
@@ -203,7 +224,9 @@ export function mergeChangeOrderIntoProposalFinancial(
     acceptedRevenue,
     laborCostTotal,
     materialCostTotal,
-    grossProfit: acceptedRevenue - laborCostTotal - materialCostTotal,
+    equipmentCostTotal,
+    totalEstimatedCost,
+    grossProfit: proposal.grossProfit + co.grossProfit,
     acceptedCount: proposal.acceptedCount + co.acceptedCount,
     declinedCount: proposal.declinedCount + co.declinedCount,
     changeOrderPendingRevenue: co.pendingRevenue,

@@ -15,6 +15,8 @@ const sampleFinancial: ProposalFinancialKpis = {
   winRate: 0.62,
   laborCostTotal: 180000,
   materialCostTotal: 95000,
+  equipmentCostTotal: 12000,
+  totalEstimatedCost: 215000,
   grossProfit: 70716,
   acceptedCount: 6,
   declinedCount: 2,

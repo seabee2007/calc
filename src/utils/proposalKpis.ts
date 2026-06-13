@@ -1,5 +1,9 @@
 import type { TrackedProposalRow, ProposalStatus } from '../types/proposalTracking';
 import { PROPOSAL_PIPELINE_STATUSES } from '../types/proposalTracking';
+import {
+  resolveProposalGrossProfit,
+  resolveTrackedProposalFinancials,
+} from './proposalFinancials';
 
 export type ProposalPipelineCounts = Record<ProposalStatus, number>;
 
@@ -18,6 +22,8 @@ export interface ProposalFinancialKpis {
   winRate: number;
   laborCostTotal: number;
   materialCostTotal: number;
+  equipmentCostTotal: number;
+  totalEstimatedCost: number;
   grossProfit: number;
   acceptedCount: number;
   declinedCount: number;
@@ -62,6 +68,30 @@ function num(v: number | string | null | undefined): number {
   if (v == null) return 0;
   const n = typeof v === 'number' ? v : parseFloat(String(v));
   return Number.isFinite(n) ? n : 0;
+}
+
+function proposalAmount(p: TrackedProposalRow): number {
+  return resolveTrackedProposalFinancials(p).total_amount;
+}
+
+function proposalGrossProfit(p: TrackedProposalRow): number {
+  return resolveProposalGrossProfit(resolveTrackedProposalFinancials(p));
+}
+
+function proposalLaborCost(p: TrackedProposalRow): number {
+  return resolveTrackedProposalFinancials(p).labor_cost;
+}
+
+function proposalMaterialCost(p: TrackedProposalRow): number {
+  return resolveTrackedProposalFinancials(p).material_cost;
+}
+
+function proposalEquipmentCost(p: TrackedProposalRow): number {
+  return resolveTrackedProposalFinancials(p).equipment_cost ?? 0;
+}
+
+function proposalTotalEstimatedCost(p: TrackedProposalRow): number {
+  return resolveTrackedProposalFinancials(p).total_estimated_cost ?? 0;
 }
 
 function isPending(status: ProposalStatus): boolean {
@@ -110,7 +140,7 @@ export function buildProposalPipelineRevenue(
 
   for (const p of proposals) {
     const status = (p.status ?? 'draft') as ProposalStatus;
-    const amount = num(p.total_amount);
+    const amount = proposalAmount(p);
     if (status in revenue) revenue[status as ProposalStatus] += amount;
     else revenue.draft += amount;
   }
@@ -131,23 +161,23 @@ export function buildProposalFinancialKpis(
   const sentCount = wonCount + declinedCount + pendingProposals.length;
 
   const totalRevenue = wonProposals.reduce(
-    (sum, p) => sum + num(p.total_amount),
+    (sum, p) => sum + proposalAmount(p),
     0,
   );
 
   const pendingRevenue = pendingProposals.reduce(
-    (sum, p) => sum + num(p.total_amount),
+    (sum, p) => sum + proposalAmount(p),
     0,
   );
 
   const openProposals = proposals.filter((p) => isOpenPipeline(p.status ?? 'draft'));
   const openPipelineRevenue = openProposals.reduce(
-    (sum, p) => sum + num(p.total_amount),
+    (sum, p) => sum + proposalAmount(p),
     0,
   );
   const weightedForecast = openProposals.reduce((sum, p) => {
     const status = (p.status ?? 'draft') as ProposalStatus;
-    return sum + num(p.total_amount) * (WEIGHT_BY_STATUS[status] ?? 0);
+    return sum + proposalAmount(p) * (WEIGHT_BY_STATUS[status] ?? 0);
   }, 0);
 
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -156,7 +186,7 @@ export function buildProposalFinancialKpis(
       const at = wonAt(p);
       return at ? new Date(at) >= monthStart : false;
     })
-    .reduce((sum, p) => sum + num(p.total_amount), 0);
+    .reduce((sum, p) => sum + proposalAmount(p), 0);
 
   // Win rate = won / sent (excluding drafts)
   const winRate = sentCount > 0 ? wonCount / sentCount : 0;
@@ -165,22 +195,26 @@ export function buildProposalFinancialKpis(
 
   // Costs should be compared to revenue for the same cohort (won).
   const laborCostTotal = wonProposals.reduce(
-    (sum, p) => sum + num(p.labor_cost),
+    (sum, p) => sum + proposalLaborCost(p),
     0,
   );
   const materialCostTotal = wonProposals.reduce(
-    (sum, p) => sum + num(p.material_cost),
+    (sum, p) => sum + proposalMaterialCost(p),
+    0,
+  );
+  const equipmentCostTotal = wonProposals.reduce(
+    (sum, p) => sum + proposalEquipmentCost(p),
+    0,
+  );
+  const totalEstimatedCost = wonProposals.reduce(
+    (sum, p) => sum + proposalTotalEstimatedCost(p),
     0,
   );
 
-  const storedGrossProfit = wonProposals.reduce(
-    (sum, p) => sum + num(p.gross_profit),
+  const grossProfit = wonProposals.reduce(
+    (sum, p) => sum + proposalGrossProfit(p),
     0,
   );
-  const grossProfit =
-    storedGrossProfit > 0
-      ? storedGrossProfit
-      : totalRevenue - laborCostTotal - materialCostTotal;
 
   return {
     pendingRevenue,
@@ -192,6 +226,8 @@ export function buildProposalFinancialKpis(
     winRate,
     laborCostTotal,
     materialCostTotal,
+    equipmentCostTotal,
+    totalEstimatedCost,
     grossProfit,
     acceptedCount: wonCount,
     declinedCount,

@@ -39,6 +39,8 @@ function mockProposal(
     total_amount: 10000,
     labor_cost: 3000,
     material_cost: 4000,
+    gross_profit: 3000,
+    gross_margin_percent: 30,
     ...partial,
   };
 }
@@ -55,20 +57,43 @@ describe('proposalKpis', () => {
     expect(counts.accepted).toBe(1);
   });
 
-  it('computes pending revenue and win rate', () => {
+  it('computes pending revenue and win rate from pricing breakdown', () => {
+    const acceptedData = {
+      ...mockProposal({ status: 'accepted' }).data,
+      laborItems: [{ description: 'Labor', amount: 3000 }],
+      materialItems: [{ description: 'Material', amount: 4000 }],
+      equipmentItems: [],
+      subcontractorItems: [],
+      pricingIndirect: {
+        pricingModel: 'standard' as const,
+        wasteFactorPercent: 0,
+        contingencyPercent: 0,
+        overheadPercent: 0,
+        targetMarginPercent: 20,
+        profitPercent: 20,
+        feesAmount: 0,
+        permitsAmount: 0,
+        taxSystem: 'none' as const,
+        taxRatePercent: 0,
+        taxApplication: 'materials_only' as const,
+      },
+    };
+
     const financial = buildProposalFinancialKpis([
       mockProposal({ status: 'sent', total_amount: 5000 }),
-      mockProposal({ status: 'accepted', total_amount: 10000 }),
+      mockProposal({
+        status: 'accepted',
+        data: acceptedData,
+      }),
       mockProposal({ status: 'declined', total_amount: 8000 }),
     ]);
-  
+
     expect(financial.pendingRevenue).toBe(5000);
-    expect(financial.openPipelineRevenue).toBe(15000);
-    expect(financial.weightedForecast).toBe(5000 * 0.25 + 10000);
-    expect(financial.acceptedRevenue).toBe(10000);
+    expect(financial.openPipelineRevenue).toBe(5000 + 8750);
+    expect(financial.weightedForecast).toBeCloseTo(5000 * 0.25 + 8750, 0);
+    expect(financial.acceptedRevenue).toBeCloseTo(8750, 0);
     expect(financial.winRate).toBeCloseTo(1 / 3);
-  
-    // Gross profit should be based on accepted work only.
-    expect(financial.grossProfit).toBe(10000 - (3000 + 4000));
+    expect(financial.grossProfit).toBeCloseTo(1750, 0);
+    expect(financial.totalEstimatedCost).toBeCloseTo(7000, 0);
   });
 });

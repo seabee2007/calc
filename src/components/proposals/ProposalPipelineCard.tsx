@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 import type { SavedProposal } from '../../lib/proposalService';
 import type { ProposalStatus } from '../../types/proposalTracking';
 import { formatProposalMoney, formatWinRate } from '../../utils/proposalKpis';
+import { resolveProposalGrossProfit, resolveTrackedProposalFinancials } from '../../utils/proposalFinancials';
 import {
   buildProposalActivityTimeline,
   getProposalAging,
@@ -50,9 +51,9 @@ export default function ProposalPipelineCard({
   const company = proposal.data?.clientCompany?.trim();
   const displayClient = company ? `${clientName} · ${company}` : clientName;
 
-  const total = Number(proposal.total_amount ?? 0);
-  const profit =
-    total - Number(proposal.labor_cost ?? 0) - Number(proposal.material_cost ?? 0);
+  const financials = resolveTrackedProposalFinancials(proposal);
+  const total = financials.total_amount;
+  const profit = resolveProposalGrossProfit(financials);
   const margin = getProposalMargin(proposal);
   const status = (proposal.status ?? 'draft') as ProposalStatus;
   const aging = getProposalAging(proposal);

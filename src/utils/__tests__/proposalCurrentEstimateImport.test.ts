@@ -202,7 +202,7 @@ describe('proposalCurrentEstimateImport', () => {
     expect(imported!.pricingIndirect.taxRatePercent).toBe(8);
   });
 
-  it('proposal final total equals estimate final sell price after import', () => {
+  it('uses live line-item pricing for final total when structured pricing exists', () => {
     const imported = buildProposalImportFromCurrentEstimate(makeContext());
     const proposalData: ProposalData = {
       businessName: 'Acme',
@@ -230,9 +230,11 @@ describe('proposalCurrentEstimateImport', () => {
       ...EMPTY_PROPOSAL_DOCUMENT_FIELDS,
     };
 
-    expect(formatProposalTotal(proposalData)).toBe('$13,370.27');
-    expect(computeProposalBreakdown(proposalData).totalPrice).toBe(13370.27);
-    expect(computeProposalBreakdown(proposalData).importedIndirectCost).toBe(1551.36);
+    const breakdown = computeProposalBreakdown(proposalData);
+    expect(formatProposalTotal(proposalData)).toBe('$9,777.15');
+    expect(breakdown.totalPrice).toBe(9777.15);
+    expect(breakdown.importedIndirectCost).toBe(1551.36);
+    expect(imported!.importedEstimateSummary.finalSellPrice).toBe(13370.27);
   });
 
   it('does not break import when material and equipment totals are zero', () => {

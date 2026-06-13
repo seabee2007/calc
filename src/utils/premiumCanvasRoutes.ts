@@ -6,6 +6,7 @@ const PREMIUM_CANVAS_PREFIXES = [
   '/planner/hub',
   '/proposals',
   '/proposal-generator',
+  '/financials',
   '/calculator',
   '/tools/',
   '/mix-design-advisor',

@@ -39,9 +39,12 @@ export interface ProposalFinancialFields {
   total_amount: number;
   labor_cost: number;
   material_cost: number;
+  equipment_cost?: number;
+  total_estimated_cost?: number;
   deposit_amount: number;
   gross_profit?: number;
   gross_margin_percent?: number;
+  markup_percent?: number;
 }
 
 export interface TrackedProposalRow {

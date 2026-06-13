@@ -8,12 +8,15 @@ import { buildOperationsSnapshot } from '../utils/operationsDashboard';
 import { fetchChangeOrdersForProjectIds } from '../services/changeOrderService';
 import { isProjectClosedOut } from '../utils/projectWorkflow';
 import FinancialDetailsPanel from '../components/dashboard/FinancialDetailsPanel';
-import OpsCard from '../components/dashboard/OpsCard';
 import Button from '../components/ui/Button';
-import AppPage from '../components/ui/AppPage';
-import PageHeader from '../components/ui/PageHeader';
 import KpiStrip from '../components/ui/KpiStrip';
-import { OPS_SHELL } from '../components/dashboard/opsTheme';
+import { OPS_OUTLINE_BTN, OPS_SHELL } from '../components/dashboard/opsTheme';
+import {
+  PAGE_GUTTER,
+  PREMIUM_PAGE_MAX_WIDTH,
+  PREMIUM_PANEL,
+  TEXT_MUTED,
+} from '../theme/appTheme';
 import type { ChangeOrder } from '../types/changeOrder';
 import { useAuth } from '../hooks/useAuth';
 import { formatProposalMoney, formatWinRate } from '../utils/proposalKpis';
@@ -65,64 +68,66 @@ const FinancialDetailsPage: React.FC = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className={OPS_SHELL}
+      className={`${OPS_SHELL} ${PREMIUM_PAGE_MAX_WIDTH} ${PAGE_GUTTER} space-y-6 pb-24 md:pb-8`}
+      data-testid="financial-details-page"
     >
-      <AppPage
-        className="pt-4"
-        header={
-          <PageHeader
-            breadcrumb={
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                icon={<ArrowLeft className="h-4 w-4" />}
-                onClick={() => navigate('/')}
-              >
-                Back to dashboard
-              </Button>
-            }
-            title="Financial details"
-            subtitle="Full revenue, cost, and margin breakdown across proposals and active projects."
-          />
-        }
-      >
-        <KpiStrip
-          className="mb-6"
-          metrics={[
-            {
-              label: 'Pending revenue',
-              value: formatProposalMoney(financial.pendingRevenue),
-              highlight: true,
-            },
-            {
-              label: 'Accepted revenue',
-              value: formatProposalMoney(financial.acceptedRevenue),
-            },
-            {
-              label: 'Gross profit',
-              value: formatProposalMoney(financial.grossProfit),
-              highlight: financial.grossProfit >= 0,
-            },
-            {
-              label: 'Gross margin',
-              value: grossMarginPct,
-            },
-            {
-              label: 'Win rate',
-              value: formatWinRate(financial.winRate),
-            },
-            {
-              label: 'Weighted forecast',
-              value: formatProposalMoney(financial.weightedForecast),
-            },
-          ]}
-        />
+      <section className={`${PREMIUM_PANEL} p-5 sm:p-6`}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          icon={<ArrowLeft className="h-4 w-4" />}
+          onClick={() => navigate('/')}
+          className={OPS_OUTLINE_BTN}
+        >
+          Back to dashboard
+        </Button>
 
-        <OpsCard>
-          <FinancialDetailsPanel financial={financial} />
-        </OpsCard>
-      </AppPage>
+        <div className="mt-5">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
+            Financial details
+          </h1>
+          <p className={`mt-2 max-w-3xl text-sm sm:text-base ${TEXT_MUTED}`}>
+            Full revenue, cost, and margin breakdown across proposals and active projects.
+          </p>
+        </div>
+      </section>
+
+      <KpiStrip
+        premium
+        metrics={[
+          {
+            label: 'Pending revenue',
+            value: formatProposalMoney(financial.pendingRevenue),
+            highlight: true,
+          },
+          {
+            label: 'Accepted revenue',
+            value: formatProposalMoney(financial.acceptedRevenue),
+          },
+          {
+            label: 'Gross profit',
+            value: formatProposalMoney(financial.grossProfit),
+            highlight: financial.grossProfit >= 0,
+          },
+          {
+            label: 'Gross margin',
+            value: grossMarginPct,
+          },
+          {
+            label: 'Win rate',
+            value: formatWinRate(financial.winRate),
+          },
+          {
+            label: 'Weighted forecast',
+            value: formatProposalMoney(financial.weightedForecast),
+          },
+        ]}
+      />
+
+      <section className={`${PREMIUM_PANEL} p-5 sm:p-6`}>
+        <FinancialDetailsPanel financial={financial} />
+      </section>
     </motion.div>
   );
 };

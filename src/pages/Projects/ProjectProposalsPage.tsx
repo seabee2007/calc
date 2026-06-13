@@ -33,6 +33,7 @@ import {
 import { navigateToProjectDetail } from '../../utils/workflow';
 import { PROPOSAL_STATUS_LABELS } from '../../types/proposalTracking';
 import { formatProposalMoney } from '../../utils/proposalKpis';
+import { resolveProposalTotalAmount } from '../../utils/proposalFinancials';
 
 const formatDateTime = (dateString: string) =>
   new Date(dateString).toLocaleDateString('en-US', {
@@ -363,7 +364,7 @@ export default function ProjectProposalsPage() {
                     Status: {PROPOSAL_STATUS_LABELS[proposal.status] ?? proposal.status}
                   </span>
                   <span aria-hidden>·</span>
-                  <span>Value: {formatProposalMoney(Number(proposal.total_amount ?? 0))}</span>
+                  <span>Value: {formatProposalMoney(resolveProposalTotalAmount(proposal))}</span>
                   {proposal.sent_at ? (
                     <>
                       <span aria-hidden>·</span>
@@ -413,7 +414,7 @@ export default function ProjectProposalsPage() {
                     <p className="truncate font-semibold text-slate-900 dark:text-white">{title}</p>
                     <p className="text-xs text-slate-500 dark:text-gray-400">
                       {PROPOSAL_STATUS_LABELS[proposal.status]} ·{' '}
-                      {formatProposalMoney(Number(proposal.total_amount ?? 0))}
+                      {formatProposalMoney(resolveProposalTotalAmount(proposal))}
                     </p>
                   </div>
                   <Button

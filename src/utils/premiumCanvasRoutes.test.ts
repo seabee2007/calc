@@ -11,6 +11,7 @@ describe('usesPremiumCanvas', () => {
     expect(usesPremiumCanvas('/planner/hub')).toBe(true);
     expect(usesPremiumCanvas('/proposals')).toBe(true);
     expect(usesPremiumCanvas('/proposal-generator')).toBe(true);
+    expect(usesPremiumCanvas('/financials')).toBe(true);
     expect(usesPremiumCanvas('/calculator')).toBe(true);
     expect(usesPremiumCanvas('/calculator/concrete')).toBe(true);
     expect(usesPremiumCanvas('/tools/safety-meeting')).toBe(true);
@@ -21,7 +22,6 @@ describe('usesPremiumCanvas', () => {
   });
 
   it('excludes out-of-scope routes', () => {
-    expect(usesPremiumCanvas('/financials')).toBe(false);
     expect(usesPremiumCanvas('/employees')).toBe(false);
     expect(usesPremiumCanvas('/login')).toBe(false);
     expect(usesPremiumCanvas('/planner/schedule')).toBe(false);

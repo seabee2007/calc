@@ -1,3 +1,4 @@
+import { resolveProposalGrossProfit, resolveProposalTotalAmount, resolveTrackedProposalFinancials } from './proposalFinancials';
 import type { TrackedProposalRow, ProposalStatus } from '../types/proposalTracking';
 import { PROPOSAL_STATUS_LABELS } from '../types/proposalTracking';
 import type {
@@ -112,20 +113,20 @@ export function sumPipelineColumn(
   const list = proposals.filter((p) => proposalMatchesPipelineFilter(p, filter));
   return {
     count: list.length,
-    value: list.reduce((s, p) => s + num(p.total_amount), 0),
+    value: list.reduce((s, p) => s + resolveProposalTotalAmount(p), 0),
   };
 }
 
 export function getProposalMargin(proposal: TrackedProposalRow): number {
-  const total = num(proposal.total_amount);
+  const financials = resolveTrackedProposalFinancials(proposal);
+  const total = financials.total_amount;
   if (total <= 0) return 0;
-  const stored = num(proposal.gross_margin_percent);
-  if (stored > 0) return stored / 100;
-  const storedProfit = num(proposal.gross_profit);
-  if (storedProfit > 0) return storedProfit / total;
-  const profit =
-    total - num(proposal.labor_cost) - num(proposal.material_cost);
-  return profit / total;
+  const profit = resolveProposalGrossProfit(financials);
+  if (profit > 0) return profit / total;
+  if (financials.gross_margin_percent != null && financials.gross_margin_percent > 0) {
+    return financials.gross_margin_percent / 100;
+  }
+  return 0;
 }
 
 export function getProposalAging(
@@ -346,11 +347,11 @@ export function buildCrmRevenueMetrics(
 ): CrmRevenueMetrics {
   const active = proposals.filter((p) => (p.status ?? 'draft') !== 'declined');
 
-  const pipelineValue = active.reduce((s, p) => s + num(p.total_amount), 0);
+  const pipelineValue = active.reduce((s, p) => s + resolveProposalTotalAmount(p), 0);
 
   const weightedForecast = active.reduce((s, p) => {
     const status = p.status ?? 'draft';
-    return s + num(p.total_amount) * (WEIGHT_BY_STATUS[status] ?? 0);
+    return s + resolveProposalTotalAmount(p) * (WEIGHT_BY_STATUS[status] ?? 0);
   }, 0);
 
   const margins = active

@@ -15,6 +15,8 @@ const sampleFinancial = vi.hoisted(
     winRate: 0.62,
     laborCostTotal: 180000,
     materialCostTotal: 95000,
+    equipmentCostTotal: 12000,
+    totalEstimatedCost: 215000,
     grossProfit: 70716,
     acceptedCount: 6,
     declinedCount: 2,
@@ -72,6 +74,7 @@ describe('FinancialDetailsPage', () => {
       </MemoryRouter>,
     );
 
+    expect(screen.getByTestId('financial-details-page')).toBeInTheDocument();
     expect(screen.getByText('Financial details')).toBeInTheDocument();
     expect(screen.getByText('Labor cost')).toBeInTheDocument();
     expect(screen.getByText('Material cost')).toBeInTheDocument();

@@ -125,13 +125,17 @@ export function buildBreakdownFromImportedEstimateSummary(
   const costBeforeOverhead = preTaxCost + taxCost;
   const costWithOverhead = costBeforeOverhead + overheadAmount;
   const totalEstimatedCost = costWithOverhead;
-  const grossProfit = summary.profitTotal;
   const totalPrice = summary.finalSellPrice;
+  const grossProfit = Math.round((totalPrice - totalEstimatedCost) * 100) / 100;
   const targetMarginPercent = summary.targetMarginPercent ?? params.targetMarginPercent;
   const grossMarginPercent =
-    totalPrice > 0 ? Math.round((grossProfit / totalPrice) * 10000) / 100 : 0;
+    totalPrice > 0
+      ? Math.round(((grossProfit / totalPrice) * 100) * 100) / 100
+      : 0;
   const markupPercentReporting =
-    costWithOverhead > 0 ? Math.round((grossProfit / costWithOverhead) * 10000) / 100 : 0;
+    costWithOverhead > 0
+      ? Math.round(((grossProfit / costWithOverhead) * 100) * 100) / 100
+      : 0;
 
   return {
     pricingModel: 'standard',
@@ -177,6 +181,26 @@ export function computeProposalBreakdown(
   companyTax?: CompanyTaxDefaults,
 ): ChangeOrderPricingBreakdown {
   const params = hydratePricingParams(data, companyTax);
+
+  if (hasStructuredProposalPricing(data)) {
+    const { laborItems, materialItems, equipmentItems, subcontractorItems } =
+      resolveProposalLineItems(data);
+    const breakdown = computePricingBreakdown(
+      laborItems,
+      materialItems,
+      equipmentItems,
+      subcontractorItems,
+      params,
+    );
+    if (data.importedEstimateSummary) {
+      return {
+        ...breakdown,
+        importedIndirectCost: data.importedEstimateSummary.indirectCostTotal,
+      };
+    }
+    return breakdown;
+  }
+
   if (data.importedEstimateSummary) {
     return buildBreakdownFromImportedEstimateSummary(data.importedEstimateSummary, params);
   }
@@ -193,9 +217,6 @@ export function computeProposalBreakdown(
 }
 
 export function formatProposalTotal(data: ProposalData, companyTax?: CompanyTaxDefaults): string {
-  if (data.importedEstimateSummary?.finalSellPrice != null) {
-    return formatChangeOrderMoney(data.importedEstimateSummary.finalSellPrice);
-  }
   return formatChangeOrderMoney(computeProposalBreakdown(data, companyTax).totalPrice);
 }
 
