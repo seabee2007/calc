@@ -37,7 +37,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trailer Mounted Floodlight Set"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -75,7 +75,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Jobsite Portolet"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -113,7 +113,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Scaffolding"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -151,7 +151,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "CESE Mobilization or Demobilization"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -189,7 +189,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tool Kit Inventory"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -226,7 +226,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roads and Sidewalks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -263,7 +263,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roads and Sidewalks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -300,7 +300,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roads and Sidewalks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -337,7 +337,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roads and Sidewalks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -374,7 +374,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Barricades"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -411,7 +411,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Barricades"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -448,7 +448,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Barricades"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -485,7 +485,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Barricades"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -522,7 +522,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Fencing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -559,7 +559,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Fencing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -596,7 +596,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Fencing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -633,7 +633,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Fencing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -670,7 +670,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Protective Walkways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -707,7 +707,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Protective Walkways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -744,7 +744,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Temporary Protective Walkways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -782,7 +782,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Project Sign"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -819,7 +819,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Survey, conventional, topographical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -856,7 +856,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Survey, conventional, topographical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -893,7 +893,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Survey, conventional, topographical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -930,7 +930,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Survey, conventional, topographical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -967,7 +967,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1004,7 +1004,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1041,7 +1041,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1078,7 +1078,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1115,7 +1115,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1152,7 +1152,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1189,7 +1189,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1226,7 +1226,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1263,7 +1263,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1300,7 +1300,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lot location and lines, for large quantities,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1337,7 +1337,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1374,7 +1374,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1411,7 +1411,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1448,7 +1448,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1485,7 +1485,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1522,7 +1522,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1559,7 +1559,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Demolish, Remove Pavement and Curb"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1596,7 +1596,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1633,7 +1633,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1670,7 +1670,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1707,7 +1707,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1744,7 +1744,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1781,7 +1781,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1818,7 +1818,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1855,7 +1855,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1892,7 +1892,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1929,7 +1929,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minor Site Demolition"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -1966,7 +1966,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Building Demolition Footings and Foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2003,7 +2003,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Building Demolition Footings and Foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2040,7 +2040,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Building Demolition Footings and Foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2077,7 +2077,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Building Demolition Footings and Foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2114,7 +2114,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Building Demolition Footings and Foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2151,7 +2151,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2188,7 +2188,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2225,7 +2225,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2262,7 +2262,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2299,7 +2299,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2336,7 +2336,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2373,7 +2373,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2410,7 +2410,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2447,7 +2447,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2484,7 +2484,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2521,7 +2521,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2558,7 +2558,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2595,7 +2595,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2632,7 +2632,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2669,7 +2669,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2706,7 +2706,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Cutout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2743,7 +2743,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Rubbish Handling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2780,7 +2780,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Rubbish Handling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2817,7 +2817,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Rubbish Handling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2854,7 +2854,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Rubbish Handling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2891,7 +2891,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Torch Cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2928,7 +2928,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Torch Cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -2965,7 +2965,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition, Torch Cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3003,7 +3003,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Snow Fencing System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3041,7 +3041,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beams and Girders, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3079,7 +3079,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beams and Girders, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3117,7 +3117,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beams and Girders, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3155,7 +3155,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beams and Girders, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3193,7 +3193,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beams and Girders, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3230,7 +3230,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 8-inch diameter"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3267,7 +3267,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 8-inch diameter"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3304,7 +3304,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 8-inch diameter"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3341,7 +3341,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 8-inch diameter"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3378,7 +3378,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood (job-built), one use"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3415,7 +3415,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood (job-built), one use"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3452,7 +3452,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood (job-built), one use"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3489,7 +3489,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3526,7 +3526,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3563,7 +3563,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3600,7 +3600,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3637,7 +3637,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3674,7 +3674,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3711,7 +3711,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Elevated Slabs (Overhead)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3748,7 +3748,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Footings, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3785,7 +3785,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Support for dowels, plinths, or templates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3822,7 +3822,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Footings, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3859,7 +3859,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Footings, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3896,7 +3896,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Footings, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3933,7 +3933,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Footings, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -3970,7 +3970,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Support for dowels, plinths, or templates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4007,7 +4007,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Support for dowels, plinths, or templates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4044,7 +4044,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Support for dowels, plinths, or templates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4081,7 +4081,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Slab on grade, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4118,7 +4118,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Slab on grade, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4155,7 +4155,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Slab on grade, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4192,7 +4192,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Slab on grade, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4229,7 +4229,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Slab on grade, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4267,7 +4267,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4305,7 +4305,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4343,7 +4343,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Stairs, Forms in Place"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4380,7 +4380,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Forming Accessories, Miscellaneous Items"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4417,7 +4417,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Forming Accessories, Miscellaneous Items"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4454,7 +4454,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Forming Accessories, Miscellaneous Items"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4491,7 +4491,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Forming Accessories, Miscellaneous Items"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4528,7 +4528,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4565,7 +4565,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4602,7 +4602,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4639,7 +4639,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete cutting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4676,7 +4676,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4713,7 +4713,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4750,7 +4750,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4787,7 +4787,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4824,7 +4824,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4861,7 +4861,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4898,7 +4898,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4935,7 +4935,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -4972,7 +4972,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5009,7 +5009,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5046,7 +5046,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5083,7 +5083,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5120,7 +5120,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5157,7 +5157,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5194,7 +5194,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5231,7 +5231,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete core drilling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5268,7 +5268,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tailor to 1 CF of capacity"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5305,7 +5305,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hand mixing onsite:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5342,7 +5342,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine mixing onsite:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5379,7 +5379,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine mixing onsite:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5416,7 +5416,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5453,7 +5453,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5490,7 +5490,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5527,7 +5527,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5564,7 +5564,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5601,7 +5601,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5638,7 +5638,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5675,7 +5675,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5712,7 +5712,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5749,7 +5749,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5786,7 +5786,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5823,7 +5823,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control Joints, Saw Cut"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5860,7 +5860,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control Joints, Saw Cut"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5897,7 +5897,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "joint sealant"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5934,7 +5934,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "joint sealant"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -5971,7 +5971,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6008,7 +6008,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6045,7 +6045,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6082,7 +6082,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6119,7 +6119,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6156,7 +6156,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6193,7 +6193,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6230,7 +6230,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6267,7 +6267,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6304,7 +6304,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6341,7 +6341,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishing Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6378,7 +6378,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pointing Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6415,7 +6415,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pointing Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6452,7 +6452,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pointing Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6489,7 +6489,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cleaning Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6526,7 +6526,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cleaning Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6563,7 +6563,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cleaning Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6600,7 +6600,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brick Washing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6637,7 +6637,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brick Washing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6674,7 +6674,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brick Washing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6712,7 +6712,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Mortar"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6749,7 +6749,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6786,7 +6786,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6823,7 +6823,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6860,7 +6860,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6897,7 +6897,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6934,7 +6934,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -6971,7 +6971,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7008,7 +7008,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7045,7 +7045,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7082,7 +7082,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7119,7 +7119,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7156,7 +7156,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7193,7 +7193,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7230,7 +7230,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7267,7 +7267,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7304,7 +7304,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grouting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7341,7 +7341,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hooked, with nut and washer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7378,7 +7378,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hooked, with nut and washer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7415,7 +7415,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hooked, with nut and washer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7452,7 +7452,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Anchors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7489,7 +7489,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Reinforcing Bars"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7526,7 +7526,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Reinforcing Bars"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7563,7 +7563,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Reinforcing Bars"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7600,7 +7600,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Reinforcing Bars"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7637,7 +7637,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Reinforcing Bars"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7674,7 +7674,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Masonry Reinforcing Bars"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7711,7 +7711,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control Joint"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7748,7 +7748,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brick Veneer Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7785,7 +7785,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brick Veneer Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7822,7 +7822,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brick Veneer Masonry"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7859,7 +7859,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Terra Cotta Masonry Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7896,7 +7896,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Terra Cotta Masonry Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7933,7 +7933,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Terra Cotta Masonry Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -7970,7 +7970,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Reinforced, alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8007,7 +8007,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Reinforced, alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8044,7 +8044,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Reinforced, alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8081,7 +8081,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Regular block, 8 inches high, including reinforcing (two #5 bars) and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8118,7 +8118,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Regular block, 8 inches high, including reinforcing (two #5 bars) and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8155,7 +8155,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Block, Column or Pilaster"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8192,7 +8192,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Block, Column or Pilaster"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8229,7 +8229,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Block, Column or Pilaster"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8266,7 +8266,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8303,7 +8303,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8340,7 +8340,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8377,7 +8377,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8414,7 +8414,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8451,7 +8451,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8488,7 +8488,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8525,7 +8525,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8562,7 +8562,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8599,7 +8599,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hollow, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8636,7 +8636,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8673,7 +8673,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8710,7 +8710,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8747,7 +8747,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8784,7 +8784,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, not reinforced,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8821,7 +8821,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8858,7 +8858,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8895,7 +8895,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8932,7 +8932,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid, reinforced alternate courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -8969,7 +8969,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Block, Exterior (0010) Normal weight, tooled two sides, reinforced, alternate courses 8- by 16-inch units, 8 inches thick"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9006,7 +9006,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Normal weight, cut joints, horizontal joint reinforcing, no vertical reinforcing, hollow or solid"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9043,7 +9043,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Normal weight, cut joints, horizontal joint reinforcing, no vertical reinforcing, hollow or solid"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9080,7 +9080,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Normal weight, cut joints, horizontal joint reinforcing, no vertical reinforcing, hollow or solid"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9117,7 +9117,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Not including reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9154,7 +9154,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Not including reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9191,7 +9191,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Not including reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9228,7 +9228,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9265,7 +9265,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9302,7 +9302,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9339,7 +9339,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including horizontal reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9376,7 +9376,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including horizontal reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9413,7 +9413,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including horizontal reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9450,7 +9450,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including horizontal reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9487,7 +9487,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including horizontal reinforcing and grout"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9524,7 +9524,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hand burning, includes preparation, torch cutting and grinding, no staging. Steel to:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9561,7 +9561,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hand burning, includes preparation, torch cutting and grinding, no staging. Steel to:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9598,7 +9598,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hand burning, includes preparation, torch cutting and grinding, no staging. Steel to:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9635,7 +9635,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9672,7 +9672,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9709,7 +9709,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9746,7 +9746,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9783,7 +9783,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9820,7 +9820,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9857,7 +9857,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9894,7 +9894,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9931,7 +9931,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single pass,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -9968,7 +9968,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10005,7 +10005,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10042,7 +10042,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10079,7 +10079,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10116,7 +10116,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10153,7 +10153,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10190,7 +10190,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10227,7 +10227,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10264,7 +10264,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10301,7 +10301,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10338,7 +10338,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10375,7 +10375,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10412,7 +10412,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10449,7 +10449,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10486,7 +10486,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10523,7 +10523,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10560,7 +10560,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10597,7 +10597,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10634,7 +10634,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10671,7 +10671,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel Fabrication"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10708,7 +10708,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10745,7 +10745,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10782,7 +10782,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10819,7 +10819,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10856,7 +10856,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10893,7 +10893,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10930,7 +10930,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -10967,7 +10967,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11004,7 +11004,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Steel For Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11041,7 +11041,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Bridging"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11078,7 +11078,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Bridging"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11115,7 +11115,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Bridging"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11152,7 +11152,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11189,7 +11189,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11226,7 +11226,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11263,7 +11263,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11300,7 +11300,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11337,7 +11337,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11374,7 +11374,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11411,7 +11411,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural Metal Stud Framing Stud Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11449,7 +11449,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11487,7 +11487,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Joist Framing Bracing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11525,7 +11525,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Joist Framing Bridging"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11563,7 +11563,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Joist Framing Roof Rafters"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11601,7 +11601,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Joist Framing Roof Rafters"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11639,7 +11639,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Joist Framing Soffits and Canopies"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11677,7 +11677,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Joist Framing Soffits and Canopies"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11714,7 +11714,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11751,7 +11751,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11788,7 +11788,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11825,7 +11825,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11862,7 +11862,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11899,7 +11899,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11936,7 +11936,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -11973,7 +11973,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cold Formed Metal Roof Trusses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12010,7 +12010,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Blocking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12047,7 +12047,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Blocking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12084,7 +12084,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Blocking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12121,7 +12121,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Blocking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12158,7 +12158,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Blocking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12195,7 +12195,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Blocking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12232,7 +12232,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "To steel construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12269,7 +12269,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "To steel construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12306,7 +12306,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Bracing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12343,7 +12343,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Bracing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12380,7 +12380,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood, for joists 16 inches on center"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12417,7 +12417,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood, for joists 16 inches on center"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12454,7 +12454,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood, for joists 16 inches on center"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12491,7 +12491,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood, for joists 16 inches on center"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12528,7 +12528,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel, galvanized, 18 gauge,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12565,7 +12565,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel, galvanized, 18 gauge,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12602,7 +12602,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel, galvanized, 18 gauge,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12639,7 +12639,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel, galvanized, 18 gauge,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12676,7 +12676,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12713,7 +12713,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12750,7 +12750,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12787,7 +12787,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12824,7 +12824,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12861,7 +12861,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12898,7 +12898,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12935,7 +12935,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -12972,7 +12972,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13009,7 +13009,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13046,7 +13046,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13083,7 +13083,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13120,7 +13120,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13157,7 +13157,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13194,7 +13194,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13231,7 +13231,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13268,7 +13268,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13305,7 +13305,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13342,7 +13342,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13379,7 +13379,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Beam and Girder Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13416,7 +13416,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceiling Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13453,7 +13453,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceiling Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13490,7 +13490,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceiling Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13527,7 +13527,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceiling Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13564,7 +13564,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Posts and Columns"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13601,7 +13601,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Posts and Columns"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13638,7 +13638,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Posts and Columns"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13675,7 +13675,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Posts and Columns"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13712,7 +13712,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13749,7 +13749,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13786,7 +13786,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13823,7 +13823,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13860,7 +13860,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13897,7 +13897,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13934,7 +13934,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -13971,7 +13971,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14008,7 +14008,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14045,7 +14045,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14082,7 +14082,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14119,7 +14119,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14156,7 +14156,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14193,7 +14193,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14230,7 +14230,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Joist Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14267,7 +14267,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14304,7 +14304,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14341,7 +14341,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14378,7 +14378,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14415,7 +14415,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14452,7 +14452,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14489,7 +14489,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14526,7 +14526,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14563,7 +14563,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14600,7 +14600,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14637,7 +14637,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14674,7 +14674,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14711,7 +14711,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14748,7 +14748,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14785,7 +14785,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14822,7 +14822,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14859,7 +14859,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14896,7 +14896,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14933,7 +14933,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -14970,7 +14970,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15007,7 +15007,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15044,7 +15044,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15081,7 +15081,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15118,7 +15118,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15155,7 +15155,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15192,7 +15192,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15229,7 +15229,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15266,7 +15266,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15303,7 +15303,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15340,7 +15340,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15377,7 +15377,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15414,7 +15414,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15451,7 +15451,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15488,7 +15488,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15525,7 +15525,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Single bottom and double top plate,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15562,7 +15562,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15599,7 +15599,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15636,7 +15636,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15673,7 +15673,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15710,7 +15710,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15747,7 +15747,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15784,7 +15784,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15821,7 +15821,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15858,7 +15858,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15895,7 +15895,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ridge board,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15932,7 +15932,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ridge board,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -15969,7 +15969,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ridge board,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16006,7 +16006,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ridge board,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16043,7 +16043,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ridge board,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16080,7 +16080,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16117,7 +16117,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16154,7 +16154,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16191,7 +16191,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16228,7 +16228,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16265,7 +16265,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16302,7 +16302,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16339,7 +16339,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16376,7 +16376,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16413,7 +16413,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sill and Ledger Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16450,7 +16450,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sleepers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16487,7 +16487,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sleepers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16524,7 +16524,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sleepers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16561,7 +16561,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sleepers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16598,7 +16598,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Soffit and Canopy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16635,7 +16635,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Soffit and Canopy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16672,7 +16672,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Soffit and Canopy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16709,7 +16709,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Soffit and Canopy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16746,7 +16746,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Soffit and Canopy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16783,7 +16783,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Soffit and Canopy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16820,7 +16820,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16857,7 +16857,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16894,7 +16894,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16931,7 +16931,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -16968,7 +16968,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17005,7 +17005,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17042,7 +17042,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17079,7 +17079,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17116,7 +17116,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17153,7 +17153,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17190,7 +17190,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17227,7 +17227,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17264,7 +17264,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17301,7 +17301,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17338,7 +17338,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17375,7 +17375,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17412,7 +17412,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17449,7 +17449,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17486,7 +17486,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17523,7 +17523,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17560,7 +17560,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17597,7 +17597,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17634,7 +17634,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17671,7 +17671,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17708,7 +17708,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17745,7 +17745,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17782,7 +17782,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17819,7 +17819,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17856,7 +17856,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood strips, on walls, 1 by 2 inches or 1 by 3 inches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17893,7 +17893,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood strips, on walls, 1 by 2 inches or 1 by 3 inches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17930,7 +17930,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood strips, on walls, 1 by 2 inches or 1 by 3 inches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -17967,7 +17967,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On ceilings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18004,7 +18004,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On ceilings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18041,7 +18041,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On ceilings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18078,7 +18078,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18115,7 +18115,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18152,7 +18152,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18189,7 +18189,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18226,7 +18226,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18263,7 +18263,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18300,7 +18300,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18337,7 +18337,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18374,7 +18374,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18411,7 +18411,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18448,7 +18448,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18485,7 +18485,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18522,7 +18522,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Framing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18559,7 +18559,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18596,7 +18596,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18633,7 +18633,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18670,7 +18670,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18707,7 +18707,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18744,7 +18744,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18781,7 +18781,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18818,7 +18818,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Subfloor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18855,7 +18855,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underlayment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18892,7 +18892,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underlayment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18929,7 +18929,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roofs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -18966,7 +18966,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roofs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19003,7 +19003,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roofs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19040,7 +19040,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roofs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19077,7 +19077,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roofs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19114,7 +19114,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roofs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19151,7 +19151,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19188,7 +19188,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19225,7 +19225,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19262,7 +19262,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19299,7 +19299,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19336,7 +19336,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19373,7 +19373,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19410,7 +19410,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19447,7 +19447,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19484,7 +19484,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19521,7 +19521,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19558,7 +19558,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19595,7 +19595,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19632,7 +19632,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19669,7 +19669,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19706,7 +19706,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19743,7 +19743,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Trim"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19780,7 +19780,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Trim"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19817,7 +19817,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Trim"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19854,7 +19854,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Window and Door"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19891,7 +19891,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Window and Door"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19928,7 +19928,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Window and Door"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -19965,7 +19965,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Window and Door"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20002,7 +20002,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Window trim set, including casings, header, stops, stool and apron (0050) 2 1/2 inches wide, minimum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20039,7 +20039,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Window trim set, including casings, header, stops, stool and apron (0050) 2 1/2 inches wide, minimum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20076,7 +20076,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Moldings, Soffits"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20113,7 +20113,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood, prefinished, 1/4 inch thick, 4- by 8-foot sheets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20150,7 +20150,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood, prefinished, 1/4 inch thick, 4- by 8-foot sheets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20187,7 +20187,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood, prefinished, 3/4 inch thick, 4- by 8-foot sheets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20224,7 +20224,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plywood, prefinished, 3/4 inch thick, 4- by 8-foot sheets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20261,7 +20261,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Stairs and Railings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20298,7 +20298,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Stairs and Railings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20335,7 +20335,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Stairs and Railings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20372,7 +20372,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Stairs and Railings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20409,7 +20409,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Stairs and Railings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20446,7 +20446,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior Wood Door Frames and Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20483,7 +20483,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior Wood Door Frames and Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20520,7 +20520,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior, modern, plain trim 3-foot opening, in-swing,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20557,7 +20557,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior, modern, plain trim 3-foot opening, in-swing,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20594,7 +20594,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior, modern, plain trim 3-foot opening, in-swing,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20631,7 +20631,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Interior Wood Door Jamb and Frames"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20668,7 +20668,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Interior Wood Door Jamb and Frames"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20705,7 +20705,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20742,7 +20742,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20779,7 +20779,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20816,7 +20816,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20853,7 +20853,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20890,7 +20890,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20927,7 +20927,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bituminous Asphalt Coating"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -20964,7 +20964,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cementitious Damp Proofing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21001,7 +21001,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On slabs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21038,7 +21038,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On slabs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21075,7 +21075,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On slabs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21112,7 +21112,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On slabs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21149,7 +21149,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On slabs,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21186,7 +21186,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cementitious Waterproofing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21223,7 +21223,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cementitious Waterproofing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21260,7 +21260,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cementitious Waterproofing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21297,7 +21297,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cementitious Waterproofing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21334,7 +21334,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Silicone Bases Water Repellents"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21371,7 +21371,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Silicone Bases Water Repellents"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21408,7 +21408,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Silicone Bases Water Repellents"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21445,7 +21445,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberglass, unfaced or faced; Isocyanurate (4 by 8 sheet) foil faced both sides; perlite; etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21482,7 +21482,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberglass, unfaced or faced; Isocyanurate (4 by 8 sheet) foil faced both sides; perlite; etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21519,7 +21519,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberglass, unfaced or faced; Isocyanurate (4 by 8 sheet) foil faced both sides; perlite; etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21556,7 +21556,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberglass, unfaced or faced; Isocyanurate (4 by 8 sheet) foil faced both sides; perlite; etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21593,7 +21593,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberglass, unfaced or faced; Isocyanurate (4 by 8 sheet) foil faced both sides; perlite; etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21630,7 +21630,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, i.e., cellulose, fiberglass, or mineral wool; average for thickness indicated"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21667,7 +21667,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Fibrous/cementitious, finished wall, 1 inch thick attic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21704,7 +21704,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, i.e., cellulose, fiberglass, or mineral wool; average for thickness indicated"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21741,7 +21741,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Closed cell, spray polyurethane foam, 2 pounds per CF density"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21778,7 +21778,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, i.e., cellulose, fiberglass, or mineral wool; average for thickness indicated"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21815,7 +21815,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Closed cell, spray polyurethane foam, 2 pounds per CF density"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21852,7 +21852,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall installation, includes drilling and patching from outside, two 1-inch-diameter holes at 16 inches on center, top and middle point of wall, add to above for:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21889,7 +21889,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Closed cell, spray polyurethane foam, 2 pounds per CF density"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21926,7 +21926,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall installation, includes drilling and patching from outside, two 1-inch-diameter holes at 16 inches on center, top and middle point of wall, add to above for:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -21963,7 +21963,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall installation, includes drilling and patching from outside, two 1-inch-diameter holes at 16 inches on center, top and middle point of wall, add to above for:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22000,7 +22000,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberboard, fiberglass, perlite, extruded polystyrene, etc., based on thickness"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22037,7 +22037,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberboard, fiberglass, perlite, extruded polystyrene, etc., based on thickness"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22074,7 +22074,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, e.g., fiberboard, fiberglass, perlite, extruded polystyrene, etc., based on thickness"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22112,7 +22112,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vapor Retarders"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22149,7 +22149,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22186,7 +22186,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22223,7 +22223,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22260,7 +22260,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22297,7 +22297,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22334,7 +22334,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22371,7 +22371,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22408,7 +22408,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22445,7 +22445,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22482,7 +22482,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22519,7 +22519,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22556,7 +22556,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22593,7 +22593,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22630,7 +22630,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22667,7 +22667,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22704,7 +22704,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22741,7 +22741,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22778,7 +22778,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22815,7 +22815,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22852,7 +22852,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22889,7 +22889,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22926,7 +22926,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -22963,7 +22963,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23000,7 +23000,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23037,7 +23037,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23074,7 +23074,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23111,7 +23111,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23148,7 +23148,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23185,7 +23185,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23222,7 +23222,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23259,7 +23259,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphalt Roof Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23296,7 +23296,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23333,7 +23333,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23370,7 +23370,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23407,7 +23407,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23444,7 +23444,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23481,7 +23481,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shingles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23518,7 +23518,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23555,7 +23555,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23592,7 +23592,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23629,7 +23629,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23666,7 +23666,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23703,7 +23703,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23740,7 +23740,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Shakes (Hand-split red cedar shakes)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23777,7 +23777,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Clay Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23814,7 +23814,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Clay Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23851,7 +23851,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Clay Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23888,7 +23888,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Clay Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23925,7 +23925,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Clay Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23962,7 +23962,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Clay Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -23999,7 +23999,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24036,7 +24036,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24073,7 +24073,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Roof Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24110,7 +24110,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Minimum, i.e., 30 gauge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24147,7 +24147,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Corrugated or ribbed, various thicknesses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24184,7 +24184,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Corrugated panels, roofing, various weights"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24221,7 +24221,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Roof Tiles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24258,7 +24258,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Minimum, i.e., 30 gauge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24295,7 +24295,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Corrugated or ribbed, various thicknesses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24332,7 +24332,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Minimum, i.e., 30 gauge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24369,7 +24369,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Minimum, i.e., 30 gauge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24406,7 +24406,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum Siding Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24443,7 +24443,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum Siding Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24480,7 +24480,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Siding"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24517,7 +24517,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Siding"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24554,7 +24554,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types, e.g., wood, cedar bevel;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24591,7 +24591,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types, e.g., wood, cedar bevel;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24628,7 +24628,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types, e.g., wood, cedar bevel;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24665,7 +24665,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24702,7 +24702,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24739,7 +24739,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24776,7 +24776,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24813,7 +24813,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types;"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24850,7 +24850,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Copper standing seam roofing, over 10 squares,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24887,7 +24887,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Copper standing seam roofing, over 10 squares,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24924,7 +24924,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Copper standing seam roofing, over 10 squares,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24961,7 +24961,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Metal Flashing and Counter Flashing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -24998,7 +24998,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Metal Flashing and Counter Flashing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25035,7 +25035,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Metal Flashing and Counter Flashing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25072,7 +25072,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Metal Flashing and Counter Flashing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25109,7 +25109,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 4-inch-face height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25146,7 +25146,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 4-inch-face height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25183,7 +25183,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 4-inch-face height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25220,7 +25220,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types, e.g., aluminum, copper, steel, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25257,7 +25257,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types, e.g., aluminum, copper, steel, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25294,7 +25294,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types, e.g., aluminum, copper, steel, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25331,7 +25331,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Downspout Elbows"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25368,7 +25368,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Aluminum, copper, galvanized and stainless steel of various thicknesses and widths, average"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25405,7 +25405,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Aluminum, copper, galvanized and stainless steel of various thicknesses and widths, average"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25442,7 +25442,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Reglets and Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25479,7 +25479,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Reglets and Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25516,7 +25516,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Vents"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25553,7 +25553,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Roof Vents"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25590,7 +25590,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Snow Guard"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25627,7 +25627,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Acrylic latex caulk, 11 ounce cartridge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25664,7 +25664,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Acrylic latex caulk, 11 ounce cartridge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25701,7 +25701,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Acrylic latex caulk, 11 ounce cartridge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25738,7 +25738,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Acrylic latex caulk, 11 ounce cartridge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25775,7 +25775,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Acrylic latex caulk, 11 ounce cartridge"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25812,7 +25812,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25849,7 +25849,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25886,7 +25886,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25923,7 +25923,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25960,7 +25960,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -25997,7 +25997,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Demolition Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26034,7 +26034,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26071,7 +26071,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26108,7 +26108,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26145,7 +26145,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26182,7 +26182,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26219,7 +26219,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26256,7 +26256,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various materiels, including trim, e.g., aluminum, steel, wood, etc."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26293,7 +26293,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum, narrow stile, average by size opening"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26330,7 +26330,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum, narrow stile, average by size opening"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26367,7 +26367,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum, narrow stile, average by size opening"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26404,7 +26404,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) 2 feet 6 inches wide"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26441,7 +26441,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average, up to 5 3/4-inch-jamb depth, standard height, various openings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26478,7 +26478,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average, up to 5 3/4-inch-jamb depth, standard height, various openings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26515,7 +26515,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average, up to 5 3/4-inch-jamb depth, standard height, various openings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26552,7 +26552,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average, up to 5 3/4-inch-jamb depth, standard height, various openings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26589,7 +26589,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types of doors of standard size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26626,7 +26626,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types of doors of standard size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26663,7 +26663,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types of doors of standard size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26700,7 +26700,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types of doors of standard size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26737,7 +26737,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types of doors of standard size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26774,7 +26774,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Various types of doors of standard size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26811,7 +26811,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Access Doors and Frames"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26848,7 +26848,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sliding Glass Vinyl-Clad Wood Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26885,7 +26885,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bi-fold, overhead, 20 pounds per SF wind load, includes electronic operation"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26922,7 +26922,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bi-fold, overhead, 20 pounds per SF wind load, includes electronic operation"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26959,7 +26959,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bi-fold, overhead, 20 pounds per SF wind load, includes electronic operation"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -26996,7 +26996,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Secure Storage Doors and Frames"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27033,7 +27033,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Detention Doors and Frames"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27070,7 +27070,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Overhead Commercial Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27107,7 +27107,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Overhead Commercial Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27144,7 +27144,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Overhead Commercial Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27181,7 +27181,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Overhead Commercial Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27218,7 +27218,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Overhead Commercial Doors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27255,7 +27255,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Stock units, casement"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27292,7 +27292,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Stock units, casement"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27329,7 +27329,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Stock units, casement"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27366,7 +27366,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Double hung, sash, single lite"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27403,7 +27403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Double hung, sash, single lite"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27440,7 +27440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Double hung, sash, single lite"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27477,7 +27477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Double hung, sash, single lite"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27514,7 +27514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid vinyl, average quality, double insulated glass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27551,7 +27551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid vinyl, average quality, double insulated glass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27588,7 +27588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Solid vinyl, average quality, double insulated glass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27625,7 +27625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Screens"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27662,7 +27662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27699,7 +27699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27736,7 +27736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27773,7 +27773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27810,7 +27810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27847,7 +27847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27884,7 +27884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27921,7 +27921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27958,7 +27958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -27995,7 +27995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic domes, flush or curb mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28032,7 +28032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bolts, Flush"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28069,7 +28069,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bolts, Flush"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28106,7 +28106,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bolts, Flush"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28143,7 +28143,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bolts, Flush"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28180,7 +28180,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Door Closers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28217,7 +28217,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Door Closers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28254,7 +28254,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Panic Devices (0010) Various types, minimum (0020) Maximum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28291,7 +28291,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dead Locks (0010) Various types, maximum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28328,7 +28328,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dead Locks (0010) Various types, maximum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28365,7 +28365,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Push-Pull Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28402,7 +28402,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Push-Pull Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28439,7 +28439,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Threshold, 3-foot-long saddles, aluminum,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28476,7 +28476,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Push-Pull Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28513,7 +28513,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Threshold, 3-foot-long saddles, aluminum,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28550,7 +28550,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Threshold, 3-foot-long saddles, aluminum,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28587,7 +28587,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Threshold, 3-foot-long saddles, aluminum,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28625,7 +28625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Kick Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28662,7 +28662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors-Mechanical Seals, Weatherstripping (0010) Doors, wood frame, interlocking, for 3- by 7-foot door, zinc or bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28699,7 +28699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors-Mechanical Seals, Weatherstripping (0010) Doors, wood frame, interlocking, for 3- by 7-foot door, zinc or bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28736,7 +28736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors-Mechanical Seals, Weatherstripping (0010) Doors, wood frame, interlocking, for 3- by 7-foot door, zinc or bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28774,7 +28774,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum Louvers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28812,7 +28812,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aluminum Louvers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28850,7 +28850,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Louvers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28888,7 +28888,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall Louvers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28925,7 +28925,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2 inch thick on"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28962,7 +28962,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2 inch thick on"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -28999,7 +28999,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "5/8 inch thick on"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29036,7 +29036,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "5/8 inch thick on"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29073,7 +29073,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "5/8 inch thick on"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29110,7 +29110,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Channel Furring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29147,7 +29147,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Channel Furring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29184,7 +29184,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Channel Furring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29221,7 +29221,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Studs and Track"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29258,7 +29258,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Studs and Track"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29295,7 +29295,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Studs and Track"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29332,7 +29332,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Studs and Track"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29369,7 +29369,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Studs and Track"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29406,7 +29406,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Studs and Track"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29443,7 +29443,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suspended ceiling, for gypsum board or plaster, 1 1/2- or 2-inch carriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29480,7 +29480,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suspended ceiling, for gypsum board or plaster, 1 1/2- or 2-inch carriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29517,7 +29517,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suspended ceiling, for gypsum board or plaster, 1 1/2- or 2-inch carriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29554,7 +29554,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suspended ceiling, for gypsum board or plaster, 1 1/2- or 2-inch carriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29591,7 +29591,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29628,7 +29628,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29665,7 +29665,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29702,7 +29702,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29739,7 +29739,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29776,7 +29776,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29813,7 +29813,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29850,7 +29850,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29887,7 +29887,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29924,7 +29924,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29961,7 +29961,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Lath"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -29998,7 +29998,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Expanded metal, flat, screwed to framing, 3/4 inch, 1.76 pounds per SF"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30035,7 +30035,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Expanded metal, flat, screwed to framing, 3/4 inch, 1.76 pounds per SF"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30072,7 +30072,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Plaster"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30109,7 +30109,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Plaster"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30146,7 +30146,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Plaster"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30183,7 +30183,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Perlite or Vermiculite, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30220,7 +30220,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Perlite or Vermiculite, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30257,7 +30257,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Perlite or Vermiculite, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30294,7 +30294,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Perlite or Vermiculite, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30331,7 +30331,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Plaster on Walls and Ceilings, (80 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30368,7 +30368,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Plaster on Walls and Ceilings, (80 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30405,7 +30405,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Plaster on Walls and Ceilings, (80 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30442,7 +30442,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gypsum Plaster on Walls and Ceilings, (80 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30479,7 +30479,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gauging Plaster, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30516,7 +30516,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gauging Plaster, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30553,7 +30553,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gauging Plaster, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30590,7 +30590,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gauging Plaster, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30627,7 +30627,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Keenes Cement, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30664,7 +30664,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Keenes Cement, (100 pound bags)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30701,7 +30701,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior stucco, with bonding agent, three coats, no mesh included,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30738,7 +30738,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior stucco, with bonding agent, three coats, no mesh included,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30775,7 +30775,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior stucco, with bonding agent, three coats, no mesh included,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30812,7 +30812,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior stucco, with bonding agent, three coats, no mesh included,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30849,7 +30849,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Screwed to grid, channel, or joists, 1/2 or 5/8 inch thick"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30886,7 +30886,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Screwed to grid, channel, or joists, 1/2 or 5/8 inch thick"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30923,7 +30923,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Screwed to grid, channel, or joists, 1/2 or 5/8 inch thick"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30960,7 +30960,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, nailed or screwed to studs, various widths"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -30997,7 +30997,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, nailed or screwed to studs, various widths"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31034,7 +31034,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, nailed or screwed to studs, various widths"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31071,7 +31071,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On beams, columns, or soffits, various widths"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31108,7 +31108,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On beams, columns, or soffits, various widths"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31145,7 +31145,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "On beams, columns, or soffits, various widths"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31182,7 +31182,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Gypsum Board"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31219,7 +31219,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Gypsum Board"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31256,7 +31256,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Gypsum Board"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31293,7 +31293,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Accessories, Gypsum Board"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31330,7 +31330,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31367,7 +31367,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31404,7 +31404,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31441,7 +31441,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31478,7 +31478,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31515,7 +31515,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31552,7 +31552,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31589,7 +31589,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31626,7 +31626,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31663,7 +31663,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31700,7 +31700,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31737,7 +31737,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31774,7 +31774,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31811,7 +31811,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ceramic Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31848,7 +31848,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31885,7 +31885,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31922,7 +31922,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31959,7 +31959,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -31996,7 +31996,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32033,7 +32033,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32070,7 +32070,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32107,7 +32107,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32144,7 +32144,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32181,7 +32181,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Quarry Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32218,7 +32218,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suspended Ceilings, Complete Including standard suspension system (not including carrier channels) Ceiling board, fiberglass or mineral fiber, on 15/16-inch suspension bar, various sizes (0010) minimum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32255,7 +32255,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suspended Ceilings, Complete Including standard suspension system (not including carrier channels) Ceiling board, fiberglass or mineral fiber, on 15/16-inch suspension bar, various sizes (0010) minimum"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32292,7 +32292,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Parquet"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32329,7 +32329,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Parquet"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32366,7 +32366,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Parquet"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32403,7 +32403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood Parquet"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32440,7 +32440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32477,7 +32477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32514,7 +32514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32551,7 +32551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wood"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32588,7 +32588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Resilient Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32625,7 +32625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Resilient Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32662,7 +32662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32699,7 +32699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32736,7 +32736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32773,7 +32773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32810,7 +32810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32847,7 +32847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32884,7 +32884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Rubber and Vinyl Sheet Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32921,7 +32921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Resilient Tile Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32958,7 +32958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Resilient Tile Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -32995,7 +32995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Resilient Tile Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33032,7 +33032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous Resilient Tile Flooring"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33070,7 +33070,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Flooring Transition Strip"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33108,7 +33108,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Grade Carpet Pad"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33146,7 +33146,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Carpet Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33184,7 +33184,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Carpet Tile"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33222,7 +33222,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Indoor Athletic Carpet"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33260,7 +33260,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Access Floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33297,7 +33297,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wallpaper"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33334,7 +33334,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wallpaper"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33371,7 +33371,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fiberglass Reinforced Plastic Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33408,7 +33408,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fiberglass Reinforced Plastic Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33445,7 +33445,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fiberglass Reinforced Plastic Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33482,7 +33482,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fiberglass Reinforced Plastic Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33519,7 +33519,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fiberglass Reinforced Plastic Panels"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33556,7 +33556,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33593,7 +33593,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33630,7 +33630,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33667,7 +33667,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33704,7 +33704,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33741,7 +33741,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33778,7 +33778,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33815,7 +33815,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces, including steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33852,7 +33852,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33889,7 +33889,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33926,7 +33926,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -33963,7 +33963,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34000,7 +34000,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Average times for various surfaces"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34037,7 +34037,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain link or wire metal, picket, and stockade; one side, water base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34074,7 +34074,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain link or wire metal, picket, and stockade; one side, water base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34111,7 +34111,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain link or wire metal, picket, and stockade; one side, water base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34148,7 +34148,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain link or wire metal, picket, and stockade; one side, water base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34185,7 +34185,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34222,7 +34222,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34259,7 +34259,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34296,7 +34296,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34333,7 +34333,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34370,7 +34370,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34407,7 +34407,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Miscellaneous, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34444,7 +34444,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34481,7 +34481,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34518,7 +34518,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34555,7 +34555,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34592,7 +34592,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34629,7 +34629,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34666,7 +34666,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34703,7 +34703,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34740,7 +34740,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34777,7 +34777,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34814,7 +34814,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34851,7 +34851,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34888,7 +34888,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34925,7 +34925,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34962,7 +34962,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -34999,7 +34999,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35036,7 +35036,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Siding, Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35073,7 +35073,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35110,7 +35110,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35147,7 +35147,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35184,7 +35184,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35221,7 +35221,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35258,7 +35258,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35295,7 +35295,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors and Windows, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35332,7 +35332,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trim, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35369,7 +35369,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trim, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35406,7 +35406,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trim, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35443,7 +35443,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trim, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35480,7 +35480,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trim, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35517,7 +35517,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Trim, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35554,7 +35554,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, Masonry, Concrete Masonry Unit, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35591,7 +35591,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, Masonry, Concrete Masonry Unit, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35628,7 +35628,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Walls, Masonry, Concrete Masonry Unit, Exterior"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35665,7 +35665,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cabinets and Casework"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35702,7 +35702,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors, flush, 3 by 7 feet, both sides, including frame and trim, (0010) roll and brush, each coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35739,7 +35739,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors, panel, or French, both sides, including frame and trim (0030) roll and brush, each coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35776,7 +35776,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Doors, panel, or French, both sides, including frame and trim (0030) roll and brush, each coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35813,7 +35813,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Windows, per side, single lite type, brushwork"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35850,7 +35850,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Windows, per side, single lite type, brushwork"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35887,7 +35887,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Windows, per side, single lite type, brushwork"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35924,7 +35924,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete or wood, oil base primer/sealer coat or latex"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35961,7 +35961,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete or wood, oil base primer/sealer coat or latex"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -35998,7 +35998,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete or wood, oil base primer/sealer coat or latex"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36035,7 +36035,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Drywall, concrete, masonry, or plaster, smooth finish, each coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36072,7 +36072,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Drywall, concrete, masonry, or plaster, smooth finish, each coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36109,7 +36109,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Drywall, concrete, masonry, or plaster, smooth finish, each coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36146,7 +36146,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior Steel Coatings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36183,7 +36183,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Paints and protective coatings, sprayed in field"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36220,7 +36220,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Paints and protective coatings, sprayed in field"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36257,7 +36257,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Paints and protective coatings, sprayed in field"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36294,7 +36294,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Paints and protective coatings, sprayed in field"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36331,7 +36331,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural steel, per coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36368,7 +36368,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural steel, per coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36405,7 +36405,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural steel, per coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36442,7 +36442,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Structural steel, per coat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36479,7 +36479,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall hung, aluminum or wood frame, by size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36516,7 +36516,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall hung, aluminum or wood frame, by size"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36553,7 +36553,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fixed Tackboards"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36590,7 +36590,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fixed Tackboards"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36627,7 +36627,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fixed Tackboards"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36664,7 +36664,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Directory Boards"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36701,7 +36701,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Directory Boards"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36738,7 +36738,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Toilet Compartments"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36775,7 +36775,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Toilet Compartments"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36812,7 +36812,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Toilet Compartments"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36849,7 +36849,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal Toilet Compartments"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36886,7 +36886,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Partitions, Shower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36923,7 +36923,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Partitions, Shower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36960,7 +36960,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall panels, 4 feet wide, for tool or stockroom enclosures, channel frame, 1 1/2-inch-diamond mesh, 10-gauge wire"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -36997,7 +36997,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall panels, 4 feet wide, for tool or stockroom enclosures, channel frame, 1 1/2-inch-diamond mesh, 10-gauge wire"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37034,7 +37034,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Wall panels, 4 feet wide, for tool or stockroom enclosures, channel frame, 1 1/2-inch-diamond mesh, 10-gauge wire"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37071,7 +37071,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "For 5 foot wide panels, multiply by 1.05."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37108,7 +37108,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "For 5 foot wide panels, multiply by 1.05."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37145,7 +37145,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "For 5 foot wide panels, multiply by 1.05."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37182,7 +37182,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "For 5 foot wide panels, multiply by 1.05."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37219,7 +37219,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Security Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37256,7 +37256,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Security Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37293,7 +37293,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Security Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37330,7 +37330,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Divider panels, free standing, fiber core, fabric face straight, various types"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37367,7 +37367,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Divider panels, free standing, fiber core, fabric face straight, various types"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37404,7 +37404,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Divider panels, free standing, fiber core, fabric face straight, various types"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37441,7 +37441,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Divider panels, free standing, fiber core, fabric face straight, various types"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37478,7 +37478,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Toilet Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37515,7 +37515,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Toilet Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37552,7 +37552,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Toilet Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37589,7 +37589,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Toilet Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37626,7 +37626,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Toilet Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37663,7 +37663,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Commercial Toilet Accessories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37700,7 +37700,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable Fire Extinguishers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37737,7 +37737,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable Fire Extinguishers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37774,7 +37774,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lockers, steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37811,7 +37811,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lockers, steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37848,7 +37848,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lockers, steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37885,7 +37885,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lockers, steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37922,7 +37922,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lockers, steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37959,7 +37959,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lockers, steel"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -37996,7 +37996,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Shelving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38033,7 +38033,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Shelving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38070,7 +38070,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Shelving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38107,7 +38107,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Shelving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38144,7 +38144,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Shelving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38181,7 +38181,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Shelving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38218,7 +38218,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal 6 feet 3 inches high, 3 feet wide"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38255,7 +38255,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Metal 6 feet 3 inches high, 3 feet wide"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38292,7 +38292,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ground set, not including base or foundation, various types, labor determined by height,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38329,7 +38329,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ground set, not including base or foundation, various types, labor determined by height,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38366,7 +38366,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ground set, not including base or foundation, various types, labor determined by height,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38403,7 +38403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ground set, not including base or foundation, various types, labor determined by height,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38440,7 +38440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ground set, not including base or foundation, various types, labor determined by height,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38477,7 +38477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ground set, not including base or foundation, various types, labor determined by height,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38514,7 +38514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Flagpoles, Wall Mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38551,7 +38551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Flagpoles, Wall Mounted"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38588,7 +38588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Residential Laundry Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38625,7 +38625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Residential Laundry Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38662,7 +38662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Residential Laundry Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38699,7 +38699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Residential Laundry Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38736,7 +38736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0030) Kitchen base cabinets, not including counter tops"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38773,7 +38773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manufactured Wood Casework, Stock Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38810,7 +38810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manufactured Wood Casework, Stock Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38847,7 +38847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0030) Kitchen base cabinets, not including counter tops"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38884,7 +38884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0030) Kitchen base cabinets, not including counter tops"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38921,7 +38921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0030) Kitchen base cabinets, not including counter tops"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38959,7 +38959,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Restaurant Furniture"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -38997,7 +38997,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Restaurant Furniture"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39035,7 +39035,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Office Furniture"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39073,7 +39073,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Weapons Clearing Facility"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39110,7 +39110,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: Structure installation: one steelworker (crew leader), four laborers, two equipment operators."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39147,7 +39147,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric shell, 60-foot-clear span, not including foundation or floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39184,7 +39184,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric shell, 60-foot-clear span, not including foundation or floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39221,7 +39221,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric shell, 60-foot-clear span, not including foundation or floors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39258,7 +39258,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39295,7 +39295,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39332,7 +39332,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39369,7 +39369,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39406,7 +39406,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39443,7 +39443,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39480,7 +39480,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39517,7 +39517,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39554,7 +39554,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39591,7 +39591,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39628,7 +39628,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39665,7 +39665,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39702,7 +39702,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39739,7 +39739,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39776,7 +39776,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39813,7 +39813,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39850,7 +39850,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39887,7 +39887,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39924,7 +39924,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39961,7 +39961,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -39998,7 +39998,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40035,7 +40035,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40072,7 +40072,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40109,7 +40109,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40146,7 +40146,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40183,7 +40183,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40220,7 +40220,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40257,7 +40257,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40294,7 +40294,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40331,7 +40331,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40368,7 +40368,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40405,7 +40405,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40442,7 +40442,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40479,7 +40479,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40516,7 +40516,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40553,7 +40553,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40590,7 +40590,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40627,7 +40627,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40664,7 +40664,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40701,7 +40701,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Framed Fabric Structures (Continued)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40738,7 +40738,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0070) 10-foot-eave height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40775,7 +40775,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0090) 10-foot-eave height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40812,7 +40812,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "50- to 100-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40849,7 +40849,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "20-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40886,7 +40886,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "20-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40923,7 +40923,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "30- to 40-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40960,7 +40960,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "30- to 40-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -40997,7 +40997,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "50- to 100-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41034,7 +41034,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "50- to 100-foot width"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41071,7 +41071,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0070) 10-foot-eave height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41108,7 +41108,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0090) 10-foot-eave height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41145,7 +41145,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0110) 10-foot-eave height"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41182,7 +41182,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41219,7 +41219,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41256,7 +41256,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41293,7 +41293,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41330,7 +41330,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41367,7 +41367,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41404,7 +41404,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41441,7 +41441,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41478,7 +41478,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41515,7 +41515,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41552,7 +41552,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41589,7 +41589,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41626,7 +41626,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Q-Model (Maximize usable interior space with no poles or beams), typical K-Span, arch style otherwise known as Quonset hut, unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41663,7 +41663,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Q-Model (Maximize usable interior space with no poles or beams), typical K-Span, arch style otherwise known as Quonset hut, unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41700,7 +41700,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41737,7 +41737,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41774,7 +41774,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41811,7 +41811,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical ultimate building machine type. Unlimited length."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41848,7 +41848,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41885,7 +41885,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41922,7 +41922,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41959,7 +41959,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -41996,7 +41996,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42033,7 +42033,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42070,7 +42070,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42107,7 +42107,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42144,7 +42144,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Q-Model (Maximize usable interior space with no poles or beams), typical K-Span, arch style otherwise known as Quonset hut, unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42181,7 +42181,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Q-Model (Maximize usable interior space with no poles or beams), typical K-Span, arch style otherwise known as Quonset hut, unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42218,7 +42218,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical Ultimate Building Machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42255,7 +42255,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical Ultimate Building Machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42292,7 +42292,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical Ultimate Building Machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42329,7 +42329,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "P-Model (Straight sidewalls and arched roof. Optimizes useable space by raising the arch to above the sidewalls.) Typical Ultimate Building Machine type. Unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42366,7 +42366,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42403,7 +42403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42440,7 +42440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42477,7 +42477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "A-Model (high-pitched roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42514,7 +42514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42551,7 +42551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42588,7 +42588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42625,7 +42625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "S-Model (high, straight sidewalls and curved arch roof) unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42662,7 +42662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Q-Model (Maximize usable interior space with no poles or beams), typical K-Span, arch style otherwise known as Quonset hut, unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42699,7 +42699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Q-Model (Maximize usable interior space with no poles or beams), typical K-Span, arch style otherwise known as Quonset hut, unlimited length"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42736,7 +42736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42773,7 +42773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42810,7 +42810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42847,7 +42847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42884,7 +42884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42921,7 +42921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42958,7 +42958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -42995,7 +42995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43032,7 +43032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43069,7 +43069,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43106,7 +43106,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43143,7 +43143,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43180,7 +43180,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43217,7 +43217,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43254,7 +43254,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43291,7 +43291,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43328,7 +43328,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43365,7 +43365,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Portable and Mobile Buildings"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43403,7 +43403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Towers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43440,7 +43440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43477,7 +43477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43514,7 +43514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43551,7 +43551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43588,7 +43588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43625,7 +43625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43662,7 +43662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43699,7 +43699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43736,7 +43736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dry-pipe Sprinkler System Components"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43773,7 +43773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, black steel, threaded, schedule 40"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43810,7 +43810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, black steel, threaded, schedule 40"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43847,7 +43847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, black steel, threaded, schedule 40"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43884,7 +43884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, black steel, threaded, schedule 40"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43921,7 +43921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, black steel, threaded, schedule 40"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43958,7 +43958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -43995,7 +43995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44032,7 +44032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44069,7 +44069,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44106,7 +44106,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44143,7 +44143,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44180,7 +44180,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44217,7 +44217,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44254,7 +44254,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44291,7 +44291,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44328,7 +44328,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44365,7 +44365,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44402,7 +44402,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44439,7 +44439,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44476,7 +44476,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pipe, tee, 150 pound, black malleable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44513,7 +44513,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44550,7 +44550,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 Fire Extinguishing System (0010) Alarm, audio"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44587,7 +44587,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 Fire Extinguishing System (0010) Alarm, audio"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44624,7 +44624,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 Fire Extinguishing System (0010) Alarm, audio"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44661,7 +44661,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 Fire Extinguishing System (0010) Alarm, audio"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44698,7 +44698,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44735,7 +44735,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44772,7 +44772,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44809,7 +44809,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44846,7 +44846,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44883,7 +44883,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44920,7 +44920,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44957,7 +44957,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -44994,7 +44994,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "FM200 system, filled, including mounting bracket"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45031,7 +45031,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45068,7 +45068,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45105,7 +45105,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45142,7 +45142,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45179,7 +45179,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45216,7 +45216,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45253,7 +45253,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45290,7 +45290,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45327,7 +45327,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Including controller, fittings, and relief valve"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45365,7 +45365,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Brass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45403,7 +45403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Brass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45441,7 +45441,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Brass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45479,7 +45479,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Brass"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45516,7 +45516,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Globe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45553,7 +45553,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Globe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45591,7 +45591,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45629,7 +45629,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45667,7 +45667,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45705,7 +45705,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45743,7 +45743,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45781,7 +45781,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45819,7 +45819,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45857,7 +45857,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Bronze"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45895,7 +45895,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45933,7 +45933,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -45971,7 +45971,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46009,7 +46009,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46047,7 +46047,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46085,7 +46085,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46123,7 +46123,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46161,7 +46161,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46199,7 +46199,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46237,7 +46237,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Valves, Plastic"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46274,7 +46274,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46311,7 +46311,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46348,7 +46348,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46385,7 +46385,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46422,7 +46422,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46459,7 +46459,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "2-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46496,7 +46496,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "2-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46533,7 +46533,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "2-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46570,7 +46570,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "2-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46607,7 +46607,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "2-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46644,7 +46644,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishes,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46681,7 +46681,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Finishes,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46718,7 +46718,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "3/8-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46755,7 +46755,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "3/8-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46792,7 +46792,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "3/8-inch wall,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46829,7 +46829,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46866,7 +46866,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46903,7 +46903,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46940,7 +46940,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -46977,7 +46977,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47014,7 +47014,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47051,7 +47051,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47088,7 +47088,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "1/2-inch, 3/4-inch or 1-inch wall"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47126,7 +47126,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47164,7 +47164,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47202,7 +47202,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47240,7 +47240,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47278,7 +47278,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47316,7 +47316,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47354,7 +47354,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47392,7 +47392,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47430,7 +47430,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Pipe, Threaded"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47468,7 +47468,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Piping Specialties"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47506,7 +47506,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cast Iron Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47544,7 +47544,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cast Iron Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47582,7 +47582,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cast Iron Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47620,7 +47620,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cast Iron Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47658,7 +47658,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cast Iron Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47696,7 +47696,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cast Iron Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47734,7 +47734,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sanitary Sewerage Pumps"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47772,7 +47772,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sump Pumps"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47810,7 +47810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Closets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47848,7 +47848,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Closets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47886,7 +47886,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Closets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47924,7 +47924,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Closets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -47962,7 +47962,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Closets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48000,7 +48000,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Closets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48038,7 +48038,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lavatories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48076,7 +48076,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lavatories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48114,7 +48114,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lavatories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48152,7 +48152,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Lavatories"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48190,7 +48190,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48228,7 +48228,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48266,7 +48266,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bath Tubs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48304,7 +48304,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bath Tubs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48342,7 +48342,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Showers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48380,7 +48380,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Showers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48418,7 +48418,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Laundry Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48456,7 +48456,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Laundry Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48494,7 +48494,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Urinals, Commercial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48532,7 +48532,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Urinals, Commercial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48570,7 +48570,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Service Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48608,7 +48608,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Service Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48646,7 +48646,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Service Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48684,7 +48684,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Service Sinks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48722,7 +48722,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Drinking Water Fountains"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48760,7 +48760,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Drinking Water Fountains"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48798,7 +48798,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Electric Water Coolers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48836,7 +48836,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Electric Water Coolers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48874,7 +48874,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "General duty valves for HVAC piping"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48911,7 +48911,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pneumatic and Electric control for air conditioning units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48948,7 +48948,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pneumatic and Electric control for air conditioning units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -48985,7 +48985,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pneumatic and Electric control for air conditioning units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49022,7 +49022,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabricate Sheet Metal Duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49059,7 +49059,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabricate Sheet Metal Duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49096,7 +49096,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabricate Sheet Metal Duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49133,7 +49133,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabricate Sheet Metal Duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49170,7 +49170,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabricate Sheet Metal Duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49207,7 +49207,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (rectangular)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49244,7 +49244,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (rectangular)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49281,7 +49281,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (rectangular)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49318,7 +49318,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (rectangular)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49355,7 +49355,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (rectangular)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49392,7 +49392,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (round)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49429,7 +49429,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (round)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49466,7 +49466,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (round)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49503,7 +49503,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (round)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49540,7 +49540,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Sheet Metal Duct (round)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49577,7 +49577,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size two steelworkers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49614,7 +49614,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49651,7 +49651,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49688,7 +49688,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49725,7 +49725,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49762,7 +49762,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49799,7 +49799,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49836,7 +49836,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49873,7 +49873,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Fiber Duct for Slab Heating or Cooling System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49910,7 +49910,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grills and Registers (Plaster Ground)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49947,7 +49947,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grills and Registers (Plaster Ground)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -49984,7 +49984,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grills and Registers (Plaster Ground)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50021,7 +50021,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grills and Registers (Plaster Ground)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50058,7 +50058,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50095,7 +50095,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50132,7 +50132,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50169,7 +50169,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50206,7 +50206,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50243,7 +50243,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50280,7 +50280,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hood and Ventilation Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50317,7 +50317,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hood and Ventilation Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50354,7 +50354,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hood and Ventilation Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50391,7 +50391,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hood and Ventilation Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50428,7 +50428,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hood and Ventilation Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50465,7 +50465,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect iron sectional boilers with insulating jacket and safety devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50502,7 +50502,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect iron sectional boilers with insulating jacket and safety devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50539,7 +50539,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect iron sectional boilers with insulating jacket and safety devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50576,7 +50576,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect iron sectional boilers with insulating jacket and safety devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50613,7 +50613,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect iron sectional boilers with insulating jacket and safety devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50650,7 +50650,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect iron sectional boilers with insulating jacket and safety devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50687,7 +50687,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect expansion tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50724,7 +50724,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect expansion tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50761,7 +50761,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and plumb hot water storage tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50798,7 +50798,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and plumb hot water storage tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50835,7 +50835,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and plumb hot water storage tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50872,7 +50872,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and plumb hot water storage tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50909,7 +50909,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect forced air furnaces complete (less duct, diffusers, and hard wiring)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50946,7 +50946,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect forced air furnaces complete (less duct, diffusers, and hard wiring)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -50983,7 +50983,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect forced air furnaces complete (less duct, diffusers, and hard wiring)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51020,7 +51020,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect forced air furnaces complete (less duct, diffusers, and hard wiring)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51057,7 +51057,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Set and connect forced air furnaces complete (less duct, diffusers, and hard wiring)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51094,7 +51094,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fuel oil storage tanks set on floor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51131,7 +51131,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fuel oil storage tanks set on floor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51168,7 +51168,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fuel oil storage tanks set on floor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51205,7 +51205,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Window Type Air Conditioners"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51242,7 +51242,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Window Type Air Conditioners"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51279,7 +51279,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Window Type Air Conditioners"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51316,7 +51316,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Single Package Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51353,7 +51353,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Single Package Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51390,7 +51390,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Single Package Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51427,7 +51427,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Split System Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51464,7 +51464,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Split System Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51501,7 +51501,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Split System Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51538,7 +51538,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Split System Air Conditioning Units"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51575,7 +51575,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Transformer on Poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51612,7 +51612,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common Work Results for Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51649,7 +51649,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "String Primary Conductors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51686,7 +51686,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "String Primary Conductors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51723,7 +51723,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "String Primary Conductors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51760,7 +51760,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Transformer on Poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51797,7 +51797,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Transformer on Poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51834,7 +51834,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Secondary Conductors and Service Drops"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51871,7 +51871,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Secondary Conductors and Service Drops"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51908,7 +51908,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Voltage Regulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51945,7 +51945,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Voltage Regulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -51982,7 +51982,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Voltage Regulators"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52019,7 +52019,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Primary Protective Devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52056,7 +52056,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Primary Protective Devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52093,7 +52093,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Primary Protective Devices"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52130,7 +52130,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavate trench for duct or direct burial of cable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52167,7 +52167,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavate trench for duct or direct burial of cable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52204,7 +52204,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavate trench for duct or direct burial of cable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52241,7 +52241,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install direct burial cable in trench"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52278,7 +52278,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install direct burial cable in trench"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52315,7 +52315,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable into duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52352,7 +52352,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable into duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52389,7 +52389,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable into duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52426,7 +52426,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable into duct"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52463,7 +52463,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable into duct underground service to building"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52500,7 +52500,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable into duct underground service to building"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52537,7 +52537,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Service Entrance, Four- Conductor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52574,7 +52574,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Service Entrance, Four- Conductor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52611,7 +52611,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Service Entrance, Four- Conductor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52648,7 +52648,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Service Entrance, Four- Conductor"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52685,7 +52685,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Rigid Steel Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52722,7 +52722,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Rigid Steel Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52759,7 +52759,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Rigid Steel Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52796,7 +52796,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Rigid Steel Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52833,7 +52833,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Thin Wall and Flexible Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52870,7 +52870,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Thin Wall and Flexible Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52907,7 +52907,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Thin Wall and Flexible Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52944,7 +52944,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Thin Wall and Flexible Conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -52981,7 +52981,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grounding and Bonding for Electrical Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53018,7 +53018,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Grounding and Bonding for Electrical Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53055,7 +53055,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Type non-metallic cable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53092,7 +53092,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Type non-metallic cable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53129,7 +53129,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Boxes for non-metallic cable"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53166,7 +53166,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53203,7 +53203,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53240,7 +53240,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53277,7 +53277,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53314,7 +53314,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53351,7 +53351,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53388,7 +53388,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53425,7 +53425,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53462,7 +53462,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53499,7 +53499,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53536,7 +53536,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53573,7 +53573,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53610,7 +53610,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53647,7 +53647,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Pull Boxes"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53684,7 +53684,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53721,7 +53721,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53758,7 +53758,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53795,7 +53795,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53832,7 +53832,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53869,7 +53869,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53906,7 +53906,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Outlet Boxes for Low Voltage Applications"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53943,7 +53943,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Receptacles and Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -53980,7 +53980,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Receptacles and Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54017,7 +54017,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Standard Grade Toggle Switches and Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54054,7 +54054,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Standard Grade Toggle Switches and Plates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54091,7 +54091,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Incandescent Lighting Fixtures up to 150 Watts-Medium Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54128,7 +54128,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Incandescent Lighting Fixtures up to 150 Watts-Medium Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54165,7 +54165,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Incandescent Lighting Fixtures up to 150 Watts-Medium Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54202,7 +54202,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Incandescent Lighting Fixtures up to 150 Watts-Medium Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54239,7 +54239,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Incandescent Lighting Fixtures up to 150 Watts-Medium Base"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54276,7 +54276,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Connect Small Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54313,7 +54313,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Connect Small Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54350,7 +54350,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Connect Small Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54387,7 +54387,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Connect Small Appliances"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54424,7 +54424,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Testing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54461,7 +54461,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Testing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54498,7 +54498,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54535,7 +54535,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54572,7 +54572,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54609,7 +54609,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54646,7 +54646,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54683,7 +54683,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54720,7 +54720,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54757,7 +54757,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54794,7 +54794,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tent Electrical"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54831,7 +54831,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Transformers and Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54868,7 +54868,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and wire complete oil-filled transformer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54905,7 +54905,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and wire complete oil-filled transformer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54942,7 +54942,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and wire complete oil-filled transformer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -54979,7 +54979,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and wire complete oil-filled transformer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55016,7 +55016,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install and wire complete oil-filled transformer"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55053,7 +55053,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "transformer in vault or building"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55090,7 +55090,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "transformer in vault or building"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55127,7 +55127,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55164,7 +55164,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55201,7 +55201,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55238,7 +55238,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55275,7 +55275,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55312,7 +55312,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55349,7 +55349,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Switchgear"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55386,7 +55386,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install capacitor bank with associated equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55423,7 +55423,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install capacitor bank with associated equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55460,7 +55460,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Lightning Arrester"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55497,7 +55497,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Lightning Arrester"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55534,7 +55534,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Lightning Arrester"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55571,7 +55571,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Medium Voltage Lightning Arrester"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55608,7 +55608,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install safety switch, three poles, general or heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55645,7 +55645,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install safety switch, three poles, general or heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55682,7 +55682,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install safety switch, three poles, general or heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55719,7 +55719,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install safety switch, three poles, general or heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55756,7 +55756,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install safety switch, three poles, general or heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55793,7 +55793,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install safety switch, three poles, general or heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55830,7 +55830,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55867,7 +55867,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55904,7 +55904,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55941,7 +55941,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -55978,7 +55978,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56015,7 +56015,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56052,7 +56052,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install circuit breakers, enclosed, NEMA type 1, 600 volt, three poles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56089,7 +56089,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install panel boards, lighting, and power four-wire, three-phase, 100 to 225 ampere main lugs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56126,7 +56126,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install panel boards, lighting, and power four-wire, three-phase, 100 to 225 ampere main lugs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56163,7 +56163,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install panel boards, lighting, and power four-wire, three-phase, 100 to 225 ampere main lugs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56200,7 +56200,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install panel boards, lighting, and power four-wire, three-phase, 100 to 225 ampere main lugs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56237,7 +56237,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install panel boards, lighting, and power four-wire, three-phase, 100 to 225 ampere main lugs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56274,7 +56274,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install panel boards, lighting, and power four-wire, three-phase, 100 to 225 ampere main lugs"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56311,7 +56311,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tactical Distribution Load Centers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56348,7 +56348,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tactical Distribution Load Centers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56385,7 +56385,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tactical Distribution Load Centers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56422,7 +56422,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install Tactical Distribution Load Centers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56459,7 +56459,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: two laborers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56496,7 +56496,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: two laborers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56533,7 +56533,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: two laborers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56570,7 +56570,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: two laborers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56607,7 +56607,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: two laborers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56644,7 +56644,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: one electrician, one operator."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56681,7 +56681,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: one electrician, one operator."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56718,7 +56718,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor Starters and Controllers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56755,7 +56755,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor Starters and Controllers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56792,7 +56792,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor starters and controls, magnetic full voltage non-reversing (FVNR) with heaters and enclosures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56829,7 +56829,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor starters and controls, magnetic full voltage non-reversing (FVNR) with heaters and enclosures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56866,7 +56866,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor starters and controls, magnetic full voltage non-reversing (FVNR) with heaters and enclosures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56903,7 +56903,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor starters and controls, magnetic full voltage non-reversing (FVNR) with heaters and enclosures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56940,7 +56940,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Motor starters and controls, magnetic full voltage non-reversing (FVNR) with heaters and enclosures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -56977,7 +56977,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Combination starters, magnetic FVNR with circuit breaker or fused switch and heater"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57014,7 +57014,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Combination starters, magnetic FVNR with circuit breaker or fused switch and heater"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57051,7 +57051,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Combination starters, magnetic FVNR with circuit breaker or fused switch and heater"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57088,7 +57088,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Combination starters, magnetic FVNR with circuit breaker or fused switch and heater"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57125,7 +57125,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Combination starters, magnetic FVNR with circuit breaker or fused switch and heater"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57162,7 +57162,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control stations, heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57199,7 +57199,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control stations, heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57236,7 +57236,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control stations, heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57273,7 +57273,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control stations, heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57310,7 +57310,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Control stations, heavy duty"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57347,7 +57347,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "5-foot length, screw cover with fittings and supports"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57384,7 +57384,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "5-foot length, screw cover with fittings and supports"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57421,7 +57421,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "5-foot length, screw cover with fittings and supports"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57458,7 +57458,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ladder type, galvanized steel with fittings and supports"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57495,7 +57495,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ladder type, galvanized steel with fittings and supports"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57532,7 +57532,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Ladder type, galvanized steel with fittings and supports"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57569,7 +57569,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "General Duty 240V, 3 Pole NEMA 1, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57606,7 +57606,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "General Duty 240V, 3 Pole NEMA 1, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57643,7 +57643,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "General Duty 240V, 3 Pole NEMA 1, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57680,7 +57680,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "General Duty 240V, 3 Pole NEMA 1, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57717,7 +57717,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "General Duty 240V, 3 Pole NEMA 1, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57754,7 +57754,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Duty, 600V, 3 Pole NEMA 1, nonfusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57791,7 +57791,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Duty, 600V, 3 Pole NEMA 1, nonfusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57828,7 +57828,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Duty, 600V, 3 Pole NEMA 1, nonfusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57865,7 +57865,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Duty, 240V, 3 Pole NEMA 3R, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57902,7 +57902,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Heavy Duty, 240V, 3 Pole NEMA 3R, fusible"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57939,7 +57939,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Engine Driven Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -57976,7 +57976,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Engine Driven Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58013,7 +58013,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Engine Driven Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58050,7 +58050,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Engine Driven Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58087,7 +58087,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Engine Driven Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58124,7 +58124,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Engine Driven Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58161,7 +58161,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58198,7 +58198,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58235,7 +58235,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58272,7 +58272,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58309,7 +58309,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58346,7 +58346,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58383,7 +58383,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58420,7 +58420,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58457,7 +58457,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58494,7 +58494,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58531,7 +58531,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58568,7 +58568,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58605,7 +58605,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58642,7 +58642,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58679,7 +58679,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58716,7 +58716,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USMC)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58753,7 +58753,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USN)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58790,7 +58790,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USN)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58827,7 +58827,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USN)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58864,7 +58864,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USN)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58901,7 +58901,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Generator Sets (USN)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58938,7 +58938,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manual Transfer Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -58975,7 +58975,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manual Transfer Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59012,7 +59012,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manual Transfer Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59049,7 +59049,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Automatic Transfer Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59086,7 +59086,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Automatic Transfer Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59123,7 +59123,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Automatic Transfer Switches"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59160,7 +59160,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Exterior Lighting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59197,7 +59197,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59234,7 +59234,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59271,7 +59271,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59308,7 +59308,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59345,7 +59345,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59382,7 +59382,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59419,7 +59419,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59456,7 +59456,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install metal light standards (30 feet) (See Note 2)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59493,7 +59493,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install constant current regulator and control devices for street lighting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59530,7 +59530,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install constant current regulator and control devices for street lighting"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59567,7 +59567,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59604,7 +59604,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59641,7 +59641,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59678,7 +59678,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59715,7 +59715,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59752,7 +59752,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59789,7 +59789,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59826,7 +59826,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59862,7 +59862,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pull cable in conduit"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59899,7 +59899,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59936,7 +59936,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -59973,7 +59973,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60010,7 +60010,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60047,7 +60047,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Copper Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60084,7 +60084,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Copper Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60121,7 +60121,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Communications Copper Horizontal Cabling"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60158,7 +60158,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Public address system conventional"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60195,7 +60195,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Public address system conventional"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60232,7 +60232,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sound system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60267,7 +60267,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sound system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60303,7 +60303,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sound system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60340,7 +60340,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sound system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60375,7 +60375,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sound system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60411,7 +60411,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Intercom, master"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60447,7 +60447,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Intercom, master"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60484,7 +60484,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60520,7 +60520,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60557,7 +60557,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60593,7 +60593,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60630,7 +60630,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60667,7 +60667,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60704,7 +60704,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60741,7 +60741,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Emergency call system"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60778,7 +60778,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire alarm control panel,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60815,7 +60815,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire alarm control panel,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60852,7 +60852,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire alarm control panel,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60889,7 +60889,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire alarm control panel,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60926,7 +60926,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire alarm control panel,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -60963,7 +60963,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire alarm control panel,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61000,7 +61000,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Smoke Detectors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61037,7 +61037,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Smoke Detectors"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61074,7 +61074,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61111,7 +61111,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61148,7 +61148,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61185,7 +61185,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61222,7 +61222,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61259,7 +61259,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Cut and chip trees; 3 CYD crawler loader, brush chipper, and chain saws"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61296,7 +61296,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61333,7 +61333,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61370,7 +61370,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61407,7 +61407,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61444,7 +61444,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61481,7 +61481,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61518,7 +61518,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Selective Clearing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61555,7 +61555,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brush mowing, tractor with rotary mower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61592,7 +61592,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brush mowing, tractor with rotary mower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61629,7 +61629,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Brush mowing, tractor with rotary mower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61666,7 +61666,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Remove selective trees, onsite using chain saws and chipper,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61703,7 +61703,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Remove selective trees, onsite using chain saws and chipper,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61740,7 +61740,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Remove selective trees, onsite using chain saws and chipper,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61777,7 +61777,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Remove selective trees, onsite using chain saws and chipper,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61814,7 +61814,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Remove selective trees, onsite using chain saws and chipper,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61851,7 +61851,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Remove selective trees, onsite using chain saws and chipper,"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61888,7 +61888,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61925,7 +61925,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61962,7 +61962,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Loam and sandy clay with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -61999,7 +61999,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Loam and sandy clay with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62036,7 +62036,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sand and gravel with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62073,7 +62073,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sand and gravel with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62110,7 +62110,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dense hard clay with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62147,7 +62147,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dense hard clay with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62184,7 +62184,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Dense hard clay with no sheeting or dewatering included"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62221,7 +62221,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62258,7 +62258,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62295,7 +62295,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62332,7 +62332,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62369,7 +62369,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62406,7 +62406,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62443,7 +62443,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Common earth, chain trencher, 12 horsepower, operator walking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62480,7 +62480,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Backfill by hand including compaction, add"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62517,7 +62517,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Backfill by hand including compaction, add"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62554,7 +62554,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain trencher, 40 horsepower, operator riding"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62591,7 +62591,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain trencher, 40 horsepower, operator riding"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62628,7 +62628,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Chain trencher, 40 horsepower, operator riding"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62665,7 +62665,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hand excavation, trim for pipe bells"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62702,7 +62702,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hand excavation, trim for pipe bells"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62739,7 +62739,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62776,7 +62776,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62813,7 +62813,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62850,7 +62850,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62887,7 +62887,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62924,7 +62924,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62961,7 +62961,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Excavation for Minor Structures"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -62998,7 +62998,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63035,7 +63035,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63072,7 +63072,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63109,7 +63109,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63146,7 +63146,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63183,7 +63183,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63220,7 +63220,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63257,7 +63257,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63294,7 +63294,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63331,7 +63331,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63368,7 +63368,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63405,7 +63405,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Machine excavation, for spread footings and small building foundations"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63442,7 +63442,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Jackhammer, 2.5-inch diameter (medium)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63479,7 +63479,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Jackhammer, 2.5-inch diameter (medium)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63516,7 +63516,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Jackhammer, 2.5-inch diameter (medium)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63553,7 +63553,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "(0010) Jackhammer, 2.5-inch diameter (medium)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63590,7 +63590,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Backfill"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63627,7 +63627,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Erosion Control"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63664,7 +63664,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Erosion Control"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63701,7 +63701,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Erosion Control"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63738,7 +63738,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Erosion Control"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63775,7 +63775,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63812,7 +63812,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63849,7 +63849,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63886,7 +63886,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63923,7 +63923,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63960,7 +63960,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -63997,7 +63997,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64034,7 +64034,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64071,7 +64071,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64108,7 +64108,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64145,7 +64145,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64182,7 +64182,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64219,7 +64219,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64256,7 +64256,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64293,7 +64293,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sheet Piling Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64330,7 +64330,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64367,7 +64367,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64404,7 +64404,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64441,7 +64441,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64478,7 +64478,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64515,7 +64515,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64552,7 +64552,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64589,7 +64589,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64626,7 +64626,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64663,7 +64663,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64700,7 +64700,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64737,7 +64737,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Driven Piles"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64774,7 +64774,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64809,7 +64809,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64845,7 +64845,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64882,7 +64882,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64919,7 +64919,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64956,7 +64956,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -64993,7 +64993,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65030,7 +65030,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Sealcoat"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65067,7 +65067,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aggregate Base Courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65104,7 +65104,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aggregate Base Courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65141,7 +65141,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aggregate Base Courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65178,7 +65178,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Aggregate Base Courses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65215,7 +65215,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65252,7 +65252,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65289,7 +65289,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65326,7 +65326,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65363,7 +65363,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65400,7 +65400,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65437,7 +65437,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65474,7 +65474,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65511,7 +65511,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plant-Mix Asphalt Paving"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65548,7 +65548,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65585,7 +65585,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65622,7 +65622,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65659,7 +65659,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65696,7 +65696,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65733,7 +65733,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65770,7 +65770,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65807,7 +65807,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65844,7 +65844,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65881,7 +65881,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Asphaltic Paving, Parking Lots, and Driveways"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65918,7 +65918,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65955,7 +65955,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -65992,7 +65992,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66029,7 +66029,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66066,7 +66066,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66103,7 +66103,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66140,7 +66140,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66177,7 +66177,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66214,7 +66214,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66251,7 +66251,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66288,7 +66288,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66325,7 +66325,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66362,7 +66362,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66399,7 +66399,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66436,7 +66436,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66473,7 +66473,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66510,7 +66510,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66547,7 +66547,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66584,7 +66584,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66621,7 +66621,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66658,7 +66658,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fences and Gates"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66695,7 +66695,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Retaining Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66732,7 +66732,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Retaining Walls"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66769,7 +66769,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Turf and Grasses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66806,7 +66806,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Turf and Grasses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66843,7 +66843,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Turf and Grasses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66880,7 +66880,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Turf and Grasses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66917,7 +66917,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Turf and Grasses"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66955,7 +66955,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Supply Tactical Hoseline"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -66993,7 +66993,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Supply Miscellaneous"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67031,7 +67031,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Water Distribution System"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67069,7 +67069,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Supply PVC Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67107,7 +67107,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Supply PVC Pipe"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67144,7 +67144,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire Hydrants"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67181,7 +67181,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire Hydrants"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67218,7 +67218,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fire Hydrants"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67255,7 +67255,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67292,7 +67292,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67329,7 +67329,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67366,7 +67366,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67403,7 +67403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67440,7 +67440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67477,7 +67477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Steel Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67514,7 +67514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric Pillow Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67551,7 +67551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric Pillow Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67588,7 +67588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric Pillow Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67625,7 +67625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric Pillow Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67662,7 +67662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric Pillow Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67699,7 +67699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Fabric Pillow Water Storage Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67736,7 +67736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67773,7 +67773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67810,7 +67810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67847,7 +67847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67884,7 +67884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67921,7 +67921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67958,7 +67958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -67995,7 +67995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Sewage Pipe (No excavation)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68032,7 +68032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install galvanized pipe culverts"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68069,7 +68069,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install galvanized pipe culverts"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68106,7 +68106,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install galvanized pipe culverts"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68143,7 +68143,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install galvanized culvert (bolted)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68180,7 +68180,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install galvanized culvert (bolted)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68217,7 +68217,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Install galvanized culvert (bolted)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68254,7 +68254,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68291,7 +68291,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68328,7 +68328,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68365,7 +68365,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68402,7 +68402,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68439,7 +68439,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68476,7 +68476,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68513,7 +68513,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68550,7 +68550,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Tactical Culvert Denial"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68587,7 +68587,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Storm Drainage Manholes, Frames, Covers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68624,7 +68624,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Storm Drainage Manholes, Frames, Covers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68661,7 +68661,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Storm Drainage Manholes, Frames, Covers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68698,7 +68698,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Storm Drainage Manholes, Frames, Covers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68735,7 +68735,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Storm Drainage Manholes, Frames, Covers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68773,7 +68773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68810,7 +68810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68847,7 +68847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68884,7 +68884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68921,7 +68921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68958,7 +68958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -68995,7 +68995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69032,7 +69032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69069,7 +69069,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Fuel Receiving and Dispensing"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69106,7 +69106,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Gasoline Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69143,7 +69143,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69180,7 +69180,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69217,7 +69217,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69254,7 +69254,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69291,7 +69291,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69328,7 +69328,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69365,7 +69365,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69402,7 +69402,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69439,7 +69439,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Diesel Fuel Distribution"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69476,7 +69476,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew size: two equipment operators, 28 laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69513,7 +69513,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Coated, Fabric, Pillow Fuel Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69550,7 +69550,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Coated, Fabric, Pillow Fuel Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69587,7 +69587,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Coated, Fabric, Pillow Fuel Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69624,7 +69624,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Coated, Fabric, Pillow Fuel Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69661,7 +69661,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Plastic Coated, Fabric, Pillow Fuel Tanks"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69698,7 +69698,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manholes, precast concrete, with iron racks and pulling irons, and cast iron cover"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69735,7 +69735,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manholes, precast concrete, with iron racks and pulling irons, and cast iron cover"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69772,7 +69772,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underground duct, banks ready for concrete fill"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69809,7 +69809,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underground duct, banks ready for concrete fill"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69846,7 +69846,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underground duct, banks ready for concrete fill"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69883,7 +69883,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underground duct, banks ready for concrete fill"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69921,7 +69921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Antenna, Radio Tower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69959,7 +69959,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Antenna, Radio Tower"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -69996,7 +69996,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Concrete Track Cross Ties"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70033,7 +70033,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Timber Track Cross Ties"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70070,7 +70070,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Timber Track Cross Ties"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70107,7 +70107,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Pavement Marking"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70144,7 +70144,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Traffic Signal Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70181,7 +70181,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Airfield Wind Cones"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70218,7 +70218,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Airfield Wind Cones"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70255,7 +70255,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Airfield Wind Cones"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70292,7 +70292,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Airfield Wind Cones"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70329,7 +70329,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70366,7 +70366,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70403,7 +70403,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70440,7 +70440,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70477,7 +70477,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70514,7 +70514,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70551,7 +70551,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70588,7 +70588,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70625,7 +70625,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Runway and Taxiway Lighting Systems"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70662,7 +70662,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70699,7 +70699,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70736,7 +70736,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70773,7 +70773,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70810,7 +70810,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70847,7 +70847,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70884,7 +70884,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Crash Barriers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70921,7 +70921,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Guide Rails"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70958,7 +70958,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Guide Rails"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -70995,7 +70995,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Guide Rails"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71032,7 +71032,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Vehicle Guide Rails"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71068,7 +71068,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Manufactured Helipads"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71105,7 +71105,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71142,7 +71142,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, four laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71179,7 +71179,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71216,7 +71216,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71253,7 +71253,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71290,7 +71290,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71327,7 +71327,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71364,7 +71364,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71401,7 +71401,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Suggested crew size: one equipment operator, nine laborers"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71438,7 +71438,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Floating Construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71475,7 +71475,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Floating Construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71512,7 +71512,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Floating Construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71549,7 +71549,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Floating Construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71586,7 +71586,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Floating Construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71623,7 +71623,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Floating Construction"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71660,7 +71660,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "For quick estimates:"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71697,7 +71697,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Marine Fenders (0010) Place in leads and drive (0020) Lash with wire rope (0030) Install fenders"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71734,7 +71734,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Marine Bollards and Cleats"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71771,7 +71771,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Marine Bollards and Cleats"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71808,7 +71808,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Marine Bollards and Cleats"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71845,7 +71845,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Marine Bollards and Cleats"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71882,7 +71882,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Marine Bollards and Cleats"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71919,7 +71919,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Surveys)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71956,7 +71956,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Surveys)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -71993,7 +71993,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew for above elements 3 divers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72030,7 +72030,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew for above elements 3 divers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72067,7 +72067,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew for above elements 3 divers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72104,7 +72104,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Minimum suggested crew for above elements 3 divers."
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72141,7 +72141,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Cabling)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72178,7 +72178,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Cabling)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72215,7 +72215,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Cabling)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72252,7 +72252,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Cabling)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72289,7 +72289,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Underwater Structures Construction (Cabling)"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72326,7 +72326,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Materiel Sizing Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72363,7 +72363,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Materiel Sizing Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72400,7 +72400,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Materiel Sizing Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72437,7 +72437,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Bulk Materiel Sizing Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72474,7 +72474,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Batching Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72511,7 +72511,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Batching Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72548,7 +72548,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Batching Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72585,7 +72585,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Hoisting Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72622,7 +72622,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Treatment Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72659,7 +72659,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Treatment Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72696,7 +72696,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Treatment Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72733,7 +72733,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Treatment Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72770,7 +72770,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Treatment Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   },
   {
@@ -72807,7 +72807,7 @@ export const GENERATED_PRODUCTION_RATES: readonly ProductionRate[] = [
     "applicableActivityTypes": [
       "Water Treatment Equipment"
     ],
-    "importBatchId": "approved-library-2026-06-11",
+    "importBatchId": "approved-library-2026-06-13",
     "isActive": true
   }
 ] as const;
