@@ -2,6 +2,7 @@ import React from 'react';
 import type { PricingParams, TaxApplication, TaxSystem } from '../../types/pricingParams';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
+import DarkSelect from '../ui/DarkSelect';
 import TaxRatePercentInput from './TaxRatePercentInput';
 
 const WASTE_OPTIONS = [
@@ -12,7 +13,14 @@ const WASTE_OPTIONS = [
   { value: '20', label: '20%' },
 ];
 
-const CONTINGENCY_PRESETS = [0, 2, 5, 10, 15];
+const CONTINGENCY_OPTIONS = [
+  { value: '0', label: '0%' },
+  { value: '2', label: '2%' },
+  { value: '5', label: '5%' },
+  { value: '10', label: '10%' },
+  { value: '15', label: '15%' },
+  { value: '20', label: '20%' },
+];
 
 const TAX_SYSTEM_OPTIONS: { value: TaxSystem; label: string }[] = [
   { value: 'none', label: 'None' },
@@ -26,11 +34,6 @@ const TAX_APPLICATION_OPTIONS: { value: TaxApplication; label: string }[] = [
   { value: 'materials_and_equipment', label: 'Materials + Equipment' },
   { value: 'entire_project', label: 'Entire Project' },
 ];
-
-const fieldLabelClass = 'mb-2 block text-sm font-medium text-slate-200';
-
-const fieldControlClass =
-  'no-number-spinner w-full h-12 rounded-lg border border-slate-700 bg-slate-950/50 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50';
 
 const groupClass = 'rounded-xl border border-slate-700/70 bg-slate-950/40 p-4';
 const groupTitleClass = 'mb-3 text-sm font-semibold text-slate-100';
@@ -73,67 +76,29 @@ export default function PricingParamsEditor({
         <>
           <section className={groupClass}>
             <h4 className={groupTitleClass}>Cost adjustments</h4>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div>
-                <label className={fieldLabelClass}>Waste factor</label>
-                <select
-                  className={fieldControlClass}
-                  value={String(params.wasteFactorPercent)}
-                  onChange={(e) =>
-                    set('wasteFactorPercent', Math.max(0, Number(e.target.value) || 0))
-                  }
-                >
-                  {WASTE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-slate-500">
-                  Additional material allowance for waste, breakage, cutting loss, spillage,
-                  over-ordering, and field variation.
-                </p>
-              </div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <DarkSelect
+                label="Waste factor"
+                value={String(params.wasteFactorPercent)}
+                options={WASTE_OPTIONS}
+                onChange={(next) =>
+                  set('wasteFactorPercent', Math.max(0, Number(next) || 0))
+                }
+                helperText="Additional material allowance for waste, breakage, cutting loss, spillage, over-ordering, and field variation."
+                fullWidth
+                data-testid="waste-factor-select"
+              />
 
-              <div>
-                <label className={fieldLabelClass}>Contingency %</label>
-                <div className="flex min-h-12 flex-wrap items-center gap-2">
-                  {CONTINGENCY_PRESETS.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      className={`h-11 rounded-md border px-3 text-sm font-medium ${
-                        params.contingencyPercent === p
-                          ? 'border-cyan-500 bg-cyan-500 text-slate-950'
-                          : 'border-slate-700 bg-slate-900 text-slate-100 hover:border-cyan-500/60'
-                      }`}
-                      onClick={() => set('contingencyPercent', p)}
-                    >
-                      {p}%
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className={fieldLabelClass} htmlFor="custom-contingency-percent">
-                  Custom contingency %
-                </label>
-                <input
-                  id="custom-contingency-percent"
-                  type="number"
-                  min={0}
-                  step={0.5}
-                  className={fieldControlClass}
-                  value={params.contingencyPercent}
-                  onChange={(e) =>
-                    set('contingencyPercent', Math.max(0, Number(e.target.value) || 0))
-                  }
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  Overrides the selected contingency preset when entered.
-                </p>
-              </div>
+              <DarkSelect
+                label="Contingency %"
+                value={String(params.contingencyPercent)}
+                options={CONTINGENCY_OPTIONS}
+                onChange={(next) =>
+                  set('contingencyPercent', Math.max(0, Number(next) || 0))
+                }
+                fullWidth
+                data-testid="contingency-percent-select"
+              />
             </div>
           </section>
 
