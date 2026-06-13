@@ -42,7 +42,7 @@ function sectionLabelForPath(pathname: string, search = ''): string {
   if (pathname.startsWith('/employees')) return 'Team';
   if (pathname.startsWith('/owner/review')) return 'Review Queue';
   if (pathname.startsWith('/proposal')) return 'Proposals';
-  if (pathname.startsWith('/pour-planner')) return 'Pour Planner';
+  if (pathname.startsWith('/pour-planner')) return 'Placement Planner';
   if (pathname.startsWith('/mix-design')) return 'Mix Design';
   if (pathname.startsWith('/calculator')) {
     const inWorkflow = new URLSearchParams(search).get('flow') === '1';

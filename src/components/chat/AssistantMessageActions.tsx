@@ -46,7 +46,7 @@ const AssistantMessageActions: React.FC<AssistantMessageActionsProps> = ({
         className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:border-cyan-500/50 hover:bg-cyan-950/30 hover:text-white transition-colors"
       >
         <MapPin className="h-3.5 w-3.5" />
-        Open Pour Planner
+        Open Placement Planner
       </button>
       <button
         type="button"
