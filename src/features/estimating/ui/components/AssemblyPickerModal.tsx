@@ -892,28 +892,7 @@ function ProductionRateConfigureStep({
           {totalRates.toLocaleString()} approved production rates available
           {isSourceIndex ? ' (source records — debug)' : ''}
         </p>
-        {import.meta.env.DEV ? (
-          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showSourceRecords}
-                onChange={(e) => onShowSourceRecordsChange(e.target.checked)}
-                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
-              />
-              Show source records (debug)
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showDevSourceDetails}
-                onChange={(e) => setShowDevSourceDetails(e.target.checked)}
-                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
-              />
-              Show source details (debug)
-            </label>
-          </div>
-        ) : null}
+       
       </div>
 
       {wizardStep === 1 ? (

@@ -99,7 +99,7 @@ describe('extractSchedulePreviewSummary', () => {
     expect(summary.excludedTasks).toBe(0);
     expect(summary.totalLaborHours).toBeGreaterThan(0);
     expect(summary.totalManDays).toBeGreaterThan(0);
-    expect(summary.totalCrewDays).toBeGreaterThan(0);
+    expect(summary.totalLaborCrewDays).toBeGreaterThan(0);
     expect(summary.totalDurationDays).toBeGreaterThan(0);
     expect(summary.schedulableTasksDisplay).toBe('2');
     expect(summary.totalLaborHoursDisplay).not.toBe(ESTIMATE_BLANK);
@@ -125,7 +125,7 @@ describe('extractSchedulePreviewSummary', () => {
     expect(summary.excludedTasks).toBe(0);
     expect(summary.totalLaborHours).toBe(0);
     expect(summary.totalManDays).toBe(0);
-    expect(summary.totalCrewDays).toBe(0);
+    expect(summary.totalLaborCrewDays).toBe(0);
     expect(summary.totalDurationDays).toBe(0);
     expect(summary.totalLaborHoursDisplay).toBe(ESTIMATE_BLANK);
   });

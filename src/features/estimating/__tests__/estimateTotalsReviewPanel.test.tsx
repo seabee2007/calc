@@ -238,10 +238,11 @@ describe('EstimateTotalsReviewPanel', () => {
 
     expect(screen.getByText('85.3 hr')).toBeInTheDocument();
     expect(screen.getByText('10.7 MD')).toBeInTheDocument();
+    expect(screen.getByText('Scheduled crew-days')).toBeInTheDocument();
     expect(screen.getByText('13.0 CD')).toBeInTheDocument();
     expect(screen.getByText('4d')).toBeInTheDocument();
     expect(screen.getByText('Project duration')).toBeInTheDocument();
-    expect(screen.getByText(/duration × crew size/i)).toBeInTheDocument();
+    expect(screen.getByText(/Labor crew-days convert labor effort/i)).toBeInTheDocument();
   });
 
   it('includes project material and equipment resources in cost breakdown', () => {

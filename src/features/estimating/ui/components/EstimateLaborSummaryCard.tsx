@@ -52,10 +52,10 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
           loading={loading}
         />
         <EstimateSummaryCard
-          label="Crew-days"
+          label="Scheduled crew-days"
           value={
-            metrics.crewDays > 0
-              ? `${formatEstimateNumber(metrics.crewDays, { decimals: 1 })} CD`
+            metrics.scheduledCrewDays > 0
+              ? `${formatEstimateNumber(metrics.scheduledCrewDays, { decimals: 1 })} CD`
               : ESTIMATE_BLANK
           }
           loading={loading}
@@ -68,8 +68,8 @@ export default function EstimateLaborSummaryCard({ metrics, loading = false }: P
       </div>
 
       <p className={`text-xs ${TEXT_BODY} ${PLANNER_MUTED}`}>
-        Crew-days use duration × crew size (headcount-days). Project duration uses the CPM schedule
-        span when available.
+        Labor crew-days convert labor effort by crew size. Scheduled crew-days use duration × crew
+        size. Project duration uses the CPM schedule span when available.
       </p>
 
       {metrics.durationDays == null ? (

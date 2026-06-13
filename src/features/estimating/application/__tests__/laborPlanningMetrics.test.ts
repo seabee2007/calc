@@ -77,7 +77,7 @@ describe('calculateLaborPlanningMetrics', () => {
       ],
     });
 
-    expect(result.crewDays).toBe(2 * 4 + 1 * 3 + 1 * 2);
+    expect(result.scheduledCrewDays).toBe(2 * 4 + 1 * 3 + 1 * 2);
   });
 
   it('falls back crew-days to man-days when crew size data is unavailable', () => {
@@ -88,7 +88,7 @@ describe('calculateLaborPlanningMetrics', () => {
       ],
     });
 
-    expect(result.crewDays).toBe(10);
+    expect(result.scheduledCrewDays).toBe(10);
   });
 
   it('uses CPM project duration when available', () => {
@@ -102,7 +102,7 @@ describe('calculateLaborPlanningMetrics', () => {
       ],
     });
 
-    expect(result.estimatedDurationDays).toBe(4);
+    expect(result.projectDurationDays).toBe(4);
   });
 
   it('falls back estimated duration to CPM ES/EF span when projectDurationDays is missing', () => {
@@ -134,31 +134,24 @@ describe('calculateLaborPlanningMetrics', () => {
       cpmActivities,
     });
 
-    expect(result.estimatedDurationDays).toBe(4);
+    expect(result.projectDurationDays).toBe(4);
   });
 
-  it('uses headcount crew-days (duration × crew size), not Schedule Preview labor crew-days', () => {
+  it('computes laborCrewDays from manDays ÷ crewSize per schedule activity', () => {
     const scheduleActivities = [
-      makeScheduleActivity({ activityCode: 'A', durationDays: 2, crewSize: 4, laborHours: 28.4, manDays: 3.55 }),
-      makeScheduleActivity({ activityCode: 'B', durationDays: 1, crewSize: 3, laborHours: 28.4, manDays: 3.55 }),
-      makeScheduleActivity({ activityCode: 'C', durationDays: 1, crewSize: 2, laborHours: 28.5, manDays: 3.5625 }),
+      makeScheduleActivity({ activityCode: 'A', durationDays: 2, crewSize: 4, manDays: 3.55 }),
+      makeScheduleActivity({ activityCode: 'B', durationDays: 1, crewSize: 3, manDays: 3.55 }),
+      makeScheduleActivity({ activityCode: 'C', durationDays: 1, crewSize: 2, manDays: 3.5625 }),
     ];
 
-    const headcountCrewDays = calculateLaborPlanningMetrics({
+    const result = calculateLaborPlanningMetrics({
       laborHours: 85.3,
       scheduleActivities,
-      projectDurationDays: 4,
-    }).crewDays;
+    });
 
-    const laborCrewDays = scheduleActivities.reduce(
-      (sum, activity) => sum + activity.manDays / activity.crewSize,
-      0,
-    );
-    const expectedLaborCrewDays = 3.55 / 4 + 3.55 / 3 + 3.5625 / 2;
-
-    expect(headcountCrewDays).toBe(13);
-    expect(laborCrewDays).toBeCloseTo(expectedLaborCrewDays, 2);
-    expect(headcountCrewDays).not.toBeCloseTo(laborCrewDays, 1);
+    expect(result.laborCrewDays).toBeCloseTo(3.55 / 4 + 3.55 / 3 + 3.5625 / 2, 2);
+    expect(result.scheduledCrewDays).toBe(13);
+    expect(result.scheduledCrewDays).not.toBeCloseTo(result.laborCrewDays, 1);
   });
 
   it('matches the 3-activity / 85.3 hr / 4d fixture', () => {
@@ -168,9 +161,9 @@ describe('calculateLaborPlanningMetrics', () => {
       makeActivity({ id: 'c', activityCode: 'C', calculatedManHours: 28.5, effectiveDurationDays: 1, crewSize: 2 }),
     ];
     const scheduleActivities = [
-      makeScheduleActivity({ activityCode: 'A', durationDays: 2, crewSize: 4, laborHours: 28.4 }),
-      makeScheduleActivity({ activityCode: 'B', durationDays: 1, crewSize: 3, laborHours: 28.4 }),
-      makeScheduleActivity({ activityCode: 'C', durationDays: 1, crewSize: 2, laborHours: 28.5 }),
+      makeScheduleActivity({ activityCode: 'A', durationDays: 2, crewSize: 4, laborHours: 28.4, manDays: 3.55 }),
+      makeScheduleActivity({ activityCode: 'B', durationDays: 1, crewSize: 3, laborHours: 28.4, manDays: 3.55 }),
+      makeScheduleActivity({ activityCode: 'C', durationDays: 1, crewSize: 2, laborHours: 28.5, manDays: 3.5625 }),
     ];
 
     const result = calculateLaborPlanningMetrics({
@@ -182,8 +175,9 @@ describe('calculateLaborPlanningMetrics', () => {
 
     expect(result.laborHours).toBe(85.3);
     expect(result.manDays).toBeCloseTo(10.6625, 2);
-    expect(result.crewDays).toBe(13);
-    expect(result.estimatedDurationDays).toBe(4);
+    expect(result.scheduledCrewDays).toBe(13);
+    expect(result.projectDurationDays).toBe(4);
+    expect(result.laborCrewDays).toBeCloseTo(3.55 / 4 + 3.55 / 3 + 3.5625 / 2, 2);
   });
 });
 
@@ -223,7 +217,7 @@ describe('buildEstimateTotalsReviewFromConstructionActivities labor planning', (
 
     expect(review.laborMetrics.laborHours).toBeCloseTo(85.3, 1);
     expect(review.laborMetrics.manDays).toBeCloseTo(10.6625, 2);
-    expect(review.laborMetrics.crewDays).toBe(13);
+    expect(review.laborMetrics.scheduledCrewDays).toBe(13);
     expect(review.laborMetrics.durationDays).toBe(4);
     expect(review.costGroups.labor).toBe(2000);
     expect(review.costGroups.materials).toBe(0);

@@ -200,10 +200,10 @@ describe('extractLaborPlanningMetrics', () => {
 
     expect(metrics.laborHours).toBeGreaterThan(0);
     expect(metrics.manDays).toBeGreaterThan(0);
-    expect(metrics.crewDays).toBeGreaterThan(0);
+    expect(metrics.scheduledCrewDays).toBeGreaterThan(0);
     expect(Number.isFinite(metrics.laborHours)).toBe(true);
     expect(Number.isFinite(metrics.manDays)).toBe(true);
-    expect(Number.isFinite(metrics.crewDays)).toBe(true);
+    expect(Number.isFinite(metrics.scheduledCrewDays)).toBe(true);
   });
 
   it('returns null duration when no duration metrics exist', () => {
@@ -301,7 +301,7 @@ describe('resolveEstimateTotalsReview', () => {
     expect(review.costGroups.labor).toBe(1500);
     expect(review.laborMetrics.laborHours).toBe(30);
     expect(review.laborMetrics.manDays).toBeCloseTo(3.75, 2);
-    expect(review.laborMetrics.crewDays).toBe(8);
+    expect(review.laborMetrics.scheduledCrewDays).toBe(8);
     expect(review.laborMetrics.durationDays).toBe(2);
     expect(shouldUseConstructionActivitiesTotalsReview('detailed', [{ id: 'act-1' } as never])).toBe(
       true,

@@ -32,8 +32,12 @@ export interface CalculateLaborPlanningMetricsInput {
 export interface LaborPlanningMetricsResult {
   laborHours: number;
   manDays: number;
-  crewDays: number;
-  estimatedDurationDays: number;
+  /** Effort-based: sum(manDays ÷ crewSize) per activity. */
+  laborCrewDays: number;
+  /** Schedule-based: sum(durationDays × crewSize) — headcount resource-days. */
+  scheduledCrewDays: number;
+  /** CPM/Gantt project span in work days. */
+  projectDurationDays: number;
 }
 
 function resolveActivityDurationDays(activity: ProjectConstructionActivity): number {
@@ -71,14 +75,61 @@ function resolveEstimatedDurationDays(input: CalculateLaborPlanningMetricsInput)
   return maxDuration;
 }
 
-function resolveCrewDays(input: CalculateLaborPlanningMetricsInput, manDays: number): number {
+function resolveActivityManDays(
+  activity: ScheduleActivity,
+  hoursPerDay: number,
+): number {
+  const fromField = normalizeNonNegative(activity.manDays);
+  if (fromField > 0) return fromField;
+  const laborHours = normalizeNonNegative(activity.laborHours);
+  return laborHours > 0 ? laborHours / hoursPerDay : 0;
+}
+
+function resolveLaborCrewDays(
+  input: CalculateLaborPlanningMetricsInput,
+  manDays: number,
+  hoursPerDay: number,
+): number {
   const scheduleActivities = input.scheduleActivities ?? [];
   if (scheduleActivities.length > 0) {
-    const crewDays = scheduleActivities.reduce(
+    const laborCrewDays = scheduleActivities.reduce((sum, activity) => {
+      const crewSize = normalizePositive(activity.crewSize, 0);
+      const activityManDays = resolveActivityManDays(activity, hoursPerDay);
+      return crewSize > 0 && activityManDays > 0 ? sum + activityManDays / crewSize : sum;
+    }, 0);
+    if (laborCrewDays > 0) return laborCrewDays;
+  }
+
+  const constructionActivities = input.activities ?? [];
+  let fromConstruction = 0;
+  for (const activity of constructionActivities) {
+    if (!activity.scheduleEnabled) continue;
+    const crewSize = normalizePositive(activity.crewSize, 0);
+    const laborHours = normalizeNonNegative(activity.calculatedManHours);
+    const activityManDays =
+      normalizeNonNegative(activity.calculatedManDays) > 0
+        ? activity.calculatedManDays!
+        : laborHours / hoursPerDay;
+    if (crewSize > 0 && activityManDays > 0) {
+      fromConstruction += activityManDays / crewSize;
+    }
+  }
+  if (fromConstruction > 0) return fromConstruction;
+
+  return manDays;
+}
+
+function resolveScheduledCrewDays(
+  input: CalculateLaborPlanningMetricsInput,
+  manDays: number,
+): number {
+  const scheduleActivities = input.scheduleActivities ?? [];
+  if (scheduleActivities.length > 0) {
+    const scheduledCrewDays = scheduleActivities.reduce(
       (sum, activity) => sum + activity.durationDays * normalizePositive(activity.crewSize, 0),
       0,
     );
-    if (crewDays > 0) return crewDays;
+    if (scheduledCrewDays > 0) return scheduledCrewDays;
   }
 
   const constructionActivities = input.activities ?? [];
@@ -101,9 +152,9 @@ function resolveCrewDays(input: CalculateLaborPlanningMetricsInput, manDays: num
  *
  * Terminology (construction planning):
  * - Man-days = total labor hours ÷ hours per day
- * - Crew-days (this helper) = sum(durationDays × crewSize) — headcount resource-days
- * - Schedule Preview "Labor crew-days" = sum(manDays ÷ crewSize) — calendar crew-days from labor
- * - Project duration = CPM project span (same as Level III Gantt summary)
+ * - laborCrewDays = sum(manDays ÷ crewSize) — effort-based calendar crew-days
+ * - scheduledCrewDays = sum(durationDays × crewSize) — headcount resource-days
+ * - projectDurationDays = CPM project span (same as Level III Gantt summary)
  */
 export function calculateLaborPlanningMetrics(
   input: CalculateLaborPlanningMetricsInput,
@@ -111,13 +162,15 @@ export function calculateLaborPlanningMetrics(
   const laborHours = normalizeNonNegative(input.laborHours);
   const hoursPerDay = normalizePositive(input.hoursPerDay, DEFAULT_HOURS_PER_DAY);
   const manDays = laborHours > 0 ? laborHours / hoursPerDay : 0;
-  const crewDays = resolveCrewDays(input, manDays);
-  const estimatedDurationDays = resolveEstimatedDurationDays(input);
+  const laborCrewDays = resolveLaborCrewDays(input, manDays, hoursPerDay);
+  const scheduledCrewDays = resolveScheduledCrewDays(input, manDays);
+  const projectDurationDays = resolveEstimatedDurationDays(input);
 
   return {
     laborHours,
     manDays,
-    crewDays,
-    estimatedDurationDays,
+    laborCrewDays,
+    scheduledCrewDays,
+    projectDurationDays,
   };
 }

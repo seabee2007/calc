@@ -44,7 +44,7 @@ const LEGACY_EMPTY_BODY =
   'Enable scheduling on estimate line items or switch back to construction activities.';
 
 const PREVIEW_NOTE =
-  'This is a planning preview from saved construction activities. For CPM dates and critical path, use the Logic Network and Level III Gantt.';
+  'CPM/Gantt uses activity durations and dependencies. Labor metrics here are planning rollups only. For CPM dates and critical path, use the Logic Network and Level III Gantt.';
 
 interface Props {
   version: EstimateDomainVersion | null;
@@ -64,9 +64,9 @@ const LABOR_SUMMARY_CARDS = [
   { key: 'totalLaborHoursDisplay', label: 'Total labor hours' },
   { key: 'totalManDaysDisplay', label: 'Total man-days' },
   {
-    key: 'totalCrewDaysDisplay',
+    key: 'totalLaborCrewDaysDisplay',
     label: 'Labor crew-days',
-    helper: 'Man-days ÷ crew size per activity (calendar crew-days from labor).',
+    helper: 'Man-days ÷ crew size per activity (effort-based).',
   },
   { key: 'totalDurationDaysDisplay', label: 'Activity duration (sum)' },
 ] as const;
@@ -188,8 +188,8 @@ export default function EstimateSchedulePreviewPanel({
       <div className="space-y-2">
         <h3 className={PLANNER_SECTION_TITLE}>Labor rollup summary</h3>
         <p className={`text-xs ${PLANNER_MUTED}`}>
-          Labor crew-days here use man-days ÷ crew size per activity. Costs &amp; Markup crew-days
-          use duration × crew size (headcount-days).
+          Labor crew-days convert labor effort by crew size. Scheduled crew-days (Costs &amp;
+          Markup) use duration × crew size.
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {LABOR_SUMMARY_CARDS.map((card) => (

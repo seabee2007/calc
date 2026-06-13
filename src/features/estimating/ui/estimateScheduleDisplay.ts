@@ -51,13 +51,13 @@ export interface EstimateSchedulePreviewSummary {
   excludedTasks: number;
   totalLaborHours: number;
   totalManDays: number;
-  totalCrewDays: number;
+  totalLaborCrewDays: number;
   totalDurationDays: number;
   schedulableTasksDisplay: string;
   excludedTasksDisplay: string;
   totalLaborHoursDisplay: string;
   totalManDaysDisplay: string;
-  totalCrewDaysDisplay: string;
+  totalLaborCrewDaysDisplay: string;
   totalDurationDaysDisplay: string;
 }
 
@@ -70,13 +70,13 @@ export function extractSchedulePreviewSummary(
       excludedTasks: 0,
       totalLaborHours: 0,
       totalManDays: 0,
-      totalCrewDays: 0,
+      totalLaborCrewDays: 0,
       totalDurationDays: 0,
       schedulableTasksDisplay: formatEstimateNumber(0, { decimals: 0 }),
       excludedTasksDisplay: formatEstimateNumber(0, { decimals: 0 }),
       totalLaborHoursDisplay: ESTIMATE_BLANK,
       totalManDaysDisplay: ESTIMATE_BLANK,
-      totalCrewDaysDisplay: ESTIMATE_BLANK,
+      totalLaborCrewDaysDisplay: ESTIMATE_BLANK,
       totalDurationDaysDisplay: ESTIMATE_BLANK,
     };
   }
@@ -86,7 +86,7 @@ export function extractSchedulePreviewSummary(
     candidates.map((candidate) => candidate.labor.adjustedLaborHours || candidate.labor.laborHours),
   );
   const totalManDays = safeSum(candidates.map((candidate) => candidate.labor.manDays));
-  const totalCrewDays = safeSum(candidates.map((candidate) => candidate.labor.crewDays));
+  const totalLaborCrewDays = safeSum(candidates.map((candidate) => candidate.labor.crewDays));
   const totalDurationDays = safeSum(candidates.map((candidate) => candidate.labor.durationDays));
 
   return {
@@ -94,7 +94,7 @@ export function extractSchedulePreviewSummary(
     excludedTasks: plan.meta.excludedTaskCount,
     totalLaborHours,
     totalManDays,
-    totalCrewDays,
+    totalLaborCrewDays,
     totalDurationDays,
     schedulableTasksDisplay: formatEstimateNumber(plan.meta.scheduleEnabledTaskCount, {
       decimals: 0,
@@ -104,8 +104,10 @@ export function extractSchedulePreviewSummary(
       totalLaborHours > 0 ? formatEstimateHours(totalLaborHours) : ESTIMATE_BLANK,
     totalManDaysDisplay:
       totalManDays > 0 ? formatEstimateNumber(totalManDays, { decimals: 2 }) : ESTIMATE_BLANK,
-    totalCrewDaysDisplay:
-      totalCrewDays > 0 ? formatEstimateNumber(totalCrewDays, { decimals: 2 }) : ESTIMATE_BLANK,
+    totalLaborCrewDaysDisplay:
+      totalLaborCrewDays > 0
+        ? formatEstimateNumber(totalLaborCrewDays, { decimals: 2 })
+        : ESTIMATE_BLANK,
     totalDurationDaysDisplay:
       totalDurationDays > 0
         ? `${formatEstimateNumber(totalDurationDays, { decimals: 1 })} days`

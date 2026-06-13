@@ -144,7 +144,8 @@ export function resolveFinalSellPrice(totals: EstimateCostTotals): number {
 export interface EstimateLaborPlanningMetrics {
   laborHours: number;
   manDays: number;
-  crewDays: number;
+  /** Schedule-based headcount-days (duration × crew size). */
+  scheduledCrewDays: number;
   durationDays: number | null;
 }
 
@@ -152,12 +153,12 @@ export function extractLaborPlanningMetrics(
   version: EstimateDomainVersion | null,
 ): EstimateLaborPlanningMetrics {
   if (!version) {
-    return { laborHours: 0, manDays: 0, crewDays: 0, durationDays: null };
+    return { laborHours: 0, manDays: 0, scheduledCrewDays: 0, durationDays: null };
   }
 
   let laborHours = 0;
   let manDays = 0;
-  let crewDays = 0;
+  let scheduledCrewDays = 0;
   let durationDays = 0;
   let hasDuration = false;
 
@@ -165,7 +166,7 @@ export function extractLaborPlanningMetrics(
     const metrics = parseMetrics(task);
     laborHours += safeEstimateNumber(metrics.adjustedLaborHours ?? metrics.laborHours);
     manDays += safeEstimateNumber(metrics.manDays);
-    crewDays += safeEstimateNumber(metrics.crewDays);
+    scheduledCrewDays += safeEstimateNumber(metrics.crewDays);
 
     const duration = toFiniteNumber(metrics.durationDays);
     if (duration != null) {
@@ -177,7 +178,7 @@ export function extractLaborPlanningMetrics(
   return {
     laborHours,
     manDays,
-    crewDays,
+    scheduledCrewDays,
     durationDays: hasDuration && durationDays > 0 ? durationDays : null,
   };
 }
@@ -354,9 +355,9 @@ export function buildEstimateTotalsReviewFromConstructionActivities(
     laborMetrics: {
       laborHours: laborPlanning.laborHours,
       manDays: laborPlanning.manDays,
-      crewDays: laborPlanning.crewDays,
+      scheduledCrewDays: laborPlanning.scheduledCrewDays,
       durationDays:
-        laborPlanning.estimatedDurationDays > 0 ? laborPlanning.estimatedDurationDays : null,
+        laborPlanning.projectDurationDays > 0 ? laborPlanning.projectDurationDays : null,
     },
     percentBreakdown: buildPercentBreakdown(rollups, costTotals, totals.grandTotal),
     hasTotals: activities.length > 0,
@@ -381,7 +382,7 @@ export function buildEstimateTotalsReviewFromConceptualRollup(
         tax: 0,
         finalSellPrice: 0,
       },
-      laborMetrics: { laborHours: 0, manDays: 0, crewDays: 0, durationDays: null },
+      laborMetrics: { laborHours: 0, manDays: 0, scheduledCrewDays: 0, durationDays: null },
       percentBreakdown: buildPercentBreakdown(
         { labor: 0, materials: 0, equipment: 0, subcontractors: 0 },
         { ...ZERO_TOTALS },
@@ -414,7 +415,7 @@ export function buildEstimateTotalsReviewFromConceptualRollup(
       tax: costTotals.tax,
       finalSellPrice,
     },
-    laborMetrics: { laborHours: 0, manDays: 0, crewDays: 0, durationDays: null },
+    laborMetrics: { laborHours: 0, manDays: 0, scheduledCrewDays: 0, durationDays: null },
     percentBreakdown: buildPercentBreakdown(rollups, costTotals, finalSellPrice),
     hasTotals: finalSellPrice > 0 || costTotals.directCost > 0,
   };
