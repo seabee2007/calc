@@ -96,8 +96,17 @@ import { formatChangeOrderMoney } from '../utils/changeOrderFinancials';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 
-const PROPOSAL_CANVAS =
-  'min-h-screen bg-[#020817] text-slate-100 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_35%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_30%)]';
+const PROPOSAL_PAGE_BG =
+  'bg-[#020817] bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020817_0%,#07111f_45%,#020817_100%)]';
+const PROPOSAL_PAGE_SHELL =
+  'relative min-h-screen w-full overflow-x-hidden text-slate-100';
+
+const ProposalPageBackground: React.FC = () => (
+  <div
+    className={`pointer-events-none fixed inset-0 -z-10 ${PROPOSAL_PAGE_BG}`}
+    aria-hidden
+  />
+);
 const PAGE_TITLE = 'text-3xl font-bold tracking-tight text-white sm:text-4xl';
 const PAGE_SUBTITLE = 'mt-2 max-w-3xl text-sm text-slate-300 sm:text-base';
 const SECTION_CARD = `${PREMIUM_PANEL} p-5 sm:p-6`;
@@ -1096,6 +1105,8 @@ const ProposalGenerator: React.FC = () => {
   if (showPreview) {
     return (
       <>
+      <ProposalPageBackground />
+      <div className={PROPOSAL_PAGE_SHELL}>
       <AppPage data-testid="proposal-preview-page" className="pt-0">
         <motion.div
           initial={{ opacity: 0 }}
@@ -1139,6 +1150,7 @@ const ProposalGenerator: React.FC = () => {
           </div>
         </motion.div>
       </AppPage>
+      </div>
       {proposalFeedbackModals}
       </>
     );
@@ -1147,18 +1159,25 @@ const ProposalGenerator: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center py-24">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-cyan-600 dark:border-cyan-400" />
-        <p className="mt-4 text-slate-600 dark:text-slate-300">Loading proposal...</p>
-      </div>
+      <>
+        <ProposalPageBackground />
+        <div className={PROPOSAL_PAGE_SHELL}>
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-center py-24">
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-cyan-400" />
+            <p className="mt-4 text-slate-300">Loading proposal...</p>
+          </div>
+        </div>
+      </>
     );
   }
 
   return (
+    <>
+    <ProposalPageBackground />
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={PROPOSAL_CANVAS}
+      className={PROPOSAL_PAGE_SHELL}
     >
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <WorkflowStepHeader />
@@ -1823,6 +1842,7 @@ const ProposalGenerator: React.FC = () => {
       {proposalFeedbackModals}
       </div>
     </motion.div>
+    </>
   );
 };
 
