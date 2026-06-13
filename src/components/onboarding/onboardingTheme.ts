@@ -1,4 +1,4 @@
-/** Shared Concrete Calc onboarding dark theme — matches auth/landing brand. */
+/** Shared Arden Project OS onboarding dark theme — matches auth/landing brand. */
 
 export const ONBOARDING_INPUT =
   'w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 outline-none transition focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 disabled:cursor-not-allowed disabled:bg-slate-900/60 disabled:text-slate-400 disabled:border-white/10';

@@ -4,6 +4,7 @@ import Modal from '../ui/Modal';
 import TermsOfService from '../legal/TermsOfService';
 import PrivacyPolicy from '../legal/PrivacyPolicy';
 import ContactUs from '../legal/ContactUs';
+import { BRAND_NAME } from '../../config/brand';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -21,8 +22,12 @@ const Footer: React.FC = () => {
         <div className="flex flex-col items-center space-y-4">
           <div className="flex items-center">
             <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Arden Project OS</span>
+            <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">{BRAND_NAME}</span>
           </div>
+
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            Built for construction professionals.
+          </p>
           
           <div className="flex flex-col md:flex-row md:space-x-8 text-sm text-gray-600 dark:text-gray-400 items-center">
           <button
@@ -52,7 +57,7 @@ const Footer: React.FC = () => {
           
           <div className="pt-4 border-t border-gray-200 dark:border-gray-800 w-full">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              © {currentYear} Arden Project OS. Made for Professionals.
+              © {currentYear} {BRAND_NAME}. All rights reserved.
             </p>
           </div>
         </div>

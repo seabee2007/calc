@@ -91,9 +91,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.6 }}
-                  className={`${ONBOARDING_SUBTITLE} text-2xl`}
+                  className={`${ONBOARDING_SUBTITLE} text-xl sm:text-2xl`}
                 >
-                  Let&apos;s get you started
+                  Set up your construction workspace for estimates, proposals, schedules, field
+                  records, and project controls.
                 </motion.p>
 
                 <motion.p
@@ -102,7 +103,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNext, onSkip }) => {
                   transition={{ delay: 0.7, duration: 0.6 }}
                   className="text-lg text-slate-400"
                 >
-                  Take a moment to set up your profile for the best experience
+                  Take a moment to set up your profile for the best experience.
                 </motion.p>
               </div>
 

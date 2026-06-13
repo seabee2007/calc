@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { NavigateFunction } from 'react-router-dom';
 import {
   BRAND_NAME,
+  BRAND_SHORT_NAME,
+  SUPPORT_EMAIL,
   getAppLoginUrl,
   getAppSignupUrl,
   getAppUrl,
@@ -12,6 +14,8 @@ import {
 describe('brand config', () => {
   it('exports Arden brand name', () => {
     expect(BRAND_NAME).toBe('Arden Project OS');
+    expect(BRAND_SHORT_NAME).toBe('Arden');
+    expect(SUPPORT_EMAIL).toBe('support@ardenprojectos.com');
   });
 
   it('builds app auth URLs', () => {

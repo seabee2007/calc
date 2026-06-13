@@ -1,17 +1,19 @@
 import React from 'react';
+import { BRAND_NAME, SUPPORT_EMAIL } from '../../config/brand';
 
 const UserAgreement: React.FC = () => {
   return (
     <div className="prose prose-sm max-w-none">
-      <h2 className="text-xl font-semibold mb-4">Arden Project OS User Agreement</h2>
+      <h2 className="text-xl font-semibold mb-4">{BRAND_NAME} User Agreement</h2>
       <p className="text-sm text-gray-500 mb-4">Effective Date: May 22, 2025</p>
 
       <p className="mb-4">
         This User Agreement (&quot;Agreement&quot;) is a binding legal contract between you
-        (&quot;You,&quot; &quot;User&quot;) and Arden Project OS (&quot;Arden Project OS,&quot;
-        &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). By accessing or using the Arden Project
-        OS web application (the &quot;App&quot;), you agree to be bound by this Agreement. If you do not
-        agree to any provision of this Agreement, do not use the App.
+        (&quot;You,&quot; &quot;User&quot;) and [Insert Legal Entity Name] doing business as{' '}
+        {BRAND_NAME} (&quot;{BRAND_NAME},&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
+        By accessing or using the {BRAND_NAME} web application (the &quot;App&quot;), you agree to be
+        bound by this Agreement. If you do not agree to any provision of this Agreement, do not use
+        the App.
       </p>
 
       <section className="mb-6">
@@ -108,8 +110,8 @@ const UserAgreement: React.FC = () => {
       <section className="mt-8 pt-4 border-t">
         <p className="text-sm text-gray-600">
           <strong>Contact:</strong><br />
-          Arden Project OS<br />
-          Email: support@ardenprojectos.com<br />
+          {BRAND_NAME}<br />
+          Email: {SUPPORT_EMAIL}<br />
           Address: [Insert Legal Business Mailing Address]
         </p>
       </section>

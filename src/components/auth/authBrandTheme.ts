@@ -1,4 +1,4 @@
-/** Shared Concrete Calc logged-out brand accent (cyan family). */
+/** Shared Arden Project OS logged-out brand accent (cyan family). */
 export const AUTH_ACCENT = {
   brandLabel: 'text-cyan-300/90',
   brandLabelMobile: 'text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/90',

@@ -8,6 +8,7 @@ import {
   LEGAL_MODAL_ROOT,
   LEGAL_MODAL_SECTION,
 } from './legalModalStyles';
+import { BRAND_NAME, SUPPORT_EMAIL } from '../../config/brand';
 
 const TermsOfService: React.FC = () => {
   return (
@@ -24,8 +25,8 @@ const TermsOfService: React.FC = () => {
         </p>
         <p>
           These Terms form a legally binding agreement between you and{' '}
-          <strong>Arden Project OS</strong> (&ldquo;Arden Project OS,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo;
-          or &ldquo;our&rdquo;).
+          <strong>[Insert Legal Entity Name]</strong> doing business as Arden Project OS
+          (&ldquo;Arden Project OS,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;).
         </p>
         <p>
           By creating an account, accessing the Service, using a free trial, subscribing to a paid plan,
@@ -834,8 +835,8 @@ const TermsOfService: React.FC = () => {
         <h3 className={`${LEGAL_MODAL_H3} mb-2`}>41. Entire Agreement</h3>
         <p>
           These Terms, together with the Privacy Policy, any applicable order form, subscription terms, plan
-          terms, or written agreement between you and us, make up the entire agreement between you and Concrete
-          Calc regarding the Service.
+          terms, or written agreement between you and us, make up the entire agreement between you and
+          Arden Project OS regarding the Service.
         </p>
         <p>
           If there is a conflict between these Terms and a separate written agreement signed by both parties,
@@ -848,12 +849,12 @@ const TermsOfService: React.FC = () => {
         <p>If you have questions about these Terms, contact us at:</p>
         <address className="not-italic mt-2 space-y-1">
           <p>
-            <strong>Arden Project OS</strong>
+            <strong>{BRAND_NAME}</strong>
           </p>
           <p>
             Email:{' '}
-            <a href="mailto:support@ardenprojectos.com" className={LEGAL_MODAL_LINK}>
-              support@ardenprojectos.com
+            <a href={`mailto:${SUPPORT_EMAIL}`} className={LEGAL_MODAL_LINK}>
+              {SUPPORT_EMAIL}
             </a>
           </p>
           <p>

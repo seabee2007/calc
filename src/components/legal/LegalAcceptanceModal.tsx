@@ -72,9 +72,10 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
             Review and Accept Terms
           </h1>
           <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-            Before continuing, please review and accept the current Terms of Service and Privacy
-            Policy. These documents explain your responsibilities when using Arden Project OS for
-            estimates, proposals, schedules, exports, emails, billing, and project records.
+            To continue using Arden Project OS, please review and accept the latest Terms of Service
+            and Privacy Policy. These documents explain your responsibilities when using the platform
+            for estimates, proposals, schedules, field records, exports, emails, billing, and project
+            controls.
           </p>
         </div>
 
@@ -103,7 +104,7 @@ const LegalAcceptanceModal: React.FC<LegalAcceptanceModalProps> = ({
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/80"
           >
             <FileText className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
-            View Terms of Service
+            View Terms
             <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
           </button>
           <button

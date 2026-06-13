@@ -1,6 +1,8 @@
 import type { NavigateFunction } from 'react-router-dom';
 
 export const BRAND_NAME = 'Arden Project OS';
+export const BRAND_SHORT_NAME = 'Arden';
+export const SUPPORT_EMAIL = 'support@ardenprojectos.com';
 
 export const MARKETING_URL =
   import.meta.env.VITE_MARKETING_URL ?? 'https://ardenprojectos.com';
@@ -24,6 +26,13 @@ export function normalizeUrlBase(url: string): string {
 
 export function getAppUrl(path = ''): string {
   const base = normalizeUrlBase(APP_URL);
+  if (!path) return base;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${normalizedPath}`;
+}
+
+export function getMarketingUrl(path = ''): string {
+  const base = normalizeUrlBase(MARKETING_URL);
   if (!path) return base;
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${base}${normalizedPath}`;
